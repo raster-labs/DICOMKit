@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — ViewModel for CLI Tools Workshop (Milestone 16)
+// NEMA-verified: 2026a, checked 2026-10-05 — the 33 CLI Workshop executors read against Sources/dicom-*: every executor runs the shared DICOMKit / DICOMNetwork / DICOMWeb engine and console the CLI runs (FrameSplitter, DICOMDIRWorkflow, DICOMValidator, DICOMConverter, CompressionManager / CompressionConsole, ImageConverter / ImageConsole, EncapsulatedDocumentBuilder, PixelEditor, VideoWorkflow / VideoConsole, Anonymizer / PixelRedactor / AnonConsole, DICOMQueryService, DICOMRetrieveService, DICOMStorageService, WADO / QIDO / STOW / UPS clients), prints the CLI's lines, refusal texts and exit codes (64 usage / 1 / 2) in the CLI's order, and CLI-local rules are mirrored text-identically and script-checked (WorkshopFileSetRules, WorkshopWADOOptionRules, WorkshopAnonCLI, WorkshopSCOutput, WorkshopPDFEncapsulation, WorkshopDerivedImage, WorkshopTransferSyntaxKeywords, WorkshopNativeTargetSyntax, WorkshopVideoOptionConformance, WorkshopAudioChannelSourceOption; Scripts/diff_studio_g1.py); parity pinned by SplitMergeWorkshopCLIParityTests / NetworkToolWorkshopCLIParityTests and Scripts/diff_studio.py --group G1 (0 FAIL, 2 PEND: P-STUDIO-ANON-PS315, P-STUDIO-MWL-CREATE); standard values are the engines' — this file carries only mirrored CLI texts, no table of its own
 
 import Foundation
 import Observation
