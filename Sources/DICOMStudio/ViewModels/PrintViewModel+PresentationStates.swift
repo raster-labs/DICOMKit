@@ -1,6 +1,13 @@
 // PrintViewModel+PresentationStates.swift
 // DICOMStudio
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard literal of its own (no tag, UID, VR or
+// defined term): a film cell adopts a stored GSPS through the shared `ViewerPresentationStateBridge.restore`
+// (verified with DICOMKit / DICOMPrintKit), and since D42 (`6372e096`) hands it the image's Photometric
+// Interpretation read by `FrameRenderer.photometricInterpretation(path:)` so the Presentation LUT Shape is
+// applied per PS3.4 2026a N.2 (INVERSE on MONOCHROME1 is the upright picture); Displayed Area is restored in
+// source pixels against the cell's viewport (PS3.3 C.10.4).
+//
 // DICOM Studio — printing an image the way it was saved.
 //
 // A reader who saved "Lung window" on a slice has already decided how that
