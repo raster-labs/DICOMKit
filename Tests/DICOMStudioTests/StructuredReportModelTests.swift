@@ -121,7 +121,7 @@ struct CodingSchemeDesignatorTests {
         #expect(CodingSchemeDesignator.loinc.displayName == "LOINC")
         #expect(CodingSchemeDesignator.radlex.displayName == "RadLex")
         #expect(CodingSchemeDesignator.ucum.displayName == "UCUM")
-        #expect(CodingSchemeDesignator.dcm.displayName == "DICOM")
+        #expect(CodingSchemeDesignator.dcm.displayName == "DICOM Controlled Terminology")   // PS3.16 2026a Table 8-1
     }
 
     @Test("All schemes count is 5")

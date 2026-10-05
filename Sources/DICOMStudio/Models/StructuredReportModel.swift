@@ -3,7 +3,8 @@
 //
 // DICOM Studio — Structured Reporting models for Milestone 7
 // Reference: DICOM PS3.3 C.17 (SR Document), PS3.16 (Content Mapping Resources)
-// Supports all 8 SR document types, 15 content item value types, coded terminology
+// Supports 8 SR document types, 15 of the 16 content item value types, coded terminology
+// NEMA-verified: 2026a, checked 2026-10-05 — 8 SOP Class UIDs diffed against PS3.6 2026a Table A-1 (8 registered, names match; measurementReport reuses Enhanced SR Storage); ContentItemValueType 15 cases against PS3.3 2026a Table C.17.3-7 (16 rows: 15 match, TABLE missing — P-STUDIO-SR-TABLE); SRRelationshipType 7 cases against Table C.17.3-8 (7/7); ContinuityOfContent against Table C.18.8-1 (2/2); SpatialCoordGraphicType against C.18.6.1.2 (5 match, POLYGON is not a 2D SCOORD Graphic Type — P-STUDIO-SCOORD-POLYGON); SpatialCoord3DGraphicType against C.18.9.1.2 (6/6); TemporalRangeType against C.18.7.1.1 (6/6); CodingSchemeDesignator 5 designators against PS3.16 2026a Table 8-1 (5/5, DCM's name corrected to "DICOM Controlled Terminology"); CAD/BI-RADS/tracking enums are UI state
 
 import Foundation
 
@@ -179,7 +180,7 @@ public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseI
         case .loinc: return "LOINC"
         case .radlex: return "RadLex"
         case .ucum: return "UCUM"
-        case .dcm: return "DICOM"
+        case .dcm: return "DICOM Controlled Terminology"
         }
     }
 }
@@ -228,6 +229,9 @@ public struct CodedConcept: Sendable, Equatable, Hashable, Identifiable {
 // MARK: - Spatial Coordinate Type
 
 /// Graphic type for 2D spatial coordinates per PS3.3 C.18.6.
+///
+/// PS3.3 2026a C.18.6.1.2 enumerates POINT, MULTIPOINT, POLYLINE, CIRCLE and ELLIPSE; `polygon`
+/// is a 3D SCOORD3D term only (C.18.9.1.2) and is kept for source compatibility (P-STUDIO-SCOORD-POLYGON).
 public enum SpatialCoordGraphicType: String, Sendable, Equatable, Hashable, CaseIterable {
     /// Single point.
     case point = "POINT"

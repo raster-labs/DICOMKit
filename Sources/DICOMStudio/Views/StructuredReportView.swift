@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Structured Report viewer, builder, and terminology browser
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own (it shows the value type and relationship raw values of the model enums verified in StructuredReportModel.swift); UI state and layout
 
 #if canImport(SwiftUI)
 import SwiftUI

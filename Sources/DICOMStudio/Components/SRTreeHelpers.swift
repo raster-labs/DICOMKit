@@ -3,13 +3,14 @@
 //
 // DICOM Studio — Platform-independent SR tree navigation and display helpers
 // Reference: DICOM PS3.3 C.17.3 (SR Document Content Module)
+// NEMA-verified: 2026a, checked 2026-10-05 — switches over the 15 ContentItemValueType cases and 7 SRRelationshipType cases are exhaustive over the model enums verified in StructuredReportModel.swift (PS3.3 2026a Tables C.17.3-7 / C.17.3-8); the TABLE value type is absent (P-STUDIO-SR-TABLE); the rest is tree traversal, search and SF Symbol / colour mapping with no standard data
 
 import Foundation
 
 /// Platform-independent helpers for navigating and displaying SR document trees.
 ///
 /// Provides tree traversal, searching, flattening, and display formatting
-/// for all 15 content item value types.
+/// for the 15 content item value types the model carries.
 public enum SRTreeHelpers: Sendable {
 
     // MARK: - Tree Traversal
