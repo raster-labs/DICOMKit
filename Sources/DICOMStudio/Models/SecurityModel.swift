@@ -260,14 +260,20 @@ public enum AnonymizationProfile: String, Sendable, Equatable, Hashable, CaseIte
         }
     }
 
-    /// CLI flag value for --profile (matches dicom-anon).
+    /// The dicom-anon `--profile` value that runs the same attribute list as this
+    /// profile. The app's profiles are fixed attribute lists, not PS3.15 Annex E, so
+    /// they map to the CLI's deprecated `legacy-*` names: since 2026-10-01
+    /// (P-ANON-PROFILE) `--profile basic` is the PS3.15 Basic Application Level
+    /// Confidentiality Profile (Table E.1-1, UIDs replaced), which none of these
+    /// cases implements. HIPAA Safe Harbor and Custom run the legacy basic list in
+    /// the app (`SecurityViewModel.engineProfile`), so they name the same flag.
     public var cliFlag: String {
         switch self {
-        case .basic:            return "basic"
-        case .clinicalTrial:    return "clinical-trial"
-        case .research:         return "research"
-        case .hipaaeSafeHarbor: return "basic"   // HIPAA Safe Harbor uses basic profile in CLI
-        case .custom:           return "basic"
+        case .basic:            return "legacy-basic"
+        case .clinicalTrial:    return "legacy-clinical-trial"
+        case .research:         return "legacy-research"
+        case .hipaaeSafeHarbor: return "legacy-basic"
+        case .custom:           return "legacy-basic"
         }
     }
 
@@ -882,7 +888,9 @@ public enum AnonHelpers: Sendable {
         guard !inputPath.isEmpty else { return "dicom-anon <input>" }
         var cmd = "dicom-anon \"\(inputPath)\""
         if !outputPath.isEmpty { cmd += " --output \"\(outputPath)\"" }
-        if profile != .basic { cmd += " --profile \(profile.cliFlag)" }
+        // Always named: the CLI default is now the PS3.15 Basic Profile (ps315), which
+        // is not what any app profile runs, so an omitted flag would change behaviour.
+        cmd += " --profile \(profile.cliFlag)"
         if let days = shiftDates { cmd += " --shift-dates \(days)" }
         if regenerateUIDs { cmd += " --regenerate-uids" }
         for tag in removeTags  where !tag.isEmpty { cmd += " --remove \(tag)" }

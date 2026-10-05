@@ -523,4 +523,35 @@ struct SecurityModelTests {
         let result = PHIDetectionResult(filePath: "test.dcm")
         #expect(result.hasPHI == false)
     }
+
+    // MARK: - AnonymizationProfile ↔ dicom-anon --profile (PS3.15 2026a Annex E)
+
+    /// Since 2026-10-01 (P-ANON-PROFILE) dicom-anon's `--profile basic` is the PS3.15 Basic
+    /// Application Level Confidentiality Profile; the app's profiles are fixed attribute
+    /// lists, which the CLI names `legacy-basic`, `legacy-clinical-trial`, `legacy-research`.
+    @Test("AnonymizationProfile.cliFlag names the CLI's legacy list for every case, never the PS3.15 profile")
+    func testAnonymizationProfileCLIFlagsAreLegacyLists() {
+        let legacy: Set<String> = ["legacy-basic", "legacy-clinical-trial", "legacy-research"]
+        for profile in AnonymizationProfile.allCases {
+            #expect(legacy.contains(profile.cliFlag), Comment(rawValue: "\(profile) → \(profile.cliFlag)"))
+            #expect(profile.cliFlag != "basic" && profile.cliFlag != "ps315")
+        }
+        #expect(AnonymizationProfile.basic.cliFlag == "legacy-basic")
+        #expect(AnonymizationProfile.clinicalTrial.cliFlag == "legacy-clinical-trial")
+        #expect(AnonymizationProfile.research.cliFlag == "legacy-research")
+        #expect(AnonymizationProfile.hipaaeSafeHarbor.cliFlag == "legacy-basic")
+        #expect(AnonymizationProfile.custom.cliFlag == "legacy-basic")
+    }
+
+    @Test("AnonHelpers.buildCommand always names --profile (the CLI default is ps315, not the app's list)")
+    func testAnonCommandAlwaysNamesProfile() {
+        for profile in AnonymizationProfile.allCases {
+            let cmd = AnonHelpers.buildCommand(
+                inputPath: "/in/a.dcm", outputPath: "/out/a.dcm", profile: profile,
+                shiftDates: nil, regenerateUIDs: false, removeTags: [], replacePairs: [], keepTags: [],
+                recursive: false, dryRun: false, backup: false, auditLogPath: "", force: false, verbose: false)
+            #expect(cmd.contains(" --profile \(profile.cliFlag)"), Comment(rawValue: cmd))
+            #expect(!cmd.contains(" --profile basic"), Comment(rawValue: cmd))
+        }
+    }
 }

@@ -2213,10 +2213,10 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "profile", flag: "--profile", displayName: "Profile",
-                    parameterType: .enumPicker, placeholder: "basic",
-                    helpText: "Anonymization profile: basic removes 18 HIPAA identifiers; clinical-trial also strips dates; research removes minimum set",
-                    defaultValue: "basic",
-                    allowedValues: ["basic", "clinical-trial", "research"]
+                    parameterType: .enumPicker, placeholder: "legacy-basic",
+                    helpText: "Fixed attribute lists, deprecated in dicom-anon and not PS3.15 Annex E: legacy-basic removes or replaces 14 direct identifiers; legacy-clinical-trial also removes dates; legacy-research removes Patient's Name, ID and Birth Date only. The CLI default ps315 (PS3.15 Basic Application Level Confidentiality Profile, Table E.1-1) is not yet offered here",
+                    defaultValue: "legacy-basic",
+                    allowedValues: ["legacy-basic", "legacy-clinical-trial", "legacy-research"]
                 ),
                 CLIParameterDefinition(
                     id: "shift-dates", flag: "--shift-dates", displayName: "Shift Dates (days)",
@@ -4882,12 +4882,12 @@ public enum EducationalHelpers: Sendable {
             ]
         case "dicom-anon":
             return [
-                CLIExamplePreset(toolID: toolID, title: "Basic Anonymization",
-                                 presetDescription: "Anonymize using the basic profile",
-                                 commandString: "dicom-anon --profile basic --output /output/ scan.dcm"),
+                CLIExamplePreset(toolID: toolID, title: "Legacy Basic Anonymization",
+                                 presetDescription: "Anonymize with the legacy basic attribute list (not the PS3.15 Basic Profile, which is dicom-anon's default ps315)",
+                                 commandString: "dicom-anon --profile legacy-basic --output /output/ scan.dcm"),
                 CLIExamplePreset(toolID: toolID, title: "Dry Run Preview",
                                  presetDescription: "Preview anonymization changes without writing files",
-                                 commandString: "dicom-anon --profile basic --dry-run scan.dcm"),
+                                 commandString: "dicom-anon --profile legacy-basic --dry-run scan.dcm"),
             ]
         case "dicom-convert":
             return [

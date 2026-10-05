@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — DICOMStudio anonymization profile flags name the CLI's legacy lists (2026-10-05, DICOM 2026a)
+
+- **DICOMStudio** `AnonymizationProfile.cliFlag`: `basic`, `hipaaeSafeHarbor` and `custom` sent `--profile basic`, which since
+  2026-10-01 (P-ANON-PROFILE) runs dicom-anon's PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1, UIDs
+  replaced), not the fixed "remove direct identifiers" list the app's label describes and its in-app engine runs. The five
+  cases now map to `legacy-basic`, `legacy-clinical-trial`, `legacy-research`; `AnonHelpers.buildCommand` always names
+  `--profile` (the CLI default is now `ps315`). The CLI Workshop dicom-anon form offers the three `legacy-*` values
+  (default `legacy-basic`), its presets say "legacy basic attribute list", and its executor refuses `ps315` / `basic` with
+  exit 1 instead of silently running the legacy list. Offering the PS3.15 profile itself needs a new `AnonymizationProfile`
+  case (P-STUDIO-ANON-PS315, pending the owner). 4 tests (`SecurityModelTests`, `CLIWorkshopHelpersTests`).
+
 ### Changed — audio that breaks PS3.5 8.2.5 / 8.2.12 is rejected (2026-10-05, DICOM 2026a)
 
 - `VideoConformanceValidator.validate(probe:transferSyntax:)` raises `.audioNotPermitted` for each known violation found by

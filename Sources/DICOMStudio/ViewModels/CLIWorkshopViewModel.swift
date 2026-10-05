@@ -5465,7 +5465,7 @@ case "dicom-study":
         }
 
         let outputPath     = paramValue("output")
-        let profileStr     = paramValue("profile").isEmpty ? "basic" : paramValue("profile")
+        let profileStr     = paramValue("profile").isEmpty ? "legacy-basic" : paramValue("profile")
         let shiftDaysStr   = paramValue("shift-dates")
         let regenUIDs      = paramValue("regenerate-uids") == "true"
         let removeTagsRaw  = paramValue("remove")
@@ -5488,12 +5488,27 @@ case "dicom-study":
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
 
-        // Map CLI profile string to model enum
+        // Map the CLI profile string to the app's profile. The app's profiles are the
+        // CLI's deprecated `legacy-*` attribute lists; `ps315` and its alias `basic`
+        // (the PS3.15 Basic Profile, the CLI default since 2026-10-01) have no app
+        // profile yet, so they are refused rather than silently run as legacy-basic.
         let profile: AnonymizationProfile
-        switch profileStr {
-        case "clinical-trial": profile = .clinicalTrial
-        case "research":       profile = .research
-        default:               profile = .basic
+        switch profileStr.lowercased() {
+        case "legacy-clinical-trial", "clinical-trial", "clinicaltrial": profile = .clinicalTrial
+        case "legacy-research", "research":                               profile = .research
+        case "legacy-basic":                                              profile = .basic
+        case "ps315", "basic":
+            appendConsoleOutput("Error: --profile \(profileStr) is the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1), which the Workshop cannot run yet; use legacy-basic, legacy-clinical-trial or legacy-research, or run dicom-anon in the terminal.\n")
+            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: 1, output: "PS3.15 profile not available in the Workshop")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            return
+        default:
+            appendConsoleOutput("Error: Unknown --profile '\(profileStr)': use legacy-basic, legacy-clinical-trial or legacy-research (dicom-anon also accepts ps315 and its alias basic).\n")
+            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: 1, output: "Unknown profile")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            return
         }
 
         let shiftDays = Int(shiftDaysStr)

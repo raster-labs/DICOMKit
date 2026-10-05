@@ -691,7 +691,7 @@ public final class SecurityViewModel {
     // MARK: - Engine mapping (UI profile + flag strings -> shared DICOMKit engine)
 
     /// Maps the app's UI ``AnonymizationProfile`` onto the shared engine profile.
-    /// HIPAA Safe Harbor maps to the basic profile (matching the CLI's `cliFlag`);
+    /// HIPAA Safe Harbor maps to the legacy basic list (the CLI's `legacy-basic`, matching `cliFlag`);
     /// Custom uses the explicitly listed `--remove` tags as its removal set.
     private static func engineProfile(_ profile: AnonymizationProfile, removeTags: [String]) -> DICOMKit.AnonymizationProfile {
         switch profile {

@@ -1019,4 +1019,26 @@ struct CLIWorkshopHelpersTests {
         ]
         #expect(CommandBuilderHelpers.validateRequired(parameterValues: fullVals, parameterDefinitions: defs) == true)
     }
+
+    // MARK: - dicom-anon --profile (PS3.15 2026a Annex E; P-ANON-PROFILE)
+
+    @Test("Workshop dicom-anon --profile offers the CLI's legacy lists and defaults to legacy-basic, not the PS3.15 alias basic")
+    func testAnonProfilePickerMirrorsCLILegacyNames() {
+        let params = ToolCatalogHelpers.parameterDefinitions(for: "dicom-anon")
+        let profile = params.first { $0.flag == "--profile" }
+        #expect(profile != nil)
+        #expect(profile?.allowedValues == ["legacy-basic", "legacy-clinical-trial", "legacy-research"])
+        #expect(profile?.defaultValue == "legacy-basic")
+        #expect(profile?.helpText.contains("PS3.15") == true)
+    }
+
+    @Test("Workshop dicom-anon presets do not send --profile basic (now the PS3.15 Basic Profile)")
+    func testAnonPresetsUseLegacyBasic() {
+        let presets = EducationalHelpers.examplePresets(for: "dicom-anon")
+        #expect(!presets.isEmpty)
+        for preset in presets {
+            #expect(!preset.commandString.contains("--profile basic"), Comment(rawValue: preset.commandString))
+            #expect(preset.commandString.contains("--profile legacy-basic"), Comment(rawValue: preset.commandString))
+        }
+    }
 }
