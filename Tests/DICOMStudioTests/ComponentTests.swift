@@ -320,8 +320,34 @@ struct VRDescriptionsTests {
 
     @Test("Identifier VR full names")
     func testIdentifierVRFullNames() {
-        #expect(VRDescriptions.fullName(for: "UI") == "Unique Identifier")
+        #expect(VRDescriptions.fullName(for: "UI") == "Unique Identifier (UID)")
         #expect(VRDescriptions.fullName(for: "AE") == "Application Entity")
+        #expect(VRDescriptions.fullName(for: "UR")
+                == "Universal Resource Identifier or Universal Resource Locator (URI/URL)")
+    }
+
+    /// PS3.5 2026a Table 6.2-1: all 34 VRs with their "VR Name" column, verbatim.
+    static let table621: [(String, String)] = [
+        ("AE", "Application Entity"), ("AS", "Age String"), ("AT", "Attribute Tag"),
+        ("CS", "Code String"), ("DA", "Date"), ("DS", "Decimal String"), ("DT", "Date Time"),
+        ("FL", "Floating Point Single"), ("FD", "Floating Point Double"), ("IS", "Integer String"),
+        ("LO", "Long String"), ("LT", "Long Text"), ("OB", "Other Byte"), ("OD", "Other Double"),
+        ("OF", "Other Float"), ("OL", "Other Long"), ("OV", "Other 64-bit Very Long"),
+        ("OW", "Other Word"), ("PN", "Person Name"), ("SH", "Short String"), ("SL", "Signed Long"),
+        ("SQ", "Sequence of Items"), ("SS", "Signed Short"), ("ST", "Short Text"),
+        ("SV", "Signed 64-bit Very Long"), ("TM", "Time"), ("UC", "Unlimited Characters"),
+        ("UI", "Unique Identifier (UID)"), ("UL", "Unsigned Long"), ("UN", "Unknown"),
+        ("UR", "Universal Resource Identifier or Universal Resource Locator (URI/URL)"),
+        ("US", "Unsigned Short"), ("UT", "Unlimited Text"), ("UV", "Unsigned 64-bit Very Long"),
+    ]
+
+    @Test("Every VR of PS3.5 2026a Table 6.2-1 has its VR Name and a category")
+    func testAllTable621VRs() {
+        #expect(Self.table621.count == 34)
+        for (vr, name) in Self.table621 {
+            #expect(VRDescriptions.fullName(for: vr) == name, "\(vr)")
+            #expect(VRDescriptions.category(for: vr) != "other", "\(vr) must be categorised")
+        }
     }
 
     @Test("Date/time VR full names")
@@ -354,7 +380,7 @@ struct VRDescriptionsTests {
 
     @Test("Sequence VR full name")
     func testSequenceVRFullName() {
-        #expect(VRDescriptions.fullName(for: "SQ") == "Sequence")
+        #expect(VRDescriptions.fullName(for: "SQ") == "Sequence of Items")
     }
 
     @Test("Unknown VR returns uppercased code")
@@ -394,7 +420,7 @@ struct VRDescriptionsTests {
 
     @Test("Numeric VRs have numeric category")
     func testNumericCategory() {
-        let numericVRs = ["IS", "DS", "US", "SS", "UL", "SL", "FL", "FD"]
+        let numericVRs = ["IS", "DS", "US", "SS", "UL", "SL", "SV", "UV", "FL", "FD"]
         for vr in numericVRs {
             #expect(VRDescriptions.category(for: vr) == "numeric", "Expected numeric for \(vr)")
         }
@@ -402,7 +428,7 @@ struct VRDescriptionsTests {
 
     @Test("Binary VRs have binary category")
     func testBinaryCategory() {
-        let binaryVRs = ["OB", "OW", "OF", "OD", "UN"]
+        let binaryVRs = ["OB", "OW", "OL", "OV", "OF", "OD", "UN"]
         for vr in binaryVRs {
             #expect(VRDescriptions.category(for: vr) == "binary", "Expected binary for \(vr)")
         }

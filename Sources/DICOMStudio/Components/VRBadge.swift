@@ -2,6 +2,11 @@
 // DICOMStudio
 //
 // DICOM Studio — Value Representation badge component
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `VRDescriptions.fullName` diffed against the 34 VRs of PS3.5 2026a
+// Table 6.2-1 ("VR Name" column, verbatim): 25 matched, 2 corrected (UI "Unique Identifier (UID)", SQ "Sequence of
+// Items"), 7 added (AS, AT, OL, OV, SV, UV, UR); `category` covers all 34 (the grouping and the badge colours are UI
+// choices, not standard data).
 
 import Foundation
 
@@ -21,7 +26,8 @@ public enum VRDescriptions: Sendable {
         case "LO": return "Long String"
         case "SH": return "Short String"
         case "CS": return "Code String"
-        case "UI": return "Unique Identifier"
+        case "UI": return "Unique Identifier (UID)"
+        case "UR": return "Universal Resource Identifier or Universal Resource Locator (URI/URL)"
         case "DA": return "Date"
         case "TM": return "Time"
         case "DT": return "Date Time"
@@ -35,7 +41,13 @@ public enum VRDescriptions: Sendable {
         case "FD": return "Floating Point Double"
         case "OB": return "Other Byte"
         case "OW": return "Other Word"
-        case "SQ": return "Sequence"
+        case "SQ": return "Sequence of Items"
+        case "AS": return "Age String"
+        case "AT": return "Attribute Tag"
+        case "OL": return "Other Long"
+        case "OV": return "Other 64-bit Very Long"
+        case "SV": return "Signed 64-bit Very Long"
+        case "UV": return "Unsigned 64-bit Very Long"
         case "AE": return "Application Entity"
         case "LT": return "Long Text"
         case "ST": return "Short Text"
@@ -59,13 +71,13 @@ public enum VRDescriptions: Sendable {
         switch vr.uppercased() {
         case "PN", "LO", "SH", "CS", "LT", "ST", "UT", "UC":
             return "string"
-        case "UI", "AE":
+        case "UI", "AE", "UR", "AT":
             return "identifier"
-        case "DA", "TM", "DT":
+        case "DA", "TM", "DT", "AS":
             return "datetime"
-        case "IS", "DS", "US", "SS", "UL", "SL", "FL", "FD":
+        case "IS", "DS", "US", "SS", "UL", "SL", "SV", "UV", "FL", "FD":
             return "numeric"
-        case "OB", "OW", "OF", "OD", "UN":
+        case "OB", "OW", "OL", "OV", "OF", "OD", "UN":
             return "binary"
         case "SQ":
             return "sequence"
