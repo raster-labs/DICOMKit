@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Thread-safe service for File Operations & Drag-and-Drop (Milestone 22)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (drop handling and output path
+// resolution).
 
 import Foundation
 

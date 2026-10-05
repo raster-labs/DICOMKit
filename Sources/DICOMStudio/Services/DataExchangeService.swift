@@ -3,6 +3,9 @@
 //
 // DICOM Studio — Thread-safe service for Data Exchange & Export display state management
 // Reference: DICOM PS3.10 (Media Storage), PS3.18 Annex F (JSON), PS3.19 Annex A (XML)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (locked state store); the default target
+// Transfer Syntax 1.2.840.10008.1.2.1 is Explicit VR Little Endian (PS3.6 2026a Table A-1).
 
 import Foundation
 

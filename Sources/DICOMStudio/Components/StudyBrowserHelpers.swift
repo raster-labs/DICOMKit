@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent helpers for study browser logic
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (sorting, filtering and search over the
+// library models).
 
 import Foundation
 

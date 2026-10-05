@@ -3,6 +3,9 @@
 //
 // DICOM Studio — Archive Management view (dicom-archive)
 // Reference: DICOM PS3.10 (Media Storage and File Format)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (layout; the modality field is
+// `ModalityPicker`, verified with G2).
 
 #if canImport(SwiftUI)
 import SwiftUI

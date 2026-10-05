@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Models for file import operations
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (import results, validation rule
+// identifiers and progress).
 
 import Foundation
 

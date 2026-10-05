@@ -2,6 +2,10 @@
 // DICOMStudio
 //
 // DICOM Studio — DICOM file import service
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — DICM prefix at offset 128 after the 128-byte File Preamble (PS3.10
+// 2026a 7.1) via `ImportValidation` (G1); file extensions, copy layout and duplicate detection are not standard
+// data.
 
 import Foundation
 import DICOMKit

@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Tree node model for DICOM metadata display
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `isSequence` keys on VR SQ and `lengthString` names 0xFFFFFFFF
+// Undefined Length (PS3.5 2026a 7.1.2, 7.5); otherwise display plumbing with no standard values.
 
 import Foundation
 

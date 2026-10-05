@@ -13,6 +13,9 @@
 // So a row is built from the study *and* what is under it, not from the study
 // record alone. One summary type, used by both the list and the grid, so the two
 // cannot describe the same study differently.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (row text derived from the study, series
+// and instance models).
 
 import Foundation
 
