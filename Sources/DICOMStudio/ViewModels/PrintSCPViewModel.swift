@@ -9,6 +9,10 @@
 // UI state. Everything else is shared code: `DICOMPrintServer` speaks the
 // protocol, `FilmComposer` lays out the sheet, and the output sinks write it —
 // so what appears on this screen is the same film a headless emulator produces.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: the reported Printer Status
+// and Status Info (PS3.3 2026a Table C.13-9 / C.13.9.1) are DICOMPrintKit's EmulatedPrinterStatus values,
+// pushed to the handler unchanged, and every log line is worded by PrintSCPConsole.
 
 import Foundation
 import Observation

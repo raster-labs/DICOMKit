@@ -15,6 +15,13 @@
 // Options row: printer, film size, orientation, copies, layout gallery, More.
 // Behind More: printer tests, the marked images, everything the CLI exposes,
 // and the focused cell's own window and annotation controls.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — every print term offered here comes from DICOMPrintKit's
+// PrintOptionCatalog over DICOMNetwork's enums (verified in those modules against PS3.3 2026a Tables C.13-1,
+// C.13-3, C.13-5 and C.11-4); this file adds no literal of its own. Film Destination (2000,0040) now offers
+// BIN_i for any i ≥ 1 through FilmDestination.bin(n) — Table C.13-1 puts no maximum on the number of sorter
+// bins and the catalogue lists only BIN_1 and BIN_2. The bit-depth help cited Table C.13-3 for the Bits
+// Stored 8/12 rule; the rule is in the Image Box Pixel Presentation Module, Table C.13-5 (D23's sibling).
 
 #if canImport(SwiftUI)
 import SwiftUI
@@ -1609,6 +1616,28 @@ public struct PrintSettingsView: View {
         )
     }
 
+    // MARK: Film destination
+
+    /// The destination picker's selection: magazine, processor, or "a bin" —
+    /// every BIN_i reads as the one bin choice, so changing the bin number does
+    /// not deselect the picker and picking "Sorter bin" keeps the number already
+    /// set rather than resetting it to 1.
+    private var filmDestinationKindBinding: Binding<FilmDestination> {
+        Binding(
+            get: { FilmDestinationPicker.choice(for: viewModel.filmDestination) },
+            set: { viewModel.filmDestination =
+                FilmDestinationPicker.destination(choosing: $0, current: viewModel.filmDestination) }
+        )
+    }
+
+    /// The bin number, when the destination is a bin. Held at 1 or more.
+    private var filmDestinationBinBinding: Binding<Int> {
+        Binding(
+            get: { viewModel.filmDestination.binNumber ?? 1 },
+            set: { viewModel.filmDestination = FilmDestinationPicker.bin($0) }
+        )
+    }
+
     // MARK: Marks
 
     /// The marked images. Film order is the viewer's order, so it is reported
@@ -1699,11 +1728,30 @@ public struct PrintSettingsView: View {
                     }.labelsHidden()
                 }
                 stackedControl("Destination") {
-                    Picker("Destination", selection: $viewModel.filmDestination) {
-                        ForEach(PrintOptionCatalog.filmDestinations, id: \.cliToken) { entry in
-                            Text(entry.label).tag(entry.value)
+                    // Magazine, processor, or a sorter bin. The bins are one
+                    // choice with a number beside it rather than a fixed pair:
+                    // PS3.3 Table C.13-1 defines BIN_i with no maximum, and a
+                    // sorter with twelve bins is not served by BIN_1 and BIN_2.
+                    Picker("Destination", selection: filmDestinationKindBinding) {
+                        ForEach(FilmDestinationPicker.choices, id: \.label) { choice in
+                            Text(choice.label).tag(choice.value)
                         }
                     }.labelsHidden()
+                    if let bin = viewModel.filmDestination.binNumber {
+                        HStack(spacing: 6) {
+                            TextField("Bin", value: filmDestinationBinBinding, format: .number)
+                                .frame(width: 60)
+                                .monospacedDigit()
+                            Stepper("", value: filmDestinationBinBinding,
+                                    in: 1...FilmDestinationPicker.maximumOfferedBin)
+                                .labelsHidden()
+                            Text(FilmDestination.bin(bin).rawValue)
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                        }
+                        .help("Film sorter bin number, 1 or more (Film Destination BIN_i, "
+                              + "PS3.3 Table C.13-1).")
+                    }
                 }
                 stackedControl("Session label") {
                     TextField("Optional", text: $viewModel.sessionLabel)
@@ -1920,7 +1968,7 @@ public struct PrintSettingsView: View {
                     }
                     .labelsHidden()
                     .disabled(viewModel.sendRawPixels)
-                    .help("PS3.3 Table C.13-3 allows Bits Stored of 8 or 12 on the "
+                    .help("PS3.3 Table C.13-5 allows Bits Stored of 8 or 12 on the "
                         + "Basic Grayscale Image Box. 12-bit shows smoother gradients "
                         + "on film, but only where the printer supports it.")
                 }
@@ -2075,6 +2123,53 @@ public struct PrintSettingsView: View {
         }
     }
 
+}
+
+/// How the destination picker maps Film Destination (2000,0040) onto three
+/// choices.
+///
+/// PS3.3 2026a Table C.13-1 defines MAGAZINE, PROCESSOR and BIN_i, "numbered
+/// sequentially starting from 1 and no maximum is placed on the number of
+/// BINs". The picker shows the two named terms and one "Sorter bin" row; the
+/// bin number is a field beside it. Kept apart from the view so the mapping can
+/// be tested without SwiftUI.
+enum FilmDestinationPicker {
+
+    /// The row that stands for every BIN_i in the picker.
+    static let binChoice = FilmDestination.bin(1)
+
+    /// The picker's rows: the catalogue's named terms, then one bin row.
+    static let choices: [(value: FilmDestination, label: String)] = {
+        var rows = PrintOptionCatalog.filmDestinations
+            .filter { $0.value.binNumber == nil }
+            .map { (value: $0.value, label: $0.label) }
+        rows.append((value: binChoice, label: "Sorter bin"))
+        return rows
+    }()
+
+    /// The stepper's ceiling. Table C.13-1 sets none; a sorter with more than
+    /// this many bins is not a thing, and the field accepts any valid number.
+    static let maximumOfferedBin = 999
+
+    /// The picker row a destination is shown as: itself for the named terms,
+    /// the one bin row for any BIN_i.
+    static func choice(for destination: FilmDestination) -> FilmDestination {
+        destination.binNumber == nil ? destination : binChoice
+    }
+
+    /// The destination a picker choice means. Choosing the bin row keeps the
+    /// bin number already in force, if there is one.
+    static func destination(choosing choice: FilmDestination,
+                            current: FilmDestination) -> FilmDestination {
+        guard choice.binNumber != nil else { return choice }
+        return current.binNumber != nil ? current : binChoice
+    }
+
+    /// BIN_n for a typed number, held to the range the term allows: 1 or more,
+    /// and small enough for the 16-character CS value (PS3.5 Table 6.2-1).
+    static func bin(_ number: Int) -> FilmDestination {
+        .bin(min(max(1, number), FilmDestination.maximumBinNumber))
+    }
 }
 
 /// Sizes the print screen for the way it is being shown.

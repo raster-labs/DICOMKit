@@ -8,6 +8,13 @@
 // full size, with every film-box attribute it arrived with — which is the whole
 // reason to emulate a printer rather than buy one: a real film processor tells
 // an SCU developer nothing about why the sheet came out wrong.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the 13 attribute labels with tags in attributeRows (Film Size ID
+// (2010,0050) … Presentation LUT Shape (2050,0020)) text-diffed against PS3.6 2026a Table 6-1: 13 of 13 labels are the
+// attribute name of their tag ("Film Size" and "Magnification" were abbreviations and now read Film Size ID /
+// Magnification Type; Scripts/diff_studio_g6.py); the Printer Status picker lists DICOMPrintKit's
+// EmulatedPrinterStatus (Table C.13-9 NORMAL/WARNING/FAILURE) and the Print Job event help names the C.13-8
+// Execution Status progression PENDING → PRINTING → DONE. The attribute values shown are the received ones.
 
 #if canImport(SwiftUI)
 import SwiftUI
@@ -436,13 +443,13 @@ public struct PrintSCPView: View {
             ("Print Job UID", info.printJobUID),
             ("Film Session UID", info.filmSessionUID),
             ("Film Box UID", info.filmBoxUID),
-            ("Film Size (2010,0050)", info.filmSize),
+            ("Film Size ID (2010,0050)", info.filmSize),
             ("Film Orientation (2010,0040)", info.filmOrientation),
             ("Image Display Format (2010,0010)", info.imageDisplayFormat),
             ("Layout", "\(info.rows) × \(info.columns)"),
             ("Medium Type (2000,0030)", info.mediumType),
             ("Number of Copies (2000,0010)", "\(info.numberOfCopies)"),
-            ("Magnification (2010,0060)", info.magnificationType),
+            ("Magnification Type (2010,0060)", info.magnificationType),
             ("Border Density (2010,0100)", info.borderDensity),
             ("Empty Image Density (2010,0110)", info.emptyImageDensity),
             ("Trim (2010,0140)", info.trim)

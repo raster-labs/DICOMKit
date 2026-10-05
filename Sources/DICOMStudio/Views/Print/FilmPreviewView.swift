@@ -3,6 +3,11 @@
 //
 // DICOM Studio — what the film will actually look like, and where it is fixed.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — Border Density (2010,0100) and Empty Image Density (2010,0110) are
+// drawn for the three forms PS3.3 2026a Table C.13-3 defines — BLACK, WHITE, and i in hundredths of OD (read
+// as FilmComposer reads it); the sheet's shape comes from DICOMPrintKit's FilmSheet for the job's Film Size ID
+// and Film Orientation; Trim YES draws the composer's corner marks. No other standard literal is carried.
+//
 // The preview exists to make spillover obvious: images beyond one layout's
 // cells land on additional films, and the count is easy to get wrong when the
 // layout is chosen by hand.

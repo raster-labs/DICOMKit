@@ -17,6 +17,10 @@
 // Without this the range fell back to each mark's *position* in the tray, which
 // is the same number only when a series is marked whole, from image one, with
 // nothing skipped. Any other selection printed a run the reader did not ask for.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the three tags read — Instance Number (0020,0013), Series Description
+// (0008,103E), Modality (0008,0060) — checked against PS3.6 2026a Table 6-1 (names and tags match;
+// Scripts/diff_studio_g6.py); the parse stops at Instance Number because it follows the other two in tag order.
 
 import Foundation
 import DICOMCore

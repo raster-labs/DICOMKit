@@ -9,6 +9,11 @@
 // ``PrintService/prepare(items:request:useViewerWindow:applyViewerPresentation:onProgress:)``
 // reads — so the preview cannot drift away from the film. Nothing here renders,
 // and nothing here is print-only state.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the colour test reads Samples per Pixel (0028,0002) first and falls back
+// to Photometric Interpretation, treating MONOCHROME1 and MONOCHROME2 (PS3.3 2026a C.7.6.3.1.2 terms) as
+// grey — the rule PS3.3 Table C.13-5 fixes for the Basic Color Image Box (RGB, 3 samples). Polarity REVERSE
+// (2020,0020) and the Presentation LUT inverse compose as FilmComposer composes them; no other literal.
 
 import Foundation
 import DICOMCore

@@ -4,6 +4,13 @@
 // DICOM Studio — state for the print settings sheet, printer management, and
 // job execution. All print behavior comes from DICOMPrintKit; this type only
 // holds UI state and sequences the calls.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the job settings are DICOMNetwork enums (PrintPriority, MediumType,
+// FilmDestination, FilmSize, FilmOrientation, MagnificationType, TrimOption, ImagePolarity, PresentationLUTShape),
+// whose raw values were verified against PS3.3 2026a Tables C.13-1 / C.13-3 / C.13-5 / C.11-4 in DICOMNetwork; the
+// two density literals BLACK are Table C.13-3 Border / Empty Image Density terms, and the hand-typed Image Display
+// Format (default ROW\1,2) is validated by DICOMPrintKit's PrintImageDisplayFormat against C.13.3 before it is sent.
+// The execution-status re-query shows the printer's own Execution Status (C.13-8) string unchanged.
 
 import Foundation
 import Observation
