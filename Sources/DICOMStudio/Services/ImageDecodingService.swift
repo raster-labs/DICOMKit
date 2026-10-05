@@ -5,6 +5,8 @@
 //
 // Routes pixel data extraction through `CodecRegistry` and records timing and
 // backend metadata so the codec inspector panel can display them.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the progressive previews are now rendered through `DICOMImageExporter.renderFrameForExport`, the PS3.4 2026a N.2 chain (Modality LUT, then the window in modality units, PS3.3 C.11.2.1.2.1), where they used `DICOMFile.renderFrame(_:window:)` / `renderFrameWithStoredWindow` (header window on stored values, D65): corrected, and the window parameters are documented as modality units; the default Transfer Syntax when the file names none is Explicit VR Little Endian 1.2.840.10008.1.2.1 (PS3.6 Table A-1) via DICOMCore; codec names are the codec pass's (ImageMetadata / CodecInspectorHelpers); checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 import DICOMKit
@@ -111,8 +113,10 @@ public final class ImageDecodingService: Sendable {
     ///
     /// - Parameters:
     ///   - file: The parsed `DICOMFile`.
-    ///   - windowCenter: Window centre for rendering (nil = use stored value).
-    ///   - windowWidth: Window width for rendering (nil = use stored value).
+    ///   - windowCenter: Window Center for rendering, in the units the file's
+    ///     Modality LUT puts out (PS3.3 C.11.2.1.2.1; HU on CT). nil = the
+    ///     file's own VOI.
+    ///   - windowWidth: Window Width in the same units (nil = the file's own).
     /// - Returns: `AsyncStream` of `(ProgressiveDecodeLevel, CGImage, Double)` triples —
     ///   level, the rendered image at that level, and the cumulative decode time in ms.
     public func decodeProgressively(
@@ -134,13 +138,17 @@ public final class ImageDecodingService: Sendable {
             // is safe to transfer into Task.detached.
             Task.detached {
                 let start = Date()
-                // Decode the full-resolution CGImage once.
+                // Decode the full-resolution CGImage once, through the PS3.4
+                // N.2 chain shared with export and the viewer: the Modality
+                // LUT, then the window applied to its output.
                 let fullImage: CGImage?
-                if let center = windowCenter, let width = windowWidth {
-                    let window = WindowSettings(center: center, width: width)
-                    fullImage = file.renderFrame(0, window: window)
+                if let pixelData = file.pixelData() {
+                    let explicit = windowCenter != nil && windowWidth != nil
+                    fullImage = try? DICOMImageExporter.renderFrameForExport(
+                        file: file, pixelData: pixelData, frameIndex: 0,
+                        applyWindow: explicit, windowCenter: windowCenter, windowWidth: windowWidth)
                 } else {
-                    fullImage = file.renderFrameWithStoredWindow(0)
+                    fullImage = nil
                 }
                 let decodeMs = Date().timeIntervalSince(start) * 1000.0
 

@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Image rendering service wrapping DICOMKit APIs
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — frames are now rendered through DICOMKit's `DICOMImageExporter.renderFrameForExport`, i.e. the PS3.4 2026a N.2 chain: the file's Modality LUT, then the window in the units it puts out (PS3.3 C.11.2.1.2.1), then the Presentation LUT the photometric implies; the service used `DICOMFile.renderFrame(_:window:)` / `renderFrameWithStoredWindow`, which apply the header's window to stored values and so misplace it by the rescale (D65): corrected; the window parameters are documented as modality units; descriptor and header-window reads carry no standard data of their own; checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 import DICOMKit
@@ -23,11 +25,17 @@ public final class ImageRenderingService: Sendable {
 
     /// Renders a specific frame from a DICOM file.
     ///
+    /// Through the PS3.4 N.2 chain — the file's Modality LUT, then the window
+    /// applied to its output (PS3.3 C.11.2.1.2.1), then the Presentation LUT
+    /// the photometric implies — by the policy shared with export and the
+    /// viewer, ``DICOMImageExporter/renderFrameForExport``.
+    ///
     /// - Parameters:
     ///   - filePath: Path to the DICOM file.
     ///   - frameIndex: Frame index (0-based).
-    ///   - windowCenter: Optional window center override.
-    ///   - windowWidth: Optional window width override.
+    ///   - windowCenter: Optional Window Center, in the units the Modality LUT
+    ///     puts out (HU on CT) — the header's units, not stored values.
+    ///   - windowWidth: Optional Window Width, in the same units.
     /// - Returns: Rendered CGImage, or nil if rendering fails.
     /// - Throws: Error if the file cannot be read.
     public func renderFrame(
@@ -39,22 +47,21 @@ public final class ImageRenderingService: Sendable {
         let url = URL(fileURLWithPath: filePath)
         let data = try Data(contentsOf: url)
         let file = try DICOMFile.read(from: data)
-
-        if let center = windowCenter, let width = windowWidth {
-            let window = WindowSettings(center: center, width: width)
-            return file.renderFrame(frameIndex, window: window)
-        }
-
-        return file.renderFrameWithStoredWindow(frameIndex)
+        return renderFrame(from: file, frameIndex: frameIndex,
+                           windowCenter: windowCenter, windowWidth: windowWidth)
     }
 
     /// Renders a frame using a DICOMFile that has already been parsed.
     ///
+    /// Same chain as ``renderFrame(filePath:frameIndex:windowCenter:windowWidth:)``.
+    /// Without a window the file's own VOI is resolved: its Window Center /
+    /// Width, else its VOI LUT Sequence, else the frame's range.
+    ///
     /// - Parameters:
     ///   - file: The parsed DICOMFile.
     ///   - frameIndex: Frame index (0-based).
-    ///   - windowCenter: Optional window center override.
-    ///   - windowWidth: Optional window width override.
+    ///   - windowCenter: Optional Window Center, in modality units.
+    ///   - windowWidth: Optional Window Width, in modality units.
     /// - Returns: Rendered CGImage, or nil if rendering fails.
     public func renderFrame(
         from file: DICOMFile,
@@ -62,12 +69,11 @@ public final class ImageRenderingService: Sendable {
         windowCenter: Double? = nil,
         windowWidth: Double? = nil
     ) -> CGImage? {
-        if let center = windowCenter, let width = windowWidth {
-            let window = WindowSettings(center: center, width: width)
-            return file.renderFrame(frameIndex, window: window)
-        }
-
-        return file.renderFrameWithStoredWindow(frameIndex)
+        guard let pixelData = file.pixelData() else { return nil }
+        let explicit = windowCenter != nil && windowWidth != nil
+        return try? DICOMImageExporter.renderFrameForExport(
+            file: file, pixelData: pixelData, frameIndex: frameIndex,
+            applyWindow: explicit, windowCenter: windowCenter, windowWidth: windowWidth)
     }
 
     #endif

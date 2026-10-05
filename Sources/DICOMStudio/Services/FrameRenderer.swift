@@ -3,6 +3,8 @@
 //
 // DICOM Studio — rendering one frame of a file on disk, arranged.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — tiles and film cells render through the PS3.4 2026a N.2 chain (D65, D68): `resolvedPipeline` puts a stored-unit window back into modality units (c·m+b, w·|m|) or takes an output-unit one as is, drops a LINEAR width under 1 (PS3.3 C.11.2.1.2.1: w ≥ 1) and asks DICOMKit's `determineDisplayPipeline` for the Modality LUT, VOI (window or VOI LUT Sequence, C.11.2) and Presentation LUT (MONOCHROME1 → INVERSE, C.7.6.3.1.2); `request` carries them with the ICC Profile (0028,2000) (C.11.15.1.1) to the renderer, which was given a stored-unit window; `photometricInterpretation(path:)` reads (0028,0004) for the bridge's Presentation LUT fold (N.2.1.4); the arrangement (crop, rotate, flip, invert) and the overlay burn-in carry no standard data of their own; checked by Scripts/diff_studio_g2_viewer.py
+//
 // Shared by the film preview and the viewer's unfocused tiles: both need "this
 // frame, windowed and arranged the way the user left it, at a size that suits
 // the box it goes in", and both must agree with what the printer will produce.
@@ -64,15 +66,18 @@ enum FrameRenderer {
 
     /// Decodes, windows, arranges and scales one frame, off the main actor.
     ///
-    /// A supplied window is normally already in stored-value space — it comes
-    /// from the live viewer, which divides the header VOI through the rescale
-    /// pair — so it is used as given. A window declared in output units (the
-    /// print sheet's job-wide window, which a user types in HU) is converted
-    /// first, through the same shared policy. Without a window at all, the
-    /// image's own is resolved through
-    /// the shared export policy: the header VOI *rescale-adjusted*, then the
-    /// frame's pixel range. That is the same resolution the focused viewport
-    /// performs on load, so an un-windowed tile matches the image beside it.
+    /// A supplied window is normally in stored-value space — it comes from the
+    /// live viewer, which holds the header VOI divided through the rescale pair
+    /// — and is converted back to modality units through the same pair. A
+    /// window declared in output units (the print sheet's job-wide window,
+    /// which a user types in HU) is already in them. Either way the frame is
+    /// rendered through the PS3.4 N.2 chain — the file's Modality LUT, then the
+    /// window applied to its output (PS3.3 C.11.2.1.2.1) — by the shared export
+    /// policy, ``DICOMImageExporter/determineDisplayPipeline``. Without a window
+    /// at all the image's own VOI is resolved by that policy: the header window,
+    /// else the VOI LUT Sequence, else the frame's range. That is the same
+    /// resolution the focused viewport performs on load, so an un-windowed tile
+    /// matches the image beside it.
     ///
     /// Note what must NOT be used here: ``DICOMFile/renderFrameWithStoredWindow``
     /// hands the raw Window Center straight to the renderer, which reads *stored*
@@ -104,7 +109,7 @@ enum FrameRenderer {
             let isMonochrome = source.pixelData.descriptor
                 .photometricInterpretation.isMonochrome
 
-            let window = resolvedWindow(
+            let pipeline = resolvedPipeline(
                 file: file, pixelData: source.pixelData, frameIndex: frameIndex,
                 isMonochrome: isMonochrome,
                 windowCenter: windowCenter, windowWidth: windowWidth,
@@ -114,12 +119,8 @@ enum FrameRenderer {
             // service decides, and its output is byte-identical either way, so a
             // tile rendered on the GPU and the film it is printed on — which stays
             // on the CPU — cannot disagree.
-            let rendered = FrameRenderService.shared.renderFrame(FrameRenderRequest(
-                pixelData: source.pixelData,
-                frameIndex: frameIndex,
-                window: window,
-                paletteLUT: source.paletteLUT
-            ))
+            let rendered = FrameRenderService.shared.renderFrame(
+                request(source: source, frameIndex: frameIndex, pipeline: pipeline))
             guard var image = rendered else { return nil }
 
             // Colour before the overlays and the arrangement, matching the film:
@@ -144,15 +145,24 @@ enum FrameRenderer {
         }.value
     }
 
-    /// Which window a frame gets, as one shared decision.
+    /// Which grayscale chain a frame gets, as one shared decision.
     ///
-    /// Window *resolution* is the policy `DICOMImageExporter` owns, and both the
+    /// VOI *resolution* is the policy `DICOMImageExporter` owns, and both the
     /// CLI and the app must reach the same answer. Only the per-pixel mapping
-    /// varies by backend — each is handed a resolved window and applies it.
+    /// varies by backend — each is handed the resolved chain and applies it.
+    ///
+    /// The chain is PS3.4 N.2's: this frame's Modality LUT (the Modality LUT
+    /// Sequence, else its Rescale pair), then the VOI in modality units (PS3.3
+    /// C.11.2.1.2.1), then the Presentation LUT the photometric implies. A
+    /// window in stored values — the viewer's convention — is put back into
+    /// modality units through the same rescale pair it was divided by, which
+    /// is the identity when the file windows through a table LUT; one in
+    /// output units is already there. `nil` for colour frames, which have no
+    /// grayscale chain.
     ///
     /// Shared by the CPU tile path and the GPU texture path below so a tile cannot
     /// change window merely by changing which renderer drew it.
-    static func resolvedWindow(
+    static func resolvedPipeline(
         file: DICOMFile,
         pixelData: PixelData,
         frameIndex: Int,
@@ -160,23 +170,54 @@ enum FrameRenderer {
         windowCenter: Double?,
         windowWidth: Double?,
         windowSpace: PrintWindowSpace
-    ) -> WindowSettings? {
+    ) -> GrayscaleDisplayPipeline? {
         guard isMonochrome else { return nil }
-        guard let windowCenter, let windowWidth, windowWidth >= 1 else {
-            return DICOMImageExporter.determineWindowSettings(
-                from: file, pixelData: pixelData, frameIndex: frameIndex,
-                windowCenter: nil, windowWidth: nil)
+        var center: Double? = nil
+        var width: Double? = nil
+        if let windowCenter, let windowWidth, windowWidth > 0 {
+            switch windowSpace {
+            case .storedValues:
+                let slope = file.rescaleSlope(frameIndex: frameIndex)
+                let intercept = file.rescaleIntercept(frameIndex: frameIndex)
+                center = windowCenter * slope + intercept
+                width = windowWidth * abs(slope)
+            case .outputUnits:
+                center = windowCenter
+                width = windowWidth
+            }
         }
-        switch windowSpace {
-        case .storedValues:
-            return WindowSettings(center: windowCenter, width: windowWidth)
-        case .outputUnits:
-            // The shared policy's explicit rung: output units in, stored values
-            // out, through this file's rescale pair.
-            return DICOMImageExporter.determineWindowSettings(
-                from: file, pixelData: pixelData, frameIndex: frameIndex,
-                windowCenter: windowCenter, windowWidth: windowWidth)
-        }
+        // A LINEAR window narrower than one modality unit is not a window the
+        // standard defines (C.11.2.1.2.1: w ≥ 1); the file's own VOI stands in.
+        if let w = width, w < 1 { center = nil; width = nil }
+        return DICOMImageExporter.determineDisplayPipeline(
+            from: file, pixelData: pixelData, frameIndex: frameIndex,
+            windowCenter: center, windowWidth: width)
+    }
+
+    /// One frame's render request: the resolved chain for a monochrome frame,
+    /// the file's palette and ICC Profile (0028,2000) for a colour one.
+    static func request(
+        source: FrameSource, frameIndex: Int, pipeline: GrayscaleDisplayPipeline?,
+        palette: DICOMCore.PseudoColorPalette? = nil
+    ) -> FrameRenderRequest {
+        FrameRenderRequest(
+            pixelData: source.pixelData,
+            frameIndex: frameIndex,
+            window: nil,
+            paletteLUT: source.paletteLUT,
+            pseudoColorPalette: palette,
+            modalityLUT: pipeline?.modalityLUT,
+            voiLUT: pipeline?.voiLUT,
+            presentationLUT: pipeline?.presentationLUT,
+            // The image's own profile, so colour-managed output shows the
+            // file's gamut rather than the display's assumption (C.11.15.1.1).
+            iccProfile: iccProfile(of: source.file.dataSet))
+    }
+
+    /// The ICC Profile (0028,2000) bytes a colour image carries, if any.
+    static func iccProfile(of dataSet: DataSet) -> Data? {
+        guard let data = dataSet[.iccProfile]?.valueData, !data.isEmpty else { return nil }
+        return data
     }
 
     #if canImport(Metal)
@@ -214,27 +255,23 @@ enum FrameRenderer {
 
             let isMonochrome = source.pixelData.descriptor
                 .photometricInterpretation.isMonochrome
-            let window = resolvedWindow(
+            let pipeline = resolvedPipeline(
                 file: file, pixelData: source.pixelData, frameIndex: frameIndex,
                 isMonochrome: isMonochrome,
                 windowCenter: windowCenter, windowWidth: windowWidth,
                 windowSpace: windowSpace)
-            // The monochrome kernel has no auto-window: a nil window here would be
-            // rejected by the renderer anyway, so it falls to the CPU tile instead.
-            if isMonochrome && window == nil { return nil }
+            // The monochrome kernel has no auto-window: a chain with no VOI would
+            // be rejected by the renderer anyway, so it falls to the CPU tile.
+            if isMonochrome && pipeline?.voiLUT == nil { return nil }
 
-            return renderer.renderDisplayTexture(FrameRenderRequest(
-                pixelData: source.pixelData,
-                frameIndex: frameIndex,
-                window: window,
-                paletteLUT: source.paletteLUT,
-                // The reader's pseudo-colour choice, which is *pixels* and not
-                // an arrangement: the shader can turn, crop and invert a cell
-                // but it cannot colour one, so unlike zoom and rotation this has
-                // to be in the render. Without it the film preview drew every
-                // cell grey while the film itself printed in colour.
-                pseudoColorPalette: palette
-            ))
+            // The reader's pseudo-colour choice goes into the request, because
+            // it is *pixels* and not an arrangement: the shader can turn, crop
+            // and invert a cell but it cannot colour one, so unlike zoom and
+            // rotation this has to be in the render. Without it the film
+            // preview drew every cell grey while the film printed in colour.
+            return renderer.renderDisplayTexture(
+                request(source: source, frameIndex: frameIndex, pipeline: pipeline,
+                        palette: palette))
         }.value
     }
     #endif
@@ -265,6 +302,19 @@ enum FrameRenderer {
         let descriptor = source.pixelData.descriptor
         guard descriptor.columns > 0, descriptor.rows > 0 else { return nil }
         return CGSize(width: Double(descriptor.columns), height: Double(descriptor.rows))
+    }
+
+    /// The source frame's Photometric Interpretation (0028,0004), as the header
+    /// spells it.
+    ///
+    /// Needed to restore a stored presentation state onto a film cell: a state's
+    /// Presentation LUT is stated with the image's MONOCHROME1/2 ignored (PS3.4
+    /// N.2), so INVERSE on a MONOCHROME1 image is its upright picture and the
+    /// bridge has to know which it is looking at. Same cache as the renderer.
+    static func photometricInterpretation(path: String) async -> String? {
+        guard let source = await FrameSourceCache.shared.source(forPath: path) else { return nil }
+        return source.file.dataSet.string(for: .photometricInterpretation)
+            ?? source.pixelData.descriptor.photometricInterpretation.rawValue
     }
 
     // MARK: - Pseudo-colour
