@@ -199,6 +199,19 @@ Table O-1). Every other generic check is ok.
 | P-STUDIO-TLS-PROFILES | `TLSMode` (NONE / TLS_1_2 / TLS_1_3 / MTLS) cites "PS3.15 Annex B" but selects TLS versions and client-certificate use, not a Secure Transport Connection Profile; B.9–B.11 are retired in 2026a, the live TLS profiles are B.12 "BCP 195 RFC 8996, 9325 TLS" (TLS 1.2 required, 1.3 preferred) and B.13 "Modified BCP 195 RFC 8996, 9325 TLS". | PS3.15 2026a Annex B (B.12, B.13) | Either re-label the doc comment as a transport setting (no profile claim) — text only, done implicitly by the marker — or add cases `bcp195` / `modifiedBcp195` that configure the DICOMNetwork TLS options per B.12 / B.13 and deprecate `tls12` / `tls13` (a profile forbids pinning TLS 1.2 alone). New enum cases are public API — not done. | | ⏳ pending |
 | P-STUDIO-PRINT-ENUMS | `DICOMStudio.PrintPriority`, `PrintMediumType`, `PrintFilmSize`, `PrintJobStatus` (NetworkingModel.swift) duplicate `DICOMNetwork.PrintPriority` / `MediumType` / `FilmSize` and the Execution Status terms; `PrintMediumType` offers 3 of the 5 Medium Type terms (no MAMMO). Their raw values are now the standard's terms and are mapped case-by-case onto DICOMNetwork's before anything reaches the wire. | PS3.3 2026a Table C.13-1, C.13-3, C.13-8 (D22) | Deprecate the three Studio enums with `@available(*, deprecated, renamed:)` typealiases onto `DICOMNetwork.PrintPriority`, `MediumType`, `FilmSize` (the raw-value sets are now identical for Priority and Film Size; Medium Type gains the two MAMMO terms in the picker), move `displayName` to extensions on the DICOMNetwork types, drop the switch mappings in `NetworkingViewModel.submitPrintJob`; keep `PrintJobStatus` (it is the panel's state, not a wire attribute) but rename to `NetworkPrintJobState` to stop it reading as the Print Job SOP Class's Execution Status. Public API — not done. | | ⏳ pending |
 
+
+### Behaviour changes made for CLI parity, for the owner to confirm (2026-10-05)
+
+The Workshop agents removed app-only behaviour where it diverged from the CLI tool the form mirrors. None is a
+standard violation; each is listed so the owner can keep or restore it:
+
+| Tool | What changed | Why | Commit |
+|---|---|---|---|
+| dicom-retrieve (Workshop) | the app-only Study-UID C-FIND lookup before a series / instance retrieve is gone; `--relational-retrieve` (PS3.4 C.5.2.1) is offered instead, as in the CLI | the CLI never did the lookup; parity of output and refusals | `f8e70094` |
+| dicom-wado retrieve (Workshop) | per-instance previews after a retrieve removed | not CLI output | `d52bbfa9` |
+| dicom-wado ups (Workshop) | app-only chrome removed: query dump, curl block, pre-flight check, hints | not CLI output; the print structure now equals the CLI's | `d52bbfa9` |
+| dicom-anon (Workshop and Security panel) | `--profile` values are the CLI's `legacy-*` names; `ps315` / `basic` refused with exit 1 until P-STUDIO-ANON-PS315 | the old `basic` now means the PS3.15 Basic Profile in the CLI | `61670c42` |
+
 ---
 
 ## Deferred findings
