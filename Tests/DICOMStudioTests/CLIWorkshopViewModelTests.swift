@@ -6,6 +6,8 @@
 import Testing
 @testable import DICOMStudio
 import Foundation
+import DICOMKit
+import DICOMCore
 
 @Suite("CLI Workshop ViewModel Tests")
 @MainActor
@@ -420,5 +422,114 @@ struct CLIWorkshopViewModelTests {
         let vm = CLIWorkshopViewModel()
         let presets = vm.examplePresetsForSelectedTool()
         #expect(presets.isEmpty)
+    }
+
+    // MARK: - File-tool executor helpers mirror the dicom-* CLIs (DICOM 2026a)
+
+    @Test("WorkshopFileSetRules: File-set ID default and refusal follow PS3.10 8.1 / 8.5 (D132)")
+    func fileSetRules() {
+        #expect(WorkshopFileSetRules.defaultFileSetID(fromDirectoryName: "my study-01") == "MY_STUDY_01")
+        #expect(WorkshopFileSetRules.defaultFileSetID(fromDirectoryName: "ABCDEFGHIJKLMNOPQRSTUVWXYZ").count == 16)
+        #expect(WorkshopFileSetRules.fileSetIDRefusal("STUDY_01") == nil)
+        #expect(WorkshopFileSetRules.fileSetIDRefusal("") == nil)                       // (0004,1130) is Type 2
+        #expect(WorkshopFileSetRules.fileSetIDRefusal("study-01")?.hasPrefix("Refusing --file-set-id:") == true)
+        #expect(WorkshopFileSetRules.fileSetIDRefusal(String(repeating: "A", count: 17))?.contains("at most 16") == true)
+        #expect(WorkshopFileSetRules.fileIDViolations(["DICOM", "IM000001"]).isEmpty)
+        #expect(!WorkshopFileSetRules.fileIDViolations(["img1.dcm"]).isEmpty)           // '.' is outside PS3.10 8.5
+        #expect(!WorkshopFileSetRules.fileIDViolations(["ABCDEFGHI"]).isEmpty)          // 9 characters (PS3.10 8.2)
+    }
+
+    @Test("WorkshopFileSetRules: a deprecated --profile spelling gets the CLI's note; a PS3.11 identifier none (D29)")
+    func profileDeprecationNote() throws {
+        let resolved = try #require(DICOMDIRProfile(rawValue: "STD-GEN-DVD"))
+        let note = WorkshopFileSetRules.profileDeprecationNote(requested: "STD-GEN-DVD", resolved: resolved)
+        #expect(note?.contains("--profile STD-GEN-DVD is deprecated") == true)
+        #expect(note?.contains("PS3.11 2026a Table H.1-1") == true)
+        #expect(WorkshopFileSetRules.profileDeprecationNote(requested: "STD-GEN-CD", resolved: .standardGeneralCD) == nil)
+    }
+
+    @Test("dicom-export animate rate: --fps, else Recommended Display Frame Rate, Cine Rate, 1000 / Frame Time, else 10 (PS3.3 Table C.7-13)")
+    func exportCineFrameRate() {
+        var ds = DataSet()
+        #expect(CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds).fps == 10)
+        #expect(CLIWorkshopViewModel.exportCineFrameRate(explicit: 12, dataSet: ds).source == "--fps")
+        ds.setString("40", for: .frameTime, vr: .DS)
+        let fromFrameTime = CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds)
+        #expect(fromFrameTime.fps == 25)
+        #expect(fromFrameTime.source == "Frame Time (0018,1063)")
+        ds.setString("30", for: .cineRate, vr: .IS)
+        #expect(CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds).fps == 30)
+        ds.setString("15", for: .recommendedDisplayFrameRate, vr: .IS)
+        let preferred = CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds)
+        #expect(preferred.fps == 15)
+        #expect(preferred.source == "Recommended Display Frame Rate (0008,2144)")
+    }
+
+    @Test("dicom-export texts equal the CLI's (P-EXPORT-1, P-EXPORT-3, Burned In Annotation (0028,0301))")
+    func exportTexts() {
+        #expect(CLIWorkshopViewModel.exportFrameDeprecationNote(option: "--frame", replacement: "--frame-number")
+                == "warning: --frame is deprecated (0-based index); use --frame-number (numbered from 1, PS3.3 Table 10-3: the first Frame is Frame number 1)")
+        #expect(CLIWorkshopViewModel.exportInvalidFrameNumberMessage(requested: 5, total: 3)
+                == "Frame number 5 does not exist. The file has 3 frames, numbered 1 to 3.")
+        #expect(CLIWorkshopViewModel.exportFrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number")
+                == "--frame (deprecated, 0-based) and --frame-number (numbered from 1) cannot be used together")
+        #expect(CLIWorkshopViewModel.exportApplyWindowDeprecationNote(subcommand: "bulk").hasPrefix("warning: bulk --apply-window is deprecated"))
+        var ds = DataSet()
+        #expect(!CLIWorkshopViewModel.exportBurnedInAnnotationIsYes(ds))
+        ds.setString("YES", for: .burnedInAnnotation, vr: .CS)
+        #expect(CLIWorkshopViewModel.exportBurnedInAnnotationIsYes(ds))
+        #expect(CLIWorkshopViewModel.exportBurnedInWarning(for: "a.dcm").contains("a.dcm: Burned In Annotation (0028,0301) is YES"))
+    }
+
+    @Test("dicom-archive --study-date warning: a DA value or DA range (PS3.4 C.2.2.2.5.1) is silent")
+    func archiveStudyDateWarning() {
+        #expect(CLIWorkshopViewModel.archiveStudyDateWarning(nil) == nil)
+        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("20240102") == nil)
+        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("20240101-20240201") == nil)
+        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("-20240201") == nil)
+        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("2024")?.hasPrefix("warning: --study-date '2024'") == true)
+    }
+
+    @Test("dicom-dump tag argument: 0010,0010, (0010,0010), 00100010 or a PS3.6 keyword")
+    func dumpTagParsing() {
+        let patientName = Tag(group: 0x0010, element: 0x0010)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("0010,0010") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("(0010,0010)") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("00100010") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("PatientName") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("nonsense") == nil)
+        #expect(CLIWorkshopViewModel.dumpInvalidTagMessage("x")
+                == "Error: Invalid tag format: x. Use format: 0010,0010 or a PS3.6 keyword such as PatientName\n")
+    }
+
+    @Test("dicom-json / dicom-xml --filter-tag forms and deprecation notes (PS3.18 F.2.2; PS3.19 Table A.1.5-2)")
+    func dataExchangeHelpers() {
+        #expect(CLIWorkshopViewModel.normalizedDataExchangeFilterTags(["00100020", "(0008,0016)", "PatientName", "0010,0010"])
+                == ["0010,0020", "0008,0016", "PatientName", "0010,0010"])
+        #expect(CLIWorkshopViewModel.dataExchangeDeprecationNotes(toolName: "dicom-json", noSortKeys: true, noKeywords: false)
+                == ["dicom-json: warning: --no-sort-keys is deprecated and will be removed: PS3.18 2026a F.2.2 requires attribute objects in ascending tag order"])
+        #expect(CLIWorkshopViewModel.dataExchangeDeprecationNotes(toolName: "dicom-xml", noSortKeys: false, noKeywords: true)
+                == ["dicom-xml: warning: --no-keywords is deprecated and will be removed: PS3.19 2026a Table A.1.5-2 requires the keyword attribute for every PS3.6 Data Element"])
+        #expect(CLIWorkshopViewModel.dataExchangeDeprecationNotes(toolName: "dicom-json", noSortKeys: false, noKeywords: false).isEmpty)
+    }
+
+    @Test("dicom-uid --root: PS3.5 9.1 syntax (digits, single dots, no leading zero) and room for the generated suffix")
+    func uidRootProblems() {
+        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1.2.826.0.1.3680043", typed: false).isEmpty)
+        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1..2", typed: false).first?.contains("empty component") == true)
+        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1.02", typed: false).first?.contains("leading zero") == true)
+        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1.a", typed: false).first?.contains("not a number") == true)
+        #expect(CLIWorkshopViewModel.uidRootProblems(root: String(repeating: "1.", count: 30) + "1", typed: true)
+                .contains { $0.contains("may not exceed 64") })
+    }
+
+    @Test("dicom-validate --iod: PS3.6 Table A-1 keyword or UID resolves to the engine IOD name")
+    func validateIODEngineName() {
+        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "CTImageStorage") == "CTImageStorage")
+        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "1.2.840.10008.5.1.4.1.1.4") == "MRImageStorage")
+        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "ComputedRadiographyImageStorage") == "CRImageStorage")
+        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "us") == "USImageStorage")
+        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "BasicTextSRStorage") == "StructuredReport")
+        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "ct") == "ct")        // the engine's own short name passes through
     }
 }

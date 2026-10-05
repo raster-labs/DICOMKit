@@ -6,6 +6,8 @@
 import Testing
 @testable import DICOMStudio
 import Foundation
+import DICOMKit
+import DICOMCore
 
 @Suite("CLI Workshop Helpers Tests")
 struct CLIWorkshopHelpersTests {
@@ -1040,5 +1042,135 @@ struct CLIWorkshopHelpersTests {
             #expect(!preset.commandString.contains("--profile basic"), Comment(rawValue: preset.commandString))
             #expect(preset.commandString.contains("--profile legacy-basic"), Comment(rawValue: preset.commandString))
         }
+    }
+
+    // MARK: - File tools mirror the dicom-* CLIs (DICOM 2026a; D29, D114, D127, D132, D154)
+
+    private func fileToolParam(_ tool: String, _ id: String) -> CLIParameterDefinition? {
+        ToolCatalogHelpers.parameterDefinitions(for: tool).first { $0.id == id }
+    }
+
+    @Test("dicom-dcmdir --profile offers only the PS3.11 2026a identifiers of DICOMDIRProfile.allStandard (D29)")
+    func dcmdirProfilePickerIsPS311() {
+        let p = fileToolParam("dicom-dcmdir", "profile")
+        #expect(p?.allowedValues == DICOMDIRProfile.allStandard.map(\.rawValue))
+        #expect(p?.defaultValue == "STD-GEN-CD")
+        #expect(p?.allowedValues.contains("STD-GEN-DVD") == false)      // Annex H family heading, not an identifier
+        #expect(p?.allowedValues.contains("STD-GEN-USB") == false)      // Annex J family heading
+        #expect(p?.allowedValues.contains("STD-GEN-DVD-JPEG") == true)
+    }
+
+    @Test("dicom-dcmdir create: File-set ID rule (PS3.10 8.1, 8.5) in help, --copy-to offered")
+    func dcmdirCreateForm() {
+        #expect(fileToolParam("dicom-dcmdir", "fileSetID")?.helpText.contains("up to 16 characters A-Z, 0-9, _ (PS3.10 8.1, 8.5)") == true)
+        let copyTo = fileToolParam("dicom-dcmdir", "copyTo")
+        #expect(copyTo?.flag == "--copy-to")
+        #expect(copyTo?.visibleWhen?.values == ["create"])
+        #expect(fileToolParam("dicom-dcmdir", "checkFiles")?.helpText.contains("(0004,1500)") == true)
+    }
+
+    @Test("dicom-export selects frames by Frame number from 1 (PS3.3 Table 10-3); the 0-based options are deprecated (D127)")
+    func exportFrameNumbers() {
+        let fn = fileToolParam("dicom-export", "frame-number")
+        #expect(fn?.flag == "--frame-number")
+        #expect(fn?.minValue == 1)
+        #expect(fn?.helpText.contains("numbered from 1") == true)
+        #expect(fileToolParam("dicom-export", "frame")?.helpText == "deprecated: 0-based index; use --frame-number")
+        #expect(fileToolParam("dicom-export", "frame")?.defaultValue.isEmpty == true)
+        #expect(fileToolParam("dicom-export", "start-frame-number")?.minValue == 1)
+        #expect(fileToolParam("dicom-export", "end-frame-number")?.minValue == 1)
+        #expect(fileToolParam("dicom-export", "start-frame")?.defaultValue.isEmpty == true)   // a default would emit the deprecated option
+        #expect(fileToolParam("dicom-export", "start-frame")?.helpText == "deprecated: 0-based index; use --start-frame-number")
+        #expect(fileToolParam("dicom-export", "end-frame")?.helpText == "deprecated: 0-based index; use --end-frame-number")
+    }
+
+    @Test("dicom-export --fps has no fixed default: the file's Cine Module rate (PS3.3 Table C.7-13)")
+    func exportFPSDefaultIsTheFileRate() {
+        let fps = fileToolParam("dicom-export", "fps")
+        #expect(fps?.defaultValue.isEmpty == true)
+        for tag in ["Recommended Display Frame Rate (0008,2144)", "Cine Rate (0018,0040)", "Frame Time (0018,1063)"] {
+            #expect(fps?.helpText.contains(tag) == true, Comment(rawValue: tag))
+        }
+    }
+
+    @Test("dicom-export --apply-window is deprecated on contact-sheet and bulk only (P-EXPORT-3)")
+    func exportApplyWindowDeprecation() {
+        #expect(fileToolParam("dicom-export", "apply-window")?.visibleWhen?.values == ["single", "animate"])
+        let dep = fileToolParam("dicom-export", "apply-window-deprecated")
+        #expect(dep?.flag == "--apply-window")
+        #expect(dep?.visibleWhen?.values == ["contact-sheet", "bulk"])
+        #expect(dep?.helpText.hasPrefix("deprecated: no effect") == true)
+    }
+
+    @Test("dicom-export pickers are the shared ExportImageFormat / OrganizationScheme with the CLI's per-subcommand defaults")
+    func exportPickers() {
+        #expect(fileToolParam("dicom-export", "format")?.defaultValue == "jpeg")
+        #expect(fileToolParam("dicom-export", "sheet-format")?.defaultValue == "png")
+        #expect(fileToolParam("dicom-export", "bulk-format")?.defaultValue == "png")
+        #expect(fileToolParam("dicom-export", "sheet-format")?.allowedValues == ExportImageFormat.allCases.map(\.rawValue))
+        #expect(fileToolParam("dicom-export", "organize-by")?.allowedValues == OrganizationScheme.allCases.map(\.rawValue))
+        #expect(fileToolParam("dicom-export", "organize-by")?.helpText.contains("Patient ID (0010,0020)") == true)
+    }
+
+    @Test("dicom-study defaults mirror the CLI: organize moves unless --copy; summary table, stats / compare text")
+    func studyDefaults() {
+        #expect(fileToolParam("dicom-study", "copy")?.defaultValue == "false")
+        #expect(fileToolParam("dicom-study", "summary-format")?.defaultValue == "table")
+        #expect(fileToolParam("dicom-study", "stats-format")?.defaultValue == "text")
+        #expect(fileToolParam("dicom-study", "compare-format")?.defaultValue == "text")
+        #expect(fileToolParam("dicom-study", "stats-format")?.helpText.contains("NumberOfStudyRelatedSeries") == true)
+        #expect(fileToolParam("dicom-study", "expected-series")?.helpText.contains("(0020,1206)") == true)
+    }
+
+    @Test("dicom-archive query offers --strict-modality and the shared modality help (PS3.3 C.7.3.1.1.1)")
+    func archiveQueryKeys() {
+        let strict = fileToolParam("dicom-archive", "strict-modality")
+        #expect(strict?.flag == "--strict-modality")
+        #expect(strict?.visibleWhen?.values == ["query"])
+        #expect(fileToolParam("dicom-archive", "modality")?.helpText.hasPrefix(ModalityOptionValidator.helpText("filter")) == true)
+        #expect(fileToolParam("dicom-archive", "study-date")?.helpText.contains("C.2.2.2.5.1") == true)
+        #expect(fileToolParam("dicom-archive", "patient-name")?.helpText.contains("(0010,0010)") == true)
+    }
+
+    @Test("dicom-json / dicom-xml keep empty attributes by default with --no-include-empty (PS3.18 F.2.5; D114)")
+    func dataExchangeIncludeEmptyDefault() {
+        for tool in ["dicom-json", "dicom-xml"] {
+            let p = fileToolParam(tool, "include-empty")
+            #expect(p?.defaultValue == "true", Comment(rawValue: tool))
+            #expect(p?.negatedFlag == "--no-include-empty", Comment(rawValue: tool))
+        }
+        #expect(fileToolParam("dicom-json", "no-sort-keys")?.helpText.hasPrefix("Deprecated") == true)
+        #expect(fileToolParam("dicom-xml", "no-keywords")?.helpText.hasPrefix("Deprecated") == true)
+    }
+
+    @Test("dicom-split --frame-numbers (from 1, PS3.3 C.7.6.16.1.2) and the deprecated 0-based --frames (D154)")
+    func splitFrameSelectionHelp() {
+        #expect(fileToolParam("dicom-split", "frame-numbers")?.helpText
+                == "Frames to extract by Frame number, numbered from 1 (PS3.3 C.7.6.16.1.2), e.g. '1,3,5-10' (default: all)")
+        #expect(fileToolParam("dicom-split", "frames")?.helpText == "deprecated: 0-based index; use --frame-numbers")
+    }
+
+    @Test("dicom-dump / dicom-tags / dicom-uid / dicom-merge forms mirror the CLI surface")
+    func dumpTagsUIDMergeForms() {
+        #expect(fileToolParam("dicom-dump", "no-color")?.defaultValue == "false")
+        #expect(fileToolParam("dicom-tags", "inputPath")?.isRequired == false)              // --list-modalities needs no input
+        #expect(fileToolParam("dicom-tags", "list-modalities")?.flag == "--list-modalities")
+        #expect(fileToolParam("dicom-uid", "lookup-type")?.allowedValues == [""] + UIDConsole.lookupTypeFilters.map(\.value))
+        #expect(fileToolParam("dicom-uid", "uuid")?.flag == "--uuid")
+        #expect(fileToolParam("dicom-merge", "sort-by")?.defaultValue == MergeSortCriteria.instanceNumber.rawValue)
+        #expect(fileToolParam("dicom-validate", "iod")?.helpText.contains("PS3.6 Table A-1") == true)
+    }
+
+    @Test("ValidationHelpers.knownIODs are PS3.6 2026a Table A-1 UID Keywords; level texts carry dicom-validate's --level help")
+    func validationHelpersIODKeywordsAndLevels() {
+        for keyword in ValidationHelpers.knownIODs {
+            #expect(UIDDictionary.lookup(keyword: keyword) != nil, Comment(rawValue: keyword))
+        }
+        #expect(ValidationHelpers.knownIODs.contains("UltrasoundMultiFrameImageStorage"))           // was "…Multiframe…"
+        #expect(ValidationHelpers.knownIODs.contains("MultiFrameTrueColorSecondaryCaptureImageStorage"))
+        #expect(!ValidationHelpers.knownIODs.contains { $0.contains("Multiframe") })
+        #expect(ValidationHelpers.levelDescription(1) == "1 — File Meta Information (PS3.10 Table 7.1-1)")
+        #expect(ValidationHelpers.levelDescription(3) == "3 — IOD Type 1/1C/2/2C (PS3.3)")
+        #expect(ValidationHelpers.levelDescription(5) == "5 — J2K codestream")
     }
 }

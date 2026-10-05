@@ -2153,14 +2153,14 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "level", flag: "--level", displayName: "Validation Level",
                     parameterType: .enumPicker, placeholder: "3",
-                    helpText: "Validation strictness: 1=minimal … 5=exhaustive (default: 3)",
+                    helpText: "Validation level (1-5): 1=File Meta Information (PS3.10 Table 7.1-1), 2=VR and VM against PS3.6 Table 6-1, value length, character repertoire and DA/TM/UI/AS/DS/IS value forms (PS3.5 Table 6.2-1, 6.2.1, 9.1), 3=IOD Type 1/1C/2/2C (PS3.3), 4=Best practices, 5=J2K codestream",
                     defaultValue: "3",
                     allowedValues: ["1", "2", "3", "4", "5"]
                 ),
                 CLIParameterDefinition(
                     id: "iod", flag: "--iod", displayName: "IOD Override",
-                    parameterType: .textField, placeholder: "e.g. CTImageStorage",
-                    helpText: "Force a specific IOD name instead of auto-detecting from SOP Class UID",
+                    parameterType: .textField, placeholder: "e.g. CTImageStorage or 1.2.840.10008.5.1.4.1.1.2",
+                    helpText: "IOD to validate against: SOP Class keyword or UID of PS3.6 Table A-1 (e.g. CTImageStorage, MRImageStorage, ComputedRadiographyImageStorage, UltrasoundImageStorage, SecondaryCaptureImageStorage, GrayscaleSoftcopyPresentationStateStorage, PseudoColorSoftcopyPresentationStateStorage, an SR or Key Object Selection keyword); short names CT, MR, CR, US, SC, GSPS, SR, KOS also accepted; default: from SOP Class UID (0008,0016)",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
@@ -2334,8 +2334,8 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "tag", flag: "--tag", displayName: "Dump Tag",
-                    parameterType: .textField, placeholder: "e.g. 7FE0,0010",
-                    helpText: "Dump only the value bytes of the specified tag (format: GGGG,EEEE)"
+                    parameterType: .textField, placeholder: "e.g. 7FE0,0010 or PixelData",
+                    helpText: "Dump only the value bytes of the specified tag (format: 0010,0010 or PS3.6 keyword, e.g. PatientName)"
                 ),
                 CLIParameterDefinition(
                     id: "offset", flag: "--offset", displayName: "Start Offset",
@@ -2360,15 +2360,20 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "highlight", flag: "--highlight", displayName: "Highlight Tag",
-                    parameterType: .textField, placeholder: "e.g. 0010,0010",
-                    helpText: "Mark rows that correspond to the specified tag",
+                    parameterType: .textField, placeholder: "e.g. 0010,0010 or PatientName",
+                    helpText: "Highlight the rows of the specified tag (format: 0010,0010 or PS3.6 keyword)",
                     isAdvanced: true
                 ),
+                // Default off, as dicom-dump's `--no-color` (the Workshop form mirrors the
+                // CLI surface). The in-app console cannot render ANSI colour, so the
+                // executor strips the escape sequences from what it shows; the pasted
+                // command and the Compare-CLI diff (which strips ANSI on both sides) are
+                // unaffected either way.
                 CLIParameterDefinition(
                     id: "no-color", flag: "--no-color", displayName: "No Color",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Disable ANSI color in the hex dump (plain text output). Default ON in-app — the console does not render ANSI; turn OFF to get the CLI's colored bytes.",
-                    defaultValue: "true"
+                    helpText: "Disable color output (the in-app console never shows ANSI colour; this flag only changes the pasted command and the CLI's terminal output)",
+                    defaultValue: "false"
                 ),
                 CLIParameterDefinition(
                     id: "annotate", flag: "--annotate", displayName: "Annotate Tags",
@@ -2389,11 +2394,17 @@ public enum ToolCatalogHelpers: Sendable {
             ]
         case "dicom-tags":
             return [
+                // Not `isRequired`: dicom-tags takes no <input> with --list-modalities; the
+                // executor refuses a missing input otherwise with the CLI's own message.
                 CLIParameterDefinition(
                     id: "inputPath", flag: "", displayName: "Input File",
                     parameterType: .filePath, placeholder: "Path to DICOM file",
-                    helpText: "DICOM file to modify",
-                    isRequired: true
+                    helpText: "Input DICOM file path (omit with --list-modalities)"
+                ),
+                CLIParameterDefinition(
+                    id: "list-modalities", flag: "--list-modalities", displayName: "List Modalities",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Print every DICOM Modality (0008,0060) defined term (PS3.3 C.7.3.1.1.1) and exit; no input file is read"
                 ),
                 CLIParameterDefinition(
                     id: "output", flag: "--output", displayName: "Output File",
@@ -2403,7 +2414,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "set", flag: "--set", displayName: "Set Tag(s)",
                     parameterType: .textField, placeholder: "e.g. PatientName=DOE^JOHN; 0008,0090=DR.SMITH",
-                    helpText: "TagName=Value or GGGG,EEEE=Value. Separate with “ ; ”.",
+                    helpText: "Keyword=Value or GGGG,EEEE=Value (keyword in PS3.6 case). Writes the PS3.6 dictionary VR and refuses a value outside the PS3.5 Table 6.2-1 limits of that VR (length, characters, numeric range); US/SS/UL/SL/FL/FD are decimal numbers, values separated by a backslash; group 0002 cannot be edited (PS3.10 7.1). Separate with “ ; ”.",
                     isRepeatable: true
                 ),
                 CLIParameterDefinition(
@@ -2463,26 +2474,26 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "ignore-tag", flag: "--ignore-tag", displayName: "Ignore Tag(s)",
-                    parameterType: .textField, placeholder: "e.g. SOPInstanceUID; 0008,0012",
-                    helpText: "Tags to skip (name or GGGG,EEEE). Separate with “ ; ”.",
+                    parameterType: .textField, placeholder: "e.g. SOPInstanceUID; (0008,0012)",
+                    helpText: "Tags to skip: (gggg,eeee), gggg,eeee, ggggeeee or a PS3.6 keyword. Separate with “ ; ”. Exit status: 0 identical, 1 different, 2 a file is missing or cannot be read as DICOM.",
                     isRepeatable: true
                 ),
                 CLIParameterDefinition(
                     id: "ignore-private", flag: "--ignore-private", displayName: "Ignore Private Tags",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Exclude all private (odd-group) tags from comparison"
+                    helpText: "Ignore private data elements (odd group number, PS3.5 7.1), also inside sequence items"
                 ),
                 CLIParameterDefinition(
                     id: "compare-pixels", flag: "--compare-pixels", displayName: "Compare Pixels",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Compare pixel data in addition to metadata tags"
+                    helpText: "Compare Pixel Data (7FE0,0010) sample by sample (decoded; PS3.5 8.1.1) instead of as one element"
                 ),
                 CLIParameterDefinition(
                     id: "tolerance", flag: "--tolerance", displayName: "Pixel Tolerance",
                     parameterType: .integerField, placeholder: "0",
-                    helpText: "Maximum allowed per-byte pixel difference before flagging as different",
+                    helpText: "Largest Pixel Sample Value difference (PS3.5 8.1.1) in Pixel Data (7FE0,0010) still treated as identical (default: 0)",
                     isAdvanced: true,
-                    defaultValue: "0", minValue: 0, maxValue: 255
+                    defaultValue: "0", minValue: 0, maxValue: 65535
                 ),
                 CLIParameterDefinition(
                     id: "quick", flag: "--quick", displayName: "Quick Mode",
@@ -2514,10 +2525,19 @@ public enum ToolCatalogHelpers: Sendable {
                     parameterType: .outputPath, placeholder: "Output directory",
                     helpText: "Directory to write the split frames into"
                 ),
+                // P-SPLIT-1: frames are selected by Frame number from 1 (PS3.3 C.7.6.16.1.2
+                // "Frames are implicitly numbered starting from 1"); the 0-based --frames is
+                // deprecated (D154) and the executor prints SplitConsole.framesDeprecatedLine.
                 CLIParameterDefinition(
-                    id: "frames", flag: "--frames", displayName: "Frames",
-                    parameterType: .textField, placeholder: "e.g. 1-5,8,10",
-                    helpText: "Frame selection (ranges/list); omit for all frames"
+                    id: "frame-numbers", flag: "--frame-numbers", displayName: "Frame Numbers",
+                    parameterType: .textField, placeholder: "e.g. 1,3,5-10",
+                    helpText: "Frames to extract by Frame number, numbered from 1 (PS3.3 C.7.6.16.1.2), e.g. '1,3,5-10' (default: all)"
+                ),
+                CLIParameterDefinition(
+                    id: "frames", flag: "--frames", displayName: "Frames (deprecated)",
+                    parameterType: .textField, placeholder: "e.g. 0-4,7,9",
+                    helpText: "deprecated: 0-based index; use --frame-numbers",
+                    isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "format", flag: "--format", displayName: "Output Format",
@@ -2631,35 +2651,37 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "make-stacks", flag: "--make-stacks", displayName: "Make Stacks",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Group frames into stacks by Image Orientation (Patient)", isAdvanced: true
+                    helpText: "Assign Stack ID (0020,9056) per Image Orientation (Patient) (0020,0037)", isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "temporal-position", flag: "--temporal-position", displayName: "Temporal Positions",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Derive Temporal Position Index from Trigger Time / Acquisition Time", isAdvanced: true
+                    helpText: "Derive Temporal Position Index (0020,9128) from Trigger Time (0018,1060), Temporal Position Identifier (0020,0100) or Acquisition Time (0008,0032)", isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "new-series", flag: "--new-series", displayName: "New Series UID",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Mint a new Series Instance UID for the merged object", isAdvanced: true
+                    helpText: "Mint a new Series Instance UID (0020,000E) for the merged object", isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "allow-any-source", flag: "--allow-any-source", displayName: "Allow Any Source",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Skip the source SOP class check for enhanced targets", isAdvanced: true
+                    helpText: "Skip the source SOP Class check for Enhanced / Legacy Converted targets", isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "level", flag: "--level", displayName: "Merge Level",
                     parameterType: .enumPicker, placeholder: "file",
-                    helpText: "Grouping level for the merge",
+                    helpText: "Merge level: file (all inputs into one object), series (one per Series Instance UID), study (per Study Instance UID, then series) (default: file)",
                     defaultValue: "file", allowedValues: ["file", "series", "study"]
                 ),
+                // The picker is the shared MergeSortCriteria enum (dicom-merge's accepted
+                // values), not a string list that can drift from it.
                 CLIParameterDefinition(
                     id: "sort-by", flag: "--sort-by", displayName: "Sort By",
                     parameterType: .enumPicker, placeholder: "InstanceNumber",
-                    helpText: "Attribute used to order frames",
-                    defaultValue: "InstanceNumber",
-                    allowedValues: ["InstanceNumber", "ImagePositionPatient", "AcquisitionTime", "none"]
+                    helpText: "Sort frames by a PS3.6 keyword: InstanceNumber (0020,0013), ImagePositionPatient (0020,0032; distance along the slice normal), AcquisitionTime (0008,0032), or none (default: InstanceNumber)",
+                    defaultValue: MergeSortCriteria.instanceNumber.rawValue,
+                    allowedValues: ([.instanceNumber, .imagePositionPatient, .acquisitionTime, .none] as [MergeSortCriteria]).map(\.rawValue)
                 ),
                 CLIParameterDefinition(
                     id: "order", flag: "--order", displayName: "Sort Order",
@@ -2670,7 +2692,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "validate", flag: "--validate", displayName: "Validate",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Validate consistency of inputs before merging"
+                    helpText: "Also require equal Study / Series Instance UID, Modality and Frame of Reference UID across inputs"
                 ),
                 CLIParameterDefinition(
                     id: "recursive", flag: "--recursive", displayName: "Recursive",
@@ -2728,43 +2750,55 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "skip-duplicates", flag: "--skip-duplicates", displayName: "Skip Duplicates",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Skip instances already present in the archive",
+                    helpText: "Skip duplicate SOP Instance UIDs (0008,0018) without error",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["import"])
                 ),
+                // Query keys match like a DICOM C-FIND (PS3.4 C.2.2.2): the help texts are the
+                // CLI's, so the Workshop and the terminal describe one matching behaviour.
                 CLIParameterDefinition(
                     id: "patient-name", flag: "--patient-name", displayName: "Patient Name",
-                    parameterType: .textField, placeholder: "e.g. DOE^JOHN",
-                    helpText: "Filter by patient name",
+                    parameterType: .textField, placeholder: "e.g. DOE^JOHN or DOE*",
+                    helpText: "Filter by Patient's Name (0010,0010); * and ? wild cards (PS3.4 C.2.2.2.4), case-insensitive",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "patient-id", flag: "--patient-id", displayName: "Patient ID",
                     parameterType: .textField, placeholder: "e.g. 12345",
-                    helpText: "Filter by patient ID",
+                    helpText: "query: filter by Patient ID (0010,0020); * and ? wild cards, case-sensitive (PS3.4 C.2.2.2.4). export: exact match, no wild cards",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["query", "export"])
                 ),
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study-uid", displayName: "Study UID",
                     parameterType: .textField, placeholder: "Study Instance UID",
-                    helpText: "Filter/select by Study Instance UID",
+                    helpText: "Filter / export by Study Instance UID (0020,000D); one UID or a backslash-separated list (PS3.4 C.2.2.2.2)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["query", "export"])
                 ),
                 CLIParameterDefinition(
                     id: "series-uid", flag: "--series-uid", displayName: "Series UID",
                     parameterType: .textField, placeholder: "Series Instance UID",
-                    helpText: "Select by Series Instance UID",
+                    helpText: "Export by Series Instance UID (0020,000E); one UID or a backslash-separated list (PS3.4 C.2.2.2.2)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["export"])
                 ),
+                // Modality (0008,0060) is a Defined Term (PS3.3 C.7.3.1.1.1): an unknown code warns and
+                // is sent as-is; --strict-modality rejects it. One shared validator across the tools.
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .textField, placeholder: "e.g. CT",
-                    helpText: "Filter by modality",
+                    helpText: ModalityOptionValidator.helpText("filter")
+                        + " A study matches when any of its series has it (Modalities in Study (0008,0061)).",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["query"])
+                ),
+                CLIParameterDefinition(
+                    id: "strict-modality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+                    isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "study-date", flag: "--study-date", displayName: "Study Date",
-                    parameterType: .textField, placeholder: "YYYYMMDD",
-                    helpText: "Filter by study date",
+                    parameterType: .textField, placeholder: "YYYYMMDD or YYYYMMDD-YYYYMMDD",
+                    helpText: "Filter by Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD, YYYYMMDD- (PS3.4 C.2.2.2.5.1)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["query"])
                 ),
                 CLIParameterDefinition(
@@ -2776,7 +2810,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "flatten", flag: "--flatten", displayName: "Flatten",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Export into a flat directory (no patient/study/series folders)",
+                    helpText: "Flatten output to <SOP Instance UID>.dcm (no Patient ID / Study / Series subdirectories)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["export"])
                 ),
                 CLIParameterDefinition(
@@ -2788,15 +2822,16 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "verify-files", flag: "--verify-files", displayName: "Verify Files",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Verify that referenced files exist and are readable",
+                    helpText: "Verify DICOM file readability",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["check"])
                 ),
                 CLIParameterDefinition(
                     id: "format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "tree",
                     // No fixed default: the CLI default is per-subcommand (list→tree,
-                    // query→table). executeDicomArchive applies the right default when
-                    // empty; a hardcoded "table" here forced list to render as a table.
+                    // query→table, stats→text). executeDicomArchive applies the right default
+                    // when empty; a hardcoded "table" here forced list to render as a table.
+                    helpText: "Output format. query: table, json, text (JSON adds ModalitiesInStudy, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances (PS3.6 keywords); modality, seriesCount, imageCount are deprecated); list: tree, table, json; stats: text, json",
                     defaultValue: "", allowedValues: ["table", "tree", "text", "json"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["query", "list", "stats"])
                 ),
@@ -2836,30 +2871,36 @@ case "dicom-json":
             helpText: "Pretty-print the JSON output with indentation.",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
         ),
+        // P-JSON-NO-SORT-KEYS (approved 2026-10-01): deprecated in the CLI; the executor
+        // prints the same stderr note when it is used.
         CLIParameterDefinition(
-            id: "no-sort-keys", flag: "--no-sort-keys", displayName: "Do Not Sort Keys",
+            id: "no-sort-keys", flag: "--no-sort-keys", displayName: "Do Not Sort Keys (deprecated)",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Do not sort JSON keys alphabetically (keys are sorted by default).",
+            helpText: "Deprecated: don't order attribute objects by tag (the output then breaks the PS3.18 F.2.2 ascending order; will be removed)",
             isAdvanced: true,
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
         ),
+        // PS3.18 F.2.5: an empty attribute "shall be preserved" as {"vr": ...}, so the
+        // CLI default is on and `--no-include-empty` drops them (D114).
         CLIParameterDefinition(
             id: "include-empty", flag: "--include-empty", displayName: "Include Empty Values",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Include empty values in the JSON output.",
+            helpText: "Keep attributes with an empty Value Field as {\"vr\": ...} (PS3.18 F.2.5). On by default; off emits --no-include-empty.",
             isAdvanced: true,
+            negatedFlag: "--no-include-empty",
+            defaultValue: "true",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
         ),
         CLIParameterDefinition(
             id: "metadata-only", flag: "--metadata-only", displayName: "Metadata Only",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Only include metadata; exclude PixelData (7FE0,0010) from the JSON output.",
+            helpText: "Metadata only (PS3.18 10.4.1.1.2): leave out every OB/OD/OF/OL/OV/OW/UN value at any depth (Pixel Data, Float Pixel Data, Encapsulated Document, Waveform, Overlay, LUTs); with --bulk-data-url each becomes a BulkDataURI instead",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
         ),
         CLIParameterDefinition(
             id: "inline-threshold", flag: "--inline-threshold", displayName: "Inline Binary Threshold (bytes)",
             parameterType: .integerField, placeholder: "1024",
-            helpText: "Inline binary data up to this size in bytes as Base64. Use 0 to always emit BulkDataURIs.",
+            helpText: "With --bulk-data-url: OB/OD/OF/OL/OV/OW/UN values longer than this many bytes become a BulkDataURI (0: all of them); without it every such value is InlineBinary (PS3.18 F.2.6, F.2.7)",
             isAdvanced: true,
             defaultValue: "1024", minValue: 0, maxValue: 1073741824,
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
@@ -2867,14 +2908,14 @@ case "dicom-json":
         CLIParameterDefinition(
             id: "bulk-data-url", flag: "--bulk-data-url", displayName: "Bulk Data Base URL",
             parameterType: .textField, placeholder: "https://example.org/bulk",
-            helpText: "Base URL used to generate BulkDataURI references for bulk data.",
+            helpText: "Base URL for BulkDataURI values (PS3.18 F.2.6); the URI is <url>/<GGGGEEEE>, inside sequence items <url>/<SQ tag>/<item n>/<GGGGEEEE>",
             isAdvanced: true,
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
         ),
         CLIParameterDefinition(
             id: "filter-tag", flag: "--filter-tag", displayName: "Filter Tags",
-            parameterType: .arrayField, placeholder: "e.g. PatientName; 0010,0010",
-            helpText: "Filter to specific tags by keyword (e.g. PatientName) or hex (e.g. 0010,0010). Separate with “ ; ”.",
+            parameterType: .arrayField, placeholder: "e.g. PatientName; 0010,0010; 00100020",
+            helpText: "Keep only these attributes: PS3.6 keyword, GGGG,EEEE or GGGGEEEE. Separate with “ ; ”.",
             isAdvanced: true,
             isRepeatable: true,
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
@@ -2910,22 +2951,28 @@ case "dicom-json":
                     helpText: "Indent the generated XML for readability",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
                 ),
+                // P-XML-NO-KEYWORDS (approved 2026-10-01): deprecated in the CLI; the
+                // executor prints the same stderr note when it is used.
                 CLIParameterDefinition(
-                    id: "no-keywords", flag: "--no-keywords", displayName: "No Keywords",
+                    id: "no-keywords", flag: "--no-keywords", displayName: "No Keywords (deprecated)",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Omit keyword= attributes from the XML output",
+                    helpText: "Deprecated: don't write the keyword attribute (the output then breaks PS3.19 Table A.1.5-2, which requires it for PS3.6 elements; will be removed)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
                 ),
+                // PS3.19 Table A.1.5-2: a DicomAttribute for each DICOM Attribute, an empty
+                // Value Field has no Value elements; CLI default on, --no-include-empty drops them (D114).
                 CLIParameterDefinition(
                     id: "include-empty", flag: "--include-empty", displayName: "Include Empty Values",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Emit DicomAttribute elements even when they have no value",
+                    helpText: "Keep attributes with an empty Value Field as a DicomAttribute without Value (PS3.19 Table A.1.5-2). On by default; off emits --no-include-empty.",
+                    negatedFlag: "--no-include-empty",
+                    defaultValue: "true",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
                 ),
                 CLIParameterDefinition(
                     id: "inline-threshold", flag: "--inline-threshold", displayName: "Inline Binary Threshold",
                     parameterType: .integerField, placeholder: "1024",
-                    helpText: "Inline binary data up to this many bytes (0 to always use bulk-data URIs)",
+                    helpText: "With --bulk-data-url: OB/OD/OF/OL/OV/OW/UN values longer than this many bytes become BulkData (0: all of them); without it every such value is InlineBinary (PS3.19 Table A.1.5-2)",
                     isAdvanced: true,
                     defaultValue: "1024", minValue: 0, maxValue: 1_000_000_000,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
@@ -2933,20 +2980,20 @@ case "dicom-json":
                 CLIParameterDefinition(
                     id: "bulk-data-url", flag: "--bulk-data-url", displayName: "Bulk Data Base URL",
                     parameterType: .textField, placeholder: "https://example.org/bulkdata",
-                    helpText: "Base URL used to generate bulk-data URIs for large binary values",
+                    helpText: "Base URL for BulkData uri values, <url>/<GGGGEEEE>, inside items <url>/<SQ tag>/<item n>/<GGGGEEEE> (PS3.19 Table A.1.5-2 reserves uri for a WADO-RS Retrieve Metadata response)",
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
                 ),
                 CLIParameterDefinition(
                     id: "metadata-only", flag: "--metadata-only", displayName: "Metadata Only",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Exclude PixelData (7FE0,0010) from the XML output",
+                    helpText: "Metadata only (PS3.18 10.4.1.1.2): leave out every OB/OD/OF/OL/OV/OW/UN value at any depth (Pixel Data, Float Pixel Data, Encapsulated Document, Waveform, Overlay, LUTs); with --bulk-data-url each becomes BulkData instead",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
                 ),
                 CLIParameterDefinition(
                     id: "filter-tag", flag: "--filter-tag", displayName: "Filter Tag(s)",
-                    parameterType: .arrayField, placeholder: "e.g. PatientName; 0010,0010",
-                    helpText: "Keep only these tags (keyword or GGGG,EEEE). Separate with “ ; ”.",
+                    parameterType: .arrayField, placeholder: "e.g. PatientName; 0010,0010; 00100020",
+                    helpText: "Keep only these attributes: PS3.6 keyword, GGGG,EEEE or GGGGEEEE. Separate with “ ; ”.",
                     isAdvanced: true,
                     isRepeatable: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "reverse", values: ["false", ""])
@@ -2980,7 +3027,7 @@ case "dicom-uid":
         CLIParameterDefinition(
             id: "type", flag: "--type", displayName: "UID Type",
             parameterType: .enumPicker, placeholder: "generic",
-            helpText: "UID type suffix: study, series, instance/sop, or generic (default)",
+            helpText: "UID type: study, series, instance (alias sop), or generic (default); typed UIDs add arc .1, .2 or .3 under the root",
             defaultValue: "generic",
             allowedValues: ["generic", "study", "series", "instance", "sop"],
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["generate"])
@@ -2988,13 +3035,21 @@ case "dicom-uid":
         CLIParameterDefinition(
             id: "root", flag: "--root", displayName: "UID Root",
             parameterType: .textField, placeholder: UIDGenerator.defaultRoot,
-            helpText: "Custom UID root prefix (default: \(UIDGenerator.defaultRoot))",
+            helpText: "UID root: your organisation's registered root (PS3.5 9.2.2), digits and single dots (9.1); default \(UIDGenerator.defaultRoot)",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["generate", "regenerate"])
+        ),
+        // PS3.5 B.2 UUID derived UIDs (2.25.<UUID as decimal>); the shared DICOMCore
+        // UIDGenerator.uuidDerivedUID builds them.
+        CLIParameterDefinition(
+            id: "uuid", flag: "--uuid", displayName: "UUID Derived",
+            parameterType: .booleanToggle, placeholder: "",
+            helpText: "Generate UUID derived UIDs, 2.25.<UUID as decimal> (PS3.5 B.2); not combined with --root or --type",
+            visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["generate"])
         ),
         CLIParameterDefinition(
             id: "json", flag: "--json", displayName: "JSON Output",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Output results as JSON",
+            helpText: "Output as JSON. lookup: uid, name, uidType (PS3.6 Table A-1 UID Type) and type (deprecated: the former tool wording)",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["generate", "validate", "lookup"])
         ),
 
@@ -3033,11 +3088,13 @@ case "dicom-uid":
             helpText: "List all known UIDs in the registry",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["lookup"])
         ),
+        // One value per PS3.6 Table A-1 UID Type, from the shared engine list the CLI's
+        // `lookup --type` accepts (UIDConsole.lookupTypeFilters); "" = no filter.
         CLIParameterDefinition(
             id: "lookup-type", flag: "--type", displayName: "Type Filter",
             parameterType: .enumPicker, placeholder: "Any",
-            helpText: "Filter listed UIDs by type",
-            allowedValues: ["", "transfer-syntax", "sop-class"],
+            helpText: "Filter by PS3.6 Table A-1 UID Type: \(UIDConsole.lookupTypeFilters.map(\.value).joined(separator: ", "))",
+            allowedValues: [""] + UIDConsole.lookupTypeFilters.map(\.value),
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["lookup"])
         ),
         CLIParameterDefinition(
@@ -3111,21 +3168,27 @@ case "dicom-dcmdir":
                 CLIParameterDefinition(
                     id: "output", flag: "--output", displayName: "Output DICOMDIR",
                     parameterType: .outputPath, placeholder: "DICOMDIR",
-                    helpText: "Output DICOMDIR path (default: DICOMDIR inside the input directory)",
+                    helpText: "Output DICOMDIR path (default: DICOMDIR in input directory)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["create"])
                 ),
+                // PS3.10 8.1 (0 to 16 characters) and 8.5 (A-Z, 0-9, _): the executor derives the
+                // CLI's default and refuses any other value with exit 1 (P-DCMDIR-FSID, D132).
                 CLIParameterDefinition(
                     id: "fileSetID", flag: "--file-set-id", displayName: "File-set ID",
                     parameterType: .textField, placeholder: "derived from directory name",
-                    helpText: "File-set ID (default: derived from the input directory name)",
+                    helpText: "File-set ID (0004,1130): up to 16 characters A-Z, 0-9, _ (PS3.10 8.1, 8.5); any other value is refused (exit 1); default: the directory name upper-cased, other characters as _, cut to 16",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["create"])
                 ),
+                // D29: the picker offers only PS3.11 2026a Application Profile identifiers (Tables
+                // A.1-1 to N.1-1), from the shared DICOMCore registry the CLI accepts. STD-GEN-DVD and
+                // STD-GEN-USB are Annex H / J family headings, not identifiers; a saved preset that
+                // still carries one is accepted and the executor prints the CLI's deprecation note.
                 CLIParameterDefinition(
                     id: "profile", flag: "--profile", displayName: "Application Profile",
                     parameterType: .enumPicker, placeholder: "STD-GEN-CD",
-                    helpText: "Media application profile (PS3.11)",
+                    helpText: "PS3.11 Application Profile identifier, e.g. STD-GEN-CD (default), STD-GEN-DVD-JPEG, STD-GEN-DVD-J2K, STD-GEN-USB-JPEG, STD-GEN-USB-J2K, STD-GEN-BD-JPEG (deprecated: STD-GEN-DVD, STD-GEN-USB, STD-GEN-SEC, STD-CTMR-XXXX, STD-US-XXXX are not PS3.11 identifiers; still accepted with a warning)",
                     defaultValue: "STD-GEN-CD",
-                    allowedValues: ["STD-GEN-CD", "STD-GEN-DVD", "STD-GEN-USB"],
+                    allowedValues: DICOMDIRProfile.allStandard.map(\.rawValue),
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["create"])
                 ),
                 CLIParameterDefinition(
@@ -3141,7 +3204,14 @@ case "dicom-dcmdir":
                 CLIParameterDefinition(
                     id: "strict", flag: "--strict", displayName: "Strict",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Include only valid DICOM files (do not force-parse non-conformant files)",
+                    helpText: "Include only valid DICOM files",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["create"])
+                ),
+                CLIParameterDefinition(
+                    id: "copyTo", flag: "--copy-to", displayName: "Copy To (new File-set)",
+                    parameterType: .outputPath, placeholder: "folder for the new File-set",
+                    helpText: "Copy the files into a new File-set in this folder under File IDs the tool assigns, DICOM\\PTnnnnnn\\STnnnnnn\\SEnnnnnn\\IMnnnnnn (PS3.10 8.2, 8.5), and write the DICOMDIR there (default output: <folder>/DICOMDIR). Without it, files are indexed in place and a path that is not a PS3.10 File ID (e.g. img1.dcm) is refused",
+                    isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["create"])
                 ),
                 CLIParameterDefinition(
@@ -3162,13 +3232,13 @@ case "dicom-dcmdir":
                 CLIParameterDefinition(
                     id: "checkFiles", flag: "--check-files", displayName: "Check Files",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Check whether referenced files exist",
+                    helpText: "Check that every Referenced File ID (0004,1500) names a file in the File-set (PS3.10 8.6)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["validate"])
                 ),
                 CLIParameterDefinition(
                     id: "detailed", flag: "--detailed", displayName: "Detailed",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Detailed validation output (record-type breakdown)",
+                    helpText: "Detailed validation output (records per Directory Record Type, PS3.3 Table F.4-1)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["validate"])
                 ),
 
@@ -3176,7 +3246,7 @@ case "dicom-dcmdir":
                 CLIParameterDefinition(
                     id: "format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "tree",
-                    helpText: "Output format for the dump",
+                    helpText: "Output format: tree, json, text",
                     defaultValue: "tree",
                     allowedValues: ["tree", "json", "text"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["dump"])
@@ -3192,7 +3262,7 @@ case "dicom-dcmdir":
                 CLIParameterDefinition(
                     id: "add", flag: "--add", displayName: "Add Directory",
                     parameterType: .filePath, placeholder: "directory with new files",
-                    helpText: "File or directory (inside the media folder) with new DICOM files to add to the index",
+                    helpText: "Directory with new DICOM files to add",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "subcommand", values: ["update"])
                 ),
                 CLIParameterDefinition(
@@ -3812,12 +3882,13 @@ case "dicom-export":
                     isRequired: true
                 ),
                 // --- single ---
+                // The CLI's `single --format` default is jpeg (contact-sheet and bulk default to png).
                 CLIParameterDefinition(
                     id: "format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "jpeg",
-                    helpText: "Image format for the exported frame",
+                    helpText: "Output format: png, jpeg, tiff (default: jpeg)",
                     defaultValue: "jpeg",
-                    allowedValues: ["png", "jpeg", "tiff"],
+                    allowedValues: ExportImageFormat.allCases.map(\.rawValue),
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single"])
                 ),
                 CLIParameterDefinition(
@@ -3830,40 +3901,60 @@ case "dicom-export":
                 CLIParameterDefinition(
                     id: "embed-metadata", flag: "--embed-metadata", displayName: "Embed Metadata",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Embed DICOM metadata as EXIF/TIFF tags in the output image",
+                    helpText: "Embed DICOM attributes as EXIF/TIFF tags (PS3.6 keywords; bulk embeds PatientName, StudyDate, Modality, StudyDescription, Manufacturer)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single", "bulk"])
                 ),
                 CLIParameterDefinition(
                     id: "exif-fields", flag: "--exif-fields", displayName: "EXIF Fields",
                     parameterType: .textField, placeholder: "PatientName,StudyDate,Modality",
-                    helpText: "Comma-separated DICOM fields to embed (e.g. PatientName,StudyDate,Modality)",
+                    helpText: "Comma-separated PS3.6 keywords to embed: \(DICOMImageExporter.supportedEXIFFields.joined(separator: ", ")) (default: PatientName,StudyDate,Modality,StudyDescription,Manufacturer). StudyDate (DA) is written as Exif DateTimeOriginal with StudyTime; PatientID, Modality and SeriesDescription go to Exif UserComment as Keyword=value",
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single"])
                 ),
+                // P-EXPORT-1 (D127): frames are selected by Frame number from 1 (PS3.3 Table 10-3
+                // "The first Frame shall be denoted as Frame number 1"); the 0-based --frame is
+                // deprecated and the executor prints the CLI's stderr note when it is used.
                 CLIParameterDefinition(
-                    id: "frame", flag: "--frame", displayName: "Frame Number",
+                    id: "frame-number", flag: "--frame-number", displayName: "Frame Number",
+                    parameterType: .integerField, placeholder: "1",
+                    helpText: "Frame to export, numbered from 1 (PS3.3 Table 10-3; default 1)",
+                    minValue: 1, maxValue: 99999,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single"])
+                ),
+                CLIParameterDefinition(
+                    id: "frame", flag: "--frame", displayName: "Frame Index (deprecated)",
                     parameterType: .integerField, placeholder: "0",
-                    helpText: "Frame number to export from multi-frame files (0-indexed)",
+                    helpText: "deprecated: 0-based index; use --frame-number",
+                    isAdvanced: true,
                     minValue: 0, maxValue: 99999,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single"])
                 ),
-                // --- windowing (shared) ---
+                // --- windowing (single, animate) ---
                 CLIParameterDefinition(
                     id: "apply-window", flag: "--apply-window", displayName: "Apply Window/Level",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Apply window center/width during rendering",
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single", "contact-sheet", "animate", "bulk"])
+                    helpText: "Use --window-center/--window-width (LINEAR, PS3.3 C.11.2.1.2.1). Without it the file's VOI is applied: Window Center (0028,1050) and Window Width (0028,1051), else VOI LUT Sequence (0028,3010), else the full pixel range",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single", "animate"])
+                ),
+                // P-EXPORT-3 (D127): on contact-sheet and bulk the flag has no effect (the file's
+                // VOI is always applied), so it is deprecated; the executor prints the CLI's note.
+                CLIParameterDefinition(
+                    id: "apply-window-deprecated", flag: "--apply-window", displayName: "Apply Window (deprecated)",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "deprecated: no effect; the file's VOI (Window Center (0028,1050) and Window Width (0028,1051), else VOI LUT Sequence (0028,3010), else the full pixel range) is always applied",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["contact-sheet", "bulk"])
                 ),
                 CLIParameterDefinition(
                     id: "window-center", flag: "--window-center", displayName: "Window Center",
                     parameterType: .textField, placeholder: "e.g. 40",
-                    helpText: "Window center value (Hounsfield units for CT)",
+                    helpText: "Window Center (0028,1050) in modality units (after Rescale Slope/Intercept); needs --apply-window and --window-width",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single", "animate"])
                 ),
                 CLIParameterDefinition(
                     id: "window-width", flag: "--window-width", displayName: "Window Width",
                     parameterType: .textField, placeholder: "e.g. 400",
-                    helpText: "Window width value for controlling brightness range",
+                    helpText: "Window Width (0028,1051) in modality units, >= 1; needs --apply-window and --window-center",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["single", "animate"])
                 ),
                 // --- contact-sheet ---
@@ -3891,24 +3982,26 @@ case "dicom-export":
                 CLIParameterDefinition(
                     id: "labels", flag: "--labels", displayName: "Filename Labels",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Reserve label space below thumbnails",
+                    helpText: "Add filename labels below thumbnails",
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["contact-sheet"])
                 ),
                 CLIParameterDefinition(
                     id: "sheet-format", flag: "--format", displayName: "Sheet Format",
                     parameterType: .enumPicker, placeholder: "png",
-                    helpText: "Contact sheet image format",
+                    helpText: "Output format: png, jpeg (default: png; tiff is also accepted)",
                     defaultValue: "png",
-                    allowedValues: ["png", "jpeg"],
+                    allowedValues: ExportImageFormat.allCases.map(\.rawValue),
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["contact-sheet"])
                 ),
                 // --- animate ---
+                // No fixed default (D127): as the CLI, the rate comes from the file's Cine Module
+                // (PS3.3 Table C.7-13) — Recommended Display Frame Rate (0008,2144), else Cine Rate
+                // (0018,0040), else 1000 / Frame Time (0018,1063) — and only then 10.
                 CLIParameterDefinition(
                     id: "fps", flag: "--fps", displayName: "Frames Per Second",
-                    parameterType: .textField, placeholder: "10",
-                    helpText: "Animation frame rate (frames per second)",
-                    defaultValue: "10",
+                    parameterType: .textField, placeholder: "file's frame rate",
+                    helpText: "Frames per second. Default: the file's Recommended Display Frame Rate (0008,2144), else Cine Rate (0018,0040), else 1000 / Frame Time (0018,1063) (msec), else 10",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["animate"])
                 ),
                 CLIParameterDefinition(
@@ -3918,17 +4011,36 @@ case "dicom-export":
                     defaultValue: "0", minValue: 0, maxValue: 65535,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["animate"])
                 ),
+                // P-EXPORT-1 (D127): Frame numbers from 1 (PS3.3 Table 10-3); the 0-based
+                // --start-frame / --end-frame are deprecated (the executor prints the CLI's notes
+                // and refuses mixing the two kinds, exit 1).
                 CLIParameterDefinition(
-                    id: "start-frame", flag: "--start-frame", displayName: "Start Frame",
-                    parameterType: .integerField, placeholder: "0",
-                    helpText: "First frame to include (0-indexed)",
-                    defaultValue: "0", minValue: 0, maxValue: 99999,
+                    id: "start-frame-number", flag: "--start-frame-number", displayName: "Start Frame Number",
+                    parameterType: .integerField, placeholder: "1",
+                    helpText: "First frame, Frame number from 1 (PS3.3 Table 10-3; default 1)",
+                    minValue: 1, maxValue: 99999,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["animate"])
                 ),
                 CLIParameterDefinition(
-                    id: "end-frame", flag: "--end-frame", displayName: "End Frame",
+                    id: "end-frame-number", flag: "--end-frame-number", displayName: "End Frame Number",
                     parameterType: .integerField, placeholder: "last frame",
-                    helpText: "Last frame to include (default: last frame)",
+                    helpText: "Last frame, Frame number from 1, inclusive (default: the last frame)",
+                    minValue: 1, maxValue: 99999,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["animate"])
+                ),
+                CLIParameterDefinition(
+                    id: "start-frame", flag: "--start-frame", displayName: "Start Frame Index (deprecated)",
+                    parameterType: .integerField, placeholder: "0",
+                    helpText: "deprecated: 0-based index; use --start-frame-number",
+                    isAdvanced: true,
+                    minValue: 0, maxValue: 99999,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["animate"])
+                ),
+                CLIParameterDefinition(
+                    id: "end-frame", flag: "--end-frame", displayName: "End Frame Index (deprecated)",
+                    parameterType: .integerField, placeholder: "last frame",
+                    helpText: "deprecated: 0-based index; use --end-frame-number",
+                    isAdvanced: true,
                     minValue: 0, maxValue: 99999,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["animate"])
                 ),
@@ -3943,17 +4055,19 @@ case "dicom-export":
                 CLIParameterDefinition(
                     id: "bulk-format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "png",
-                    helpText: "Image format for bulk export",
+                    helpText: "Output format: png, jpeg, tiff (default: png)",
                     defaultValue: "png",
-                    allowedValues: ["png", "jpeg", "tiff"],
+                    allowedValues: ExportImageFormat.allCases.map(\.rawValue),
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["bulk"])
                 ),
                 CLIParameterDefinition(
                     id: "organize-by", flag: "--organize-by", displayName: "Organize By",
                     parameterType: .enumPicker, placeholder: "flat",
-                    helpText: "Directory organization scheme for bulk output",
+                    // P-EXPORT-2 (D127): the patient folder is Patient ID (0010,0020) [+ @Issuer of
+                    // Patient ID (0010,0021)], the Patient level unique key (PS3.4 Table C.6-1).
+                    helpText: "Folders: flat; patient = Patient ID (0010,0020), plus @Issuer of Patient ID (0010,0021) when present (PS3.3 Table C.7-1; before 2026-10-01 Patient's Name); study = patient + Study Instance UID (0020,000D); series = study + Series Instance UID (0020,000E)",
                     defaultValue: "flat",
-                    allowedValues: ["flat", "patient", "study", "series"],
+                    allowedValues: OrganizationScheme.allCases.map(\.rawValue),
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["bulk"])
                 ),
                 CLIParameterDefinition(
@@ -4169,7 +4283,7 @@ case "dicom-study":
                 CLIParameterDefinition(
                     id: "pattern", flag: "--pattern", displayName: "Naming Pattern",
                     parameterType: .enumPicker, placeholder: "descriptive",
-                    helpText: "Folder naming (built from study data): 'descriptive' → PatientName_StudyDescription_UID8 / SeriesNumber_Modality_SeriesDescription; 'uid' → full StudyUID / SeriesUID",
+                    helpText: "Folder naming: 'descriptive' = <Patient's Name>_<Study Description>_<last 8 characters of Study Instance UID>/<Series Number>_<Modality>_<Series Description>/<n>.dcm; 'uid' = <Study Instance UID>/<Series Instance UID>/<n>.dcm (default: descriptive)",
                     defaultValue: "descriptive",
                     allowedValues: ["descriptive", "uid"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["organize"])
@@ -4177,8 +4291,9 @@ case "dicom-study":
                 CLIParameterDefinition(
                     id: "copy", flag: "--copy", displayName: "Copy Files",
                     parameterType: .booleanToggle, placeholder: "false",
+                    // Off by default as in dicom-study (organize MOVES the files unless --copy).
                     helpText: "Copy files instead of moving them",
-                    defaultValue: "true",
+                    defaultValue: "false",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["organize"])
                 ),
 
@@ -4194,7 +4309,7 @@ case "dicom-study":
                 CLIParameterDefinition(
                     id: "summary-format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "table",
-                    helpText: "Summary output format: table, json, or csv",
+                    helpText: "Output format: 'table', 'json', or 'csv' (default: table). CSV adds the PS3.6 keyword columns StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances; StudyUID, SeriesCount, InstanceCount are deprecated",
                     defaultValue: "table",
                     allowedValues: ["table", "json", "csv"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["summary"])
@@ -4204,21 +4319,21 @@ case "dicom-study":
                 CLIParameterDefinition(
                     id: "expected-series", flag: "--expected-series", displayName: "Expected Series",
                     parameterType: .integerField, placeholder: "5",
-                    helpText: "Expected number of series in the study",
+                    helpText: "Expected number of series in the study (Number of Study Related Series (0020,1206), PS3.4 Table C.6-2)",
                     minValue: 0, maxValue: 100000,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["check"])
                 ),
                 CLIParameterDefinition(
                     id: "expected-instances", flag: "--expected-instances", displayName: "Expected Instances/Series",
                     parameterType: .integerField, placeholder: "120",
-                    helpText: "Expected number of instances per series",
+                    helpText: "Expected number of instances in each series (Number of Series Related Instances (0020,1209), PS3.4 Table C.6-3)",
                     minValue: 0, maxValue: 100000,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["check"])
                 ),
                 CLIParameterDefinition(
                     id: "report", flag: "--report", displayName: "Report File",
                     parameterType: .outputPath, placeholder: "Choose a location… (e.g. dicom-study/report/StudyReport.txt)",
-                    helpText: "Optional output report file path for detected issues",
+                    helpText: "Output report file path (one detected issue per line; a gap in Instance Number (0020,0013) is a heuristic, PS3.3 Table C.7-9)",
                     defaultValue: "",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["check"])
                 ),
@@ -4234,7 +4349,7 @@ case "dicom-study":
                 CLIParameterDefinition(
                     id: "stats-format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "text",
-                    helpText: "Statistics output format: text or json",
+                    helpText: "Output format: 'text' or 'json' (default: text). JSON adds PS3.6 keyword keys (StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances); the former keys are deprecated",
                     defaultValue: "text",
                     allowedValues: ["text", "json"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["stats"])
@@ -4260,7 +4375,7 @@ case "dicom-study":
                 CLIParameterDefinition(
                     id: "compare-format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "text",
-                    helpText: "Comparison output format: text or json",
+                    helpText: "Output format: 'text' or 'json' (default: text). JSON adds PS3.6 keyword keys (StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances); the former keys are deprecated",
                     defaultValue: "text",
                     allowedValues: ["text", "json"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["compare"])

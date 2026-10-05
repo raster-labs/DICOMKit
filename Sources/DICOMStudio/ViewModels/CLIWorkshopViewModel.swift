@@ -1251,20 +1251,38 @@ public final class CLIWorkshopViewModel {
     ) async {
         let reverse = paramValue("reverse") == "true"
         let verbose = paramValue("verbose") == "true"
+        let noSortKeys = format == .json && paramValue("no-sort-keys") == "true"
+        let noKeywords = format == .xml && paramValue("no-keywords") == "true"
+
+        // dicom-json / dicom-xml check the input first (ArgumentParser ValidationError, exit 64).
+        guard FileManager.default.fileExists(atPath: (securityScopedURLs["inputPath"] ?? securityScopedURLs["input"])?.path ?? inputPath) else {
+            appendConsoleOutput("Error: File not found: \(inputPath)\n")
+            consoleStatus = .error; service.setConsoleStatus(.error)
+            addToHistory(toolName: toolName, command: commandPreview, exitCode: 64, output: "File not found")
+            return
+        }
+        // Deprecated options in use: the CLIs' one-line stderr notes (P-JSON-NO-SORT-KEYS,
+        // P-XML-NO-KEYWORDS), same text.
+        for note in Self.dataExchangeDeprecationNotes(toolName: toolName, noSortKeys: noSortKeys, noKeywords: noKeywords) {
+            appendConsoleOutput(note + "\n")
+        }
 
         let options = DataExchangeWorkflow.Options(
             reverse: reverse,
             pretty: paramValue("pretty") == "true",
-            includeEmpty: paramValue("include-empty") == "true",
+            // PS3.18 F.2.5 / PS3.19 Table A.1.5-2: empty attributes are kept unless
+            // --no-include-empty (the toggle off) — the CLI default (D114).
+            includeEmpty: paramValue("include-empty") != "false",
             inlineThreshold: Int(paramValue("inline-threshold")) ?? 1024,
             bulkDataURL: paramValue("bulk-data-url").isEmpty ? nil : paramValue("bulk-data-url"),
             metadataOnly: paramValue("metadata-only") == "true",
             // --filter-tag is a repeatable array option in the CLI (one value per
-            // flag occurrence); split hex-tag aware so `0010,0010` survives.
-            filterTags: CommandBuilderHelpers.splitMultiValue(paramValue("filter-tag")),
+            // flag occurrence); split hex-tag aware so `0010,0010` survives, then
+            // accept the (GGGG,EEEE) and GGGGEEEE forms as the CLIs do.
+            filterTags: Self.normalizedDataExchangeFilterTags(CommandBuilderHelpers.splitMultiValue(paramValue("filter-tag"))),
             verbose: verbose,
-            sortKeys: paramValue("no-sort-keys") != "true",       // json only
-            includeKeywords: paramValue("no-keywords") != "true"  // xml only
+            sortKeys: !noSortKeys,        // json only
+            includeKeywords: !noKeywords  // xml only
         )
 
         // CLI-canonical output path (used in the header + preview); the sandbox
@@ -1305,7 +1323,9 @@ public final class CLIWorkshopViewModel {
                     ? try DataExchangeWorkflow.decode(textData: inputData, format: format, options: options, readSeconds: readSeconds)
                     : try DataExchangeWorkflow.encode(dicomData: inputData, format: format, options: options, readSeconds: readSeconds)
 
-                var log = result.console.map { $0 + "\n" }.joined()
+                // Warnings (an unresolved BulkData reference on --reverse) carry the
+                // CLI's stderr prefix "dicom-json: " / "dicom-xml: ".
+                var log = result.console.map { ($0.hasPrefix("Warning:") ? toolName + ": " + $0 : $0) + "\n" }.joined()
 
                 let writeStart = Date()
                 try result.data.write(to: outputURL)
@@ -1319,7 +1339,8 @@ public final class CLIWorkshopViewModel {
                     outputSize: Int64(result.data.count), verbose: verbose).map { $0 + "\n" }.joined()
                 return (log, 0)
             } catch let e as DataExchangeWorkflow.WorkflowError {
-                return ("Error: \(e.errorDescription ?? "\(e)")\n", 1)
+                // The CLIs rethrow a WorkflowError as ArgumentParser's ValidationError (exit 64).
+                return ("Error: \(e.errorDescription ?? "\(e)")\n", 64)
             } catch {
                 return ("Error: \(error.localizedDescription)\n", 1)
             }
@@ -1329,6 +1350,34 @@ public final class CLIWorkshopViewModel {
         addToHistory(toolName: toolName, command: commandPreview, exitCode: exitCode, output: output)
         consoleStatus = exitCode == 0 ? .success : .error
         service.setConsoleStatus(exitCode == 0 ? .success : .error)
+    }
+
+    /// The stderr notes `dicom-json` / `dicom-xml` print for a deprecated option in use
+    /// (their `deprecationNotes`; P-JSON-NO-SORT-KEYS, P-XML-NO-KEYWORDS). The text is
+    /// CLI-local (not in DICOMWeb's DataExchangeWorkflow), so it is kept identical here.
+    nonisolated static func dataExchangeDeprecationNotes(toolName: String, noSortKeys: Bool, noKeywords: Bool) -> [String] {
+        var notes: [String] = []
+        if toolName == "dicom-json", noSortKeys {
+            notes.append("dicom-json: warning: --no-sort-keys is deprecated and will be removed: PS3.18 2026a F.2.2 requires attribute objects in ascending tag order")
+        }
+        if toolName == "dicom-xml", noKeywords {
+            notes.append("dicom-xml: warning: --no-keywords is deprecated and will be removed: PS3.19 2026a Table A.1.5-2 requires the keyword attribute for every PS3.6 Data Element")
+        }
+        return notes
+    }
+
+    /// `--filter-tag` forms of dicom-json / dicom-xml (`normalizedFilterTags`): the eight-character
+    /// tag (the PS3.18 F.2.2 attribute name / PS3.19 Table A.1.5-2 `tag` form, e.g. `00100020`)
+    /// and `(GGGG,EEEE)` besides the keyword and `GGGG,EEEE` forms the shared workflow resolves.
+    nonisolated static func normalizedDataExchangeFilterTags(_ specs: [String]) -> [String] {
+        specs.map { spec in
+            var s = spec.trimmingCharacters(in: .whitespaces)
+            if s.hasPrefix("("), s.hasSuffix(")") { s = String(s.dropFirst().dropLast()) }
+            if s.count == 8, s.allSatisfy(\.isHexDigit) {
+                return "\(s.prefix(4)),\(s.suffix(4))"
+            }
+            return s.contains(",") ? s : spec
+        }
     }
 
 // MARK: - dicom-uid Execution
@@ -1357,26 +1406,39 @@ private func executeDicomUIDGenerate() async {
     let typeRaw = paramValue("type")
     let rootRaw = paramValue("root").trimmingCharacters(in: .whitespacesAndNewlines)
     let asJSON = paramValue("json") == "true"
+    let uuid = paramValue("uuid") == "true"
 
-    guard let count = Int(countStr), count >= 1 else {
-        appendConsoleOutput("Error: Count must be at least 1.\n")
+    // dicom-uid generate's validate(): ArgumentParser ValidationError, exit 64.
+    func refuse(_ message: String) {
+        appendConsoleOutput("Error: \(message)\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 1, output: "Invalid count")
-        return
+        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 64, output: message)
     }
-    guard count <= 1000 else {
-        appendConsoleOutput("Error: Count must not exceed 1000.\n")
-        consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 1, output: "Count exceeds 1000")
-        return
+    guard let count = Int(countStr), count >= 1 else { return refuse("Count must be at least 1") }
+    guard count <= 1000 else { return refuse("Count must not exceed 1000") }
+    let typeIsGeneric = typeRaw.isEmpty || typeRaw.lowercased() == "generic"
+    if !typeIsGeneric, !["study", "series", "instance", "sop"].contains(typeRaw.lowercased()) {
+        return refuse("Invalid type '\(typeRaw)'. Valid types: study, series, instance (alias sop), generic")
     }
-    let type: String? = (typeRaw.isEmpty || typeRaw.lowercased() == "generic") ? nil : typeRaw
+    // The form's picker always carries a --type value; only a non-generic one conflicts
+    // with --uuid, as on the CLI (where generic is the absent option).
+    if uuid && (!rootRaw.isEmpty || !typeIsGeneric) {
+        return refuse("--uuid makes 2.25.<UUID> UIDs (PS3.5 B.2) and cannot be combined with --root or --type")
+    }
+    if !rootRaw.isEmpty {
+        let problems = Self.uidRootProblems(root: rootRaw, typed: !typeIsGeneric)
+        if !problems.isEmpty { return refuse(problems.joined(separator: "\n")) }
+    }
+    let type: String? = typeIsGeneric ? nil : typeRaw
     let root: String? = rootRaw.isEmpty ? nil : rootRaw
 
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
-        // Generate via the shared DICOMKit UIDManager and render via the shared
-        // UIDConsole — the exact code path the CLI prints from.
-        let uids = UIDManager().generateUIDs(count: count, root: root, type: type)
+        // Generate via the shared DICOMKit UIDManager (or the shared DICOMCore UUID
+        // derived UID of PS3.5 B.2) and render via the shared UIDConsole — the exact
+        // code path the CLI prints from.
+        let uids = uuid
+            ? (0..<count).map { _ in UIDGenerator.uuidDerivedUID().value }
+            : UIDManager().generateUIDs(count: count, root: root, type: type)
 
         if asJSON {
             do {
@@ -1407,9 +1469,9 @@ private func executeDicomUIDValidate() async {
     let asJSON = paramValue("json") == "true"
 
     guard !argUIDs.isEmpty || !filePath.isEmpty else {
-        appendConsoleOutput("Error: Provide UIDs as arguments or use a DICOM file to validate.\n")
+        appendConsoleOutput("Error: Provide UIDs as arguments or use --file to validate a DICOM file\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 1, output: "No UIDs or file")
+        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 64, output: "No UIDs or file")
         return
     }
 
@@ -1462,42 +1524,41 @@ private func executeDicomUIDLookup() async {
     let asJSON = paramValue("json") == "true"
 
     guard !uid.isEmpty || listAll || !search.isEmpty else {
-        appendConsoleOutput("Error: Provide a UID, enable List All, or enter a Search term.\n")
+        appendConsoleOutput("Error: Provide a UID, use --list-all, or --search to find UIDs\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 1, output: "No lookup criteria")
+        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 64, output: "No lookup criteria")
         return
     }
 
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
-        // Use the shared DICOMKit UIDManager type-description.
-        let typeDescription: (UIDType) -> String = UIDManager.uidTypeDescription
-
+        // P-UID-TYPE (as dicom-uid): text and the JSON `uidType` key carry the PS3.6 Table A-1
+        // UID Type (UIDManager.tableA1UIDType); the JSON `type` key keeps the legacy wording.
         if !uid.isEmpty {
             guard let entry = UIDDictionary.lookup(uid: uid) else {
                 return (UIDConsole.lookupNotFoundLine(uid: uid) + "\n", 1)
             }
+            let uidType = UIDManager.tableA1UIDType(of: entry)
             if asJSON {
                 do {
-                    return (try UIDConsole.lookupEntryJSON(uid: uid, name: entry.name, type: typeDescription(entry.type)), 0)
+                    return (try UIDConsole.lookupEntryJSON(
+                        uid: uid, name: entry.name,
+                        type: UIDManager.uidTypeDescription(entry.type), uidType: uidType), 0)
                 } catch {
                     return ("Error: \(error.localizedDescription)\n", 1)
                 }
             } else {
-                return (UIDConsole.lookupEntryText(uid: uid, name: entry.name, type: typeDescription(entry.type)), 0)
+                return (UIDConsole.lookupEntryText(uid: uid, name: entry.name, type: uidType), 0)
             }
         }
 
-        // List / search.
+        // List / search. The type filter is the shared engine list of PS3.6 Table A-1 UID
+        // Types (UIDConsole.entries(forTypeFilter:)), the exact call the CLI makes.
         var entries = UIDDictionary.allEntries
         if !typeFilter.isEmpty {
-            switch typeFilter.lowercased() {
-            case "transfer-syntax", "transfersyntax":
-                entries = UIDDictionary.transferSyntaxes
-            case "sop-class", "sopclass":
-                entries = UIDDictionary.sopClasses
-            default:
+            guard let filtered = UIDConsole.entries(forTypeFilter: typeFilter) else {
                 return (UIDConsole.unknownTypeFilterLine(typeFilter) + "\n", 1)
             }
+            entries = filtered
         }
         if !search.isEmpty {
             let lower = search.lowercased()
@@ -1510,13 +1571,16 @@ private func executeDicomUIDLookup() async {
         }
         if asJSON {
             do {
-                let rows = entries.map { (uid: $0.uid, name: $0.name, type: typeDescription($0.type)) }
+                let rows = entries.map {
+                    (uid: $0.uid, name: $0.name, type: UIDManager.uidTypeDescription($0.type),
+                     uidType: UIDManager.tableA1UIDType(of: $0))
+                }
                 return (try UIDConsole.listingJSON(entries: rows), 0)
             } catch {
                 return ("Error: \(error.localizedDescription)\n", 1)
             }
         } else {
-            var lines = entries.map { UIDConsole.listingLine(uid: $0.uid, name: $0.name, type: typeDescription($0.type)) }
+            var lines = entries.map { UIDConsole.listingLine(uid: $0.uid, name: $0.name, type: UIDManager.tableA1UIDType(of: $0)) }
             lines.append(UIDConsole.listingSummary(count: entries.count))
             return (lines.joined(separator: "\n") + "\n", 0)
         }
@@ -1541,13 +1605,24 @@ private func executeDicomUIDRegenerate() async {
         else { inputPaths.append(scoped.path) }
     }
     guard !inputPaths.isEmpty else {
-        appendConsoleOutput("Error: At least one input file is required.\n")
+        appendConsoleOutput("Error: At least one input file is required\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 1, output: "Missing input path")
+        addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 64, output: "Missing input path")
         return
     }
     let outputPath = paramValue("output").trimmingCharacters(in: .whitespacesAndNewlines)
     let rootRaw = paramValue("root").trimmingCharacters(in: .whitespacesAndNewlines)
+    if !rootRaw.isEmpty {
+        // dicom-uid regenerate's validate(): a --root outside PS3.5 9.1 is a usage error (exit 64).
+        let problems = Self.uidRootProblems(root: rootRaw, typed: false)
+        if !problems.isEmpty {
+            let message = problems.joined(separator: "\n")
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error; service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-uid", command: commandPreview, exitCode: 64, output: message)
+            return
+        }
+    }
     let root: String? = rootRaw.isEmpty ? nil : rootRaw
     let maintainRelationships = paramValue("maintain-relationships") == "true"
     let dryRun = paramValue("dry-run") == "true"
@@ -1670,6 +1745,32 @@ private func executeDicomUIDRegenerate() async {
     service.setConsoleStatus(exitCode == 0 ? .success : .error)
 }
 
+/// PS3.5 9.1 checks for a dicom-uid `--root` value and the room it leaves for the generated
+/// UID (dicom-uid's `UIDRootRule`, kept text-identical here; the rule is CLI-local until it is
+/// lifted into DICOMKit). The longest suffix `UIDGenerator` appends is `.<µs timestamp>.<random
+/// 0-999999>`, plus `.<1|2|3>` for a typed UID.
+nonisolated static func uidRootProblems(root: String, typed: Bool) -> [String] {
+    let timestampDigits = String(UInt64(Date().timeIntervalSince1970 * 1_000_000)).count
+    let suffixLength = 1 + timestampDigits + 1 + 6 + (typed ? 2 : 0)
+    var out: [String] = []
+    let components = root.split(separator: ".", omittingEmptySubsequences: false)
+    if root.isEmpty || components.contains(where: { $0.isEmpty }) {
+        out.append("UID root '\(root)' has an empty component; components are separated by single \".\" characters (PS3.5 9.1)")
+    }
+    for component in components where !component.isEmpty {
+        if !component.allSatisfy({ ("0"..."9").contains($0) }) {
+            out.append("UID root component '\(component)' is not a number; only the digits 0-9 are allowed (PS3.5 9.1)")
+        } else if component.count > 1 && component.hasPrefix("0") {
+            out.append("UID root component '\(component)' has a leading zero; only a single-digit component may start with 0 (PS3.5 9.1)")
+        }
+    }
+    let room = DICOMUniqueIdentifier.maximumLength - suffixLength
+    if root.count > room {
+        out.append("UID root is \(root.count) characters; generated UIDs add up to \(suffixLength) more and may not exceed \(DICOMUniqueIdentifier.maximumLength) (PS3.5 9.1), so the root may have at most \(room)")
+    }
+    return out
+}
+
 private func executeDicomDcmdir() async {
         let subcommand = paramValue("subcommand").isEmpty ? "create" : paramValue("subcommand")
         switch subcommand {
@@ -1686,12 +1787,16 @@ private func executeDicomDcmdir() async {
 
     // MARK: dicom-dcmdir create
 
+    /// Mirrors `dicom-dcmdir create`: the same shared `DICOMDIRWorkflow` build (and `--copy-to`),
+    /// the CLI's File-set ID default and refusal (PS3.10 8.1, 8.5; P-DCMDIR-FSID), its `--profile`
+    /// check and deprecation note (PS3.11 identifiers only, D29) and its exit codes: ArgumentParser
+    /// ValidationError 64, the File-set ID refusal and "no file could be indexed" 1 (D132).
     private func executeDicomDcmdirCreate() async {
         let inputDirectory = paramValue("inputDirectory")
         guard !inputDirectory.isEmpty else {
-            appendConsoleOutput("Error: Input directory is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<input-directory>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 1, output: "Missing input directory")
+            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 64, output: "Missing input directory")
             return
         }
 
@@ -1700,6 +1805,7 @@ private func executeDicomDcmdir() async {
         let profileStr = paramValue("profile").isEmpty ? "STD-GEN-CD" : paramValue("profile")
         let recursive = paramValue("recursive").isEmpty ? true : (paramValue("recursive") == "true")
         let strict = paramValue("strict") == "true"
+        let copyToArg = paramValue("copyTo")
         let verbose = paramValue("createVerbose") == "true"
 
         let inputScopedURL = securityScopedURLs["inputDirectory"]
@@ -1711,31 +1817,61 @@ private func executeDicomDcmdir() async {
         let outputAccessing = outputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if outputAccessing { outputScopedURL?.stopAccessingSecurityScopedResource() } }
 
+        let copyToScopedURL = securityScopedURLs["copyTo"]
+        let copyToAccessing = copyToScopedURL?.startAccessingSecurityScopedResource() ?? false
+        defer { if copyToAccessing { copyToScopedURL?.stopAccessingSecurityScopedResource() } }
+        let copyRoot: URL? = copyToScopedURL ?? (copyToArg.isEmpty ? nil : URL(fileURLWithPath: copyToArg))
+
         // Resolve the OUTPUT to a DICOMDIR *file* path. When the user chose/typed a
         // folder (or a trailing-slash path), the DICOMDIR is written INSIDE it — writing
         // onto a directory path is what produced "the file … couldn't be saved in the
-        // folder …". Default: a DICOMDIR inside the input directory. (Scope is active.)
+        // folder …". Default, as the CLI: a DICOMDIR in the --copy-to folder, else in the
+        // input directory. (Scope is active.)
         let intendedOutputPath: String
         if !outputArg.isEmpty { intendedOutputPath = outputArg }
         else if let scoped = outputScopedURL { intendedOutputPath = scoped.path }
-        else { intendedOutputPath = inputURL.appendingPathComponent("DICOMDIR").path }
+        else { intendedOutputPath = (copyRoot ?? inputURL).appendingPathComponent("DICOMDIR").path }
         let outputFilePath = DICOMDIRWorkflow.resolvedDICOMDIRPath(intendedOutputPath)
-
-        let fsID = fileSetIDArg.isEmpty ? inputURL.lastPathComponent : fileSetIDArg
 
         let (output, exitCode): (String, Int) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             var out = ""
 
-            guard let dicomProfile = DICOMDIRProfile(rawValue: profileStr) else {
-                return ("Error: Invalid profile: \(profileStr). Use STD-GEN-CD, STD-GEN-DVD, or STD-GEN-USB\n", 1)
-            }
-
+            // The CLI's ValidationErrors (exit 64), in its order.
             var isDir: ObjCBool = false
             guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDir) else {
-                return ("Error: Input directory not found: \(inputDirectory)\n", 1)
+                return ("Error: Input directory not found: \(inputDirectory)\n", 64)
             }
             guard isDir.boolValue else {
-                return ("Error: Input path is not a directory: \(inputDirectory)\n", 1)
+                return ("Error: Input path is not a directory: \(inputDirectory)\n", 64)
+            }
+            // The File IDs are relative to the DICOMDIR's folder (PS3.10 8.6): with --copy-to
+            // the DICOMDIR goes in the root of the new File-set.
+            if let copyRoot, URL(fileURLWithPath: outputFilePath).deletingLastPathComponent().standardizedFileURL.path
+                != copyRoot.standardizedFileURL.path {
+                return ("Error: With --copy-to the DICOMDIR is written in that folder (PS3.10 8.6); omit --output or use --output \(copyRoot.path)/DICOMDIR\n", 64)
+            }
+
+            // File-set ID (0004,1130): PS3.10 8.1 (0-16 characters) and 8.5 (A-Z, 0-9, _).
+            // P-DCMDIR-FSID: a non-conformant --file-set-id is refused (exit 1), not written.
+            let fsID: String
+            if !fileSetIDArg.isEmpty {
+                if let refusal = WorkshopFileSetRules.fileSetIDRefusal(fileSetIDArg) {
+                    return ("Error: \(refusal)\n", 1)
+                }
+                fsID = fileSetIDArg
+            } else {
+                fsID = WorkshopFileSetRules.defaultFileSetID(fromDirectoryName: inputURL.lastPathComponent)
+            }
+
+            // --profile: a PS3.11 identifier (DICOMCore registry), the CLI's error text otherwise.
+            guard let dicomProfile = DICOMDIRProfile(rawValue: profileStr) else {
+                let standard = DICOMDIRProfile.allStandard.map(\.rawValue).joined(separator: ", ")
+                return ("Error: Invalid profile: \(profileStr). Use a PS3.11 Application Profile identifier: \(standard), or STD-US-<ID|SC|CC>-<SF|MF>-<media>\n", 64)
+            }
+            // P-DCMDIR-PROFILE: a pre-2026-09-25 spelling still works, with the CLI's note
+            // naming the PS3.11 identifier that is written.
+            if let note = WorkshopFileSetRules.profileDeprecationNote(requested: profileStr, resolved: dicomProfile) {
+                out += note + "\n"
             }
 
             if verbose {
@@ -1743,7 +1879,7 @@ private func executeDicomDcmdir() async {
                 out += "  Input directory: \(inputDirectory)\n"
                 out += "  Output file: \(outputFilePath)\n"
                 out += "  File-set ID: \(fsID)\n"
-                out += "  Profile: \(profileStr)\n"
+                out += "  Profile: \(dicomProfile.rawValue)\n"
                 out += "  Recursive: \(recursive)\n\n"
             }
 
@@ -1754,12 +1890,23 @@ private func executeDicomDcmdir() async {
             do {
                 result = try DICOMDIRWorkflow.buildDirectory(
                     fromFilesIn: inputURL, recursive: recursive, strict: strict,
-                    fileSetID: fsID, profile: dicomProfile,
+                    fileSetID: fsID, profile: dicomProfile, copyingInto: copyRoot,
                     verbose: verbose, progress: { out += $0 })
             } catch DICOMDIRWorkflow.WorkflowError.noDICOMFiles {
-                return (out + "Error: No DICOM files found in directory: \(inputDirectory)\n", 1)
+                return (out + "Error: No DICOM files found in directory: \(inputDirectory)\n", 64)
             } catch {
                 return (out + "Error: \(error.localizedDescription)\n", 1)
+            }
+
+            // Every file refused (PS3.10 8.2/8.5 File ID, PS3.11 profile table, duplicate
+            // instance): a DICOMDIR without directory records is not written (PS3.11 D.3.3).
+            guard result.processed > 0 else {
+                var message = "Error: no file could be indexed; no DICOMDIR written\n"
+                for failure in result.failures { message += "  \(failure.file): \(failure.reason)\n" }
+                if copyRoot == nil {
+                    message += "Use --copy-to <folder> to copy the files into a new File-set under conformant File IDs (PS3.10 8.2, 8.5)\n"
+                }
+                return (out + message, 1)
             }
 
             // Serialize the DICOMDIR, then write it sandbox/TCC-resiliently via
@@ -1778,8 +1925,12 @@ private func executeDicomDcmdir() async {
                 return (out + "Error: Failed to write DICOMDIR: \(error.localizedDescription)\n", 1)
             }
 
-            // Append the shared summary block (showing where the file actually landed).
+            // Append the shared summary block (showing where the file actually landed),
+            // then the CLI's stderr warning for files it did not index.
             out += DICOMDIRWorkflow.renderCreateSummary(result, outputPath: writtenURL.path)
+            if result.failed > 0 {
+                out += "Warning: \(result.failed) file(s) not indexed (listed in the summary)\n"
+            }
             return (out, 0)
         }.value
 
@@ -1791,12 +1942,15 @@ private func executeDicomDcmdir() async {
 
     // MARK: dicom-dcmdir validate
 
+    /// Mirrors `dicom-dcmdir validate`: the engine's structural validation, then the File-set
+    /// ID / File ID rules of PS3.10 8.1, 8.2, 8.5, 8.6 and PS3.3 Table F.3-3 with the clause each
+    /// failure names (D132), then the shared report; exit 64 for a missing path, 1 for a failure.
     private func executeDicomDcmdirValidate() async {
         let dicomdirPath = paramValue("dicomdirPath")
         guard !dicomdirPath.isEmpty else {
-            appendConsoleOutput("Error: DICOMDIR path is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<dicomdir-path>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 1, output: "Missing DICOMDIR path")
+            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 64, output: "Missing DICOMDIR path")
             return
         }
         let checkFiles = paramValue("checkFiles") == "true"
@@ -1806,25 +1960,43 @@ private func executeDicomDcmdir() async {
         let accessing = scopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scopedURL?.stopAccessingSecurityScopedResource() } }
         // Accept either a DICOMDIR file or the media directory that contains it.
-        let fileURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(scopedURL ?? URL(fileURLWithPath: dicomdirPath))
+        let requestedURL = scopedURL ?? URL(fileURLWithPath: dicomdirPath)
+        let fileURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(requestedURL)
 
         let (output, exitCode): (String, Int) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
+            guard FileManager.default.fileExists(atPath: fileURL.path) else {
+                let message = fileURL.path == requestedURL.path
+                    ? "DICOMDIR file not found: \(dicomdirPath)"
+                    : "No DICOMDIR found in directory: \(dicomdirPath)"
+                return ("Error: \(message)\n", 64)
+            }
+
             var out = ""
             out += "Validating DICOMDIR: \(fileURL.path)\n\n"
 
             let directory: DICOMDirectory
             do {
-                let data = try Data(contentsOf: fileURL)
-                directory = try DICOMDIRReader.read(from: data)
+                directory = try DICOMDIRReader.read(from: fileURL)
             } catch {
-                out += "Failed to read DICOMDIR: \(error.localizedDescription)\n"
+                out += "❌ Failed to read DICOMDIR: \(WorkshopFileSetRules.describe(error))\n"
                 return (out, 1)
             }
 
+            // Structure (PS3.3 Table F.4-1 hierarchy, duplicate SOP Instances)
             do {
                 try directory.validate(checkFileExistence: checkFiles)
             } catch {
-                out += "Validation failed: \(error.localizedDescription)\n"
+                out += "❌ Validation failed: \(WorkshopFileSetRules.describe(error))\n"
+                return (out, 1)
+            }
+
+            // File-set ID and File ID rules (PS3.10 8.1, 8.2, 8.5, 8.6; PS3.3 Table F.3-3)
+            let findings = WorkshopFileSetRules.findings(
+                for: directory, mediaFolder: fileURL.deletingLastPathComponent(), checkFiles: checkFiles)
+            if !findings.isEmpty {
+                for finding in findings { out += "❌ \(finding)\n" }
+                out += "\n"
+                out += "❌ Validation failed: \(findings.count) rule violation(s)\n"
                 return (out, 1)
             }
 
@@ -1845,9 +2017,9 @@ private func executeDicomDcmdir() async {
     private func executeDicomDcmdirDump() async {
         let dicomdirPath = paramValue("dicomdirPath")
         guard !dicomdirPath.isEmpty else {
-            appendConsoleOutput("Error: DICOMDIR path is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<dicomdir-path>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 1, output: "Missing DICOMDIR path")
+            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 64, output: "Missing DICOMDIR path")
             return
         }
         let format = paramValue("format").isEmpty ? "tree" : paramValue("format")
@@ -1857,17 +2029,23 @@ private func executeDicomDcmdir() async {
         let accessing = scopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scopedURL?.stopAccessingSecurityScopedResource() } }
         // Accept either a DICOMDIR file or the media directory that contains it.
-        let fileURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(scopedURL ?? URL(fileURLWithPath: dicomdirPath))
+        let requestedURL = scopedURL ?? URL(fileURLWithPath: dicomdirPath)
+        let fileURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(requestedURL)
 
         let (output, exitCode): (String, Int) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
+            guard FileManager.default.fileExists(atPath: fileURL.path) else {
+                let message = fileURL.path == requestedURL.path
+                    ? "DICOMDIR file not found: \(dicomdirPath)"
+                    : "No DICOMDIR found in directory: \(dicomdirPath)"
+                return ("Error: \(message)\n", 64)
+            }
             var out = ""
 
             let directory: DICOMDirectory
             do {
-                let data = try Data(contentsOf: fileURL)
-                directory = try DICOMDIRReader.read(from: data)
+                directory = try DICOMDIRReader.read(from: fileURL)
             } catch {
-                out += "Error reading DICOMDIR: \(error.localizedDescription)\n"
+                out += "Error reading DICOMDIR: \(WorkshopFileSetRules.describe(error))\n"
                 return (out, 1)
             }
 
@@ -1876,7 +2054,7 @@ private func executeDicomDcmdir() async {
             // json / text) cannot drift between the two surfaces.
             guard let rendered = DICOMDIRDumpFormatter.render(directory, format: format, verbose: verbose) else {
                 out += "Error: Invalid format: \(format). Use tree, json, or text\n"
-                return (out, 1)
+                return (out, 64)
             }
             out += rendered
             return (out, 0)
@@ -1896,9 +2074,9 @@ private func executeDicomDcmdir() async {
     private func executeDicomDcmdirUpdate() async {
         let dicomdirPath = paramValue("dicomdirPath")
         guard !dicomdirPath.isEmpty else {
-            appendConsoleOutput("Error: DICOMDIR path is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<dicomdir-path>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 1, output: "Missing DICOMDIR path")
+            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 64, output: "Missing DICOMDIR path")
             return
         }
         let addPath = paramValue("add")
@@ -1915,10 +2093,11 @@ private func executeDicomDcmdir() async {
         let dicomdirURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(
             dirScopedURL ?? URL(fileURLWithPath: dicomdirPath))
         guard FileManager.default.fileExists(atPath: dicomdirURL.path) else {
+            // ArgumentParser ValidationError in the CLI (exit 64).
             let msg = "Error: DICOMDIR not found: \(dicomdirURL.path)\n"
             appendConsoleOutput(msg)
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 1, output: msg)
+            addToHistory(toolName: "dicom-dcmdir", command: commandPreview, exitCode: 64, output: msg)
             return
         }
 
@@ -2459,6 +2638,7 @@ private func executeDicomSplit() async {
 
     let outputDir = paramValue("output").isEmpty ? "." : paramValue("output")
     let framesSpec = paramValue("frames")
+    let frameNumbersSpec = paramValue("frame-numbers")
     let format = paramValue("format").isEmpty ? "dicom" : paramValue("format")
     let applyWindow = paramValue("apply-window") == "true"
     let pattern = paramValue("pattern").isEmpty ? nil : paramValue("pattern")
@@ -2481,11 +2661,24 @@ private func executeDicomSplit() async {
         let lines = SplitConsole.invalidValueLines(value: check.raw, option: check.flag, help: check.help)
         for line in lines { appendConsoleOutput(line + "\n") }
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 1, output: lines[0])
+        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 64, output: lines[0])
         return
     }
     let windowCenter = Double(windowCenterStr)
     let windowWidth = Double(windowWidthStr)
+
+    // P-SPLIT-1, as the CLI's validate(): both frame selections at once is refused (exit 1,
+    // not a usage error); the deprecated 0-based --frames then prints its stderr note first.
+    if !framesSpec.isEmpty && !frameNumbersSpec.isEmpty {
+        let msg = SplitConsole.framesAndFrameNumbersConflictMessage
+        appendConsoleOutput("Error: \(msg)\n")
+        consoleStatus = .error; service.setConsoleStatus(.error)
+        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 1, output: msg)
+        return
+    }
+    if !framesSpec.isEmpty {
+        appendConsoleOutput(SplitConsole.framesDeprecatedLine + "\n")
+    }
 
     // Enhanced-multiframe options — the same SplitOptions the dicom-split CLI builds.
     var splitOptions = SplitOptions()
@@ -2517,11 +2710,12 @@ private func executeDicomSplit() async {
     // output directory, --frames-per >= 1, banner, --frames parse.
     let fm = FileManager.default
     var isDir: ObjCBool = false
+    // (The CLI raises these as ArgumentParser ValidationError: exit 64.)
     guard fm.fileExists(atPath: inputURL.path, isDirectory: &isDir) else {
         let msg = SplitConsole.inputNotFoundMessage(path: inputURL.path)
         appendConsoleOutput("Error: \(msg)\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 1, output: msg)
+        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 64, output: msg)
         return
     }
 
@@ -2531,7 +2725,7 @@ private func executeDicomSplit() async {
     } catch {
         appendConsoleOutput("Error: \(SplitConsole.outputNotDirectoryMessage(path: outputBaseURL.path))\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 1, output: error.localizedDescription)
+        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 64, output: error.localizedDescription)
         return
     }
 
@@ -2539,7 +2733,7 @@ private func executeDicomSplit() async {
         let msg = SplitConsole.framesPerTooSmallMessage
         appendConsoleOutput("Error: \(msg)\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 1, output: msg)
+        addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 64, output: msg)
         return
     }
 
@@ -2550,24 +2744,27 @@ private func executeDicomSplit() async {
             format: SplitOutputFormat(rawValue: format) ?? .dicom,
             frames: framesSpec, applyWindow: applyWindow,
             windowCenter: windowCenter, windowWidth: windowWidth,
-            options: splitOptions
+            options: splitOptions, frameNumbers: frameNumbersSpec
         ) {
             appendConsoleOutput(line + "\n")
         }
     }
 
-    // Parse the --frames selection through the SHARED SplitConsole parser (0-based,
-    // the exact grammar and error text the dicom-split CLI uses). The CLI parses
-    // it after the banner, so a bad selection still shows the verbose header.
+    // Parse the frame selection through the SHARED SplitConsole parsers — Frame numbers
+    // from 1 (PS3.3 C.7.6.16.1.2) for --frame-numbers, the deprecated 0-based grammar for
+    // --frames — with the exact error text the dicom-split CLI uses (exit 64). The CLI
+    // parses it after the banner, so a bad selection still shows the verbose header.
     var frameIndices: Set<Int>? = nil
-    if !framesSpec.isEmpty {
+    if !frameNumbersSpec.isEmpty || !framesSpec.isEmpty {
         do {
-            frameIndices = try SplitConsole.parseFrameSelection(framesSpec)
+            frameIndices = !frameNumbersSpec.isEmpty
+                ? try SplitConsole.parseFrameNumberSelection(frameNumbersSpec)
+                : try SplitConsole.parseFrameSelection(framesSpec)
         } catch {
             let parseError = (error as? SplitConsole.FrameSelectionError)?.description ?? "\(error)"
             appendConsoleOutput("Error: \(parseError)\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 1, output: parseError)
+            addToHistory(toolName: "dicom-split", command: commandPreview, exitCode: 64, output: parseError)
             return
         }
     }
@@ -2713,16 +2910,17 @@ private func executeDicomSplit() async {
         mergeOptions.newSeries = paramValue("new-series") == "true"
         mergeOptions.allowAnySource = paramValue("allow-any-source") == "true"
 
+        // dicom-merge's refusals are ArgumentParser ValidationErrors (exit 64), same text.
         guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input file path is required.\n")
+            appendConsoleOutput("Error: \(MergeConsole.noInputFilesMessage)\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-merge", command: commandPreview, exitCode: 1, output: "Missing input path")
+            addToHistory(toolName: "dicom-merge", command: commandPreview, exitCode: 64, output: "Missing input path")
             return
         }
         guard !outputPath.isEmpty else {
-            appendConsoleOutput("Error: Output path is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '--output <output>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-merge", command: commandPreview, exitCode: 1, output: "Missing output path")
+            addToHistory(toolName: "dicom-merge", command: commandPreview, exitCode: 64, output: "Missing output path")
             return
         }
 
@@ -2754,7 +2952,7 @@ private func executeDicomSplit() async {
             let msg = MergeConsole.inputNotFoundMessage(path: root)
             appendConsoleOutput("Error: \(msg)\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-merge", command: commandPreview, exitCode: 1, output: msg)
+            addToHistory(toolName: "dicom-merge", command: commandPreview, exitCode: 64, output: msg)
             return
         }
 
@@ -2786,7 +2984,7 @@ private func executeDicomSplit() async {
                     log += MergeConsole.foundFilesLines(count: files.count).map { $0 + "\n" }.joined()
                 }
                 guard !files.isEmpty else {
-                    return (log + "Error: \(MergeConsole.noDICOMFilesFoundMessage)\n", 1)
+                    return (log + "Error: \(MergeConsole.noDICOMFilesFoundMessage)\n", 64)
                 }
 
                 // Delegate the merge to the shared DICOMKit engine — the exact same
@@ -2836,21 +3034,22 @@ private func executeDicomArchive() async {
     // Resolve the relevant directory path per subcommand (init uses "path", others "archive").
     let archivePathParam = sub == "init" ? paramValue("path") : paramValue("archive")
     guard !archivePathParam.isEmpty else {
+        // ArgumentParser's message for the missing required option (exit 64).
         let msg = sub == "init"
-            ? "Error: New archive path is required.\n"
-            : "Error: Archive path is required.\n"
+            ? "Error: Missing expected argument '--path <path>'\n"
+            : "Error: Missing expected argument '--archive <archive>'\n"
         appendConsoleOutput(msg)
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-archive", command: commandPreview, exitCode: 1, output: "Missing archive path")
+        addToHistory(toolName: "dicom-archive", command: commandPreview, exitCode: 64, output: "Missing archive path")
         return
     }
 
     // The CLI requires --output for export; guard the empty case so an empty path
     // is never resolved to the process CWD and silently exported into.
     if sub == "export" && paramValue("output").isEmpty {
-        appendConsoleOutput("Error: Export output directory is required.\n")
+        appendConsoleOutput("Error: Missing expected argument '--output <output>'\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-archive", command: commandPreview, exitCode: 1, output: "Missing export output directory")
+        addToHistory(toolName: "dicom-archive", command: commandPreview, exitCode: 64, output: "Missing export output directory")
         return
     }
 
@@ -2898,12 +3097,39 @@ private func executeDicomArchive() async {
     let qStudyUID = paramValue("study-uid")
     let qSeriesUID = paramValue("series-uid")
     let qModality = paramValue("modality")
+    let qStrictModality = paramValue("strict-modality") == "true"
     let qStudyDate = paramValue("study-date")
 
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
         // All archive operations are delegated to the shared DICOMKit engine —
         // the exact same ArchiveStore the `dicom-archive` CLI uses, so the app and
         // CLI cannot drift. Sandbox-resolved paths are passed in from the caller.
+        var log = ""
+        var modality: String? = qModality.isEmpty ? nil : qModality
+        if sub == "query" {
+            // The CLI's `query` runs the value through the shared DICOMCore
+            // ModalityOptionValidator (PS3.3 C.7.3.1.1.1 Defined Terms): a retired,
+            // non-standard or unknown code warns on stderr and is sent as-is, or is
+            // rejected (exit 1) with --strict-modality; an alias note is printed only
+            // with --verbose, which `query` has not.
+            if let outcome = ModalityOptionValidator.validate(modality) {
+                if let warning = outcome.warning {
+                    if qStrictModality, outcome.isStrictFailure {
+                        return ("Error: \(warning) Rejected because --strict-modality is set.\n", 1)
+                    }
+                    if !outcome.isNote {
+                        log += "warning: \(warning) Sending it as-is.\n"
+                    }
+                }
+                modality = outcome.value
+            }
+            // dicom-archive's ArchiveQueryKeys.studyDateWarning (CLI-local, same text): a
+            // Study Date that is neither a DA value (PS3.5 Table 6.2-1) nor a DA range
+            // (PS3.4 C.2.2.2.5.1) is compared as a literal string.
+            if let warning = Self.archiveStudyDateWarning(qStudyDate) {
+                log += warning + "\n"
+            }
+        }
         do {
             let out: String
             switch sub {
@@ -2927,7 +3153,7 @@ private func executeDicomArchive() async {
                     patientName: qPatientName.isEmpty ? nil : qPatientName,
                     patientID: qPatientID.isEmpty ? nil : qPatientID,
                     studyUID: qStudyUID.isEmpty ? nil : qStudyUID,
-                    modality: qModality.isEmpty ? nil : qModality,
+                    modality: modality,
                     studyDate: qStudyDate.isEmpty ? nil : qStudyDate,
                     format: format.isEmpty ? "table" : format)
             case "list":
@@ -2949,9 +3175,12 @@ private func executeDicomArchive() async {
             default:
                 return ("Error: Unknown subcommand '\(sub)'.\n", 1)
             }
-            return (out, 0)
+            return (log + out, 0)
+        } catch let error as ArchiveError {
+            // dicom-archive rethrows ArchiveError as ArgumentParser's ValidationError (exit 64).
+            return (log + "Error: \(error.errorDescription ?? "\(error)")\n", 64)
         } catch {
-            return ("Error: \(error.localizedDescription)\n", 1)
+            return (log + "Error: \(error.localizedDescription)\n", 1)
         }
     }.value
 
@@ -2959,6 +3188,17 @@ private func executeDicomArchive() async {
     addToHistory(toolName: "dicom-archive", command: commandPreview, exitCode: exitCode, output: output)
     consoleStatus = exitCode == 0 ? .success : .error
     service.setConsoleStatus(exitCode == 0 ? .success : .error)
+}
+
+/// `dicom-archive query`'s warning for a `--study-date` that the shared ArchiveStore cannot match
+/// as DICOM (its `ArchiveQueryKeys.studyDateWarning`, CLI-local, kept text-identical): neither a
+/// DA value (PS3.5 Table 6.2-1: YYYYMMDD) nor a DA range (PS3.4 C.2.2.2.5.1: "<date1>-<date2>",
+/// "-<date1>", "<date1>-").
+nonisolated static func archiveStudyDateWarning(_ value: String?) -> String? {
+    guard let value, !value.isEmpty else { return nil }
+    if ArchiveMatching.dateRange(value) != nil { return nil }
+    return "warning: --study-date '\(value)' is neither a DA value (YYYYMMDD) nor a DA range "
+        + "(PS3.4 C.2.2.2.5.1); it matches only a Study Date (0008,0020) equal to the whole string"
 }
 
 private func executeDicomCompress() async {
@@ -3374,16 +3614,17 @@ private func executeDicomStudy() async {
     private func executeDicomStudyOrganize() async {
         let input = paramValue("input")
         let output = paramValue("output")
+        // ArgumentParser's messages for the missing positional / required option (exit 64).
         guard !input.isEmpty else {
-            appendConsoleOutput("Error: Input directory is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<input>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 1, output: "Missing input")
+            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 64, output: "Missing input")
             return
         }
         guard !output.isEmpty else {
-            appendConsoleOutput("Error: Output directory is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '--output <output>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 1, output: "Missing output")
+            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 64, output: "Missing output")
             return
         }
         let pattern = paramValue("pattern").isEmpty ? "descriptive" : paramValue("pattern")
@@ -3434,9 +3675,9 @@ private func executeDicomStudy() async {
     private func executeDicomStudySummary() async {
         let path = paramValue("path")
         guard !path.isEmpty else {
-            appendConsoleOutput("Error: Study path is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<path>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 1, output: "Missing path")
+            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 64, output: "Missing path")
             return
         }
         let format = paramValue("summary-format").isEmpty ? "table" : paramValue("summary-format")
@@ -3473,9 +3714,9 @@ private func executeDicomStudy() async {
     private func executeDicomStudyCheck() async {
         let path = paramValue("path")
         guard !path.isEmpty else {
-            appendConsoleOutput("Error: Study path is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<path>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 1, output: "Missing path")
+            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 64, output: "Missing path")
             return
         }
         let expectedSeries = Int(paramValue("expected-series"))
@@ -3537,9 +3778,9 @@ private func executeDicomStudy() async {
     private func executeDicomStudyStats() async {
         let path = paramValue("path")
         guard !path.isEmpty else {
-            appendConsoleOutput("Error: Study path is required.\n")
+            appendConsoleOutput("Error: Missing expected argument '<path>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 1, output: "Missing path")
+            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 64, output: "Missing path")
             return
         }
         let detailed = paramValue("detailed") == "true"
@@ -3580,9 +3821,9 @@ private func executeDicomStudy() async {
         let path1 = paramValue("path1")
         let path2 = paramValue("path2")
         guard !path1.isEmpty, !path2.isEmpty else {
-            appendConsoleOutput("Error: Both study directories are required.\n")
+            appendConsoleOutput("Error: Missing expected argument '\(path1.isEmpty ? "<path1>" : "<path2>")'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 1, output: "Missing path")
+            addToHistory(toolName: "dicom-study", command: commandPreview, exitCode: 64, output: "Missing path")
             return
         }
         let format = paramValue("compare-format").isEmpty ? "text" : paramValue("compare-format")
@@ -4369,23 +4610,32 @@ private func executeDicomStudy() async {
 
     /// Advanced DICOM image export: single image (+EXIF), contact sheet, animated GIF, and bulk export.
     /// Reimplements the dicom-export CLI in-process using DICOMKit rendering + CoreGraphics/ImageIO.
+    /// Mirrors `dicom-export` (D127): every subcommand renders through the shared
+    /// `DICOMImageExporter.renderFrameForExport` (the PS3.4 N.2 grayscale chain), frames are
+    /// selected by Frame number from 1 (`--frame-number`, `--start-frame-number`,
+    /// `--end-frame-number`; PS3.3 Table 10-3) with the 0-based options deprecated (P-EXPORT-1),
+    /// the animate rate defaults to the file's Cine Module (PS3.3 Table C.7-13), bulk patient
+    /// folders are keyed on Patient ID + Issuer of Patient ID (P-EXPORT-2), `--apply-window` is
+    /// deprecated on contact-sheet / bulk (P-EXPORT-3), and Burned In Annotation (0028,0301) YES
+    /// warns. Exit codes: ArgumentParser ValidationError 64, every other error 1.
     private func executeDicomExport() async {
         #if canImport(CoreGraphics) && canImport(ImageIO)
         let operation = paramValue("operation").isEmpty ? "single" : paramValue("operation")
         let inputPath = paramValue("inputPath")
         let outputPath = paramValue("output")
 
-        guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input path is required.\n")
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-export", command: commandPreview, exitCode: 1, output: "Missing input path")
-            return
+            addToHistory(toolName: "dicom-export", command: commandPreview, exitCode: exitCode, output: message)
         }
+        guard !inputPath.isEmpty else {
+            return refuse("Missing expected argument '<\(operation == "contact-sheet" ? "inputs" : "input")>'", exitCode: 64)
+        }
+        // `single --output` is optional on the CLI (the image goes next to the working directory);
+        // a sandboxed app has no working directory to write to, so the form requires it.
         guard !outputPath.isEmpty else {
-            appendConsoleOutput("Error: Output path is required.\n")
-            consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-export", command: commandPreview, exitCode: 1, output: "Missing output path")
-            return
+            return refuse("Missing expected argument '--output <output>'", exitCode: 64)
         }
 
         // Gather all parameter values on the MainActor before detaching.
@@ -4400,21 +4650,77 @@ private func executeDicomStudy() async {
         let embedMetadata = paramValue("embed-metadata") == "true"
         let exifFieldsRaw = paramValue("exif-fields")
         let frame = Int(paramValue("frame"))
+        let frameNumber = Int(paramValue("frame-number"))
         let applyWindow = paramValue("apply-window") == "true"
+        let applyWindowDeprecated = paramValue("apply-window-deprecated") == "true"
         let windowCenter = Double(paramValue("window-center"))
         let windowWidth = Double(paramValue("window-width"))
         let columns = max(1, Int(paramValue("columns")) ?? 4)
         let thumbnailSize = max(16, Int(paramValue("thumbnail-size")) ?? 256)
         let spacing = max(0, Int(paramValue("spacing")) ?? 4)
         let labels = paramValue("labels") == "true"
-        let fps = Double(paramValue("fps")) ?? 10
+        let fps = Double(paramValue("fps"))
         let loopCount = Int(paramValue("loop-count")) ?? 0
-        let startFrame = Int(paramValue("start-frame")) ?? 0
+        let startFrame = Int(paramValue("start-frame"))
         let endFrame = Int(paramValue("end-frame"))
+        let startFrameNumber = Int(paramValue("start-frame-number"))
+        let endFrameNumber = Int(paramValue("end-frame-number"))
         let scale = Double(paramValue("scale")) ?? 1.0
         let organizeBy = paramValue("organize-by").isEmpty ? "flat" : paramValue("organize-by")
         let recursive = paramValue("recursive") == "true"
         let verbose = paramValue("verbose") == "true"
+
+        // The CLI's validate(): a usage error is exit 64; mixing a 0-based option with a Frame
+        // number option is refused with exit 1 (P-EXPORT-1).
+        var notes: [String] = []
+        switch operation {
+        case "single":
+            if let f = frame, f < 0 {
+                return refuse("--frame is a 0-based frame index and must be 0 or more", exitCode: 64)
+            }
+            if let n = frameNumber, n < 1 {
+                return refuse("--frame-number must be 1 or more (\(Self.exportFrameNumberReference))", exitCode: 64)
+            }
+            if frame != nil && frameNumber != nil {
+                return refuse(Self.exportFrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number"), exitCode: 1)
+            }
+            if frame != nil {
+                notes.append(Self.exportFrameDeprecationNote(option: "--frame", replacement: "--frame-number"))
+            }
+        case "animate":
+            for (name, value) in [("--start-frame-number", startFrameNumber), ("--end-frame-number", endFrameNumber)] {
+                if let n = value, n < 1 {
+                    return refuse("\(name) must be 1 or more (\(Self.exportFrameNumberReference))", exitCode: 64)
+                }
+            }
+            let zeroBased = [("--start-frame", startFrame), ("--end-frame", endFrame)].filter { $0.1 != nil }.map(\.0)
+            let oneBased = [("--start-frame-number", startFrameNumber), ("--end-frame-number", endFrameNumber)].filter { $0.1 != nil }.map(\.0)
+            if let z = zeroBased.first, let o = oneBased.first {
+                return refuse(Self.exportFrameSelectionConflict(zeroBased: z, oneBased: o), exitCode: 1)
+            }
+            if startFrame != nil {
+                notes.append(Self.exportFrameDeprecationNote(option: "--start-frame", replacement: "--start-frame-number"))
+            }
+            if endFrame != nil {
+                notes.append(Self.exportFrameDeprecationNote(option: "--end-frame", replacement: "--end-frame-number"))
+            }
+        case "contact-sheet", "bulk":
+            // P-EXPORT-3: the flag has no effect here; the CLI prints its note and renders with
+            // the file's VOI.
+            if applyWindowDeprecated {
+                notes.append(Self.exportApplyWindowDeprecationNote(subcommand: operation))
+            }
+        default:
+            break
+        }
+        for note in notes { appendConsoleOutput(note + "\n") }
+
+        // 0-based frame index / range, as the CLI derives them: the Frame number options - 1,
+        // else the deprecated 0-based options, else the first frame / the whole file.
+        let frameIndex = frameNumber.map { $0 - 1 } ?? frame ?? 0
+        let frameIndexRange: (start: Int, end: Int?) = (startFrameNumber != nil || endFrameNumber != nil)
+            ? ((startFrameNumber ?? 1) - 1, endFrameNumber.map { $0 - 1 })
+            : (startFrame ?? 0, endFrame)
 
         // Sandbox access.
         let inputScopedURL = securityScopedURLs["inputPath"]
@@ -4438,21 +4744,23 @@ private func executeDicomStudy() async {
             // comes from the shared DICOMKit DICOMImageExporter; these thin
             // wrappers keep the orchestration call sites unchanged.
 
-            func buildEXIFMetadata(from file: DICOMFile, fields: [String]?) -> CFDictionary {
-                DICOMImageExporter.buildEXIFMetadata(from: file, fields: fields)
+            func fileExtension(_ format: String) -> String {
+                (ExportImageFormat(rawValue: format.lowercased()) ?? .png).fileExtension
             }
-
-            func fileExtension(_ format: String) -> String { format }
 
             func exportCGImage(_ image: CGImage, to url: URL, format: String, quality: Int, metadata: CFDictionary?) throws {
                 let fmt = ExportImageFormat(rawValue: format.lowercased()) ?? .png
                 try DICOMImageExporter.exportCGImage(image, to: url, format: fmt, quality: quality, metadata: metadata)
             }
 
-            func determineWindow(from file: DICOMFile, pixelData: PixelData, frameIndex: Int,
-                                 center: Double?, width: Double?) -> WindowSettings {
-                DICOMImageExporter.determineWindowSettings(from: file, pixelData: pixelData,
-                                                           frameIndex: frameIndex, windowCenter: center, windowWidth: width)
+            /// The one frame-render decision of every dicom-export subcommand (its ExportFrames.render):
+            /// the shared PS3.4 N.2 chain of DICOMImageExporter.renderFrameForExport.
+            func render(file: DICOMFile, pixelData: PixelData? = nil, frameIndex: Int,
+                        applyWindow: Bool, windowCenter: Double?, windowWidth: Double?) throws -> CGImage {
+                guard let pixelData = pixelData ?? file.pixelData() else { throw ExportError.noPixelData }
+                return try DICOMImageExporter.renderFrameForExport(
+                    file: file, pixelData: pixelData, frameIndex: frameIndex,
+                    applyWindow: applyWindow, windowCenter: windowCenter, windowWidth: windowWidth)
             }
 
             // Collect DICOM files from a directory (used by contact-sheet & bulk) —
@@ -4467,24 +4775,29 @@ private func executeDicomStudy() async {
                 // MARK: single
                 case "single":
                     guard FileManager.default.fileExists(atPath: inputURL.path) else {
-                        return ("Error: Input file not found: \(inputURL.path)\n", 1)
+                        throw ExportError.invalidInput("Input file not found: \(inputPath)")
                     }
                     let fileData = try Data(contentsOf: inputURL)
                     let dicomFile = try DICOMFile.read(from: fileData)
                     guard let pixelData = dicomFile.pixelData() else {
-                        return ("Error: No pixel data found in DICOM file\n", 1)
+                        throw ExportError.noPixelData
                     }
-                    let frameIndex = frame ?? 0
+                    if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) {
+                        log += Self.exportBurnedInWarning(for: inputPath) + "\n"
+                    }
                     let totalFrames = pixelData.descriptor.numberOfFrames
                     guard frameIndex >= 0 && frameIndex < totalFrames else {
-                        return ("Error: Invalid frame \(frameIndex). File has \(totalFrames) frames (0-\(totalFrames - 1))\n", 1)
+                        if let number = frameNumber {
+                            throw ExportError.invalidInput(Self.exportInvalidFrameNumberMessage(requested: number, total: totalFrames))
+                        }
+                        throw ExportError.invalidFrame(frameIndex, totalFrames)
                     }
-                    // Shared "one render decision" — identical window resolution as the CLI.
                     let image = try DICOMImageExporter.renderFrameForExport(
                         file: dicomFile, pixelData: pixelData, frameIndex: frameIndex,
                         applyWindow: applyWindow, windowCenter: windowCenter, windowWidth: windowWidth
                     )
-                    // Determine output path; if output looks like a directory, derive filename.
+                    // Determine output path; if output looks like a directory, derive filename
+                    // (the CLI's default name <input stem>.<format extension>).
                     var finalOutput = outputURL
                     var outIsDir: ObjCBool = false
                     let outExists = FileManager.default.fileExists(atPath: outputURL.path, isDirectory: &outIsDir)
@@ -4499,7 +4812,10 @@ private func executeDicomStudy() async {
                     var metadata: CFDictionary? = nil
                     if embedMetadata {
                         let fields = exifFieldsRaw.isEmpty ? nil : exifFieldsRaw.split(separator: ",").map(String.init)
-                        metadata = buildEXIFMetadata(from: dicomFile, fields: fields)
+                        for field in DICOMImageExporter.unsupportedEXIFFields(fields ?? []) {
+                            log += "warning: --exif-fields '\(field)' has no EXIF/TIFF mapping and is not embedded (supported: \(DICOMImageExporter.supportedEXIFFields.joined(separator: ", ")))\n"
+                        }
+                        metadata = DICOMImageExporter.buildEXIFMetadata(from: dicomFile, fields: fields)
                     }
                     try exportCGImage(image, to: finalOutput, format: formatSel, quality: quality, metadata: metadata)
                     log += ExportConsole.exportedLine(path: finalOutput.path) + "\n"
@@ -4524,7 +4840,7 @@ private func executeDicomStudy() async {
                         }
                     }
                     guard !inputs.isEmpty else {
-                        return ("Error: No input files specified\n", 1)
+                        throw ExportError.invalidInput("No input files specified")
                     }
                     let layout = DICOMImageExporter.contactSheetLayout(
                         imageCount: inputs.count, columns: columns,
@@ -4540,11 +4856,12 @@ private func executeDicomStudy() async {
                         bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace,
                         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
                     ) else {
-                        return ("Error: Failed to export image to file\n", 1)
+                        throw ExportError.exportFailed
                     }
                     context.setFillColor(CGColor(red: 0, green: 0, blue: 0, alpha: 1))
                     context.fill(CGRect(x: 0, y: 0, width: totalWidth, height: totalHeight))
 
+                    var burnedIn = 0
                     for (index, inPath) in inputs.enumerated() {
                         let pos = DICOMImageExporter.thumbnailPosition(
                             index: index, columns: columns,
@@ -4555,57 +4872,59 @@ private func executeDicomStudy() async {
                         do {
                             let fileData = try Data(contentsOf: inPath)
                             let dicomFile = try DICOMFile.read(from: fileData)
-                            let cgImage: CGImage?
-                            if applyWindow {
-                                cgImage = try dicomFile.tryRenderFrameWithStoredWindow(0)
-                            } else {
-                                cgImage = try dicomFile.tryRenderFrame(0)
-                            }
-                            if let image = cgImage {
-                                context.draw(image, in: rect)
-                            }
+                            // Same render as `single` (the PS3.4 N.2 chain with the file's VOI in
+                            // modality units); --apply-window has no effect here (P-EXPORT-3).
+                            let image = try render(file: dicomFile, frameIndex: 0,
+                                                   applyWindow: false, windowCenter: nil, windowWidth: nil)
+                            if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) { burnedIn += 1 }
+                            context.draw(image, in: rect)
                         } catch {
+                            // Draw placeholder for failed files
                             context.setFillColor(CGColor(red: 0.2, green: 0, blue: 0, alpha: 1))
                             context.fill(rect)
                         }
                     }
                     guard let sheetImage = context.makeImage() else {
-                        return ("Error: Failed to render pixel data to image\n", 1)
+                        throw ExportError.renderFailed
                     }
                     try? FileManager.default.createDirectory(at: outputURL.deletingLastPathComponent(),
                                                              withIntermediateDirectories: true)
                     try exportCGImage(sheetImage, to: outputURL, format: formatSel, quality: quality, metadata: nil)
                     log += ExportConsole.contactSheetLine(path: outputURL.path, imageCount: inputs.count, columns: columns, rows: rows) + "\n"
+                    if burnedIn > 0 { log += Self.exportBurnedInSummaryWarning(count: burnedIn) + "\n" }
                     return (log, 0)
 
                 // MARK: animate
                 case "animate":
                     guard FileManager.default.fileExists(atPath: inputURL.path) else {
-                        return ("Error: Input file not found: \(inputURL.path)\n", 1)
+                        throw ExportError.invalidInput("Input file not found: \(inputPath)")
                     }
                     let fileData = try Data(contentsOf: inputURL)
                     let dicomFile = try DICOMFile.read(from: fileData)
                     let totalFrames = dicomFile.numberOfFrames ?? 1
                     guard totalFrames > 0 else {
-                        return ("Error: No frames available in DICOM file\n", 1)
+                        throw ExportError.noFrames
                     }
                     guard let range = DICOMImageExporter.validatedFrameRange(
-                        start: startFrame, end: endFrame, totalFrames: totalFrames
+                        start: frameIndexRange.start, end: frameIndexRange.end, totalFrames: totalFrames
                     ) else {
-                        return ("Error: No frames available in DICOM file\n", 1)
+                        throw ExportError.noFrames
                     }
-                    let clampedStart = range.start
-                    let clampedEnd = range.end
                     let clampedScale = max(0.1, min(2.0, scale))
-                    let delay = DICOMImageExporter.gifFrameDelay(fps: fps)
-                    let frameCount = clampedEnd - clampedStart + 1
+                    // The rate: --fps, else the file's Cine Module (PS3.3 Table C.7-13), else 10.
+                    let rate = Self.exportCineFrameRate(explicit: fps, dataSet: dicomFile.dataSet)
+                    let delay = DICOMImageExporter.gifFrameDelay(fps: rate.fps)
+                    if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) {
+                        log += Self.exportBurnedInWarning(for: inputPath) + "\n"
+                    }
+                    let frameCount = range.end - range.start + 1
 
                     try? FileManager.default.createDirectory(at: outputURL.deletingLastPathComponent(),
                                                              withIntermediateDirectories: true)
                     guard let destination = CGImageDestinationCreateWithURL(
                         outputURL as CFURL, "com.compuserve.gif" as CFString, frameCount, nil
                     ) else {
-                        return ("Error: Failed to export image to file\n", 1)
+                        throw ExportError.exportFailed
                     }
                     let gifFileProperties: [String: Any] = [
                         kCGImagePropertyGIFDictionary as String: [
@@ -4618,19 +4937,13 @@ private func executeDicomStudy() async {
                             kCGImagePropertyGIFDelayTime as String: delay
                         ]
                     ]
-                    let pixelData = dicomFile.pixelData()
-                    for frameIndex in clampedStart...clampedEnd {
-                        let cgImage: CGImage?
-                        if applyWindow, let pd = pixelData {
-                            let window = determineWindow(from: dicomFile, pixelData: pd, frameIndex: frameIndex,
-                                                         center: windowCenter, width: windowWidth)
-                            cgImage = try dicomFile.tryRenderFrame(frameIndex, window: window)
-                        } else {
-                            cgImage = try dicomFile.tryRenderFrame(frameIndex)
-                        }
-                        guard var image = cgImage else {
-                            return ("Error: Failed to render pixel data to image\n", 1)
-                        }
+                    guard let pixelData = dicomFile.pixelData() else {
+                        throw ExportError.noPixelData
+                    }
+                    for frameIndex in range.start...range.end {
+                        // Same render as `single`: the PS3.4 N.2 chain, window in modality units.
+                        var image = try render(file: dicomFile, pixelData: pixelData, frameIndex: frameIndex,
+                                               applyWindow: applyWindow, windowCenter: windowCenter, windowWidth: windowWidth)
                         if clampedScale != 1.0 {
                             let newWidth = Int(Double(image.width) * clampedScale)
                             let newHeight = Int(Double(image.height) * clampedScale)
@@ -4649,9 +4962,9 @@ private func executeDicomStudy() async {
                         CGImageDestinationAddImage(destination, image, frameProperties as CFDictionary)
                     }
                     guard CGImageDestinationFinalize(destination) else {
-                        return ("Error: Failed to export image to file\n", 1)
+                        throw ExportError.exportFailed
                     }
-                    log += ExportConsole.animatedGIFLine(path: outputURL.path, frameCount: frameCount, fps: fps) + "\n"
+                    log += ExportConsole.animatedGIFLine(path: outputURL.path, frameCount: frameCount, fps: rate.fps) + "\n"
                     return (log, 0)
 
                 // MARK: bulk
@@ -4659,12 +4972,15 @@ private func executeDicomStudy() async {
                     var isDirectory: ObjCBool = false
                     guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory),
                           isDirectory.boolValue else {
-                        return ("Error: Input must be a directory: \(inputURL.path)\n", 1)
+                        throw ExportError.invalidInput("Input must be a directory: \(inputPath)")
                     }
                     try FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
-                    let files = collectDICOMFiles(in: inputURL, recursive: recursive)
+                    guard let files = FileGatherer.regularFiles(under: inputURL, recursive: recursive) else {
+                        throw ExportError.invalidInput("Failed to enumerate directory: \(inputPath)")
+                    }
 
-                    var fileCount = 0, successCount = 0, errorCount = 0
+                    var fileCount = 0, successCount = 0, errorCount = 0, burnedIn = 0
+                    let scheme = OrganizationScheme(rawValue: organizeBy) ?? .flat
                     for fileURL in files {
                         fileCount += 1
                         do {
@@ -4674,27 +4990,31 @@ private func executeDicomStudy() async {
                                 if verbose { log += ExportConsole.bulkSkipLine(fileName: fileURL.lastPathComponent) + "\n" }
                                 continue
                             }
+                            // --apply-window is deprecated here and has no effect (no window values).
                             let image = try DICOMImageExporter.renderFrameForExport(
                                 file: dicomFile, pixelData: pixelDataObj, frameIndex: 0,
-                                applyWindow: applyWindow, windowCenter: nil, windowWidth: nil
+                                applyWindow: false, windowCenter: nil, windowWidth: nil
                             )
-                            let patientName = dicomFile.dataSet.string(for: .patientName)
+                            // Patient folder keyed on Patient ID (0010,0020) and Issuer of Patient ID
+                            // (0010,0021) (P-EXPORT-2; PS3.3 Table C.7-1).
+                            let patientID = dicomFile.dataSet.string(for: .patientID)
+                            let issuer = dicomFile.dataSet.string(for: .issuerOfPatientID)
                             let studyUID = dicomFile.dataSet.string(for: .studyInstanceUID)
                             let seriesUID = dicomFile.dataSet.string(for: .seriesInstanceUID)
                             let baseName = fileURL.deletingPathExtension().lastPathComponent + "." + fileExtension(formatSel)
-                            let scheme = OrganizationScheme(rawValue: organizeBy) ?? .flat
                             let outputPath = DICOMImageExporter.buildOrganizedPath(
                                 baseOutput: outputURL.path, scheme: scheme,
-                                patientName: patientName, studyUID: studyUID,
-                                seriesUID: seriesUID, filename: baseName
+                                patientID: patientID, issuerOfPatientID: issuer,
+                                studyUID: studyUID, seriesUID: seriesUID, filename: baseName
                             )
                             let outFileURL = URL(fileURLWithPath: outputPath)
                             try FileManager.default.createDirectory(at: outFileURL.deletingLastPathComponent(),
                                                                     withIntermediateDirectories: true)
                             var metadata: CFDictionary? = nil
-                            if embedMetadata { metadata = buildEXIFMetadata(from: dicomFile, fields: nil) }
+                            if embedMetadata { metadata = DICOMImageExporter.buildEXIFMetadata(from: dicomFile, fields: nil) }
                             try exportCGImage(image, to: outFileURL, format: formatSel, quality: quality, metadata: metadata)
                             successCount += 1
+                            if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) { burnedIn += 1 }
                             if verbose { log += ExportConsole.bulkSuccessLine(path: outFileURL.path) + "\n" }
                         } catch {
                             errorCount += 1
@@ -4702,7 +5022,9 @@ private func executeDicomStudy() async {
                         }
                     }
                     log += ExportConsole.bulkSummaryLine(success: successCount, total: fileCount, failed: errorCount) + "\n"
-                    return (log, errorCount == 0 ? 0 : 1)
+                    if burnedIn > 0 { log += Self.exportBurnedInSummaryWarning(count: burnedIn) + "\n" }
+                    // As the CLI: the summary line carries the failures, the exit status is 0.
+                    return (log, 0)
 
                 default:
                     return ("Error: Unknown operation '\(operation)'\n", 1)
@@ -4721,6 +5043,73 @@ private func executeDicomStudy() async {
         consoleStatus = .error; service.setConsoleStatus(.error)
         addToHistory(toolName: "dicom-export", command: commandPreview, exitCode: 1, output: "Unsupported platform")
         #endif
+    }
+
+    // MARK: dicom-export standard texts (Sources/dicom-export/ExportStandard.swift, CLI-local)
+    //
+    // These mirror dicom-export's CLI-local ExportStandard.swift text for text; lifting them into
+    // DICOMKit is the recorded follow-up. The DICOM inputs: PS3.3 2026a Table 10-3 ("The first
+    // Frame shall be denoted as Frame number 1"), Table C.7-13 (Recommended Display Frame Rate
+    // (0008,2144), Cine Rate (0018,0040), Frame Time (0018,1063) msec), Table C.7-9 (Burned In
+    // Annotation (0028,0301), Enumerated Values YES / NO).
+
+    nonisolated static let exportFrameNumberReference = "PS3.3 Table 10-3: the first Frame is Frame number 1"
+
+    nonisolated static func exportFrameDeprecationNote(option: String, replacement: String) -> String {
+        "warning: \(option) is deprecated (0-based index); use \(replacement) (numbered from 1, \(exportFrameNumberReference))"
+    }
+
+    /// Text for a Frame number the file does not have.
+    nonisolated static func exportInvalidFrameNumberMessage(requested: Int, total: Int) -> String {
+        "Frame number \(requested) does not exist. The file has \(total) frame\(total == 1 ? "" : "s"), numbered 1 to \(max(total, 1))."
+    }
+
+    /// A 0-based option and a Frame number option given together (exit 1).
+    nonisolated static func exportFrameSelectionConflict(zeroBased: String, oneBased: String) -> String {
+        "\(zeroBased) (deprecated, 0-based) and \(oneBased) (numbered from 1) cannot be used together"
+    }
+
+    /// `--apply-window` on contact-sheet / bulk (P-EXPORT-3): no effect, deprecated.
+    nonisolated static func exportApplyWindowDeprecationNote(subcommand: String) -> String {
+        "warning: \(subcommand) --apply-window is deprecated and has no effect: the file's VOI (Window Center (0028,1050) / Window Width (0028,1051), else VOI LUT Sequence (0028,3010), else the full pixel range) is always applied"
+    }
+
+    /// Burned In Annotation (0028,0301) == YES (PS3.3 Table C.7-9).
+    nonisolated static func exportBurnedInAnnotationIsYes(_ dataSet: DataSet) -> Bool {
+        dataSet.string(for: .burnedInAnnotation)?.trimmingCharacters(in: .whitespaces).uppercased() == "YES"
+    }
+
+    nonisolated static func exportBurnedInWarning(for path: String) -> String {
+        "warning: \(path): Burned In Annotation (0028,0301) is YES — the exported image "
+            + "contains burned-in text that identifies the patient"
+    }
+
+    nonisolated static func exportBurnedInSummaryWarning(count: Int) -> String {
+        "warning: \(count) exported image(s) have Burned In Annotation (0028,0301) YES — "
+            + "burned-in text that identifies the patient"
+    }
+
+    /// The frame rate of an `animate` export (dicom-export's CineFrameRate): `--fps`, else the
+    /// Cine Module (PS3.3 Table C.7-13) — Recommended Display Frame Rate (0008,2144), then Cine
+    /// Rate (0018,0040), then 1000 / Frame Time (0018,1063) (msec, C.7.6.5.1.1) — else 10.
+    /// `source` is the PS3.6 name and tag of the attribute the rate came from.
+    nonisolated static func exportCineFrameRate(explicit: Double?, dataSet: DataSet) -> (fps: Double, source: String) {
+        func positive(_ raw: String?) -> Double? {
+            guard let raw, let value = Double(raw.trimmingCharacters(in: .whitespaces)),
+                  value.isFinite, value > 0 else { return nil }
+            return value
+        }
+        if let explicit { return (explicit, "--fps") }
+        if let rate = positive(dataSet.string(for: .recommendedDisplayFrameRate)) {
+            return (rate, "Recommended Display Frame Rate (0008,2144)")
+        }
+        if let rate = positive(dataSet.string(for: .cineRate)) {
+            return (rate, "Cine Rate (0018,0040)")
+        }
+        if let msec = positive(dataSet.string(for: .frameTime)) {
+            return (1000.0 / msec, "Frame Time (0018,1063)")
+        }
+        return (10, "default")
     }
 
     // MARK: - dicom-script Execution
@@ -5383,10 +5772,13 @@ case "dicom-study":
 
     /// Validates DICOM files for IOD conformance, matching dicom-validate CLI output exactly.
     private func executeDicomValidate() async {
+        // Mirrors dicom-validate's run(): the same shared engine (DICOMValidator), the same
+        // directory walk (FileGatherer.regularFiles), the same renderer and exit code
+        // (ValidationReport), and the CLI's refusals (ArgumentParser ValidationError, exit 64).
         let inputPath = paramValue("inputPath")
         guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input path is required.\n")
-            addToHistory(toolName: "dicom-validate", command: commandPreview, exitCode: 1, output: "Missing input path")
+            appendConsoleOutput("Error: Missing expected argument '<input-path>'\n")
+            addToHistory(toolName: "dicom-validate", command: commandPreview, exitCode: 64, output: "Missing input path")
             consoleStatus = .error
             service.setConsoleStatus(.error)
             return
@@ -5394,7 +5786,7 @@ case "dicom-study":
 
         let levelStr  = paramValue("level")
         let level     = Int(levelStr) ?? 3
-        let iod       = paramValue("iod")
+        let iodRaw    = paramValue("iod").trimmingCharacters(in: .whitespaces)
         let detailed  = paramValue("detailed") == "true"
         let recursive = paramValue("recursive") == "true"
         let strict    = paramValue("strict") == "true"
@@ -5411,44 +5803,113 @@ case "dicom-study":
             if accessingInput  { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
+        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        // --iod takes a PS3.6 Table A-1 keyword or UID as well as the engine's own names.
+        let iod: String? = iodRaw.isEmpty ? nil : Self.validateIODEngineName(for: iodRaw)
+        let outputFormat: ValidationOutputFormat = format == "json" ? .json : .text
 
-        // Delegate to ValidationViewModel's engine via the shared helpers.
-        // Pass the scoped URLs so it can re-acquire the scope in its own Task.
-        let vm = ValidationViewModel()
-        vm.inputPath   = (inputScopedURL ?? URL(fileURLWithPath: inputPath)).path
-        vm.level       = level
-        vm.iod         = iod
-        vm.detailed    = detailed
-        vm.recursive   = recursive
-        vm.strict      = strict
-        vm.format      = format == "json" ? .json : .text
-        vm.outputPath  = outputPath
-        vm.force       = force
-        vm.inputScopedURL  = inputScopedURL
-        vm.outputScopedURL = outputScopedURL
+        let (output, code) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
+                return ("Error: Input path not found: \(inputURL.path)\n", 64)
+            }
+            guard level >= 1 && level <= 5 else {
+                return ("Error: Validation level must be between 1 and 5\n", 64)
+            }
+            let validator = DICOMValidator(level: level, iod: iod, force: force)
+            func validateFile(_ url: URL) throws -> DICOMKit.ValidationResult {
+                try validator.validate(data: try Data(contentsOf: url), filePath: url.path)
+            }
 
-        vm.runValidation()
+            var results: [DICOMKit.ValidationResult] = []
+            do {
+                if isDirectory.boolValue {
+                    guard recursive else {
+                        return ("Error: Directory validation requires --recursive flag\n", 64)
+                    }
+                    guard let fileURLs = FileGatherer.regularFiles(under: inputURL) else {
+                        return ("Error: Failed to enumerate directory: \(inputURL.path)\n", 64)
+                    }
+                    for fileURL in fileURLs {
+                        do {
+                            results.append(try validateFile(fileURL))
+                        } catch {
+                            results.append(DICOMKit.ValidationResult(
+                                filePath: fileURL.path, isValid: false,
+                                errors: [DICOMKit.ValidationIssue(level: .error, message: error.localizedDescription, tag: nil)],
+                                warnings: []))
+                        }
+                    }
+                } else {
+                    results = [try validateFile(inputURL)]
+                }
+            } catch {
+                return ("Error: \(error.localizedDescription)\n", 1)
+            }
 
-        // Wait for the async operation to complete
-        var waited = 0
-        while vm.isRunning && waited < 30 {
-            try? await Task.sleep(nanoseconds: 100_000_000)
-            waited += 1
-        }
+            let report = DICOMKit.ValidationReport(results: results, detailed: detailed, strict: strict)
+            let outputText: String
+            do {
+                outputText = try report.render(format: outputFormat)
+            } catch {
+                return ("Error: \(error.localizedDescription)\n", 1)
+            }
 
-        let output = vm.validationOutput
+            var console = ""
+            if !outputPath.isEmpty {
+                // Directory-valued --output resolves to <dir>/<input-stem>.json|.txt by the
+                // shared resolver, the exact call dicom-validate makes.
+                let resolvedOutputPath = OutputPathResolver.resolveFileOutput(
+                    output: outputScopedURL?.path ?? outputPath, input: inputURL.path,
+                    fileExtension: outputFormat == .json ? "json" : "txt")
+                do {
+                    let written = try OutputAccess.writeString(outputText, toPath: resolvedOutputPath,
+                                                               scopedURL: outputScopedURL, subfolder: "Validate")
+                    if let note = written.note { console += note + "\n" }
+                } catch {
+                    return ("Error: Failed to write validation report to \(resolvedOutputPath): \(error.localizedDescription)\n", 64)
+                }
+            } else {
+                console = outputText
+            }
+            return (console, Int(report.exitCode()))
+        }.value
+
         appendConsoleOutput(output)
-
-        let hasErrors   = vm.lastResults.contains { !$0.errors.isEmpty }
-        let hasWarnings = vm.lastResults.contains { !$0.warnings.isEmpty }
-        let code: Int = hasErrors ? 1 : (strict && hasWarnings ? 2 : 0)
-
-        // ValidationViewModel already writes the file if outputPath is set.
-        // No duplicate write needed here.
-
         addToHistory(toolName: "dicom-validate", command: commandPreview, exitCode: code, output: output)
         consoleStatus = code == 0 ? .success : .error
         service.setConsoleStatus(code == 0 ? .success : .error)
+    }
+
+    /// Engine IOD name per SOP Class UID (PS3.6 Table A-1), as `DICOMValidator` detects it from
+    /// (0008,0016). dicom-validate's `IODOption` maps the same seven classes; DICOMValidator
+    /// does not export the map, so the Workshop carries it until it is lifted into DICOMKit.
+    nonisolated static let validateEngineNameBySOPClassUID: [String: String] = [
+        "1.2.840.10008.5.1.4.1.1.2": "CTImageStorage",                          // CT Image Storage
+        "1.2.840.10008.5.1.4.1.1.4": "MRImageStorage",                          // MR Image Storage
+        "1.2.840.10008.5.1.4.1.1.1": "CRImageStorage",                          // Computed Radiography Image Storage
+        "1.2.840.10008.5.1.4.1.1.6.1": "USImageStorage",                        // Ultrasound Image Storage
+        "1.2.840.10008.5.1.4.1.1.7": "SecondaryCaptureImageStorage",            // Secondary Capture Image Storage
+        "1.2.840.10008.5.1.4.1.1.11.1": "GrayscaleSoftcopyPresentationState",   // Grayscale Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.3": "PseudoColorSoftcopyPresentationState", // Pseudo-Color Softcopy Presentation State Storage
+    ]
+
+    /// The engine IOD name for an `--iod` value: a PS3.6 Table A-1 keyword (any case) or SOP
+    /// Class UID of a supported class, else the value itself (the engine's short names, or an
+    /// unsupported IOD the engine reports as "IOD validation not implemented").
+    nonisolated static func validateIODEngineName(for value: String) -> String {
+        if value.lowercased() == "us" { return "USImageStorage" }   // the engine knows "ultrasound" only
+        let uid: String?
+        if let entry = UIDDictionary.lookup(uid: value) { uid = entry.uid }
+        else if let entry = UIDDictionary.lookup(keyword: value) { uid = entry.uid }
+        else {
+            let lower = value.lowercased()
+            uid = UIDDictionary.sopClasses.first { $0.keyword.lowercased() == lower }?.uid
+        }
+        guard let uid else { return value }
+        if let name = validateEngineNameBySOPClassUID[uid] { return name }
+        if DICOMCore.SRDocumentType.isSRDocument(sopClassUID: uid) { return "StructuredReport" }
+        return value
     }
 
     // MARK: - dicom-anon Execution
@@ -5612,8 +6073,9 @@ case "dicom-study":
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             do {
+                // dicom-info throws ArgumentParser's ValidationError here: exit 64.
                 guard FileManager.default.fileExists(atPath: fileURL.path) else {
-                    return ("Error: File not found: \(fileURL.path)\n", 1)
+                    return ("Error: File not found: \(fileURL.path)\n", 64)
                 }
                 let data = try Data(contentsOf: fileURL)
                 let dicomFile = try DICOMFile.read(from: data, force: force)
@@ -5799,8 +6261,9 @@ case "dicom-study":
         let annotate     = paramValue("annotate") == "true"
         let verbose      = paramValue("verbose") == "true"
         let force        = paramValue("force") == "true"
-        // Honor the user's No Color toggle (default ON in-app: the SwiftUI console
-        // doesn't render ANSI). Turning it OFF yields the CLI's colored bytes.
+        // `--no-color` defaults off, as in dicom-dump. The dump is rendered with the
+        // CLI's colour setting and the ANSI escapes are stripped for the SwiftUI
+        // console, which cannot render them (the Compare-CLI diff strips both sides).
         let noColor      = paramValue("no-color") == "true"
         let bytesPerLine = Int(bplStr) ?? 16
 
@@ -5818,12 +6281,13 @@ case "dicom-study":
                 let fileData = try Data(contentsOf: fileURL)
 
                 // --tag: dump only the value bytes of that tag (shared core helper,
-                // identical to the dicom-dump CLI).
+                // identical to the dicom-dump CLI). The tag is parsed first, as the
+                // CLI's dumpTag does, with the CLI's refusal text (exit 1).
                 if !tagFilter.isEmpty {
-                    let dicomFile = try DICOMFile.read(from: fileData, force: force)
                     guard let tag = Self.parseDumpTagStr(tagFilter) else {
-                        return ("Error: Invalid tag format '\(tagFilter)'. Use GGGG,EEEE (e.g. 7FE0,0010).\n", 1)
+                        return (Self.dumpInvalidTagMessage(tagFilter), 1)
                     }
+                    let dicomFile = try DICOMFile.read(from: fileData, force: force)
                     // Cap to --length (default 65,536) — same as the CLI. Without
                     // this, dumping PixelData builds a multi-MB string and the
                     // SwiftUI console hangs in CoreText layout on the main thread.
@@ -5832,17 +6296,29 @@ case "dicom-study":
                         bytesPerLine: bytesPerLine, useColor: !noColor, verbose: verbose,
                         maxBytes: Int(lengthStr) ?? 65_536
                     ) else {
-                        return ("Tag \(tag.description) not found in file.\n", 1)
+                        return ("Error: Tag \(tag.description) not found in file\n", 1)
                     }
-                    return (dump, 0)
+                    return (Self.stripANSI(dump), 0)
                 }
 
-                // Parse start offset
+                // Parse start offset (dicom-dump parseOffset: "0x" hex or decimal; a
+                // value that is neither is refused with exit 1)
                 let startOffset: Int
-                if offsetStr.lowercased().hasPrefix("0x") {
-                    startOffset = Int(offsetStr.dropFirst(2), radix: 16) ?? 0
+                if offsetStr.isEmpty {
+                    startOffset = 0
+                } else if offsetStr.lowercased().hasPrefix("0x") {
+                    guard let v = Int(offsetStr.dropFirst(2), radix: 16) else {
+                        return ("Error: Invalid hex offset: \(offsetStr)\n", 1)
+                    }
+                    startOffset = v
                 } else {
-                    startOffset = Int(offsetStr) ?? 0
+                    guard let v = Int(offsetStr) else {
+                        return ("Error: Invalid offset: \(offsetStr)\n", 1)
+                    }
+                    startOffset = v
+                }
+                if let hl = Optional(highlightTag), !hl.isEmpty, Self.parseDumpTagStr(hl) == nil {
+                    return (Self.dumpInvalidTagMessage(hl), 1)
                 }
 
                 guard startOffset >= 0, startOffset <= fileData.count else {
@@ -5855,25 +6331,36 @@ case "dicom-study":
                 let lengthGiven = Int(lengthStr) != nil
                 let requestedLength = Int(lengthStr) ?? min(defaultDumpCap, fileData.count - startOffset)
                 let endOffset = min(startOffset + requestedLength, max(startOffset, fileData.count))
-                let dataSlice = fileData[startOffset..<endOffset]
 
-                let dicomFile: DICOMFile? = annotate ? (try? DICOMFile.read(from: fileData, force: force)) : nil
+                // The CLI parses the whole file for annotations (and warns on stderr
+                // with --verbose when it cannot); the dump itself proceeds either way.
+                var dumpOut = ""
+                var dicomFile: DICOMFile?
+                do {
+                    dicomFile = try DICOMFile.read(from: fileData, force: force)
+                } catch {
+                    if verbose {
+                        dumpOut += "Warning: Could not parse DICOM structure: \(error.localizedDescription)\n"
+                        dumpOut += "Dumping raw bytes without annotations\n\n"
+                    }
+                }
                 let highlightTagObj: Tag? = highlightTag.isEmpty ? nil : Self.parseDumpTagStr(highlightTag)
 
-                // Render via the shared DICOMKit.HexDumper — the same engine the
-                // `dicom-dump` CLI uses. Color follows the No Color toggle (default
-                // ON in-app); the Compare-CLI diff strips ANSI either way.
-                var dumpOut = HexDumper(
+                // Render via the shared DICOMKit.HexDumper — the same engine and the
+                // same whole-file call the `dicom-dump` CLI uses (D144: annotations and
+                // the highlight are found by walking the file from its start).
+                dumpOut += HexDumper(
                     bytesPerLine: bytesPerLine, useColor: !noColor,
                     annotate: annotate, verbose: verbose
                 ).dump(
-                    data: Data(dataSlice), startOffset: startOffset,
+                    fileData: fileData, startOffset: startOffset,
+                    length: endOffset - startOffset,
                     dicomFile: dicomFile, highlightTag: highlightTagObj
                 )
                 if !lengthGiven && endOffset < fileData.count {
                     dumpOut += "\n… showing first \(endOffset - startOffset) of \(fileData.count) bytes — pass --length to dump more.\n"
                 }
-                return (dumpOut, 0)
+                return (Self.stripANSI(dumpOut) + "\n", 0)   // the CLI's print(output) adds the newline
             } catch {
                 return ("Error: \(error.localizedDescription)\n", 1)
             }
@@ -5885,21 +6372,29 @@ case "dicom-study":
         service.setConsoleStatus(exitCode == 0 ? .success : .error)
     }
 
-    /// Parses a GGGG,EEEE or GGGGEEEE tag string.
-    nonisolated private static func parseDumpTagStr(_ s: String) -> Tag? {
-        let t = s.trimmingCharacters(in: .whitespaces)
-            .replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "")
-        if t.contains(",") {
-            let parts = t.split(separator: ",")
-            if parts.count == 2,
-               let g = UInt16(parts[0].trimmingCharacters(in: .whitespaces), radix: 16),
-               let e = UInt16(parts[1].trimmingCharacters(in: .whitespaces), radix: 16) {
-                return Tag(group: g, element: e)
-            }
-        } else if t.count == 8, let v = UInt32(t, radix: 16) {
+    /// Parses `0010,0010`, `(0010,0010)`, `00100010`, or a PS3.6 keyword (exact case) —
+    /// the forms `dicom-dump`'s `parseTagArgument` accepts (PS3.5 7.1.1; PS3.6 Table 6-1).
+    nonisolated static func parseDumpTagStr(_ s: String) -> Tag? {
+        let clean = s.replacingOccurrences(of: ",", with: "")
+            .replacingOccurrences(of: "(", with: "")
+            .replacingOccurrences(of: ")", with: "")
+            .replacingOccurrences(of: " ", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        if clean.count == 8, clean.allSatisfy(\.isHexDigit), let v = UInt32(clean, radix: 16) {
             return Tag(group: UInt16((v >> 16) & 0xFFFF), element: UInt16(v & 0xFFFF))
         }
-        return nil
+        return DataElementDictionary.lookup(keyword: s.trimmingCharacters(in: .whitespaces))?.tag
+    }
+
+    /// `dicom-dump`'s refusal for a tag argument it cannot parse (exit 1).
+    nonisolated static func dumpInvalidTagMessage(_ s: String) -> String {
+        "Error: Invalid tag format: \(s). Use format: 0010,0010 or a PS3.6 keyword such as PatientName\n"
+    }
+
+    /// Removes ANSI SGR / CSI escape sequences: the SwiftUI console is not a terminal.
+    nonisolated static func stripANSI(_ text: String) -> String {
+        guard text.contains("\u{1B}") else { return text }
+        return text.replacingOccurrences(of: "\u{1B}\\[[0-9;?]*[ -/]*[@-~]", with: "", options: .regularExpression)
     }
 
     // dicom-dump now renders through the shared `DICOMKit.HexDumper` (see
@@ -5910,11 +6405,21 @@ case "dicom-study":
 
     /// Adds, modifies, or deletes tags in a DICOM file — output matches `dicom-tags` CLI tool.
     private func executeDicomTags() async {
+        // --list-modalities: the PS3.3 C.7.3.1.1.1 Defined Terms from the shared
+        // DICOMCore listing (the same call dicom-tags prints), then exit 0; no input.
+        if paramValue("list-modalities") == "true" {
+            let listing = ModalityOptionValidator.listing() + "\n"
+            appendConsoleOutput(listing)
+            consoleStatus = .success; service.setConsoleStatus(.success)
+            addToHistory(toolName: "dicom-tags", command: commandPreview, exitCode: 0, output: listing)
+            return
+        }
         let inputPath = paramValue("inputPath")
         guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input file path is required.\n")
+            // ArgumentParser's message for the missing positional (exit 64).
+            appendConsoleOutput("Error: Missing expected argument '<input>'\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-tags", command: commandPreview, exitCode: 1, output: "Missing input path")
+            addToHistory(toolName: "dicom-tags", command: commandPreview, exitCode: 64, output: "Missing input path")
             return
         }
 
@@ -5937,7 +6442,8 @@ case "dicom-study":
         let copyTags = tagsRaw.isEmpty ? [String]() : tagsRaw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 
         guard !sets.isEmpty || !deletes.isEmpty || deletePrivate || !copyFromPath.isEmpty else {
-            appendConsoleOutput("Error: No operations specified. Use --set, --delete, --delete-private, or --copy-from.\n")
+            // The CLI throws the shared TagEditorError (exit 1): same text.
+            appendConsoleOutput("Error: \(TagEditorError.noOperationsSpecified.localizedDescription)\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
             addToHistory(toolName: "dicom-tags", command: commandPreview, exitCode: 1, output: "No operations")
             return
@@ -5969,7 +6475,10 @@ case "dicom-study":
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             do {
                 guard FileManager.default.fileExists(atPath: fileURL.path) else {
-                    return ("Error: File not found: \(fileURL.path)\n", 1)
+                    return ("Error: \(TagEditorError.fileNotFound(fileURL.path).localizedDescription)\n", 1)
+                }
+                if let cfURL = copyFromURL, !FileManager.default.fileExists(atPath: cfURL.path) {
+                    return ("Error: \(TagEditorError.fileNotFound(cfURL.path).localizedDescription)\n", 1)
                 }
                 let fileData = try Data(contentsOf: fileURL)
                 let dicomFile = try DICOMFile.read(from: fileData)
@@ -5984,10 +6493,13 @@ case "dicom-study":
                 }
 
                 // Apply all operations via the shared DICOMKit engine — the exact
-                // same TagEditor the `dicom-tags` CLI uses, so app and CLI cannot
-                // drift. (Resolution and wording are unchanged: dictionary-based
-                // names/VRs, unknown specifiers skipped with a note.)
-                let descriptions = TagEditor().applyChanges(
+                // same checked TagEditor call the `dicom-tags` CLI makes: it refuses
+                // (throws, before anything changes) an edit the standard does not
+                // allow — group 0002 (PS3.10 7.1), Items/delimiters, unused groups
+                // (PS3.5 7.8.1) or a --set value outside the PS3.5 Table 6.2-1 limits
+                // of the VR it writes (TagEditRules, D150) — and the Workshop exits 1
+                // with the same text.
+                let descriptions = try TagEditor().applyCheckedChanges(
                     to: &dataSet,
                     sets: sets,
                     deletes: deletes,
@@ -6093,48 +6605,69 @@ case "dicom-study":
         let url2 = file2ScopedURL ?? URL(fileURLWithPath: file2Path)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
+            // Exit status as dicom-diff (P-DIFF-1, the diff(1)/cmp(1) convention):
+            // 0 identical, 1 different, 2 a file is missing or cannot be read as
+            // DICOM or the comparison fails (stderr "dicom-diff: error: …"), 64 an
+            // invalid --ignore-tag (ArgumentParser usage error).
+            // (file, nil) or (nil, the dicom-diff stderr text)
+            func load(_ url: URL) -> (DICOMFile?, String?) {
+                guard FileManager.default.fileExists(atPath: url.path) else {
+                    return (nil, "File not found: \(url.path)")
+                }
+                do {
+                    return (try DICOMFile.read(from: try Data(contentsOf: url)), nil)
+                } catch {
+                    return (nil, "Cannot read \(url.path) as DICOM: \(error)")
+                }
+            }
+            func trouble(_ message: String) -> (String, Int) { ("dicom-diff: error: \(message)\n", 2) }
+
+            let (loaded1, problem1) = load(url1)
+            guard let df1 = loaded1 else { return trouble(problem1 ?? "") }
+            let (loaded2, problem2) = load(url2)
+            guard let df2 = loaded2 else { return trouble(problem2 ?? "") }
+
+            var header = ""
+            if verbose {
+                header = "Comparing: \(url1.lastPathComponent)\n     with: \(url2.lastPathComponent)\n\n"
+            }
+
+            // Resolve each ignore-tag as the CLI's parseTag does: (gggg,eeee),
+            // gggg,eeee, ggggeeee or a PS3.6 keyword; anything else is a usage error.
+            var ignoreTagSet = Set<Tag>()
+            for spec in ignoreTags {
+                guard let tag = Self.tagsParseSpecifier(spec) else {
+                    return (header + "Error: Invalid tag format: \(spec). Use (gggg,eeee), gggg,eeee, ggggeeee or a PS3.6 keyword like 'SOPInstanceUID'\n", 64)
+                }
+                ignoreTagSet.insert(tag)
+            }
+
+            // Compare + render via the shared DICOMKit engine — the exact same
+            // code the `dicom-diff` CLI uses, so app and CLI cannot drift.
+            let comparer = DICOMComparer(
+                file1: df1, file2: df2,
+                tagsToIgnore: ignoreTagSet, ignorePrivate: ignorePrivate,
+                comparePixels: comparePixels && !quick,
+                pixelTolerance: tolerance, showIdentical: showIdentical
+            )
+            let result: DICOMKit.ComparisonResult
             do {
-                guard FileManager.default.fileExists(atPath: url1.path) else {
-                    return ("Error: File not found: \(url1.path)\n", 1)
-                }
-                guard FileManager.default.fileExists(atPath: url2.path) else {
-                    return ("Error: File not found: \(url2.path)\n", 1)
-                }
-
-                let data1 = try Data(contentsOf: url1)
-                let data2 = try Data(contentsOf: url2)
-                let df1   = try DICOMFile.read(from: data1)
-                let df2   = try DICOMFile.read(from: data2)
-
-                // Resolve each ignore-tag by hex (GGGG,EEEE / GGGGEEEE) or by
-                // keyword name (e.g. SOPInstanceUID) — matching the CLI's parseTag.
-                let ignoreTagSet = Set(ignoreTags.compactMap { Self.tagsParseSpecifier($0) })
-
-                // Compare + render via the shared DICOMKit engine — the exact same
-                // code the `dicom-diff` CLI uses, so app and CLI cannot drift.
-                let comparer = DICOMComparer(
-                    file1: df1, file2: df2,
-                    tagsToIgnore: ignoreTagSet, ignorePrivate: ignorePrivate,
-                    comparePixels: comparePixels && !quick,
-                    pixelTolerance: tolerance, showIdentical: showIdentical
-                )
-                let result = try comparer.compare()
-                let report = ComparisonReport(
-                    result: result,
-                    file1Name: url1.lastPathComponent, file2Name: url2.lastPathComponent,
-                    showIdentical: showIdentical
-                )
-                let outputFormat = ComparisonOutputFormat(rawValue: format) ?? .text
-                var rendered = try report.render(format: outputFormat)
-
-                // --verbose prints a comparison header before the results (matches CLI).
-                if verbose {
-                    rendered = "Comparing: \(url1.lastPathComponent)\n     with: \(url2.lastPathComponent)\n\n" + rendered
-                }
-
-                return (rendered, result.hasDifferences ? 1 : 0)
+                result = try comparer.compare()
             } catch {
-                return ("Error: \(error.localizedDescription)\n", 1)
+                return (header + "dicom-diff: error: Comparison failed: \(error)\n", 2)
+            }
+            let report = ComparisonReport(
+                result: result,
+                file1Name: url1.lastPathComponent, file2Name: url2.lastPathComponent,
+                showIdentical: showIdentical
+            )
+            let outputFormat = ComparisonOutputFormat(rawValue: format) ?? .text
+            do {
+                // The CLI's print(output) ends with a newline.
+                let rendered = try report.render(format: outputFormat) + "\n"
+                return (header + rendered, result.hasDifferences ? 1 : 0)
+            } catch {
+                return (header + "Error: \(error.localizedDescription)\n", 1)
             }
         }.value
 
@@ -10610,5 +11143,146 @@ enum ConvertError: LocalizedError {
         case .unsupportedPlatform:
             return "Image export is not supported on this platform"
         }
+    }
+}
+
+// MARK: - dicom-dcmdir File-set rules (PS3.10 8.1, 8.2, 8.5, 8.6; PS3.3 Tables F.3-2, F.3-3, F.4-1)
+
+/// The PS3.10 / PS3.3 rules `dicom-dcmdir` applies on top of `DICOMDirectory.validate`, and the
+/// clause each failure names — `Sources/dicom-dcmdir/FileSetRules.swift`, kept text-identical
+/// here because that type is CLI-local (not in DICOMKit); lifting it into DICOMKit is the
+/// recorded follow-up. Rule values: PS3.10 2026a 8.1 (File-set ID 0-16 characters), 8.2 (a File
+/// ID has 1-8 components of 1-8 characters), 8.5 (A-Z, 0-9, _), 8.6 (no File outside the
+/// File-set); PS3.3 2026a Table F.3-3 (each File referenced by at most one Directory Record).
+enum WorkshopFileSetRules {
+
+    /// PS3.10 8.5: File IDs and File-set IDs use A-Z, 0-9 and underscore only.
+    static let allowedCharacters = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
+    /// PS3.10 8.2: a File ID has one to eight components.
+    static let maxFileIDComponents = 8
+    /// PS3.10 8.2: each component is one to eight characters.
+    static let maxComponentLength = 8
+    /// PS3.10 8.1: a File-set ID is zero to sixteen characters.
+    static let maxFileSetIDLength = 16
+
+    static let fileIDRule = "PS3.10 8.2, 8.5; PS3.3 Table F.3-3 Referenced File ID (0004,1500)"
+    static let fileSetIDRule = "PS3.10 8.1, 8.5; PS3.3 Table F.3-2 File-set ID (0004,1130)"
+
+    /// Violations of PS3.10 8.2 / 8.5 for one Referenced File ID (its components).
+    static func fileIDViolations(_ components: [String]) -> [String] {
+        let shown = components.joined(separator: "\\")
+        var out: [String] = []
+        if components.isEmpty || components.count > maxFileIDComponents {
+            out.append("File ID \(shown) has \(components.count) components; a File ID has 1 to \(maxFileIDComponents) [\(fileIDRule)]")
+        }
+        for component in components {
+            if component.isEmpty || component.count > maxComponentLength {
+                out.append("File ID component '\(component)' of \(shown) has \(component.count) characters; each component has 1 to \(maxComponentLength) [\(fileIDRule)]")
+            }
+            if !component.allSatisfy({ allowedCharacters.contains($0) }) {
+                out.append("File ID component '\(component)' of \(shown) uses characters other than A-Z, 0-9 and _ [\(fileIDRule)]")
+            }
+        }
+        return out
+    }
+
+    /// Violations of PS3.10 8.1 / 8.5 for a File-set ID (an empty ID is allowed: Type 2).
+    static func fileSetIDViolations(_ id: String) -> [String] {
+        var out: [String] = []
+        if id.count > maxFileSetIDLength {
+            out.append("File-set ID '\(id)' has \(id.count) characters; at most \(maxFileSetIDLength) [\(fileSetIDRule)]")
+        }
+        if !id.allSatisfy({ allowedCharacters.contains($0) }) {
+            out.append("File-set ID '\(id)' uses characters other than A-Z, 0-9 and _ [\(fileSetIDRule)]")
+        }
+        return out
+    }
+
+    /// P-DCMDIR-FSID (approved 2026-10-01): `create --file-set-id` refuses an ID that breaks
+    /// PS3.10 8.1 / 8.5. Returns the refusal text, or nil.
+    static func fileSetIDRefusal(_ id: String) -> String? {
+        let problems = fileSetIDViolations(id)
+        guard !problems.isEmpty else { return nil }
+        return "Refusing --file-set-id: " + problems.joined(separator: "; ")
+            + ". A File-set ID is 0 to 16 characters A-Z, 0-9 and _ (PS3.10 2026a 8.1, 8.5; PS3.3 2026a Table F.3-2 File-set ID (0004,1130))"
+    }
+
+    /// The pre-2026-09-25 `--profile` spellings that are not PS3.11 identifiers, with the
+    /// PS3.11 2026a table that defines the identifier `DICOMDIRProfile(rawValue:)` maps them to
+    /// (P-DCMDIR-PROFILE: still accepted, deprecated).
+    static let deprecatedProfileTables: [String: String] = [
+        "STD-GEN-DVD": "PS3.11 2026a Table H.1-1",
+        "STD-GEN-USB": "PS3.11 2026a Table J.1-1",
+        "STD-GEN-SEC": "PS3.11 2026a Table D.1-1",
+        "STD-CTMR-XXXX": "PS3.11 2026a Table E.1-1",
+        "STD-US-XXXX": "PS3.11 2026a Table C.1-1",
+    ]
+
+    /// The one-line note for a deprecated `--profile` spelling, naming the PS3.11 identifier
+    /// actually used; nil for a PS3.11 identifier.
+    static func profileDeprecationNote(requested: String, resolved: DICOMDIRProfile) -> String? {
+        let key = requested.trimmingCharacters(in: .whitespaces).uppercased()
+        guard let table = deprecatedProfileTables[key] else { return nil }
+        return "dicom-dcmdir: warning: --profile \(requested) is deprecated (not a PS3.11 Application Profile identifier); using \(resolved.rawValue) (\(table)). It will be rejected in the next major version."
+    }
+
+    /// The File-set ID `create` derives from the input directory name when `--file-set-id` is
+    /// not given: upper-cased, every character outside the PS3.10 8.5 set replaced by `_`, cut
+    /// to 16 characters (PS3.10 8.1).
+    static func defaultFileSetID(fromDirectoryName name: String) -> String {
+        let mapped = name.uppercased().map { allowedCharacters.contains($0) ? $0 : "_" }
+        return String(String(mapped).prefix(maxFileSetIDLength))
+    }
+
+    /// The clause a `DICOMDirectory.ValidationError` breaks.
+    static func citation(for error: DICOMDirectory.ValidationError) -> String {
+        switch error {
+        case .invalidFileSetID:
+            return fileSetIDRule
+        case .invalidHierarchy, .invalidRecordTypeInHierarchy:
+            return "PS3.3 F.4, Table F.4-1"
+        case .missingReferencedFile:
+            return "PS3.10 8.6; PS3.3 Table F.3-3 Referenced File ID (0004,1500)"
+        case .invalidSOPInstanceUID:
+            return "PS3.5 9.1; PS3.3 Table F.3-3 Referenced SOP Instance UID in File (0004,1511)"
+        case .duplicateSOPInstanceUID:
+            return "PS3.3 Table F.3-3 Referenced SOP Instance UID in File (0004,1511); PS3.5 9"
+        }
+    }
+
+    /// Text for any error thrown while reading or validating: the `description` of a
+    /// `CustomStringConvertible` error (a plain Swift error's `localizedDescription` is
+    /// only "The operation couldn't be completed"), with the clause for validation errors.
+    static func describe(_ error: Error) -> String {
+        if let v = error as? DICOMDirectory.ValidationError {
+            return "\(v.description) [\(citation(for: v))]"
+        }
+        if !(type(of: error) is NSError.Type) {
+            return String(describing: error)
+        }
+        return error.localizedDescription
+    }
+
+    /// Every File ID / File-set ID finding for a directory. With `checkFiles`, each
+    /// Referenced File ID must also name an existing file under `mediaFolder` (PS3.10 8.6).
+    static func findings(for directory: DICOMDirectory, mediaFolder: URL?, checkFiles: Bool) -> [String] {
+        var out = fileSetIDViolations(directory.fileSetID)
+        var seen: [String: Int] = [:]
+        for record in directory.allRecords() {
+            guard let components = record.referencedFileID, !components.isEmpty else { continue }
+            out += fileIDViolations(components)
+            let key = components.joined(separator: "\\")
+            seen[key, default: 0] += 1
+            if seen[key] == 2 {
+                out.append("File ID \(key) is referenced by more than one Directory Record; any File shall be referenced by at most one [PS3.3 Table F.3-3 Referenced File ID (0004,1500)]")
+            }
+            if checkFiles, let mediaFolder {
+                let url = components.reduce(mediaFolder) { $0.appendingPathComponent($1) }
+                if !FileManager.default.fileExists(atPath: url.path) {
+                    out.append("Referenced File ID \(key) does not exist in the File-set [PS3.10 8.6; PS3.3 Table F.3-3 Referenced File ID (0004,1500)]")
+                }
+            }
+        }
+        return out
     }
 }

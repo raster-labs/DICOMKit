@@ -354,9 +354,8 @@ struct SplitMergeWorkshopCLIParityTests {
         if !isApp, let usage = lines.firstIndex(where: { $0.hasPrefix("Usage:") }) {
             lines.removeSubrange(usage...)
         }
-        // P-SPLIT-1 (2026-10-01): the terminal prints a stderr deprecation note for the 0-based
-        // `--frames`; the Workshop does not print it yet (Workshop follow-up), so it is not compared.
-        if !isApp { lines.removeAll { $0 == SplitConsole.framesDeprecatedLine } }
+        // P-SPLIT-1 / D154 (2026-10-05): both surfaces print SplitConsole.framesDeprecatedLine for the
+        // 0-based `--frames`, so it is compared like every other line.
         lines = lines.map {
             $0.replacingOccurrences(of: appOutput, with: "<OUT>")
               .replacingOccurrences(of: cliOutput, with: "<OUT>")
@@ -444,6 +443,10 @@ struct SplitMergeWorkshopCLIParityTests {
             Case(name: "split --new-series", tool: "dicom-split", input: mf, params: [("new-series", "true")]),
             Case(name: "split --frames-per 4", tool: "dicom-split", input: mf, params: [("frames-per", "4")]),
             Case(name: "split --frames-per 4 --frames 1", tool: "dicom-split", input: mf, params: [("frames-per", "4"), ("frames", "1")]),
+            // P-SPLIT-1 / D154: Frame numbers from 1 (PS3.3 2026a C.7.6.16.1.2 / Table 10-3).
+            Case(name: "split --frame-numbers 2,4-5", tool: "dicom-split", input: mf, params: [("frame-numbers", "2,4-5")]),
+            Case(name: "split --frame-numbers 1 --format png", tool: "dicom-split", input: mf, params: [("frame-numbers", "1"), ("format", "png")]),
+            Case(name: "split --frames-per 4 --frame-numbers 1-6", tool: "dicom-split", input: mf, params: [("frames-per", "4"), ("frame-numbers", "1-6")]),
             Case(name: "split --random-uids", tool: "dicom-split", input: mf, params: [("random-uids", "true")], ignoreAllUIDs: true),
             Case(name: "split --pixel-handling decode", tool: "dicom-split", input: mf, params: [("pixel-handling", "decode")]),
             Case(name: "split --target same --instance-number instack --new-series --split-by stack", tool: "dicom-split", input: mf,
@@ -455,6 +458,9 @@ struct SplitMergeWorkshopCLIParityTests {
             // Error paths
             Case(name: "split --frames abc", tool: "dicom-split", input: mf, params: [("frames", "abc")]),
             Case(name: "split --frames 5-2", tool: "dicom-split", input: mf, params: [("frames", "5-2")]),
+            Case(name: "split --frame-numbers 0", tool: "dicom-split", input: mf, params: [("frame-numbers", "0")]),
+            Case(name: "split --frame-numbers 3-1", tool: "dicom-split", input: mf, params: [("frame-numbers", "3-1")]),
+            Case(name: "split --frames 1 --frame-numbers 2 (conflict)", tool: "dicom-split", input: mf, params: [("frames", "1"), ("frame-numbers", "2")]),
             Case(name: "split --frames-per 0", tool: "dicom-split", input: mf, params: [("frames-per", "0")]),
             Case(name: "split --frames-per x", tool: "dicom-split", input: mf, params: [("frames-per", "x")]),
             Case(name: "split --window-center abc", tool: "dicom-split", input: mf, params: [("format", "png"), ("apply-window", "true"), ("window-center", "abc")]),
