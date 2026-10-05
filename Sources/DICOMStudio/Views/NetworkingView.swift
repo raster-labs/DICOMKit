@@ -2,6 +2,10 @@
 // DICOMStudio
 //
 // DICOM Studio — Networking hub view for DICOM network operations
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: the pickers enumerate
+// NetworkingModel's enums (Table C.13-1 / C.13-3 terms, verified there) and the MPPS and print rows show those
+// enums' raw values; the form's defaults are port 11112 (PS3.8 2026a 9.1.1 registered port) and the AE title
+// DICOMSTUDIO (PS3.5 Table 6.2-1: 11 of 16 bytes). No DIMSE status is worded here.
 
 #if canImport(SwiftUI)
 import SwiftUI

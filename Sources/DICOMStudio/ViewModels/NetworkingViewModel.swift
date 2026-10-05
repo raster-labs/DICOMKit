@@ -3,6 +3,12 @@
 //
 // DICOM Studio — ViewModel for the DICOM Networking Hub (Milestone 9)
 // Reference: DICOM PS3.4, PS3.7, PS3.8, PS3.15
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: the print job's
+// Priority, Medium Type and Film Size are mapped case by case onto DICOMNetwork's enums (whose raw values are
+// the PS3.3 2026a Table C.13-1 / C.13-3 terms) and the Film Layout is handed to DICOMPrintService as a
+// PrintLayout (Image Display Format STANDARD\C,R, Table C.13-3), which this panel used to drop; C-ECHO goes
+// through DICOMVerificationService. C-FIND, C-MOVE/C-GET, C-STORE, MWL and MPPS here are display state
+// loaded by the caller — no DIMSE status is produced or worded in this file.
 
 import Foundation
 import Observation
@@ -677,6 +683,13 @@ public final class NetworkingViewModel {
             mediumType: networkMedium
         )
 
+        // The layout the sheet showed is the Image Display Format (2010,0010)
+        // the film box is created with — STANDARD\C,R (PS3.3 C.13.3, Table
+        // C.13-3). Left out, the SCU chose its own grid and the preview's
+        // "2×2, two films" promise was not what reached the printer.
+        let networkLayout = PrintLayout(rows: job.filmLayout.rows, columns: job.filmLayout.columns)
+        log("  Image Display Format: \(networkLayout.imageDisplayFormat)")
+
         // Send to printer
         log("Sending \(pixelDataArray.count) images to printer via DICOMPrintService.printImages()...")
         do {
@@ -684,7 +697,8 @@ public final class NetworkingViewModel {
                 configuration: printConfig,
                 images: pixelDataArray,
                 options: printOptions,
-                imageDescriptors: imageDescriptors
+                imageDescriptors: imageDescriptors,
+                layout: networkLayout
             )
             if result.success {
                 log("SUCCESS: Print completed")

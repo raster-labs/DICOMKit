@@ -6,6 +6,16 @@
 // Reference: DICOM PS3.7 (Message Exchange)
 // Reference: DICOM PS3.8 (Network Communication)
 // Reference: DICOM PS3.15 (Security and System Management)
+// NEMA-verified: 2026a, checked 2026-10-05 — the Studio print enums text-diffed against PS3.3 2026a Table C.13-1
+// (Print Priority HIGH/MED/LOW: 3 match; Medium Type: PAPER and CLEAR FILM match, BLU-RAY corrected to BLUE FILM,
+// the two MAMMO terms are not offered), Table C.13-3 (Film Size ID: 12 of 12 match; Image Display Format
+// STANDARD\C,R: the 8 FilmLayout values match, columns first) and Table C.13-8 (PrintJobStatus is the app's
+// job state, re-spelled with the Execution Status terms PENDING/PRINTING/DONE/FAILURE); MPPSStatus against
+// PS3.3 C.4.14 (IN PROGRESS/COMPLETED/DISCONTINUED: IN_PROGRESS corrected); NetworkQueryLevel against PS3.4
+// Table C.6.1-1 (4 of 4); default port 11112 is the PS3.8 9.1.1 registered port. TLSMode names TLS versions,
+// not the PS3.15 Annex B profiles — B.9–B.11 are retired in 2026a, B.12/B.13 are the live BCP 195 profiles
+// (P-STUDIO-TLS-PROFILES); TransferPriority orders the app's queue and is not
+// the DIMSE Priority (0000,0700). The four print enums duplicate DICOMNetwork's (D22, P-STUDIO-PRINT-ENUMS).
 
 import Foundation
 
@@ -801,9 +811,14 @@ public struct MWLFilter: Sendable, Equatable {
 // MARK: - MPPS Status
 
 /// Status of a Modality Performed Procedure Step.
-/// Reference: DICOM PS3.4 Annex F – Modality Performed Procedure Step SOP Class
+///
+/// The raw values are the Performed Procedure Step Status (0040,0252) terms of
+/// PS3.3 C.4.14: IN PROGRESS, COMPLETED, DISCONTINUED (the term has a space, not
+/// an underscore). `DICOMNetwork.MPPSStatus` carries the same three; the panel
+/// shows the raw value.
+/// Reference: DICOM PS3.4 Annex F – Modality Performed Procedure Step SOP Class; PS3.3 C.4.14
 public enum MPPSStatus: String, Sendable, Equatable, Hashable, CaseIterable {
-    case inProgress    = "IN_PROGRESS"
+    case inProgress    = "IN PROGRESS"
     case completed     = "COMPLETED"
     case discontinued  = "DISCONTINUED"
 
@@ -903,7 +918,10 @@ public struct MPPSItem: Sendable, Identifiable, Equatable, Hashable {
 // MARK: - Print Priority
 
 /// Print priority for DICOM print operations.
-/// Reference: DICOM PS3.3 C.13.1 – Film Session Module
+/// Reference: DICOM PS3.3 C.13.1 – Film Session Module, Print Priority (2000,0020), Table C.13-1
+///
+/// Duplicates `DICOMNetwork.PrintPriority` (D22; see P-STUDIO-PRINT-ENUMS); the raw
+/// values are the C.13.1 Enumerated Values (HIGH, MED, LOW) so the two stay interchangeable.
 public enum PrintPriority: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     case high   = "HIGH"
     case med    = "MED"
@@ -921,17 +939,22 @@ public enum PrintPriority: String, Sendable, Equatable, Hashable, CaseIterable, 
 // MARK: - Print Medium Type
 
 /// Film/paper medium type for DICOM print.
-/// Reference: DICOM PS3.3 C.13.1 – Film Session Module, Tag (2000,0030)
+/// Reference: DICOM PS3.3 C.13.1 – Film Session Module, Medium Type (2000,0030), Table C.13-1
+///
+/// The raw values are Table C.13-1 Defined Terms (PAPER, CLEAR FILM, BLUE FILM).
+/// `bluFilm` used to carry `BLU-RAY`, which is not a Medium Type term (D22); the
+/// case name is kept, the value is the term. The two MAMMO terms are not
+/// offered here — the Print screen's `DICOMNetwork.MediumType` has all five.
 public enum PrintMediumType: String, Sendable, Equatable, Hashable, CaseIterable {
     case paper      = "PAPER"
     case clearFilm  = "CLEAR FILM"
-    case bluFilm    = "BLU-RAY"
+    case bluFilm    = "BLUE FILM"
 
     public var displayName: String {
         switch self {
         case .paper:     return "Paper"
         case .clearFilm: return "Clear Film"
-        case .bluFilm:   return "Blu-ray"
+        case .bluFilm:   return "Blue Film"
         }
     }
 }
@@ -939,7 +962,12 @@ public enum PrintMediumType: String, Sendable, Equatable, Hashable, CaseIterable
 // MARK: - Film Layout
 
 /// Standard film box image display formats.
-/// Reference: DICOM PS3.3 C.13.3 – Film Box Module, Tag (2010,0010)
+/// Reference: DICOM PS3.3 C.13.3 – Film Box Module, Image Display Format (2010,0010), Table C.13-3
+///
+/// `STANDARD\C,R`: C columns of image boxes, then R rows — columns first. Each
+/// raw value is `STANDARD\\\(columns),\(rows)` of its own `columns` / `rows`, and
+/// `cellCount` is their product. The Networking print panel hands the layout to
+/// `DICOMPrintService.printImages(layout:)` as a `PrintLayout(rows:columns:)`.
 public enum FilmLayout: String, Sendable, Equatable, Hashable, CaseIterable {
     case standard1x1 = "STANDARD\\1,1"
     case standard1x2 = "STANDARD\\1,2"
@@ -1009,7 +1037,10 @@ public enum FilmLayout: String, Sendable, Equatable, Hashable, CaseIterable {
 // MARK: - Print Film Size
 
 /// Standard film size identifiers for DICOM print.
-/// Reference: DICOM PS3.3 C.13.6 – Film Size ID, Tag (2010,0050)
+/// Reference: DICOM PS3.3 C.13.3 – Film Box Module, Film Size ID (2010,0050), Table C.13-3
+///
+/// The 12 Defined Terms of Table C.13-3. Duplicates `DICOMNetwork.FilmSize`
+/// (D22; see P-STUDIO-PRINT-ENUMS).
 public enum PrintFilmSize: String, Sendable, Equatable, Hashable, CaseIterable {
     case size8x10    = "8INX10IN"
     case size8_5x11  = "8_5INX11IN"
@@ -1044,12 +1075,19 @@ public enum PrintFilmSize: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - Print Job Status
 
-/// Status of a DICOM print job.
+/// Status of a DICOM print job, as the Networking panel tracks it.
+///
+/// This is the app's own job state — set from the SCU's result, never read off
+/// the wire — but it is shown as its raw value, so the values are the Execution
+/// Status (2100,0020) terms of PS3.3 C.13.8 Table C.13-8: PENDING, PRINTING,
+/// DONE, FAILURE. `completed` carried `COMPLETED` and `failed` carried `FAILED`,
+/// which are not Execution Status terms (D22); the case names are kept.
+/// Reference: DICOM PS3.3 C.13.8 – Print Job Module
 public enum PrintJobStatus: String, Sendable, Equatable, Hashable {
     case pending   = "PENDING"
     case printing  = "PRINTING"
-    case completed = "COMPLETED"
-    case failed    = "FAILED"
+    case completed = "DONE"
+    case failed    = "FAILURE"
 
     public var displayName: String {
         switch self {
