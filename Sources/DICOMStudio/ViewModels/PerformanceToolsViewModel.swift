@@ -3,6 +3,9 @@
 //
 // DICOM Studio — ViewModel for Performance & Developer Tools (Milestone 13)
 // Reference: DICOM PS3.2 (Conformance), PS3.5 (Data Structures), PS3.6 (Data Dictionary)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: UI state over
+// PerformanceToolsService; the two Transfer Syntax UID defaults are registered in PS3.6 2026a Table A-1 and
+// the benchmark figures are simulated, not standard values.
 
 import Foundation
 import Observation

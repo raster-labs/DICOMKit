@@ -294,12 +294,25 @@ struct PerformanceToolsHelpersTests {
 
     @Test("vrFullName returns known full name for UI")
     func testVRFullNameUI() {
-        #expect(TagDictionaryHelpers.vrFullName(for: "UI") == "Unique Identifier")
+        #expect(TagDictionaryHelpers.vrFullName(for: "UI") == "Unique Identifier (UID)")   // PS3.5 Table 6.2-1 "VR Name" verbatim
     }
 
     @Test("vrFullName returns input for unknown code")
     func testVRFullNameUnknown() {
         #expect(TagDictionaryHelpers.vrFullName(for: "XX") == "XX")
+    }
+
+    @Test("vrFullName uses the PS3.5 Table 6.2-1 names: the Other VRs are not 'String' VRs")
+    func testVRFullNameOtherVRs() {
+        #expect(TagDictionaryHelpers.vrFullName(for: "OB") == "Other Byte")
+        #expect(TagDictionaryHelpers.vrFullName(for: "OD") == "Other Double")
+        #expect(TagDictionaryHelpers.vrFullName(for: "OF") == "Other Float")
+        #expect(TagDictionaryHelpers.vrFullName(for: "OW") == "Other Word")
+        #expect(TagDictionaryHelpers.vrFullName(for: "OL") == "Other Long")
+        #expect(TagDictionaryHelpers.vrFullName(for: "OV") == "Other 64-bit Very Long")
+        // The two VRs whose Table 6.2-1 name carries its abbreviation are shown as the table writes them.
+        #expect(TagDictionaryHelpers.vrFullName(for: "UI") == "Unique Identifier (UID)")
+        #expect(TagDictionaryHelpers.vrFullName(for: "UR") == "Universal Resource Identifier or Universal Resource Locator (URI/URL)")
     }
 
     // MARK: - TagDictionaryHelpers.sampleTagEntries
@@ -458,6 +471,35 @@ struct PerformanceToolsHelpersTests {
             #expect(!entry.uid.isEmpty)
             #expect(!entry.name.isEmpty)
         }
+    }
+
+    @Test("sopClassEntries pairs the Study Root names with the Study Root UIDs (PS3.6 Table A-1 .2.2.x, not Patient Root .2.1.x)")
+    func testSOPClassEntriesStudyRootUIDs() {
+        let byName = Dictionary(uniqueKeysWithValues:
+            ConformanceStatementHelpers.sopClassEntries().map { ($0.name, $0.uid) })
+        #expect(byName["Study Root Query/Retrieve Information Model - FIND"] == "1.2.840.10008.5.1.4.1.2.2.1")
+        #expect(byName["Study Root Query/Retrieve Information Model - MOVE"] == "1.2.840.10008.5.1.4.1.2.2.2")
+        #expect(byName["Study Root Query/Retrieve Information Model - GET"]  == "1.2.840.10008.5.1.4.1.2.2.3")
+        #expect(byName["Unified Procedure Step - Event"] == "1.2.840.10008.5.1.4.34.6.4")
+        #expect(byName["Positron Emission Tomography Image Storage"] == "1.2.840.10008.5.1.4.1.1.128")
+        #expect(byName["Patient Root Query/Retrieve Information Model - FIND"] == "1.2.840.10008.5.1.4.1.2.1.1")
+        #expect(byName["Patient Root Query/Retrieve Information Model - MOVE"] == "1.2.840.10008.5.1.4.1.2.1.2")
+        #expect(byName["Patient Root Query/Retrieve Information Model - GET"]  == "1.2.840.10008.5.1.4.1.2.1.3")
+        // No row pairs a Study Root name with a Patient Root UID or the reverse.
+        for entry in ConformanceStatementHelpers.sopClassEntries() where entry.name.contains("Root Query") {
+            let isStudyUID = entry.uid.hasPrefix("1.2.840.10008.5.1.4.1.2.2.")
+            #expect(entry.name.hasPrefix("Study Root") == isStudyUID, "\(entry.name) \(entry.uid)")
+        }
+    }
+
+    @Test("sampleUIDEntries names the SOP Classes as PS3.6 Table A-1 does")
+    func testSampleUIDEntriesNames() {
+        let byUID = Dictionary(uniqueKeysWithValues:
+            UIDLookupHelpers.sampleUIDEntries().map { ($0.uid, $0.name) })
+        #expect(byUID["1.2.840.10008.5.1.4.1.1.128"] == "Positron Emission Tomography Image Storage")
+        #expect(byUID["1.2.840.10008.5.1.4.1.1.6.1"] == "Ultrasound Image Storage")
+        #expect(byUID["1.2.840.10008.5.1.4.1.1.7"] == "Secondary Capture Image Storage")
+        #expect(byUID["1.2.840.10008.1.2.2"] == "Explicit VR Big Endian")
     }
 
     // MARK: - ConformanceStatementHelpers.capabilities filter

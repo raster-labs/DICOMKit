@@ -3,6 +3,10 @@
 //
 // DICOM Studio — Data models for Performance & Developer Tools (Milestone 13)
 // Reference: DICOM PS3.2 (Conformance), PS3.5 (Data Structures), PS3.6 (Data Dictionary)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data: record types (DICOMTagEntry, UIDEntry,
+// TransferSyntaxInfoEntry, SOPClassEntry) whose values live in PerformanceToolsHelpers.swift, and UI enums.
+// TagGroupFilter's group prefixes (0010 patient, 0020 study, 0008/0018 series and equipment, 0028 image) are
+// a browsing heuristic, not a PS3.6 classification; PS3.6 Table 6-1 does not group tags by entity.
 
 import Foundation
 

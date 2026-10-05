@@ -3,6 +3,10 @@
 //
 // DICOM Studio — Thread-safe service for Performance & Developer Tools state (Milestone 13)
 // Reference: DICOM PS3.2 (Conformance), PS3.6 (Data Dictionary)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own; the two Transfer Syntax UID
+// defaults (1.2.840.10008.1.2.1 Explicit VR Little Endian, 1.2.840.10008.1.2.4.70 JPEG Lossless SV1) are
+// registered in PS3.6 2026a Table A-1 (checked by Scripts/diff_studio.py). The tables it holds are built by
+// PerformanceToolsHelpers.swift, verified there.
 
 import Foundation
 
