@@ -1,6 +1,7 @@
 // SecurityView.swift
 // DICOMStudio
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (UI state and layout; the profile picker shows AnonymizationProfile display names and `--profile <cliFlag>`, verified in SecurityModel.swift; no PS3.15 Annex E profile name or CID 7050 code is displayed)
 // DICOM Studio — Security and privacy center view
 
 #if canImport(SwiftUI)

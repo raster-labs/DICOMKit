@@ -2,8 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for the Security & Privacy Center (Milestone 11)
-// Reference: DICOM PS3.15 (Security and System Management Profiles)
-// Reference: HIPAA Security Rule §164.312
+// Reference: DICOM PS3.15 (Security and System Management Profiles): B.12 / B.13 (TLS), Annex E (de-identification), A.5 (audit)
+// Reference: HIPAA Security Rule §164.312 and 45 CFR §164.514(b)(2) are cited as law only; no profile here implements them
+// NEMA-verified: 2026a, checked 2026-10-05 — SecurityTLSMode is the app's own policy, not a PS3.15 profile: its minimum versions checked against PS3.15 2026a B.12 ("Servers and clients shall support TLS 1.2 and may support TLS 1.3"; BCP 195 / RFC 8996 prohibit TLS 1.0 and 1.1) — Development was "TLS 1.0", corrected to TLS 1.2; B.1-B.3 and B.9-B.11 are "Retired" in 2026a and are no longer cited; AnonymizationProfile cases are fixed attribute lists (none is PS3.15 Annex E, cliFlag names the legacy-* CLI profiles, fixed 2026-10-05) and the descriptions now state what the DICOMKit engine removes (basic 14, clinical trial 22, research 3 attributes) instead of "18 HIPAA direct identifiers"; TagAction, audit, access-control and session enums carry no DICOM-defined values; AnonHelpers.buildCommand mirrors dicom-anon's options
 
 import Foundation
 
@@ -39,8 +40,11 @@ public enum SecurityTab: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - TLS Mode
 
-/// TLS security mode for network connections.
-/// Reference: DICOM PS3.15 Annex B – Secure Transport Connection Profiles
+/// TLS security mode for network connections (the app's own policy; none of the modes is a
+/// PS3.15 Secure Transport Connection Profile).
+/// Reference: DICOM PS3.15 B.12 (BCP 195 RFC 8996, 9325) and B.13 (Modified BCP 195): TLS 1.2 shall be
+/// supported, TLS 1.3 may be; TLS 1.0 and 1.1 are prohibited by RFC 8996. Strict is stricter than
+/// B.12 (it refuses TLS 1.2); Development only relaxes certificate validation, never the version.
 public enum SecurityTLSMode: String, Sendable, Equatable, Hashable, CaseIterable {
     case strict      = "STRICT"
     case compatible  = "COMPATIBLE"
@@ -67,12 +71,13 @@ public enum SecurityTLSMode: String, Sendable, Equatable, Hashable, CaseIterable
     /// Whether self-signed certificates are accepted.
     public var allowsSelfSigned: Bool { self == .development }
 
-    /// Minimum TLS version string.
+    /// Minimum TLS version string. Never below TLS 1.2: PS3.15 B.12 (RFC 8996) prohibits TLS 1.0 / 1.1
+    /// in every profile, and Development only relaxes certificate validation.
     public var minimumTLSVersion: String {
         switch self {
         case .strict:      return "TLS 1.3"
         case .compatible:  return "TLS 1.2"
-        case .development: return "TLS 1.0"
+        case .development: return "TLS 1.2"
         }
     }
 
@@ -240,8 +245,10 @@ public extension SecurityCertificateStatus {
 
 // MARK: - Anonymization Profile
 
-/// Standard anonymization profile.
-/// Reference: DICOM PS3.15 Annex E – Attribute Confidentiality Profiles
+/// Anonymization profile of the Security Center: fixed attribute lists run by the DICOMKit
+/// `Anonymizer` (the CLI's deprecated `legacy-*` profiles).
+/// Reference: DICOM PS3.15 Annex E (Attribute Confidentiality Profiles) is NOT implemented by any
+/// case here (P-STUDIO-ANON-PS315); the lists are documented in `AnonymizationHelpers`.
 public enum AnonymizationProfile: String, Sendable, Equatable, Hashable, CaseIterable {
     case basic            = "BASIC"
     case clinicalTrial    = "CLINICAL_TRIAL"
@@ -280,10 +287,10 @@ public enum AnonymizationProfile: String, Sendable, Equatable, Hashable, CaseIte
     /// Short description.
     public var shortDescription: String {
         switch self {
-        case .basic:            return "Removes 18 HIPAA direct identifiers from DICOM metadata."
-        case .clinicalTrial:    return "Removes direct identifiers plus study/acquisition dates."
-        case .research:         return "Minimal removal: PatientName, PatientID, PatientBirthDate only."
-        case .hipaaeSafeHarbor: return "Applies HIPAA Safe Harbor de-identification (45 CFR §164.514(b)(2))."
+        case .basic:            return "Removes 14 identifying attributes (patient names, IDs, birth date/time, comments; referring/performing physicians, operators; institution, station, device serial). Not PS3.15 Annex E."
+        case .clinicalTrial:    return "Removes the 14 basic attributes plus the study/series/acquisition/content dates and times (22 attributes)."
+        case .research:         return "Minimal removal: Patient's Name, Patient ID, Patient's Birth Date only."
+        case .hipaaeSafeHarbor: return "Runs the 14-attribute basic list. Not a complete HIPAA Safe Harbor de-identification: 45 CFR §164.514(b)(2)(i) lists 18 identifier categories that need review of dates, free text and pixel data."
         case .custom:           return "Apply user-defined tag-level anonymization rules."
         }
     }
@@ -454,8 +461,8 @@ public struct AnonymizationJob: Identifiable, Sendable, Equatable, Hashable {
 
 // MARK: - Audit Event Type
 
-/// Type of auditable event.
-/// Reference: DICOM PS3.15 Annex A – Audit Trail Message Format Profile
+/// Type of auditable event (the app's own categories, not the DICOM audit message event IDs).
+/// Reference: DICOM PS3.15 A.5 – Audit Trail Message Format Profile
 public enum SecurityAuditEventType: String, Sendable, Equatable, Hashable, CaseIterable {
     case fileAccess        = "FILE_ACCESS"
     case fileModification  = "FILE_MODIFICATION"
@@ -512,8 +519,8 @@ public enum SecurityAuditEventType: String, Sendable, Equatable, Hashable, CaseI
 
 // MARK: - Audit Log Entry
 
-/// A single entry in the HIPAA-compliant audit log.
-/// Reference: DICOM PS3.15 Annex A.5 – DICOM Audit Messages
+/// A single entry in the app's audit log (not a PS3.15 A.5 audit message).
+/// Reference: DICOM PS3.15 A.5 – Audit Trail Message Format Profile
 public struct SecurityAuditEntry: Identifiable, Sendable, Equatable, Hashable {
     public let id: UUID
     /// Timestamp of the event.

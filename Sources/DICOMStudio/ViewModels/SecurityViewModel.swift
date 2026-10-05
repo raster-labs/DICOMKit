@@ -2,8 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — ViewModel for the Security & Privacy Center (Milestone 11)
-// Reference: DICOM PS3.15 (Security and System Management Profiles)
-// Reference: HIPAA Security Rule §164.312
+// Reference: DICOM PS3.15 (Security and System Management Profiles); HIPAA Security Rule §164.312 (law)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: the UI profiles are mapped onto the DICOMKit Anonymizer profiles (basic / clinicalTrial / research / custom, engineProfile) whose attribute lists SecurityHelpers mirrors; the dicom-anon command line comes from AnonHelpers.buildCommand; TLS, audit and access-control state is app state
 
 import Foundation
 import Observation

@@ -76,6 +76,22 @@ struct SecurityModelTests {
         #expect(SecurityTLSMode.compatible.minimumTLSVersion == "TLS 1.2")
     }
 
+    @Test("SecurityTLSMode never offers TLS below 1.2 (PS3.15 2026a B.12, RFC 8996)")
+    func testTLSModeMinimumVersionsPerB12() {
+        for mode in SecurityTLSMode.allCases {
+            #expect(["TLS 1.2", "TLS 1.3"].contains(mode.minimumTLSVersion), "\(mode.rawValue)")
+        }
+        #expect(SecurityTLSMode.development.minimumTLSVersion == "TLS 1.2")
+    }
+
+    @Test("AnonymizationProfile descriptions state the engine's attribute counts, not '18 HIPAA identifiers'")
+    func testProfileDescriptionsNameEngineCounts() {
+        #expect(AnonymizationProfile.basic.shortDescription.contains("14"))
+        #expect(AnonymizationProfile.clinicalTrial.shortDescription.contains("22"))
+        #expect(!AnonymizationProfile.basic.shortDescription.contains("18 HIPAA"))
+        #expect(AnonymizationProfile.hipaaeSafeHarbor.shortDescription.contains("Not a complete"))
+    }
+
     @Test("SecurityTLSMode strict and compatible are production-safe")
     func testTLSModeProductionSafe() {
         #expect(SecurityTLSMode.strict.isProductionSafe == true)

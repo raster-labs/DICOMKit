@@ -135,12 +135,12 @@ struct SecurityViewModelTests {
         #expect(vm.selectedProfile == .basic)
     }
 
-    @Test("setProfile basic loads 18 default rules")
+    @Test("setProfile basic loads the 14 default rules of the engine's basic profile")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    func testSetProfileBasicLoads18Rules() {
+    func testSetProfileBasicLoads14Rules() {
         let vm = SecurityViewModel()
         vm.setProfile(.basic)
-        #expect(vm.customRules.count == 18)
+        #expect(vm.customRules.count == 14)
     }
 
     @Test("setProfile custom does not load default rules")
