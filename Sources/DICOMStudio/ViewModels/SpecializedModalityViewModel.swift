@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — ViewModel for Specialized Modality Support
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data beyond the ECG channel unit "mV" (a UCUM code; PS3.3 2026a C.10.9 Channel Sensitivity Units Sequence carries UCUM codes) and tab names; display state over SpecializedModalityService
 
 import Foundation
 import Observation

@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent whole-slide imaging (WSI) multi-resolution helpers
-// Reference: DICOM PS3.3 A.32.8 (VL Whole Slide Microscopy Image IOD)
+// Reference: DICOM PS3.3 A.32.8 (VL Whole Slide Microscopy Image IOD), C.8.12.4 (Whole Slide Microscopy Image Module)
+// NEMA-verified: 2026a, checked 2026-10-05 — citation checked against the PS3.3 2026a section title; carries no DICOM-standard data (the 40x base magnification, pyramid level mapping, tile ranges, optical-path colours and cache sizing are app conventions; Image Type flavors VOLUME / LABEL / OVERVIEW / THUMBNAIL of Table C.8.12.4-2 are not modelled here)
 
 import Foundation
 

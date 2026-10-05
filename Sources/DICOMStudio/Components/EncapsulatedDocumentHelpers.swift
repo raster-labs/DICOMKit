@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent encapsulated document type helpers
-// Reference: DICOM PS3.3 A.45 (Encapsulated PDF), A.45.2 (Encapsulated CDA), C.24 (Encapsulated Document)
+// Reference: DICOM PS3.3 A.45 (Encapsulated Document IODs: A.45.1 Encapsulated PDF, A.45.2 Encapsulated CDA), A.85 (Encapsulated 3D Manufacturing Model IODs: A.85.1 STL, A.85.2 OBJ, A.85.3 MTL), C.24 (Encapsulated Document Modules)
+// NEMA-verified: 2026a, checked 2026-10-05 — the 5 MIME Type of Encapsulated Document Enumerated Values matched case-insensitively against PS3.3 2026a A.45.1.4.1, A.45.2.4 and A.85.1-A.85.3 (application/pdf, text/XML, model/stl, model/obj, model/mtl: 5/5; the STL / OBJ / MTL IODs are A.85, not A.45.3-A.45.5 — citation corrected; application/sla is an extra alias for STL files); the 5 SOP Class UIDs come from DICOMKit.EncapsulatedDocument (PS3.6 Table A-1 1.2.840.10008.5.1.4.1.1.104.1-5); the rest is formatting
 
 import Foundation
 import DICOMKit

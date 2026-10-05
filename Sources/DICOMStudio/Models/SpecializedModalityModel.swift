@@ -3,6 +3,7 @@
 //
 // DICOM Studio — Specialized modality data models for RT, Segmentation,
 // Parametric Maps, Waveforms, Video, Encapsulated Documents, Secondary Capture, and WSI
+// NEMA-verified: 2026a, checked 2026-10-05 — enum raw values diffed by script against PS3.3 2026a: RTROIType 7 cases vs RT ROI Interpreted Type (3006,00A4) Defined Terms (Table C.8-44: 6 match, OTHER is not a term, 19 terms absent — P-STUDIO-RT-ROI-TYPES); RTDoseUnits vs Dose Units (3004,0002) (Table C.8-39: GY matches, CGY is not a term and RELATIVE is absent — P-STUDIO-RT-DOSE-UNITS); RTRadiationType 4 vs Radiation Type (300A,00C6) Defined Terms (Table C.8-50: 4/4); SegmentAlgorithmType 3 vs Segment Algorithm Type (0062,0008) (Table C.8.20-4: 3/3); EncapsulatedDocumentType MIME types vs the MIME Type of Encapsulated Document Enumerated Values of A.45.1.4.1, A.45.2.4 and A.85.1-A.85.3 (5: 4 match, CDA corrected to "text/XML"); SecondaryCaptureDisplayType 5 SOP Class UIDs vs PS3.6 2026a Table A-1 (5/5); the rest (colours, colormaps, display state, SUV input, video) carries no standard data
 
 import Foundation
 
@@ -28,7 +29,10 @@ public struct RTStructureSetROI: Sendable, Equatable, Hashable {
     }
 }
 
-/// Types of RT ROIs per DICOM PS3.3 C.8.8.
+/// Types of RT ROIs per DICOM PS3.3 C.8.8.8 (RT ROI Interpreted Type (3006,00A4) Defined Terms).
+///
+/// PS3.3 2026a Table C.8-44 defines 25 terms; this enum carries 6 of them plus `other`, which is
+/// not a Defined Term (P-STUDIO-RT-ROI-TYPES).
 public enum RTROIType: String, Sendable, Equatable, Hashable, CaseIterable {
     case ptv = "PTV"
     case ctv = "CTV"
@@ -187,6 +191,9 @@ public struct RTDosePoint: Sendable, Equatable, Hashable {
 }
 
 /// Units for RT dose values.
+///
+/// PS3.3 2026a Dose Units (3004,0002) are GY, RELATIVE and CODED (Table C.8-39); `cgy` is a display
+/// convenience with no DICOM term and RELATIVE is absent (P-STUDIO-RT-DOSE-UNITS).
 public enum RTDoseUnits: String, Sendable, Equatable, Hashable, CaseIterable {
     case gy  = "GY"
     case cgy = "CGY"
@@ -604,7 +611,7 @@ public enum EncapsulatedDocumentType: String, Sendable, Equatable, Hashable, Cas
     public var mimeType: String {
         switch self {
         case .pdf:     return "application/pdf"
-        case .cda:     return "text/xml"
+        case .cda:     return "text/XML"   // PS3.3 A.45.2.4: Enumerated Value for MIME Type of Encapsulated Document (0042,0012)
         case .stl:     return "model/stl"
         case .obj:     return "model/obj"
         case .mtl:     return "model/mtl"

@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent Radiation Therapy visualization helpers
-// Reference: DICOM PS3.3 C.8.8 (RT Structure Set), C.8.8.5 (RT Plan), C.8.8.3 (RT Dose)
+// Reference: DICOM PS3.3 C.8.8 (Radiotherapy Modules), C.8.8.5 (Structure Set Module), C.8.8.8 (RT ROI Observations Module), C.8.8.3 (RT Dose Module)
+// NEMA-verified: 2026a, checked 2026-10-05 — citations checked against PS3.3 2026a section titles (C.8.8.5 is the Structure Set Module, not RT Plan: corrected); switches over RTROIType / RTDoseUnits are exhaustive over the model enums verified in SpecializedModalityModel.swift (P-STUDIO-RT-ROI-TYPES, P-STUDIO-RT-DOSE-UNITS); isodose percentages, colour washes and DVH interpolation are display conventions with no DICOM-defined values
 
 import Foundation
 
