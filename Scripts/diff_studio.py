@@ -120,7 +120,7 @@ FILES = {
     'DICOMStudio/Components/J2KBenchmarkBaseline.swift': ('G2', 'CR'),
     'DICOMStudio/Components/ViewportLayoutHelpers.swift': ('G2', 'CR'),
     'DICOMStudio/Models/MacOSEnhancementsModel.swift': ('G2', 'CR'),
-    'DICOMStudio/Models/PatientOverlayText.swift': ('G2', 'CR'),
+    'DICOMStudio/Models/PatientOverlayText.swift': ('G2', 'ST'),   # promoted 2026-10-05: 11 tags vs Table 6-1
     'DICOMStudio/Models/ViewerAnnotationCorners.swift': ('G2', 'CR'),
     'DICOMStudio/Models/ViewerHoverGeometry.swift': ('G2', 'CR'),
     'DICOMStudio/Models/ViewerSeriesEntry.swift': ('G2', 'CR'),

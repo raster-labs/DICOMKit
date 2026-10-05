@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — DICOMStudio viewer (2026-10-05, DICOM 2026a)
+- The viewer, its tiles, film cells, `ImageRenderingService` and the progressive decoder render through the PS3.4 N.2 chain — the image's Modality LUT (or the applied presentation state's), then the window in modality units or the VOI LUT Sequence, then the Presentation LUT — and pass the image's ICC Profile; a stored-unit window is no longer handed to the renderer, so rescale slopes other than 1 (PET, NM) and negative slopes show the standard's picture (PS3.3 C.11.2.1.2.1, C.11.15.1.1; D65, D68).
+- Saved views carry the image's Photometric Interpretation and Rescale Type: a MONOCHROME1 image saves and restores with the right Presentation LUT, a colour image is saved as a Color Softcopy Presentation State, and the state's Modality LUT names its units (PS3.4 N.2; PS3.3 A.33.1.1, Table A.33.2-1; D42).
+- A presentation state without a Modality LUT is the identity while it is shown — the image's rescale is no longer substituted — except for this app's own objects written before 2026-09-29, which are read with the image's rescale they were written in (PS3.4 N.2.1.1; D28).
+- The tag inspector shows OV as bytes, with the other "Other …" VRs and UN (PS3.5 Table 6.2-1; D28).
+- `PresentationStateHelpers.applyLinearVOI` uses the C.11.2.1.2.1 thresholds (the upper one was a unit too high, so the top of the ramp exceeded 1 and a width of 1 divided by zero); `transformPoint` rotates before it flips, as Table C.10-6 orders it.
+- `ModalityLUTTransform.rescaleType` defaults to `US` (Unspecified) instead of `HU` (PS3.3 C.11.1.1.2).
+- A display shutter with several shapes shows their intersection, not their union (PS3.3 C.7.6.11); a bitmap shutter accepts only the even overlay groups 6000–601E (PS3.5 7.6).
+- Waveform Presentation State objects (1.2.840.10008.5.1.4.1.1.9.100.*) are no longer classified as waveform files (PS3.6 Table A-1).
+
 ### Fixed — DICOMStudio codecs, transfer-syntax names and labels (2026-10-05, DICOM 2026a)
 - Transfer-syntax names shown in DICOM Studio are the PS3.6 2026a Table A-1 names (D9): ImportValidation, FileOperationsHelpers and the J2K Test Bench spell them out (".4.110 JPEG XL Lossless Only" → "JPEG XL Lossless"); the overlay's short label comes from DICOMCore `TransferSyntax.shortName` with the Table A-1 name as tooltip (`ImageMetadataHelpers.transferSyntaxStandardName`); the Data Exchange compression picker labels every row with the UID its `dicom-compress` token really produces (`jpeg-lossless` is .4.57, not .4.70; `j2k-lossless` / `htj2k-lossless` are reversible .4.91 / .4.203); the codec inspector names the Table A-1 syntax instead of "Explicit VR Little Endian (…)" and recognises JPEG XL, video, Deflated Image Frame Compression and Encapsulated Uncompressed.
 - Thumbnails render every PS3.3 2026a C.7.6.3.1.2 photometric interpretation DICOMCore decodes (YBR_PARTIAL_420, YBR_ICT, YBR_RCT, XYB were missing — D10); the pixel-metadata overlay labels XYB (D11).
