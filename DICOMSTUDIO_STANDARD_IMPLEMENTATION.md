@@ -167,6 +167,12 @@ Table O-1). Every other generic check is ok.
 | 2026-10-05 | IntegratedTerminalHelpers redactPHI | PS3.6 2026a Table 6-1 keyword → name; PS3.15 2026a Table E.1-1 rows | 7 of 7 keywords are E.1-1 attributes; comment now names Table E.1-1 (86aae0ee) | IntegratedTerminalHelpersTests, CLIShellCatalogueTests |
 | 2026-10-05 | Marker | PS3.4 N.2; PS3.3 C.10.4 | `PrintViewModel+PresentationStates.swift` marked (no standard literal; D42 photometric hand-off) (`0dbb6047`) | — |
 | 2026-10-05 | Server-profile injection (shell finding) | CLI ArgumentParser surface of the 7 DIMSE tools and dicom-wado | `NetworkInjectorHelpers.dicomParameters` / `dicomwebParameters` inject the positional `<host>` / `<base-url>` and `--token` instead of `--host`, `--tls`, `--url`, `--auth`, which no tool accepts (`diff_studio_g1_shell.py`: 37 / 0) | `ShellServerConfigHelpersTests` +2 |
+| 2026-10-05 | dicom-query: --level picker patient/study/series/image (IMAGE on the wire, "instance" kept as alias), --format dicom-json, --csv-keywords, --strict-modality, CLI help texts; executor: validate() refusals (64), ModalityOptionValidator, warning names the level by QueryLevel.rawValue, shared formatter with csvHeader / dicomJSONEncoder, `Error: …` exit 1; echo / query presets positional host:port | PS3.4 2026a Tables C.6.1-1 / C.6.2-1 (4 values: 4 matched), C.4.1.2.1; PS3.18 F.2; PS3.3 C.7.3.1.1.1 | a2a828c2 | queryLevelPickerIsPS34, queryFormatAndModalityRows, queryLevelOption, queryLevelRefusal, queryResultFormatter, resolveModalityOption; parity test fixture series/image; g1 "net query levels" (15 matched) |
+| 2026-10-05 | dicom-send: --transfer-syntax (TransferSyntax.negotiableImageTokens), PS3.7 priority help; executor: preferredTransferSyntaxUID through DICOMStorageService.store, header UID, PS3.4 Table B.2-1 classes (Failure class retried and counted failed, Warning class sendFileWarningLine + Warnings count), CLI refusals / SendError texts | PS3.7 2026a Table 9.3-1 (3 values: 3 matched = DIMSEPriority); PS3.4 Table B.2-1 (7 rows read); PS3.8 7.1.1.13 | 76a31e99 | sendTransferSyntaxAndPriorityRows, sendStoreOutcomeClasses; g1 "net priority send" (20 matched) |
+| 2026-10-05 | dicom-retrieve / dicom-qr: --priority pickers, --relational-retrieve, qr --strict-modality / --include-parent-keys, CLI help; executors: RetrieveConfiguration(priority:extendedNegotiation:), RetrieveKeys at the most specific level, DIMSEServiceStatusText.describe(.cMove / .cGet) + subOperationCounts, Failed SOP Instance UID List lines, success rule C.4.2.2.1, retrieveHeader(priority:relationalRetrieval:), CLI refusals (64) and RetrieveError / DICOMQRError texts (1), qr --parallel batches with the CLI's line order, buildQueryKeys; app-only Study-UID C-FIND lookup removed | PS3.7 2026a Tables 9.3-9 / 9.3-6 (3 values: 3 matched); PS3.4 Tables C.4-2 / C.4-3 (Success / B000 rows read), C.4.2.2.1 / C.4.3.2.1, C.4.2.2.2.1, C.5.2.1 / Table C.5-3; PS3.7 Tables 9.3-10 / 9.3-7 | f8e70094 | retrieveAndQRRows, retrievePriorityOption, retrieveUIDRefusal, retrieveCheckTexts; g1 "net retrieve status" (43 matched) |
+| 2026-10-05 | dicom-mwl: --sps-status picker = PS3.3 C.4.10 Defined Terms (was PPS words), --specific-character-set, --strict-modality, CLI help; executor: validator, spsStatusWarning mirror, specificCharacterSet passed, exit 64 / 1 texts. dicom-mpps: --modality required (Type 1), --strict-modality, CID 9301 placeholder / examples (D85), CLI help; executor: Type 1 refusal, sex / DA validation, status guards, --image-uid / --sop-class-uid rules, warning via DIMSEServiceStatusText, CLI header fields | PS3.3 2026a C.4.10 (5 terms: 5 matched), Table C.2-3 (3), Table C.4-14; PS3.4 Tables K.6-1a, F.7.2-1 rows 1 / 105; PS3.5 Table 6.2-1 DA; PS3.16 CID 9301 (17 DCM rows: 4 examples matched); PS3.4 Table F.7.2-2 / PS3.7 Annex C | d716de90 | mwlRows, mppsRows, mwlSPSStatusWarning, mppsValueRules; g1 "net mwl mpps terms" (33 matched); P-STUDIO-MWL-CREATE PEND |
+| 2026-10-05 | dicom-wado query / retrieve / store / ups: qido --strict-modality, --fuzzy-matching, --format dicom-json, --limit ≥ 0; retrieve --content-type real flag (WADOURIClient.MediaType.allowed, 15 values), 12 WADO-URI parameters, --timeout wired, WADOURIClient.Parameters, CLI refusals / warnings, previews removed; store exit 1 on any unstored instance, Warning Reason lines, CLI refusals; ups --change-state / deprecated --update, --state IN PROGRESS / COMPLETED / CANCELED with SCHEDULED refusal, PS3.3 spellings, HIGH / MEDIUM / LOW, --format csv / dicom-json, CLI print structure; WorkshopWADOOptionRules text-identical mirror | PS3.18 2026a Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1, 9.1.2.2.1 / Table 8.7.4-1 (14 Rendered Media Types), 9.5.1.2.1, 8.3.4.2 / 8.3.4.4, 10.5.3-1, Table I.2-1, 11.7.1.4 (3 values: 3 matched), F.2; PS3.3 C.30.1 (4 states), C.30.2 (3 priorities), Table C.7-1; PS3.4 Table CC.1.1-2 | d52bbfa9 | qidoRows, wadoRetrieveRows, upsRows, upsChangeStateRefusal, wadoURIRules; g1 "net web rules" (59 matched); EXEMPT 5 rows, DEFERRED 1 |
+| 2026-10-05 | dicom-echo: --count 0 refused with the CLI's text (64) instead of clamped; host refusal as usage error; ups catch prints String(describing:) as ArgumentParser | dicom-echo run() ValidationError; ArgumentParser MessageInfo | 7af3cce0 | (covered by the suites; no new row) |
 
 ---
 
@@ -174,6 +180,7 @@ Table O-1). Every other generic check is ok.
 
 | Item | What | Standard | Recommendation | Status |
 |---|---|---|---|---|
+| P-STUDIO-MWL-CREATE | The Workshop's dicom-mwl `create` operation (HL7 ORM^O01 over MLLP or the archive REST API; all its fields isInternal, preview rendered commented out) has no dicom-mwl CLI counterpart — the CLI registers only `query` (no DIMSE service creates a worklist item). The parity check flags the subcommand picker value; annotated PEND in diff_studio_g1 | PS3.4 Annex K (C-FIND only) | Either add a `dicom-mwl create` subcommand (HL7 / REST) to the CLI so the preview becomes paste-runnable, or move the create flow out of the CLI Workshop into the Networking panel. Until decided the arm stays as is (behaviour unchanged) | | ⏳ pending |
 | — | none: all fixes are data/returned-value changes; `FormRenderingHelpers.isPositional` is an additive public helper | | | | ⏳ pending |
 | P-STUDIO-TLS-PROFILES (shared with the DIMSE half) | `DICOMwebTLSMode` (NONE / COMPATIBLE / STRICT / DEVELOPMENT) selects TLS versions, not PS3.15 Annex B Secure Transport Connection Profiles (B.12 Non-Downgrading BCP 195, B.13 Extended BCP 195); `DICOMwebClientFactory` ignores the mode entirely | PS3.15 2026a Annex B | Offer the Annex B profile names as cases and pass the choice to `DICOMwebConfiguration` when DICOMWeb exposes one; same decision as NetworkingModel.TLSMode | | ⏳ pending |
 | P-STUDIO-UPS-STATE-RAW | `DICOMwebModel.UPSState` raw values are `IN_PROGRESS` and `CANCELLED`; the Procedure Step State (0074,1000) terms are `IN PROGRESS` and `CANCELED`. The case `.cancelled` also mis-spells the term. `DICOMWeb.UPSState` already carries the correct raw values and a `isValidTransition`. Behaviour is unaffected (ViewModel maps by string; `dicomTerm` added internally) | PS3.3 2026a C.30.1; PS3.4 Table CC.1.1-1 | Replace Studio's `UPSState` by a typealias to `DICOMWeb.UPSState` (same four cases; `.cancelled` → `.canceled` with a deprecated alias), or change the raw values to the standard terms. Either is public API | | ⏳ pending |
@@ -207,10 +214,10 @@ Table O-1). Every other generic check is ok.
 | D28 | DICOMKit | `ImageViewerViewModel+PresentationStates` (~L1057); `Views/DICOMInspectorView.swift:41` | PR without Modality LUT falls back to the image's rescale (S-2 migration rule); "is binary" check omits OV (D5 half) | PS3.4 N.2.1.1; PS3.5 Table 6.2-1 | ✅ 2026-10-05 `6372e096`: PR without Modality LUT = identity, with the S-2 rule (only this app's own, non-imported, pre-2026-09-29 objects keep the image rescale); inspector binary VRs include OV (PS3.5 Table 6.2-1) |
 | D29 | DICOMKit | `CLIWorkshopViewModel.swift:1730`, `CLIWorkshopHelpers.swift:3128` | dcmdir `--profile` choices list STD-GEN-DVD / STD-GEN-USB (family headings) | PS3.11 Annexes H, J | ✅ 2026-10-05 `2f730cac` (Workshop file tools mirror the CLI; see the parity section) |
 | D42 | DICOMPrintKit | `ImageViewerViewModel+PresentationStates.swift` (~L460, 610, 1040), `PrintViewModel+PresentationStates.swift` (~L365) | pass Photometric Interpretation and Rescale Type to the bridge and `ImageToSave` | PS3.4 N.2; PS3.3 A.33.1.1, Table A.33.2-1 | ✅ 2026-10-05 `6372e096`: Photometric Interpretation and Rescale Type passed to `ViewerPresentationStateBridge.capture/restore` and `ImageToSave`; MONOCHROME1 → INVERSE Presentation LUT fold, colour → Color Softcopy PS |
-| D56 | DICOMKit | CLI Workshop video form | no Audio Channel Source field | PS3.3 Table C.7-13; PS3.16 CID 3000 | ⏳ |
+| D56 | DICOMKit | CLI Workshop video form | no Audio Channel Source field | PS3.3 Table C.7-13; PS3.16 CID 3000 | ⏳ pixel Workshop agent |
 | D65 (viewer half) | DICOMRenderKit | `ImageViewerViewModel.swift` ~L1390, ~L1432; `+PresentationStates.swift` ~L1060 | stored-unit window conversion exact for slope 1 only | PS3.3 C.11.2.1.2.1 | ✅ 2026-10-05 `6372e096`: the viewer renders through the N.2 chain; a stored-unit window is converted c·m+b, w·|m| before the renderer (exact for every slope) |
 | D68 | DICOMRenderKit | `Services/FrameRenderer.swift`, `ViewModels/ImageViewerViewModel.swift` | pass Modality LUT, VOI and ICC Profile to `FrameRenderRequest` | PS3.4 N.2; PS3.3 C.11.2.1.2.1, C.11.15.1.1 | ✅ 2026-10-05 `6372e096`: viewer, tiles, film cells, `ImageRenderingService` and the progressive decoder pass `modalityLUT` / `voiLUT` / `presentationLUT` / `iccProfile` to `FrameRenderRequest` (or use `renderFrameForExport`); VOI LUT Sequence shown until a drag; `ViewerDisplayPipelineTests` 13 |
-| D85 | DICOMCLI | `CLIWorkshopHelpers.swift:1379-1380, 1217-1221` | mpps placeholder "110513\|DCM\|Doctor cancelled procedure"; `--modality` optional | PS3.16 Table D-1; PS3.4 Table F.7.2-1 | ⏳ |
+| D85 | DICOMCLI | `CLIWorkshopHelpers.swift:1379-1380, 1217-1221` | mpps placeholder "110513\|DCM\|Doctor cancelled procedure"; `--modality` optional | PS3.16 Table D-1; PS3.4 Table F.7.2-1 | ✅ 2026-10-05: CLIWorkshopHelpers mpps `--discontinuation-reason` placeholder "110513\ (Doctor cancelled procedure" → "110513\) |
 | D88 | DICOMCLI | `Tests/DICOMStudioTests/NetworkToolWorkshopCLIParityTests.swift:151-157` | fixtures with wrong CID 9300 code/meaning pairs | PS3.16 Table D-1 | ✅ 2026-10-05: NetworkToolWorkshopCLIParityTests fixtures use real CID 9301 pairs (110513 "Discontinued for unspecified reason", 110501 "Equipment failure") (`32929df7`) |
 | D114 | DICOMCLI | `CLIWorkshopViewModel.swift:1258`, `CLIWorkshopHelpers.swift:2847, 2920` | json/xml empty-attribute default differs from the CLI (on); no `--no-include-empty` | PS3.18 F.2.5; PS3.19 A.1.5-2 | ✅ 2026-10-05: json / xml `include-empty` default on with `negatedFlag: --no-include-empty`; executor `includeEmpty: != "false"`; no-sort-keys / no-keywords marked deprecated with the CLIs' stderr notes (text-identical) (2f730cac) |
 | D127 | DICOMCLI | `CLIWorkshopViewModel.swift:4410, 4557-4562, 4620-4628` | contact-sheet / animate copy the old render path; fps default | PS3.4 N.2; PS3.3 C.11.2.1.2.1 | ✅ 2026-10-05: export executor: contact-sheet and animate render through `DICOMImageExporter.renderFrameForExport` (PS3.4 N.2 chain), fps default = file rate ((0008,2144) → (0018,0040) → 1000 / (0018,1063) → 10), Burned In Annotation warnings, `frame-number` / `start-frame-number` / `end-frame-number`, deprecation notes, exit-1 conflict, exit-64 "< 1", `buildOrganizedPath(…patientID:issuerOfPatientID:…)`, `apply-window` deprecated on contact-sheet / bulk (2f730cac) |
@@ -222,6 +229,14 @@ Table O-1). Every other generic check is ok.
 
 | ID | Module | File | Problem | Standard | Severity | Status |
 |---|---|---|---|---|---|---|
+| D258 | Scripts (orchestrator) | Scripts/diff_studio.py check_workshop_parity / parse_definition | (a) by-flag collapse: `retrieve --format` (MetadataFormat json \| xml) is compared with `ups --format` (OutputFormat) — 3 false FAILs annotated DEFR; (b) cliMapping tokens and non-literal allowedValues are not parsed, so flags emitted through a picker's cliMapping (ups --search / --create-workitem / --subscribe / --unsubscribe, retrieve --uri) need EXEMPT rows. Key options by (subcommand, flag) and count cliMapping tokens as offered | — | Low (tooling) | ⏳ |
+| D259 | DICOMStudio (naming) | Sources/DICOMStudio (local `UPSState` and a `DICOMWeb` namespace enum) | DICOMWeb.UPSState cannot be named inside DICOMStudio (shadowed), so the UPS rules carry the state as its PS3.3 Table C.30.1-1 word and resolve the enum contextually at the client call | PS3.3 Table C.30.1-1 | Low (tooling) | ⏳ |
+| D260 | DICOMStudio (Services) | Sources/DICOMStudio/Services/DICOMwebClientFactory.swift:25 | makeConfiguration has no timeouts parameter, so the Workshop rebuilds the DICOMwebConfiguration to honour `retrieve --timeout` (the field was never read before). A `timeouts:` parameter (defaulted) would remove the rebuild — public-API addition, owner's call | — | Low | ⏳ |
+| D261 | dicom-send | Sources/dicom-send/SendExecutor.swift (StoreOutcome, SendError) | CLI-local outcome classes and texts copied by the Workshop (checked); `NetworkConsole.sendFileResult(status:rtt:)` already renders the three classes — the CLI and the Workshop could both call it | PS3.4 Table B.2-1 | Low (duplication) | ⏳ |
+| D262 | dicom-retrieve / dicom-qr | Sources/dicom-retrieve/RetrieveExecutor.swift:470-483, Sources/dicom-qr/DICOMQR.swift:checkRetrieveResult | The two CLIs word the same non-success final response differently ("C-MOVE final response … (counts)" + stderr "Final C-MOVE response: … — counts" vs "Retrieval failed: C-MOVE final response … (counts)" + "  Failed SOP Instance UID List (0008,0058):" block); the Workshop mirrors each. One shared NetworkConsole function would end the drift | PS3.4 Tables C.4-2 / C.4-3 | Low (inconsistency / duplication) | ⏳ |
+| D263 | dicom-mpps | Sources/dicom-mpps/DICOMMPPSCommand.swift (parseStatus, validatePatientSex, validateBirthDate, reportWarning) | CLI-local value rules and warning wording copied by the Workshop (checked); lift into DICOMNetwork MPPSService | PS3.3 Tables C.4-14 / C.2-3; PS3.5 Table 6.2-1 DA | Low (duplication) | ⏳ |
+| D264 | dicom-mwl | Sources/dicom-mwl/DICOMMWLCommand.swift:156-168 | CLI-local scheduledProcedureStepStatusDefinedTerms / spsStatusWarning copied by the Workshop (checked); lift next to WorklistQueryKeys in DICOMNetwork | PS3.3 Table C.4-10 | Low (duplication) | ⏳ |
+| D265 | dicom-wado | Sources/dicom-wado/WADOOptionRules.swift | CLI-local rules (contentType, frameNumber, parameter warnings, paging, UPS Change State refusal, --update alias, timeouts); DICOMStudio carries a text-identical copy (WorkshopWADOOptionRules, equality checked by diff_studio_g1 "net web rules"). Lift into DICOMWeb (next to WADOURIClient / UPSConsole) so both surfaces share one source | PS3.18 9.1.2.2.1, 9.5.1.2.1, 8.3.4.4, 11.7.1.4 | Low (duplication) | ⏳ |
 | D256 | Package.swift | Package.swift:189 | `dicom-cloud` product is commented out ("Phase 1 scope") while Sources/dicom-cloud exists and Studio lists it as shipped | — | low (note) | ⏳ |
 | D257 | DICOMStudio (G1, ShellServerConfigHelpers — another agent's file, already marked) | Sources/DICOMStudio/Components/ShellServerConfigHelpers.swift:457 | `dicomParameters(from:)` injects the server host as `--host`, but every DIMSE tool (dicom-echo/query/send/retrieve/qr/mwl/mpps) takes the host as a positional `<host>` argument; a generated command `dicom-echo --host pacs` is refused by ArgumentParser | CLI surface (diff_cli --list-surface), not a NEMA clause | medium | ⏳ |
 | D254 | DICOMWeb | Sources/DICOMWeb/UPS/UPSEvent.swift:3 (marker) | Marker still says the event-type strings / bare-name keys are "pending owner approval (P-EVENT)" although the report records P-EVENT as approved and applied (df9d92b) and `toDICOMJSON` now nests progress under (0074,1002). Marker text is stale | PS3.4 Table CC.2.4-1 | docs | ⏳ |
@@ -546,6 +561,351 @@ Output parity: UIDManager / UIDConsole (shared); lookup prints UIDManager.tableA
 | `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
 
 Output parity: every subcommand renders through DICOMImageExporter.renderFrameForExport (PS3.4 N.2 chain; contact-sheet and animate no longer use the DICOMFile stored-window paths), frames are selected by Frame number from 1 with the CLI's deprecation notes / exit-1 conflict / exit-64 '< 1' refusals and 'Frame number N does not exist…' text, animate's rate follows PS3.3 Table C.7-13 ((0008,2144) -> (0018,0040) -> 1000/(0018,1063) -> 10), bulk uses buildOrganizedPath(patientID:issuerOfPatientID:), the Burned In Annotation (0028,0301) YES warnings and the contact-sheet / bulk --apply-window deprecation note are printed; ExportConsole lines are shared. bulk exits 0 with failures, as the CLI does (recorded in section 4).
+
+### dicom-echo → dicom-echo
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `host` (textField) | `--host` |  |  |  | `—` | not a CLI option |
+| `port` (integerField) | `--port` | TCP port | PS3.8 9.1.1 (well-known 104, registered 11112) | 11112 | `UInt16?` | match |
+| `aet` (textField) | `--aet` | Calling AE Title | PS3.8 7.1.1.3; PS3.5 Table 6.2-1 VR AE | DICOMSTUDIO | `String` | match |
+| `called-aet` (textField) | `--called-aet` | Called AE Title | PS3.8 7.1.1.4; PS3.5 Table 6.2-1 VR AE | ANY-SCP | `String` / "ANY-SCP" | match |
+| `count` (integerField) | `--count` | number of C-ECHO operations | PS3.7 9.1.5 | 1 | `Int` / 1 | match |
+| `timeout` (enumPicker) | `--timeout` | ARTIM / socket timeout | PS3.8 9.1.2 | 5, 10, 15, 30, 60, 120, 300 / 30 | `Int` / 30 | match |
+| `stats` (booleanToggle) | `--stats` | round-trip statistics |  |  | `Bool` / false | match |
+| `diagnose` (booleanToggle) | `--diagnose` | connectivity probe; prints PS3.7 Tables D.3-1 / D.3-3 identification | PS3.7 Annex D.3 |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: every line comes from DICOMNetwork.NetworkConsole (echoHeader, echoSuccess, echoStatusFailure, echoFailureDetail, echoSummary / echoStats, the --diagnose blocks), exactly as DICOMEcho.swift prints them; `--count 0` is refused with the CLI's ValidationError text (exit 64) instead of being clamped; the host refusal is an `Error: …` usage error. The presets use the positional host:port form (the `--host` flag they carried does not exist). No standard data of its own.
+
+### dicom-query → dicom-query
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `host` (textField) | `--host` |  |  |  | `—` | not a CLI option |
+| `port` (integerField) | `--port` | TCP port | PS3.8 9.1.1 (well-known 104, registered 11112) | 11112 | `UInt16?` | match |
+| `aet` (textField) | `--aet` | Calling AE Title | PS3.8 7.1.1.3; PS3.5 Table 6.2-1 VR AE | DICOMSTUDIO | `String` | match |
+| `called-aet` (textField) | `--called-aet` | Called AE Title | PS3.8 7.1.1.4; PS3.5 Table 6.2-1 VR AE | ANY-SCP | `String` / "ANY-SCP" | match |
+| `level` (enumPicker) | `--level` | Query/Retrieve Level (0008,0052) | PS3.4 Tables C.6.1-1 / C.6.2-1; C.4.1.1.3.1 | patient, study, series, image / study | `QueryLevelOption` / .study | match |
+| `patient-id` (textField) | `--patient-id` | Patient ID (0010,0020) matching key | PS3.4 Table C.6-5 R / C.6-1 U |  | `String?` | match |
+| `patient-name` (textField) | `--patient-name` | Patient's Name (0010,0010) matching key | PS3.4 Table C.6-5 R / C.6-1 R; C.2.2.2.4 |  | `String?` | match |
+| `study-date` (textField) | `--study-date` | Study Date (0008,0020) matching key | PS3.4 Table C.6-5 R; C.2.2.2.5 |  | `String?` | match |
+| `modality` (enumPicker) | `--modality` | Modalities in Study (0008,0061) at STUDY; Modality (0008,0060) at SERIES | PS3.4 Tables C.6-5 O / C.6-3 R; PS3.3 C.7.3.1.1.1 |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` | reject a value that is not a Defined Term | PS3.3 C.7.3.1.1.1 |  | `Bool` / false | match |
+| `study-uid` (textField) | `--study-uid` | Study Instance UID (0020,000D) unique key | PS3.4 Table C.6-5 U; C.4.1.2.1 |  | `String?` | match |
+| `series-uid` (textField) | `--series-uid` | Series Instance UID (0020,000E) unique key | PS3.4 Table C.6-3 U; C.4.1.2.1 |  | `String?` | match |
+| `accession-number` (textField) | `--accession-number` | Accession Number (0008,0050) matching key | PS3.4 Table C.6-5 R |  | `String?` | match |
+| `study-description` (textField) | `--study-description` | Study Description (0008,1030) matching key | PS3.4 Table C.6-5 O; C.2.2.2.4 |  | `String?` | match |
+| `referring-physician` (textField) | `--referring-physician` | Referring Physician's Name (0008,0090) matching key | PS3.4 Table C.6-5 O |  | `String?` | match |
+| `timeout` (enumPicker) | `--timeout` | ARTIM / socket timeout | PS3.8 9.1.2 | 5, 10, 15, 30, 60, 120, 300 / 60 | `Int` / 60 | match |
+| `output-format` (enumPicker) | `--format` | output rendering |  | table, json, csv, compact, dicom-json / table | `OutputFormat` / .table | match |
+| `csv-keywords` (booleanToggle) | `--csv-keywords` |  |  |  | `Bool` / false | match |
+| `include-parent-keys` (booleanToggle) | `--include-parent-keys` | non-baseline parent-level return keys at SERIES/IMAGE | PS3.4 C.4.1.2.1 (forbids them for a baseline SCU) |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: keys through DICOMQueryService.buildQueryKeys (shared), the C-FIND through DICOMQueryService.find, results through DICOMQueryResultFormatter built exactly as DICOMQuery.formatter does — `csvHeader: csvKeywords ? .keyword : .tag`, `dicomJSONEncoder: DICOMJSONEncoder(prettyPrinted).encodeMultiple` (PS3.18 F.2 DICOM JSON Model, P-QUERY-JSON) — the verbose NetworkConsole.queryHeader, the PS3.4 C.4.1.2.1 warning naming the level by QueryLevel.rawValue (IMAGE), ModalityOptionValidator alias note / warning / `… Rejected because --strict-modality is set.` (exit 1), the CLI's validate() refusals (`--level series requires --study-uid …`, `--level image (instance) requires …`; exit 64) and `Error: <DICOMNetworkError.description>` (exit 1).
+
+### dicom-send → dicom-send
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `host` (textField) | `--host` |  |  |  | `—` | not a CLI option |
+| `port` (integerField) | `--port` | TCP port | PS3.8 9.1.1 (well-known 104, registered 11112) | 11112 | `UInt16?` | match |
+| `aet` (textField) | `--aet` | Calling AE Title | PS3.8 7.1.1.3; PS3.5 Table 6.2-1 VR AE | DICOMSTUDIO | `String` | match |
+| `called-aet` (textField) | `--called-aet` | Called AE Title | PS3.8 7.1.1.4; PS3.5 Table 6.2-1 VR AE | ANY-SCP | `String` / "ANY-SCP" | match |
+| `files` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `recursive` (booleanToggle) | `--recursive` |  |  | false | `Bool` / false | match |
+| `verify` (booleanToggle) | `--verify` | C-ECHO before sending | PS3.4 Annex A |  | `Bool` / false | match |
+| `priority` (enumPicker) | `--priority` | Priority (0000,0700) of C-STORE-RQ | PS3.7 Table 9.3-1 | low, medium, high / medium | `PriorityOption` / .medium | match |
+| `retry` (integerField) | `--retry` | retry on error or Failure-class status |  | 0 | `Int` / 0 | match |
+| `timeout` (enumPicker) | `--timeout` | ARTIM / socket timeout | PS3.8 9.1.2 | 10, 30, 60, 120, 300 / 60 | `Int` / 60 | match |
+| `dry-run` (booleanToggle) | `--dry-run` |  |  |  | `Bool` / false | match |
+| `transfer-syntax` (enumPicker) | `--transfer-syntax` | Transfer Syntax Name of the proposed Presentation Context | PS3.8 7.1.1.13; PS3.6 Table A-1 |  | `String?` | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: DICOMSendFileGatherer (shared) and NetworkConsole.sendHeader / sendFilePrefix / sendFileResultSuffix / sendDryRunLine; the C-STORE response is classed like SendExecutor.StoreOutcome per PS3.4 Table B.2-1 — Success and the Warning class (B000 / B006 / B007) stored, the Warning class followed by NetworkConsole.sendFileWarningLine(status:) and counted in sendSummary(…warnings:), the Failure class not stored, retried and reported with SendError.storeFailed's text (D75 Studio half, P-SEND-SUMMARY); `--transfer-syntax` resolves through TransferSyntax.parse and is proposed via DICOMStorageService.store(preferredTransferSyntaxUID:) and printed in the header as the UID; refusals are the CLI's (`--retry must be zero or greater`, `Unknown transfer syntax: …`, `No DICOM files found to send`: exit 64; `Send completed with N succeeded and M failed`: exit 1).
+
+### dicom-retrieve → dicom-retrieve
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `host` (textField) | `--host` |  |  |  | `—` | not a CLI option |
+| `port` (integerField) | `--port` | DICOM UL port | PS3.8 9.1.2 | 11112 | `UInt16?` | match |
+| `aet` (textField) | `--aet` | Calling AE Title | PS3.8 Table 9-11; PS3.5 Table 6.2-1 VR AE | DICOMSTUDIO | `String` | match |
+| `called-aet` (textField) | `--called-aet` | Called AE Title | PS3.8 Table 9-11; PS3.5 VR AE | ANY-SCP | `String` / "ANY-SCP" | match |
+| `method` (enumPicker) | `--method` | C-MOVE / C-GET: Study Root QR IM - MOVE 1.2.840.10008.5.1.4.1.2.2.2 / - GET ...2.2.3 | PS3.4 Table C.6.2.3-1; C.4.2 / C.4.3 | c-move, c-get / c-move | `RetrievalMethod` / .cMove | match |
+| `move-dest` (textField) | `--move-dest` | Move Destination (0000,0600) | PS3.7 Table 9.3-9; PS3.4 C.4.2.2.1 |  | `String?` | match |
+| `study-uid` (textField) | `--study-uid` | Study Instance UID (0020,000D), unique key, level STUDY | PS3.4 Table C.6-5; Table C.6.1-1 |  | `String?` | match |
+| `series-uid` (textField) | `--series-uid` | Series Instance UID (0020,000E), level SERIES | PS3.4 C.4.2.2.1; Table C.6.1-1 |  | `String?` | match |
+| `instance-uid` (textField) | `--instance-uid` | SOP Instance UID (0008,0018), level IMAGE | PS3.4 Table C.6.1-1; C.4.2.2.1 |  | `String?` | match |
+| `uid-list` (filePath) | `--uid-list` | several Study Instance UIDs, one request each | PS3.4 C.4.2.2.1 |  | `String?` | match |
+| `output` (outputPath) | `--output` | output directory for Part 10 files | PS3.10 7.1 |  | `String` / "." | match |
+| `hierarchical` (booleanToggle) | `--hierarchical` | output layout study/series (C-GET only) | — |  | `Bool` / false | match |
+| `parallel` (integerField) | `--parallel` | concurrent uid-list retrievals | — | 1 | `Int` / 1 | match |
+| `priority` (enumPicker) | `--priority` |  |  | low, medium, high / medium | `RetrievePriorityOption` / .medium | match |
+| `relational-retrieve` (booleanToggle) | `--relational-retrieve` |  |  |  | `Bool` / false | match |
+| `timeout` (enumPicker) | `--timeout` | socket timeout | — | 10, 30, 60, 120, 300 / 60 | `Int` / 60 | match |
+| `transfer-syntax` (enumPicker) | `--transfer-syntax` | Transfer Syntax proposed for C-GET storage contexts | PS3.4 C.4.3.2.1; PS3.6 Table A-1 |  | `String?` | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: RetrieveConfiguration(…priority:extendedNegotiation:) and RetrieveKeys at the most specific level (RetrieveExecutor.retrieveKeys) through DICOMRetrieveService.move / get; NetworkConsole.retrieveHeader(…priority:relationalRetrieval:) with the CLI's `(not sent — relational-retrieve)` placeholder; the final response worded by DIMSEServiceStatusText.describe(result.status, service: .cMove / .cGet) and subOperationCounts (PS3.4 Tables C.4-2 / C.4-3, PS3.7 Tables 9.3-10 / 9.3-7; D76 Studio half) in cMoveResult, the Failed SOP Instance UID List (0008,0058) lines and the `Final C-MOVE response: …` line of RetrieveExecutor.checkResult, success only for 0000 with no failed sub-operations (PS3.4 C.4.2.2.1 / C.4.3.2.1); validateUIDOptions / `C-MOVE requires --move-dest parameter` / `--parallel must be at least 1` / `Unknown transfer syntax` as exit 64, RetrieveError texts as `Error: …` exit 1; the bulk path prints one result block per study and the CLI's `Bulk retrieval partially failed: …`. The app-only C-FIND `Resolving Study UID from server…` lookup is gone: a series / instance UID without its parents is the CLI's refusal unless --relational-retrieve is on.
+
+### dicom-qr → dicom-qr
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `host` (textField) | `--host` |  |  |  | `—` | not a CLI option |
+| `port` (integerField) | `--port` | DICOM UL port | PS3.8 9.1.2 | 11112 | `UInt16?` | match |
+| `aet` (textField) | `--aet` | Calling AE Title | PS3.8 Table 9-11; PS3.5 VR AE | DICOMSTUDIO | `String` | match |
+| `called-aet` (textField) | `--called-aet` | Called AE Title | PS3.8 Table 9-11; PS3.5 VR AE | ANY-SCP | `String` / "ANY-SCP" | match |
+| `mode` (flagPicker) | `—` |  |  | interactive, auto, review / interactive | `—` | not a CLI option |
+| `method` (enumPicker) | `--method` | Study Root QR IM - MOVE / - GET | PS3.4 Table C.6.2.3-1 | c-move, c-get / c-move | `String` / "c-move" | match |
+| `move-dest` (textField) | `--move-dest` | Move Destination (0000,0600) | PS3.7 Table 9.3-9; PS3.4 C.4.2.2.1 |  | `String?` | match |
+| `patient-name` (textField) | `--patient-name` | Patient's Name (0010,0010), R key STUDY level, wild card | PS3.4 Table C.6-5; C.2.2.2.4 |  | `String?` | match |
+| `patient-id` (textField) | `--patient-id` | Patient ID (0010,0020), R | PS3.4 Table C.6-5 |  | `String?` | match |
+| `study-date` (textField) | `--study-date` | Study Date (0008,0020), R, range matching | PS3.4 Table C.6-5; C.2.2.2.5 |  | `String?` | match |
+| `accession` (textField) | `--accession-number` | Accession Number (0008,0050), R | PS3.4 Table C.6-5 |  | `String?` | match |
+| `modality` (enumPicker) | `--modality` | Modalities in Study (0008,0061), O | PS3.4 Table C.6-5; PS3.3 C.7.3.1.1.1 |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` | — | — |  | `Bool` / false | match |
+| `study-uid` (textField) | `--study-uid` | Study Instance UID (0020,000D), U | PS3.4 Table C.6-5 |  | `String?` | match |
+| `study-description` (textField) | `--study-description` | Study Description (0008,1030), O, wild card | PS3.4 Table C.6-5; C.2.2.2.4 |  | `String?` | match |
+| `include-parent-keys` (booleanToggle) | `--include-parent-keys` | parent-level return keys (no effect at STUDY) | PS3.4 C.4.1.1.3.1 |  | `Bool` / false | match |
+| `output` (outputPath) | `--output` |  |  |  | `String` / "." | match |
+| `hierarchical` (booleanToggle) | `--hierarchical` | output layout <output>/<StudyInstanceUID>/ (C-GET only) | — |  | `Bool` / false | match |
+| `validate` (booleanToggle) | `--validate` | Part 10 read of received files | PS3.10 |  | `Bool` / false | match |
+| `parallel` (integerField) | `--parallel` | declared, never read (sequential) | — | 1 | `Int` / 1 | match |
+| `priority` (enumPicker) | `--priority` |  |  | low, medium, high / medium | `QRPriorityOption` / .medium | match |
+| `timeout` (enumPicker) | `--timeout` | socket timeout | — | 10, 30, 60, 120, 300 / 60 | `Int` / 60 | match |
+| `transfer-syntax` (enumPicker) | `--transfer-syntax` | Transfer Syntax proposed for C-GET storage contexts | PS3.4 C.4.3.2.1; PS3.6 Table A-1 |  | `String?` | match |
+| `save-state` (outputPath) | `--save-state` | state file | — |  | `String?` | match |
+
+Output parity: NetworkConsole.qrHeader / qrFound / qrStudyEntry / qrRetrieveLine / qrRetrieveOutcome / qrSummary (shared); keys through DICOMQueryService.buildQueryKeys(level: .study, …, includeParentLevelReturnKeys:) as DICOMQR.buildQueryKeys; each retrieval through RetrieveConfiguration(priority:) and RetrieveKeys.forStudy, up to --parallel at once with the CLI's line order (line before the retrieval with --parallel 1, after the batch otherwise), the final response checked like RetrieveExecutor.checkRetrieveResult (`Retrieval failed: C-MOVE final response <PS3.4 Table C.4-2 wording> (<PS3.7 counters>)`, Failed SOP Instance UID List block); ModalityOptionValidator; refusals `--move-dest is required for C-MOVE method`, `Invalid method: …`, `--parallel must be at least 1` (64), `Retrieval incomplete: N study(ies) succeeded, M failed` (1); QRSessionState (shared) for --save-state.
+
+### dicom-mwl → dicom-mwl
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `operation` (subcommand) | `—` |  |  | query, create / query | `—` | not a CLI option |
+| `host` (textField) | `--host` |  |  |  | `—` | not a CLI option |
+| `port` (integerField) | `--port` | TCP port | PS3.8 9.1.1 (well-known 104; 11112 IANA registered) | 11112 | `UInt16?` | match |
+| `aet` (textField) | `--aet` | Calling AE Title | PS3.8 7.1.1.3; PS3.5 Table 6.2-1 VR AE | DICOMSTUDIO | `String` | match |
+| `called-aet` (textField) | `--called-aet` | Called AE Title | PS3.8 7.1.1.4; PS3.5 Table 6.2-1 VR AE | ANY-SCP | `String` / "ANY-SCP" | match |
+| `date-from` (textField) | `--date` | Scheduled Procedure Step Start Date (0040,0002), R key | PS3.4 Table K.6-1 row 4; C.2.2.2.5.1; PS3.5 Table 6.2-1 DA |  | `String?` | match |
+| `time-from` (textField) | `--time` | Scheduled Procedure Step Start Time (0040,0003), R key | PS3.4 Table K.6-1 row 5 (combined date-time remark); C.2.2.2.5.2/.4; PS3.5 Table 6.2-1 TM |  | `String?` | match |
+| `station` (textField) | `--station` | Scheduled Station AE Title (0040,0001), R key | PS3.4 Table K.6-1 row 3 (Single Value Matching only); PS3.5 VR AE |  | `String?` | match |
+| `patient` (textField) | `--patient` | Patient's Name (0010,0010), R key | PS3.4 Table K.6-1 row 86 |  | `String?` | match |
+| `patient-id` (textField) | `--patient-id` | Patient ID (0010,0020), R key | PS3.4 Table K.6-1 row 87 |  | `String?` | match |
+| `modality` (enumPicker) | `--modality` | Modality (0008,0060), R key | PS3.4 Table K.6-1 row 6; PS3.3 C.7.3.1.1.1 |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` | reject non-Defined-Term modality | PS3.3 C.7.3.1.1.1 |  | `Bool` / false | match |
+| `sps-status` (enumPicker) | `--sps-status` | Scheduled Procedure Step Status (0040,0020), O key type 3 | PS3.4 Table K.6-1 row 35; PS3.3 Table C.4-10 Defined Terms | , SCHEDULED, ARRIVED, READY, STARTED, DEPARTED | `String?` | match |
+| `query-accession-number` (textField) | `--accession-number` | Accession Number (0008,0050), O key type 2 | PS3.4 Table K.6-1 row 64 |  | `String?` | match |
+| `None` (textField) | `--performing-physician` | Scheduled Performing Physician's Name (0040,0006), R key type 2 | PS3.4 Table K.6-1 row 7 |  | `String?` | match |
+| `specific-character-set` (textField) | `--specific-character-set` | Specific Character Set (0008,0005) of the Identifier | PS3.4 Table K.6-1a; PS3.5 6.1.2 / Table 6.1-1 |  | `String?` | match |
+| `create-method` (enumPicker) | `—` |  |  | hl7, rest / hl7 | `—` | internal |
+| `hl7-port` (integerField) | `--hl7-port` |  |  | 2575 | `—` | internal |
+| `create-patient-name` (textField) | `--patient-name` |  |  |  | `—` | internal |
+| `create-patient-id` (textField) | `--patient-id` | Patient ID (0010,0020), R key | PS3.4 Table K.6-1 row 87 |  | `String?` | match |
+| `patient-dob` (textField) | `--patient-dob` |  |  |  | `—` | internal |
+| `patient-sex` (enumPicker) | `--patient-sex` |  |  | , M, F, O | `—` | internal |
+| `accession-number` (textField) | `--accession-number` | Accession Number (0008,0050), O key type 2 | PS3.4 Table K.6-1 row 64 |  | `String?` | match |
+| `referring-physician` (textField) | `--referring-physician` |  |  |  | `—` | internal |
+| `procedure-id` (textField) | `--procedure-id` |  |  |  | `—` | internal |
+| `procedure-desc` (textField) | `--procedure-desc` |  |  |  | `—` | internal |
+| `create-modality` (enumPicker) | `--modality` | Modality (0008,0060), R key | PS3.4 Table K.6-1 row 6; PS3.3 C.7.3.1.1.1 | CT | `String?` | match |
+| `scheduled-station` (textField) | `--scheduled-station` |  |  |  | `—` | internal |
+| `station-name` (textField) | `--station-name` |  |  |  | `—` | internal |
+| `scheduled-date` (textField) | `--scheduled-date` |  |  |  | `—` | internal |
+| `scheduled-time` (textField) | `--scheduled-time` |  |  |  | `—` | internal |
+| `sps-id` (textField) | `--sps-id` |  |  |  | `—` | internal |
+| `sps-desc` (textField) | `--sps-desc` |  |  |  | `—` | internal |
+| `performing-physician` (textField) | `--physician` |  |  |  | `—` | internal |
+| `rest-base-url` (textField) | `--rest-url` |  |  |  | `—` | internal |
+| `sending-application` (textField) | `--sending-app` |  |  | DICOMSTUDIO | `—` | internal |
+| `sending-facility` (textField) | `--sending-facility` |  |  | IMAGING | `—` | internal |
+| `receiving-application` (textField) | `--receiving-app` |  |  | DCM4CHEE | `—` | internal |
+| `receiving-facility` (textField) | `--receiving-facility` |  |  | HOSPITAL | `—` | internal |
+| `timeout` (enumPicker) | `--timeout` | ARTIM / socket timeout | PS3.8 9.1.2 | 5, 10, 15, 30, 60, 120, 300 / 60 | `Int` / 60 | match |
+| `json` (booleanToggle) | `--json` | JSON rendering; 28/38 keys are PS3.6 keywords | PS3.6 Table 6-1 |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity (query): WorklistQueryKeys.forQuery (shared) → DICOMModalityWorklistService.find(…specificCharacterSet:), NetworkConsole.mwlQueryHeader / mwlFound / mwlItem / mwlCompleted / mwlNoResults / mwlLimitWarning / mwlJSON (shared, same gating as the CLI), ModalityOptionValidator, the CLI-local spsStatusWarning mirrored text-identically (PS3.3 Table C.4-10 Defined Terms; checked by diff_studio_g1), WorklistDateFilterError as exit 64, `Error: <DICOMNetworkError.description>` exit 1. The `create` arm is Studio-only (HL7 ORM^O01 / REST; preview rendered commented out) — P-STUDIO-MWL-CREATE.
+
+### dicom-mpps → dicom-mpps
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `operation` (subcommand) | `—` |  |  | create, update / create | `—` | not a CLI option |
+| `host` (textField) | `--host` |  |  |  | `—` | not a CLI option |
+| `port` (integerField) | `--port` | TCP port | PS3.8 9.1.1 (well-known 104; 11112 IANA registered) | 11112 | `UInt16?` | match |
+| `aet` (textField) | `--aet` | Calling AE Title | PS3.8 7.1.1.3; PS3.5 Table 6.2-1 VR AE | DICOMSTUDIO | `String` | match |
+| `called-aet` (textField) | `--called-aet` | Called AE Title | PS3.8 7.1.1.4; PS3.5 Table 6.2-1 VR AE | ANY-SCP | `String` / "ANY-SCP" | match |
+| `patient-name` (textField) | `--patient-name` | Patient's Name (0010,0010) | PS3.4 Table F.7.2-1 row 32 (2/2) |  | `String?` | match |
+| `patient-id` (textField) | `--patient-id` | Patient ID (0010,0020) | PS3.4 Table F.7.2-1 row 33 (2/2) |  | `String?` | match |
+| `study-uid` (textField) | `--study-uid` | Study Instance UID (0020,000D) in (0040,0270) [create]; Performed Series pairing [update] | PS3.4 Table F.7.2-1 row 4 (1/1) |  | `String?` | match |
+| `sps-id` (textField) | `--sps-id` | Scheduled Procedure Step ID (0040,0009) in (0040,0270) | PS3.4 Table F.7.2-1 row 27 (2/2) |  | `String?` | match |
+| `accession-number` (textField) | `--accession-number` | Accession Number (0008,0050) in (0040,0270) | PS3.4 Table F.7.2-1 row 8 (2/2) |  | `String?` | match |
+| `modality` (enumPicker) | `--modality` | Modality (0008,0060) | PS3.4 Table F.7.2-1 row 105 (1/1); PS3.3 C.7.3.1.1.1 |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` | reject non-Defined-Term modality | PS3.3 C.7.3.1.1.1 |  | `Bool` / false | match |
+| `patient-birth-date` (textField) | `--patient-birth-date` | Patient's Birth Date (0010,0030) | PS3.4 Table F.7.2-1 row 45 (2/2); PS3.5 Table 6.2-1 DA |  | `String?` | match |
+| `patient-sex` (enumPicker) | `--patient-sex` | Patient's Sex (0010,0040) | PS3.4 Table F.7.2-1 row 46 (2/2); PS3.3 Table C.2-3 | , M, F, O | `String?` | match |
+| `study-id` (textField) | `--study-id` | Study ID (0020,0010) | PS3.4 Table F.7.2-1 row 106 (2/2) |  | `String?` | match |
+| `station-name` (textField) | `--station-name` | Performed Station Name (0040,0242) | PS3.4 Table F.7.2-1 row 88 (2/2) |  | `String?` | match |
+| `performed-location` (textField) | `--performed-location` | Performed Location (0040,0243) | PS3.4 Table F.7.2-1 row 89 (2/2) |  | `String?` | match |
+| `procedure-step-id` (textField) | `--procedure-step-id` | Performed Procedure Step ID (0040,0253) | PS3.4 Table F.7.2-1 row 86 (1/1) |  | `String?` | match |
+| `procedure-step-description` (textField) | `--procedure-step-description` | Performed Procedure Step Description (0040,0254) | PS3.4 Table F.7.2-1 row 93 (2/2) |  | `String?` | match |
+| `create-performing-physician` (textField) | `--performing-physician` | Performing Physician's Name (0008,1050) in Performed Series item | PS3.4 Table F.7.2-1 row 111 (2/2) |  | `String?` | match |
+| `requested-procedure-id` (textField) | `--requested-procedure-id` | Requested Procedure ID (0040,1001) in (0040,0270) | PS3.4 Table F.7.2-1 row 23 (2/2) |  | `String?` | match |
+| `requested-procedure-description` (textField) | `--requested-procedure-description` | Requested Procedure Description (0032,1060) in (0040,0270) | PS3.4 Table F.7.2-1 row 26 (2/2) |  | `String?` | match |
+| `sps-description` (textField) | `--sps-description` | Scheduled Procedure Step Description (0040,0007) in (0040,0270) | PS3.4 Table F.7.2-1 row 28 (2/2) |  | `String?` | match |
+| `referenced-study-uid` (textField) | `--referenced-study-uid` | Referenced SOP Instance UID (0008,1155) in Referenced Study Sequence (0008,1110) | PS3.4 Table F.7.2-1 rows 5-7 |  | `String?` | match |
+| `mpps-uid` (textField) | `--mpps-uid` | Requested SOP Instance UID of the N-SET | PS3.7 Table 10.3-5; 10.1.5.1.4 |  | `String` | match |
+| `status` (enumPicker) | `--status` | Performed Procedure Step Status (0040,0252) | PS3.3 Table C.4-14; PS3.4 F.7.2.1.2 (create: IN PROGRESS only), F.7.2.2.2 (update: COMPLETED|DISCONTINUED, final) | IN PROGRESS / IN PROGRESS | `String` | match |
+| `status-update` (enumPicker) | `--status` | Performed Procedure Step Status (0040,0252) | PS3.3 Table C.4-14; PS3.4 F.7.2.1.2 (create: IN PROGRESS only), F.7.2.2.2 (update: COMPLETED|DISCONTINUED, final) | COMPLETED, DISCONTINUED / COMPLETED | `String` | match |
+| `series-uid` (textField) | `--series-uid` | Series Instance UID (0020,000E) of the Performed Series item | PS3.4 Table F.7.2-1 row 114 (1/1) |  | `String?` | match |
+| `image-uid` (textField) | `--image-uid` | Referenced SOP Instance UID (0008,1155) in Referenced Image Sequence (0008,1140) | PS3.4 Table F.7.2-1 rows 118-120 |  | `[String]` / [] | match |
+| `sop-class-uid` (textField) | `--sop-class-uid` | Referenced SOP Class UID (0008,1150) | PS3.4 Table F.7.2-1 row 119 (1/1); PS3.6 Table A-1 |  | `String?` | match |
+| `protocol-name` (textField) | `--protocol-name` | Protocol Name (0018,1030) | PS3.4 Table F.7.2-1 row 112 (1/1) |  | `String?` | match |
+| `series-description` (textField) | `--series-description` | Series Description (0008,103E) | PS3.4 Table F.7.2-1 row 115 (2/2) |  | `String?` | match |
+| `operator-name` (textField) | `--operator-name` | Operators' Name (0008,1070) | PS3.4 Table F.7.2-1 row 113 (2/2) |  | `String?` | match |
+| `update-performing-physician` (textField) | `--performing-physician` | Performing Physician's Name (0008,1050) in Performed Series item | PS3.4 Table F.7.2-1 row 111 (2/2) |  | `String?` | match |
+| `discontinuation-reason` (textField) | `--discontinuation-reason` | PPS Discontinuation Reason Code Sequence (0040,0281) | PS3.4 Table F.7.2-1 row 102 (3/3, macro F.7.2-1c); PS3.16 CID 9300 / CID 9301 / Table D-1 |  | `String?` | match |
+| `legacy-nset-scheduled-attributes` (booleanToggle) | `--legacy-nset-scheduled-attributes` | Scheduled Step Attributes Sequence (0040,0270) in N-SET | PS3.4 Table F.7.2-1 row 3 (N-SET: Not allowed) |  | `Bool` / false | match |
+| `specific-character-set` (textField) | `--specific-character-set` | Specific Character Set (0008,0005) | PS3.4 Table F.7.2-1 row 1 (1C/1C); PS3.5 6.1.2 |  | `String?` | match |
+| `timeout` (enumPicker) | `--timeout` | ARTIM / socket timeout | PS3.8 9.1.2 | 5, 10, 15, 30, 60, 120, 300 / 60 | `Int` / 60 | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: DICOMMPPSService.createDetailed / update (shared), NetworkConsole.mppsHeader (the CLI's field set) / mppsProgress / mppsCreateResult / mppsUpdateResult; the SCP warning line worded like dicom-mpps' reportWarning through DIMSEServiceStatusText (PS3.4 Table F.7.2-2 for N-SET, PS3.7 Annex C for N-CREATE), the `note: SCP assigned MPPS SOP Instance UID …` line; the CLI's refusals as exit 64 (`--modality is required: Modality (0008,0060) is Type 1 …`, `--patient-sex must be one of M, F, O …`, `--patient-birth-date must be YYYYMMDD …`, `Create status must be IN PROGRESS …`, `Update status must be COMPLETED or DISCONTINUED`, `--discontinuation-reason is only valid with --status DISCONTINUED`, MPPSCodedEntry.parseErrorMessage, `--image-uid needs --study-uid and --series-uid …`) and the `warning: --sop-class-uid not given; …` line text-identical; failures `Error: <description>` exit 1. The placeholder / help examples are PS3.16 CID 9301 pairs (D85).
+
+### dicom-qido → dicom-wado
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `url` (textField) | `—` |  |  |  | `—` | not a CLI option |
+| `level` (enumPicker) | `--level` |  |  | study, series, instance / study | `QueryLevel` / .study | match |
+| `patient-name` (textField) | `--patient-name` |  |  |  | `String?` | match |
+| `patient-id` (textField) | `--patient-id` |  |  |  | `String?` | match |
+| `study-date` (textField) | `--study-date` |  |  |  | `String?` | match |
+| `modality` (enumPicker) | `--modality` |  |  |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` |  |  |  | `Bool` / false | match |
+| `study-uid` (textField) | `--study` |  |  |  | `String?` | match |
+| `series-uid` (textField) | `--series` |  |  |  | `String?` | match |
+| `accession` (textField) | `--accession-number` |  |  |  | `String?` | match |
+| `study-description` (textField) | `--study-description` |  |  |  | `String?` | match |
+| `pps-start-date` (textField) | `--pps-start-date` |  |  |  | `String?` | match |
+| `pps-start-time` (textField) | `--pps-start-time` |  |  |  | `String?` | match |
+| `qido-sps-id` (textField) | `--sps-id` |  |  |  | `String?` | match |
+| `qido-requested-procedure-id` (textField) | `--requested-procedure-id` |  |  |  | `String?` | match |
+| `limit` (integerField) | `--limit` |  |  | 100 | `Int` / 100 | match |
+| `offset` (integerField) | `--offset` |  |  | 0 | `Int` / 0 | match |
+| `fuzzy-matching` (booleanToggle) | `--fuzzy-matching` |  |  |  | `Bool` / false | match |
+| `auth` (enumPicker) | `--auth` |  |  | none, basic, bearer / none | `—` | internal |
+| `token` (secureField) | `--token` |  |  |  | `String?` | match |
+| `username` (textField) | `--username` |  |  |  | `—` | internal |
+| `password` (secureField) | `—` |  |  |  | `—` | internal |
+| `output-format` (enumPicker) | `--format` |  |  | table, json, csv, dicom-json / table | `OutputFormat` / .table | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: QIDOQuery built in QueryCommand.buildQuery's order (limit / offset / fuzzymatching / keys; Modality (0008,0060) at series level, Modalities In Study (0008,0061) otherwise), ModalityOptionValidator, QIDOResultFormatter (shared; table / json / csv / dicom-json), the CLI's verbose header (`DICOMweb Server:`, `Query Level:`, `Limit: …, Offset: …`, blank line — it read a non-existent `base-url` field before) and `Found N …` lines, WADOOptionRules.validatePaging texts (64), `Error: <localizedDescription>` (1).
+
+### dicom-wado → dicom-wado
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `wado-protocol` (enumPicker) | `—` |  |  | wado-rs, wado-uri / wado-rs | `—` | internal |
+| `url` (textField) | `—` |  |  |  | `—` | not a CLI option |
+| `study-uid` (textField) | `--study` |  |  |  | `String?` | match |
+| `series-uid` (textField) | `--series` |  |  |  | `String?` | match |
+| `instance-uid` (textField) | `--instance` |  |  |  | `String?` | match |
+| `frames` (textField) | `--frames` |  |  |  | `String?` | match |
+| `metadata` (booleanToggle) | `--metadata` |  |  |  | `Bool` / false | match |
+| `rendered` (booleanToggle) | `--rendered` |  |  |  | `Bool` / false | match |
+| `thumbnail` (booleanToggle) | `--thumbnail` |  |  |  | `Bool` / false | match |
+| `content-type` (enumPicker) | `--content-type` |  |  |  | `String?` | match |
+| `transfer-syntax` (textField) | `--transfer-syntax` |  |  |  | `String?` | match |
+| `anonymize` (booleanToggle) | `--anonymize` |  |  |  | `Bool` / false | match |
+| `charset` (textField) | `--charset` |  |  |  | `String?` | match |
+| `annotation` (textField) | `--annotation` |  |  |  | `String?` | match |
+| `rows` (integerField) | `--rows` |  |  |  | `Int?` | match |
+| `columns` (integerField) | `--columns` |  |  |  | `Int?` | match |
+| `image-quality` (integerField) | `--image-quality` |  |  |  | `Int?` | match |
+| `region` (textField) | `--region` |  |  |  | `String?` | match |
+| `window-center` (textField) | `--window-center` |  |  |  | `Double?` | match |
+| `window-width` (textField) | `--window-width` |  |  |  | `Double?` | match |
+| `presentation-uid` (textField) | `--presentation-uid` |  |  |  | `String?` | match |
+| `presentation-series-uid` (textField) | `--presentation-series-uid` |  |  |  | `String?` | match |
+| `output` (outputPath) | `-o` |  |  |  | `String?` | match |
+| `format` (enumPicker) | `--format` |  |  | json, xml / json | `OutputFormat` / .table | match |
+| `auth` (enumPicker) | `--auth` |  |  | none, basic, bearer / none | `—` | internal |
+| `token` (secureField) | `--token` |  |  |  | `String?` | match |
+| `username` (textField) | `--username` |  |  |  | `—` | internal |
+| `password` (secureField) | `—` |  |  |  | `—` | internal |
+| `timeout` (integerField) | `--timeout` |  |  | 60 | `Int` / 60 | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: WADORetrieveConsoleFormatter (shared) for every WADO-RS / WADO-URI line; WADO-URI through WADOURIClient.Parameters (PS3.18 Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1; validated by the shared client), the CLI-local WADOOptionRules mirrored text-identically as WorkshopWADOOptionRules (contentType per 9.1.2.2.1 / Table 8.7.4-1, frameNumber 9.5.1.2.1 and its dropped-frames warning, the Table 9.4.1-1 / 9.5.1-1 parameter warnings, --timeout mapping; checked by diff_studio_g1), the CLI's refusals as exit 64 (`--study is required for retrieve operations`, `--series / --instance is required for WADO-URI retrieval`, `--rows / --columns must be a positive integer …`, `--series and --instance are required for rendered / frame retrieval`, WADOFrameParseError, Section 9 rule problems joined with `; `), `Error: …` exit 1; the app-only per-instance dataset previews are no longer printed. The `--format` field is the CLI's MetadataFormat (json | xml, default json, PS3.18 Table 8.7.3-3); the parity check's by-flag collapse against the ups OutputFormat is annotated DEFR.
+
+### dicom-stow → dicom-wado
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `url` (textField) | `—` |  |  |  | `—` | not a CLI option |
+| `files` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `study-uid` (textField) | `--study` |  |  |  | `String?` | match |
+| `input` (filePath) | `--input` |  |  |  | `String?` | match |
+| `batch` (integerField) | `--batch` |  |  | 10 | `Int` / 10 | match |
+| `continue-on-error` (booleanToggle) | `--continue-on-error` |  |  |  | `Bool` / false | match |
+| `auth` (enumPicker) | `--auth` |  |  | none, basic, bearer / none | `—` | internal |
+| `token` (secureField) | `--token` |  |  |  | `String?` | match |
+| `username` (textField) | `--username` |  |  |  | `—` | internal |
+| `password` (secureField) | `—` |  |  |  | `—` | internal |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: STOWResultFormatter (shared) header / batchStart / batchResult / failureDetail / warningDetail (Warning Reason (0008,1196), PS3.18 Table I.2-1; D106) / summary; `Error reading …` / `Error uploading batch N: …` lines with --continue-on-error; any unstored instance exits 1 with or without --continue-on-error (PS3.18 Table 10.5.3-1, as the CLI since 39da529 — the Workshop exited 0 with the flag); `No files specified. Use file arguments or --input option.` and `--batch must be at least 1` as exit 64.
+
+### dicom-ups → dicom-wado
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `operation` (enumPicker) | `—` |  |  | search, get, create-workitem, create-json, change-state, subscribe, unsubscribe / search | `—` | internal |
+| `url` (textField) | `—` |  |  |  | `—` | not a CLI option |
+| `get-uid` (textField) | `--get` |  |  |  | `String?` | match |
+| `create-json-file` (filePath) | `--create` |  |  |  | `String?` | match |
+| `update-uid` (textField) | `--change-state` |  |  |  | `String?` | match |
+| `update-uid-deprecated` (textField) | `--update` |  |  |  | `String?` | match |
+| `workitem-uid` (textField) | `--workitem-uid` |  |  |  | `String?` | match |
+| `subscribe-aet` (textField) | `--aet` |  |  | DICOM_STUDIO | `String?` | match |
+| `create-label` (textField) | `--label` |  |  |  | `String?` | match |
+| `create-patient-name` (textField) | `--patient-name` |  |  |  | `String?` | match |
+| `create-patient-id` (textField) | `--patient-id` |  |  |  | `String?` | match |
+| `create-patient-birth-date` (textField) | `--patient-birth-date` |  |  |  | `String?` | match |
+| `create-patient-sex` (enumPicker) | `--patient-sex` |  |  | , M, F, O | `String?` | match |
+| `create-priority` (enumPicker) | `--priority` |  |  | HIGH, MEDIUM, LOW / MEDIUM | `String?` | match |
+| `create-scheduled-start` (textField) | `--scheduled-start` |  |  |  | `String?` | match |
+| `create-expected-completion` (textField) | `--expected-completion` |  |  |  | `String?` | match |
+| `create-study-uid` (textField) | `--study-uid` |  |  |  | `String?` | match |
+| `create-accession` (textField) | `--accession-number` |  |  |  | `String?` | match |
+| `create-referring-physician` (textField) | `--referring-physician` |  |  |  | `String?` | match |
+| `create-procedure-id` (textField) | `--procedure-id` |  |  |  | `String?` | match |
+| `create-step-id` (textField) | `--step-id` |  |  |  | `String?` | match |
+| `create-worklist-label` (textField) | `--worklist-label` |  |  |  | `String?` | match |
+| `create-station-name` (textField) | `--station-name` |  |  |  | `String?` | match |
+| `create-performer` (textField) | `--performer-name` |  |  |  | `String?` | match |
+| `create-performer-organization` (textField) | `--performer-organization` |  |  |  | `String?` | match |
+| `create-comments` (textField) | `--comments` |  |  |  | `String?` | match |
+| `create-admission-id` (textField) | `--admission-id` |  |  |  | `String?` | match |
+| `state` (enumPicker) | `--state` |  |  | IN PROGRESS, COMPLETED, CANCELED / IN PROGRESS | `String?` | match |
+| `change-state-aet` (textField) | `--aet` |  |  | DCM4CHEE | `String?` | match |
+| `transaction-uid` (textField) | `--transaction-uid` |  |  |  | `String?` | match |
+| `filter-state` (enumPicker) | `--filter-state` |  |  | , SCHEDULED, IN PROGRESS, COMPLETED, CANCELED | `String?` | match |
+| `scheduled-station` (textField) | `--scheduled-station` |  |  |  | `String?` | match |
+| `auth` (enumPicker) | `--auth` |  |  | none, basic, bearer / none | `—` | internal |
+| `token` (secureField) | `--token` |  |  |  | `String?` | match |
+| `username` (textField) | `--username` |  |  |  | `—` | internal |
+| `password` (secureField) | `—` |  |  |  | `—` | internal |
+| `output-format` (enumPicker) | `--format` |  |  | table, json, csv, dicom-json / table | `OutputFormat` / .table | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: UPSQuery.workitemSearch, UPSResultFormatter (table / json / csv / dicom-json), UPSConsole.createResponseText / updateVerboseHeader / finalStateUpdatingLine / finalStateUpdatedLine / updateResultText (all shared) in the CLI's structure — verbose-gated `DICOMweb Server:`, `Searching worklist items...`, `Retrieving worklist item:`, `Creating worklist item from …`, `Found N worklist item(s)`, `Retrieved worklist item …`, subscribe / unsubscribe lines incl. the global (Worklist) forms; the app-only query-URL / filter dump, field echo, curl block, pre-flight state check and Event-Monitor hints are gone. --change-state (PS3.18 11.7) with --update as deprecated alias (CLI note; both → refused), SCHEDULED refused with the CLI's text (PS3.18 11.7.1.4; PS3.4 Table CC.1.1-2 C303H; exit 1 — P-WADO-UPS-STATE / -UPDATE), `--transaction-uid is required for COMPLETED/CANCELED transition …` (64; the in-app IN PROGRESS claim cache stands in for the returned UID), `--label is required when using --create-workitem`, `Invalid patient sex …`, `Invalid priority …`, `Invalid date format for …` (64).
 
 ---
 
