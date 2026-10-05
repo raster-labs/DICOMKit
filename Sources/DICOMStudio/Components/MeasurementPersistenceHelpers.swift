@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent measurement persistence helpers
+// NEMA-verified: 2026a, checked 2026-10-05 — the 8 SR concepts diffed by script against PS3.16 2026a Table D-1 and the CID tables: (125007, DCM, "Measurement Group") TID 1501 row 1; Length / Area / Mean / Standard Deviation / Minimum / Maximum match CID 7470 / 7471 / 7464 / 3488; (364499001, SCT, "Angle") is in no CID table (external SNOMED CT id, not verifiable from NEMA text; CID 7469 has no angle concept); UCUM codes mm, mm2, deg match CID 7460, CID 7461, CID 7183; CSV/JSON layout is the app's own
 
 import Foundation
 

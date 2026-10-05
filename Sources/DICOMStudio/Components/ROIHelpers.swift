@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent ROI geometry and statistics helpers
+// NEMA-verified: 2026a, checked 2026-10-05 — geometry and statistics only; area text now prints the PS3.16 2026a CID 7461 UCUM code with the symbol as dicom-measure does ("250.0 mm2 (mm²)", cm2; inches and pixels have no PS3.16 code and print the symbol alone); µm / um2 needs a MeasurementUnit case (P-STUDIO-MEASURE-UM)
 
 import Foundation
 
@@ -318,13 +319,36 @@ public enum ROIHelpers: Sendable {
         }
     }
 
+    /// UCUM code for the area unit of a display unit (PS3.16 CID 7461), or nil when the
+    /// standard has no code (inches).
+    static func ucumAreaCode(for unit: MeasurementUnit) -> String? {
+        switch unit {
+        case .millimeters: return "mm2"
+        case .centimeters: return "cm2"
+        case .inches: return nil
+        }
+    }
+
+    /// Area unit text as dicom-measure prints it: the UCUM code with the display symbol in
+    /// parentheses ("mm2 (mm²)"), or the symbol alone when there is no code.
+    static func areaUnitText(for unit: MeasurementUnit) -> String {
+        let symbol: String
+        switch unit {
+        case .millimeters: symbol = "mm²"
+        case .centimeters: symbol = "cm²"
+        case .inches: symbol = "in²"
+        }
+        guard let code = ucumAreaCode(for: unit) else { return symbol }
+        return "\(code) (\(symbol))"
+    }
+
     /// Formats area for display.
     ///
     /// - Parameters:
     ///   - pixelArea: Area in pixels².
     ///   - physicalArea: Area in mm² (optional).
     ///   - unit: Display unit.
-    /// - Returns: Formatted string.
+    /// - Returns: Formatted string, e.g. "250.0 mm2 (mm²)".
     public static func formatArea(
         pixelArea: Double,
         physicalArea: Double?,
@@ -333,11 +357,11 @@ public enum ROIHelpers: Sendable {
         if let phys = physicalArea {
             switch unit {
             case .millimeters:
-                return String(format: "%.1f mm²", phys)
+                return String(format: "%.1f ", phys) + areaUnitText(for: unit)
             case .centimeters:
-                return String(format: "%.2f cm²", phys / 100.0)
+                return String(format: "%.2f ", phys / 100.0) + areaUnitText(for: unit)
             case .inches:
-                return String(format: "%.3f in²", phys / 645.16)
+                return String(format: "%.3f ", phys / 645.16) + areaUnitText(for: unit)
             }
         }
         return String(format: "%.0f px²", pixelArea)
@@ -355,7 +379,7 @@ public enum ROIHelpers: Sendable {
         lines.append(String(format: "Max: %.1f", statistics.maximum))
         lines.append("Pixels: \(statistics.areaPixels)")
         if let area = statistics.areaMM2 {
-            lines.append(String(format: "Area: %.1f mm²", area))
+            lines.append(String(format: "Area: %.1f ", area) + areaUnitText(for: .millimeters))
         }
         if let perimeter = statistics.perimeterMM {
             lines.append(String(format: "Perimeter: %.1f mm", perimeter))

@@ -2,14 +2,15 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent calibration helpers for pixel-to-physical conversion
+// NEMA-verified: 2026a, checked 2026-10-05 — the 4 attributes diffed against PS3.6 2026a Table 6-1 (Pixel Spacing (0028,0030), Imager Pixel Spacing (0018,1164), Nominal Scanned Pixel Spacing (0018,2010), Estimated Radiographic Magnification Factor (0018,1114): 4/4); value order row\column and mm per PS3.3 2026a 10.7.1.3 and C.7.6.2.1.1; the precedence Pixel Spacing (calibrated, in the patient) over Imager Pixel Spacing (at the detector) follows 10.7.1.1 / 10.7.1.3; citations corrected to the 2026a section titles (10.7.1.1 "Pixel Spacing", 10.7.1.3 "Pixel Spacing Value Order and Valid Values")
 
 import Foundation
 
 /// Platform-independent helpers for pixel-to-physical space calibration.
 ///
 /// Extracts and manages pixel spacing from DICOM headers and supports
-/// manual calibration. Reference: DICOM PS3.3 C.7.6.3 (Image Pixel Module),
-/// 10.7.1.3 (Pixel Spacing), 10.7.1.1 (Imager Pixel Spacing).
+/// manual calibration. Reference: DICOM PS3.3 C.7.6.2 (Image Plane Module), C.7.6.3 (Image Pixel Module),
+/// 10.7.1.1 (Pixel Spacing), 10.7.1.3 (Pixel Spacing Value Order and Valid Values).
 public enum CalibrationHelpers: Sendable {
 
     // MARK: - DICOM Tag Extraction
