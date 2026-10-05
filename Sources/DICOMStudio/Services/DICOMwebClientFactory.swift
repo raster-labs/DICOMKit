@@ -1,5 +1,6 @@
 // DICOMwebClientFactory.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-05 — buildQIDOQuery keys diffed against PS3.18 2026a Table 10.6.1-5 (study level Modalities in Study (0008,0061), series/instance Modality (0008,0060) — corrected) and Table 8.3.4-1 (fuzzymatching, limit, offset — fuzzymatching now sent); open Study Date ranges against PS3.4 2026a C.2.2.2.5; the tags themselves are DICOMWeb.QIDOQueryAttribute (verified 2026-09-28); authentication and TLS mapping are plumbing (PS3.18 8.11 names no mechanism)
 //
 // DICOM Studio — Factory for creating DICOMwebClient instances from server profiles
 // Reference: DICOM PS3.18 (Web Services)
@@ -90,6 +91,13 @@ public enum DICOMwebClientFactory: Sendable {
     }
 
     /// Builds a `QIDOQuery` from DICOMStudio `QIDOQueryParams`.
+    ///
+    /// Matching keys follow PS3.18 Table 10.6.1-5: at the study level the modality filter is
+    /// Modalities in Study (0008,0061); at the series and instance levels it is Modality
+    /// (0008,0060). A Study Date with only one bound is sent as the open range of PS3.4
+    /// C.2.2.2.5 (`YYYYMMDD-` / `-YYYYMMDD`). `fuzzymatching=true` (PS3.18 8.3.4.2) is sent
+    /// only when requested, since its absence already means false; `limit` and `offset`
+    /// are the pagination parameters of PS3.18 8.3.4.4.
     public static func buildQIDOQuery(from params: QIDOQueryParams) -> QIDOQuery {
         var query = QIDOQuery()
 
@@ -102,10 +110,18 @@ public enum DICOMwebClientFactory: Sendable {
         if !params.studyDateFrom.isEmpty, !params.studyDateTo.isEmpty {
             query = query.studyDate(from: params.studyDateFrom, to: params.studyDateTo)
         } else if !params.studyDateFrom.isEmpty {
-            query = query.studyDate(params.studyDateFrom)
+            query = query.studyDateRange(from: params.studyDateFrom, to: nil)
+        } else if !params.studyDateTo.isEmpty {
+            query = query.studyDateRange(from: nil, to: params.studyDateTo)
         }
         if !params.modality.isEmpty {
-            query = query.modality(params.modality)
+            switch params.queryLevel {
+            case .study:             query = query.modalitiesInStudy(params.modality)
+            case .series, .instance: query = query.modality(params.modality)
+            }
+        }
+        if params.fuzzyMatching {
+            query = query.fuzzyMatching(true)
         }
         if !params.accessionNumber.isEmpty {
             query = query.accessionNumber(params.accessionNumber)
