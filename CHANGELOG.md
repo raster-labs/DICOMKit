@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — DICOMStudio DICOMweb panel (2026-10-05, DICOM 2026a)
+- `DICOMwebClientFactory.buildQIDOQuery` sends Modalities in Study (0008,0061) at the study level and Modality (0008,0060) at the series/instance levels (PS3.18 Table 10.6.1-5); the Fuzzy matching toggle is sent as `fuzzymatching=true` (8.3.4.2); a Study Date with one bound is sent as the open range of PS3.4 C.2.2.2.5. `DICOMwebViewModel.runQIDOQuery` passes the level picker into the query parameters.
+- `UPSState.scheduled.allowedTransitions` no longer offers CANCELED: PS3.4 Table CC.1.1-2 refuses a Change State to CANCELED from SCHEDULED (C310H); `DICOMwebViewModel.transitionUPSState` refuses a SCHEDULED target with the same message as `dicom-wado` (PS3.18 11.7.1.4, C303H) and names the Table CC.2.1-2 status of any other refused change. `UPSState.cancelled.displayName` is "Canceled" (PS3.3 C.30.1 spelling).
+- `UPSEventPayloadParser` reads Procedure Step Progress and its Description inside Procedure Step Progress Information Sequence (0074,1002), Contact Display Name (0074,100C) at the top level and inside (0074,1008), and the Human Performer Code Sequence meaning of a UPS Assigned report (PS3.4 Table CC.2.4-1); the old flat keys remain as fallbacks.
+- WADO-RS frames jobs that carry a frame list retrieve the Frame Pixel Data resource `/frames/{frames}` (PS3.18 Table 10.4.1.6-1) instead of the whole instance.
+- DICOMweb Hub JPIP panel: the URI panel names Pixel Data Provider URL (0028,7FE0) (PS3.5 A.6) instead of "(0008,1190) RETRIEVE URL", and the header lists all four JPIP transfer syntaxes of PS3.6 Table A-1.
+
+### Verified — DICOMStudio (2026-10-05, DICOM 2026a)
+- DICOMweb panel (6 files) NEMA-verified; `Scripts/diff_studio_g3_web.py` adds 9 row-by-row checks (UPS states and transitions, QIDO keys/parameters/resources, WADO-URI parameters, event-report tags, HTTP status numbers, JPIP text, TLS mode).
+
 ### Fixed — DICOMStudio CLI Workshop file tools (2026-10-05, DICOM 2026a)
 - dicom-dcmdir Workshop: `--profile` offers only PS3.11 2026a Application Profile identifiers (`DICOMDIRProfile.allStandard`; STD-GEN-DVD / STD-GEN-USB were family headings, D29), prints the CLI's deprecation note for a legacy spelling, derives the CLI's File-set ID default and refuses an invalid `--file-set-id` (PS3.10 8.1, 8.5; exit 1), offers `--copy-to`, and `validate` reports File ID / File-set ID rule violations with their PS3.10 / PS3.3 clauses (D132).
 - dicom-json / dicom-xml Workshop: empty attributes are kept by default (PS3.18 F.2.5; PS3.19 Table A.1.5-2) with `--no-include-empty` to drop them; `--no-sort-keys` / `--no-keywords` are marked deprecated and print the CLIs' notes; `--filter-tag` accepts `(GGGG,EEEE)` and `GGGGEEEE` (D114).
