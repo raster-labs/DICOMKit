@@ -6687,16 +6687,27 @@ case "dicom-study":
         let callingAET = paramValue("aet").isEmpty ? "DICOMSTUDIO" : paramValue("aet")
         let calledAET = paramValue("called-aet").isEmpty ? "ANY-SCP" : paramValue("called-aet")
         let timeoutStr = paramValue("timeout")
-        let count = max(1, Int(paramValue("count")) ?? 1)
+        let count = Int(paramValue("count")) ?? 1
         let showStats = paramValue("stats") == "true"
         let diagnose = paramValue("diagnose") == "true"
         let verbose = paramValue("verbose") == "true"
 
-        guard let server = resolveHostPort(hostValue, explicitPort: portValue.isEmpty ? nil : portValue) else {
-            appendConsoleOutput("Error: A valid host is required (e.g. hostname or 192.168.1.1).\n")
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-echo", command: commandPreview, exitCode: 1, output: "Invalid host")
+            addToHistory(toolName: "dicom-echo", command: commandPreview, exitCode: exitCode, output: message)
+        }
+
+        // dicom-echo: ValidationError("Count must be greater than 0"), exit 64 — not silently clamped.
+        guard count > 0 else {
+            refuse("Count must be greater than 0", exitCode: 64)
+            return
+        }
+
+        guard let server = resolveHostPort(hostValue, explicitPort: portValue.isEmpty ? nil : portValue) else {
+            refuse("A valid host is required (e.g. hostname or 192.168.1.1).", exitCode: 64)
             return
         }
 
@@ -8046,8 +8057,8 @@ case "dicom-study":
                              output: "\(results.workitems.count) workitems returned")
             }
         } catch {
-            // ArgumentParser prints a thrown error as `Error: <description>` and exits 1.
-            refuse((error as? CustomStringConvertible)?.description ?? error.localizedDescription, exitCode: 1)
+            // ArgumentParser prints a thrown error as `Error: <String(describing:)>` and exits 1.
+            refuse(String(describing: error), exitCode: 1)
         }
     }
 
