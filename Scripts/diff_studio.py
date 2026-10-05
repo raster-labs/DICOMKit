@@ -693,20 +693,18 @@ def check_generic(rep, parts, files, label):
 
 # --- per-group checks (added as each group is verified) --------------------------------------------
 
-# Each group's row-by-row checks live in Scripts/diff_studio_<g>.py (so the groups can be verified in
+# Each group's row-by-row checks live in Scripts/diff_studio_<g>[_topic].py (so the groups can be verified in
 # parallel); a module exports CHECKS = [(name, fn(rep, parts, files, ctx))] and may extend PENDING_API_APPROVAL /
 # DEFERRED / EXEMPT through its own dicts of the same names.
-GROUP_CHECKS = {}
+import glob as _glob
+GROUP_CHECKS = {g: [] for g in GROUPS}
 for _g in GROUPS:
-    _path = os.path.join(HERE, f'diff_studio_{_g.lower()}.py')
-    if os.path.exists(_path):
-        _mod = load(f'diff_studio_{_g.lower()}')
-        GROUP_CHECKS[_g] = list(getattr(_mod, 'CHECKS', []))
+    for _path in sorted(_glob.glob(os.path.join(HERE, f'diff_studio_{_g.lower()}*.py'))):
+        _mod = load(os.path.basename(_path)[:-3])
+        GROUP_CHECKS[_g] += list(getattr(_mod, 'CHECKS', []))
         PENDING_API_APPROVAL.update(getattr(_mod, 'PENDING_API_APPROVAL', {}))
         DEFERRED.update(getattr(_mod, 'DEFERRED', {}))
         EXEMPT.update(getattr(_mod, 'EXEMPT', {}))
-    else:
-        GROUP_CHECKS[_g] = []
 
 
 # --- report emission ----------------------------------------------------------------------------------
