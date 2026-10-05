@@ -589,10 +589,12 @@ public enum ToolCatalogHelpers: Sendable {
                     parameterType: .booleanToggle, placeholder: "",
                     helpText: "Verify connection with C-ECHO before sending"
                 ),
+                // Priority (0000,0700) of the C-STORE-RQ, PS3.7 2026a Table 9.3-1: LOW = 0002H,
+                // MEDIUM = 0000H, HIGH = 0001H — the CLI's PriorityOption, mapped onto DIMSEPriority.
                 CLIParameterDefinition(
                     id: "priority", flag: "--priority", displayName: "Priority",
                     parameterType: .enumPicker, placeholder: "medium",
-                    helpText: "DIMSE operation priority level",
+                    helpText: "C-STORE Priority (0000,0700): low (0002H), medium (0000H), high (0001H) — PS3.7 Table 9.3-1 (default: medium)",
                     defaultValue: "medium",
                     allowedValues: ["low", "medium", "high"]
                 ),
@@ -616,10 +618,18 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "Show what would be sent without actually sending",
                     isAdvanced: true
                 ),
-                // NOTE: the `--transfer-syntax` flag is intentionally NOT exposed for
-                // dicom-send. The file is always sent in its OWN transfer syntax — the
-                // package negotiates the file's TS (with standard fallbacks) and never
-                // forces a preferred one. Don't re-add this without a deliberate reason.
+                // Transfer Syntax Name of the proposed Presentation Context (PS3.8 7.1.1.13;
+                // PS3.6 Table A-1). dicom-send never transcodes: the value must be the file's
+                // own transfer syntax, so the default (empty) sends the file unchanged.
+                // Tokens: DICOMCore.TransferSyntax.negotiableImageTokens — the SAME alias
+                // list TransferSyntax.parse resolves on both surfaces.
+                CLIParameterDefinition(
+                    id: "transfer-syntax", flag: "--transfer-syntax", displayName: "Transfer Syntax",
+                    parameterType: .enumPicker, placeholder: "Send unchanged",
+                    helpText: "Transfer syntax to negotiate for the C-STORE presentation context. dicom-send sends files as-is and never transcodes, so this must match the file's own transfer syntax (the send fails otherwise — use dicom-convert to change it). Omit to send the file unchanged.",
+                    isAdvanced: true,
+                    allowedValues: [""] + TransferSyntax.negotiableImageTokens
+                ),
                 CLIParameterDefinition(
                     id: "verbose", flag: "--verbose", displayName: "Verbose",
                     parameterType: .booleanToggle, placeholder: "",

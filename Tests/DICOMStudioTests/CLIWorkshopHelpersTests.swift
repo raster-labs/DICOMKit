@@ -1205,4 +1205,19 @@ struct CLIWorkshopHelpersTests {
             #expect(!preset.commandString.contains("--host"), Comment(rawValue: preset.commandString))
         }
     }
+
+    @Test("dicom-send offers --transfer-syntax (PS3.8 7.1.1.13; DICOMCore.TransferSyntax tokens) and the PS3.7 Table 9.3-1 priority values")
+    func sendTransferSyntaxAndPriorityRows() throws {
+        let ts = try #require(netParam("dicom-send", "transfer-syntax"))
+        #expect(ts.flag == "--transfer-syntax")
+        #expect(ts.allowedValues == [""] + TransferSyntax.negotiableImageTokens)
+        #expect(ts.defaultValue.isEmpty)                       // empty = send the file unchanged
+        for token in TransferSyntax.negotiableImageTokens {
+            #expect(TransferSyntax.parse(token) != nil, Comment(rawValue: token))   // the CLI's parser accepts every token
+        }
+        let priority = try #require(netParam("dicom-send", "priority"))
+        #expect(priority.allowedValues == ["low", "medium", "high"])
+        #expect(priority.defaultValue == "medium")
+        #expect(priority.helpText.contains("PS3.7 Table 9.3-1"))
+    }
 }

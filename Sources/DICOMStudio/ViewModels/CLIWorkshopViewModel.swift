@@ -8828,6 +8828,36 @@ case "dicom-study":
 
     // MARK: - C-STORE Execution (dicom-send)
 
+    /// How a C-STORE response status is reported, per PS3.4 2026a Table B.2-1 — the
+    /// same three classes as dicom-send's StoreOutcome: Success (0000) and the Warning
+    /// class (B000 / B006 / B007) mean the SCP stored the SOP Instance; the Failure class
+    /// (A7xx, A9xx, Cxxx, 0122) means it was not stored and counts as a failed transfer.
+    enum WorkshopStoreOutcome: Equatable {
+        case stored
+        case storedWithWarning
+        case failed
+
+        init(status: DIMSEStatus) {
+            if status.isSuccess {
+                self = .stored
+            } else if status.isWarning {
+                self = .storedWithWarning
+            } else {
+                self = .failed
+            }
+        }
+    }
+
+    /// dicom-send's SendError.storeFailed text for a Failure-class C-STORE response.
+    nonisolated static func sendStoreFailedText(_ status: DIMSEStatus) -> String {
+        "C-STORE response status \(status) — not stored (PS3.4 Table B.2-1)"
+    }
+
+    /// dicom-send's SendError.partialFailure text (printed as `Error: …`, exit 1).
+    nonisolated static func sendPartialFailureText(succeeded: Int, failed: Int) -> String {
+        "Send completed with \(succeeded) succeeded and \(failed) failed"
+    }
+
     /// Performs a real C-STORE to send DICOM files to the configured server.
     private func executeDicomSend() async {
         let hostValue = paramValue("host")
@@ -8840,16 +8870,23 @@ case "dicom-study":
         let dryRun = paramValue("dry-run") == "true"
         let retryCount = Int(paramValue("retry")) ?? 0
         let verbose = paramValue("verbose") == "true"
+        let transferSyntaxRaw = paramValue("transfer-syntax")
+
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-send", command: commandPreview, exitCode: exitCode, output: message)
+        }
 
         // Retry drives `0...retryCount`; a negative value would trap that range.
         guard retryCount >= 0 else {
-            appendConsoleOutput("Error: Retry count must be zero or greater.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-send", command: commandPreview, exitCode: 1, output: "Invalid retry count")
+            refuse("--retry must be zero or greater", exitCode: 64)
             return
         }
 
+        // Priority (0000,0700), PS3.7 Table 9.3-1: low 0002H, medium 0000H, high 0001H.
         let priority: DIMSEPriority
         switch priorityStr {
         case "low": priority = .low
@@ -8858,10 +8895,7 @@ case "dicom-study":
         }
 
         guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
-            appendConsoleOutput("Error: A valid host is required (e.g. hostname or hostname:11112).\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-send", command: commandPreview, exitCode: 1, output: "Invalid host")
+            refuse("A valid host is required (e.g. hostname or hostname:11112).", exitCode: 64)
             return
         }
 
@@ -8869,6 +8903,19 @@ case "dicom-study":
         let port = server.port
         let timeout = TimeInterval(timeoutStr) ?? 60
         let recursive = paramValue("recursive") == "true"
+
+        // --transfer-syntax via the SHARED DICOMCore parser (TransferSyntax.parse) — the
+        // identical alias map the CLI resolves; an unknown name is a usage error (64).
+        let preferredTransferSyntaxUID: String?
+        if !transferSyntaxRaw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            guard let syntax = TransferSyntax.parse(transferSyntaxRaw) else {
+                refuse("Unknown transfer syntax: \(transferSyntaxRaw)", exitCode: 64)
+                return
+            }
+            preferredTransferSyntaxUID = syntax.uid
+        } else {
+            preferredTransferSyntaxUID = nil
+        }
 
         // ── Collect DICOM file paths ────────────────────────────────
         // Merge drag-and-drop entries with the text-field path, resolve
@@ -8887,14 +8934,10 @@ case "dicom-study":
         // Gather files via the SHARED DICOMSendFileGatherer (DICOMNetwork) — the EXACT
         // same enumeration the dicom-send CLI uses (Sources/dicom-send/DICOMSend.swift):
         // DICOM detection by extension OR "DICM" magic, glob expansion, directory
-        // recursion, dotfile handling, and ordering. Previously this re-implemented
-        // collection (collectDICOMFiles/isDICOMCandidate) and diverged for directory and
-        // glob inputs, so the "Files:" count and per-file lines could differ from the CLI.
-        // The files field may hold several semicolon-separated paths (positional
-        // list — the preview expands the same split into tokens); picked/dropped
-        // `inputFiles` are additive, deduplicated against the typed paths so a
-        // file mirrored into the preview is not sent twice. Field order first so
-        // the send order matches the previewed command.
+        // recursion, dotfile handling, and ordering. The files field may hold several
+        // semicolon-separated paths (positional list — the preview expands the same
+        // split into tokens); picked/dropped `inputFiles` are additive, deduplicated
+        // against the typed paths so a file mirrored into the preview is not sent twice.
         var inputPaths = CommandBuilderHelpers.splitMultiValue(filesParamPath)
         for entry in inputFiles where !inputPaths.contains(entry.path) {
             inputPaths.append(entry.path)
@@ -8915,26 +8958,18 @@ case "dicom-study":
         }
 
         guard !fileEntries.isEmpty else {
-            appendConsoleOutput("Error: No DICOM files found. Verify the path exists and contains DICOM files.\n")
-            if filesParamPath.isEmpty {
-                appendConsoleOutput("  💡 Hint: Enter a file or directory path, or drag and drop DICOM files.\n")
-            } else {
-                appendConsoleOutput("  💡 Hint: The path '\(filesParamPath)' may be a directory. Enable 'Recursive Scan' to search subdirectories.\n")
-            }
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-send", command: commandPreview, exitCode: 1, output: "No DICOM files found")
+            // dicom-send: ValidationError("No DICOM files found to send"), exit 64.
+            refuse("No DICOM files found to send", exitCode: 64)
             return
         }
 
         // Header via the SHARED NetworkConsole formatter (DICOMNetwork) — identical to
-        // the dicom-send CLI. The app does not expose --transfer-syntax (it always
-        // sends as-is), so transferSyntax is nil here.
+        // the dicom-send CLI, which passes the resolved Transfer Syntax UID.
         appendConsoleOutput(NetworkConsole.sendHeader(
             host: host, port: port,
             callingAE: callingAET, calledAE: calledAET,
             priority: priorityStr, timeout: Int(timeout), fileCount: fileEntries.count,
-            retryAttempts: retryCount, transferSyntax: nil, dryRun: dryRun))
+            retryAttempts: retryCount, transferSyntax: preferredTransferSyntaxUID, dryRun: dryRun))
 
         if dryRun {
             for (index, file) in fileEntries.enumerated() {
@@ -8950,7 +8985,8 @@ case "dicom-study":
             return
         }
 
-        // Verify connection first if requested
+        // Verify connection first if requested (SendExecutor.verifyConnection: a
+        // non-success C-ECHO status is a connectionFailed error; exit 1).
         if verifyFirst {
             appendConsoleOutput("Verifying connection with C-ECHO...\n")
             do {
@@ -8959,29 +8995,26 @@ case "dicom-study":
                     callingAE: callingAET, calledAE: calledAET,
                     timeout: timeout
                 )
-                if echoResult.success {
-                    appendConsoleOutput("  ✅ Connection verified\n\n")
-                } else {
-                    appendConsoleOutput("  ❌ C-ECHO failed — aborting send\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-send", command: commandPreview, exitCode: 1,
-                                 output: "C-ECHO verification failed")
-                    return
+                guard echoResult.success else {
+                    throw DICOMNetworkError.connectionFailed(
+                        "C-ECHO verification returned a non-success status: \(echoResult.status)")
                 }
+                appendConsoleOutput("  ✅ Connection verified\n\n")
             } catch {
-                appendConsoleOutput("  ❌ C-ECHO failed: \(error.localizedDescription)\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-send", command: commandPreview, exitCode: 1,
-                             output: "C-ECHO verification failed")
+                appendConsoleOutput("  ❌ C-ECHO failed — aborting send\n")
+                refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
                 return
             }
         }
 
         // Send each file — all progress/summary text via the SHARED NetworkConsole
-        // formatter (DICOMNetwork) so it is byte-identical to the dicom-send CLI.
+        // formatter (DICOMNetwork) so it is byte-identical to the dicom-send CLI
+        // (SendExecutor.sendFiles): the response status is classed per PS3.4 Table
+        // B.2-1 — Success / Warning stored (the Warning class gets its
+        // sendFileWarningLine and the summary Warnings count), Failure class not stored,
+        // retried like a transport error and counted as failed.
         var successCount = 0
+        var warningCount = 0
         var failureCount = 0
         var totalBytesTransferred = 0
         let startTime = Date()
@@ -8994,63 +9027,78 @@ case "dicom-study":
 
             do {
                 let fileData = try readFileData(at: file.path, parameterID: "files")
-                var lastError: Error?
-                var sent = false
+                var lastError: String?
+                var stored: StoreResult?
 
                 for _ in 0...retryCount {
                     do {
-                        // Always send the file in its OWN transfer syntax — no preferred
-                        // TS is proposed (the dicom-send `--transfer-syntax` flag is not
-                        // exposed in the app). The package negotiates the file's TS with
-                        // standard fallbacks, so the file goes to the server as-is.
-                        let result = try await DICOMStorageService.store(
-                            fileData: fileData,
-                            to: host,
-                            port: port,
-                            callingAE: callingAET,
-                            calledAE: calledAET,
-                            priority: priority,
-                            timeout: timeout
-                        )
-                        successCount += 1
-                        totalBytesTransferred += fileData.count
-                        appendConsoleOutput(NetworkConsole.sendFileResultSuffix(
-                            success: true, rtt: result.roundTripTime, error: nil))
-                        sent = true
+                        let result: StoreResult
+                        if let preferredTransferSyntaxUID {
+                            result = try await DICOMStorageService.store(
+                                fileData: fileData,
+                                preferredTransferSyntaxUID: preferredTransferSyntaxUID,
+                                to: host, port: port,
+                                callingAE: callingAET, calledAE: calledAET,
+                                priority: priority, timeout: timeout)
+                        } else {
+                            result = try await DICOMStorageService.store(
+                                fileData: fileData,
+                                to: host, port: port,
+                                callingAE: callingAET, calledAE: calledAET,
+                                priority: priority, timeout: timeout)
+                        }
+                        // A Failure-class status (PS3.4 Table B.2-1) is not stored: the
+                        // CLI throws SendError.storeFailed and retries (sendFileWithRetry).
+                        if WorkshopStoreOutcome(status: result.status) == .failed {
+                            lastError = Self.sendStoreFailedText(result.status)
+                            continue
+                        }
+                        stored = result
                         break
                     } catch {
-                        lastError = error
+                        lastError = error.localizedDescription
                         // No per-attempt retry chatter: retries are non-deterministic and
                         // would diverge from the CLI run; only the outcome line is emitted.
                     }
                 }
 
-                if !sent {
+                if let result = stored {
+                    successCount += 1
+                    totalBytesTransferred += fileData.count
+                    appendConsoleOutput(NetworkConsole.sendFileResultSuffix(
+                        success: true, rtt: result.roundTripTime, error: nil))
+                    if WorkshopStoreOutcome(status: result.status) == .storedWithWarning {
+                        // PS3.4 Table B.2-1 Warning class: stored, but the SCP reports a
+                        // deviation (coercion, discarded elements, SOP Class mismatch).
+                        warningCount += 1
+                        appendConsoleOutput(NetworkConsole.sendFileWarningLine(status: result.status))
+                    }
+                } else {
                     failureCount += 1
                     appendConsoleOutput(NetworkConsole.sendFileResultSuffix(
-                        success: false, rtt: 0, error: lastError?.localizedDescription))
+                        success: false, rtt: 0, error: lastError))
                 }
             } catch {
                 failureCount += 1
                 appendConsoleOutput(NetworkConsole.sendFileResultSuffix(
-                    success: false, rtt: 0, error: "Cannot read file: \(error.localizedDescription)"))
+                    success: false, rtt: 0, error: error.localizedDescription))
             }
         }
 
         appendConsoleOutput(NetworkConsole.sendSummary(
             total: fileEntries.count, succeeded: successCount, failed: failureCount,
-            bytes: totalBytesTransferred, duration: Date().timeIntervalSince(startTime)))
+            bytes: totalBytesTransferred, duration: Date().timeIntervalSince(startTime),
+            warnings: warningCount))
 
         if failureCount == 0 {
             consoleStatus = .success
             service.setConsoleStatus(.success)
+            addToHistory(toolName: "dicom-send", command: commandPreview, exitCode: 0,
+                         output: "\(successCount)/\(fileEntries.count) files sent")
         } else {
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
+            // SendError.partialFailure → `Error: …`, exit 1 (the CLI's exit rule).
+            refuse(Self.sendPartialFailureText(succeeded: successCount, failed: failureCount), exitCode: 1)
         }
-        addToHistory(toolName: "dicom-send", command: commandPreview,
-                     exitCode: failureCount == 0 ? 0 : 1,
-                     output: "\(successCount)/\(fileEntries.count) files sent")
     }
 
     // MARK: - C-MOVE / C-GET Execution (dicom-retrieve)

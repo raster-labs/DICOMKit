@@ -120,6 +120,24 @@ def ps311_identifiers(p11):
     return std, templates
 
 
+_PART7 = {}
+
+
+def part7(ctx):
+    """PS3.7 2026a (not among the parts diff_studio.py loads): read from the --nema directory on demand."""
+    if 'part' not in _PART7:
+        import sys
+        nema = None
+        for i, a in enumerate(sys.argv):
+            if a == '--nema' and i + 1 < len(sys.argv):
+                nema = sys.argv[i + 1]
+            elif a.startswith('--nema='):
+                nema = a.split('=', 1)[1]
+        path = os.path.join(nema or '', 'part07_2026a.xml')
+        _PART7['part'] = ctx['nd'].Part(path) if nema and os.path.exists(path) else None
+    return _PART7['part']
+
+
 # --- dicom-dcmdir ------------------------------------------------------------------------------------------
 
 def check_dcmdir_profile_picker(rep, parts, files, ctx):
@@ -547,6 +565,84 @@ def check_query_retrieve_levels(rep, parts, files, ctx):
               'dicom-json / csv-keywords formatter (D-query level, P-QUERY-JSON)', matched, wrong)
 
 
+def check_priority_and_store_outcomes(rep, parts, files, ctx):
+    """Priority (0000,0700) pickers of dicom-send (and, once offered, dicom-retrieve / dicom-qr) are low / medium /
+    high, the words of PS3.7 2026a Table 9.3-1 (C-STORE-RQ) / 9.3-9 (C-MOVE-RQ) / 9.3-6 (C-GET-RQ) whose values
+    LOW 0002H, MEDIUM 0000H, HIGH 0001H are DICOMNetwork.DIMSEPriority's raw values; the dicom-send executor
+    classes the C-STORE response per PS3.4 2026a Table B.2-1 like the CLI's StoreOutcome, prints the shared
+    sendFileWarningLine / sendSummary(warnings:) and the CLI's SendError texts."""
+    dw = ctx['dw']
+    ws = ctx['workshop_surface']()
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    wrong, matched = [], 0
+    # PS3.7: the three Priority values, identical in the three request tables
+    std = {}
+    p7 = part7(ctx)
+    if p7 is None:
+        rep.check('PS3.7 2026a Tables 9.3-1 / 9.3-9 / 9.3-6 Priority: PS3.7 not fetched into the --nema directory', 0,
+                  pending=['fetch part07_2026a.xml (Scripts/nema_docbook.py fetch 2026a 7 --out <nema>)'])
+        return
+    for lab in ('9.3-1', '9.3-9', '9.3-6'):
+        for row in dw.table_rows(p7, lab):
+            if row and row[0].strip() == 'Priority':
+                std[lab] = dict(re.findall(r'(LOW|MEDIUM|HIGH) = ([0-9A-F]{4})H', ' '.join(row)))
+    if any(v != {'LOW': '0002', 'MEDIUM': '0000', 'HIGH': '0001'} for v in std.values()) or len(std) != 3:
+        wrong.append(f'PS3.7 Tables 9.3-1 / 9.3-9 / 9.3-6 Priority read as {std}; re-read')
+    else:
+        matched += 3
+    core = read(ctx, 'DICOMNetwork/DIMSEPriority.swift')
+    raw = {k.upper(): v.upper().replace('0X', '') for k, v in re.findall(r'case (low|medium|high) = 0x([0-9A-Fa-f]{4})', core)}
+    if raw != {'LOW': '0002', 'MEDIUM': '0000', 'HIGH': '0001'}:
+        wrong.append(f'DICOMNetwork.DIMSEPriority raw values {raw} differ from PS3.7 Table 9.3-1 (DICOMNetwork)')
+    else:
+        matched += 3
+    for tool in ('dicom-send', 'dicom-retrieve', 'dicom-qr'):
+        p = param(ws, tool, 'priority')
+        if p is None:
+            if tool != 'dicom-send':
+                continue            # offered by a later commit; the parity check reports the contract row
+            wrong.append(f'{tool} form has no --priority parameter')
+            continue
+        if p.get('allowedValues') != ['low', 'medium', 'high'] or p.get('defaultValue') != 'medium':
+            wrong.append(f'{tool} --priority must offer low / medium / high (PS3.7 Table 9.3-1 words) with default medium')
+        else:
+            matched += 1
+        if '0002H' not in str(p.get('helpText', '')) or '0001H' not in str(p.get('helpText', '')):
+            wrong.append(f'{tool} --priority help must name the PS3.7 values (low 0002H, medium 0000H, high 0001H)')
+        else:
+            matched += 1
+    # PS3.4 Table B.2-1 classes: Warning rows B000 / B006 / B007 are stored, Failure rows are not
+    b21 = dw.table_rows(parts[4], 'B.2-1')
+    codes = [r[-2].strip() for r in b21 if len(r) >= 3]
+    if not {'B000', 'B006', 'B007', 'A7xx', 'A9xx', 'Cxxx', '0000'} <= set(codes):
+        wrong.append(f'PS3.4 Table B.2-1 codes read as {codes}; re-read')
+    else:
+        matched += 1
+    cli = read(ctx, 'dicom-send/SendExecutor.swift')
+    cli_body = block(cli, r'enum StoreOutcome: Equatable \{', 'StoreOutcome')
+    ws_body = block(vm, r'enum WorkshopStoreOutcome: Equatable \{', 'WorkshopStoreOutcome')
+    norm = lambda b: re.sub(r'\s+', ' ', re.sub(r'//[^\n]*', '', b)).strip()
+    if norm(cli_body) != norm(ws_body):
+        wrong.append('WorkshopStoreOutcome differs from dicom-send StoreOutcome (PS3.4 Table B.2-1 classes)')
+    else:
+        matched += 1
+    for lit in literals(cli):
+        if 'Table B.2-1' in lit or lit.startswith('Send completed with'):
+            if lit in literals(vm):
+                matched += 1
+            else:
+                wrong.append(f'dicom-send text not mirrored by the Workshop: "{lit[:80]}"')
+    send_body = block(vm, r'private func executeDicomSend\(\) async \{', 'executeDicomSend')
+    for needle in ('NetworkConsole.sendFileWarningLine(status:', 'warnings: warningCount)',
+                   'preferredTransferSyntaxUID: preferredTransferSyntaxUID,', 'transferSyntax: preferredTransferSyntaxUID'):
+        if needle in send_body:
+            matched += 1
+        else:
+            wrong.append(f'executeDicomSend must use `{needle}` (shared NetworkConsole / StorageService, as the CLI)')
+    rep.check('PS3.7 2026a Tables 9.3-1 / 9.3-9 / 9.3-6 Priority and PS3.4 Table B.2-1: Workshop priority pickers, '
+              'dicom-send outcome classes, warning tally and SendError texts (D75 / P-SEND-SUMMARY Studio half)', matched, wrong)
+
+
 CHECKS = [
     ('G1 workshop dcmdir profile picker', check_dcmdir_profile_picker),
     ('G1 workshop dcmdir fileset rules', check_dcmdir_fileset_rules),
@@ -558,4 +654,5 @@ CHECKS = [
     ('G1 workshop uid dump texts', check_uid_and_dump_texts),
     ('G1 validation panel', check_validation_panel),
     ('G1 workshop net query levels', check_query_retrieve_levels),
+    ('G1 workshop net priority send', check_priority_and_store_outcomes),
 ]

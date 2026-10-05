@@ -581,4 +581,20 @@ struct CLIWorkshopViewModelTests {
         #expect(strict.error?.hasSuffix(" Rejected because --strict-modality is set.") == true)
         #expect(CLIWorkshopViewModel.resolveModalityOption("", strict: true, verbose: false).error == nil)
     }
+
+    @Test("dicom-send classes a C-STORE response per PS3.4 Table B.2-1: 0000 stored, B000/B006/B007 stored with warning, A7xx/A9xx/Cxxx/0122 not stored")
+    func sendStoreOutcomeClasses() {
+        typealias Outcome = CLIWorkshopViewModel.WorkshopStoreOutcome
+        #expect(Outcome(status: .from(0x0000)) == .stored)
+        for warning: UInt16 in [0xB000, 0xB006, 0xB007] {
+            #expect(Outcome(status: .from(warning)) == .storedWithWarning, Comment(rawValue: String(warning, radix: 16)))
+        }
+        for failure: UInt16 in [0xA700, 0xA900, 0xC000, 0xC123, 0x0122] {
+            #expect(Outcome(status: .from(failure)) == .failed, Comment(rawValue: String(failure, radix: 16)))
+        }
+        // The CLI's SendError texts, printed as `Error: …`.
+        #expect(CLIWorkshopViewModel.sendStoreFailedText(.from(0xA700)).hasSuffix(" — not stored (PS3.4 Table B.2-1)"))
+        #expect(CLIWorkshopViewModel.sendStoreFailedText(.from(0xA700)).hasPrefix("C-STORE response status "))
+        #expect(CLIWorkshopViewModel.sendPartialFailureText(succeeded: 2, failed: 1) == "Send completed with 2 succeeded and 1 failed")
+    }
 }
