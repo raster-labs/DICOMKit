@@ -3,8 +3,16 @@
 //
 // DICOM Studio — Platform-independent helpers for Data Exchange & Export display
 // Reference: DICOM PS3.10 (Media Storage), PS3.18 Annex F (JSON), PS3.19 Annex A (XML)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `TransferSyntaxHelpers.wellKnownSyntaxes`: the 8 UIDs are PS3.6 2026a
+// Table A-1 Transfer Syntax rows and `displayName` is now the A-1 "UID Name" taken from DICOMCore
+// `TransferSyntax.displayName` (6 of the 8 literals were abbreviations); `isLossy`/`isCompressed` checked against
+// PS3.5 2026a Annex A / 10.1 (Implicit VR LE is the default, Big Endian retired); `encapsulatedSOPClassUID` is
+// Encapsulated PDF Storage per PS3.6 Table A-1 / PS3.4 Table B.5-1. The JSON/XML/image/batch helpers carry sizes,
+// labels and estimates only.
 
 import Foundation
+import DICOMCore
 
 // MARK: - JSON Conversion Helpers
 
@@ -150,12 +158,13 @@ public enum ImageExportHelpers: Sendable {
 /// Platform-independent helpers for transfer syntax display and validation.
 public enum TransferSyntaxHelpers: Sendable {
 
-    /// A curated list of well-known DICOM transfer syntaxes.
+    /// A curated list of well-known DICOM transfer syntaxes. `displayName` is the PS3.6 Table A-1
+    /// "UID Name" (from DICOMCore); `shortName` is the abbreviation used in narrow UI.
     /// Reference: DICOM PS3.5 §10 and Annex A
     public static let wellKnownSyntaxes: [TransferSyntaxEntry] = [
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2",
-            displayName: "Implicit VR Little Endian",
+            displayName: TransferSyntax.implicitVRLittleEndian.displayName,
             shortName: "Implicit LE",
             isCompressed: false,
             isLossy: false,
@@ -163,7 +172,7 @@ public enum TransferSyntaxHelpers: Sendable {
         ),
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2.1",
-            displayName: "Explicit VR Little Endian",
+            displayName: TransferSyntax.explicitVRLittleEndian.displayName,
             shortName: "Explicit LE",
             isCompressed: false,
             isLossy: false,
@@ -171,7 +180,7 @@ public enum TransferSyntaxHelpers: Sendable {
         ),
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2.2",
-            displayName: "Explicit VR Big Endian",
+            displayName: TransferSyntax.explicitVRBigEndian.displayName,
             shortName: "Explicit BE",
             isCompressed: false,
             isLossy: false,
@@ -179,7 +188,7 @@ public enum TransferSyntaxHelpers: Sendable {
         ),
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2.4.50",
-            displayName: "JPEG Baseline (Process 1)",
+            displayName: TransferSyntax.jpegBaseline.displayName,
             shortName: "JPEG Baseline",
             isCompressed: true,
             isLossy: true,
@@ -187,7 +196,7 @@ public enum TransferSyntaxHelpers: Sendable {
         ),
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2.4.70",
-            displayName: "JPEG Lossless (Process 14 SV1)",
+            displayName: TransferSyntax.jpegLosslessSV1.displayName,
             shortName: "JPEG Lossless",
             isCompressed: true,
             isLossy: false,
@@ -195,7 +204,7 @@ public enum TransferSyntaxHelpers: Sendable {
         ),
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2.4.80",
-            displayName: "JPEG-LS Lossless",
+            displayName: TransferSyntax.jpegLSLossless.displayName,
             shortName: "JPEG-LS",
             isCompressed: true,
             isLossy: false,
@@ -203,7 +212,7 @@ public enum TransferSyntaxHelpers: Sendable {
         ),
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2.4.90",
-            displayName: "JPEG 2000 Lossless",
+            displayName: TransferSyntax.jpeg2000Lossless.displayName,
             shortName: "J2K Lossless",
             isCompressed: true,
             isLossy: false,
@@ -211,7 +220,7 @@ public enum TransferSyntaxHelpers: Sendable {
         ),
         TransferSyntaxEntry(
             uid: "1.2.840.10008.1.2.5",
-            displayName: "RLE Lossless",
+            displayName: TransferSyntax.rleLossless.displayName,
             shortName: "RLE",
             isCompressed: true,
             isLossy: false,

@@ -5,6 +5,7 @@
 
 import Testing
 @testable import DICOMStudio
+import DICOMCore
 import Foundation
 
 @Suite("StudyBrowserViewModel Tests")
@@ -278,12 +279,29 @@ struct StudyBrowserViewModelTests {
 @Suite("TransferSyntaxDescriptions Tests")
 struct TransferSyntaxDescriptionsTests {
 
-    @Test("Known transfer syntax descriptions")
+    @Test("Known transfer syntax descriptions are the PS3.6 2026a Table A-1 UID Names")
     func testKnownTransferSyntax() {
-        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2") == "Implicit VR Little Endian")
+        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2")
+                == "Implicit VR Little Endian: Default Transfer Syntax for DICOM")
         #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.1") == "Explicit VR Little Endian")
-        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.4.50") == "JPEG Baseline (Process 1)")
+        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.2") == "Explicit VR Big Endian (Retired)")
+        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.4.50")
+                == "JPEG Baseline (Process 1): Default Transfer Syntax for Lossy JPEG 8 Bit Image Compression")
+        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.4.70")
+                == "JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1]): "
+                   + "Default Transfer Syntax for Lossless JPEG Image Compression")
+        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.4.90")
+                == "JPEG 2000 Image Compression (Lossless Only)")
+        #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.4.203")
+                == "High-Throughput JPEG 2000 Image Compression")
         #expect(TransferSyntaxDescriptions.describe("1.2.840.10008.1.2.5") == "RLE Lossless")
+    }
+
+    @Test("Every transfer syntax description equals DICOMCore's Table A-1 displayName")
+    func testDescriptionsComeFromDICOMCore() {
+        for ts in TransferSyntax.allKnown {
+            #expect(TransferSyntaxDescriptions.describe(ts.uid) == ts.displayName, "\(ts.uid)")
+        }
     }
 
     @Test("Unknown transfer syntax")
@@ -296,6 +314,6 @@ struct TransferSyntaxDescriptionsTests {
     @Test("Transfer syntax with whitespace trimmed")
     func testTransferSyntaxTrimmed() {
         let result = TransferSyntaxDescriptions.describe("  1.2.840.10008.1.2  ")
-        #expect(result == "Implicit VR Little Endian")
+        #expect(result == "Implicit VR Little Endian: Default Transfer Syntax for DICOM")
     }
 }
