@@ -148,13 +148,16 @@ struct NetworkToolWorkshopCLIParityTests {
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     @Test("CODE|SCHEME|MEANING parses the same for the CLI and the Workshop")
     func testCodedEntryParsing() throws {
-        let entry = try #require(MPPSCodedEntry.parse("110513|DCM|Doctor cancelled procedure"))
+        // Real CID 9301 pairs (PS3.16 2026a Table D-1): 110513 is "Discontinued for unspecified reason",
+        // 110501 is "Equipment failure" (D88).
+        let entry = try #require(MPPSCodedEntry.parse("110513|DCM|Discontinued for unspecified reason"))
         #expect(entry.codeValue == "110513")
         #expect(entry.codingSchemeDesignator == "DCM")
-        #expect(entry.codeMeaning == "Doctor cancelled procedure")
+        #expect(entry.codeMeaning == "Discontinued for unspecified reason")
 
         // Whitespace around the parts is trimmed; a meaning may contain '|'.
-        let spaced = try #require(MPPSCodedEntry.parse(" 110514 | DCM | Equipment failure "))
+        let spaced = try #require(MPPSCodedEntry.parse(" 110501 | DCM | Equipment failure "))
+        #expect(spaced.codeValue == "110501")
         #expect(spaced.codeMeaning == "Equipment failure")
         let piped = try #require(MPPSCodedEntry.parse("1|DCM|a|b"))
         #expect(piped.codeMeaning == "a|b")
