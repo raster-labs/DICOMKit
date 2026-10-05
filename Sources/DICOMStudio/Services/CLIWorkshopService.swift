@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (thread-safe Workshop state holder: selected tool, parameter values, console status, history; grep for tags, UIDs, STD-* profiles, VR codes and PS3 clauses found none)
 // CLIWorkshopService.swift
 // DICOMStudio
 //
