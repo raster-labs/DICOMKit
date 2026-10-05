@@ -6846,6 +6846,18 @@ case "dicom-study":
 
     // MARK: - DICOMweb Tool Execution
 
+    /// The DICOMwebConfiguration the Workshop runs with: the profile's URL / auth and, for
+    /// `retrieve`, the CLI's `--timeout` mapping (WorkshopWADOOptionRules.timeouts).
+    private func dicomwebConfiguration(from profile: DICOMwebServerProfile, timeoutSeconds: Int? = nil) throws -> DICOMwebConfiguration {
+        let base = try DICOMwebClientFactory.makeConfiguration(from: profile)
+        guard let timeoutSeconds else { return base }
+        return DICOMwebConfiguration(
+            baseURL: base.baseURL,
+            authentication: base.authentication,
+            timeouts: WorkshopWADOOptionRules.timeouts(seconds: timeoutSeconds),
+            maxConcurrentRequests: base.maxConcurrentRequests)
+    }
+
     /// Creates a `DICOMwebServerProfile` from the current parameter values.
     private func dicomwebProfileFromParams() -> DICOMwebServerProfile? {
         let url = paramValue("url")
@@ -6869,65 +6881,72 @@ case "dicom-study":
         )
     }
 
-    /// Executes a QIDO-RS query against a DICOMweb server.
+    /// Executes a QIDO-RS query against a DICOMweb server — the in-app `dicom-wado query`.
     private func executeDicomQIDO() async {
-        guard let profile = dicomwebProfileFromParams() else {
-            appendConsoleOutput("Error: Base URL is required.\n")
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-qido", command: commandPreview, exitCode: 1, output: "Base URL is required")
+            addToHistory(toolName: "dicom-qido", command: commandPreview, exitCode: exitCode, output: message)
+        }
+        guard let profile = dicomwebProfileFromParams() else {
+            refuse("Missing expected argument '<base-url>'", exitCode: 64)
             return
         }
 
-        let levelStr = paramValue("level").uppercased()
+        let levelStr = paramValue("level").lowercased()
         let limit = Int(paramValue("limit")) ?? 100
         let offset = Int(paramValue("offset")) ?? 0
-        // The in-app query faithfully reproduces the `dicom-wado query` CLI (the
-        // Workshop's purpose), so it emits ONLY the formatted result the CLI prints —
-        // no app-only "Querying…/returned N" chrome that the non-verbose CLI omits and
-        // that would otherwise shift every line out of alignment in the Compare-CLI diff.
+        let fuzzyMatching = paramValue("fuzzy-matching") == "true"
+        let strictModality = paramValue("strict-modality") == "true"
         let fmt = QIDOOutputFormat(rawValue: paramValue("output-format").lowercased()) ?? .table
-        // --verbose mirrors the CLI's stderr chrome: a header before the query and
-        // a "Found N …" line after the results.
         let verbose = paramValue("verbose") == "true"
-        if verbose {
-            appendConsoleOutput("DICOMweb Server: \(paramValue("base-url"))\n")
-            appendConsoleOutput("Query Level: \(levelStr.lowercased())\n")
-            appendConsoleOutput("Limit: \(limit), Offset: \(offset)\n")
+
+        // PS3.18 8.3.4.4: limit and offset are unsigned (the CLI's validate(), exit 64).
+        if let message = WorkshopWADOOptionRules.pagingProblem(limit: limit, offset: offset) {
+            refuse(message, exitCode: 64)
+            return
         }
 
         do {
             let client = try DICOMwebClientFactory.makeClient(from: profile)
 
-            var query = QIDOQuery().limit(limit).offset(offset).includeAllFields()
+            // The QIDO-RS query the options describe (PS3.18 10.6.1; Table 8.3.4-1), built
+            // in the CLI's order (QueryCommand.buildQuery).
+            var query = QIDOQuery().limit(limit).offset(offset)
+            if fuzzyMatching { query = query.fuzzyMatching(true) }
+            query = query.includeAllFields()
             let patientName = paramValue("patient-name")
             let patientID = paramValue("patient-id")
             let studyDate = paramValue("study-date")
-            let modality = paramValue("modality")
             let studyUID = paramValue("study-uid")
             let seriesUID = paramValue("series-uid")
             let accession = paramValue("accession")
             let studyDesc = paramValue("study-description")
 
-            // Pass patient name as-is (matches CLI behavior)
-            if !patientName.isEmpty {
-                query = query.patientName(patientName)
-            }
+            if !patientName.isEmpty { query = query.patientName(patientName) }
             if !patientID.isEmpty { query = query.patientID(patientID) }
             if !studyDate.isEmpty { query = query.studyDate(studyDate) }
-            if !modality.isEmpty {
-                // Use the correct DICOM tag per query level:
-                // Study level: Modalities in Study (0008,0061)
-                // Series level: Modality (0008,0060)
-                if levelStr == "SERIES" {
-                    query = query.modality(modality)
-                } else {
-                    query = query.modalitiesInStudy(modality)
-                }
-            }
             if !studyUID.isEmpty { query = query.studyInstanceUID(studyUID) }
             if !seriesUID.isEmpty { query = query.seriesInstanceUID(seriesUID) }
             if !accession.isEmpty { query = query.accessionNumber(accession) }
+            // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), then
+            // the matching key per level (PS3.18 Table 10.6.1-5): Modality (0008,0060) at
+            // series level, Modalities In Study (0008,0061) at study / instance level.
+            let resolved = Self.resolveModalityOption(paramValue("modality"), strict: strictModality, verbose: verbose)
+            if let message = resolved.error {
+                refuse(message, exitCode: 1)
+                return
+            }
+            for line in resolved.lines { appendConsoleOutput(line + "\n") }
+            if !resolved.value.isEmpty {
+                if levelStr == "series" {
+                    query = query.modality(resolved.value)
+                } else {
+                    query = query.modalitiesInStudy(resolved.value)
+                }
+            }
             if !studyDesc.isEmpty { query = query.studyDescription(studyDesc) }
 
             // Series-level matching keys (PS3.18 Table 10.6.1-5). The parameter
@@ -6945,12 +6964,21 @@ case "dicom-study":
                 query = query.requestedProcedureID(qidoRequestedProcedureID)
             }
 
+            // --verbose mirrors the CLI's stderr chrome: a header before the query and a
+            // "Found N …" line after the results. Without it, ONLY the formatted result.
+            if verbose {
+                appendConsoleOutput("DICOMweb Server: \(profile.baseURL)\n")
+                appendConsoleOutput("Query Level: \(levelStr)\n")
+                appendConsoleOutput("Limit: \(limit), Offset: \(offset)\n")
+                appendConsoleOutput("\n")
+            }
+
             // Dispatch mirrors the CLI run(): when the scoping UIDs are present the
             // query is path-scoped (GET /studies/{uid}/series, /studies/{uid}/series/{uid}/instances,
             // /studies/{uid}/instances); the root all-series/all-instances resources are
             // optional in PS3.18 and only used when the query is unscoped.
             switch levelStr {
-            case "SERIES":
+            case "series":
                 let results: QIDOSeriesResults
                 if !studyUID.isEmpty {
                     results = try await client.searchSeries(studyUID: studyUID, query: query)
@@ -6964,7 +6992,7 @@ case "dicom-study":
                 addToHistory(toolName: "dicom-qido", command: commandPreview, exitCode: 0,
                              output: "\(results.results.count) series returned")
 
-            case "INSTANCE":
+            case "instance":
                 let results: QIDOInstanceResults
                 if !studyUID.isEmpty, !seriesUID.isEmpty {
                     results = try await client.searchInstances(studyUID: studyUID, seriesUID: seriesUID, query: query)
@@ -6980,7 +7008,7 @@ case "dicom-study":
                 addToHistory(toolName: "dicom-qido", command: commandPreview, exitCode: 0,
                              output: "\(results.results.count) instances returned")
 
-            default: // STUDY
+            default: // study
                 let results = try await client.searchStudies(query: query)
                 let total = results.totalCount.map { " (total: \($0))" } ?? ""
                 appendConsoleOutput(QIDOResultFormatter().formatStudies(results.results, format: fmt))
@@ -6991,34 +7019,37 @@ case "dicom-study":
                              output: "\(results.results.count) studies returned\(total)")
             }
         } catch {
-            appendConsoleOutput("❌ QIDO-RS query failed\n")
-            appendConsoleOutput("  Error: \(error.localizedDescription)\n")
-            appendConsoleOutput("\n  💡 Hint: Verify the Base URL is correct and the DICOMweb server is reachable.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-qido", command: commandPreview, exitCode: 1,
-                         output: error.localizedDescription)
+            refuse(error.localizedDescription, exitCode: 1)
         }
     }
 
-    /// Executes a WADO retrieve (WADO-RS or WADO-URI) against a DICOMweb server.
+    /// Executes a WADO retrieve (WADO-RS or WADO-URI) against a DICOMweb server — the
+    /// in-app `dicom-wado retrieve`.
     private func executeDicomWADO() async {
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: exitCode, output: message)
+        }
+        guard let profile = dicomwebProfileFromParams() else {
+            refuse("Missing expected argument '<base-url>'", exitCode: 64)
+            return
+        }
+        let studyUID = paramValue("study-uid")
+        guard !studyUID.isEmpty else {
+            refuse("--study is required for retrieve operations", exitCode: 64)
+            return
+        }
+
         let protocol_ = paramValue("wado-protocol")
         if protocol_ == "wado-uri" {
-            await executeDicomWADOURI()
+            await executeDicomWADOURI(profile: profile, studyUID: studyUID)
             return
         }
 
         // Default: WADO-RS path
-        guard let profile = dicomwebProfileFromParams() else {
-            appendConsoleOutput("Error: Base URL is required.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1, output: "Base URL is required")
-            return
-        }
-
-        let studyUID = paramValue("study-uid")
         let seriesUID = paramValue("series-uid")
         let instanceUID = paramValue("instance-uid")
         let metadataFlag = paramValue("metadata") == "true"
@@ -7026,17 +7057,9 @@ case "dicom-study":
         let thumbnailFlag = paramValue("thumbnail") == "true"
         let framesStr = paramValue("frames")
         let verbose = paramValue("verbose") == "true"
-        // --format is the METADATA format (json|xml), matching the CLI; it no longer
-        // doubles as a rendered image-format selector (rendered is JPEG, like the CLI).
+        // --format is the METADATA format (json|xml), matching the CLI's MetadataFormat.
         let metadataFormat = paramValue("format").lowercased() == "xml" ? "xml" : "json"
-
-        guard !studyUID.isEmpty else {
-            appendConsoleOutput("Error: Study Instance UID is required.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1, output: "Study UID is required")
-            return
-        }
+        let timeoutSeconds = Int(paramValue("timeout")) ?? 60
 
         let outputDir = resolvedOutputDir(paramValue("output"))
         let hierarchical = false
@@ -7046,14 +7069,12 @@ case "dicom-study":
         lastRetrievedOutputURL = securityScopedURLs["output"]
 
         do {
-            let client = try DICOMwebClientFactory.makeClient(from: profile)
+            let client = DICOMwebClient(configuration: try dicomwebConfiguration(from: profile, timeoutSeconds: timeoutSeconds))
 
             // Console rendering is delegated to the SHARED WADORetrieveConsoleFormatter
-            // (DICOMWeb) — the same renderer the `dicom-wado retrieve` CLI uses — so the
+            // (DICOMWeb) — the same renderer the `dicom-wado retrieve` CLI uses, so the
             // app and CLI retrieve output pipelines cannot drift. The verbose preamble,
-            // status lines and metadata body all come from the formatter. The per-instance
-            // dataset previews below are an explicit app-only convenience (WADO parity is
-            // on the matched outcome, not console text, so the extra preview is harmless).
+            // status lines and metadata body all come from the formatter.
             let fmt = WADORetrieveConsoleFormatter()
             if verbose {
                 appendConsoleOutput(fmt.verbosePreambleRS(
@@ -7102,14 +7123,9 @@ case "dicom-study":
                 }
 
             } else if renderedFlag {
-                // Mirror the CLI: rendered requires series+instance and is JPEG-only
-                // (no --format image selection, no rendered-frames path).
+                // Mirror the CLI: rendered requires series+instance and is JPEG-only.
                 guard !seriesUID.isEmpty, !instanceUID.isEmpty else {
-                    appendConsoleOutput("Error: Series UID and Instance UID are required for rendered retrieval.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1,
-                                 output: "Series and Instance UID required for rendered")
+                    refuse("--series and --instance are required for rendered retrieval", exitCode: 64)
                     return
                 }
                 if verbose { appendConsoleOutput(fmt.renderedRetrieving() + "\n") }
@@ -7148,24 +7164,17 @@ case "dicom-study":
                              output: "thumbnail, \(thumbnailData.count) bytes → \(savedPath)")
 
             } else if !framesStr.isEmpty {
-                // Mirror the CLI: retrieve ALL listed frames (not just the first) and save
-                // each as raw pixel bytes (frame_<n>_<uid>.raw).
+                // Mirror the CLI: retrieve ALL listed frames and save each as raw pixel
+                // bytes (frame_<n>_<uid>.raw).
                 guard !seriesUID.isEmpty, !instanceUID.isEmpty else {
-                    appendConsoleOutput("Error: Series UID and Instance UID are required for frame retrieval.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1,
-                                 output: "Series and Instance UID required for frames")
+                    refuse("--series and --instance are required for frame retrieval", exitCode: 64)
                     return
                 }
                 let frameNumbers: [Int]
                 do {
                     frameNumbers = try fmt.parseFrameNumbers(framesStr)
                 } catch let e as WADOFrameParseError {
-                    appendConsoleOutput("Error: \(e.description)\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1, output: e.description)
+                    refuse(e.description, exitCode: 64)
                     return
                 }
                 if verbose { appendConsoleOutput(fmt.framesRetrieving(frameNumbers) + "\n") }
@@ -7188,11 +7197,11 @@ case "dicom-study":
                 if verbose { appendConsoleOutput(fmt.instancesRetrieving() + "\n") }
                 let data = try await client.retrieveInstance(
                     studyUID: studyUID, seriesUID: seriesUID, instanceUID: instanceUID)
-                try writeReceivedDICOMFile(
+                let savedPath = try writeReceivedDICOMFile(
                     data: data, sopInstanceUID: instanceUID,
                     studyUID: studyUID, seriesUID: seriesUID, outputDir: outputDir, hierarchical: hierarchical)
+                lastRetrievedFiles.append(savedPath)
                 if verbose { appendConsoleOutput(fmt.instanceSaved(bytes: data.count) + "\n") }
-                wadoDisplayDataset(data, index: 1)  // app-only preview
                 consoleStatus = .success
                 service.setConsoleStatus(.success)
                 addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 0,
@@ -7204,11 +7213,12 @@ case "dicom-study":
                 let result = try await client.retrieveSeries(studyUID: studyUID, seriesUID: seriesUID)
                 for (index, instanceData) in result.instances.enumerated() {
                     let sopUID = wadoExtractSOPInstanceUID(instanceData) ?? "instance_\(index + 1)"
-                    _ = try? writeReceivedDICOMFile(
+                    if let savedPath = try? writeReceivedDICOMFile(
                         data: instanceData, sopInstanceUID: sopUID,
-                        studyUID: studyUID, seriesUID: seriesUID, outputDir: outputDir, hierarchical: hierarchical)
+                        studyUID: studyUID, seriesUID: seriesUID, outputDir: outputDir, hierarchical: hierarchical) {
+                        lastRetrievedFiles.append(savedPath)
+                    }
                     if verbose { appendConsoleOutput(fmt.instanceSaved(index: index + 1, bytes: instanceData.count) + "\n") }
-                    wadoDisplayDataset(instanceData, index: index + 1)  // app-only preview
                 }
                 if verbose { appendConsoleOutput(fmt.instancesCount(result.instances.count) + "\n") }
                 consoleStatus = .success
@@ -7222,11 +7232,12 @@ case "dicom-study":
                 let result = try await client.retrieveStudy(studyUID: studyUID)
                 for (index, instanceData) in result.instances.enumerated() {
                     let sopUID = wadoExtractSOPInstanceUID(instanceData) ?? "instance_\(index + 1)"
-                    _ = try? writeReceivedDICOMFile(
+                    if let savedPath = try? writeReceivedDICOMFile(
                         data: instanceData, sopInstanceUID: sopUID,
-                        studyUID: studyUID, outputDir: outputDir, hierarchical: hierarchical)
+                        studyUID: studyUID, outputDir: outputDir, hierarchical: hierarchical) {
+                        lastRetrievedFiles.append(savedPath)
+                    }
                     if verbose { appendConsoleOutput(fmt.instanceSaved(index: index + 1, bytes: instanceData.count) + "\n") }
-                    wadoDisplayDataset(instanceData, index: index + 1)  // app-only preview
                 }
                 if verbose { appendConsoleOutput(fmt.instancesCount(result.instances.count) + "\n") }
                 consoleStatus = .success
@@ -7235,81 +7246,121 @@ case "dicom-study":
                              output: "\(result.instances.count) instances → \(outputDir)")
             }
         } catch {
-            appendConsoleOutput("❌ WADO-RS retrieve failed\n")
-            appendConsoleOutput("  Error: \(error.localizedDescription)\n")
-            appendConsoleOutput("\n  💡 Hint: Verify the Study UID exists on the server and the Base URL is correct.\n")
-            if renderedFlag {
-                appendConsoleOutput("  💡 Hint: Not all servers support the /rendered endpoint. Try instance retrieval instead.\n")
-            }
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1,
-                         output: error.localizedDescription)
+            refuse(error.localizedDescription, exitCode: 1)
         }
     }
 
-    /// Executes a WADO-URI retrieve against a legacy DICOMweb/WADO server.
-    ///
-    /// WADO-URI uses query parameters (`?requestType=WADO&studyUID=...&seriesUID=...&objectUID=...`)
-    /// and retrieves a single DICOM object per request. Common for dcm4chee2 and older PACS.
-    ///
-    /// Reference: DICOM PS3.18 §8 — WADO by means of URI
-    private func executeDicomWADOURI() async {
-        guard let profile = dicomwebProfileFromParams() else {
-            appendConsoleOutput("Error: Base URL is required.\n")
+    /// Executes a WADO-URI retrieve — the in-app `dicom-wado retrieve --uri`: the request
+    /// parameters of PS3.18 2026a Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1 go through the shared
+    /// WADOURIClient.Parameters (validated by the client), the CLI-local rules through
+    /// WorkshopWADOOptionRules (text-identical), the console through
+    /// WADORetrieveConsoleFormatter.
+    private func executeDicomWADOURI(profile: DICOMwebServerProfile, studyUID: String) async {
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1, output: "Base URL is required")
-            return
+            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: exitCode, output: message)
         }
-
-        let studyUID = paramValue("study-uid")
         let seriesUID = paramValue("series-uid")
         let instanceUID = paramValue("instance-uid")
-        let acceptType = paramValue("content-type")
         let framesStr = paramValue("frames")
-        // WADO-URI supports a single frame — take the first entry, trimmed, exactly
-        // like the CLI (DICOMWado retrieve --uri). `0` is preserved as a real value
-        // (the server surfaces the error), not silently treated as "no frame".
-        let frameNumber: Int? = framesStr.split(separator: ",").first
-            .flatMap { Int($0.trimmingCharacters(in: .whitespaces)) }
         let verbose = paramValue("verbose") == "true"
+        let timeoutSeconds = Int(paramValue("timeout")) ?? 60
+        let rows = Int(paramValue("rows"))
+        let columns = Int(paramValue("columns"))
+        let transferSyntax = paramValue("transfer-syntax").isEmpty ? nil : paramValue("transfer-syntax")
+        let anonymize = paramValue("anonymize") == "true"
+        let charset = paramValue("charset")
+        let annotation = paramValue("annotation").isEmpty ? nil : paramValue("annotation")
+        let imageQuality = Int(paramValue("image-quality"))
+        let region = paramValue("region").isEmpty ? nil : paramValue("region")
+        let windowCenter = Double(paramValue("window-center"))
+        let windowWidth = Double(paramValue("window-width"))
+        let presentationUID = paramValue("presentation-uid").isEmpty ? nil : paramValue("presentation-uid")
+        let presentationSeriesUID = paramValue("presentation-series-uid").isEmpty ? nil : paramValue("presentation-series-uid")
 
-        guard !studyUID.isEmpty else {
-            appendConsoleOutput("Error: Study Instance UID is required for WADO-URI.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1, output: "Study UID is required")
+        // The CLI's validate() rules (exit 64): contentType per 9.1.2.2.1, rows / columns
+        // positive, every PS3.18 Section 9 pair / range rule the shared client checks.
+        let contentType: WADOURIClient.MediaType
+        do {
+            contentType = try WorkshopWADOOptionRules.uriContentType(paramValue("content-type"))
+        } catch let e as WorkshopWADOOptionRules.Refusal {
+            refuse(e.message, exitCode: e.exitCode)
+            return
+        } catch {
+            refuse(error.localizedDescription, exitCode: 1)
+            return
+        }
+        if let r = rows, r < 1 {
+            refuse("--rows must be a positive integer (PS3.18 9.5.1.2.4.1)", exitCode: 64)
+            return
+        }
+        if let c = columns, c < 1 {
+            refuse("--columns must be a positive integer (PS3.18 9.5.1.2.4.2)", exitCode: 64)
             return
         }
         guard !seriesUID.isEmpty else {
-            appendConsoleOutput("Error: Series Instance UID is required for WADO-URI.\n")
-            appendConsoleOutput("  💡 WADO-URI requires Study UID, Series UID, and SOP Instance UID.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1, output: "Series UID is required for WADO-URI")
+            refuse("--series is required for WADO-URI retrieval", exitCode: 64)
             return
         }
         guard !instanceUID.isEmpty else {
-            appendConsoleOutput("Error: SOP Instance UID is required for WADO-URI.\n")
-            appendConsoleOutput("  💡 WADO-URI requires Study UID, Series UID, and SOP Instance UID.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1, output: "SOP Instance UID is required for WADO-URI")
+            refuse("--instance is required for WADO-URI retrieval", exitCode: 64)
             return
         }
 
-        let outputDir = resolvedOutputDir(paramValue("output"))
-        let hierarchical = false
+        // frameNumber names a single Frame (9.5.1.2.1): only the first list entry is sent.
+        let parsedFrame: (frame: Int, notSent: Int)?
+        let regionValue: WADOURIClient.Region?
+        do {
+            parsedFrame = try WorkshopWADOOptionRules.uriFrameNumber(framesStr.isEmpty ? nil : framesStr)
+            regionValue = try WorkshopWADOOptionRules.uriRegion(region)
+        } catch let e as WorkshopWADOOptionRules.Refusal {
+            refuse(e.message, exitCode: e.exitCode)
+            return
+        } catch {
+            refuse(error.localizedDescription, exitCode: 1)
+            return
+        }
+        let frameNumber = parsedFrame?.frame
+        let parameters = WADOURIClient.Parameters(
+            contentType: [contentType],
+            charset: charset.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty },
+            anonymize: anonymize,
+            annotation: WorkshopWADOOptionRules.uriAnnotation(annotation),
+            transferSyntax: transferSyntax,
+            frameNumber: frameNumber,
+            imageQuality: imageQuality,
+            rows: rows,
+            columns: columns,
+            region: regionValue,
+            windowCenter: windowCenter,
+            windowWidth: windowWidth,
+            presentationSeriesUID: presentationSeriesUID,
+            presentationUID: presentationUID)
+        let problems = parameters.problems()
+        if !problems.isEmpty {
+            refuse(problems.joined(separator: "; "), exitCode: 64)
+            return
+        }
+        if let dropped = parsedFrame?.notSent, dropped > 0 {
+            appendConsoleOutput("Warning: WADO-URI frameNumber names a single frame (PS3.18 9.5.1.2.1); "
+                + "only frame \(frameNumber ?? 0) is requested, \(dropped) further frame number(s) ignored\n")
+        }
+        var otherRendered: [String] = []
+        if imageQuality != nil { otherRendered.append("imageQuality (--image-quality)") }
+        if region != nil { otherRendered.append("region (--region)") }
+        if presentationUID != nil { otherRendered.append("presentationUID (--presentation-uid)") }
+        if presentationSeriesUID != nil { otherRendered.append("presentationSeriesUID (--presentation-series-uid)") }
+        for warning in WorkshopWADOOptionRules.uriParameterWarnings(
+            contentType: contentType, frame: frameNumber, rows: rows, columns: columns,
+            transferSyntax: transferSyntax, anonymize: anonymize, otherRendered: otherRendered) {
+            appendConsoleOutput("Warning: \(warning)\n")
+        }
 
+        let outputDir = resolvedOutputDir(paramValue("output"))
         lastRetrievedFiles.removeAll()
         lastRetrievedOutputURL = securityScopedURLs["output"]
-
-        // Shared content-type mapping (single source of truth) — the SAME factory the
-        // `dicom-wado retrieve --uri` CLI calls, so the app and CLI request the identical
-        // representation for a given --content-type (incl. jp2/jph/jphc/mpeg + short
-        // aliases). Previously the app hand-rolled a divergent subset switch here.
-        let contentType = WADOURIClient.ContentType.fromRequestString(acceptType.isEmpty ? nil : acceptType)
 
         let fmt = WADORetrieveConsoleFormatter()
         if verbose {
@@ -7321,32 +7372,20 @@ case "dicom-study":
         }
 
         do {
-            let client = try DICOMwebClientFactory.makeWADOURIClient(from: profile)
-
-            let result = try await client.retrieve(
-                studyUID: studyUID,
-                seriesUID: seriesUID,
-                objectUID: instanceUID,
-                contentType: contentType,
-                frameNumber: frameNumber
-            )
-
+            let client = WADOURIClient(configuration: try dicomwebConfiguration(from: profile, timeoutSeconds: timeoutSeconds))
+            let result: WADOURIClient.RetrieveResult
+            do {
+                result = try await client.retrieve(
+                    studyUID: studyUID, seriesUID: seriesUID, objectUID: instanceUID, parameters: parameters)
+            } catch let error as WADOURIParameterError {
+                refuse(error.description, exitCode: 64)
+                return
+            }
             let data = result.data
 
             // Filename matches the CLI: <instanceUID>[_frameN].<ext>
-            let ext: String
-            switch contentType {
-            case .dicom:          ext = "dcm"
-            case .jpeg:           ext = "jpg"
-            case .png:            ext = "png"
-            case .gif:            ext = "gif"
-            case .jpeg2000:       ext = "jp2"
-            case .htj2k:          ext = "jph"
-            case .htj2kContainer: ext = "jphc"
-            case .mpeg:           ext = "mpg"
-            }
             let frameSuffix = frameNumber.map { "_frame\($0)" } ?? ""
-            let filename = "\(instanceUID)\(frameSuffix).\(ext)"
+            let filename = "\(instanceUID)\(frameSuffix).\(contentType.fileExtension)"
 
             let savedPath: String
             if contentType == .dicom {
@@ -7354,12 +7393,11 @@ case "dicom-study":
                 savedPath = try writeReceivedDICOMFile(
                     data: data, sopInstanceUID: sopUID,
                     studyUID: studyUID, seriesUID: seriesUID,
-                    outputDir: outputDir, hierarchical: hierarchical
-                )
+                    outputDir: outputDir, hierarchical: false)
             } else {
                 savedPath = try writeOutputFile(data: data, filename: filename, outputDir: outputDir)
-                lastRetrievedFiles.append(savedPath)
             }
+            lastRetrievedFiles.append(savedPath)
 
             if verbose {
                 appendConsoleOutput(fmt.uriRetrievedVerbose(bytes: data.count) + "\n")
@@ -7368,23 +7406,12 @@ case "dicom-study":
                 appendConsoleOutput(fmt.uriRetrieved(bytes: data.count, filename: filename) + "\n")
             }
 
-            if contentType == .dicom {
-                wadoDisplayDataset(data, index: 1)  // app-only preview
-            }
-
             consoleStatus = .success
             service.setConsoleStatus(.success)
             addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 0,
                          output: "WADO-URI: 1 object, \(data.count) bytes → \(outputDir)")
         } catch {
-            appendConsoleOutput("❌ WADO-URI retrieve failed\n")
-            appendConsoleOutput("  Error: \(error.localizedDescription)\n")
-            appendConsoleOutput("\n  💡 Hint: Verify all three UIDs (Study, Series, SOP Instance) exist on the server.\n")
-            appendConsoleOutput("  💡 Hint: Ensure the Base URL points to the WADO endpoint (e.g. http://server:8080/wado).\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-wado", command: commandPreview, exitCode: 1,
-                         output: error.localizedDescription)
+            refuse(error.localizedDescription, exitCode: 1)
         }
     }
 
@@ -7394,50 +7421,25 @@ case "dicom-study":
         return file.sopInstanceUID
     }
 
-    /// Displays a detailed DICOM dataset summary for a retrieved instance.
-    private func wadoDisplayDataset(_ data: Data, index: Int) {
-        guard let file = try? DICOMFile.read(from: data, force: true) else { return }
-        let ds = file.dataSet
-        appendConsoleOutput("─── Instance [\(index)] ────────────────────────────────────\n")
-        appendConsoleOutput("  SOP Instance UID ..... \(file.sopInstanceUID ?? "N/A")\n")
-        appendConsoleOutput("  SOP Class UID ........ \(file.sopClassUID ?? "N/A")\n")
-        appendConsoleOutput("  Transfer Syntax ...... \(file.transferSyntaxUID ?? "N/A")\n")
-        appendConsoleOutput("  Patient Name ......... \(ds.string(for: .patientName) ?? "N/A")\n")
-        appendConsoleOutput("  Patient ID ........... \(ds.string(for: .patientID) ?? "N/A")\n")
-        appendConsoleOutput("  Study Instance UID ... \(ds.string(for: .studyInstanceUID) ?? "N/A")\n")
-        appendConsoleOutput("  Series Instance UID .. \(ds.string(for: .seriesInstanceUID) ?? "N/A")\n")
-        appendConsoleOutput("  Modality ............. \(ds.string(for: .modality) ?? "N/A")\n")
-        appendConsoleOutput("  Study Date ........... \(ds.string(for: .studyDate) ?? "N/A")\n")
-        appendConsoleOutput("  Study Description .... \(ds.string(for: .studyDescription) ?? "N/A")\n")
-        appendConsoleOutput("  Series Number ........ \(ds.string(for: .seriesNumber) ?? "N/A")\n")
-        appendConsoleOutput("  Instance Number ...... \(ds.string(for: .instanceNumber) ?? "N/A")\n")
-        appendConsoleOutput("  Rows ................. \(ds.uint16(for: .rows).map(String.init) ?? "N/A")\n")
-        appendConsoleOutput("  Columns .............. \(ds.uint16(for: .columns).map(String.init) ?? "N/A")\n")
-        appendConsoleOutput("  Bits Allocated ....... \(ds.uint16(for: .bitsAllocated).map(String.init) ?? "N/A")\n")
-        appendConsoleOutput("  Bits Stored .......... \(ds.uint16(for: .bitsStored).map(String.init) ?? "N/A")\n")
-        appendConsoleOutput("  Photometric Interp ... \(ds.string(for: .photometricInterpretation) ?? "N/A")\n")
-        appendConsoleOutput("\n")
-    }
-
-    /// Executes a STOW-RS upload against a DICOMweb server.
+    /// Executes a STOW-RS upload against a DICOMweb server — the in-app `dicom-wado store`.
     private func executeDicomSTOW() async {
-        guard let profile = dicomwebProfileFromParams() else {
-            appendConsoleOutput("Error: Base URL is required.\n")
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-stow", command: commandPreview, exitCode: 1, output: "Base URL is required")
+            addToHistory(toolName: "dicom-stow", command: commandPreview, exitCode: exitCode, output: message)
+        }
+        guard let profile = dicomwebProfileFromParams() else {
+            refuse("Missing expected argument '<base-url>'", exitCode: 64)
             return
         }
 
         let filesPath = paramValue("files")
         let studyUID = paramValue("study-uid").isEmpty ? nil : paramValue("study-uid")
         let batchSize = Int(paramValue("batch")) ?? 10
-        // Batch size feeds `stride(by:)`, which traps on a non-positive stride.
+        // --batch feeds `chunked(into:)` / `stride(by:)`, which traps on a non-positive stride.
         guard batchSize >= 1 else {
-            appendConsoleOutput("Error: Batch size must be at least 1.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-stow", command: commandPreview, exitCode: 1, output: "Invalid batch size")
+            refuse("--batch must be at least 1", exitCode: 64)
             return
         }
         let continueOnError = paramValue("continue-on-error") == "true"
@@ -7537,32 +7539,25 @@ case "dicom-study":
         }
 
         // Collect from the --input file list (one path per line; blank lines and
-        // '#'-comments are skipped) — mirrors the `dicom-wado store --input` CLI option,
-        // which the app form exposed but previously never read.
+        // '#'-comments are skipped) — the `dicom-wado store --input` convention.
         let inputListPath = paramValue("input")
         if !inputListPath.isEmpty {
-            if let contents = try? String(contentsOf: URL(fileURLWithPath: inputListPath), encoding: .utf8) {
+            do {
+                let contents = try String(contentsOf: URL(fileURLWithPath: inputListPath), encoding: .utf8)
                 let lines = contents.components(separatedBy: .newlines)
                     .map { $0.trimmingCharacters(in: .whitespaces) }
                     .filter { !$0.isEmpty && !$0.hasPrefix("#") }
                 for path in lines where !resolvedFiles.contains(where: { $0.path == path }) {
                     collectDICOMFiles(from: path)
                 }
-            } else {
-                appendConsoleOutput("⚠️ Could not read input list: \(inputListPath)\n")
+            } catch {
+                refuse(error.localizedDescription, exitCode: 1)
+                return
             }
         }
 
         guard !resolvedFiles.isEmpty else {
-            appendConsoleOutput("Error: No DICOM files found. Verify the path exists and contains DICOM files.\n")
-            if filesPath.isEmpty {
-                appendConsoleOutput("  💡 Hint: Enter a file or directory path, or drag and drop DICOM files.\n")
-            } else {
-                appendConsoleOutput("  💡 Hint: The path '\(filesPath)' may be a directory. Enable 'Recursive Scan' to search subdirectories.\n")
-            }
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-stow", command: commandPreview, exitCode: 1, output: "No DICOM files found")
+            refuse("No files specified. Use file arguments or --input option.", exitCode: 64)
             return
         }
 
@@ -7595,28 +7590,24 @@ case "dicom-study":
                         let data = try Data(contentsOf: file.url)
                         batchInstances.append(data)
                     } catch {
-                        appendConsoleOutput("  ⚠️ Cannot read \(file.url.lastPathComponent): \(error.localizedDescription)\n")
-                        totalFailed += 1
-                        if !continueOnError {
-                            appendConsoleOutput("❌ Aborting (continue-on-error is off)\n")
-                            consoleStatus = .error
-                            service.setConsoleStatus(.error)
-                            addToHistory(toolName: "dicom-stow", command: commandPreview, exitCode: 1,
-                                         output: error.localizedDescription)
-                            return
+                        // The CLI: with --continue-on-error the file is counted as failed and
+                        // the run goes on; without it the error ends the run (exit 1).
+                        if continueOnError {
+                            appendConsoleOutput("Error reading \(file.path): \(error)\n")
+                            totalFailed += 1
+                            continue
                         }
+                        throw error
                     }
                 }
 
-                guard !batchInstances.isEmpty else { continue }
-
                 // Per-batch do/catch mirrors the CLI: an upload failure counts the whole
-                // batch as failed and, only when continue-on-error is OFF, aborts the
-                // remaining batches (previously the app aborted regardless of the flag).
+                // batch as failed and, only when continue-on-error is set, the remaining
+                // batches still go.
                 do {
                     let response = try await client.storeInstances(instances: batchInstances, studyUID: studyUID)
-                    let stored = response.storedInstances.count
-                    let failed = response.failedInstances.count
+                    let stored = response.successCount
+                    let failed = response.failureCount
                     totalStored += stored
                     totalFailed += failed
 
@@ -7628,38 +7619,37 @@ case "dicom-study":
                             appendConsoleOutput(stowFmt.failureDetail(sopInstanceUID: failure.sopInstanceUID,
                                                                       reason: reason) + "\n")
                         }
+                        // Warning Reason (0008,1196), PS3.18 Table I.1-1 / I.2-1 (D106)
+                        for stored in response.storedInstances {
+                            if let code = stored.warningReason {
+                                appendConsoleOutput(stowFmt.warningDetail(sopInstanceUID: stored.sopInstanceUID, code: code) + "\n")
+                            }
+                        }
                     }
                 } catch {
-                    totalFailed += batch.count
                     if continueOnError {
-                        if verbose {
-                            appendConsoleOutput("  ⚠️ Batch \(batchIndex + 1) failed: \(error.localizedDescription)\n")
-                        }
-                    } else {
-                        throw error
+                        appendConsoleOutput("Error uploading batch \(batchIndex + 1): \(error)\n")
+                        totalFailed += batch.count
+                        continue
                     }
+                    throw error
                 }
             }
 
             // Always-printed summary block — the parity contract shared with the CLI.
             appendConsoleOutput(stowFmt.summary(total: resolvedFiles.count, succeeded: totalStored,
                                                 failed: totalFailed) + "\n")
-            // Mirror the CLI exit semantics: failures are an error only when
-            // continue-on-error is OFF (with it ON, the CLI exits success).
-            let isError = totalFailed > 0 && !continueOnError
+            // Any instance not stored is a failure of the run, with or without
+            // --continue-on-error (which only keeps later batches going); PS3.18 Table
+            // 10.5.3-1: 202 (Accepted) and 4xx mean some or all Instances were not stored.
+            let isError = totalFailed > 0
             consoleStatus = isError ? .error : .success
             service.setConsoleStatus(isError ? .error : .success)
             addToHistory(toolName: "dicom-stow", command: commandPreview,
                          exitCode: isError ? 1 : 0,
                          output: "\(totalStored) stored, \(totalFailed) failed")
         } catch {
-            appendConsoleOutput("❌ STOW-RS upload failed\n")
-            appendConsoleOutput("  Error: \(error.localizedDescription)\n")
-            appendConsoleOutput("\n  💡 Hint: Verify the file paths are valid DICOM files and the Base URL is correct.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-stow", command: commandPreview, exitCode: 1,
-                         output: error.localizedDescription)
+            refuse(error.localizedDescription, exitCode: 1)
         }
     }
 
@@ -7680,48 +7670,46 @@ case "dicom-study":
         override func nextObject() -> Any? { inner.nextObject() }
     }
 
-    /// Executes a UPS-RS operation against a DICOMweb server.
+    /// Executes a UPS-RS operation against a DICOMweb server — the in-app `dicom-wado ups`:
+    /// the same DICOMwebClient calls, the shared UPSResultFormatter / UPSConsole text, the
+    /// CLI's verbose-gated chrome and its refusals (WorkshopWADOOptionRules, text-identical
+    /// to dicom-wado's WADOOptionRules).
     private func executeDicomUPS() async {
-        guard let profile = dicomwebProfileFromParams() else {
-            appendConsoleOutput("Error: Base URL is required.\n")
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1, output: "Base URL is required")
+            addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: exitCode, output: message)
+        }
+        guard let profile = dicomwebProfileFromParams() else {
+            refuse("Missing expected argument '<base-url>'", exitCode: 64)
             return
         }
 
         let operation = paramValue("operation").lowercased()
-        // Resolve workitem UID from the appropriate parameter based on operation
-        let workitemUID: String
-        switch operation {
-        case "get":
-            workitemUID = paramValue("get-uid")
-        case "change-state":
-            workitemUID = paramValue("update-uid")
-        default:
-            workitemUID = paramValue("workitem-uid")
-        }
-
-        appendConsoleOutput("UPS-RS \(operation.isEmpty ? "search" : operation) on \(profile.baseURL) ...\n\n")
+        let verbose = paramValue("verbose") == "true"
+        let fmt = UPSOutputFormat(rawValue: paramValue("output-format").lowercased()) ?? .table
 
         do {
             let client = try DICOMwebClientFactory.makeClient(from: profile)
 
+            if verbose {
+                appendConsoleOutput("DICOMweb Server: \(profile.baseURL)\n")
+            }
+
             switch operation {
             case "get":
-                guard !workitemUID.isEmpty else {
-                    appendConsoleOutput("Error: Workitem UID is required for get operation.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
+                let uid = paramValue("get-uid")
+                guard !uid.isEmpty else {
+                    refuse("Missing value for '--get <get>'", exitCode: 64)
                     return
                 }
-                // Render through the SHARED UPSResultFormatter, honoring --format (table/json/
-                // csv) — the SAME renderer the dicom-wado ups CLI's get (and the search case)
-                // uses, so the app and CLI get output cannot drift. retrieveWorkitemResult
-                // returns the WorkitemResult the formatter consumes (package --format contract).
-                let getResult = try await client.retrieveWorkitemResult(uid: workitemUID)
-                let getFmt = UPSOutputFormat(rawValue: paramValue("output-format").lowercased()) ?? .table
-                appendConsoleOutput(UPSResultFormatter().format([getResult], format: getFmt))
+                if verbose { appendConsoleOutput("Retrieving worklist item: \(uid)\n") }
+                // Render through the SHARED UPSResultFormatter, honoring --format (table /
+                // json / csv / dicom-json) — the SAME renderer the CLI's get and search use.
+                let result = try await client.retrieveWorkitemResult(uid: uid)
+                appendConsoleOutput(UPSResultFormatter().format([result], format: fmt))
+                if verbose { appendConsoleOutput("\nRetrieved worklist item \(uid)\n") }
                 consoleStatus = .success
                 service.setConsoleStatus(.success)
                 addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 0,
@@ -7732,22 +7720,17 @@ case "dicom-study":
                 // DICOM-JSON file via the same client call the CLI makes.
                 let jsonPath = paramValue("create-json-file")
                 guard !jsonPath.isEmpty else {
-                    appendConsoleOutput("Error: Workitem JSON file is required for create.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
+                    refuse("Missing value for '--create <create>'", exitCode: 64)
                     return
                 }
+                if verbose { appendConsoleOutput("Creating worklist item from: \(jsonPath)\n") }
                 let jsonScopedURL = securityScopedURLs["create-json-file"]
                 let accessing = jsonScopedURL?.startAccessingSecurityScopedResource() ?? false
                 defer { if accessing { jsonScopedURL?.stopAccessingSecurityScopedResource() } }
                 let jsonURL = jsonScopedURL ?? URL(fileURLWithPath: jsonPath)
                 let jsonData = try Data(contentsOf: jsonURL)
                 guard let workitemData = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-                    appendConsoleOutput("Error: Invalid JSON format in \(jsonPath)\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                 output: "Invalid workitem JSON")
+                    refuse("Invalid JSON format in \(jsonPath)", exitCode: 64)
                     return
                 }
                 let createResponse = try await client.createWorkitem(workitem: workitemData)
@@ -7759,148 +7742,99 @@ case "dicom-study":
                              output: "Workitem created: \(createResponse.workitemUID)")
 
             case "create-workitem":
-                // DICOMweb (UPS-RS) create flow
                 let stepLabel = paramValue("create-label")
                 guard !stepLabel.isEmpty else {
-                    appendConsoleOutput("Error: Procedure Step Label is required for create operation.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
+                    refuse("--label is required when using --create-workitem", exitCode: 64)
                     return
                 }
-
-                let uid = workitemUID.isEmpty ? generateDICOMUID() : workitemUID
-                appendConsoleOutput("Creating workitem \(uid)...\n")
-                appendConsoleOutput("  Label: \(stepLabel)\n")
+                // Generate a UID if not provided (the CLI's generateDICOMUID convention)
+                let workitemUIDField = paramValue("workitem-uid")
+                let uid = workitemUIDField.isEmpty ? generateDICOMUID() : workitemUIDField
+                if verbose {
+                    appendConsoleOutput("Creating worklist item from command-line options...\n")
+                    appendConsoleOutput("  UID: \(uid)\n")
+                    appendConsoleOutput("  Label: \(stepLabel)\n")
+                }
 
                 let builder = WorkitemBuilder(workitemUID: uid)
                     .setState(.scheduled)
                     .setProcedureStepLabel(stepLabel)
 
+                // Scheduled Procedure Step Priority (0074,1200), PS3.3 Table C.30.2-1; STAT → HIGH.
                 let priorityStr = paramValue("create-priority")
                 if !priorityStr.isEmpty {
                     switch priorityStr.uppercased() {
-                    case "STAT", "HIGH": builder.setPriority(.high)  // PS3.3 C.30.2: HIGH is equivalent to STAT
-
+                    case "STAT", "HIGH": builder.setPriority(.high)  // PS3.3 C.30.2: HIGH is equivalent to a STAT request
                     case "MEDIUM": builder.setPriority(.medium)
                     case "LOW": builder.setPriority(.low)
-                    default: break
+                    default:
+                        refuse("Invalid priority '\(priorityStr)'. Valid values: STAT, HIGH, MEDIUM, LOW", exitCode: 64)
+                        return
                     }
-                    appendConsoleOutput("  Priority: \(priorityStr)\n")
                 }
 
+                // Patient info
                 let patName = paramValue("create-patient-name")
-                if !patName.isEmpty {
-                    builder.setPatientName(patName)
-                    appendConsoleOutput("  Patient Name: \(patName)\n")
-                }
-
+                if !patName.isEmpty { builder.setPatientName(patName) }
                 let patID = paramValue("create-patient-id")
-                if !patID.isEmpty {
-                    builder.setPatientID(patID)
-                    appendConsoleOutput("  Patient ID: \(patID)\n")
-                }
-
+                if !patID.isEmpty { builder.setPatientID(patID) }
                 let birthDate = paramValue("create-patient-birth-date")
-                if !birthDate.isEmpty {
-                    builder.setPatientBirthDate(birthDate)
-                    appendConsoleOutput("  Patient Birth Date: \(birthDate)\n")
-                }
-
+                if !birthDate.isEmpty { builder.setPatientBirthDate(birthDate) }
                 let patSex = paramValue("create-patient-sex")
                 if !patSex.isEmpty {
-                    // Mirror the CLI's ValidationError: an invalid sex code is an
-                    // error (exit 1), never a silently dropped attribute.
                     let normalizedSex = patSex.uppercased()
                     guard ["M", "F", "O"].contains(normalizedSex) else {
-                        appendConsoleOutput("Error: Invalid patient sex '\(patSex)'. Valid values: M, F, O\n")
-                        consoleStatus = .error
-                        service.setConsoleStatus(.error)
-                        addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                     output: "Invalid --patient-sex")
+                        refuse("Invalid patient sex '\(patSex)'. Valid values: M, F, O", exitCode: 64)
                         return
                     }
                     builder.setPatientSex(normalizedSex)
-                    appendConsoleOutput("  Patient Sex: \(normalizedSex)\n")
                 }
 
+                // Study reference
+                let studyRef = paramValue("create-study-uid")
+                if !studyRef.isEmpty { builder.setStudyInstanceUID(studyRef) }
+                let accession = paramValue("create-accession")
+                if !accession.isEmpty { builder.setAccessionNumber(accession) }
+                let referring = paramValue("create-referring-physician")
+                if !referring.isEmpty { builder.setReferringPhysicianName(referring) }
+                let procID = paramValue("create-procedure-id")
+                if !procID.isEmpty { builder.setRequestedProcedureID(procID) }
+
+                // Scheduling IDs
+                let stepID = paramValue("create-step-id")
+                if !stepID.isEmpty { builder.setScheduledProcedureStepID(stepID) }
+                let wlLabel = paramValue("create-worklist-label")
+                if !wlLabel.isEmpty { builder.setWorklistLabel(wlLabel) }
+                let cmt = paramValue("create-comments")
+                if !cmt.isEmpty { builder.setComments(cmt) }
+
+                // Dates (ISO 8601 → DT); an unparseable value is the CLI's ValidationError.
                 let startStr = paramValue("create-scheduled-start")
                 if !startStr.isEmpty {
-                    // Mirror the CLI's ValidationError: an unparseable date is an
-                    // error (exit 1), never a silently dropped attribute.
                     guard let startDate = parseISO8601(startStr) else {
-                        appendConsoleOutput("Error: Invalid date format for --scheduled-start: '\(startStr)'. Use ISO 8601 (e.g. 2026-03-20T14:00:00)\n")
-                        consoleStatus = .error
-                        service.setConsoleStatus(.error)
-                        addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                     output: "Invalid --scheduled-start date")
+                        refuse(Self.upsDateRefusal(startStr, label: "--scheduled-start"), exitCode: 64)
                         return
                     }
                     builder.setScheduledStartDateTime(startDate)
-                    appendConsoleOutput("  Scheduled Start: \(startStr)\n")
                 }
-
                 let completionStr = paramValue("create-expected-completion")
                 if !completionStr.isEmpty {
-                    // Mirror the CLI's ValidationError: an unparseable date is an
-                    // error (exit 1), never a silently dropped attribute.
                     guard let completionDate = parseISO8601(completionStr) else {
-                        appendConsoleOutput("Error: Invalid date format for --expected-completion: '\(completionStr)'. Use ISO 8601 (e.g. 2026-03-20T14:00:00)\n")
-                        consoleStatus = .error
-                        service.setConsoleStatus(.error)
-                        addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                     output: "Invalid --expected-completion date")
+                        refuse(Self.upsDateRefusal(completionStr, label: "--expected-completion"), exitCode: 64)
                         return
                     }
                     builder.setExpectedCompletionDateTime(completionDate)
-                    appendConsoleOutput("  Expected Completion: \(completionStr)\n")
                 }
 
-                let studyRef = paramValue("create-study-uid")
-                if !studyRef.isEmpty {
-                    builder.setStudyInstanceUID(studyRef)
-                    appendConsoleOutput("  Study UID: \(studyRef) (→ Input Information + Referenced Request)\n")
-                }
-
-                let accession = paramValue("create-accession")
-                if !accession.isEmpty {
-                    builder.setAccessionNumber(accession)
-                    appendConsoleOutput("  Accession: \(accession)\n")
-                }
-
-                let referring = paramValue("create-referring-physician")
-                if !referring.isEmpty {
-                    builder.setReferringPhysicianName(referring)
-                    appendConsoleOutput("  Referring Physician: \(referring)\n")
-                }
-
-                let procID = paramValue("create-procedure-id")
-                if !procID.isEmpty {
-                    builder.setRequestedProcedureID(procID)
-                    appendConsoleOutput("  Procedure ID: \(procID)\n")
-                }
-
-                let stepID = paramValue("create-step-id")
-                if !stepID.isEmpty {
-                    builder.setScheduledProcedureStepID(stepID)
-                    appendConsoleOutput("  Step ID: \(stepID)\n")
-                }
-
-                let wlLabel = paramValue("create-worklist-label")
-                if !wlLabel.isEmpty {
-                    builder.setWorklistLabel(wlLabel)
-                    appendConsoleOutput("  Worklist Label: \(wlLabel)\n")
-                }
-
+                // Station (Scheduled Station Name Code Sequence (0040,4025), designator L)
                 let station = paramValue("create-station-name")
                 if !station.isEmpty {
                     builder.setScheduledStationNameCodes([
                         CodedEntry(codeValue: station, codingSchemeDesignator: "L", codeMeaning: station)
                     ])
-                    appendConsoleOutput("  Station: \(station)\n")
                 }
 
-                // A performer entry is added when either the name or the organization
-                // is set — the same either-or the CLI's createWorkitemFromOptions uses.
+                // Performer: an entry when either the name or the organization is set.
                 let performer = paramValue("create-performer")
                 let performerOrg = paramValue("create-performer-organization")
                 if !performer.isEmpty || !performerOrg.isEmpty {
@@ -7910,54 +7844,15 @@ case "dicom-study":
                             performerOrganization: performerOrg.isEmpty ? nil : performerOrg
                         )
                     )
-                    if !performer.isEmpty { appendConsoleOutput("  Performer: \(performer)\n") }
-                    if !performerOrg.isEmpty { appendConsoleOutput("  Performer Organization: \(performerOrg)\n") }
                 }
 
-                let cmt = paramValue("create-comments")
-                if !cmt.isEmpty {
-                    builder.setComments(cmt)
-                }
-
+                // Admission
                 let admissionID = paramValue("create-admission-id")
-                if !admissionID.isEmpty {
-                    builder.setAdmissionID(admissionID)
-                    appendConsoleOutput("  Admission ID: \(admissionID)\n")
-                }
-
-                appendConsoleOutput("\n")
+                if !admissionID.isEmpty { builder.setAdmissionID(admissionID) }
 
                 let workitem = try builder.build()
-
-                // Log the equivalent curl command for debugging
-                do {
-                    let createJSON = workitem.toDICOMJSONForCreate()
-                    let createURL: URL
-                    if uid.isEmpty {
-                        createURL = client.urlBuilder.workitemsURL
-                    } else {
-                        createURL = client.urlBuilder.createWorkitemURL(workitemUID: uid)
-                    }
-                    if let jsonData = try? JSONSerialization.data(
-                        withJSONObject: createJSON,
-                        options: [.prettyPrinted, .sortedKeys]
-                    ),
-                       let jsonStr = String(data: jsonData, encoding: .utf8) {
-                        let escapedJSON = jsonStr.replacingOccurrences(of: "'", with: "'\\''")
-                        appendConsoleOutput("─── curl equivalent ───\n")
-                        appendConsoleOutput("curl -X POST \\\n")
-                        appendConsoleOutput("  '\(createURL.absoluteString)' \\\n")
-                        appendConsoleOutput("  -H 'Content-Type: application/dicom+json' \\\n")
-                        appendConsoleOutput("  -H 'Accept: application/dicom+json' \\\n")
-                        appendConsoleOutput("  -d '\(escapedJSON)'\n")
-                        appendConsoleOutput("───────────────────────\n\n")
-                    }
-                }
-
                 let response = try await client.createWorkitem(workitem)
-
-                // CLI parity: the same printCreateResponse block the dicom-wado ups
-                // CLI prints, via the shared UPSConsole builder.
+                // CLI parity: the same printCreateResponse block via the shared UPSConsole builder.
                 appendConsoleOutput(UPSConsole.createResponseText(response))
                 consoleStatus = .success
                 service.setConsoleStatus(.success)
@@ -7965,394 +7860,201 @@ case "dicom-study":
                              output: "Workitem created: \(response.workitemUID)")
 
             case "change-state":
-                // DICOMweb (UPS-RS) change-state flow
-                guard !workitemUID.isEmpty else {
-                    appendConsoleOutput("Error: Workitem UID is required for change-state operation.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    return
-                }
-                let stateStr = paramValue("state")
-                // `rawState` is the DICOM CS spelling ("IN PROGRESS"/"COMPLETED"/
-                // "CANCELED") used for narration and the pre-flight state-machine
-                // check. The actual transition is driven through the SHARED
-                // DICOMwebClient helpers below; the package's DICOMWeb.UPSState is
-                // resolved CONTEXTUALLY at each call site (DICOMStudio also defines
-                // a local UPSState with different raw values, and the module exposes
-                // a `DICOMWeb` namespace enum that shadows the module name — so we
-                // deliberately never spell the type out here).
-                let rawState: String
-                switch stateStr.uppercased() {
-                case "SCHEDULED": rawState = "SCHEDULED"
-                case "COMPLETED": rawState = "COMPLETED"
-                case "CANCELED":  rawState = "CANCELED"
-                default:          rawState = "IN PROGRESS"
-                }
-
-                // Per PS3.4 CC.2 UPS State Machine:
-                //   SCHEDULED → IN PROGRESS  : client supplies a new Transaction UID
-                //   IN PROGRESS → COMPLETED  : client MUST supply the same Transaction UID
-                //   IN PROGRESS → CANCELED   : client MUST supply the same Transaction UID
-                //
-                // Per PS3.18 §11.5.2, the server NEVER returns the Transaction UID
-                // in Retrieve Workitem responses — it acts as an access lock.
-                // We cache it locally when claiming (IN PROGRESS) and auto-fill it
-                // for subsequent COMPLETED / CANCELED transitions.
-                let userTxUID = paramValue("transaction-uid")
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                var effectiveTxUID: String
-                if rawState == "IN PROGRESS" {
-                    // New transition — generate a fresh Transaction UID
-                    effectiveTxUID = userTxUID.isEmpty ? generateDICOMUID() : userTxUID
-                } else if rawState == "SCHEDULED" {
-                    // SCHEDULED — the Transaction UID is optional and NEVER
-                    // auto-generated (mirrors the CLI's default branch in
-                    // DICOMWado.updateWorkitem): pass through what the user
-                    // supplied; empty resolves to nil at the call site below.
-                    effectiveTxUID = userTxUID
-                } else {
-                    // COMPLETED / CANCELED — must reuse the Transaction UID from IN PROGRESS.
-                    // Check (in order): user-provided → cached from previous IN PROGRESS claim.
-                    let cachedTxUID = upsTransactionUIDs[workitemUID]
-                    if !userTxUID.isEmpty {
-                        effectiveTxUID = userTxUID
-                    } else if let cached = cachedTxUID, !cached.isEmpty {
-                        effectiveTxUID = cached
-                        appendConsoleOutput("  ℹ️  Using cached Transaction UID from IN PROGRESS claim\n")
-                    } else {
-                        appendConsoleOutput("Error: Transaction UID is required for \(rawState) transition.\n")
-                        appendConsoleOutput("  💡 Use the Transaction UID returned when the workitem was moved to IN PROGRESS.\n")
-                        consoleStatus = .error
-                        service.setConsoleStatus(.error)
+                // --change-state <uid> (PS3.18 11.7 Change Workitem State) or its deprecated
+                // alias --update <uid>; both at once are refused, the alias gets the CLI's note.
+                let changeState = paramValue("update-uid").isEmpty ? nil : paramValue("update-uid")
+                let update = paramValue("update-uid-deprecated").isEmpty ? nil : paramValue("update-uid-deprecated")
+                let uid: String
+                do {
+                    guard let resolved = try WorkshopWADOOptionRules.changeStateWorkitem(changeState: changeState, update: update) else {
+                        refuse("Specify an operation: --search, --get, --create, --create-workitem, --change-state, --subscribe, or --unsubscribe", exitCode: 64)
                         return
                     }
+                    uid = resolved
+                } catch let e as WorkshopWADOOptionRules.Refusal {
+                    refuse(e.message, exitCode: e.exitCode)
+                    return
+                }
+                if changeState == nil {
+                    appendConsoleOutput(WorkshopWADOOptionRules.updateDeprecationNote + "\n")
+                }
+                let stateString = paramValue("state")
+                guard !stateString.isEmpty else {
+                    refuse("--state is required for --change-state", exitCode: 64)
+                    return
+                }
+                // Procedure Step State (0074,1000), PS3.3 Table C.30.1-1; "IN PROGRESS" and
+                // IN_PROGRESS both accepted. SCHEDULED is refused: PS3.18 2026a 11.7.1.4,
+                // PS3.4 2026a Table CC.1.1-2 (C303H) — P-WADO-UPS-STATE.
+                let newState: String
+                do {
+                    newState = try WorkshopWADOOptionRules.changeStateTarget(stateString)
+                } catch let e as WorkshopWADOOptionRules.Refusal {
+                    refuse(e.message, exitCode: e.exitCode)
+                    return
                 }
 
-                // Per PS3.18 §11.6 the Requesting AE may be appended as the last
-                // path segment of the state URL.  Some servers (e.g. dcm4chee-arc)
-                // **require** this segment; without it the route returns 404.
-                // Use the "Requesting AE" field (change-state-aet, previewed as
-                // --aet) — falling back to "DCM4CHEE", the AE that owns the UPS
-                // instance on a default dcm4chee-arc.
-                let requestingAEValue = paramValue("change-state-aet")
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                let requestingAE = requestingAEValue.isEmpty ? "DCM4CHEE" : requestingAEValue
+                // Transaction UID (0008,1195), PS3.18 11.7.1.4: generated for IN PROGRESS
+                // (and cached, since the server never returns it, 11.5.2); required for
+                // COMPLETED / CANCELED — the cache from the in-app claim stands in for the
+                // value the CLI user has to pass back; otherwise the CLI's refusal.
+                let userTxUID = paramValue("transaction-uid").trimmingCharacters(in: .whitespacesAndNewlines)
+                let effectiveTxUID: String?
+                switch newState {
+                case "IN PROGRESS":
+                    effectiveTxUID = userTxUID.isEmpty ? generateDICOMUID() : userTxUID
+                case "COMPLETED", "CANCELED":
+                    if !userTxUID.isEmpty {
+                        effectiveTxUID = userTxUID
+                    } else if let cached = upsTransactionUIDs[uid], !cached.isEmpty {
+                        effectiveTxUID = cached
+                    } else {
+                        refuse("--transaction-uid is required for \(newState) transition (use the UID returned from IN_PROGRESS)", exitCode: 64)
+                        return
+                    }
+                default:
+                    effectiveTxUID = userTxUID.isEmpty ? nil : userTxUID
+                }
 
-                // CLI parity: the CLI's --verbose header (the Workshop panel is
-                // always verbose), via the shared UPSConsole builder.
-                appendConsoleOutput(UPSConsole.updateVerboseHeader(
-                    uid: workitemUID, stateRaw: rawState,
-                    requestingAE: requestingAE,
-                    transactionUID: effectiveTxUID.isEmpty ? nil : effectiveTxUID))
+                // PS3.18 11.7.1.2 (Table 11.7.2.1-1) carries the requesting AE in the `requester`
+                // query parameter; DICOMwebClient sends it as the last path segment of the state
+                // URL instead, which DCM4CHEE requires (without it the route returns 404).
+                let requestingAEValue = paramValue("change-state-aet").trimmingCharacters(in: .whitespacesAndNewlines)
+                let requestingAE: String? = requestingAEValue.isEmpty ? nil : requestingAEValue
 
-                // Per PS3.18 §11.6, the Transaction UID for the state
-                // change goes in the REQUEST BODY only (not the URL).
-                // The URL query parameter ?00081195 belongs only to the
-                // Update Workitem endpoint (§11.5).
-                let stateURL = client.urlBuilder.workitemStateURL(
-                    workitemUID: workitemUID,
-                    requestingAE: requestingAE)
-                appendConsoleOutput("  URL: \(stateURL.absoluteString)\n")
+                if verbose {
+                    appendConsoleOutput(UPSConsole.updateVerboseHeader(
+                        uid: uid, stateRaw: newState,
+                        requestingAE: requestingAE, transactionUID: effectiveTxUID))
+                }
 
-                // Pre-flight: retrieve the workitem to verify current state.
-                // NOTE: Per PS3.18 §11.5.2, the server NEVER returns Transaction
-                // UID (0008,1195) — it acts as an access lock known only to the
-                // owner.  We rely on our local cache instead.
-                do {
-                    let currentAttrs = try await client.retrieveWorkitem(uid: workitemUID)
-                    if let stateElem = currentAttrs[UPSTag.procedureStepState] as? [String: Any],
-                       let vals = stateElem["Value"] as? [String],
-                       let currentRaw = vals.first {
-                        appendConsoleOutput("  Current state:   \(currentRaw)\n")
+                // completeWorkitem() (COMPLETED: Final State attributes, PS3.4 Table CC.2.5-3,
+                // then the Change State) and changeWorkitemState() are the SAME shared
+                // DICOMwebClient helpers the CLI calls.
+                // (`.canceled` / `.inProgress` resolve to DICOMWeb.UPSState through the
+                // `state:` parameter; DICOMStudio shadows that type name.)
+                let response: UPSStateChangeResponse
+                if newState == "COMPLETED", let txUID = effectiveTxUID {
+                    if verbose { appendConsoleOutput(UPSConsole.finalStateUpdatingLine()) }
+                    response = try await client.completeWorkitem(uid: uid, transactionUID: txUID, requestingAE: requestingAE)
+                    if verbose { appendConsoleOutput(UPSConsole.finalStateUpdatedLine()) }
+                } else if newState == "CANCELED" {
+                    response = try await client.changeWorkitemState(
+                        uid: uid, state: .canceled, transactionUID: effectiveTxUID, requestingAE: requestingAE)
+                } else {
+                    response = try await client.changeWorkitemState(
+                        uid: uid, state: .inProgress, transactionUID: effectiveTxUID, requestingAE: requestingAE)
+                }
 
-                        // Validate transition using the DICOM PS3.4 CC.1.1 state machine.
-                        // SCHEDULED is never a valid *transition* target (it is the
-                        // N-CREATE initial state), but the CLI submits the request and
-                        // reports the server's verdict — do the same here rather than
-                        // hard-blocking client-side.
-                        let validTargets: [String]
-                        switch currentRaw {
-                        case "SCHEDULED":   validTargets = ["IN PROGRESS"]
-                        case "IN PROGRESS": validTargets = ["COMPLETED", "CANCELED"]
-                        default:            validTargets = []
+                // Silent bookkeeping: remember the IN PROGRESS Transaction UID for the
+                // in-app COMPLETED / CANCELED follow-up; drop it on a terminal state.
+                if newState == "IN PROGRESS" {
+                    upsTransactionUIDs[uid] = response.transactionUID ?? effectiveTxUID
+                } else {
+                    upsTransactionUIDs.removeValue(forKey: uid)
+                }
+
+                appendConsoleOutput(UPSConsole.updateResultText(
+                    uid: uid, stateRaw: newState,
+                    transactionUID: response.transactionUID, warnings: response.warnings))
+                consoleStatus = .success
+                service.setConsoleStatus(.success)
+                addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 0,
+                             output: "State changed to \(newState)")
+
+            case "subscribe", "unsubscribe":
+                let aeTitle = paramValue("subscribe-aet")
+                guard !aeTitle.isEmpty else {
+                    refuse(operation == "subscribe" ? "--aet is required for subscribe operations"
+                                                    : "--aet is required for unsubscribe operations", exitCode: 64)
+                    return
+                }
+                // Without --workitem-uid the CLI subscribes to / unsubscribes from the
+                // Worklist (global subscription, PS3.18 11.10 / 11.11).
+                let workitemUID: String? = paramValue("workitem-uid").isEmpty ? nil : paramValue("workitem-uid")
+                if operation == "subscribe" {
+                    if verbose {
+                        if let workitemUID {
+                            appendConsoleOutput("Subscribing to workitem \(workitemUID) as \(aeTitle) ...\n")
+                        } else {
+                            appendConsoleOutput("Subscribing globally as \(aeTitle) ...\n")
                         }
-                        if rawState != "SCHEDULED", !validTargets.contains(rawState) {
-                            appendConsoleOutput("\n❌ Invalid state transition: \(currentRaw) → \(rawState)\n")
-                            if currentRaw == "COMPLETED" || currentRaw == "CANCELED" {
-                                appendConsoleOutput("  💡 The workitem is in a final state and cannot be changed.\n")
-                            } else {
-                                appendConsoleOutput("  💡 The workitem must be in \(rawState == "IN PROGRESS" ? "SCHEDULED" : "IN PROGRESS") state.\n")
+                    }
+                    try await client.subscribeToWorkitem(workitemUID: workitemUID, aeTitle: aeTitle)
+                    if let workitemUID {
+                        appendConsoleOutput("Subscription created for workitem \(workitemUID)\n")
+                        if verbose {
+                            appendConsoleOutput("\nFetching workitem details...\n")
+                            do {
+                                let result = try await client.retrieveWorkitemResult(uid: workitemUID)
+                                appendConsoleOutput("  Workitem UID:   \(result.workitemUID)\n")
+                                if let label = result.procedureStepLabel { appendConsoleOutput("  Procedure:      \(label)\n") }
+                                if let state = result.state { appendConsoleOutput("  State:          \(state.rawValue)\n") }
+                                if let priority = result.priority { appendConsoleOutput("  Priority:       \(priority.rawValue)\n") }
+                                if let name = result.patientName { appendConsoleOutput("  Patient Name:   \(name)\n") }
+                                if let pid = result.patientID { appendConsoleOutput("  Patient ID:     \(pid)\n") }
+                                if let scheduled = result.scheduledStartDateTime { appendConsoleOutput("  Scheduled:      \(scheduled)\n") }
+                            } catch {
+                                appendConsoleOutput("  (Could not fetch workitem details: \(error.localizedDescription))\n")
                             }
-                            consoleStatus = .error
-                            service.setConsoleStatus(.error)
-                            addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                         output: "Invalid transition \(currentRaw) → \(rawState)")
-                            return
                         }
                     } else {
-                        appendConsoleOutput("  ⚠️  Could not read current state from server\n")
+                        appendConsoleOutput("Global subscription created for AE \(aeTitle)\n")
                     }
-                    appendConsoleOutput("\n")
-                } catch {
-                    // Pre-flight check is best-effort; proceed with the state
-                    // change even if it fails.
-                    appendConsoleOutput("  ⚠️  Pre-flight check failed: \(error.localizedDescription)\n\n")
+                } else {
+                    if verbose {
+                        if let workitemUID {
+                            appendConsoleOutput("Unsubscribing from workitem \(workitemUID) as \(aeTitle) ...\n")
+                        } else {
+                            appendConsoleOutput("Unsubscribing globally as \(aeTitle) ...\n")
+                        }
+                    }
+                    try await client.unsubscribeFromWorkitem(workitemUID: workitemUID, aeTitle: aeTitle)
+                    if let workitemUID {
+                        appendConsoleOutput("Unsubscribed from workitem \(workitemUID)\n")
+                    } else {
+                        appendConsoleOutput("Global subscription removed for AE \(aeTitle)\n")
+                    }
                 }
-
-                // ── Perform the state change through the SHARED DICOMwebClient ──
-                // completeWorkitem() (COMPLETED) and changeWorkitemState()
-                // (IN PROGRESS / CANCELED) are the SAME single source of truth
-                // the dicom-wado ups CLI calls (see DICOMWado.updateWorkitem).
-                // The request payload — including the Final State attributes
-                // (Performed Procedure Sequence) PS3.4 CC.2.5-3 requires before
-                // COMPLETED — is built in exactly ONE place inside the package,
-                // so the app and the CLI cannot drift.
-                do {
-                    let response: UPSStateChangeResponse
-                    switch rawState {
-                    case "COMPLETED":
-                        // completeWorkitem first sends the minimal Final State
-                        // Update Workitem (PS3.18 §11.5) the SCP requires, then
-                        // performs the Change State to COMPLETED (§11.6).
-                        appendConsoleOutput("📝 Populating Final State attributes, then completing ...\n")
-                        appendConsoleOutput("   (Performed Procedure Sequence required by PS3.4 CC.2.5-3 before COMPLETED)\n")
-                        response = try await client.completeWorkitem(
-                            uid: workitemUID,
-                            transactionUID: effectiveTxUID,
-                            requestingAE: requestingAE)
-                    case "CANCELED":
-                        // `.canceled` resolves to DICOMWeb.UPSState via the `state:` parameter.
-                        response = try await client.changeWorkitemState(
-                            uid: workitemUID,
-                            state: .canceled,
-                            transactionUID: effectiveTxUID,
-                            requestingAE: requestingAE)
-                    case "SCHEDULED":
-                        // Real SCHEDULED transition, mirroring the CLI
-                        // (DICOMWado.updateWorkitem) — the Transaction UID is
-                        // optional here, so an empty field resolves to nil.
-                        response = try await client.changeWorkitemState(
-                            uid: workitemUID,
-                            state: .scheduled,
-                            transactionUID: effectiveTxUID.isEmpty ? nil : effectiveTxUID,
-                            requestingAE: requestingAE)
-                    default: // IN PROGRESS
-                        response = try await client.changeWorkitemState(
-                            uid: workitemUID,
-                            state: .inProgress,
-                            transactionUID: effectiveTxUID,
-                            requestingAE: requestingAE)
-                    }
-
-                    // Cache / clear the Transaction UID for this workitem (silent
-                    // bookkeeping — COMPLETED/CANCELED auto-fill from this cache).
-                    // Prefer the Transaction UID the server returned on the
-                    // IN PROGRESS response; fall back to the one we supplied.
-                    let resolvedTxUID = response.transactionUID ?? effectiveTxUID
-                    if rawState == "IN PROGRESS" {
-                        upsTransactionUIDs[workitemUID] = resolvedTxUID
-                    } else if rawState != "SCHEDULED" {
-                        // Terminal state — drop the cached TX UID.
-                        upsTransactionUIDs.removeValue(forKey: workitemUID)
-                    }
-
-                    // CLI parity: the CLI's change-state result block via the shared
-                    // UPSConsole builder (success line, transaction UID, warnings).
-                    appendConsoleOutput(UPSConsole.updateResultText(
-                        uid: workitemUID, stateRaw: rawState,
-                        transactionUID: resolvedTxUID.isEmpty ? nil : resolvedTxUID,
-                        warnings: response.warnings))
-                } catch let error as DICOMwebError {
-                    appendConsoleOutput("\n")
-                    switch error {
-                    case .conflict(let message):
-                        appendConsoleOutput("❌ State change failed (HTTP 409)\n")
-                        if let msg = message, !msg.isEmpty {
-                            appendConsoleOutput("  Server message: \(msg)\n")
-                        }
-                        appendConsoleOutput("  💡 State transition conflict — check:\n")
-                        appendConsoleOutput("     • Current state allows transition to \(rawState)?\n")
-                        appendConsoleOutput("     • Transaction UID matches the one from IN PROGRESS?\n")
-                        appendConsoleOutput("     • Workitem is not locked by another performer?\n")
-                        if rawState == "COMPLETED" {
-                            appendConsoleOutput("     • Final State attributes (Performed Procedure Sequence) are populated?\n")
-                        }
-                    case .notFound:
-                        appendConsoleOutput("❌ State change failed (HTTP 404)\n")
-                        appendConsoleOutput("  💡 Workitem \(workitemUID) not found on the server.\n")
-                    case .badRequest(let message):
-                        appendConsoleOutput("❌ State change failed (HTTP 400)\n")
-                        if let msg = message, !msg.isEmpty {
-                            appendConsoleOutput("  Server message: \(msg)\n")
-                        }
-                    default:
-                        appendConsoleOutput("❌ State change failed: \(error.localizedDescription)\n")
-                    }
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                 output: "State change to \(rawState) failed")
-                    return
-                } catch let error as UPSError {
-                    // CustomStringConvertible — interpolate directly for a readable message.
-                    appendConsoleOutput("\n❌ State change failed: \(error)\n")
-                    if case .transactionUIDMismatch = error {
-                        appendConsoleOutput("  💡 The Transaction UID must match the one returned when the workitem moved to IN PROGRESS.\n")
-                    }
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                 output: "State change to \(rawState) failed")
-                    return
-                }
-
                 consoleStatus = .success
                 service.setConsoleStatus(.success)
                 addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 0,
-                             output: "State changed to \(rawState)")
-
-            case "subscribe":
-                guard !workitemUID.isEmpty else {
-                    appendConsoleOutput("Error: Workitem UID is required for subscribe operation.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    return
-                }
-                // Honor the --aet field the command preview shows (defaults to
-                // DICOM_STUDIO, the AE the in-app Event Monitor listens as).
-                // subscribe and unsubscribe MUST read the same source so the
-                // round-trip targets one subscription.
-                let subscribeAET = paramValue("subscribe-aet").isEmpty ? "DICOM_STUDIO" : paramValue("subscribe-aet")
-                appendConsoleOutput("Subscribing to workitem \(workitemUID) as \(subscribeAET) ...\n")
-                try await client.subscribeToWorkitem(
-                    workitemUID: workitemUID,
-                    aeTitle: subscribeAET
-                )
-                appendConsoleOutput("✅ Subscription created\n")
-
-                // Fetch and display workitem details for context
-                appendConsoleOutput("\nFetching workitem details...\n")
-                do {
-                    let result = try await client.retrieveWorkitemResult(uid: workitemUID)
-                    appendConsoleOutput("  Workitem UID:   \(result.workitemUID)\n")
-                    if let label = result.procedureStepLabel {
-                        appendConsoleOutput("  Procedure:      \(label)\n")
-                    }
-                    if let state = result.state {
-                        appendConsoleOutput("  State:          \(state.rawValue)\n")
-                    }
-                    if let priority = result.priority {
-                        appendConsoleOutput("  Priority:       \(priority.rawValue)\n")
-                    }
-                    if let name = result.patientName {
-                        appendConsoleOutput("  Patient Name:   \(name)\n")
-                    }
-                    if let pid = result.patientID {
-                        appendConsoleOutput("  Patient ID:     \(pid)\n")
-                    }
-                    if let accession = result.accessionNumber {
-                        appendConsoleOutput("  Accession:      \(accession)\n")
-                    }
-                    if let scheduled = result.scheduledStartDateTime {
-                        appendConsoleOutput("  Scheduled:      \(scheduled)\n")
-                    }
-                    if let pct = result.progressPercentage {
-                        appendConsoleOutput("  Progress:       \(pct)%\n")
-                    }
-                    if let desc = result.progressDescription {
-                        appendConsoleOutput("  Progress Desc:  \(desc)\n")
-                    }
-                    appendConsoleOutput("\n")
-                } catch {
-                    appendConsoleOutput("  (Could not fetch workitem details: \(error.localizedDescription))\n\n")
-                }
-
-                appendConsoleOutput("📡 Events for this workitem will appear in the DICOMweb Event Monitor.\n")
-                appendConsoleOutput("   Navigate to DICOMweb → UPS → Event Monitor to view live events.\n")
-
-                consoleStatus = .success
-                service.setConsoleStatus(.success)
-                addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 0,
-                             output: "Subscribed to \(workitemUID)")
-
-            case "unsubscribe":
-                guard !workitemUID.isEmpty else {
-                    appendConsoleOutput("Error: Workitem UID is required for unsubscribe operation.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    return
-                }
-                // Route through the SHARED DICOMwebClient.unsubscribeFromWorkitem()
-                // the dicom-wado ups CLI uses. Read the same --aet field the
-                // subscribe case uses (default DICOM_STUDIO) so the unsubscribe
-                // targets the subscription the app created.
-                let unsubscribeAET = paramValue("subscribe-aet").isEmpty ? "DICOM_STUDIO" : paramValue("subscribe-aet")
-                appendConsoleOutput("Unsubscribing from workitem \(workitemUID) as \(unsubscribeAET) ...\n")
-                try await client.unsubscribeFromWorkitem(
-                    workitemUID: workitemUID,
-                    aeTitle: unsubscribeAET
-                )
-                appendConsoleOutput("✅ Unsubscribed from workitem \(workitemUID)\n")
-                appendConsoleOutput("   No further events for this workitem will be delivered to the Event Monitor.\n")
-
-                consoleStatus = .success
-                service.setConsoleStatus(.success)
-                addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 0,
-                             output: "Unsubscribed from \(workitemUID)")
+                             output: operation == "subscribe" ? "Subscribed" : "Unsubscribed")
 
             default: // search
                 // Build the query via the SHARED UPSQuery.workitemSearch builder (DICOMWeb) —
-                // the SAME single source of truth the dicom-wado ups CLI and the CLI-parity
-                // reference call, so all three issue an IDENTICAL UPS-RS query. Only the two
-                // real CLI search flags (--filter-state / --scheduled-station) feed it; the app
-                // adds no extra filters, no limit, and no includefield (the CLI sets none).
+                // the SAME single source of truth the dicom-wado ups CLI calls; only the two
+                // real CLI search flags (--filter-state / --scheduled-station) feed it.
                 let query: UPSQuery
                 do {
-                    query = try UPSQuery.workitemSearch(filterState: paramValue("filter-state"),
-                                                        scheduledStation: paramValue("scheduled-station"))
-                } catch {
-                    appendConsoleOutput("Error: \(error)\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                                 output: "\(error)")
+                    query = try UPSQuery.workitemSearch(
+                        filterState: paramValue("filter-state").isEmpty ? nil : paramValue("filter-state"),
+                        scheduledStation: paramValue("scheduled-station").isEmpty ? nil : paramValue("scheduled-station"))
+                } catch let error as UPSSearchFilterError {
+                    refuse(error.description, exitCode: 64)
                     return
                 }
-
-                // Log the outgoing query
-                let searchURL = client.urlBuilder.searchWorkitemsURL(parameters: query.toParameters())
-                appendConsoleOutput("Query URL: \(searchURL.absoluteString)\n")
-                if !query.toParameters().isEmpty {
-                    appendConsoleOutput("Filters:\n")
-                    for (key, value) in query.toParameters().sorted(by: { $0.key < $1.key }) {
-                        appendConsoleOutput("  \(key) = \(value)\n")
-                    }
-                }
-                appendConsoleOutput("\n")
-
+                if verbose { appendConsoleOutput("Searching worklist items...\n") }
                 let results = try await client.searchWorkitems(query: query)
-                let count = results.workitems.count
-                appendConsoleOutput("✅ UPS-RS returned \(count) workitem(s)\n\n")
-                // Render the matched workitems through the SHARED UPSResultFormatter — the SAME
-                // table/json/csv renderer the dicom-wado ups CLI uses — so the app and CLI
-                // output pipelines cannot drift (mirrors QIDOResultFormatter for the query
-                // subcommand).
-                let fmt = UPSOutputFormat(rawValue: paramValue("output-format").lowercased()) ?? .table
+                // Render through the SHARED UPSResultFormatter — the same table / json / csv /
+                // dicom-json renderer the CLI uses.
                 appendConsoleOutput(UPSResultFormatter().format(results.workitems, format: fmt))
+                if verbose { appendConsoleOutput("\nFound \(results.workitems.count) worklist item(s)\n") }
                 consoleStatus = .success
                 service.setConsoleStatus(.success)
                 addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 0,
-                             output: "\(count) workitems returned")
+                             output: "\(results.workitems.count) workitems returned")
             }
         } catch {
-            appendConsoleOutput("❌ UPS-RS \(operation) failed\n")
-            appendConsoleOutput("  Error: \(error.localizedDescription)\n")
-            appendConsoleOutput("\n  💡 Hint: Verify the Base URL is correct and the server supports UPS-RS.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 1,
-                         output: error.localizedDescription)
+            // ArgumentParser prints a thrown error as `Error: <description>` and exits 1.
+            refuse((error as? CustomStringConvertible)?.description ?? error.localizedDescription, exitCode: 1)
         }
+    }
+
+    /// dicom-wado's parseISO8601Date ValidationError text for an unparseable --scheduled-start /
+    /// --expected-completion value.
+    nonisolated static func upsDateRefusal(_ value: String, label: String) -> String {
+        "Invalid date format for \(label): '\(value)'. Use ISO 8601 (e.g. 2026-03-20T14:00:00)"
     }
 
     /// Generates a DICOM UID for workitem creation.
@@ -11542,5 +11244,185 @@ enum WorkshopFileSetRules {
             }
         }
         return out
+    }
+}
+
+// MARK: - dicom-wado option rules (PS3.18 2026a Section 9, 8.3.4.4, 11.7.1.4; PS3.3 Table C.30.1-1)
+
+/// The Workshop's copy of dicom-wado's CLI-local `WADOOptionRules` (Sources/dicom-wado/
+/// WADOOptionRules.swift): every text is identical, checked by Scripts/diff_studio_g1.py.
+/// A `Refusal` carries the CLI's exit code — 64 for a ValidationError (usage), 1 for a
+/// WADORefusal (an option value the standard refuses).
+enum WorkshopWADOOptionRules {
+
+    struct Refusal: Error, CustomStringConvertible, Equatable {
+        let message: String
+        let exitCode: Int
+        var description: String { message }
+    }
+
+    // MARK: - WADO-URI (PS3.18 Section 9)
+
+    /// The `--content-type` values the URI service accepts and `WADOURIClient` carries:
+    /// application/dicom (Retrieve DICOM Instance, 9.4) or a Rendered Media Type of
+    /// Table 8.7.4-1 (Retrieve Rendered Instance, 9.5), per 9.1.2.2.1.
+    static let uriContentTypes = WADOURIClient.MediaType.allowed.map(\.rawValue)
+
+    /// Maps `--content-type` to the request representation. An absent value is the
+    /// WADO-URI default, application/dicom. A value 9.1.2.2.1 does not allow is
+    /// rejected rather than silently fetched as application/dicom.
+    static func uriContentType(_ raw: String?) throws -> WADOURIClient.MediaType {
+        guard let raw = raw?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else { return .dicom }
+        guard let mapped = WADOURIClient.MediaType.fromRequestString(raw) else {
+            throw Refusal(message:
+                "--content-type '\(raw)' cannot be requested over WADO-URI. Use one of: "
+                + uriContentTypes.joined(separator: ", ")
+                + " (PS3.18 9.1.2.2.1: application/dicom or a Rendered Media Type of Table 8.7.4-1)", exitCode: 64)
+        }
+        return mapped
+    }
+
+    /// `annotation` / `imageAnnotation` (PS3.18 9.4.1.2.2): a comma-separated list of
+    /// "patient" and/or "technique" (a server may support more; those pass through).
+    static func uriAnnotation(_ raw: String?) -> [String] {
+        guard let raw else { return [] }
+        return raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    }
+
+    /// `region` (PS3.18 9.5.1.2.5): `xmin,ymin,xmax,ymax`, four decimals.
+    static func uriRegion(_ raw: String?) throws -> WADOURIClient.Region? {
+        guard let raw else { return nil }
+        guard let region = WADOURIClient.Region(raw) else {
+            throw Refusal(message: "--region takes xmin,ymin,xmax,ymax, four decimal numbers (PS3.18 9.5.1.2.5); got '\(raw)'", exitCode: 64)
+        }
+        return region
+    }
+
+    /// `frameNumber` (PS3.18 9.5.1.2.1) names a single Frame and is a positive integer.
+    /// Returns the frame to send and how many further list entries were not sent.
+    static func uriFrameNumber(_ raw: String?) throws -> (frame: Int, notSent: Int)? {
+        guard let raw = raw else { return nil }
+        let items = raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard let first = items.first, let frame = Int(first), frame >= 1 else {
+            throw Refusal(message:
+                "--frames with --uri takes a positive frame number (PS3.18 9.5.1.2.1: frameNumber "
+                + "is a single positive integer, starting at 1); got '\(raw)'", exitCode: 64)
+        }
+        return (frame, items.count - 1)
+    }
+
+    /// Warnings for parameters sent with a representation whose transaction does not
+    /// define them: Table 9.4.1-1 (application/dicom) has anonymize, annotation and
+    /// transferSyntax; Table 9.5.1-1 (rendered) has frameNumber, rows, columns and others.
+    static func uriParameterWarnings(contentType: WADOURIClient.MediaType, frame: Int?,
+                                     rows: Int?, columns: Int?,
+                                     transferSyntax: String?, anonymize: Bool,
+                                     otherRendered: [String] = []) -> [String] {
+        var out: [String] = []
+        if contentType == .dicom {
+            var rendered: [String] = []
+            if frame != nil { rendered.append("frameNumber (--frames)") }
+            if rows != nil { rendered.append("rows (--rows)") }
+            if columns != nil { rendered.append("columns (--columns)") }
+            rendered += otherRendered
+            if !rendered.isEmpty {
+                out.append("\(rendered.joined(separator: ", ")) \(rendered.count == 1 ? "is a" : "are") "
+                    + "Retrieve Rendered Instance parameter\(rendered.count == 1 ? "" : "s") (PS3.18 Table 9.5.1-1), "
+                    + "not defined for application/dicom (Table 9.4.1-1); the server may ignore "
+                    + "\(rendered.count == 1 ? "it" : "them")")
+            }
+        } else {
+            var dicomOnly: [String] = []
+            if transferSyntax != nil { dicomOnly.append("transferSyntax (--transfer-syntax)") }
+            if anonymize { dicomOnly.append("anonymize (--anonymize)") }
+            if !dicomOnly.isEmpty {
+                out.append("\(dicomOnly.joined(separator: ", ")) \(dicomOnly.count == 1 ? "is a" : "are") "
+                    + "Retrieve DICOM Instance parameter\(dicomOnly.count == 1 ? "" : "s") (PS3.18 Table 9.4.1-1), "
+                    + "not defined for \(contentType.rawValue) (Table 9.5.1-1); the server may ignore "
+                    + "\(dicomOnly.count == 1 ? "it" : "them")")
+            }
+        }
+        return out
+    }
+
+    // MARK: - QIDO-RS (PS3.18 8.3.4.4)
+
+    /// `limit` and `offset` are uint (PS3.18 Table 8.3.4-1, 8.3.4.4): the CLI's
+    /// validatePaging ValidationError text, or nil.
+    static func pagingProblem(limit: Int, offset: Int) -> String? {
+        if limit < 0 {
+            return "--limit must be 0 or more (PS3.18 8.3.4.4: limit is an unsigned integer)"
+        }
+        if offset < 0 {
+            return "--offset must be 0 or more (PS3.18 8.3.4.4: offset is an unsigned integer)"
+        }
+        return nil
+    }
+
+    // MARK: - UPS-RS
+
+    /// Procedure Step State (0074,1000), PS3.3 Table C.30.1-1 Enumerated Values. The
+    /// standard spelling "IN PROGRESS" and the CLI spellings IN_PROGRESS / INPROGRESS
+    /// are accepted (case-insensitive).
+    /// (DICOMStudio shadows DICOMWeb.UPSState, so the state is carried as its PS3.3 Table
+    /// C.30.1-1 word — the enum's rawValue — and resolved contextually at the client call.)
+    static func upsState(_ raw: String) -> String? {
+        switch raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "_", with: " ") {
+        case "SCHEDULED":                  return "SCHEDULED"
+        case "IN PROGRESS", "INPROGRESS":  return "IN PROGRESS"
+        case "COMPLETED":                  return "COMPLETED"
+        case "CANCELED":                   return "CANCELED"
+        default:                           return nil
+        }
+    }
+
+    /// The Procedure Step State values a Change State request may carry
+    /// (PS3.18 11.7.1.4: "IN PROGRESS", "COMPLETED", or "CANCELED").
+    static let changeStateTargets: [String] = ["IN PROGRESS", "COMPLETED", "CANCELED"]
+
+    /// The Procedure Step State a Change Workitem State request (`--change-state`, or the
+    /// deprecated `--update`) sends. PS3.18 2026a 11.7.1.4 allows only "IN PROGRESS",
+    /// "COMPLETED" or "CANCELED"; PS3.4 2026a Table CC.1.1-2 answers a change to SCHEDULED
+    /// with C303H (or C307H). SCHEDULED and unknown values are refused (exit 1).
+    static func changeStateTarget(_ raw: String) throws -> String {
+        guard let state = upsState(raw) else {
+            throw Refusal(message: "Invalid state: \(raw). Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, "
+                + "CANCELED (PS3.18 2026a 11.7.1.4)", exitCode: 1)
+        }
+        guard changeStateTargets.contains(state) else {
+            throw Refusal(message: "\(state) is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+                + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+                + "to SCHEDULED (C303H)", exitCode: 1)
+        }
+        return state
+    }
+
+    /// The workitem whose state `ups` changes: `--change-state <uid>` (canonical, PS3.18
+    /// 11.7 Change Workitem State) or the deprecated alias `--update <uid>`. Both → refused.
+    static func changeStateWorkitem(changeState: String?, update: String?) throws -> String? {
+        if changeState != nil && update != nil {
+            throw Refusal(message: "--change-state and --update are the same operation (PS3.18 2026a 11.7 "
+                + "Change Workitem State); --update is a deprecated alias. Use --change-state only", exitCode: 1)
+        }
+        return changeState ?? update
+    }
+
+    /// Stderr note printed when the deprecated `--update` is used.
+    static let updateDeprecationNote =
+        "Note: --update is deprecated; use --change-state (it performs Change Workitem State, "
+        + "PS3.18 2026a 11.7, not Update Workitem, 11.6)"
+
+    // MARK: - Plumbing
+
+    /// `--timeout` drives the per-request timeout (URLSession timeoutIntervalForRequest,
+    /// i.e. `readTimeout`); the whole-resource timeout is never shorter than it.
+    static func timeouts(seconds: Int) -> DICOMwebConfiguration.TimeoutConfiguration {
+        let t = TimeInterval(max(1, seconds))
+        let defaults = DICOMwebConfiguration.TimeoutConfiguration.default
+        return DICOMwebConfiguration.TimeoutConfiguration(
+            connectTimeout: t,
+            readTimeout: t,
+            resourceTimeout: max(defaults.resourceTimeout, t),
+            operationTimeout: max(defaults.operationTimeout, t))
     }
 }

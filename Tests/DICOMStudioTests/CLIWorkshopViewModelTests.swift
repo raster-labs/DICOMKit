@@ -9,6 +9,7 @@ import Foundation
 import DICOMKit
 import DICOMCore
 import DICOMNetwork
+import DICOMWeb
 
 @Suite("CLI Workshop ViewModel Tests")
 @MainActor
@@ -694,5 +695,66 @@ struct CLIWorkshopViewModelTests {
                 + DIMSEServiceStatusText.describe(.from(0x0107), service: .mppsNSet)
                 + " — attributes may have been coerced or dropped\n")
         #expect(VM.mppsWarningLine(.from(0x0107), operation: "N-CREATE").contains(DIMSEServiceStatusText.describe(.from(0x0107), service: .dimseN)))
+    }
+
+    @Test("dicom-wado ups --state: IN PROGRESS / COMPLETED / CANCELED are Change State targets (PS3.18 11.7.1.4); SCHEDULED is refused with the CLI's text (PS3.4 Table CC.1.1-2, C303H), exit 1")
+    func upsChangeStateRefusal() throws {
+        typealias Rules = WorkshopWADOOptionRules
+        #expect(try Rules.changeStateTarget("IN PROGRESS") == "IN PROGRESS")
+        #expect(try Rules.changeStateTarget("in_progress") == "IN PROGRESS")
+        #expect(try Rules.changeStateTarget("completed") == "COMPLETED")
+        #expect(try Rules.changeStateTarget("CANCELED") == "CANCELED")
+        #expect(Rules.changeStateTargets == ["IN PROGRESS", "COMPLETED", "CANCELED"])
+        #expect(Rules.upsState("SCHEDULED") == "SCHEDULED")
+        do {
+            _ = try Rules.changeStateTarget("SCHEDULED")
+            Issue.record("SCHEDULED must be refused")
+        } catch let e as Rules.Refusal {
+            #expect(e.exitCode == 1)
+            #expect(e.message == "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+                    + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+                    + "to SCHEDULED (C303H)")
+        }
+        do {
+            _ = try Rules.changeStateTarget("DONE")
+            Issue.record("an unknown state must be refused")
+        } catch let e as Rules.Refusal {
+            #expect(e.message == "Invalid state: DONE. Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, CANCELED (PS3.18 2026a 11.7.1.4)")
+        }
+        // --change-state / --update: one or the other (deprecated alias), never both.
+        #expect(try Rules.changeStateWorkitem(changeState: "1.2", update: nil) == "1.2")
+        #expect(try Rules.changeStateWorkitem(changeState: nil, update: "1.2") == "1.2")
+        #expect(try Rules.changeStateWorkitem(changeState: nil, update: nil) == nil)
+        #expect(throws: Rules.Refusal.self) { try Rules.changeStateWorkitem(changeState: "1", update: "2") }
+        #expect(Rules.updateDeprecationNote.hasPrefix("Note: --update is deprecated; use --change-state"))
+    }
+
+    @Test("dicom-wado retrieve --uri rules: contentType per PS3.18 9.1.2.2.1 / Table 8.7.4-1, frameNumber a positive integer (9.5.1.2.1), limit / offset unsigned (8.3.4.4) — the CLI's texts")
+    func wadoURIRules() throws {
+        typealias Rules = WorkshopWADOOptionRules
+        #expect(try Rules.uriContentType(nil) == .dicom)
+        #expect(try Rules.uriContentType("") == .dicom)
+        #expect(try Rules.uriContentType("image/jpeg") == .jpeg)
+        #expect(try Rules.uriContentType("pdf") == .pdf)
+        #expect(Rules.uriContentTypes.count == 15)                                   // application/dicom + 14 Rendered Media Types
+        do {
+            _ = try Rules.uriContentType("image/bmp")
+            Issue.record("image/bmp is not a Rendered Media Type")
+        } catch let e as Rules.Refusal {
+            #expect(e.exitCode == 64)
+            #expect(e.message.hasPrefix("--content-type 'image/bmp' cannot be requested over WADO-URI. Use one of: application/dicom, image/jpeg"))
+            #expect(e.message.hasSuffix("(PS3.18 9.1.2.2.1: application/dicom or a Rendered Media Type of Table 8.7.4-1)"))
+        }
+        #expect(try Rules.uriFrameNumber(nil) == nil)
+        #expect(try Rules.uriFrameNumber("3")?.frame == 3)
+        #expect(try Rules.uriFrameNumber("2, 4, 6")?.notSent == 2)
+        #expect(throws: Rules.Refusal.self) { try Rules.uriFrameNumber("0") }
+        #expect(throws: Rules.Refusal.self) { try Rules.uriFrameNumber("a") }
+        #expect(Rules.pagingProblem(limit: 0, offset: 0) == nil)
+        #expect(Rules.pagingProblem(limit: -1, offset: 0) == "--limit must be 0 or more (PS3.18 8.3.4.4: limit is an unsigned integer)")
+        #expect(Rules.pagingProblem(limit: 1, offset: -1) == "--offset must be 0 or more (PS3.18 8.3.4.4: offset is an unsigned integer)")
+        let warnings = Rules.uriParameterWarnings(contentType: .dicom, frame: 1, rows: nil, columns: nil, transferSyntax: nil, anonymize: false)
+        #expect(warnings == ["frameNumber (--frames) is a Retrieve Rendered Instance parameter (PS3.18 Table 9.5.1-1), not defined for application/dicom (Table 9.4.1-1); the server may ignore it"])
+        #expect(Rules.timeouts(seconds: 90).readTimeout == 90)
     }
 }

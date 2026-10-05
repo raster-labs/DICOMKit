@@ -8,6 +8,7 @@ import Testing
 import Foundation
 import DICOMKit
 import DICOMCore
+import DICOMWeb
 
 @Suite("CLI Workshop Helpers Tests")
 struct CLIWorkshopHelpersTests {
@@ -1273,5 +1274,54 @@ struct CLIWorkshopHelpersTests {
         }
         #expect(netParam("dicom-mpps", "patient-birth-date")?.helpText.contains("VR DA, PS3.5 Table 6.2-1") == true)
         #expect(netParam("dicom-mpps", "patient-sex")?.helpText.contains("PS3.3 Table C.2-3") == true)
+    }
+
+    @Test("dicom-qido offers --strict-modality, --fuzzy-matching (PS3.18 8.3.4.2) and --format dicom-json (PS3.18 F.2); --limit may be 0 (8.3.4.4)")
+    func qidoRows() throws {
+        #expect(netParam("dicom-qido", "strict-modality")?.flag == "--strict-modality")
+        let fuzzy = try #require(netParam("dicom-qido", "fuzzy-matching"))
+        #expect(fuzzy.flag == "--fuzzy-matching")
+        #expect(fuzzy.helpText.contains("PS3.18 8.3.4.2"))
+        #expect(netParam("dicom-qido", "output-format")?.allowedValues == ["table", "json", "csv", "dicom-json"])
+        #expect(netParam("dicom-qido", "level")?.allowedValues == ["study", "series", "instance"])
+        #expect(netParam("dicom-qido", "limit")?.minValue == 0)
+        #expect(netParam("dicom-qido", "modality")?.helpText == ModalityOptionValidator.helpText("filter"))
+    }
+
+    @Test("dicom-wado retrieve offers the WADO-URI parameters of PS3.18 Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1, gated on --uri; --content-type is the shared Table 8.7.4-1 list; --format is the metadata json | xml")
+    func wadoRetrieveRows() throws {
+        let contentType = try #require(netParam("dicom-wado", "content-type"))
+        #expect(contentType.flag == "--content-type")
+        #expect(!contentType.isInternal)
+        #expect(contentType.allowedValues == [""] + WADOURIClient.MediaType.allowed.map(\.rawValue))
+        #expect(contentType.allowedValues.count == 16)                       // "" + application/dicom + 14 Rendered Media Types
+        for id in ["content-type", "transfer-syntax", "anonymize", "rows", "columns", "charset", "annotation",
+                   "image-quality", "region", "window-center", "window-width", "presentation-uid", "presentation-series-uid"] {
+            let def = try #require(netParam("dicom-wado", id), Comment(rawValue: id))
+            #expect(def.visibleWhen?.parameterId == "wado-protocol" && def.visibleWhen?.values == ["wado-uri"], Comment(rawValue: id))
+            #expect(def.flag == "--" + id, Comment(rawValue: id))
+        }
+        #expect(netParam("dicom-wado", "rows")?.minValue == 1)
+        let format = try #require(netParam("dicom-wado", "format"))
+        #expect(format.allowedValues == ["json", "xml"] && format.defaultValue == "json")   // retrieve's MetadataFormat, not the query/ups result rendering
+        #expect(netParam("dicom-wado", "wado-protocol")?.cliMapping["wado-uri"] == "--uri")
+    }
+
+    @Test("dicom-ups: --change-state with deprecated --update, --state offers only the PS3.18 11.7.1.4 targets, states spelled per PS3.3 Table C.30.1-1, priorities per Table C.30.2-1, --format csv / dicom-json")
+    func upsRows() throws {
+        let changeState = try #require(netParam("dicom-ups", "update-uid"))
+        #expect(changeState.flag == "--change-state")
+        let deprecated = try #require(netParam("dicom-ups", "update-uid-deprecated"))
+        #expect(deprecated.flag == "--update" && deprecated.helpText.hasPrefix("Deprecated alias of --change-state"))
+        let state = try #require(netParam("dicom-ups", "state"))
+        #expect(state.allowedValues == ["IN PROGRESS", "COMPLETED", "CANCELED"])      // SCHEDULED is refused (PS3.4 Table CC.1.1-2, C303H)
+        #expect(state.defaultValue == "IN PROGRESS")
+        #expect(netParam("dicom-ups", "filter-state")?.allowedValues == ["", "SCHEDULED", "IN PROGRESS", "COMPLETED", "CANCELED"])
+        #expect(netParam("dicom-ups", "create-priority")?.allowedValues == ["HIGH", "MEDIUM", "LOW"])
+        #expect(netParam("dicom-ups", "create-patient-sex")?.allowedValues == ["", "M", "F", "O"])
+        #expect(netParam("dicom-ups", "output-format")?.allowedValues == ["table", "json", "csv", "dicom-json"])
+        let op = try #require(netParam("dicom-ups", "operation"))
+        #expect(op.cliMapping == ["search": "--search", "create-workitem": "--create-workitem",
+                                  "subscribe": "--subscribe", "unsubscribe": "--unsubscribe"])
     }
 }

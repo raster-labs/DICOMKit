@@ -45,8 +45,22 @@ DEFERRED = {
         'diff_studio.py by-flag collapse (summary --format is table on both surfaces; compare --format is text)',
     "Workshop default 'jpeg', dicom-export default 'png'":
         'diff_studio.py by-flag collapse (single --format is jpeg on both surfaces; bulk --format is png)',
+    # dicom-wado: `retrieve -f, --format` is the METADATA representation (MetadataFormat json | xml, default json,
+    # PS3.18 Table 8.7.3-3) and the Workshop mirrors it; the by-flag collapse compares it with the LAST --format
+    # declared (ups: OutputFormat table/json/csv/dicom-json). Not a finding (checked by "net web rules").
+    "dicom-wado: --format (CLIWorkshopHelpers.swift": 'diff_studio.py by-flag collapse (retrieve --format is MetadataFormat json | xml on both surfaces; query / ups --format is OutputFormat)',
 }
-EXEMPT = {}
+# Flags the Workshop emits through an internal picker's cliMapping (not a flag-bearing parameter, so the
+# surface parser cannot see them): the operation picker of dicom-ups maps search / create-workitem / subscribe /
+# unsubscribe onto the CLI's bare flags, the Protocol picker of dicom-wado maps wado-uri onto --uri. The mapping
+# is pinned by "net web rules" (every mapped token is a dicom-wado flag).
+EXEMPT = {
+    'ups --search': 'emitted by the dicom-ups operation picker cliMapping ("search": "--search")',
+    'ups --create-workitem': 'emitted by the dicom-ups operation picker cliMapping ("create-workitem": "--create-workitem")',
+    'ups --subscribe': 'emitted by the dicom-ups operation picker cliMapping ("subscribe": "--subscribe")',
+    'ups --unsubscribe': 'emitted by the dicom-ups operation picker cliMapping ("unsubscribe": "--unsubscribe")',
+    'retrieve --uri': 'emitted by the dicom-wado Protocol picker cliMapping ("wado-uri": "--uri")',
+}
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 VM = 'DICOMStudio/ViewModels/CLIWorkshopViewModel.swift'
@@ -814,6 +828,132 @@ def check_mwl_mpps_terms(rep, parts, files, ctx):
               'Workshop pickers, texts and warning wording (D85)', matched, wrong)
 
 
+def check_web_rules(rep, parts, files, ctx):
+    """dicom-wado Workshop (qido / wado / stow / ups): the Workshop's copy of the CLI-local WADOOptionRules is
+    text-identical (PS3.18 2026a 9.1.2.2.1, 9.5.1.2.1, 8.3.4.4, 11.7.1.4); the ups --state picker offers exactly
+    the Change State targets of PS3.18 11.7.1.4 and the executor refuses SCHEDULED (PS3.4 Table CC.1.1-2);
+    --filter-state and --state spell the Procedure Step State (0074,1000) as PS3.3 2026a C.30.1 does; --priority
+    offers the PS3.3 C.30.2 Enumerated Values; the retrieve --format picker is the CLI's MetadataFormat; every
+    cliMapping token of the operation / protocol pickers is a dicom-wado flag; --content-type is the shared
+    WADOURIClient.MediaType list (Table 8.7.4-1)."""
+    dw, nd = ctx['dw'], ctx['nd']
+    ws = ctx['workshop_surface']()
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    wrong, matched = [], 0
+    # PS3.18 11.7.1.4: the legal Change State values
+    sec = dw.section_by_id(parts[18], 'sect_11.7.1.4')
+    text = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+    legal = re.findall(r'"(IN PROGRESS|COMPLETED|CANCELED)"', text.split('Procedure Step State (0074,1000)')[-1][:300])
+    if legal != ['IN PROGRESS', 'COMPLETED', 'CANCELED']:
+        wrong.append(f'PS3.18 11.7.1.4 legal values read as {legal}; re-read')
+    else:
+        matched += 1
+    # PS3.3 C.30.1: the four Enumerated Values of (0074,1000); C.30.2: the priority values
+    sec = dw.section_by_id(parts[3], 'sect_C.30.1')
+    t = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+    i = t.find('Enumerated Values:')
+    states = re.findall(r'\b(SCHEDULED|IN PROGRESS|CANCELED|COMPLETED)\b', t[i:i + 80])
+    if sorted(states) != ['CANCELED', 'COMPLETED', 'IN PROGRESS', 'SCHEDULED']:
+        wrong.append(f'PS3.3 C.30.1 (0074,1000) Enumerated Values read as {states}; re-read')
+    else:
+        matched += 1
+    sec = dw.section_by_id(parts[3], 'sect_C.30.2')
+    t = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+    j = t.find('Scheduled Procedure Step Priority (0074,1200)')
+    prios = re.findall(r'\b(HIGH|MEDIUM|LOW)\b', t[j:j + 600].split('Enumerated Values:')[-1][:400]) if j >= 0 else []
+    if sorted(set(prios)) != ['HIGH', 'LOW', 'MEDIUM']:
+        wrong.append(f'PS3.3 C.30.2 (0074,1200) Enumerated Values read as {prios}; re-read')
+    else:
+        matched += 1
+    # the Workshop pickers
+    p = param(ws, 'dicom-ups', 'state')
+    if p is None or p.get('allowedValues') != legal or p.get('defaultValue') != 'IN PROGRESS':
+        wrong.append(f'dicom-ups --state picker must offer exactly {legal} (PS3.18 11.7.1.4) with default IN PROGRESS; SCHEDULED is refused (PS3.4 Table CC.1.1-2)')
+    else:
+        matched += len(legal)
+    f = param(ws, 'dicom-ups', 'filter-state')
+    if f is None or f.get('allowedValues') != [''] + ['SCHEDULED', 'IN PROGRESS', 'COMPLETED', 'CANCELED']:
+        wrong.append('dicom-ups --filter-state picker must offer the PS3.3 Table C.30.1-1 words SCHEDULED, IN PROGRESS, COMPLETED, CANCELED')
+    else:
+        matched += 4
+    pr = param(ws, 'dicom-ups', 'create-priority')
+    if pr is None or pr.get('allowedValues') != ['HIGH', 'MEDIUM', 'LOW'] or pr.get('defaultValue') != 'MEDIUM':
+        wrong.append('dicom-ups --priority picker must offer HIGH, MEDIUM, LOW (PS3.3 Table C.30.2-1) with default MEDIUM')
+    else:
+        matched += 3
+    # the Workshop's WADOOptionRules copy is text-identical (literals naming a PS3.18 clause or an option)
+    cli = read(ctx, 'dicom-wado/WADOOptionRules.swift')
+    rules_body = block(vm, r'enum WorkshopWADOOptionRules \{', 'WorkshopWADOOptionRules')
+    ws_lit = literals(rules_body)
+    for lit in literals(cli):
+        if not ('PS3.18' in lit or lit.startswith('--') or 'Change Workitem State' in lit or 'parameter' in lit):
+            continue
+        if lit in ws_lit:
+            matched += 1
+        else:
+            wrong.append(f'dicom-wado WADOOptionRules text not mirrored by WorkshopWADOOptionRules: "{lit[:90]}"')
+    for lit in literals(read(ctx, 'dicom-wado/DICOMWado.swift')):
+        if any(k in lit for k in ('is required for', '--transaction-uid is required', '--label is required', '--state is required',
+                                   'Invalid patient sex', 'Invalid priority', 'Invalid date format', 'Specify an operation',
+                                   'must be at least 1', 'No files specified', 'must be a positive integer', 'frameNumber names a single frame')):
+            if lit in literals(vm):
+                matched += 1
+            else:
+                wrong.append(f'dicom-wado text not mirrored by the Workshop: "{lit[:90]}"')
+    ups_body = block(vm, r'private func executeDicomUPS\(\) async \{', 'executeDicomUPS')
+    for needle in ('WorkshopWADOOptionRules.changeStateTarget(stateString)', 'WorkshopWADOOptionRules.changeStateWorkitem(changeState: changeState, update: update)',
+                   'WorkshopWADOOptionRules.updateDeprecationNote', 'UPSResultFormatter().format(', 'UPSConsole.updateResultText('):
+        if needle in ups_body:
+            matched += 1
+        else:
+            wrong.append(f'executeDicomUPS must contain `{needle}`')
+    # cliMapping tokens are dicom-wado flags; the retrieve --format is MetadataFormat; content-type is the shared list
+    files_w, options, outputs, commands = ctx['dc'].surface('dicom-wado')
+    flags = {n for o in options for n in o['names']}
+    # (the surface parser keeps neither cliMapping nor a non-literal allowedValues: read the definitions)
+    helpers = src(files, 'CLIWorkshopHelpers.swift')
+
+    def definition(pid, tool):
+        arm = re.search(r'^[ \t]*case "' + re.escape(tool) + r'":', helpers, re.M)
+        start = arm.end() if arm else 0
+        nxt = re.search(r'^[ \t]*case "dicom-', helpers[start:], re.M)
+        scope = helpers[start:start + nxt.start()] if nxt else helpers[start:]
+        m = re.search(r'CLIParameterDefinition\(\s*id: "' + re.escape(pid) + r'",', scope)
+        if not m:
+            return ''
+        open_paren = m.start() + len('CLIParameterDefinition')
+        return scope[m.start():ctx['dc'].balanced(scope, open_paren)]
+    for tool, pid in (('dicom-ups', 'operation'), ('dicom-wado', 'wado-protocol')):
+        q = definition(pid, tool)
+        mapping = re.findall(r'"[^"]+":\s*"(--[\w-]+)"', q[q.find('cliMapping'):] if 'cliMapping' in q else '')
+        if not mapping:
+            wrong.append(f'{tool} {pid} picker has no cliMapping')
+        for tok in mapping:
+            if tok in flags:
+                matched += 1
+            else:
+                wrong.append(f'{tool} {pid} cliMapping emits {tok}, not a dicom-wado flag')
+    fmt = param(ws, 'dicom-wado', 'format')
+    meta = None
+    for srcw in files_w.values():
+        vals = re.findall(r'case (\w+)', dw.enum_body(srcw, 'MetadataFormat') or '')
+        if vals:
+            meta = vals
+    if fmt is None or meta is None or fmt.get('allowedValues') != meta or fmt.get('defaultValue') != 'json':
+        wrong.append(f'dicom-wado retrieve --format picker {fmt and fmt.get("allowedValues")} must be the CLI MetadataFormat {meta} (default json)')
+    else:
+        matched += len(meta)
+    ct = param(ws, 'dicom-wado', 'content-type')
+    if ct is None or ct.get('flag') != '--content-type' \
+            or 'allowedValues: [""] + WADOURIClient.MediaType.allowed.map(\\.rawValue)' not in definition('content-type', 'dicom-wado'):
+        wrong.append('dicom-wado --content-type must be a real flag whose picker is WADOURIClient.MediaType.allowed (PS3.18 Table 8.7.4-1)')
+    else:
+        matched += 1
+    rep.check('PS3.18 2026a 11.7.1.4 / 9.1.2.2.1 / 8.3.4.4, PS3.3 C.30.1 / C.30.2, PS3.4 Table CC.1.1-2: dicom-wado Workshop '
+              '(qido / wado / stow / ups) rules mirror, UPS state refusal, pickers and cliMapping flags (P-WADO-UPS-STATE / -UPDATE, P-QUERY-JSON)',
+              matched, wrong)
+
+
 CHECKS = [
     ('G1 workshop dcmdir profile picker', check_dcmdir_profile_picker),
     ('G1 workshop dcmdir fileset rules', check_dcmdir_fileset_rules),
@@ -828,4 +968,5 @@ CHECKS = [
     ('G1 workshop net priority send', check_priority_and_store_outcomes),
     ('G1 workshop net retrieve status', check_retrieve_status_text_source),
     ('G1 workshop net mwl mpps terms', check_mwl_mpps_terms),
+    ('G1 workshop net web rules', check_web_rules),
 ]

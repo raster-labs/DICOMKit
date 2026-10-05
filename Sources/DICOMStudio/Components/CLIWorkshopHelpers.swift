@@ -6,6 +6,7 @@
 import Foundation
 import DICOMCore
 import DICOMKit
+import DICOMWeb
 
 // MARK: - 16.1 Network Configuration Helpers
 
@@ -1524,33 +1525,44 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "DICOMweb server base URL (PS3.18 §6.5)",
                     isRequired: true
                 ),
+                // The Search resource levels of PS3.18 2026a Tables 10.6.1-1 / 10.6.1-5 (the
+                // CLI's QueryLevel: study, series, instance).
                 CLIParameterDefinition(
                     id: "level", flag: "--level", displayName: "Query Level",
                     parameterType: .enumPicker, placeholder: "study",
-                    helpText: "QIDO-RS query level — determines which resource is searched (PS3.18 §10.6)",
+                    helpText: "Query level: study, series, instance (default: study)",
                     defaultValue: "study",
                     allowedValues: ["study", "series", "instance"]
                 ),
                 CLIParameterDefinition(
                     id: "patient-name", flag: "--patient-name", displayName: "Patient Name",
                     parameterType: .textField, placeholder: "e.g. DOE^JOHN or DOE*",
-                    helpText: "Patient name filter — supports wildcards * and ? (0010,0010)"
+                    helpText: "Patient name (wildcards * and ? supported)"
                 ),
                 CLIParameterDefinition(
                     id: "patient-id", flag: "--patient-id", displayName: "Patient ID",
                     parameterType: .textField, placeholder: "e.g. PAT001",
-                    helpText: "Patient ID to search for (0010,0020)"
+                    helpText: "Patient ID"
                 ),
                 CLIParameterDefinition(
                     id: "study-date", flag: "--study-date", displayName: "Study Date",
                     parameterType: .textField, placeholder: "e.g. 20260101 or 20260101-20260310",
-                    helpText: "Study date or range in YYYYMMDD format (0008,0020)"
+                    helpText: "Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)"
                 ),
+                // Modalities In Study (0008,0061) at study / instance level, Modality (0008,0060)
+                // at series level (PS3.18 Table 10.6.1-5), validated by the shared
+                // ModalityOptionValidator as the CLI does (PS3.3 C.7.3.1.1.1).
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .enumPicker, placeholder: "Any",
-                    helpText: "Modalities in Study filter (0008,0061)",
+                    helpText: ModalityOptionValidator.helpText("filter"),
                     allowedValues: optionalModalityAllowedValues
+                ),
+                CLIParameterDefinition(
+                    id: "strict-modality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+                    isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study", displayName: "Study Instance UID",
@@ -1604,17 +1616,25 @@ public enum ToolCatalogHelpers: Sendable {
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
                 ),
+                // limit / offset are the unsigned paging parameters of PS3.18 Table 8.3.4-1 /
+                // 8.3.4.4 (the CLI refuses a negative value); fuzzymatching=true is 8.3.4.2.
                 CLIParameterDefinition(
                     id: "limit", flag: "--limit", displayName: "Result Limit",
                     parameterType: .integerField, placeholder: "100",
-                    helpText: "Maximum number of results to return",
-                    defaultValue: "100", minValue: 1, maxValue: 10000
+                    helpText: "Maximum number of results (default: 100)",
+                    defaultValue: "100", minValue: 0, maxValue: 10000
                 ),
                 CLIParameterDefinition(
                     id: "offset", flag: "--offset", displayName: "Offset",
                     parameterType: .integerField, placeholder: "0",
-                    helpText: "Number of results to skip for pagination",
+                    helpText: "Offset for pagination (default: 0)",
                     isAdvanced: true, defaultValue: "0", minValue: 0, maxValue: 100000
+                ),
+                CLIParameterDefinition(
+                    id: "fuzzy-matching", flag: "--fuzzy-matching", displayName: "Fuzzy Matching",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Ask for fuzzy matching of person names (PS3.18 8.3.4.2: fuzzymatching=true)",
+                    isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "auth", flag: "--auth", displayName: "Authentication",
@@ -1648,17 +1668,19 @@ public enum ToolCatalogHelpers: Sendable {
                     isInternal: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "auth", values: ["basic"])
                 ),
+                // dicom-json is the PS3.18 2026a F.2 DICOM JSON Model the origin server returned
+                // (P-QUERY-JSON); json / csv are keyword-keyed tool summaries (QIDOResultFormatter).
                 CLIParameterDefinition(
                     id: "output-format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "table",
-                    helpText: "Output format for query results",
+                    helpText: "Output format: table, json, csv, dicom-json (default: table). dicom-json is the PS3.18 F.2 DICOM JSON Model; json is a tool summary (keyword keys)",
                     defaultValue: "table",
-                    allowedValues: ["table", "json", "csv"]
+                    allowedValues: ["table", "json", "csv", "dicom-json"]
                 ),
                 CLIParameterDefinition(
                     id: "verbose", flag: "--verbose", displayName: "Verbose",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Show the query header and result-count lines (the CLI's verbose chrome)"
+                    helpText: "Show verbose output"
                 ),
                 // (No timeout field: the dicom-wado `query` subcommand has no
                 // --timeout option, and the executor never read one — removed to
@@ -1700,7 +1722,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "frames", flag: "--frames", displayName: "Frame Numbers",
                     parameterType: .textField, placeholder: "e.g. 1,2,3",
-                    helpText: "Frame numbers to retrieve (comma-separated, 1-based). Requires --series and --instance.",
+                    helpText: "Frame numbers to retrieve (comma-separated, e.g., 1,2,3). WADO-RS: {frameList} (PS3.18 Table 10.4.1.6-1); WADO-URI: frameNumber names a single frame (9.5.1.2.1). Requires --series and --instance.",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
@@ -1721,29 +1743,115 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "Retrieve thumbnail images",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-rs"])
                 ),
+                // ----- WADO-URI query parameters (PS3.18 2026a Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1) -----
+                // Shown only with the WADO-URI protocol, like the CLI's validate() which refuses
+                // them without --uri. contentType (9.1.2.2.1): application/dicom or a Rendered
+                // Media Type of Table 8.7.4-1 — the shared WADOURIClient.MediaType.allowed list
+                // the CLI maps through too; an empty value is the WADO-URI default (application/dicom).
                 CLIParameterDefinition(
-                    id: "content-type", flag: "", displayName: "Content Type",
+                    id: "content-type", flag: "--content-type", displayName: "Content Type",
                     parameterType: .enumPicker, placeholder: "application/dicom",
-                    helpText: "Requested content type for WADO-URI response",
-                    isInternal: true,
-                    defaultValue: "application/dicom",
-                    allowedValues: ["application/dicom", "image/jpeg", "image/png", "image/gif"],
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"]),
-                    cliMapping: [
-                        "image/jpeg": "--content-type image/jpeg",
-                        "image/png": "--content-type image/png",
-                        "image/gif": "--content-type image/gif",
-                    ]
+                    helpText: "Content type for WADO-URI: application/dicom (default), or a Rendered Media Type: image/jpeg, image/gif, image/png, image/jp2, image/jph, image/jxl, video/mpeg, video/mp4, video/H265, text/html, text/plain, text/xml, text/rtf, application/pdf (PS3.18 9.1.2.2.1, Table 8.7.4-1)",
+                    allowedValues: [""] + WADOURIClient.MediaType.allowed.map(\.rawValue),
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "transfer-syntax", flag: "--transfer-syntax", displayName: "Transfer Syntax",
+                    parameterType: .textField, placeholder: "e.g. 1.2.840.10008.1.2.1",
+                    helpText: "WADO-URI transferSyntax: Transfer Syntax UID for an application/dicom retrieve (PS3.18 9.4.1.2.3)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "anonymize", flag: "--anonymize", displayName: "Anonymize",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "WADO-URI anonymize=yes: ask the server to remove Individually Identifiable Information (PS3.18 9.4.1.2.1)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "charset", flag: "--charset", displayName: "Charset",
+                    parameterType: .textField, placeholder: "e.g. UTF-8",
+                    helpText: "WADO-URI charset: comma-separated character sets of the response, e.g. UTF-8 (PS3.18 9.1.2.2.2)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "annotation", flag: "--annotation", displayName: "Annotation",
+                    parameterType: .textField, placeholder: "patient,technique",
+                    helpText: "WADO-URI annotation (application/dicom) / imageAnnotation (rendered): patient, technique, or both comma-separated (PS3.18 9.4.1.2.2, Table 9.5.1-1)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "rows", flag: "--rows", displayName: "Rows",
+                    parameterType: .integerField, placeholder: "e.g. 512",
+                    helpText: "WADO-URI rows: pixel rows of the rendered image, a positive integer (PS3.18 9.5.1.2.4.1)",
+                    isAdvanced: true, minValue: 1,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "columns", flag: "--columns", displayName: "Columns",
+                    parameterType: .integerField, placeholder: "e.g. 512",
+                    helpText: "WADO-URI columns: pixel columns of the rendered image, a positive integer (PS3.18 9.5.1.2.4.2)",
+                    isAdvanced: true, minValue: 1,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "image-quality", flag: "--image-quality", displayName: "Image Quality",
+                    parameterType: .integerField, placeholder: "1-100",
+                    helpText: "WADO-URI imageQuality of a rendered image, 1-100 (PS3.18 9.5.1.2.3, 8.3.5.1.2)",
+                    isAdvanced: true, minValue: 1, maxValue: 100,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "region", flag: "--region", displayName: "Region",
+                    parameterType: .textField, placeholder: "xmin,ymin,xmax,ymax",
+                    helpText: "WADO-URI region: xmin,ymin,xmax,ymax in normalized 0.0-1.0 image coordinates (PS3.18 9.5.1.2.5)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "window-center", flag: "--window-center", displayName: "Window Center",
+                    parameterType: .textField, placeholder: "e.g. 40",
+                    helpText: "WADO-URI windowCenter of a rendered image; needs --window-width (PS3.18 9.5.1.2.6.1)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "window-width", flag: "--window-width", displayName: "Window Width",
+                    parameterType: .textField, placeholder: "e.g. 400",
+                    helpText: "WADO-URI windowWidth of a rendered image; needs --window-center (PS3.18 9.5.1.2.6.2)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "presentation-uid", flag: "--presentation-uid", displayName: "Presentation State UID",
+                    parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
+                    helpText: "WADO-URI presentationUID: Presentation State SOP Instance UID used to render; needs --presentation-series-uid (PS3.18 9.5.1.2.7.2)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
+                ),
+                CLIParameterDefinition(
+                    id: "presentation-series-uid", flag: "--presentation-series-uid", displayName: "Presentation Series UID",
+                    parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
+                    helpText: "WADO-URI presentationSeriesUID: Series of that Presentation State; needs --presentation-uid (PS3.18 9.5.1.2.7.1)",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-uri"])
                 ),
                 CLIParameterDefinition(
                     id: "output", flag: "-o", displayName: "Output Directory",
                     parameterType: .outputPath, placeholder: "e.g. ~/Downloads/studies",
-                    helpText: "Directory where retrieved files will be saved"
+                    helpText: "Output directory for retrieved files"
                 ),
+                // `-f, --format` of `retrieve` is the METADATA representation (PS3.18 Table 8.7.3-3:
+                // DICOM JSON, Annex F / PS3.19 Native DICOM Model XML) — json | xml, default json,
+                // exactly the CLI's MetadataFormat. Not the table/json/csv/dicom-json result
+                // rendering of the query / ups subcommands.
                 CLIParameterDefinition(
                     id: "format", flag: "--format", displayName: "Metadata Format",
                     parameterType: .enumPicker, placeholder: "json",
-                    helpText: "Output format for metadata: json or xml",
+                    helpText: "Output format for metadata: json, xml (default: json)",
                     defaultValue: "json",
                     allowedValues: ["json", "xml"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "wado-protocol", values: ["wado-rs"])
@@ -1916,12 +2024,20 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 // --create-workitem is emitted automatically via the operation cliMapping
                 // above when the "create-workitem" tab is selected (no manual toggle needed).
-                // --update <uid> (shown when operation=change-state)
+                // --change-state <uid> (shown when operation=change-state): Change Workitem State,
+                // PS3.18 2026a 11.7 (P-WADO-UPS-UPDATE). --update is the CLI's deprecated alias;
+                // the executor prints the CLI's deprecation note for it and refuses both at once.
                 CLIParameterDefinition(
-                    id: "update-uid", flag: "--update", displayName: "Update Workitem UID",
+                    id: "update-uid", flag: "--change-state", displayName: "Workitem UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Workitem UID to update state for",
-                    isRequired: true,
+                    helpText: "Change Workitem State (PS3.18 11.7) of the workitem with this UID; use with --state",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["change-state"])
+                ),
+                CLIParameterDefinition(
+                    id: "update-uid-deprecated", flag: "--update", displayName: "Workitem UID (deprecated --update)",
+                    parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
+                    helpText: "Deprecated alias of --change-state (it performs Change Workitem State, PS3.18 11.7, not Update Workitem, 11.6)",
+                    isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["change-state"])
                 ),
                 // Create-specific parameters
@@ -1969,17 +2085,20 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "create-patient-sex", flag: "--patient-sex", displayName: "Patient Sex",
-                    parameterType: .textField, placeholder: "M, F, or O",
-                    helpText: "Patient sex: M, F, O (0010,0040)",
+                    parameterType: .enumPicker, placeholder: "Unspecified",
+                    helpText: "Patient's Sex (0010,0040): M, F, O (PS3.3 Table C.7-1)",
                     isAdvanced: true,
+                    allowedValues: ["", "M", "F", "O"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create-workitem"])
                 ),
+                // Scheduled Procedure Step Priority (0074,1200) Enumerated Values, PS3.3 2026a
+                // Table C.30.2-1: HIGH, MEDIUM, LOW. The CLI still accepts STAT (sent as HIGH).
                 CLIParameterDefinition(
                     id: "create-priority", flag: "--priority", displayName: "Priority",
                     parameterType: .enumPicker, placeholder: "MEDIUM",
-                    helpText: "Scheduled Procedure Step Priority (0074,1200)",
+                    helpText: "Scheduled Procedure Step Priority (0074,1200): HIGH, MEDIUM, LOW (PS3.3 Table C.30.2-1; default: MEDIUM). STAT is accepted and sent as HIGH",
                     defaultValue: "MEDIUM",
-                    allowedValues: ["STAT", "HIGH", "MEDIUM", "LOW"],
+                    allowedValues: ["HIGH", "MEDIUM", "LOW"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create-workitem"])
                 ),
                 CLIParameterDefinition(
@@ -2072,13 +2191,16 @@ public enum ToolCatalogHelpers: Sendable {
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create-workitem"])
                 ),
-                // Change-state parameters
+                // Change-state parameters. Procedure Step State (0074,1000) spelled as PS3.3
+                // 2026a Table C.30.1-1 does; a Change State request may carry only IN PROGRESS,
+                // COMPLETED or CANCELED (PS3.18 11.7.1.4) — SCHEDULED is refused by the CLI
+                // (PS3.4 Table CC.1.1-2, C303H; P-WADO-UPS-STATE) and is not offered.
                 CLIParameterDefinition(
                     id: "state", flag: "--state", displayName: "Target State",
-                    parameterType: .enumPicker, placeholder: "IN_PROGRESS",
-                    helpText: "New state: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED",
-                    defaultValue: "IN_PROGRESS",
-                    allowedValues: ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELED"],
+                    parameterType: .enumPicker, placeholder: "IN PROGRESS",
+                    helpText: "New Procedure Step State for --change-state: IN PROGRESS, COMPLETED, CANCELED (PS3.18 11.7.1.4); IN_PROGRESS is accepted for IN PROGRESS",
+                    defaultValue: "IN PROGRESS",
+                    allowedValues: ["IN PROGRESS", "COMPLETED", "CANCELED"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["change-state"])
                 ),
                 CLIParameterDefinition(
@@ -2092,15 +2214,16 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "transaction-uid", flag: "--transaction-uid", displayName: "Transaction UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.826.0.1.3680043...",
-                    helpText: "Transaction UID — auto-generated for IN_PROGRESS, required for COMPLETED/CANCELED",
+                    helpText: "Transaction UID (0008,1195) for state changes (required for COMPLETED/CANCELED; auto-generated for IN PROGRESS, PS3.18 11.7.1.4)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["change-state"])
                 ),
-                // Search-specific parameters
+                // Search-specific parameters: the four Procedure Step State (0074,1000)
+                // Enumerated Values of PS3.3 Table C.30.1-1 as matching key.
                 CLIParameterDefinition(
                     id: "filter-state", flag: "--filter-state", displayName: "State Filter",
                     parameterType: .enumPicker, placeholder: "Any",
-                    helpText: "Filter by Procedure Step State",
-                    allowedValues: ["", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELED"],
+                    helpText: "Filter by Procedure Step State (0074,1000): SCHEDULED, IN PROGRESS, COMPLETED, CANCELED (PS3.3 Table C.30.1-1); IN_PROGRESS is accepted",
+                    allowedValues: ["", "SCHEDULED", "IN PROGRESS", "COMPLETED", "CANCELED"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["search"])
                 ),
                 CLIParameterDefinition(
@@ -2142,12 +2265,14 @@ public enum ToolCatalogHelpers: Sendable {
                     isInternal: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "auth", values: ["basic"])
                 ),
+                // dicom-json is the PS3.18 2026a F.2 DICOM JSON Model each workitem came as
+                // (P-QUERY-JSON); json / csv are camelCase tool summaries (UPSResultFormatter).
                 CLIParameterDefinition(
                     id: "output-format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "table",
-                    helpText: "Output format for results",
+                    helpText: "Output format: table, json, csv, dicom-json (default: table). dicom-json is the PS3.18 F.2 DICOM JSON Model; json is a tool summary (camelCase keys)",
                     defaultValue: "table",
-                    allowedValues: ["table", "json"],
+                    allowedValues: ["table", "json", "csv", "dicom-json"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["search", "get"])
                 ),
                 CLIParameterDefinition(
