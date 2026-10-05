@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Helpers for Integrated Terminal & Command Execution (Milestone 20)
+// NEMA-verified: 2026a, checked 2026-10-05 — the 7 redactPHI keywords resolved through PS3.6 2026a Table 6-1 to attribute names and each found as a row of PS3.15 2026a Table E.1-1 (Basic Application Level Confidentiality Profile): 7 of 7 match; the ANSI SGR codes, tokeniser, history and environment helpers carry no DICOM-standard data
 
 import Foundation
 
@@ -346,8 +347,8 @@ public enum CommandHistoryHelpers: Sendable {
     /// Replaces file-path tokens and patient-identifying patterns in `command` with placeholders.
     ///
     /// - Tokens that contain `/` are replaced with `<path>`.
-    /// - DICOM attribute assignments matching common PHI fields (PatientName, PatientID,
-    ///   PatientBirthDate, AccessionNumber, StudyInstanceUID, SeriesInstanceUID,
+    /// - DICOM attribute assignments matching 7 identifying attributes of PS3.15 Table E.1-1 (PatientName,
+    ///   PatientID, PatientBirthDate, AccessionNumber, StudyInstanceUID, SeriesInstanceUID,
     ///   SOPInstanceUID) are replaced with `<attribute>=<redacted>`.
     public static func redactPHI(from command: String) -> String {
         // Replace path-looking tokens
@@ -360,7 +361,7 @@ public enum CommandHistoryHelpers: Sendable {
         }
         var result = redactedWords.joined(separator: " ")
 
-        // DICOM PS3.15 Annex E PHI attribute patterns
+        // PS3.15 2026a Table E.1-1 attributes (PS3.6 Table 6-1 keywords) whose values the history must not keep
         let phiAttributes = [
             "PatientName",
             "PatientID",
