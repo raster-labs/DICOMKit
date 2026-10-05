@@ -7,7 +7,9 @@
 // PS3.8 Table 9-11: the alphanumerics-plus-" _-" rule admitted non-ASCII letters and refused valid punctuation,
 // and now delegates to DICOMNetwork's AETitle; maxAETitleLength 16 matches. Default port 11112 is the PS3.8
 // 2026a 9.1.1 registered port; the sample AE titles DICOMSTUDIO / ANY-SCP / ORTHANC / PACS_SCP are valid.
-// The injected CLI flags are plumbing checked by the Workshop parity rows, not standard data.
+// The injected CLI parameters (`dicomParameters` / `dicomwebParameters`) name only options the DIMSE tools and
+// dicom-wado really have (positional <host> / <base-url>, --port, --aet, --called-aet, --timeout, --token), checked
+// against their ArgumentParser surface by Scripts/diff_studio_g1_shell.py; --host, --tls, --url, --auth were not options.
 
 import Foundation
 import DICOMNetwork
@@ -450,12 +452,18 @@ public enum NetworkInjectorHelpers: Sendable {
     }
 
     /// Builds DICOM protocol parameters from a server profile.
+    ///
+    /// Every entry names a real option of the DIMSE tools (dicom-echo, -send, -query, -retrieve, -qr, -mwl,
+    /// -mpps, checked against their ArgumentParser surface by `Scripts/diff_studio_g1_shell.py`): the host is
+    /// the tools' positional `<host>` argument (`host[:port]`), never a `--host` flag, and `--port`, `--aet`,
+    /// `--called-aet`, `--timeout` are their options. The tools have no TLS option (PS3.15 2026a B.12 secure
+    /// transport is configured outside the CLI), so a TLS-enabled profile injects nothing for it.
     public static func dicomParameters(from server: ShellServerProfile) -> [InjectedParameter] {
         var params: [InjectedParameter] = []
 
         if !server.host.isEmpty {
             params.append(InjectedParameter(
-                flagName: "--host",
+                flagName: "<host>",
                 value: server.host,
                 source: .serverConfig
             ))
@@ -489,62 +497,30 @@ public enum NetworkInjectorHelpers: Sendable {
             source: .serverConfig
         ))
 
-        if server.tlsEnabled {
-            params.append(InjectedParameter(
-                flagName: "--tls",
-                value: "true",
-                source: .serverConfig
-            ))
-
-            if let certPath = server.tlsCertificatePath, !certPath.isEmpty {
-                params.append(InjectedParameter(
-                    flagName: "--tls-cert",
-                    value: certPath,
-                    source: .serverConfig
-                ))
-            }
-        }
-
         return params
     }
 
     /// Builds DICOMweb parameters from a server profile.
+    ///
+    /// dicom-wado takes the service root as its positional `<base-url>` and a bearer token as `--token`; it has
+    /// no `--url`, `--auth`, basic-auth or client-certificate option, so those profile fields inject nothing.
     public static func dicomwebParameters(from server: ShellServerProfile) -> [InjectedParameter] {
         var params: [InjectedParameter] = []
 
         if !server.baseURL.isEmpty {
             params.append(InjectedParameter(
-                flagName: "--url",
+                flagName: "<base-url>",
                 value: server.baseURL,
                 source: .serverConfig
             ))
         }
 
-        switch server.authMethod {
-        case .basic:
-            if !server.username.isEmpty {
-                params.append(InjectedParameter(
-                    flagName: "--auth",
-                    value: "basic:\(server.username)",
-                    source: .serverConfig
-                ))
-            }
-        case .bearer:
+        if server.authMethod == .bearer {
             params.append(InjectedParameter(
-                flagName: "--auth",
-                value: "bearer",
+                flagName: "--token",
+                value: "<bearer token>",
                 source: .serverConfig
             ))
-        case .certificate:
-            if let certPath = server.tlsCertificatePath, !certPath.isEmpty {
-                params.append(InjectedParameter(
-                    flagName: "--auth",
-                    value: "cert:\(certPath)",
-                    source: .serverConfig
-                ))
-            }
-        case .none:
-            break
         }
 
         return params

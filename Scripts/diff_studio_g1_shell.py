@@ -466,7 +466,32 @@ def check_phi_keywords(rep, parts, files, ctx):
     rep.check(f'PS3.15 Table E.1-1: the {len(keywords)} CommandHistoryHelpers.redactPHI keywords are Table 6-1 keywords of E.1-1 attributes', matched, wrong)
 
 
+def check_injected_parameters(rep, parts, files, ctx):
+    """Every flagName that NetworkInjectorHelpers injects is an option (or the positional) of the DIMSE tools /
+    dicom-wado."""
+    dc = ctx['dc']
+    helpers = src(files, 'ShellServerConfigHelpers.swift')
+    def flags(func):
+        m = re.search(r'static func ' + func + r'\(.*?\n    \}\n', helpers, re.S)
+        return sorted(set(re.findall(r'flagName:\s*"([^"]+)"', m.group(0)))) if m else []
+    matched, wrong = 0, []
+    for func, tools in (('dicomParameters', ['dicom-echo', 'dicom-send', 'dicom-query', 'dicom-retrieve',
+                                             'dicom-qr', 'dicom-mwl', 'dicom-mpps']),
+                        ('dicomwebParameters', ['dicom-wado'])):
+        names = flags(func)
+        for tool in tools:
+            _, options, _, _ = dc.surface(tool)
+            known = {n for o in options for n in o['names']}
+            for f in names:
+                if f in known:
+                    matched += 1
+                else:
+                    wrong.append(f'ShellServerConfigHelpers.{func}: {f} is not a {tool} option')
+    rep.check('shell: injected server parameters are real options of the DIMSE tools / dicom-wado', matched, wrong)
+
+
 CHECKS = [
+    ('shell: injected server parameters exist in the CLI surface', check_injected_parameters),
     ('shell: tool names are the Sources/dicom-* targets', check_tool_names),
     ('shell: tool descriptions name PS3.7 / PS3.18 / PS3.4 services', check_descriptions),
     ('shell: parameter builder options exist in the CLI surface', check_parameter_builder),

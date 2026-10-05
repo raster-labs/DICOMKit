@@ -45,4 +45,23 @@ struct ShellServerConfigHelpersTests {
         #expect(ShellServerProfile(name: "x", type: .dicom).port == 11112)
         #expect(ServerProfileHelpers.defaultProfile().port == 11112)
     }
+
+    // MARK: - Injected parameters name real CLI options (checked against the tools' ArgumentParser surface)
+
+    @Test("DIMSE injection uses the positional <host>, never --host, and no TLS flag the tools lack")
+    func testDICOMInjectionNamesRealOptions() {
+        var server = ServerProfileHelpers.defaultProfile()
+        server.host = "pacs.example.com"; server.aeTitle = "STUDIO"; server.calledAET = "PACS"; server.tlsEnabled = true
+        let flags = NetworkInjectorHelpers.dicomParameters(from: server).map(\.flagName)
+        #expect(flags == ["<host>", "--port", "--aet", "--called-aet", "--timeout"])
+        #expect(!flags.contains("--host") && !flags.contains("--tls"))
+    }
+
+    @Test("DICOMweb injection uses the positional <base-url> and --token (dicom-wado has no --url / --auth)")
+    func testDICOMwebInjectionNamesRealOptions() {
+        var server = ServerProfileHelpers.defaultProfile()
+        server.type = .dicomweb; server.baseURL = "https://pacs.example.com/dicom-web"; server.authMethod = .bearer
+        let flags = NetworkInjectorHelpers.dicomwebParameters(from: server).map(\.flagName)
+        #expect(flags == ["<base-url>", "--token"])
+    }
 }
