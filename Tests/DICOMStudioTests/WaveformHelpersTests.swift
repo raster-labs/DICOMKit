@@ -44,10 +44,35 @@ struct WaveformHelpersTests {
 
     // MARK: - displayNameForSopClass
 
-    @Test("displayNameForSopClass 12-lead ECG UID returns 12-Lead ECG")
+    @Test("displayNameForSopClass 12-lead ECG UID returns the PS3.6 Table A-1 name minus ' Waveform Storage'")
     func testDisplayNameForSopClassECG() {
         let name = WaveformHelpers.displayNameForSopClass("1.2.840.10008.5.1.4.1.1.9.1.1")
-        #expect(name == "12-Lead ECG")
+        #expect(name == "12-lead ECG")
+        #expect(name + " Waveform Storage" == "12-lead ECG Waveform Storage")   // PS3.6 2026a Table A-1
+    }
+
+    /// PS3.6 2026a Table A-1: the 16 current Waveform Storage SOP Classes (UID suffix after 1.2.840.10008.5.1.4.1.1., name).
+    static let tableA1Waveforms: [(String, String)] = [
+        ("9.1.1", "12-lead ECG Waveform Storage"), ("9.1.2", "General ECG Waveform Storage"),
+        ("9.1.3", "Ambulatory ECG Waveform Storage"), ("9.1.4", "General 32-bit ECG Waveform Storage"),
+        ("9.2.1", "Hemodynamic Waveform Storage"), ("9.3.1", "Cardiac Electrophysiology Waveform Storage"),
+        ("9.4.1", "Basic Voice Audio Waveform Storage"), ("9.4.2", "General Audio Waveform Storage"),
+        ("9.5.1", "Arterial Pulse Waveform Storage"), ("9.6.1", "Respiratory Waveform Storage"),
+        ("9.6.2", "Multi-channel Respiratory Waveform Storage"), ("9.7.1", "Routine Scalp Electroencephalogram Waveform Storage"),
+        ("9.7.2", "Electromyogram Waveform Storage"), ("9.7.3", "Electrooculogram Waveform Storage"),
+        ("9.7.4", "Sleep Electroencephalogram Waveform Storage"), ("9.8.1", "Body Position Waveform Storage"),
+    ]
+
+    @Test("displayNameForSopClass covers every PS3.6 2026a Table A-1 Waveform Storage SOP Class")
+    func testDisplayNameForEveryTableA1Waveform() {
+        #expect(Self.tableA1Waveforms.count == 16)
+        for (suffix, a1Name) in Self.tableA1Waveforms {
+            let name = WaveformHelpers.displayNameForSopClass("1.2.840.10008.5.1.4.1.1." + suffix)
+            #expect(name + " Waveform Storage" == a1Name, "\(suffix)")
+            #expect(WaveformHelpers.waveformTypeDescription(sopClassUID: "1.2.840.10008.5.1.4.1.1." + suffix) != "Waveform", "\(suffix)")
+        }
+        #expect(WaveformHelpers.waveformTypeDescription(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.7.1") == "Neurophysiology")
+        #expect(WaveformHelpers.sfSymbolForSopClass("1.2.840.10008.5.1.4.1.1.9.6.2") == "lungs")
     }
 
     @Test("displayNameForSopClass hemodynamic UID returns Hemodynamic")
