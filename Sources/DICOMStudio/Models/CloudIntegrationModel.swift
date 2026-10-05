@@ -3,6 +3,9 @@
 //
 // DICOM Studio — Data models for Cloud Integration (dicom-cloud)
 // Reference: DICOM PS3.18 (Web Services) — cloud transport
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (cloud providers, bucket paths,
+// transfer jobs). The PS3.18 line above is a pointer to the transport the files travel over, not a claim that
+// any PS3.18 resource, media type or parameter is implemented here.
 
 import Foundation
 

@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for Polish, Accessibility & Release (Milestone 15)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (localization, accessibility, testing,
+// profiling, documentation and release-checklist records; the word DICOM appears only in display text).
 
 import Foundation
 
