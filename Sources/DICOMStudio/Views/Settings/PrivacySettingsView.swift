@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Privacy settings tab
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (three toggles bound to SettingsViewModel; no PS3.15 Annex E profile or CID 7050 code is displayed)
 
 #if canImport(SwiftUI)
 import SwiftUI

@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Hanging Protocol ViewModel
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (editing state and protocol selection over HangingProtocolService; the modality it edits is free text)
 
 import Foundation
 import Observation

@@ -2,8 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for AI/ML Analysis (dicom-ai)
-// Reference: DICOM PS3.17 Annex U – Informative: Encoding of Radiomics
-// Reference: DICOM PS3.3 IOD definitions for AI/ML results (SEG, SR, RT)
+// The DICOM output objects (TID 1500 SR, SEG) are built by dicom-ai / DICOMKit, not here.
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (tabs, output-format and task enums, job and model records); the former PS3.17 Annex U radiomics citation was removed because nothing in the file encodes radiomics; AIOutputFormat's DICOM_SR / DICOM_SEG name dicom-ai's --format dicom-sr / dicom-seg
 
 import Foundation
 

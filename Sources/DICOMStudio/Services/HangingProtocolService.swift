@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Service for managing hanging protocols
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (protocol storage, selection and active-protocol state over HangingProtocolHelpers)
 
 import Foundation
 

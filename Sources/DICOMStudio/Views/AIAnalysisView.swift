@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — AI/ML Analysis view (dicom-ai)
-// Reference: CoreML, Vision framework, DICOM PS3.3 SEG/SR IODs
+// Reference: CoreML, Vision framework; DICOM SEG / SR output is produced by dicom-ai (PS3.3 A.51, A.35)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (UI state and layout only)
 
 #if canImport(SwiftUI)
 import SwiftUI

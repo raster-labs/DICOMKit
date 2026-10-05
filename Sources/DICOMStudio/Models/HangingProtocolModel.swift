@@ -1,7 +1,8 @@
 // HangingProtocolModel.swift
 // DICOMStudio
 //
-// DICOM Studio — Hanging Protocol models per DICOM PS3.3 C.23
+// DICOM Studio — Hanging Protocol models, loosely modelled on DICOM PS3.3 C.23
+// NEMA-verified: 2026a, checked 2026-10-05 — the only standard-shaped enum, ImageSortDirection (ASCENDING / DESCENDING), diffed against PS3.3 2026a Sorting Direction (0072,0604) Enumerated Values INCREASING / DECREASING (Table C.23.3-1): 0 match — P-STUDIO-HP-SORTING-DIRECTION; LayoutType, ImageSortField, the matching criteria, priority and viewport definitions are the app's own model and do not encode Hanging Protocol Definition / Display Module attributes (Tables C.23.1-1, C.23.3-1); the HangingProtocolModel doc comment no longer claims correspondence with the C.23 modules
 
 import Foundation
 
@@ -42,6 +43,9 @@ public enum LayoutType: String, Sendable, Equatable, Hashable, CaseIterable {
 }
 
 /// Sorting direction for images within viewports.
+///
+/// PS3.3 2026a Sorting Direction (0072,0604) enumerates INCREASING and DECREASING (Table C.23.3-1);
+/// these raw values are the app's own and are kept for stored-state compatibility (P-STUDIO-HP-SORTING-DIRECTION).
 public enum ImageSortDirection: String, Sendable, Equatable, Hashable, CaseIterable {
     case ascending = "ASCENDING"
     case descending = "DESCENDING"
@@ -161,7 +165,8 @@ public struct ViewportDefinition: Identifiable, Sendable, Equatable, Hashable {
 
 /// A hanging protocol that defines how to display studies.
 ///
-/// Corresponds to DICOM PS3.3 C.23 Hanging Protocol Module.
+/// An app-level simplification of the DICOM PS3.3 C.23 Hanging Protocol modules: layout, matching
+/// criteria and per-viewport selection, not the Hanging Protocol IOD's attributes.
 public struct HangingProtocolModel: Identifiable, Sendable, Equatable, Hashable {
     /// Unique identifier.
     public let id: UUID

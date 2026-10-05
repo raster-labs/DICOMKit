@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — SwiftUI panel for hanging protocol selection and editing
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (UI state and layout only)
 
 import Foundation
 

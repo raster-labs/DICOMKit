@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — ViewModel for AI Analysis feature (dicom-ai)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data; the dicom-ai command lines it shows (classify / segment / detect / enhance with --model and --confidence) name real dicom-ai subcommands and options (Sources/dicom-ai/main.swift CommonOptions)
 
 import Foundation
 import Observation
