@@ -201,7 +201,7 @@ struct NetworkToolWorkshopCLIParityTests {
         #expect(condition.parameterId == "level")
         // Parent keys only exist below the study level; PATIENT/STUDY queries already
         // request every key at their own level.
-        #expect(Set(condition.values) == ["series", "instance"])
+        #expect(Set(condition.values) == ["series", "image"])
     }
 
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)

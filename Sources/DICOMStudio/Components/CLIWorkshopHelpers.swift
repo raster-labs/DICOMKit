@@ -444,33 +444,43 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "Remote server Application Entity title",
                     defaultValue: "ANY-SCP"
                 ),
+                // The Query/Retrieve Level (0008,0052) values of PS3.4 2026a Tables C.6.1-1 /
+                // C.6.2-1 in lower case — PATIENT, STUDY, SERIES, IMAGE — exactly the CLI's
+                // QueryLevelOption (commit 695d961). The CLI still accepts "instance" as an
+                // alias of image; the executor does too, but the picker names the wire value.
                 CLIParameterDefinition(
                     id: "level", flag: "--level", displayName: "Query Level",
                     parameterType: .enumPicker, placeholder: "study",
-                    helpText: "Query retrieve level (PS3.4 C.6)",
+                    helpText: "Query/Retrieve Level (0008,0052): patient, study, series, image — the values of PS3.4 Tables C.6.1-1 / C.6.2-1; 'instance' is accepted as an alias of image (default: study)",
                     defaultValue: "study",
-                    allowedValues: ["patient", "study", "series", "instance"]
+                    allowedValues: ["patient", "study", "series", "image"]
                 ),
                 CLIParameterDefinition(
                     id: "patient-id", flag: "--patient-id", displayName: "Patient ID",
                     parameterType: .textField, placeholder: "e.g. PAT001",
-                    helpText: "Patient ID to search for (0010,0020)"
+                    helpText: "Patient ID (0010,0020)"
                 ),
                 CLIParameterDefinition(
                     id: "patient-name", flag: "--patient-name", displayName: "Patient Name",
                     parameterType: .textField, placeholder: "e.g. DOE^JOHN or DOE*",
-                    helpText: "Patient name to search for — supports wildcards * and ? (0010,0010)"
+                    helpText: "Patient's Name (0010,0010); * and ? wild cards per PS3.4 C.2.2.2.4"
                 ),
                 CLIParameterDefinition(
                     id: "study-date", flag: "--study-date", displayName: "Study Date",
                     parameterType: .textField, placeholder: "e.g. 20260101 or 20260101-20260310",
-                    helpText: "Study date or range in YYYYMMDD format (0008,0020)"
+                    helpText: "Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD (up to and including) or YYYYMMDD- (from, PS3.4 C.2.2.2.5)"
                 ),
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .enumPicker, placeholder: "Any",
-                    helpText: "Imaging modality filter (0008,0060)",
+                    helpText: ModalityOptionValidator.helpText("filter"),
                     allowedValues: optionalModalityAllowedValues
+                ),
+                CLIParameterDefinition(
+                    id: "strict-modality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+                    isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study-uid", displayName: "Study Instance UID",
@@ -506,18 +516,27 @@ public enum ToolCatalogHelpers: Sendable {
                     defaultValue: "60",
                     allowedValues: ["5", "10", "15", "30", "60", "120", "300"]
                 ),
+                // dicom-json is the PS3.18 2026a F.2 DICOM JSON Model (P-QUERY-JSON); json / csv
+                // are the tool's "(GGGG,EEEE)"-keyed summaries. Rendered by the shared
+                // DICOMQueryResultFormatter with DICOMWeb's DICOMJSONEncoder, as the CLI does.
                 CLIParameterDefinition(
                     id: "output-format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "table",
-                    helpText: "Output format for query results",
+                    helpText: "Output format: table, json, csv, compact, dicom-json (default: table). json is the tool's {\"(GGGG,EEEE)\": \"value\"} summary; dicom-json is the PS3.18 F.2 DICOM JSON Model (\"00100010\": {\"vr\": \"PN\", \"Value\": [...]})",
                     defaultValue: "table",
-                    allowedValues: ["table", "json", "csv", "compact"]
+                    allowedValues: ["table", "json", "csv", "compact", "dicom-json"]
+                ),
+                CLIParameterDefinition(
+                    id: "csv-keywords", flag: "--csv-keywords", displayName: "CSV Keyword Header",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "CSV header row names each column by its PS3.6 keyword (e.g. PatientName) instead of (GGGG,EEEE)",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "output-format", values: ["csv"])
                 ),
                 CLIParameterDefinition(
                     id: "include-parent-keys", flag: "--include-parent-keys", displayName: "Include Parent Keys",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Non-baseline: at SERIES/INSTANCE level also request parent-level attributes (Patient Name/ID, Study Date/Description, Accession) as return keys, for lenient SCPs such as dcm4chee (PS3.4 C.4.1.2.1 does not allow them)",
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
+                    helpText: "Non-baseline: at SERIES/IMAGE level also request parent-level attributes (Patient Name/ID, Study Date/Description, Accession) as return keys, for lenient SCPs such as dcm4chee (PS3.4 C.4.1.2.1 does not allow them)",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "image"])
                 ),
                 CLIParameterDefinition(
                     id: "verbose", flag: "--verbose", displayName: "Verbose",
@@ -4990,10 +5009,10 @@ public enum EducationalHelpers: Sendable {
             return [
                 CLIExamplePreset(toolID: toolID, title: "Basic Echo Test",
                                  presetDescription: "Test connectivity to a PACS server",
-                                 commandString: "dicom-echo --host pacs.example.com --port 11112 --aet STUDIO --called-aet PACS"),
+                                 commandString: "dicom-echo pacs.example.com:11112 --aet STUDIO --called-aet PACS"),
                 CLIExamplePreset(toolID: toolID, title: "Echo with Stats",
                                  presetDescription: "Send 10 echoes and show round-trip statistics",
-                                 commandString: "dicom-echo --host pacs.example.com --port 11112 --aet STUDIO --count 10 --stats"),
+                                 commandString: "dicom-echo pacs.example.com:11112 --aet STUDIO --count 10 --stats"),
             ]
         case "dicom-anon":
             return [
@@ -5023,10 +5042,10 @@ public enum EducationalHelpers: Sendable {
             return [
                 CLIExamplePreset(toolID: toolID, title: "Query Studies by Modality",
                                  presetDescription: "Find all CT studies on the PACS",
-                                 commandString: "dicom-query --host pacs.example.com --port 11112 --aet STUDIO --modality CT"),
+                                 commandString: "dicom-query pacs.example.com:11112 --aet STUDIO --modality CT"),
                 CLIExamplePreset(toolID: toolID, title: "Query by Patient Name",
                                  presetDescription: "Search for studies by patient name with wildcards",
-                                 commandString: "dicom-query --host pacs.example.com --port 11112 --aet STUDIO --patient-name \"SMITH*\" --format json"),
+                                 commandString: "dicom-query pacs.example.com:11112 --aet STUDIO --patient-name \"SMITH*\" --format json"),
             ]
         default:
             return []

@@ -480,6 +480,73 @@ def check_validation_panel(rep, parts, files, ctx):
               matched, wrong)
 
 
+# --- Network tools (workshop-net) -------------------------------------------------------------------------
+
+def check_query_retrieve_levels(rep, parts, files, ctx):
+    """dicom-query --level offers the Query/Retrieve Level (0008,0052) values of PS3.4 2026a Tables
+    C.6.1-1 / C.6.2-1 (PATIENT, STUDY, SERIES, IMAGE) in lower case, the executor maps every value (and the
+    CLI alias "instance") onto DICOMNetwork.QueryLevel, and the parent-level warning names the level by
+    QueryLevel.rawValue — mirroring the CLI fix 695d961 (no "instance" on the wire)."""
+    dw = ctx['dw']
+    ws = ctx['workshop_surface']()
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    wrong, matched = [], 0
+    std = []
+    for lab in ('C.6.1-1', 'C.6.2-1'):
+        for row in dw.table_rows(parts[4], lab):
+            if len(row) >= 2 and row[1].strip().isupper() and row[1].strip() not in std:
+                std.append(row[1].strip())
+    if std != ['PATIENT', 'STUDY', 'SERIES', 'IMAGE']:
+        wrong.append(f'PS3.4 Tables C.6.1-1 / C.6.2-1 read as {std}; re-read the tables')
+    else:
+        matched += 1
+    p = param(ws, 'dicom-query', 'level')
+    if p is None:
+        wrong.append('dicom-query form has no --level parameter')
+    else:
+        vals = p.get('allowedValues')
+        if vals != [v.lower() for v in std]:
+            wrong.append(f'dicom-query --level picker offers {vals}; PS3.4 Table C.6.1-1 values are {[v.lower() for v in std]}')
+        else:
+            matched += len(vals)
+        if p.get('defaultValue') != 'study':
+            wrong.append(f'dicom-query --level default {p.get("defaultValue")!r}; the CLI default is study')
+        else:
+            matched += 1
+    parent = param(ws, 'dicom-query', 'include-parent-keys')
+    vw = (parent or {}).get('visibleWhen', '')
+    if parent is None or '"instance"' in str(vw) or '"image"' not in str(vw):
+        wrong.append('dicom-query --include-parent-keys must be visible for the series / image levels (not "instance")')
+    else:
+        matched += 1
+    body = block(vm, r'nonisolated static func queryLevelOption\(_ raw: String\) -> QueryLevel\? \{', 'queryLevelOption')
+    cases = dict(re.findall(r'case ((?:"[a-z]+"(?:, )?)+): return \.(\w+)', body))
+    mapping = {}
+    for keys, level in cases.items():
+        for k in re.findall(r'"([a-z]+)"', keys):
+            mapping[k] = level
+    expected = {'patient': 'patient', 'study': 'study', 'series': 'series', 'image': 'image', 'instance': 'image'}
+    for k, v in expected.items():
+        if mapping.get(k) != v:
+            wrong.append(f'queryLevelOption("{k}") maps to {mapping.get(k)}, expected .{v} (PS3.4 Table C.6.1-1; "instance" = CLI alias of IMAGE)')
+        else:
+            matched += 1
+    exec_body = block(vm, r'private func executeDicomQuery\(\) async \{', 'executeDicomQuery')
+    if 'cannot be matched at \\(level.rawValue) level' not in exec_body:
+        wrong.append('the parent-level filter warning must name the level by QueryLevel.rawValue (IMAGE), as the CLI does')
+    else:
+        matched += 1
+    if '"INSTANCE"' in exec_body:
+        wrong.append('executeDicomQuery still spells the IMAGE level as "INSTANCE"')
+    for needle in ('csvHeader: csvKeywords ? .keyword : .tag', 'DICOMJSONEncoder(configuration: .init(prettyPrinted: true)).encodeMultiple'):
+        if needle in vm:
+            matched += 1
+        else:
+            wrong.append(f'dicom-query executor must build the shared formatter with `{needle}` (P-QUERY-JSON; DICOMCLI part 4 "net")')
+    rep.check('PS3.4 2026a Tables C.6.1-1 / C.6.2-1: dicom-query Workshop --level values, IMAGE on the wire, '
+              'dicom-json / csv-keywords formatter (D-query level, P-QUERY-JSON)', matched, wrong)
+
+
 CHECKS = [
     ('G1 workshop dcmdir profile picker', check_dcmdir_profile_picker),
     ('G1 workshop dcmdir fileset rules', check_dcmdir_fileset_rules),
@@ -490,4 +557,5 @@ CHECKS = [
     ('G1 workshop validate iod map', check_validate_iod_map),
     ('G1 workshop uid dump texts', check_uid_and_dump_texts),
     ('G1 validation panel', check_validation_panel),
+    ('G1 workshop net query levels', check_query_retrieve_levels),
 ]

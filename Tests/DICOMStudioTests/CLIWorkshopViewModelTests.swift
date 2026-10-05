@@ -8,6 +8,7 @@ import Testing
 import Foundation
 import DICOMKit
 import DICOMCore
+import DICOMNetwork
 
 @Suite("CLI Workshop ViewModel Tests")
 @MainActor
@@ -531,5 +532,53 @@ struct CLIWorkshopViewModelTests {
         #expect(CLIWorkshopViewModel.validateIODEngineName(for: "us") == "USImageStorage")
         #expect(CLIWorkshopViewModel.validateIODEngineName(for: "BasicTextSRStorage") == "StructuredReport")
         #expect(CLIWorkshopViewModel.validateIODEngineName(for: "ct") == "ct")        // the engine's own short name passes through
+    }
+
+    // MARK: - Network tools (workshop-net, DICOM 2026a)
+
+    @Test("dicom-query --level: patient/study/series/image → Query/Retrieve Level (0008,0052); 'instance' is the CLI alias of IMAGE (PS3.4 Table C.6.1-1)")
+    func queryLevelOption() {
+        #expect(CLIWorkshopViewModel.queryLevelOption("patient") == .patient)
+        #expect(CLIWorkshopViewModel.queryLevelOption("study") == .study)
+        #expect(CLIWorkshopViewModel.queryLevelOption("series") == .series)
+        #expect(CLIWorkshopViewModel.queryLevelOption("image") == .image)
+        #expect(CLIWorkshopViewModel.queryLevelOption("instance") == .image)
+        #expect(CLIWorkshopViewModel.queryLevelOption("IMAGE")?.rawValue == "IMAGE")
+        #expect(CLIWorkshopViewModel.queryLevelOption("frame") == nil)
+    }
+
+    @Test("dicom-query validate(): SERIES needs --study-uid, IMAGE needs both (PS3.4 C.4.1.2.1) with the CLI's texts")
+    func queryLevelRefusal() {
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .study, studyUID: "", seriesUID: "") == nil)
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .series, studyUID: "", seriesUID: "")
+                == "--level series requires --study-uid (PS3.4 C.4.1.2.1: the Study Instance UID of the level above must be given)")
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .series, studyUID: "1.2.3", seriesUID: "") == nil)
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .image, studyUID: "1.2.3", seriesUID: "")
+                == "--level image (instance) requires --study-uid and --series-uid (PS3.4 C.4.1.2.1)")
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .image, studyUID: "1.2.3", seriesUID: "1.2.3.4") == nil)
+    }
+
+    @Test("dicom-query --format dicom-json renders the PS3.18 F.2 DICOM JSON Model through DICOMWeb's encoder; --csv-keywords names columns by PS3.6 keyword")
+    func queryResultFormatter() {
+        let fmt = CLIWorkshopViewModel.queryResultFormatter(format: .dicomJSON, level: .study, csvKeywords: false)
+        #expect(fmt.dicomJSONEncoder != nil)
+        #expect(fmt.csvHeader == .tag)
+        let csv = CLIWorkshopViewModel.queryResultFormatter(format: .csv, level: .study, csvKeywords: true)
+        #expect(csv.csvHeader == .keyword)
+    }
+
+    @Test("--modality runs through the shared ModalityOptionValidator: alias noted only with --verbose, unknown warned and sent, rejected under --strict-modality")
+    func resolveModalityOption() {
+        let ct = CLIWorkshopViewModel.resolveModalityOption("CT", strict: true, verbose: true)
+        #expect(ct.value == "CT" && ct.lines.isEmpty && ct.error == nil)
+        let alias = CLIWorkshopViewModel.resolveModalityOption("MRI", strict: false, verbose: false)
+        #expect(alias.value == "MR" && alias.lines.isEmpty && alias.error == nil)
+        #expect(CLIWorkshopViewModel.resolveModalityOption("MRI", strict: false, verbose: true).lines.count == 1)
+        let unknown = CLIWorkshopViewModel.resolveModalityOption("ZZ", strict: false, verbose: false)
+        #expect(unknown.value == "ZZ" && unknown.error == nil)
+        #expect(unknown.lines.first?.hasPrefix("warning: ") == true && unknown.lines.first?.hasSuffix(" Sending it as-is.") == true)
+        let strict = CLIWorkshopViewModel.resolveModalityOption("ZZ", strict: true, verbose: false)
+        #expect(strict.error?.hasSuffix(" Rejected because --strict-modality is set.") == true)
+        #expect(CLIWorkshopViewModel.resolveModalityOption("", strict: true, verbose: false).error == nil)
     }
 }

@@ -8380,6 +8380,64 @@ case "dicom-study":
         return nil
     }
 
+    /// The `--level` value → Query/Retrieve Level (0008,0052). The picker offers the
+    /// PS3.4 2026a Table C.6.1-1 / C.6.2-1 values in lower case (patient, study, series,
+    /// image); "instance" is accepted as the CLI's alias of image (QueryLevelOption).
+    nonisolated static func queryLevelOption(_ raw: String) -> QueryLevel? {
+        switch raw.trimmingCharacters(in: .whitespaces).lowercased() {
+        case "patient": return .patient
+        case "study": return .study
+        case "series": return .series
+        case "image", "instance": return .image
+        default: return nil
+        }
+    }
+
+    /// dicom-query's `validate()` (PS3.4 C.4.1.2.1): a SERIES query needs the parent
+    /// Study UID, an IMAGE query needs Study and Series UIDs. Returns the CLI's
+    /// ValidationError text (exit 64), or nil when the keys are complete.
+    nonisolated static func queryLevelRefusal(level: QueryLevel, studyUID: String, seriesUID: String) -> String? {
+        switch level {
+        case .series where studyUID.isEmpty:
+            return "--level series requires --study-uid (PS3.4 C.4.1.2.1: the Study Instance UID of the level above must be given)"
+        case .image where studyUID.isEmpty || seriesUID.isEmpty:
+            return "--level image (instance) requires --study-uid and --series-uid (PS3.4 C.4.1.2.1)"
+        default:
+            return nil
+        }
+    }
+
+    /// The shared formatter exactly as dicom-query builds it: `dicom-json` is encoded by
+    /// DICOMWeb's PS3.18 F.2 encoder (pretty-printed, attributes in ascending tag order
+    /// per F.2.2) and `--csv-keywords` names the CSV columns by PS3.6 keyword.
+    nonisolated static func queryResultFormatter(format: QueryOutputFormat, level: QueryLevel,
+                                                 csvKeywords: Bool) -> DICOMQueryResultFormatter {
+        DICOMQueryResultFormatter(
+            format: format, level: level,
+            csvHeader: csvKeywords ? .keyword : .tag,
+            dicomJSONEncoder: { try DICOMJSONEncoder(configuration: .init(prettyPrinted: true)).encodeMultiple($0) })
+    }
+
+    /// Runs a `--modality` value through the shared DICOMCore.ModalityOptionValidator
+    /// exactly as the CLIs' `ModalityOptionValidator.resolve(_:strict:verbose:)`: an alias
+    /// is normalised (noted only with --verbose), a retired / unknown code warns and is
+    /// sent as-is, or is rejected under --strict-modality. Returns the value to send and
+    /// the console lines, or the CLI's error text (exit 1).
+    nonisolated static func resolveModalityOption(_ raw: String, strict: Bool, verbose: Bool)
+        -> (value: String, lines: [String], error: String?) {
+        guard let outcome = ModalityOptionValidator.validate(raw) else { return (raw, [], nil) }
+        var lines: [String] = []
+        if let warning = outcome.warning {
+            if strict, outcome.isStrictFailure {
+                return (raw, [], warning + " Rejected because --strict-modality is set.")
+            }
+            if !outcome.isNote || verbose {
+                lines.append(outcome.isNote ? warning : "warning: " + warning + " Sending it as-is.")
+            }
+        }
+        return (outcome.value, lines, nil)
+    }
+
     /// Performs a C-FIND query against the server configured in the parameter fields.
     private func executeDicomQuery() async {
         let hostValue = paramValue("host")
@@ -8389,36 +8447,36 @@ case "dicom-study":
         let timeoutStr = paramValue("timeout")
         let levelStr = paramValue("level")
         let outputFormat = paramValue("output-format").lowercased()
+        let csvKeywords = paramValue("csv-keywords") == "true"
+        let strictModality = paramValue("strict-modality") == "true"
+        let verbose = paramValue("verbose") == "true"
 
-        guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
-            appendConsoleOutput("Error: A valid host is required (e.g. hostname or hostname:11112).\n")
+        /// Refuses the run with the CLI's `Error: …` line and exit code.
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-query", command: commandPreview, exitCode: 1, output: "Invalid host")
+            addToHistory(toolName: "dicom-query", command: commandPreview, exitCode: exitCode, output: message)
+        }
+
+        guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
+            refuse("A valid host is required (e.g. hostname or hostname:11112).", exitCode: 64)
             return
         }
 
         let host = server.host
         let port = server.port
-        let timeout = TimeInterval(timeoutStr) ?? 30
+        let timeout = TimeInterval(timeoutStr) ?? 60
 
-        let level: QueryLevel
-        switch levelStr.uppercased() {
-        case "PATIENT": level = .patient
-        case "SERIES":  level = .series
-        // The picker value is "instance" (the CLI's spelling); "IMAGE" is kept
-        // as an alias for the DIMSE level name.
-        case "INSTANCE", "IMAGE": level = .image
-        default:         level = .study
-        }
-
-        let verbose = paramValue("verbose") == "true"
+        // The picker offers the PS3.4 Table C.6.1-1 values (patient/study/series/image);
+        // "instance" is the CLI's alias of image. The wire value is always IMAGE.
+        let level = Self.queryLevelOption(levelStr) ?? .study
 
         // Collect all user-provided filter values
         let patientID = paramValue("patient-id")
         let patientName = paramValue("patient-name")
         let studyDate = paramValue("study-date")
-        let modality = paramValue("modality")
+        var modality = paramValue("modality")
         let studyUID = paramValue("study-uid")
         let seriesUID = paramValue("series-uid")
         let seriesDate = paramValue("series-date")
@@ -8426,43 +8484,25 @@ case "dicom-study":
         let accession = paramValue("accession-number")
         let studyDesc = paramValue("study-description")
         let referringPhysician = paramValue("referring-physician")
-
         let includeParentKeys = paramValue("include-parent-keys") == "true"
 
-        // Build C-FIND keys via the SHARED package mapping (DICOMNetwork) — the same
-        // code the dicom-query CLI and the CLI-parity reference use, so input→C-FIND
-        // cannot drift. Pass the SAME argument set as the CLI (incl. accession and
-        // study-description) so the keys — and therefore the result table — match.
-        let queryKeys = DICOMQueryService.buildQueryKeys(
-            level: level,
-            patientName: patientName, patientID: patientID,
-            studyDate: studyDate, modality: modality,
-            accession: accession, studyDescription: studyDesc,
-            referringPhysician: referringPhysician,
-            studyUID: studyUID, seriesUID: seriesUID,
-            seriesDate: seriesDate, instanceUID: instanceUID,
-            includeParentLevelReturnKeys: includeParentKeys)
-
-        // PS3.4 C.4.1.2.1: patient/study filters cannot be matched at SERIES or
-        // INSTANCE level under the hierarchical model. The CLI warns on stderr
-        // rather than dropping them silently; the Workshop prints the SAME text
-        // into the console so neither surface loses the diagnosis.
-        let ignoredFilters = DICOMQueryService.ignoredParentLevelFilters(
-            level: level,
-            patientName: patientName, patientID: patientID,
-            studyDate: studyDate, accession: accession,
-            studyDescription: studyDesc, referringPhysician: referringPhysician)
-        if !ignoredFilters.isEmpty {
-            // The CLI names the level with its own option spelling, where the
-            // instance level is "INSTANCE"; the shared QueryLevel.image rawValue
-            // is "IMAGE". Use the CLI's wording so the two consoles read alike.
-            let levelName = (level == .image) ? "INSTANCE" : level.rawValue
-            appendConsoleOutput(
-                "Warning: \(ignoredFilters.joined(separator: ", ")) cannot be matched at "
-                + "\(levelName) level under the hierarchical query model and "
-                + "will be ignored (PS3.4 C.4.1.2.1: only the Unique Keys of the levels above "
-                + "may be sent). Query at STUDY level first, then narrow with --study-uid.\n")
+        // PS3.4 C.4.1.2.1 (dicom-query validate()): the Unique Keys of the levels above
+        // the query level must be given — ArgumentParser usage error, exit 64.
+        if let message = Self.queryLevelRefusal(level: level, studyUID: studyUID, seriesUID: seriesUID) {
+            refuse(message, exitCode: 64)
+            return
         }
+
+        // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), as the
+        // CLI's run() does before any connection: alias note (verbose), retired/unknown
+        // warning, or --strict-modality rejection (exit 1).
+        let resolved = Self.resolveModalityOption(modality, strict: strictModality, verbose: verbose)
+        if let message = resolved.error {
+            refuse(message, exitCode: 1)
+            return
+        }
+        modality = resolved.value
+        for line in resolved.lines { appendConsoleOutput(line + "\n") }
 
         // Verbose header via the SHARED NetworkConsole formatter (DICOMNetwork), gated on
         // --verbose so a plain run is just the results table — identical to the CLI. The
@@ -8489,6 +8529,37 @@ case "dicom-study":
                 timeout: Int(timeout), filters: filters))
         }
 
+        // PS3.4 C.4.1.2.1: patient/study filters cannot be matched at SERIES or IMAGE
+        // level under the hierarchical model. The CLI warns on stderr rather than dropping
+        // them silently; the Workshop prints the SAME text (the level named by its
+        // Query/Retrieve Level (0008,0052) value, PS3.4 Table C.6.2-1) into the console.
+        let ignoredFilters = DICOMQueryService.ignoredParentLevelFilters(
+            level: level,
+            patientName: patientName, patientID: patientID,
+            studyDate: studyDate, accession: accession,
+            studyDescription: studyDesc, referringPhysician: referringPhysician)
+        if !ignoredFilters.isEmpty {
+            appendConsoleOutput(
+                "Warning: \(ignoredFilters.joined(separator: ", ")) cannot be matched at \(level.rawValue) level "
+                + "under the hierarchical query model and will be ignored "
+                + "(PS3.4 C.4.1.2.1: only the Unique Keys of the levels above may be sent). "
+                + "Query at STUDY level first, then narrow with --study-uid.\n")
+        }
+
+        // Build C-FIND keys via the SHARED package mapping (DICOMNetwork) — the same
+        // code the dicom-query CLI and the CLI-parity reference use, so input→C-FIND
+        // cannot drift. Pass the SAME argument set as the CLI (incl. accession and
+        // study-description) so the keys — and therefore the result table — match.
+        let queryKeys = DICOMQueryService.buildQueryKeys(
+            level: level,
+            patientName: patientName, patientID: patientID,
+            studyDate: studyDate, modality: modality,
+            accession: accession, studyDescription: studyDesc,
+            referringPhysician: referringPhysician,
+            studyUID: studyUID, seriesUID: seriesUID,
+            seriesDate: seriesDate, instanceUID: instanceUID,
+            includeParentLevelReturnKeys: includeParentKeys)
+
         do {
             let informationModel: QueryRetrieveInformationModel = (level == .patient) ? .patientRoot : .studyRoot
             let config = QueryConfiguration(
@@ -8502,24 +8573,21 @@ case "dicom-study":
             let results = try await DICOMQueryService.find(
                 host: host, port: port, configuration: config, queryKeys: queryKeys)
 
-            // Render via the SHARED formatter (DICOMNetwork) so output matches the CLI.
-            // The formatter renders "No results found." for an empty set, so both the
-            // empty and populated cases go through one code path — identical to the CLI,
-            // which prints the formatter output verbatim with no extra prefix/warnings.
+            // Render via the SHARED formatter (DICOMNetwork) built exactly as the CLI
+            // builds it (DICOMQuery.formatter): dicom-json through DICOMWeb's PS3.18 F.2
+            // encoder, CSV header by tag or PS3.6 keyword. The formatter renders "No
+            // results found." for an empty set, so both cases go through one code path.
             let fmt = QueryOutputFormat(rawValue: outputFormat) ?? .table
-            appendConsoleOutput(DICOMQueryResultFormatter(format: fmt, level: level).format(results: results))
+            let formatter = Self.queryResultFormatter(format: fmt, level: level, csvKeywords: csvKeywords)
+            appendConsoleOutput(formatter.format(results: results))
             consoleStatus = .success
             service.setConsoleStatus(.success)
             addToHistory(toolName: "dicom-query", command: commandPreview, exitCode: 0,
                          output: "\(results.count) result(s) found")
         } catch {
-            let errorDetail = String(describing: error)
-            appendConsoleOutput("❌ C-FIND failed\n")
-            appendConsoleOutput("  Error: \(errorDetail)\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-query", command: commandPreview, exitCode: 1,
-                         output: errorDetail)
+            // ArgumentParser prints a thrown error as `Error: <description>` and exits 1.
+            let errorDetail = (error as? DICOMNetworkError)?.description ?? error.localizedDescription
+            refuse(errorDetail, exitCode: 1)
         }
     }
 

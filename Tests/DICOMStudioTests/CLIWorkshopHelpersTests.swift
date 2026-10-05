@@ -1173,4 +1173,36 @@ struct CLIWorkshopHelpersTests {
         #expect(ValidationHelpers.levelDescription(3) == "3 — IOD Type 1/1C/2/2C (PS3.3)")
         #expect(ValidationHelpers.levelDescription(5) == "5 — J2K codestream")
     }
+
+    // MARK: - Network tools (workshop-net, DICOM 2026a)
+
+    private func netParam(_ tool: String, _ id: String) -> CLIParameterDefinition? {
+        ToolCatalogHelpers.parameterDefinitions(for: tool).first { $0.id == id }
+    }
+
+    @Test("dicom-query --level offers the PS3.4 2026a Table C.6.1-1 / C.6.2-1 values (patient, study, series, image), not 'instance'")
+    func queryLevelPickerIsPS34() throws {
+        let level = try #require(netParam("dicom-query", "level"))
+        #expect(level.allowedValues == ["patient", "study", "series", "image"])
+        #expect(level.defaultValue == "study")
+        #expect(level.helpText.contains("Tables C.6.1-1 / C.6.2-1"))
+        let parent = try #require(netParam("dicom-query", "include-parent-keys"))
+        #expect(parent.visibleWhen?.values == ["series", "image"])
+    }
+
+    @Test("dicom-query --format offers dicom-json (PS3.18 F.2), --csv-keywords and --strict-modality are offered; --modality help is the shared text")
+    func queryFormatAndModalityRows() throws {
+        let format = try #require(netParam("dicom-query", "output-format"))
+        #expect(format.allowedValues == ["table", "json", "csv", "compact", "dicom-json"])
+        #expect(format.defaultValue == "table")
+        let csvKeywords = try #require(netParam("dicom-query", "csv-keywords"))
+        #expect(csvKeywords.flag == "--csv-keywords")
+        #expect(csvKeywords.visibleWhen?.parameterId == "output-format")
+        #expect(netParam("dicom-query", "strict-modality")?.flag == "--strict-modality")
+        #expect(netParam("dicom-query", "modality")?.helpText == ModalityOptionValidator.helpText("filter"))
+        // The presets are paste-runnable: the CLIs take the endpoint as a positional argument.
+        for preset in EducationalHelpers.examplePresets(for: "dicom-query") + EducationalHelpers.examplePresets(for: "dicom-echo") {
+            #expect(!preset.commandString.contains("--host"), Comment(rawValue: preset.commandString))
+        }
+    }
 }
