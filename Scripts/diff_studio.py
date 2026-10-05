@@ -565,22 +565,61 @@ def cli_surface(tool):
     return files, options, outputs, commands
 
 
+def enum_raw_values(src, name):
+    """Raw values of a `enum Name: String` — explicit `case x = "v"` or implicit (`case x` -> "x"), ignoring
+    deprecated cases and enums whose raw type is not String."""
+    m = re.search(r'enum\s+' + re.escape(name) + r'\s*:\s*([^{]*)\{', src)
+    if not m or 'String' not in m.group(1):
+        return []
+    body = dw.enum_body(src, name)
+    body = re.sub(r'@available\([^)]*deprecated[^)]*\)[^\n]*\n[^\n]*case[^\n]*\n', '', body)
+    # drop nested types' bodies so their cases are not counted
+    out = []
+    for cm in re.finditer(r'^\s*(?:public\s+)?case\s+([^\n]+)', body, re.M):
+        for part in re.split(r',\s*(?![^"]*"\s*,)', cm.group(1)):
+            part = part.strip()
+            mm = re.match(r'`?(\w+)`?\s*(?:=\s*"([^"]*)")?', part)
+            if mm and not part.startswith('.'):
+                out.append(mm.group(2) if mm.group(2) is not None else mm.group(1))
+    return out
+
+
 def cli_accepted_values(tool, files, opt):
-    """Raw values of a String-backed enum option type, searched in the tool, then DICOMKit / DICOMNetwork / DICOMWeb."""
+    """Accepted raw values of a String-backed enum option type, searched in the tool, then the engine modules."""
     typ = re.sub(r'[?\[\]]', '', opt['type']).strip()
     if not typ or typ in ('String', 'Int', 'Bool', 'Double', 'UInt16', 'UInt32', 'Int64', 'UInt8'):
         return None
     name = typ.split('.')[-1]
     for src in files.values():
-        cases = dw.string_cases(src, name)
-        if cases:
-            return cases
+        vals = enum_raw_values(src, name)
+        if vals:
+            return vals
     for mod in ('DICOMKit', 'DICOMNetwork', 'DICOMWeb', 'DICOMCore'):
         for fname, src in dw.read_all(os.path.join(SOURCES, mod)).items():
-            cases = dw.string_cases(src, name)
-            if cases:
-                return cases
+            vals = enum_raw_values(src, name)
+            if vals:
+                return vals
     return None
+
+
+def resolve_swift_default(expr, sources):
+    """`MergeSortCriteria.instanceNumber.rawValue` / `.instanceNumber` / `Type.staticLet` -> the literal, when findable."""
+    expr = expr.strip()
+    m = re.fullmatch(r'(\w+)\.(\w+)\.rawValue', expr)
+    if m:
+        for src in sources.values():
+            body = dw.enum_body(src, m.group(1))
+            if body:
+                cm = re.search(r'case\s+' + re.escape(m.group(2)) + r'\b\s*(?:=\s*"([^"]*)")?', body)
+                if cm:
+                    return cm.group(1) if cm.group(1) is not None else m.group(2)
+    m = re.fullmatch(r'(?:\w+\.)?(\w+)', expr)
+    if m and not expr.islower():
+        for src in sources.values():
+            mm = re.search(r'static let ' + re.escape(m.group(1)) + r'\s*(?::\s*\w+)?\s*=\s*"([^"]+)"', src)
+            if mm:
+                return mm.group(1)
+    return expr
 
 
 def normalise_default(v):
@@ -636,11 +675,12 @@ def check_workshop_parity(rep, ws, tool_id):
         if cd.startswith('.'):
             cd = dc.raw_value(files, cd[1:])
         elif re.fullmatch(r'[A-Za-z_.]+', cd):            # `AnonCLI.defaultProfile` -> its literal
-            for src in files.values():
-                mm = re.search(r'static let ' + re.escape(cd.split('.')[-1]) + r'\s*(?::\s*\w+)?\s*=\s*"([^"]+)"', src)
-                if mm:
-                    cd = mm.group(1)
-                    break
+            cd = resolve_swift_default(cd, files)
+        if re.fullmatch(r'[A-Za-z_.]+', wd) and not wd.islower():   # `MergeSortCriteria.instanceNumber.rawValue`
+            engine = {}
+            for mod in ('DICOMKit', 'DICOMNetwork', 'DICOMWeb', 'DICOMCore'):
+                engine.update({mod + '/' + k: v for k, v in dw.read_all(os.path.join(SOURCES, mod)).items()})
+            wd = resolve_swift_default(wd, {**studio_files(), **files, **engine})
         if wd and cd and wd.lower() != cd.lower() and not cd.startswith(('[', 'nil')):
             try:
                 same = float(wd) == float(cd)
