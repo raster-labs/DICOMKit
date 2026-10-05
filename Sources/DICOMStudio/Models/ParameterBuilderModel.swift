@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for Dynamic GUI Controls & Parameter Builder (Milestone 21)
+// NEMA-verified: 2026a, checked 2026-10-05 — the only standard-derived values are the AE Title limit (16, PS3.5 2026a Table 6.2-1 VR AE "16 bytes maximum"; the old "uppercase" claim had no basis in the AE definition and is removed) and the port range 1–65535 with PS3.8 2026a 9.1.1 ports 104 / 11112 named; form, injection and subcommand state otherwise
 
 import Foundation
 
@@ -71,9 +72,9 @@ public enum ParameterType: Sendable, Equatable, Hashable {
     case directoryPath
     /// Output path panel with a suggested file extension.
     case outputPath(defaultExtension: String)
-    /// DICOM AE Title text field (max 16 uppercase characters).
+    /// DICOM AE Title text field (PS3.5 Table 6.2-1, VR AE: 16 bytes maximum; not restricted to upper case).
     case aeTitle
-    /// TCP port number field (1–65535).
+    /// TCP port number field (1–65535; DICOM uses the well-known port 104 or the registered 11112, PS3.8 9.1.1).
     case port
     /// Hostname or IP address text field.
     case host

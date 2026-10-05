@@ -523,10 +523,10 @@ struct ParameterBuilderHelpersTests {
         #expect(cfg?.hasSubcommands == false)
     }
 
-    @Test("dicom-info config has at least one required parameter (--input)")
+    @Test("dicom-info config has at least one required parameter (<file-path>)")
     func test_dicomInfo_config_hasRequiredInputParam() {
         let cfg = ParameterCatalogHelpers.config(for: "dicom-info")!
-        let inputParam = cfg.parameters.first { $0.name == "--input" }
+        let inputParam = cfg.parameters.first { $0.name == "<file-path>" }
         #expect(inputParam != nil)
         #expect(inputParam?.isRequired == true)
     }
@@ -628,11 +628,11 @@ struct ParameterBuilderHelpersTests {
 
     @Test("applyNetworkInjection: injects matching parameter when server is configured")
     func test_applyNetworkInjection_configured_injectsMatchingParam() {
-        let defn = ToolParameterDefinition(name: "--host", displayName: "Host", description: "", type: .host, isRequired: true)
+        let defn = ToolParameterDefinition(name: "<host>", displayName: "Host", description: "", type: .host, isRequired: true)
         let entry = ParameterFormEntry(definition: defn, currentValue: nil, source: .userSet)
         let injected = InjectedNetworkParam(
-            parameterName: "--host",
-            cliFlag: "--host",
+            parameterName: "<host>",
+            cliFlag: "<host>",
             value: .string("pacs.hospital.org"),
             serverProfileName: "Main PACS"
         )
@@ -789,8 +789,8 @@ struct ParameterBuilderServiceTests {
     func test_updateValue_setsValue() {
         let service = ParameterBuilderService()
         service.loadTool("dicom-echo")
-        service.updateValue(.string("pacs.local"), for: "--host")
-        let entry = service.getFormState().entries.first { $0.definition.name == "--host" }
+        service.updateValue(.string("pacs.local"), for: "<host>")
+        let entry = service.getFormState().entries.first { $0.definition.name == "<host>" }
         #expect(entry?.currentValue == .string("pacs.local"))
     }
 
@@ -798,8 +798,8 @@ struct ParameterBuilderServiceTests {
     func test_updateValue_setsSourceToUserSet() {
         let service = ParameterBuilderService()
         service.loadTool("dicom-echo")
-        service.updateValue(.string("pacs.local"), for: "--host")
-        let entry = service.getFormState().entries.first { $0.definition.name == "--host" }
+        service.updateValue(.string("pacs.local"), for: "<host>")
+        let entry = service.getFormState().entries.first { $0.definition.name == "<host>" }
         #expect(entry?.source == .userSet)
     }
 
@@ -807,7 +807,7 @@ struct ParameterBuilderServiceTests {
     func test_updateValue_regeneratesCommand() {
         let service = ParameterBuilderService()
         service.loadTool("dicom-echo")
-        service.updateValue(.string("pacs.local"), for: "--host")
+        service.updateValue(.string("pacs.local"), for: "<host>")
         #expect(service.getFormState().generatedCommand.contains("pacs.local"))
     }
 
@@ -815,10 +815,10 @@ struct ParameterBuilderServiceTests {
     func test_resetToDefaults_revertsValues() {
         let service = ParameterBuilderService()
         service.loadTool("dicom-echo")
-        service.updateValue(.string("pacs.local"), for: "--host")
+        service.updateValue(.string("pacs.local"), for: "<host>")
         service.resetToDefaults()
-        let entry = service.getFormState().entries.first { $0.definition.name == "--host" }
-        // --host has no default, so value should be nil after reset
+        let entry = service.getFormState().entries.first { $0.definition.name == "<host>" }
+        // <host> has no default, so value should be nil after reset
         #expect(entry?.currentValue == nil)
     }
 
@@ -856,7 +856,7 @@ struct ParameterBuilderServiceTests {
         let service = ParameterBuilderService()
         service.loadTool("dicom-echo")
         let injectedParam = InjectedNetworkParam(
-            parameterName: "--host",
+            parameterName: "<host>",
             cliFlag: "--host",
             value: .string("injected-host"),
             serverProfileName: "Test"
@@ -867,7 +867,7 @@ struct ParameterBuilderServiceTests {
             activeServerName: "Test"
         )
         service.setNetworkInjection(injection)
-        let entry = service.getFormState().entries.first { $0.definition.name == "--host" }
+        let entry = service.getFormState().entries.first { $0.definition.name == "<host>" }
         #expect(entry?.currentValue == .string("injected-host"))
         #expect(entry?.source == .serverInjected)
     }
@@ -877,7 +877,7 @@ struct ParameterBuilderServiceTests {
         let service = ParameterBuilderService()
         service.loadTool("dicom-echo")
         let injectedParam = InjectedNetworkParam(
-            parameterName: "--host",
+            parameterName: "<host>",
             cliFlag: "--host",
             value: .string("injected-host"),
             serverProfileName: "Test"
@@ -888,7 +888,7 @@ struct ParameterBuilderServiceTests {
         )
         service.setNetworkInjection(injection)
         service.clearNetworkInjection()
-        let entry = service.getFormState().entries.first { $0.definition.name == "--host" }
+        let entry = service.getFormState().entries.first { $0.definition.name == "<host>" }
         #expect(entry?.source != .serverInjected)
     }
 
@@ -934,7 +934,7 @@ struct ParameterBuilderServiceTests {
     func test_isValid_falseWhenRequiredParamMissing() {
         let service = ParameterBuilderService()
         service.loadTool("dicom-info")
-        // --input is required and has no default; form is loaded with nil value
+        // <file-path> is required and has no default; form is loaded with nil value
         #expect(service.getFormState().isValid == false)
     }
 
@@ -942,7 +942,7 @@ struct ParameterBuilderServiceTests {
     func test_isValid_trueWhenRequiredParamProvided() {
         let service = ParameterBuilderService()
         service.loadTool("dicom-info")
-        service.updateValue(.filePath("/tmp/sample.dcm"), for: "--input")
+        service.updateValue(.filePath("/tmp/sample.dcm"), for: "<file-path>")
         #expect(service.getFormState().isValid == true)
     }
 }
@@ -1008,8 +1008,8 @@ struct ParameterBuilderViewModelTests {
     func test_updateValue_reflectsInFormState() {
         let vm = ParameterBuilderViewModel()
         vm.loadTool("dicom-echo")
-        vm.updateValue(.string("myhost"), for: "--host")
-        let entry = vm.formState.entries.first { $0.definition.name == "--host" }
+        vm.updateValue(.string("myhost"), for: "<host>")
+        let entry = vm.formState.entries.first { $0.definition.name == "<host>" }
         #expect(entry?.currentValue == .string("myhost"))
     }
 
@@ -1018,7 +1018,7 @@ struct ParameterBuilderViewModelTests {
     func test_generatedCommand_includesUpdatedValue() {
         let vm = ParameterBuilderViewModel()
         vm.loadTool("dicom-echo")
-        vm.updateValue(.string("myhost"), for: "--host")
+        vm.updateValue(.string("myhost"), for: "<host>")
         #expect(vm.generatedCommand.contains("myhost"))
     }
 
@@ -1027,9 +1027,9 @@ struct ParameterBuilderViewModelTests {
     func test_resetToDefaults_clearsUserSetValues() {
         let vm = ParameterBuilderViewModel()
         vm.loadTool("dicom-echo")
-        vm.updateValue(.string("myhost"), for: "--host")
+        vm.updateValue(.string("myhost"), for: "<host>")
         vm.resetToDefaults()
-        let entry = vm.formState.entries.first { $0.definition.name == "--host" }
+        let entry = vm.formState.entries.first { $0.definition.name == "<host>" }
         #expect(entry?.currentValue == nil)
     }
 
@@ -1054,7 +1054,7 @@ struct ParameterBuilderViewModelTests {
     func test_isValid_trueAfterRequiredParamSet() {
         let vm = ParameterBuilderViewModel()
         vm.loadTool("dicom-info")
-        vm.updateValue(.filePath("/tmp/sample.dcm"), for: "--input")
+        vm.updateValue(.filePath("/tmp/sample.dcm"), for: "<file-path>")
         #expect(vm.isValid == true)
     }
 
