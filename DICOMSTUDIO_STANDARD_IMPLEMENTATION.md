@@ -144,6 +144,14 @@ Table O-1). Every other generic check is ok.
 | 2026-10-05 | HangingProtocol*, AIAnalysis*, PrivacySettingsView | PS3.3 Table C.23.3-1 Sorting Direction, C.7.3.1.1.1 Modality (4 values) | markers; ImageSortDirection 0/2 (PEND); PS3.17 Annex U citation removed (`b0137a3d`) | HangingProtocolHelpersTests, HangingProtocolModelTests |
 | 2026-10-05 | Security UI | PS3.15 2026a B.12 ("shall support TLS 1.2", RFC 8996), B.13 cipher suites, B.1-B.3 / B.9-B.11 "Retired"; DICOMKit Anonymizer.swift basic (14) / clinicalTrial (+8) tag sets; PS3.6 Table 6-1 names | preview lists = engine lists (18-tag "HIPAA" list had 7 tags in common with what ran); descriptions state engine counts; development minimum TLS 1.0 → 1.2; A.5 audit citation (`93553fa4`) | SecurityHelpersTests (+1), SecurityModelTests (+2), SecurityViewModelTests |
 | 2026-10-05 | Scripts/diff_studio_g5.py | all of the above | new check module, 11 checks (`c87e60dd`) | — |
+| 2026-10-05 | Draft of attempt 1 verified and kept (json, xml, uid, split, merge, validate, dump, tags, diff, info arms + executors) | PS3.18 F.2.2 / F.2.5, PS3.19 Table A.1.5-2, PS3.5 9.1 / B.2 / 7.1.1, PS3.6 Table A-1, PS3.3 C.7.6.16.1.2, PS3.10 Table 7.1-1 | parity ok for all 10; exit codes aligned to ArgumentParser (64 usage) — 2f730cac | CLIWorkshopHelpersTests, CLIWorkshopViewModelTests, SplitMergeWorkshopCLIParityTests |
+| 2026-10-05 | dicom-dcmdir: --profile picker = DICOMDIRProfile.allStandard, File-set ID default / refusal, --copy-to, validate rules, exit codes (D29, D132) | PS3.11 2026a Tables A.1-1 … N.1-1 (58 fixed identifiers: 58 matched, 0 wrong); PS3.10 8.1 (0-16 chars), 8.2 (1-8 × 1-8), 8.5 (A-Z 0-9 _), 8.6; PS3.3 Tables F.3-2, F.3-3, F.4-1 | 2f730cac | dcmdirProfilePickerIsPS311, dcmdirCreateForm, fileSetRules, profileDeprecationNote; diff_studio_g1 × 2 |
+| 2026-10-05 | dicom-archive: query --strict-modality, CLI help texts, ModalityOptionValidator / study-date warning in the executor, ArchiveError exit 64 | PS3.3 C.7.3.1.1.1; PS3.4 C.2.2.2.2 / C.2.2.2.4 / C.2.2.2.5.1; PS3.5 Table 6.2-1 DA | 2f730cac | archiveQueryKeys, archiveStudyDateWarning; diff_studio_g1 |
+| 2026-10-05 | dicom-study: --copy default false, CLI help (keyword keys, deprecated keys), usage errors exit 64 | PS3.4 Tables C.6-2 / C.6-3 (0020,1206), (0020,1209); PS3.6 Table 6-1 keywords | 2f730cac | studyDefaults |
+| 2026-10-05 | dicom-export: --frame-number / --start-frame-number / --end-frame-number, deprecated 0-based options with notes + exit-1 conflict, --fps default = file rate, shared render for contact-sheet / animate, buildOrganizedPath(patientID:issuerOfPatientID:), --apply-window deprecated on contact-sheet / bulk, Burned In Annotation warnings (D127) | PS3.3 Table 10-3, Table C.7-13 (3 attributes; names / tags match PS3.6 Table 6-1), Table C.7-9 (0028,0301), Table C.7-1 (0010,0020) / (0010,0021); PS3.4 N.2 | 2f730cac | exportFrameNumbers, exportFPSDefaultIsTheFileRate, exportApplyWindowDeprecation, exportPickers, exportCineFrameRate, exportTexts; WorkshopDicomImageOutputScopeTests; diff_studio_g1 |
+| 2026-10-05 | dicom-split: SplitMergeWorkshopCLIParityTests — framesDeprecatedLine filter removed, 6 --frame-numbers / conflict cases added (D154) | PS3.3 C.7.6.16.1.2 | 2f730cac | SplitMergeWorkshopCLIParityTests (32 split × verbose on/off, merge matrix × 2: pass) |
+| 2026-10-05 | ValidationModel / ViewModel / View: 5 IOD keywords corrected (Multiframe… → MultiFrame…), level texts = dicom-validate --level help, refusal text | PS3.6 2026a Table A-1 UID Keywords (30 checked: 25 matched, 5 wrong → fixed) | 97fa6e6f | validationHelpersIODKeywordsAndLevels; diff_studio_g1 "validation panel" |
+| 2026-10-05 | Markers: CLIWorkshopModel, CLIWorkshopService, CLIToolBuilder, CLIToolTerminalCompare (no standard data) | grep for tags / UIDs / STD-* / VR / PS3 clauses: none | 8f3d8daa | — |
 
 ---
 
@@ -151,6 +159,7 @@ Table O-1). Every other generic check is ok.
 
 | Item | What | Standard | Recommendation | Status |
 |---|---|---|---|---|
+| P-STUDIO-EXPORT-SINGLE-OUTPUT | `dicom-export single --output` is optional on the CLI (writes `<stem>.<ext>` in the working directory); the Workshop form requires it (a sandboxed app has no working directory) and refuses with ArgumentParser's "Missing expected argument '--output <output>'" (64) | — | keep it required in-app (documented non-mirroring); no public-API change involved | | ⏳ pending |
 | (P-STUDIO-ANON-PS315, existing) | still open; `SecurityModel` doc comments now say no case is PS3.15 Annex E | PS3.15 2026a Annex E | as recorded by the orchestrator | | ⏳ pending |
 | P-STUDIO-ANON-TAGLIST-NAME | `AnonymizationHelpers.hipaaDirectIdentifierTags` (public) now holds the engine's 14-attribute basic list; the name still says HIPAA | — (naming; 45 CFR §164.514(b)(2)(i) is law, not a DICOM table) | rename to `basicProfileTags` with `@available(*, deprecated, renamed:)` on the old name | | ⏳ pending |
 | P-STUDIO-MEASURE-UM | `MeasurementUnit` (mm, cm, in) has no micrometre case; dicom-measure offers `--unit um` and CID 7460 / 7461 list um / um2 | PS3.16 2026a CID 7460 / 7461 | add `case micrometers = "um"`; ROIHelpers.ucumAreaCode then returns "um2" | | ⏳ pending |
@@ -178,23 +187,30 @@ Table O-1). Every other generic check is ok.
 | D11 | DICOMCore | `Components/ImageMetadataHelpers.swift:62` | no label for XYB | PS3.3 C.7.6.3.1.2 | ✅ 2026-10-05: ImageMetadataHelpers.photometricLabel gains XYB; 11 labels checked term by term (1b0588eb) |
 | D22 | DICOMNetwork | `Models/NetworkingModel.swift` (~L907-1050) | `PrintMediumType.bluFilm = "BLU-RAY"`; re-declared print enums | PS3.3 C.13.1 | ✅ 2026-10-05 strings (`6ab02140`: BLUE FILM, DONE/FAILURE, IN PROGRESS; FilmLayout now reaches the wire as Image Display Format); the duplicate enums are P-STUDIO-PRINT-ENUMS |
 | D28 | DICOMKit | `ImageViewerViewModel+PresentationStates` (~L1057); `Views/DICOMInspectorView.swift:41` | PR without Modality LUT falls back to the image's rescale (S-2 migration rule); "is binary" check omits OV (D5 half) | PS3.4 N.2.1.1; PS3.5 Table 6.2-1 | ✅ 2026-10-05 `6372e096`: PR without Modality LUT = identity, with the S-2 rule (only this app's own, non-imported, pre-2026-09-29 objects keep the image rescale); inspector binary VRs include OV (PS3.5 Table 6.2-1) |
-| D29 | DICOMKit | `CLIWorkshopViewModel.swift:1730`, `CLIWorkshopHelpers.swift:3128` | dcmdir `--profile` choices list STD-GEN-DVD / STD-GEN-USB (family headings) | PS3.11 Annexes H, J | ⏳ |
+| D29 | DICOMKit | `CLIWorkshopViewModel.swift:1730`, `CLIWorkshopHelpers.swift:3128` | dcmdir `--profile` choices list STD-GEN-DVD / STD-GEN-USB (family headings) | PS3.11 Annexes H, J | ✅ 2026-10-05 `2f730cac` (Workshop file tools mirror the CLI; see the parity section) |
 | D42 | DICOMPrintKit | `ImageViewerViewModel+PresentationStates.swift` (~L460, 610, 1040), `PrintViewModel+PresentationStates.swift` (~L365) | pass Photometric Interpretation and Rescale Type to the bridge and `ImageToSave` | PS3.4 N.2; PS3.3 A.33.1.1, Table A.33.2-1 | ✅ 2026-10-05 `6372e096`: Photometric Interpretation and Rescale Type passed to `ViewerPresentationStateBridge.capture/restore` and `ImageToSave`; MONOCHROME1 → INVERSE Presentation LUT fold, colour → Color Softcopy PS |
 | D56 | DICOMKit | CLI Workshop video form | no Audio Channel Source field | PS3.3 Table C.7-13; PS3.16 CID 3000 | ⏳ |
 | D65 (viewer half) | DICOMRenderKit | `ImageViewerViewModel.swift` ~L1390, ~L1432; `+PresentationStates.swift` ~L1060 | stored-unit window conversion exact for slope 1 only | PS3.3 C.11.2.1.2.1 | ✅ 2026-10-05 `6372e096`: the viewer renders through the N.2 chain; a stored-unit window is converted c·m+b, w·|m| before the renderer (exact for every slope) |
 | D68 | DICOMRenderKit | `Services/FrameRenderer.swift`, `ViewModels/ImageViewerViewModel.swift` | pass Modality LUT, VOI and ICC Profile to `FrameRenderRequest` | PS3.4 N.2; PS3.3 C.11.2.1.2.1, C.11.15.1.1 | ✅ 2026-10-05 `6372e096`: viewer, tiles, film cells, `ImageRenderingService` and the progressive decoder pass `modalityLUT` / `voiLUT` / `presentationLUT` / `iccProfile` to `FrameRenderRequest` (or use `renderFrameForExport`); VOI LUT Sequence shown until a drag; `ViewerDisplayPipelineTests` 13 |
 | D85 | DICOMCLI | `CLIWorkshopHelpers.swift:1379-1380, 1217-1221` | mpps placeholder "110513\|DCM\|Doctor cancelled procedure"; `--modality` optional | PS3.16 Table D-1; PS3.4 Table F.7.2-1 | ⏳ |
 | D88 | DICOMCLI | `Tests/DICOMStudioTests/NetworkToolWorkshopCLIParityTests.swift:151-157` | fixtures with wrong CID 9300 code/meaning pairs | PS3.16 Table D-1 | ✅ 2026-10-05: NetworkToolWorkshopCLIParityTests fixtures use real CID 9301 pairs (110513 "Discontinued for unspecified reason", 110501 "Equipment failure") (`32929df7`) |
-| D114 | DICOMCLI | `CLIWorkshopViewModel.swift:1258`, `CLIWorkshopHelpers.swift:2847, 2920` | json/xml empty-attribute default differs from the CLI (on); no `--no-include-empty` | PS3.18 F.2.5; PS3.19 A.1.5-2 | ⏳ |
-| D127 | DICOMCLI | `CLIWorkshopViewModel.swift:4410, 4557-4562, 4620-4628` | contact-sheet / animate copy the old render path; fps default | PS3.4 N.2; PS3.3 C.11.2.1.2.1 | ⏳ |
-| D132 | DICOMCLI | Workshop dcmdir executor | lacks the CLI validate rules and File-set ID default | PS3.10 8.x | ⏳ |
-| D154 | DICOMCLI | `CLIWorkshopHelpers.swift:2520` | split `--frames` help does not say 0-based | PS3.3 C.7.6.16.1.2 | ⏳ |
+| D114 | DICOMCLI | `CLIWorkshopViewModel.swift:1258`, `CLIWorkshopHelpers.swift:2847, 2920` | json/xml empty-attribute default differs from the CLI (on); no `--no-include-empty` | PS3.18 F.2.5; PS3.19 A.1.5-2 | ✅ 2026-10-05: json / xml `include-empty` default on with `negatedFlag: --no-include-empty`; executor `includeEmpty: != "false"`; no-sort-keys / no-keywords marked deprecated with the CLIs' stderr notes (text-identical) (2f730cac) |
+| D127 | DICOMCLI | `CLIWorkshopViewModel.swift:4410, 4557-4562, 4620-4628` | contact-sheet / animate copy the old render path; fps default | PS3.4 N.2; PS3.3 C.11.2.1.2.1 | ✅ 2026-10-05: export executor: contact-sheet and animate render through `DICOMImageExporter.renderFrameForExport` (PS3.4 N.2 chain), fps default = file rate ((0008,2144) → (0018,0040) → 1000 / (0018,1063) → 10), Burned In Annotation warnings, `frame-number` / `start-frame-number` / `end-frame-number`, deprecation notes, exit-1 conflict, exit-64 "< 1", `buildOrganizedPath(…patientID:issuerOfPatientID:…)`, `apply-window` deprecated on contact-sheet / bulk (2f730cac) |
+| D132 | DICOMCLI | Workshop dcmdir executor | lacks the CLI validate rules and File-set ID default | PS3.10 8.x | ✅ 2026-10-05: dcmdir executor: `WorkshopFileSetRules` (text-identical copy of the CLI-local FileSetRules) — File-set ID default (upper-cased, `_`, cut to 16), invalid `--file-set-id` refused exit 1, validate prints the File ID / File-set ID / duplicate-reference / missing-file findings with their clauses (exit 1), `--copy-to`, "no file could be indexed" (exit 1), ValidationErrors exit 64 (2f730cac) |
+| D154 | DICOMCLI | `CLIWorkshopHelpers.swift:2520` | split `--frames` help does not say 0-based | PS3.3 C.7.6.16.1.2 | ✅ 2026-10-05: split `--frames` help "deprecated: 0-based index; use --frame-numbers" (the CLI's), `--frame-numbers` added (SplitConsole.parseFrameNumberSelection, headerLines(frameNumbers:)), `SplitConsole.framesDeprecatedLine` printed, both refused with `framesAndFrameNumbersConflictMessage` (exit 1); parity-test filter removed, 6 cases added (2f730cac) |
 | D237 | DICOMCLI | `Views/ViewerNonImageContentView.swift:422` | exhaustive switch blocks `VideoContainer.mpegPS` / `.mpegPES` | PS3.5 8.2.5, 8.2.6 | ✅ Studio half 2026-10-05 `88c271c6`: the view uses DICOMKit `ExtractedVideo.containerDisplayName`, no exhaustive switch over `VideoContainer` remains; adding `.mpegPS` / `.mpegPES` in DICOMKit is P-VIDEO-CONTAINER |
 
 ### New findings for other modules
 
 | ID | Module | File | Problem | Standard | Severity | Status |
 |---|---|---|---|---|---|---|
+| D247 | Scripts (orchestrator) | Scripts/diff_studio.py check_workshop_parity | `by_name` keys CLI options by flag, so an option several subcommands declare (study --format, export --format) is compared with the last one (compare --format text, bulk --format png); the two false FAILs (summary --format table, single --format jpeg — both correct) are marked DEFR by diff_studio_g1.DEFERRED. Key by (subcommand, flag) | — | Low (tooling) | ⏳ |
+| D248 | dicom-validate | Sources/dicom-validate/IODOption.swift | CLI-local SOP Class → engine IOD name map copied by the Workshop (validateEngineNameBySOPClassUID; equality checked by diff_studio_g1); DICOMValidator should export it | PS3.6 Table A-1 | Low (duplication) | ⏳ |
+| D249 | dicom-archive | Sources/dicom-archive/QueryKeys.swift | CLI-local --study-date warning copied by the Workshop (checked); lift next to ArchiveMatching | PS3.4 C.2.2.2.5.1 | Low (duplication) | ⏳ |
+| D250 | dicom-uid | Sources/dicom-uid/UIDOptions.swift | CLI-local UIDRootRule texts copied by the Workshop (uidRootProblems; checked by diff_studio_g1); lift into DICOMKit UIDManager / UIDConsole | PS3.5 9.1 | Low (duplication) | ⏳ |
+| D251 | dicom-export | Sources/dicom-export/main.swift (Bulk.run, after the summary line) | `bulk` exits 0 when files failed (only the summary line carries the count), unlike dicom-convert's directory run (exit 1 after the codec batch). The Workshop mirrors exit 0 | — (tool contract) | Low | ⏳ |
+| D252 | dicom-export | Sources/dicom-export/ExportStandard.swift | CLI-local CineFrameRate / ExportFrameSelection / BurnedInAnnotation / ExportApplyWindowDeprecation; DICOMStudio copies the texts and the rate resolution (checked by diff_studio_g1). Lift into DICOMKit DICOMImageExporter | PS3.3 Table C.7-13, Table 10-3, Table C.7-9 | Low (duplication) | ⏳ |
+| D253 | dicom-dcmdir | Sources/dicom-dcmdir/FileSetRules.swift | CLI-local; DICOMStudio carries a text-identical copy (WorkshopFileSetRules, equality checked by diff_studio_g1). Lift into DICOMKit (e.g. next to DICOMDIRWorkflow) so both surfaces share one source | PS3.10 8.1, 8.2, 8.5, 8.6 | Low (duplication) | ⏳ |
 | D244 | (none else) | | | | | ⏳ |
 | D245 | DICOMKit | Sources/DICOMKit/Anonymization/Anonymizer.swift:30-47 (basicProfileTags) | The `.basic` legacy profile (dicom-anon `legacy-basic`, Studio "Basic" / "HIPAA Safe Harbor") removes 14 attributes only; it leaves Other Patient IDs Sequence, Patient's Address, telephone numbers, Patient's Age / Sex / Ethnic Group, Accession Number, Study ID, dates and all UIDs. Already known not to be PS3.15 Annex E (P-ANON-PROFILE / P-STUDIO-ANON-PS315); recorded here because the Studio UI now states exactly this list | PS3.15 2026a Table E.1-1 | low (documented legacy behaviour) | ⏳ |
 | D243 | DICOMKit | `Sources/DICOMKit/DICOMFile+PixelData.swift:315` `renderFrame(_:window:)`, `:342` `renderFrameWithStoredWindow`, `:359` `tryRenderFrameWithStoredWindow` | The convenience renderers hand the header's Window Center/Width (modality units) to `PixelDataRenderer.renderMonochromeFrame(_:window:)`, which applies it to stored values — the D65 defect, still present on this public path (export and the viewer were fixed around it). Any caller gets a window misplaced by the Rescale Intercept (a CT at −1024 washes out). Route through `GrayscaleDisplayPipeline` / `renderMonochromeFrame(_:pipeline:)` | PS3.3 C.11.2.1.2.1; PS3.4 N.2 | Medium | ⏳ |
@@ -211,7 +227,303 @@ the output parity (what the executor prints or returns against the CLI's shared 
 their commits. Handed-over follow-ups from DICOMCLI_STANDARD_IMPLEMENTATION.md "Rows handed to DICOMStudio" parts 3
 and 4 are closed in the tool they belong to.
 
-(to be filled)
+### dicom-info → dicom-info
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `format` (enumPicker) | `--format` | output format | — (JSON is not PS3.18 F and does not claim it) | text, json, csv / text | `OutputFormat` / .text | match |
+| `tag` (textField) | `--tag` | Attribute selection | PS3.6 Tables 6-1/7-1 (name, keyword, tag) |  | `[String]` / [] | match |
+| `show-private` (booleanToggle) | `--show-private` | Private Data Elements (odd group) | PS3.5 7.8, 7.8.1 |  | `Bool` / false | match |
+| `statistics` (booleanToggle) | `--statistics` | Transfer Syntax UID, SOP Class UID, Modality | PS3.10 Table 7.1-1; PS3.6 Table A-1 names |  | `Bool` / false | match |
+| `force` (booleanToggle) | `--force` | read a file without preamble/"DICM" | PS3.10 7.1 |  | `Bool` / false | match |
+
+Output parity: the executor reads through DICOMFile.read and prints through the shared DICOMKit console the CLI uses; a missing file is refused with the CLI's text and ArgumentParser's exit 64 (was 1). No standard data of its own.
+
+### dicom-dump → dicom-dump
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `tag` (textField) | `--tag` | Data Element Tag | PS3.5 7.1.1; PS3.6 Tables 6-1/7-1 keywords |  | `String?` | match |
+| `offset` (textField) | `--offset` | byte offset into the file | — |  | `String?` | match |
+| `length` (integerField) | `--length` | bytes to dump | — |  | `Int?` | match |
+| `bytes-per-line` (enumPicker) | `--bytes-per-line` | hex line width | — | 8, 16, 32 / 16 | `Int` / 16 | match |
+| `highlight` (textField) | `--highlight` | Data Element Tag | PS3.5 7.1.1; PS3.6 Tables 6-1/7-1 keywords |  | `String?` | match |
+| `no-color` (booleanToggle) | `--no-color` | ANSI colour off | — | false | `Bool` / false | match |
+| `annotate` (booleanToggle) | `--annotate` | tag, VR, length, PS3.6 keyword per element | PS3.5 7.1.2 / Table 6.2-1; PS3.6 Tables 6-1/7-1 |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` | VR and Value Length (undefined = FFFFFFFFH) | PS3.5 7.1.1, 7.1.2 |  | `Bool` / false | match |
+| `force` (booleanToggle) | `--force` | read a file without preamble/"DICM" | PS3.10 7.1 |  | `Bool` / false | match |
+
+Output parity: the whole-file HexDumper call of the CLI (annotations / highlight found from the file start, D144), the CLI's tag grammar (0010,0010 / (0010,0010) / 00100010 / PS3.6 keyword, PS3.5 7.1.1) and its refusal text 'Invalid tag format: … Use format: 0010,0010 or a PS3.6 keyword such as PatientName' (exit 1), 'Invalid hex offset' / 'Invalid offset' (exit 1), the --verbose 'Could not parse DICOM structure' warning, the final newline of print(); --no-color default is now the CLI's (off) and the in-app console strips ANSI itself.
+
+### dicom-tags → dicom-tags
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `list-modalities` (booleanToggle) | `--list-modalities` | Modality (0008,0060) Defined Terms | PS3.3 C.7.3.1.1.1 |  | `Bool` / false | match |
+| `output` (outputPath) | `--output` | output path | — |  | `String?` | match |
+| `set` (textField) | `--set` | Attribute value | PS3.6 Table 6-1 keyword/VR; PS3.5 Table 6.2-1 limits; PS3.10 7.1 group 0002; PS3.5 7.8.1 |  | `[String]` / [] | match |
+| `delete` (textField) | `--delete` | remove Attribute | PS3.6 keywords; PS3.10 7.1 |  | `[String]` / [] | match |
+| `delete-private` (booleanToggle) | `--delete-private` | remove Private Data Elements | PS3.5 7.8, 7.8.1 |  | `Bool` / false | match |
+| `copy-from` (filePath) | `--copy-from` | source file | PS3.10 7.1 |  | `String?` | match |
+| `tags` (textField) | `--tags` | Attributes to copy | PS3.6 keywords; PS3.10 7.1 |  | `String?` | match |
+| `verbose` (booleanToggle) | `--verbose` | change lines | — |  | `Bool` / false | match |
+| `dry-run` (booleanToggle) | `--dry-run` | preview | — |  | `Bool` / false | match |
+
+Output parity: --list-modalities prints ModalityOptionValidator.listing() (PS3.3 C.7.3.1.1.1 Defined Terms) with no input; edits go through TagEditor.applyCheckedChanges (TagEditRules: PS3.5 Table 6.2-1 limits, group 0002 refused per PS3.10 7.1), with TagEditorError texts and exit 1; the missing positional is ArgumentParser's message (exit 64).
+
+### dicom-diff → dicom-diff
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `file1` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `file2` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `format` (enumPicker) | `--format` | report rendering |  | text, json, summary / text | `ComparisonOutputFormat` / .text | match |
+| `ignore-tag` (textField) | `--ignore-tag` | Data Element Tag / keyword to skip | PS3.6 Table 6-1 (Tag, Keyword); PS3.5 7.1.1 |  | `[String]` / [] | match |
+| `ignore-private` (booleanToggle) | `--ignore-private` | skip Private Data Elements | PS3.5 7.1 / 7.8.1 (odd group, not 0001/0003/0005/0007/FFFF) |  | `Bool` / false | match |
+| `compare-pixels` (booleanToggle) | `--compare-pixels` | compare Pixel Data (7FE0,0010) separately | PS3.6 Table 6-1; PS3.5 8.1.1 / 8.2 |  | `Bool` / false | match |
+| `tolerance` (integerField) | `--tolerance` | largest per-byte difference treated as equal | PS3.5 8.1.1 (pixel cells of Bits Allocated) | 0 | `Double` / 0.0 | match |
+| `quick` (booleanToggle) | `--quick` | metadata only |  |  | `Bool` / false | match |
+| `show-identical` (booleanToggle) | `--show-identical` | list identical elements |  |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: DICOMComparer + ComparisonReport (shared); exit 0 identical / 1 different / 2 'dicom-diff: error: File not found: …' or 'Cannot read … as DICOM: …' or 'Comparison failed' / 64 for an invalid --ignore-tag (the CLI's parseTag grammar); --verbose header and the trailing newline of print().
+
+### dicom-json → dicom-json
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output path; default <input>.json / .dcm |  |  | `String?` | match |
+| `reverse` (booleanToggle) | `--reverse` | DICOM JSON Model -> PS3.10 file; Transfer Syntax from (0002,0010) else Explicit VR Little Endian | PS3.18 F.2; PS3.6 Table A-1 1.2.840.10008.1.2.1 |  | `Bool` / false | match |
+| `pretty` (booleanToggle) | `--pretty` | whitespace only | PS3.18 F.2 (RFC 8259) |  | `Bool` / false | match |
+| `no-sort-keys` (booleanToggle) | `--no-sort-keys` | attribute-object order | PS3.18 F.2.2 ("shall be ordered ... ascending lexicographic") |  | `Bool` / false | match |
+| `include-empty` (booleanToggle) | `--include-empty` |  |  | true | `Bool` / true | match |
+| `metadata-only` (booleanToggle) | `--metadata-only` | omit Pixel Data (7FE0,0010) | PS3.18 10.4.1.1.2 / 10.4.3.3.2 Metadata resource (all attributes, bulk data as BulkDataURI) |  | `Bool` / false | match |
+| `inline-threshold` (integerField) | `--inline-threshold` | InlineBinary vs BulkDataURI for OB/OD/OF/OL/OV/OW/UN | PS3.18 F.2.2, F.2.6, F.2.7; 10.4.3.3.2 | 1024 | `Int` / 1024 | match |
+| `bulk-data-url` (textField) | `--bulk-data-url` | BulkDataURI base | PS3.18 F.2.6 -> PS3.19 Table A.1.5-2 BulkData uri |  | `String?` | match |
+| `filter-tag` (arrayField) | `--filter-tag` | attribute selection | PS3.6 Table 6-1 keyword; PS3.18 F.2.2 attribute name |  | `[String]` / [] | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: DataExchangeWorkflow (shared) with includeEmpty on by default (PS3.18 F.2.5) and --no-include-empty, the CLI's 'dicom-json: warning: --no-sort-keys is deprecated …' stderr note, --filter-tag accepting (GGGG,EEEE) and GGGGEEEE (F.2.2), 'dicom-json: Warning: …' prefix on reverse warnings, WorkflowError as exit 64 (ValidationError), missing file 'Error: File not found' exit 64.
+
+### dicom-xml → dicom-xml
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `input` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output path; default <input>.xml / .dcm |  |  | `String?` | match |
+| `reverse` (booleanToggle) | `--reverse` | Native DICOM Model -> PS3.10 file; Transfer Syntax from (0002,0010) else Explicit VR Little Endian | PS3.19 A.1; PS3.6 Table A-1 1.2.840.10008.1.2.1 |  | `Bool` / false | match |
+| `pretty` (booleanToggle) | `--pretty` | indentation only (xml:space="preserve" kept) | PS3.19 Table A.1.5-1 |  | `Bool` / false | match |
+| `no-keywords` (booleanToggle) | `--no-keywords` | DicomAttribute keyword attribute | PS3.19 Table A.1.5-2 (keyword C: "Required unless ... unknown to the host") |  | `Bool` / false | match |
+| `include-empty` (booleanToggle) | `--include-empty` |  |  | true | `Bool` / true | match |
+| `inline-threshold` (integerField) | `--inline-threshold` | InlineBinary vs BulkData for OB/OD/OF/OL/OV/OW/UN | PS3.19 Table A.1.5-2 InlineBinary / BulkData | 1024 | `Int` / 1024 | match |
+| `bulk-data-url` (textField) | `--bulk-data-url` | BulkData uri base | PS3.19 Table A.1.5-2 >>uri ("Required if ... WADO-RS Retrieve Metadata ... Shall not be present otherwise"), >>uuid |  | `String?` | match |
+| `metadata-only` (booleanToggle) | `--metadata-only` | omit Pixel Data (7FE0,0010) | PS3.18 10.4.1.1.2 / 10.4.3.3.2 |  | `Bool` / false | match |
+| `filter-tag` (arrayField) | `--filter-tag` | attribute selection | PS3.6 Table 6-1 keyword; PS3.19 Table A.1.5-2 tag form |  | `[String]` / [] | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: as dicom-json with PS3.19 Table A.1.5-2 (includeEmpty on, --no-include-empty, 'dicom-xml: warning: --no-keywords is deprecated …').
+
+### dicom-validate → dicom-validate
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `level` (enumPicker) | `--level` | validation depth | PS3.10 Table 7.1-1; PS3.5 Table 6.2-1, 9.1; PS3.3 IOD/module tables; PS3.5 7.4.1-7.4.4 | 1, 2, 3, 4, 5 / 3 | `Int` / 3 | match |
+| `iod` (textField) | `--iod` | IOD / SOP Class | PS3.6 Table A-1 keywords; PS3.3 Annex A |  | `String?` | match |
+| `detailed` (booleanToggle) | `--detailed` | output | - |  | `Bool` / false | match |
+| `recursive` (booleanToggle) | `--recursive` | directory walk | - |  | `Bool` / false | match |
+| `strict` (booleanToggle) | `--strict` | warnings -> exit 2 | - |  | `Bool` / false | match |
+| `format` (enumPicker) | `--format` | output | - | text, json / text | `ValidationOutputFormat` / .text | match |
+| `output` (outputPath) | `--output` | report path | - |  | `String?` | match |
+| `force` (booleanToggle) | `--force` | read without DICM prefix | PS3.10 7.1 |  | `Bool` / false | match |
+
+Output parity: the executor now runs dicom-validate's own loop — DICOMValidator (shared), FileGatherer.regularFiles, ValidationReport.render / exitCode (0 / 1 / 2 with --strict), OutputPathResolver.resolveFileOutput for a directory --output — with the CLI's refusals as exit 64 ('Input path not found', 'Validation level must be between 1 and 5', 'Directory validation requires --recursive flag'); --iod takes PS3.6 Table A-1 keywords / UIDs through the same map as dicom-validate's IODOption (equality checked by diff_studio_g1).
+
+### dicom-split → dicom-split
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output directory |  |  | `String` / "." | match |
+| `frame-numbers` (textField) | `--frame-numbers` |  |  |  | `String?` | match |
+| `frames` (textField) | `--frames` | frames to extract | PS3.3 C.7.6.16.1.2 ("Frames are implicitly numbered starting from 1"); Table 10-3 Referenced Frame Number (0008,1160) |  | `String?` | match |
+| `format` (enumPicker) | `--format` | output container |  | dicom, png, jpeg, tiff / dicom | `SplitOutputFormat` / .dicom | match |
+| `apply-window` (booleanToggle) | `--apply-window` | apply VOI LUT window to image output | PS3.3 C.11.2.1.2 |  | `Bool` / false | match |
+| `window-center` (textField) | `--window-center` | Window Center (0028,1050) override | PS3.3 C.11.2.1.2; PS3.6 Table 6-1 |  | `Double?` | match |
+| `window-width` (textField) | `--window-width` | Window Width (0028,1051) override | PS3.3 C.11.2.1.2; PS3.6 Table 6-1 |  | `Double?` | match |
+| `pattern` (textField) | `--pattern` | output file naming | PS3.6 Table 6-1 (Instance Number, Stack ID, Modality, Series Number) |  | `String?` | match |
+| `target` (enumPicker) | `--target` | SOP Class of the extracted frames | PS3.6 Table A-1; PS3.3 A.38/A.70-A.72 vs single-frame IODs | auto | `SplitTargetPolicy` / .auto | match |
+| `pixel-handling` (enumPicker) | `--pixel-handling` | encapsulated frame handling | PS3.5 8.2, A.4 (fragments per frame, Basic Offset Table); Table A-1 Explicit VR Little Endian | preserve | `MultiframePixelHandling` / .preserve | match |
+| `private-groups` (enumPicker) | `--private-groups` | private Sequences inside functional group items | PS3.3 C.7.6.16 | flatten | `PrivateFunctionalGroupPolicy` / .flatten | match |
+| `instance-number` (enumPicker) | `--instance-number` | Instance Number (0020,0013) of each output | PS3.3 C.7.6.1; C.7.6.16.2.2 In-Stack Position Number (0020,9057) | frame | `SplitInstanceNumbering` / .frame | match |
+| `split-by` (enumPicker) | `--split-by` | one series per Frame Content value | PS3.3 C.7.6.16.2.2 Stack ID (0020,9056), Temporal Position Index (0020,9128) | none | `SplitSeriesGrouping` / .none | match |
+| `new-series` (booleanToggle) | `--new-series` | new Series Instance UID (0020,000E) | PS3.3 C.7.3.1 |  | `Bool` / false | match |
+| `frames-per` (textField) | `--frames-per` | Concatenation parts of N frames | PS3.3 7.5.1; C.7.6.16 Concatenation UID / In-concatenation Number / In-concatenation Total Number / Concatenation Frame Offset Number / SOP Instance UID of Concatenation Source |  | `Int?` | match |
+| `random-uids` (booleanToggle) | `--random-uids` | random vs derived SOP / Series Instance UIDs | PS3.5 9.1 (2.25 UUID-derived UIDs) |  | `Bool` / false | match |
+| `recursive` (booleanToggle) | `--recursive` |  |  |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: SplitMergeWorkshopCLIParityTests runs every option combination on both surfaces (32 split cases x verbose on/off, incl. 6 new --frame-numbers / conflict cases) and compares console text, written files and outcome: all pass against .build/release/dicom-split. --frame-numbers (SplitConsole.parseFrameNumberSelection, headerLines(frameNumbers:)), SplitConsole.framesDeprecatedLine for --frames, framesAndFrameNumbersConflictMessage (exit 1), ValidationErrors as 64.
+
+### dicom-merge → dicom-merge
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output file (file level) or directory (series/study) |  |  | `String` | match |
+| `format` (enumPicker) | `--format` | SOP Class of the merged object | PS3.6 Table A-1; PS3.3 A.38 (Enhanced CT), A.70-A.72 (Legacy Converted) | standard | `MergeFormat` / .standard | match |
+| `pixel-handling` (enumPicker) | `--pixel-handling` | encapsulated frame handling | PS3.5 8.2, A.4 (one fragment per frame, Basic Offset Table); Table A-1 Explicit VR Little Endian | preserve | `MultiframePixelHandling` / .preserve | match |
+| `make-stacks` (booleanToggle) | `--make-stacks` | Stack ID (0020,9056) per Image Orientation (Patient) (0020,0037) | PS3.3 C.7.6.16.2.2 |  | `Bool` / false | match |
+| `temporal-position` (booleanToggle) | `--temporal-position` | Temporal Position Index (0020,9128) | PS3.3 C.7.6.16.2.2; source Trigger Time (0018,1060) / Temporal Position Identifier (0020,0100) / Acquisition Time (0008,0032) |  | `Bool` / false | match |
+| `new-series` (booleanToggle) | `--new-series` | new Series Instance UID (0020,000E) | PS3.3 C.7.3.1 |  | `Bool` / false | match |
+| `allow-any-source` (booleanToggle) | `--allow-any-source` | skip the source SOP Class check | PS3.6 Table A-1 |  | `Bool` / false | match |
+| `level` (enumPicker) | `--level` | grouping of inputs | PS3.3 C.7.2.1 Study Instance UID, C.7.3.1 Series Instance UID | file, series, study / file | `MergeLevel` / .file | match |
+| `sort-by` (enumPicker) | `--sort-by` | frame order key | PS3.6 Table 6-1 keywords | MergeSortCriteria.instanceNumber.rawValue | `MergeSortCriteria` / .instanceNumber | match |
+| `order` (enumPicker) | `--order` | sort direction |  | ascending, descending / ascending | `MergeSortOrder` / .ascending | match |
+| `validate` (booleanToggle) | `--validate` | identity consistency check | PS3.6 Table 6-1 (Study/Series Instance UID, Modality, Frame of Reference UID) |  | `Bool` / false | match |
+| `recursive` (booleanToggle) | `--recursive` |  |  |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: SplitMergeWorkshopCLIParityTests merge matrix passes; the sort-by picker is MergeSortCriteria (shared enum); refusals carry MergeConsole texts and ArgumentParser exit 64.
+
+### dicom-dcmdir → dicom-dcmdir
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `subcommand` (subcommand) | `—` |  |  | create, validate, dump, update / create | `—` | not a CLI option |
+| `inputDirectory` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` |  |  |  | `String?` | match |
+| `fileSetID` (textField) | `--file-set-id` |  |  |  | `String?` | match |
+| `profile` (enumPicker) | `--profile` |  |  | STD-GEN-CD | `String` / "STD-GEN-CD" | match |
+| `recursive` (booleanToggle) | `--recursive` |  |  | true | `Bool` / true | match |
+| `strict` (booleanToggle) | `--strict` |  |  |  | `Bool` / false | match |
+| `copyTo` (outputPath) | `--copy-to` |  |  |  | `String?` | match |
+| `createVerbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+| `dicomdirPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `checkFiles` (booleanToggle) | `--check-files` |  |  |  | `Bool` / false | match |
+| `detailed` (booleanToggle) | `--detailed` |  |  |  | `Bool` / false | match |
+| `format` (enumPicker) | `--format` |  |  | tree, json, text / tree | `String` / "tree" | match |
+| `dumpVerbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+| `add` (filePath) | `--add` |  |  |  | `String?` | match |
+| `updateVerbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: create / validate / dump / update follow dicom-dcmdir's run() line by line — DICOMDIRWorkflow (shared build, --copy-to, summary), the File-set ID default and 'Refusing --file-set-id: …' (exit 1, PS3.10 8.1/8.5), 'Invalid profile: … Use a PS3.11 Application Profile identifier: <DICOMDIRProfile.allStandard>' (exit 64), the 'dicom-dcmdir: warning: --profile … is deprecated' note, 'no file could be indexed; no DICOMDIR written' (exit 1), 'Warning: N file(s) not indexed'; validate prints the File ID / File-set ID findings with their PS3.10 8.1/8.2/8.5/8.6 and PS3.3 Table F.3-3 clauses (exit 1) via WorkshopFileSetRules, text-identical to the CLI's FileSetRules (checked by diff_studio_g1); 'DICOMDIR file not found' / 'No DICOMDIR found in directory' exit 64.
+
+### dicom-archive → dicom-archive
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `subcommand` (subcommand) | `—` |  |  | init, import, query, list, export, check, stats / list | `—` | not a CLI option |
+| `archive` (filePath) | `--archive` |  |  |  | `String` | match |
+| `path` (outputPath) | `--path` |  |  |  | `String` | match |
+| `force` (booleanToggle) | `--force` |  |  |  | `Bool` / false | match |
+| `files` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `recursive` (booleanToggle) | `--recursive` |  |  |  | `Bool` / false | match |
+| `skip-duplicates` (booleanToggle) | `--skip-duplicates` |  |  |  | `Bool` / false | match |
+| `patient-name` (textField) | `--patient-name` |  |  |  | `String?` | match |
+| `patient-id` (textField) | `--patient-id` |  |  |  | `String?` | match |
+| `study-uid` (textField) | `--study-uid` |  |  |  | `String?` | match |
+| `series-uid` (textField) | `--series-uid` |  |  |  | `String?` | match |
+| `modality` (textField) | `--modality` |  |  |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` |  |  |  | `Bool` / false | match |
+| `study-date` (textField) | `--study-date` |  |  |  | `String?` | match |
+| `output` (outputPath) | `--output` |  |  |  | `String` | match |
+| `flatten` (booleanToggle) | `--flatten` |  |  |  | `Bool` / false | match |
+| `show-instances` (booleanToggle) | `--show-instances` |  |  |  | `Bool` / false | match |
+| `verify-files` (booleanToggle) | `--verify-files` |  |  |  | `Bool` / false | match |
+| `format` (enumPicker) | `--format` |  |  | table, tree, text, json | `String` / "text" | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: ArchiveStore (shared) for every subcommand; query runs --modality through DICOMCore.ModalityOptionValidator exactly as the CLI ('warning: … Sending it as-is.' or 'Error: … Rejected because --strict-modality is set.' exit 1), prints the --study-date warning of ArchiveQueryKeys (text-identical), and ArchiveError is exit 64 (ValidationError) as in runArchive; missing --archive / --path / --output are ArgumentParser's messages (64).
+
+### dicom-study → dicom-study
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `operation` (subcommand) | `—` |  |  | organize, summary, check, stats, compare / organize | `—` | not a CLI option |
+| `input` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` |  |  |  | `String` | match |
+| `pattern` (enumPicker) | `--pattern` |  |  | descriptive, uid / descriptive | `String` / "descriptive" | match |
+| `copy` (booleanToggle) | `--copy` |  |  | false | `Bool` / false | match |
+| `path` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `summary-format` (enumPicker) | `--format` |  |  | table, json, csv / table | `String` / "text" | match |
+| `expected-series` (integerField) | `--expected-series` |  |  |  | `Int?` | match |
+| `expected-instances` (integerField) | `--expected-instances` |  |  |  | `Int?` | match |
+| `report` (outputPath) | `--report` |  |  |  | `String?` | match |
+| `detailed` (booleanToggle) | `--detailed` |  |  | false | `Bool` / false | match |
+| `stats-format` (enumPicker) | `--format` |  |  | text, json / text | `String` / "text" | match |
+| `path1` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `path2` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `compare-format` (enumPicker) | `--format` |  |  | text, json / text | `String` / "text" | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  | false | `Bool` / false | match |
+
+Output parity: StudyOrganizer / StudyScanner / StudyReport (shared) print every label and the PS3.6 keyword JSON/CSV keys; the Workshop no longer sends --copy by default (the CLI moves files), the three --format pickers keep their subcommand's default (table / text / text), missing positionals are ArgumentParser's messages (64), StudyError texts exit 1.
+
+### dicom-uid → dicom-uid
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `subcommand` (subcommand) | `—` |  |  | generate, validate, lookup, regenerate / generate | `—` | not a CLI option |
+| `count` (integerField) | `--count` |  |  | 1 | `Int` / 1 | match |
+| `type` (enumPicker) | `--type` |  |  | generic, study, series, instance, sop / generic | `String?` | match |
+| `root` (textField) | `--root` |  |  |  | `String?` | match |
+| `uuid` (booleanToggle) | `--uuid` |  |  |  | `Bool` / false | match |
+| `json` (booleanToggle) | `--json` |  |  |  | `Bool` / false | match |
+| `uids` (arrayField) | `—` |  |  |  | `—` | not a CLI option |
+| `file` (filePath) | `--file` |  |  |  | `String?` | match |
+| `check-registry` (booleanToggle) | `--check-registry` |  |  |  | `Bool` / false | match |
+| `lookup-uid` (textField) | `—` |  |  |  | `—` | not a CLI option |
+| `list-all` (booleanToggle) | `--list-all` |  |  |  | `Bool` / false | match |
+| `lookup-type` (enumPicker) | `--type` |  |  |  | `String?` | match |
+| `search` (textField) | `--search` |  |  |  | `String?` | match |
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` |  |  |  | `String?` | match |
+| `maintain-relationships` (booleanToggle) | `--maintain-relationships` |  |  |  | `Bool` / false | match |
+| `export-map` (outputPath) | `--export-map` |  |  |  | `String?` | match |
+| `dry-run` (booleanToggle) | `--dry-run` |  |  |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: UIDManager / UIDConsole (shared); lookup prints UIDManager.tableA1UIDType (PS3.6 Table A-1 UID Type) and the JSON uidType key through the uidType: overloads, the --type filter is UIDConsole.lookupTypeFilters / entries(forTypeFilter:), generate --uuid builds PS3.5 B.2 UIDs through DICOMCore UIDGenerator.uuidDerivedUID, --root is checked with dicom-uid's UIDRootRule texts (PS3.5 9.1, exit 64; text-identical, checked by diff_studio_g1).
+
+### dicom-export → dicom-export
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `operation` (subcommand) | `—` |  |  | single, contact-sheet, animate, bulk / single | `—` | not a CLI option |
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` |  |  |  | `String` | match |
+| `format` (enumPicker) | `--format` |  |  | jpeg | `ExportImageFormat` / .png | match |
+| `quality` (integerField) | `--quality` |  |  | 90 | `Int` / 90 | match |
+| `embed-metadata` (booleanToggle) | `--embed-metadata` |  |  |  | `Bool` / false | match |
+| `exif-fields` (textField) | `--exif-fields` |  |  |  | `String?` | match |
+| `frame-number` (integerField) | `--frame-number` |  |  |  | `Int?` | match |
+| `frame` (integerField) | `--frame` |  |  |  | `Int?` | match |
+| `apply-window` (booleanToggle) | `--apply-window` |  |  |  | `Bool` / false | match |
+| `apply-window-deprecated` (booleanToggle) | `--apply-window` |  |  |  | `Bool` / false | match |
+| `window-center` (textField) | `--window-center` |  |  |  | `Double?` | match |
+| `window-width` (textField) | `--window-width` |  |  |  | `Double?` | match |
+| `columns` (integerField) | `--columns` |  |  | 4 | `Int` / 4 | match |
+| `thumbnail-size` (integerField) | `--thumbnail-size` |  |  | 256 | `Int` / 256 | match |
+| `spacing` (integerField) | `--spacing` |  |  | 4 | `Int` / 4 | match |
+| `labels` (booleanToggle) | `--labels` |  |  |  | `Bool` / false | match |
+| `sheet-format` (enumPicker) | `--format` |  |  | png | `ExportImageFormat` / .png | match |
+| `fps` (textField) | `--fps` |  |  |  | `Double?` | match |
+| `loop-count` (integerField) | `--loop-count` |  |  | 0 | `Int` / 0 | match |
+| `start-frame-number` (integerField) | `--start-frame-number` |  |  |  | `Int?` | match |
+| `end-frame-number` (integerField) | `--end-frame-number` |  |  |  | `Int?` | match |
+| `start-frame` (integerField) | `--start-frame` |  |  |  | `Int?` | match |
+| `end-frame` (integerField) | `--end-frame` |  |  |  | `Int?` | match |
+| `scale` (textField) | `--scale` |  |  | 1.0 | `Double` / 1.0 | match |
+| `bulk-format` (enumPicker) | `--format` |  |  | png | `ExportImageFormat` / .png | match |
+| `organize-by` (enumPicker) | `--organize-by` |  |  | flat | `OrganizationScheme` / .flat | match |
+| `recursive` (booleanToggle) | `--recursive` |  |  |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: every subcommand renders through DICOMImageExporter.renderFrameForExport (PS3.4 N.2 chain; contact-sheet and animate no longer use the DICOMFile stored-window paths), frames are selected by Frame number from 1 with the CLI's deprecation notes / exit-1 conflict / exit-64 '< 1' refusals and 'Frame number N does not exist…' text, animate's rate follows PS3.3 Table C.7-13 ((0008,2144) -> (0018,0040) -> 1000/(0018,1063) -> 10), bulk uses buildOrganizedPath(patientID:issuerOfPatientID:), the Burned In Annotation (0028,0301) YES warnings and the contact-sheet / bulk --apply-window deprecation note are printed; ExportConsole lines are shared. bulk exits 0 with failures, as the CLI does (recorded in section 4).
 
 ---
 
@@ -226,24 +538,24 @@ are promoted to ST; NST files carry the scan result. "Marker" names the marker l
 |---|---|---|---|---|---|
 | [BrowserNavigationHelpers.swift](Sources/DICOMStudio/Components/BrowserNavigationHelpers.swift) | ST | — | to verify | — | ⏳ |
 | [CLIShellFoundationHelpers.swift](Sources/DICOMStudio/Components/CLIShellFoundationHelpers.swift) | ST | — | to verify | — | ⏳ |
-| [CLIToolBuilder.swift](Sources/DICOMStudio/Components/CLIToolBuilder.swift) | ST | — | to verify | — | ⏳ |
-| [CLIToolTerminalCompare.swift](Sources/DICOMStudio/Components/CLIToolTerminalCompare.swift) | ST | — | to verify | — | ⏳ |
-| [CLIWorkshopHelpers.swift](Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift) | ST | — | to verify | — | ⏳ |
+| [CLIToolBuilder.swift](Sources/DICOMStudio/Components/CLIToolBuilder.swift) | ST | C1 | same grep: 0 | `// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (testing-only: builds the dicom-* products with swift build for the Compare-CLI diff; grep for tags, UIDs, STD-* profiles, VR codes and PS3 clauses found none)` | marked, 8f3d8daa |
+| [CLIToolTerminalCompare.swift](Sources/DICOMStudio/Components/CLIToolTerminalCompare.swift) | ST | C1 | same grep: 0 | `// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (testing-only: spawns the real dicom-* binary with the Workshop's pasted command and diffs both consoles, ANSI stripped; the output parity it measures is pinned by SplitMergeWorkshopCLIParityTests and NetworkToolWorkshopCLIParityTests; grep for tags, UIDs, STD-* profiles, VR codes and PS3 clauses found none)` | marked, 8f3d8daa |
+| [CLIWorkshopHelpers.swift](Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift) | ST | B2 → fixed | 14 file-tool arms vs the ArgumentParser surfaces: 14/14 parity ok (189 flag rows matched, 0 wrong); pickers from shared enums (DICOMDIRProfile.allStandard, ExportImageFormat, OrganizationScheme, MergeSortCriteria, UIDConsole.lookupTypeFilters); help texts carry the CLI wording and PS3 clauses | no marker (the last Workshop agent adds it; network / pixel / codec arms pending) | edited, 2f730cac |
 | [ImportValidation.swift](Sources/DICOMStudio/Components/ImportValidation.swift) | ST | B2 | see marker | `NEMA-verified: 2026a, checked 2026-10-05 — DICM at offset 128 after the 128-byte preamble and the 132-byte minimum (PS3.10 2026a 7.1); the 16 import-list UIDs are PS3.6 2026a Table A-1 Transfer Syntax rows and their comment names text-diffed against A-1 (16 match after 8 abbreviations were spelled out — D9); a registered but unlisted syntax is now named from DICOMCore rather than called unrecognized; required-tag messages name (0008,0018), (0008,0016), (0020,000D) per Table 6-1` | fixed (D9) |
 | [IntegratedTerminalHelpers.swift](Sources/DICOMStudio/Components/IntegratedTerminalHelpers.swift) | ST | — | to verify | — | ⏳ |
 | [ParameterBuilderHelpers.swift](Sources/DICOMStudio/Components/ParameterBuilderHelpers.swift) | ST | — | to verify | — | ⏳ |
 | [ShellServerConfigHelpers.swift](Sources/DICOMStudio/Components/ShellServerConfigHelpers.swift) | ST | — | to verify | — | ⏳ |
 | [BrowserNavigationModel.swift](Sources/DICOMStudio/Models/BrowserNavigationModel.swift) | ST | — | to verify | — | ⏳ |
 | [CLIShellFoundationModel.swift](Sources/DICOMStudio/Models/CLIShellFoundationModel.swift) | ST | — | to verify | — | ⏳ |
-| [CLIWorkshopModel.swift](Sources/DICOMStudio/Models/CLIWorkshopModel.swift) | ST | — | to verify | — | ⏳ |
+| [CLIWorkshopModel.swift](Sources/DICOMStudio/Models/CLIWorkshopModel.swift) | ST | C1 | grep for (gggg,eeee), 1.2.840.10008, STD-*, VR codes, PS3 clauses: 0 | `// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (CLI Workshop data models: tool and parameter definitions, visibility conditions, history, presets, terminal/SCP log levels; grep for (gggg,eeee) tags, 1.2.840.10008 UIDs, STD-* profiles, VR codes and PS3 clauses found none); the standard-derived form content is in CLIWorkshopHelpers.swift and the executors in CLIWorkshopViewModel.swift` | marked, 8f3d8daa |
 | [IntegrationTestingModel.swift](Sources/DICOMStudio/Models/IntegrationTestingModel.swift) | ST | — | to verify | — | ⏳ |
 | [ParameterBuilderModel.swift](Sources/DICOMStudio/Models/ParameterBuilderModel.swift) | ST | — | to verify | — | ⏳ |
 | [ShellServerConfigModel.swift](Sources/DICOMStudio/Models/ShellServerConfigModel.swift) | ST | — | to verify | — | ⏳ |
-| [ValidationModel.swift](Sources/DICOMStudio/Models/ValidationModel.swift) | ST | — | to verify | — | ⏳ |
-| [CLIWorkshopService.swift](Sources/DICOMStudio/Services/CLIWorkshopService.swift) | ST | — | to verify | — | ⏳ |
-| [CLIWorkshopViewModel.swift](Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift) | ST | — | to verify | — | ⏳ |
-| [ValidationViewModel.swift](Sources/DICOMStudio/ViewModels/ValidationViewModel.swift) | ST | — | to verify | — | ⏳ |
-| [ValidationView.swift](Sources/DICOMStudio/Views/ValidationView.swift) | ST | — | to verify | — | ⏳ |
+| [ValidationModel.swift](Sources/DICOMStudio/Models/ValidationModel.swift) | ST | B2 → fixed | 30 IOD keywords vs PS3.6 Table A-1 (25 matched, 5 fixed); 5 level texts vs dicom-validate --level help | `// NEMA-verified: 2026a, checked 2026-10-05 — the 30 --iod suggestions are SOP Class UID Keywords of PS3.6 2026a Table A-1 (script-checked: 25 matched, 5 corrected from Multiframe… to MultiFrame…); the 5 level descriptions carry dicom-validate's --level help wording (PS3.10 Table 7.1-1, PS3.6 Table 6-1, PS3.5 Table 6.2-1 / 6.2.1 / 9.1, PS3.3 Type 1/1C/2/2C); issue levels, run records and the command builder are plumbing` | edited, 97fa6e6f |
+| [CLIWorkshopService.swift](Sources/DICOMStudio/Services/CLIWorkshopService.swift) | ST | C1 | same grep: 0 | `// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (thread-safe Workshop state holder: selected tool, parameter values, console status, history; grep for tags, UIDs, STD-* profiles, VR codes and PS3 clauses found none)` | marked, 8f3d8daa |
+| [CLIWorkshopViewModel.swift](Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift) | ST | B2 → fixed | 14 executors vs Sources/dicom-*/main.swift: shared console / engine calls, refusal texts, exit codes (64 usage / 1 / 2 diff); CLI-local texts mirrored and script-checked (FileSetRules 34, ExportStandard 19, UIDRootRule, dicom-dump, ArchiveQueryKeys, DICOMJson / DICOMXml notes) | no marker (same) | edited, 2f730cac |
+| [ValidationViewModel.swift](Sources/DICOMStudio/ViewModels/ValidationViewModel.swift) | ST | C1 | runs DICOMKit.DICOMValidator / ValidationReport; level refusal text aligned to the CLI | `// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: validation runs through the shared DICOMKit.DICOMValidator and renders through DICOMKit.ValidationReport (the dicom-validate engine and renderer); the level range 1-5 and its refusal text are dicom-validate's; IOD suggestions come from ValidationHelpers.knownIODs (PS3.6 Table A-1 keywords)` | edited, 97fa6e6f |
+| [ValidationView.swift](Sources/DICOMStudio/Views/ValidationView.swift) | ST | C1 | shows ValidationHelpers texts only | `// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own (SwiftUI for the dicom-validate panel: the level picker shows ValidationHelpers.levelDescription, the IOD popover ValidationHelpers.knownIODs, both verified in ValidationModel.swift; the console text is DICOMKit.ValidationReport's)` | edited, 97fa6e6f |
 | [IntegratedTerminalModel.swift](Sources/DICOMStudio/Models/IntegratedTerminalModel.swift) | CR | — | confirm-read pending | — | ⏳ |
 | [CLIWorkshopView.swift](Sources/DICOMStudio/Views/CLIWorkshopView.swift) | CR | — | confirm-read pending | — | ⏳ |
 | [IntegrationTestingHelpers.swift](Sources/DICOMStudio/Components/IntegrationTestingHelpers.swift) | NST | — | not standard-touching (scan: no UID, tag, VR, code, citation, CS term, option or wire literal) | — | ⏳ |
