@@ -29,7 +29,13 @@ or against the CLI source the Workshop must stay text-identical with:
 import os
 import re
 
-PENDING_API_APPROVAL = {}
+# The Workshop's dicom-mwl `create` operation is Studio-only (HL7 ORM^O01 over MLLP or the archive REST API —
+# no DIMSE service creates a worklist item); the dicom-mwl CLI registers only `query`. The arm keeps the
+# `.subcommand` type so the form switches cleanly, and the preview is rendered commented out. Either adding a
+# CLI subcommand or moving the operation out of the Workshop changes a product surface: owner's call.
+PENDING_API_APPROVAL = {
+    "subcommand picker offers ['create'], dicom-mwl commands are": 'P-STUDIO-MWL-CREATE',
+}
 # diff_studio.check_workshop_parity keys the CLI options by flag, so a `--format` that several subcommands
 # declare is compared with the LAST one (compare --format = text, bulk --format = png). The Workshop rows it
 # flags mirror their own subcommand's default (summary --format table, single --format jpeg: see
@@ -713,6 +719,101 @@ def check_retrieve_status_text_source(rep, parts, files, ctx):
               matched, wrong)
 
 
+def check_mwl_mpps_terms(rep, parts, files, ctx):
+    """dicom-mwl --sps-status offers the Scheduled Procedure Step Status (0040,0020) Defined Terms of PS3.3 2026a
+    C.4.10 / Table C.4-10 and the Workshop's copy of the CLI-local spsStatusWarning is text-identical;
+    --specific-character-set and --strict-modality are offered and passed through; dicom-mpps create requires
+    --modality (PS3.4 Table F.7.2-1 Type 1), every CODE|DCM|MEANING example is a PS3.16 2026a CID 9301 pair
+    (D85), the value rules carry the CLI's texts and the SCP warning is worded by DIMSEServiceStatusText."""
+    dw, nd = ctx['dw'], ctx['nd']
+    ws = ctx['workshop_surface']()
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    wrong, matched = [], 0
+    # PS3.3 C.4.10: the Defined Terms of (0040,0020)
+    sec = dw.section_by_id(parts[3], 'sect_C.4.10')
+    text = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+    i = text.find('Scheduled Procedure Step Status (0040,0020)')
+    seg = text[i:i + 700].split('Defined Terms:')
+    terms = re.findall(r'\b(SCHEDULED|ARRIVED|READY|STARTED|DEPARTED)\b', seg[1][:400]) if len(seg) > 1 else []
+    if terms != ['SCHEDULED', 'ARRIVED', 'READY', 'STARTED', 'DEPARTED']:
+        wrong.append(f'PS3.3 C.4.10 (0040,0020) Defined Terms read as {terms}; re-read')
+    else:
+        matched += 1
+    p = param(ws, 'dicom-mwl', 'sps-status')
+    if p is None or p.get('allowedValues') != [''] + terms:
+        wrong.append(f'dicom-mwl --sps-status picker must offer the PS3.3 Table C.4-10 terms {terms} (plus the blank "any")')
+    else:
+        matched += len(terms)
+    cli = read(ctx, 'dicom-mwl/DICOMMWLCommand.swift')
+    cli_terms = re.findall(r'"(\w+)"', block(cli, r'scheduledProcedureStepStatusDefinedTerms: \[String\] =\s*', 'CLI terms'))
+    ws_terms = re.findall(r'"(\w+)"', block(vm, r'mwlScheduledProcedureStepStatusDefinedTerms: \[String\] =\s*', 'Workshop terms'))
+    if cli_terms != terms or ws_terms != terms:
+        wrong.append(f'SPS Status term lists differ: CLI {cli_terms}, Workshop {ws_terms}, PS3.3 {terms}')
+    else:
+        matched += 1
+    helpers = src(files, 'CLIWorkshopHelpers.swift')
+    ws_lit = {l.replace('mwlScheduledProcedureStepStatusDefinedTerms', 'scheduledProcedureStepStatusDefinedTerms')
+              for l in literals(vm) | literals(helpers)}
+    for lit in literals(cli):
+        if '--sps-status' in lit or 'private term' in lit or 'PS3.3 Table C.4-10:' in lit:
+            if lit in ws_lit:
+                matched += 1
+            else:
+                wrong.append(f'dicom-mwl text not mirrored by the Workshop: "{lit[:80]}"')
+    for pid, flag in (('specific-character-set', '--specific-character-set'), ('strict-modality', '--strict-modality')):
+        q = param(ws, 'dicom-mwl', pid)
+        if q is None or q.get('flag') != flag:
+            wrong.append(f'dicom-mwl form lacks {flag} (PS3.4 Table K.6-1a / PS3.3 C.7.3.1.1.1)')
+        else:
+            matched += 1
+    mwl_body = block(vm, r'private func executeDicomMWLQuery\([^{]*\{', 'executeDicomMWLQuery')
+    for needle in ('specificCharacterSet: specificCharacterSet.isEmpty ? nil : specificCharacterSet', 'Self.mwlSPSStatusWarning(spsStatus)', 'Self.resolveModalityOption('):
+        if needle in mwl_body:
+            matched += 1
+        else:
+            wrong.append(f'executeDicomMWLQuery must contain `{needle}`')
+    # dicom-mpps: Type 1 Modality, CID 9301 examples, value rules, warning wording
+    m = param(ws, 'dicom-mpps', 'modality')
+    if m is None or m.get('isRequired') != 'true' or (isinstance(m.get('allowedValues'), list) and '' in m['allowedValues']) \
+            or 'optional' in str(m.get('allowedValues', '')):
+        wrong.append('dicom-mpps create --modality must be required with no blank value (PS3.4 Table F.7.2-1 row 105, Type 1)')
+    else:
+        matched += 1
+    cid = {}
+    for lab, cap, tb in parts[16].tables():
+        if lab == 'CID 9301':
+            for row in parts[16].rows(tb):
+                if len(row) >= 3 and row[0].strip() == 'DCM':
+                    cid[row[1].strip()] = row[2].strip()
+    if len(cid) < 17:
+        wrong.append(f'PS3.16 CID 9301 read {len(cid)} DCM rows; re-read')
+    else:
+        matched += 1
+    r = param(ws, 'dicom-mpps', 'discontinuation-reason')
+    examples = re.findall(r'(\d{6})\|DCM\|([^"\\]+)', str(r.get('helpText', '')) + ' ' + str(r.get('placeholder', ''))) if r else []
+    if not examples:
+        wrong.append('dicom-mpps --discontinuation-reason carries no CODE|DCM|MEANING example')
+    for code, meaning in examples:
+        if cid.get(code) != meaning.strip():
+            wrong.append(f'dicom-mpps example {code}|DCM|{meaning.strip()} is not a PS3.16 2026a CID 9301 pair (D85; {code} = {cid.get(code)!r})')
+        else:
+            matched += 1
+    cli_mpps = read(ctx, 'dicom-mpps/DICOMMPPSCommand.swift')
+    for lit in literals(cli_mpps):
+        if any(k in lit for k in ('--modality is required', '--patient-sex must', '--patient-birth-date must', 'Create status must', 'Update status must',
+                                   'Invalid status.', '--image-uid needs', '--sop-class-uid not given', 'attributes may have been coerced')):
+            if lit in ws_lit or lit.rstrip('\\n') in {l.rstrip('\\n') for l in ws_lit}:
+                matched += 1
+            else:
+                wrong.append(f'dicom-mpps text not mirrored by the Workshop: "{lit[:80]}"')
+    if 'DIMSEServiceStatusText.describe(warning, service: operation == "N-SET" ? .mppsNSet : .dimseN)' in vm:
+        matched += 1
+    else:
+        wrong.append('mppsWarningLine must word the SCP warning through DIMSEServiceStatusText (PS3.4 Table F.7.2-2 / PS3.7 Annex C), as dicom-mpps does')
+    rep.check('PS3.3 2026a C.4.10 (0040,0020) Defined Terms, PS3.4 Table F.7.2-1 Type 1, PS3.16 CID 9301: dicom-mwl / dicom-mpps '
+              'Workshop pickers, texts and warning wording (D85)', matched, wrong)
+
+
 CHECKS = [
     ('G1 workshop dcmdir profile picker', check_dcmdir_profile_picker),
     ('G1 workshop dcmdir fileset rules', check_dcmdir_fileset_rules),
@@ -726,4 +827,5 @@ CHECKS = [
     ('G1 workshop net query levels', check_query_retrieve_levels),
     ('G1 workshop net priority send', check_priority_and_store_outcomes),
     ('G1 workshop net retrieve status', check_retrieve_status_text_source),
+    ('G1 workshop net mwl mpps terms', check_mwl_mpps_terms),
 ]

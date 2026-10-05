@@ -1240,4 +1240,38 @@ struct CLIWorkshopHelpersTests {
         #expect(netParam("dicom-qr", "include-parent-keys")?.flag == "--include-parent-keys")
         #expect(netParam("dicom-qr", "modality")?.helpText == ModalityOptionValidator.helpText("filter"))
     }
+
+    @Test("dicom-mwl --sps-status offers the PS3.3 2026a Table C.4-10 Defined Terms; --specific-character-set and --strict-modality are offered")
+    func mwlRows() throws {
+        let sps = try #require(netParam("dicom-mwl", "sps-status"))
+        #expect(sps.allowedValues == ["", "SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"])
+        #expect(!sps.allowedValues.contains("IN PROGRESS"))    // Performed Procedure Step Status words (Table C.4-14) never appear in a worklist
+        #expect(sps.helpText.contains("PS3.3 Table C.4-10"))
+        let charset = try #require(netParam("dicom-mwl", "specific-character-set"))
+        #expect(charset.flag == "--specific-character-set")
+        #expect(charset.visibleWhen?.values == ["query"])
+        #expect(netParam("dicom-mwl", "strict-modality")?.visibleWhen?.values == ["query"])
+        #expect(netParam("dicom-mwl", "modality")?.helpText == ModalityOptionValidator.helpText("filter"))
+        let op = try #require(netParam("dicom-mwl", "operation"))
+        #expect(op.allowedValues == ["query", "create"])        // create is Studio-only (P-STUDIO-MWL-CREATE)
+    }
+
+    @Test("dicom-mpps create requires --modality (PS3.4 Table F.7.2-1 Type 1); the discontinuation reason examples are PS3.16 CID 9301 pairs (D85)")
+    func mppsRows() throws {
+        let modality = try #require(netParam("dicom-mpps", "modality"))
+        #expect(modality.isRequired)
+        #expect(!modality.allowedValues.contains(""))
+        #expect(modality.helpText.hasPrefix(ModalityOptionValidator.helpText("value")))
+        #expect(netParam("dicom-mpps", "strict-modality")?.visibleWhen?.values == ["create"])
+        let reason = try #require(netParam("dicom-mpps", "discontinuation-reason"))
+        #expect(reason.placeholder == "110513|DCM|Discontinued for unspecified reason")
+        #expect(!reason.helpText.contains("110518"))           // not a CID 9301 code
+        #expect(!reason.helpText.contains("110514|DCM|Equipment failure"))   // 110514 is "Incorrect worklist entry selected"
+        for pair in ["110513|DCM|Discontinued for unspecified reason", "110500|DCM|Doctor canceled procedure",
+                     "110501|DCM|Equipment failure", "110507|DCM|Patient did not arrive"] {
+            #expect(reason.helpText.contains(pair), Comment(rawValue: pair))
+        }
+        #expect(netParam("dicom-mpps", "patient-birth-date")?.helpText.contains("VR DA, PS3.5 Table 6.2-1") == true)
+        #expect(netParam("dicom-mpps", "patient-sex")?.helpText.contains("PS3.3 Table C.2-3") == true)
+    }
 }

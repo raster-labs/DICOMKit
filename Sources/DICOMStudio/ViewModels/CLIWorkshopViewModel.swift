@@ -10145,6 +10145,22 @@ case "dicom-study":
 
     // MARK: - MWL Query (C-FIND)
 
+    /// Scheduled Procedure Step Status (0040,0020) Defined Terms, PS3.3 2026a Table C.4-10 —
+    /// dicom-mwl's scheduledProcedureStepStatusDefinedTerms (CLI-local; text-identical).
+    nonisolated static let mwlScheduledProcedureStepStatusDefinedTerms: [String] =
+        ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"]
+
+    /// dicom-mwl's spsStatusWarning: the warning for a `--sps-status` value outside Table
+    /// C.4-10 (almost always a Performed Procedure Step Status of Table C.4-14 typed by
+    /// mistake, which matches nothing), or nil when the value is a Defined Term (or absent).
+    nonisolated static func mwlSPSStatusWarning(_ value: String?) -> String? {
+        guard let value, !value.isEmpty,
+              !mwlScheduledProcedureStepStatusDefinedTerms.contains(value) else { return nil }
+        return "warning: --sps-status '\(value)' is not a Scheduled Procedure Step Status Defined Term "
+            + "(PS3.3 Table C.4-10: \(mwlScheduledProcedureStepStatusDefinedTerms.joined(separator: ", "))); "
+            + "it is sent as given and will match only an SCP that uses that private term\n"
+    }
+
     private func executeDicomMWLQuery(
         host: String, port: UInt16,
         callingAET: String, calledAET: String,
@@ -10157,12 +10173,35 @@ case "dicom-study":
         let station = paramValue("station")
         let patient = paramValue("patient")
         let patientID = paramValue("patient-id")
-        let modality = paramValue("modality")
+        var modality = paramValue("modality")
+        let strictModality = paramValue("strict-modality") == "true"
         let spsStatus = paramValue("sps-status")
         let accession = paramValue("query-accession-number")
         let performingPhysician = paramValue("query-performing-physician")
+        let specificCharacterSet = paramValue("specific-character-set")
         let verbose = paramValue("verbose") == "true"
         let jsonOutput = paramValue("json") == "true"
+
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: exitCode, output: message)
+        }
+
+        // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), as
+        // the CLI's run() does first; then the Table C.4-10 warning for --sps-status.
+        let resolved = Self.resolveModalityOption(modality, strict: strictModality, verbose: verbose)
+        if let message = resolved.error {
+            refuse(message, exitCode: 1)
+            return
+        }
+        modality = resolved.value
+        for line in resolved.lines { appendConsoleOutput(line + "\n") }
+        if let warning = Self.mwlSPSStatusWarning(spsStatus) {
+            appendConsoleOutput(warning)
+        }
 
         // Header via the SHARED NetworkConsole formatter (DICOMNetwork) — the IDENTICAL
         // builder the dicom-mwl CLI uses, so the chrome can't drift. The filter list
@@ -10192,7 +10231,8 @@ case "dicom-study":
         // Build C-FIND keys via the SHARED package builder (DICOMNetwork) — the same
         // mapping the dicom-mwl CLI and the CLI-parity reference use, so the in-app
         // query and the CLI cannot drift. A single "Date" matches that exact day,
-        // identical to `dicom-mwl query --date`.
+        // identical to `dicom-mwl query --date`. A bad date / time filter is the CLI's
+        // ValidationError (exit 64).
         let queryKeys: WorklistQueryKeys
         do {
             queryKeys = try WorklistQueryKeys.forQuery(
@@ -10207,22 +10247,21 @@ case "dicom-study":
                 performingPhysician: performingPhysician
             )
         } catch {
-            let msg = (error as? WorklistDateFilterError)?.description ?? "\(error)"
-            appendConsoleOutput("❌ \(msg)\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 1, output: msg)
+            refuse((error as? WorklistDateFilterError)?.description ?? "\(error)", exitCode: 64)
             return
         }
 
         do {
+            // --specific-character-set forces Specific Character Set (0008,0005) of the
+            // Identifier (PS3.4 Table K.6-1a; PS3.5 6.1.2), as the CLI passes it.
             let items = try await DICOMModalityWorklistService.find(
                 host: host,
                 port: port,
                 callingAE: callingAET,
                 calledAE: calledAET,
                 matching: queryKeys,
-                timeout: timeout
+                timeout: timeout,
+                specificCharacterSet: specificCharacterSet.isEmpty ? nil : specificCharacterSet
             )
 
             // Render via the SHARED NetworkConsole formatter (DICOMNetwork) — the
@@ -10249,25 +10288,8 @@ case "dicom-study":
             addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 0,
                          output: items.isEmpty ? "0 worklist items found" : "\(items.count) worklist item(s) found")
         } catch {
-            let errorDesc = (error as? DICOMNetworkError)?.description ?? error.localizedDescription
-            appendConsoleOutput("❌ Worklist query failed: \(errorDesc)\n")
-            if let netError = error as? DICOMNetworkError {
-                switch netError {
-                case .sopClassNotSupported, .noPresentationContextAccepted:
-                    appendConsoleOutput("  💡 Hint: The server may not support MWL (Modality Worklist).\n")
-                    appendConsoleOutput("     dcm4chee5: Ensure the MWL SCP is enabled in the archive configuration.\n")
-                case .associationRejected:
-                    appendConsoleOutput("  💡 Hint: The server rejected the association. Check the Called AE Title matches the server configuration.\n")
-                case .connectionFailed, .connectionClosed, .timeout, .operationTimeout, .artimTimerExpired:
-                    appendConsoleOutput("  💡 Hint: Could not connect. Verify the hostname, port, and that the PACS is running.\n")
-                default:
-                    break
-                }
-            }
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 1,
-                         output: errorDesc)
+            // ArgumentParser prints a thrown DICOMNetworkError as `Error: <description>`, exit 1.
+            refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
         }
     }
 
@@ -10544,17 +10566,47 @@ case "dicom-study":
 
     // MARK: - MPPS Execution (dicom-mpps)
 
-    /// Reports an SCP warning status: the operation was performed, but the SCP
-    /// coerced or dropped attributes (PS3.7 Annex C). The CLI writes the same
-    /// sentence to stderr; the Workshop has no stderr, so it goes to the console.
-    private func reportMPPSWarning(_ result: MPPSOperationResult) {
-        guard let warning = result.warning else { return }
-        appendConsoleOutput(
-            "warning: SCP completed the operation with \(warning) — attributes may have "
-            + "been coerced or dropped\n")
+    /// dicom-mpps' parseStatus words: IN PROGRESS (space optional or `_`), COMPLETED,
+    /// DISCONTINUED (PS3.3 Table C.4-14 Enumerated Values), case-insensitive; nil otherwise.
+    nonisolated static func mppsStatusOption(_ raw: String) -> DICOMNetwork.MPPSStatus? {
+        switch raw.uppercased().replacingOccurrences(of: " ", with: "") {
+        case "INPROGRESS", "IN_PROGRESS": return .inProgress
+        case "COMPLETED": return .completed
+        case "DISCONTINUED": return .discontinued
+        default: return nil
+        }
     }
 
-    /// Performs an MPPS N-CREATE or N-SET operation.
+    /// Patient's Sex (0010,0040) Enumerated Values, PS3.3 2026a Table C.2-3: M, F, O
+    /// (dicom-mpps validatePatientSex; case-insensitive input is upper-cased).
+    nonisolated static func mppsPatientSex(_ value: String) -> (value: String?, error: String?) {
+        guard !value.isEmpty else { return (nil, nil) }
+        let upper = value.trimmingCharacters(in: .whitespaces).uppercased()
+        guard ["M", "F", "O"].contains(upper) else {
+            return (nil, "--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got '\(value)'")
+        }
+        return (upper, nil)
+    }
+
+    /// `--patient-birth-date` is a DA value YYYYMMDD (PS3.5 Table 6.2-1: 8 bytes fixed,
+    /// digits only) — dicom-mpps validateBirthDate.
+    nonisolated static func mppsBirthDate(_ value: String) -> (value: String?, error: String?) {
+        guard !value.isEmpty else { return (nil, nil) }
+        guard value.count == 8, value.allSatisfy({ $0.isASCII && $0.isNumber }) else {
+            return (nil, "--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '\(value)'")
+        }
+        return (value, nil)
+    }
+
+    /// dicom-mpps' reportWarning line: the SCP performed the operation but coerced or
+    /// dropped attributes (PS3.7 Annex C); the status worded per PS3.4 Table F.7.2-2 for an
+    /// N-SET, else PS3.7 Annex C (MPPS N-CREATE has no specific codes, PS3.4 F.7.2.1.4).
+    nonisolated static func mppsWarningLine(_ warning: DIMSEStatus, operation: String) -> String {
+        let described = DIMSEServiceStatusText.describe(warning, service: operation == "N-SET" ? .mppsNSet : .dimseN)
+        return "warning: SCP completed the \(operation) with \(described) — attributes may have been coerced or dropped\n"
+    }
+
+    /// Performs an MPPS N-CREATE or N-SET operation — the in-app dicom-mpps.
     private func executeDicomMPPS() async {
         let hostValue = paramValue("host")
         let portValue = paramValue("port")
@@ -10572,9 +10624,10 @@ case "dicom-study":
         let patientID = paramValue("patient-id")
         let spsID = paramValue("sps-id")
         let accessionNumber = paramValue("accession-number")
-        let modality = paramValue("modality")
-        let patientBirthDate = paramValue("patient-birth-date")
-        let patientSex = paramValue("patient-sex")
+        var modality = paramValue("modality")
+        let strictModality = paramValue("strict-modality") == "true"
+        let patientBirthDateRaw = paramValue("patient-birth-date")
+        let patientSexRaw = paramValue("patient-sex")
         let studyID = paramValue("study-id")
         let stationName = paramValue("station-name")
         let performedLocation = paramValue("performed-location")
@@ -10603,11 +10656,45 @@ case "dicom-study":
         /// library default (e.g. Protocol Name's "UNSPECIFIED").
         func optional(_ value: String) -> String? { value.isEmpty ? nil : value }
 
-        guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
-            appendConsoleOutput("Error: A valid host is required (e.g. hostname or hostname:11112).\n")
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 1, output: "Invalid host")
+            addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: exitCode, output: message)
+        }
+
+        let isCreate = operation != "update"
+
+        // --modality through the shared ModalityOptionValidator, then the Type 1 rule:
+        // Modality (0008,0060) is Type 1 in the N-CREATE (PS3.4 Table F.7.2-1); without it
+        // the data set would carry an empty Type 1 attribute (exit 64, as the CLI).
+        if isCreate {
+            let resolved = Self.resolveModalityOption(modality, strict: strictModality, verbose: verbose)
+            if let message = resolved.error {
+                refuse(message, exitCode: 1)
+                return
+            }
+            modality = resolved.value
+            for line in resolved.lines { appendConsoleOutput(line + "\n") }
+            guard !modality.isEmpty else {
+                refuse("--modality is required: Modality (0008,0060) is Type 1 in the MPPS N-CREATE (PS3.4 Table F.7.2-1)", exitCode: 64)
+                return
+            }
+        }
+        let patientSex = Self.mppsPatientSex(isCreate ? patientSexRaw : "")
+        if let message = patientSex.error {
+            refuse(message, exitCode: 64)
+            return
+        }
+        let patientBirthDate = Self.mppsBirthDate(isCreate ? patientBirthDateRaw : "")
+        if let message = patientBirthDate.error {
+            refuse(message, exitCode: 64)
+            return
+        }
+
+        guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
+            refuse("A valid host is required (e.g. hostname or hostname:11112).", exitCode: 64)
             return
         }
 
@@ -10615,34 +10702,31 @@ case "dicom-study":
         let port = server.port
         let timeout = TimeInterval(timeoutStr) ?? 60
 
-        let isCreate = operation != "update"
-
         if isCreate && studyUID.isEmpty {
-            appendConsoleOutput("Error: Study Instance UID is required for create operation.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 1, output: "Study UID required for create")
+            // ArgumentParser's own message for the create subcommand's required option.
+            refuse("Missing expected argument '--study-uid <study-uid>'", exitCode: 64)
             return
         }
 
         if !isCreate && mppsUID.isEmpty {
-            appendConsoleOutput("Error: MPPS Instance UID is required for update operation.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 1, output: "MPPS UID required for update")
+            refuse("Missing expected argument '--mpps-uid <mpps-uid>'", exitCode: 64)
             return
         }
 
-        let mppsStatus: DICOMNetwork.MPPSStatus
-        switch statusStr.uppercased().replacingOccurrences(of: " ", with: "") {
-        case "INPROGRESS":
-            mppsStatus = DICOMNetwork.MPPSStatus.inProgress
-        case "COMPLETED":
-            mppsStatus = DICOMNetwork.MPPSStatus.completed
-        case "DISCONTINUED":
-            mppsStatus = DICOMNetwork.MPPSStatus.discontinued
-        default:
-            mppsStatus = isCreate ? DICOMNetwork.MPPSStatus.inProgress : DICOMNetwork.MPPSStatus.completed
+        // Performed Procedure Step Status (0040,0252), PS3.3 Table C.4-14; the N-CREATE
+        // starts the step IN PROGRESS (PS3.4 F.7.2.1.2), the N-SET ends it COMPLETED or
+        // DISCONTINUED (F.7.2.2.2) — dicom-mpps' parseStatus and status guards (exit 64).
+        guard let mppsStatus = Self.mppsStatusOption(statusStr.isEmpty ? (isCreate ? "IN PROGRESS" : "") : statusStr) else {
+            refuse("Invalid status. Use 'IN PROGRESS', 'COMPLETED', or 'DISCONTINUED'", exitCode: 64)
+            return
+        }
+        if isCreate, mppsStatus != .inProgress {
+            refuse("Create status must be IN PROGRESS — use 'dicom-mpps update --status COMPLETED|DISCONTINUED' to transition the step", exitCode: 64)
+            return
+        }
+        if !isCreate, mppsStatus != .completed, mppsStatus != .discontinued {
+            refuse("Update status must be COMPLETED or DISCONTINUED", exitCode: 64)
+            return
         }
 
         // Discontinuation reason: parsed through the SHARED MPPSCodedEntry grammar
@@ -10651,28 +10735,29 @@ case "dicom-study":
         var discontinuationReason: MPPSCodedEntry?
         if !isCreate, !discontinuationReasonRaw.isEmpty {
             guard mppsStatus == .discontinued else {
-                let msg = "--discontinuation-reason is only valid with --status DISCONTINUED"
-                appendConsoleOutput("Error: \(msg)\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 1, output: msg)
+                refuse("--discontinuation-reason is only valid with --status DISCONTINUED", exitCode: 64)
                 return
             }
             guard let parsed = MPPSCodedEntry.parse(discontinuationReasonRaw) else {
-                let msg = MPPSCodedEntry.parseErrorMessage(option: "--discontinuation-reason")
-                appendConsoleOutput("Error: \(msg)\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 1, output: msg)
+                refuse(MPPSCodedEntry.parseErrorMessage(option: "--discontinuation-reason"), exitCode: 64)
                 return
             }
             discontinuationReason = parsed
         }
 
+        // Image references are only encoded inside a Performed Series item, which needs
+        // the Study and Series Instance UIDs (PS3.4 Table F.7.2-1) — the CLI's guard.
+        let imageUIDs = isCreate ? [] : CommandBuilderHelpers.splitMultiValue(imageUIDsRaw).filter { !$0.isEmpty }
+        if !isCreate, !imageUIDs.isEmpty, studyUID.isEmpty || seriesUID.isEmpty {
+            refuse("--image-uid needs --study-uid and --series-uid: Referenced Image Sequence (0008,1140) items live in a Performed Series Sequence (0040,0340) item with its Series Instance UID (0020,000E) (PS3.4 Table F.7.2-1)", exitCode: 64)
+            return
+        }
+        if !isCreate, !imageUIDs.isEmpty, sopClassUID.isEmpty {
+            appendConsoleOutput("warning: --sop-class-uid not given; Referenced SOP Class UID defaults to Secondary Capture (1.2.840.10008.5.1.4.1.1.7), which is non-conformant for CT/MR/… images\n")
+        }
+
         // Header via the SHARED NetworkConsole formatter (DICOMNetwork) — the IDENTICAL
-        // builder the dicom-mpps CLI uses. Operation-specific rows are supplied as an
-        // ordered field list (the app exposes more attributes than the CLI; each side
-        // passes what it has). Gated on --verbose, matching the CLI exactly.
+        // builder and the SAME field list the dicom-mpps CLI passes. Gated on --verbose.
         if verbose {
             var headerFields: [(label: String, value: String)] = []
             func addHeaderField(_ label: String, _ value: String) {
@@ -10684,16 +10769,12 @@ case "dicom-study":
                 addHeaderField("Patient ID:", patientID)
                 addHeaderField("SPS ID:", spsID)
                 addHeaderField("Accession Number:", accessionNumber)
-                addHeaderField("Modality:", modality)
-                addHeaderField("Requested Procedure ID:", requestedProcedureID)
-                addHeaderField("Procedure Step ID:", procedureStepID)
             } else {
                 addHeaderField("MPPS UID:", mppsUID)
                 // Same gate as the CLI's verbose header: the Referenced Images row
                 // appears only when both --study-uid and --series-uid are given.
                 if !studyUID.isEmpty && !seriesUID.isEmpty {
-                    let imageCount = CommandBuilderHelpers.splitMultiValue(imageUIDsRaw).count
-                    addHeaderField("Referenced Images:", "\(imageCount) instance(s)")
+                    addHeaderField("Referenced Images:", "\(imageUIDs.count) instance(s)")
                 }
             }
             appendConsoleOutput(NetworkConsole.mppsHeader(
@@ -10727,8 +10808,8 @@ case "dicom-study":
                     performedStationName: optional(stationName),
                     accessionNumber: optional(accessionNumber),
                     scheduledProcedureStepID: optional(spsID),
-                    patientBirthDate: optional(patientBirthDate),
-                    patientSex: optional(patientSex),
+                    patientBirthDate: patientBirthDate.value,
+                    patientSex: patientSex.value,
                     studyID: optional(studyID),
                     performedLocation: optional(performedLocation),
                     requestedProcedureID: optional(requestedProcedureID),
@@ -10738,7 +10819,9 @@ case "dicom-study":
                     specificCharacterSet: optional(specificCharacterSet)
                 )
                 let createdUID = result.sopInstanceUID
-                reportMPPSWarning(result)
+                if let warning = result.warning {
+                    appendConsoleOutput(Self.mppsWarningLine(warning, operation: "N-CREATE"))
+                }
                 if result.sopInstanceUIDWasReassigned {
                     appendConsoleOutput(
                         "note: SCP assigned MPPS SOP Instance UID \(result.sopInstanceUID) "
@@ -10756,27 +10839,17 @@ case "dicom-study":
                 addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 0,
                              output: "Created MPPS: \(createdUID)")
             } else {
-                appendConsoleOutput(NetworkConsole.mppsProgress(isCreate: false))
                 // Build referenced SOPs for the update — gated on BOTH study and
                 // series UIDs, mirroring the CLI (DICOMMPPSCommand update builds the
                 // Referenced SOP Sequence only when --study-uid and --series-uid are
                 // both provided; it never substitutes the MPPS SOP Instance UID).
                 var referencedSOPs: [(studyUID: String, seriesUID: String, sopInstanceUID: String)] = []
                 if !studyUID.isEmpty && !seriesUID.isEmpty {
-                    let imageUIDs = CommandBuilderHelpers.splitMultiValue(imageUIDsRaw)
-                    for uid in imageUIDs where !uid.isEmpty {
+                    for uid in imageUIDs {
                         referencedSOPs.append((studyUID: studyUID, seriesUID: seriesUID, sopInstanceUID: uid))
                     }
                 }
-                // Mirrors the CLI: warn when images are referenced without their real
-                // SOP Class, because the Secondary Capture placeholder is then sent and
-                // is non-conformant for anything but SC.
-                if !referencedSOPs.isEmpty, sopClassUID.isEmpty {
-                    appendConsoleOutput(
-                        "warning: Referenced SOP Class UID not given; it defaults to Secondary "
-                        + "Capture (1.2.840.10008.5.1.4.1.1.7), which is non-conformant for "
-                        + "CT/MR/… images\n")
-                }
+                appendConsoleOutput(NetworkConsole.mppsProgress(isCreate: false))
                 // NOTE: accessionNumber is deliberately NOT forwarded here — the CLI's
                 // update subcommand has no --accession-number option, and the field is
                 // hidden in update mode (a stale value would silently leak into the N-SET).
@@ -10802,7 +10875,9 @@ case "dicom-study":
                     discontinuationReason: discontinuationReason,
                     specificCharacterSet: optional(specificCharacterSet)
                 )
-                reportMPPSWarning(result)
+                if let warning = result.warning {
+                    appendConsoleOutput(Self.mppsWarningLine(warning, operation: "N-SET"))
+                }
                 // Result via the SHARED formatter (preserves the "New Status:" /
                 // "Referenced Images:" markers).
                 appendConsoleOutput(NetworkConsole.mppsUpdateResult(
@@ -10815,17 +10890,9 @@ case "dicom-study":
                              output: "Updated MPPS \(mppsUID) to \(mppsStatus.rawValue)")
             }
         } catch {
-            let errorMessage: String
-            if let networkError = error as? DICOMNetworkError {
-                errorMessage = networkError.description
-            } else {
-                errorMessage = error.localizedDescription
-            }
-            appendConsoleOutput("❌ MPPS operation failed: \(errorMessage)\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 1,
-                         output: errorMessage)
+            // N-CREATE / N-SET failures arrive as DICOMNetworkError.mppsOperationFailed, worded
+            // by DIMSEServiceStatusText; ArgumentParser prints them as `Error: <description>`.
+            refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
         }
     }
 

@@ -920,10 +920,14 @@ public enum ToolCatalogHelpers: Sendable {
             ]
         case "dicom-mwl":
             return [
+                // `query` is the dicom-mwl CLI's only subcommand (PS3.4 Annex K, C-FIND).
+                // `create` is a Studio-only operation (HL7 ORM^O01 over MLLP or the archive's
+                // REST API — no DIMSE service creates a worklist item); its fields are
+                // isInternal and the preview is rendered commented out (P-STUDIO-MWL-CREATE).
                 CLIParameterDefinition(
                     id: "operation", flag: "", displayName: "Operation",
                     parameterType: .subcommand, placeholder: "query",
-                    helpText: "Modality Worklist operation: query scheduled procedures (C-FIND) or create a new worklist item (N-CREATE)",
+                    helpText: "Modality Worklist operation: query scheduled procedures (C-FIND, the dicom-mwl CLI) or create a new worklist item (in-app only: HL7 ORM^O01 or REST — dicom-mwl has no create subcommand)",
                     isRequired: true,
                     defaultValue: "query",
                     allowedValues: ["query", "create"]
@@ -957,54 +961,62 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "date-from", flag: "--date", displayName: "Date",
                     parameterType: .textField, placeholder: "today / YYYYMMDD / YYYYMMDD-YYYYMMDD",
-                    helpText: "Scheduled date filter — 'today', 'tomorrow', YYYYMMDD, or a DICOM date range " +
-                        "YYYYMMDD-YYYYMMDD, YYYYMMDD-, -YYYYMMDD (0040,0002)",
+                    helpText: "Scheduled Procedure Step Start Date (0040,0002) filter: YYYYMMDD, 'today', 'tomorrow', or a DICOM date range (YYYYMMDD-YYYYMMDD, YYYYMMDD-, -YYYYMMDD; PS3.4 C.2.2.2.5.1). A leading-hyphen range needs the equals form: --date=-YYYYMMDD",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "time-from", flag: "--time", displayName: "Time",
                     parameterType: .textField, placeholder: "HHMMSS / HHMMSS-HHMMSS",
-                    helpText: "Scheduled time filter — HHMMSS, or a DICOM time range " +
-                        "HHMMSS-HHMMSS, HHMMSS-, -HHMMSS (0040,0003). Combined with Date as a " +
-                        "continuous interval per PS3.4 K.6.1 when both are ranges.",
+                    helpText: "Scheduled Procedure Step Start Time (0040,0003) filter: HHMMSS (or HH / HHMM / HHMMSS.FFFFFF, PS3.5 Table 6.2-1 TM), or a DICOM time range (HHMMSS-HHMMSS, HHMMSS-, -HHMMSS; PS3.4 C.2.2.2.5.2). Combined with --date as one continuous interval when both are ranges (PS3.4 Table K.6-1, remark under (0040,0003)). A leading-hyphen range needs the equals form: --time=-HHMMSS",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "station", flag: "--station", displayName: "Station AE Title",
                     parameterType: .textField, placeholder: "e.g. CT1",
-                    helpText: "Filter by Scheduled Station AE Title (0040,0001)",
+                    helpText: "Scheduled Station AE Title (0040,0001) filter (PS3.4 Table K.6-1: Single Value Matching)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "patient", flag: "--patient", displayName: "Patient Name",
                     parameterType: .textField, placeholder: "e.g. DOE^JOHN or DOE*",
-                    helpText: "Filter by patient name — supports wildcards * and ? (0010,0010)",
+                    helpText: "Patient's Name (0010,0010) filter (supports wildcards: *)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "patient-id", flag: "--patient-id", displayName: "Patient ID",
                     parameterType: .textField, placeholder: "e.g. PAT001",
-                    helpText: "Filter by patient ID (0010,0020)",
+                    helpText: "Patient ID (0010,0020) filter",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .enumPicker, placeholder: "Any",
-                    helpText: "Filter by scheduled imaging modality (0008,0060)",
+                    helpText: ModalityOptionValidator.helpText("filter"),
                     allowedValues: optionalModalityAllowedValues,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
+                    id: "strict-modality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
+                ),
+                // Scheduled Procedure Step Status (0040,0020) Defined Terms, PS3.3 2026a Table
+                // C.4-10 (C.4.10): SCHEDULED, ARRIVED, READY, STARTED, DEPARTED. IN PROGRESS /
+                // COMPLETED / DISCONTINUED are Performed Procedure Step Status values (Table
+                // C.4-14) and never appear in a worklist — the picker no longer offers them.
+                CLIParameterDefinition(
                     id: "sps-status", flag: "--sps-status", displayName: "SPS Status",
                     parameterType: .enumPicker, placeholder: "Any",
-                    helpText: "Filter by Scheduled Procedure Step Status (0040,0020)",
-                    allowedValues: ["", "SCHEDULED", "IN PROGRESS", "DISCONTINUED", "COMPLETED"],
+                    helpText: "Scheduled Procedure Step Status (0040,0020) filter. Defined Terms per PS3.3 Table C.4-10: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED (another value is sent as given, with a warning)",
+                    allowedValues: ["", "SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
                     id: "query-accession-number", flag: "--accession-number", displayName: "Accession Number",
                     parameterType: .textField, placeholder: "e.g. ACC12345",
-                    helpText: "Filter by accession number (0008,0050)",
+                    helpText: "Accession Number (0008,0050) filter",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 CLIParameterDefinition(
@@ -1014,7 +1026,16 @@ public enum ToolCatalogHelpers: Sendable {
                     // — paramValue() keys on the id alone.
                     id: "query-performing-physician", flag: "--performing-physician", displayName: "Performing Physician",
                     parameterType: .textField, placeholder: "e.g. SMITH^JOHN or SMITH*",
-                    helpText: "Filter by Scheduled Performing Physician's Name — supports wildcards (0040,0006)",
+                    helpText: "Scheduled Performing Physician's Name (0040,0006) filter (supports wildcards: *)",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
+                ),
+                // Specific Character Set (0008,0005) of the Identifier (PS3.4 Table K.6-1a;
+                // PS3.5 6.1.2 / Table 6.1-1 Defined Terms); by default the narrowest set is chosen.
+                CLIParameterDefinition(
+                    id: "specific-character-set", flag: "--specific-character-set", displayName: "Specific Character Set",
+                    parameterType: .textField, placeholder: "e.g. ISO_IR 100 or ISO_IR 192",
+                    helpText: "Force the Specific Character Set (0008,0005) of the query, e.g. ISO_IR 100 or ISO_IR 192. By default the narrowest set that represents every text key is chosen (none for pure ASCII)",
+                    isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
                 ),
                 // ----- Create parameters (DICOMStudio-internal, no CLI equivalent) -----
@@ -1211,12 +1232,12 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "json", flag: "--json", displayName: "JSON Output",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Output results in JSON format"
+                    helpText: "Output as JSON. Keys are PS3.6 keywords (e.g. ScheduledProcedureStepStartDate, ReferencedStudySequence); the abbreviated keys SPSStartDate, SPSStartTime, SPSStatus, SPSID, SPSDescription, SPSLocation, ScheduledPerformingPhysician, RequestedProcedureCode, ScheduledProtocolCodes, ReferencedStudySOPInstanceUID are still written but deprecated"
                 ),
                 CLIParameterDefinition(
                     id: "verbose", flag: "--verbose", displayName: "Verbose",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Show detailed connection and query information"
+                    helpText: "Show verbose output"
                 ),
             ]
         case "dicom-mpps":
@@ -1285,23 +1306,33 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "Accession Number (0008,0050) — links the MPPS to the imaging order and helps the server match the MWL item",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
                 ),
+                // Modality (0008,0060) is Type 1 in the N-CREATE (PS3.4 2026a Table F.7.2-1 row
+                // 105); the CLI refuses a create without it, so the picker offers no blank.
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
-                    parameterType: .enumPicker, placeholder: "Any",
-                    helpText: "Modality (0008,0060) — Type 1 in the MPPS; strict SCPs reject an N-CREATE without it",
-                    allowedValues: optionalModalityAllowedValues,
+                    parameterType: .enumPicker, placeholder: "e.g. CT",
+                    helpText: ModalityOptionValidator.helpText("value") + " Type 1 in the MPPS N-CREATE (PS3.4 Table F.7.2-1)",
+                    isRequired: true,
+                    allowedValues: modalityAllowedValues,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
+                ),
+                CLIParameterDefinition(
+                    id: "strict-modality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+                    isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
                 ),
                 CLIParameterDefinition(
                     id: "patient-birth-date", flag: "--patient-birth-date", displayName: "Patient Birth Date",
                     parameterType: .textField, placeholder: "YYYYMMDD",
-                    helpText: "Patient's Birth Date (0010,0030) — Type 2, sent empty when unknown",
+                    helpText: "Patient's Birth Date (0010,0030) as YYYYMMDD (VR DA, PS3.5 Table 6.2-1)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
                 ),
                 CLIParameterDefinition(
                     id: "patient-sex", flag: "--patient-sex", displayName: "Patient Sex",
                     parameterType: .enumPicker, placeholder: "Unspecified",
-                    helpText: "Patient's Sex (0010,0040) — Type 2, sent empty when unknown",
+                    helpText: "Patient's Sex (0010,0040) Enumerated Values M, F or O (PS3.3 Table C.2-3)",
                     allowedValues: ["", "M", "F", "O"],
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
                 ),
@@ -1416,7 +1447,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "sop-class-uid", flag: "--sop-class-uid", displayName: "Referenced SOP Class UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.10008.5.1.4.1.1.2 (CT)",
-                    helpText: "SOP Class UID (0008,1150) of the referenced images. Without it the Secondary Capture class is sent, which is non-conformant for anything but SC",
+                    helpText: "SOP Class UID (0008,1150) of the referenced images, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Without it the Secondary Capture class is sent, which is wrong for anything but SC",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
                 CLIParameterDefinition(
@@ -1446,10 +1477,13 @@ public enum ToolCatalogHelpers: Sendable {
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
+                // The placeholder and examples are real PS3.16 2026a CID 9301 pairs (Table D-1):
+                // 110513 "Discontinued for unspecified reason", 110500 "Doctor canceled procedure",
+                // 110501 "Equipment failure", 110507 "Patient did not arrive" (D85, D88).
                 CLIParameterDefinition(
                     id: "discontinuation-reason", flag: "--discontinuation-reason", displayName: "Discontinuation Reason",
-                    parameterType: .textField, placeholder: "110513|DCM|Doctor cancelled procedure",
-                    helpText: "Procedure Step Discontinuation Reason Code Sequence (0040,0281) as CODE|SCHEME|MEANING. Codes normally come from CID 9300 with scheme DCM, e.g. \"110514|DCM|Equipment failure\", \"110518|DCM|Patient did not arrive\". Only valid with status DISCONTINUED",
+                    parameterType: .textField, placeholder: "110513|DCM|Discontinued for unspecified reason",
+                    helpText: "Performed Procedure Step Discontinuation Reason Code Sequence (0040,0281) as CODE|SCHEME|MEANING, only with --status DISCONTINUED. Codes normally come from PS3.16 CID 9300 'Procedure Discontinuation Reason' (which includes CID 9301) with scheme DCM, e.g. \"110513|DCM|Discontinued for unspecified reason\", \"110500|DCM|Doctor canceled procedure\", \"110501|DCM|Equipment failure\", \"110507|DCM|Patient did not arrive\"",
                     visibleWhenAll: [
                         CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"]),
                         CLIParameterVisibilityCondition(parameterId: "status-update", values: ["DISCONTINUED"])

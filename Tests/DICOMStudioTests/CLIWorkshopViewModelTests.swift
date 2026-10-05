@@ -661,4 +661,38 @@ struct CLIWorkshopViewModelTests {
         let partial = RetrieveResult(status: .from(0x0000), progress: RetrieveProgress(completed: 1, failed: 1))
         #expect(VM.retrieveCheck(partial, service: .cGet).failure != nil)
     }
+
+    @Test("dicom-mwl --sps-status: a PS3.3 Table C.4-10 Defined Term is silent; a PPS word (Table C.4-14) gets the CLI's warning")
+    func mwlSPSStatusWarning() {
+        #expect(CLIWorkshopViewModel.mwlScheduledProcedureStepStatusDefinedTerms == ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"])
+        for term in CLIWorkshopViewModel.mwlScheduledProcedureStepStatusDefinedTerms {
+            #expect(CLIWorkshopViewModel.mwlSPSStatusWarning(term) == nil, Comment(rawValue: term))
+        }
+        #expect(CLIWorkshopViewModel.mwlSPSStatusWarning("") == nil)
+        #expect(CLIWorkshopViewModel.mwlSPSStatusWarning(nil) == nil)
+        let warning = CLIWorkshopViewModel.mwlSPSStatusWarning("COMPLETED")
+        #expect(warning == "warning: --sps-status 'COMPLETED' is not a Scheduled Procedure Step Status Defined Term "
+                + "(PS3.3 Table C.4-10: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED); "
+                + "it is sent as given and will match only an SCP that uses that private term\n")
+    }
+
+    @Test("dicom-mpps value rules: status words (PS3.3 Table C.4-14), Patient's Sex M/F/O (Table C.2-3), birth date DA (PS3.5 Table 6.2-1), warning wording via DIMSEServiceStatusText")
+    func mppsValueRules() {
+        typealias VM = CLIWorkshopViewModel
+        #expect(VM.mppsStatusOption("IN PROGRESS") == .inProgress)
+        #expect(VM.mppsStatusOption("in_progress") == .inProgress)
+        #expect(VM.mppsStatusOption("completed") == .completed)
+        #expect(VM.mppsStatusOption("DISCONTINUED") == .discontinued)
+        #expect(VM.mppsStatusOption("STARTED") == nil)
+        #expect(VM.mppsPatientSex("f").value == "F")
+        #expect(VM.mppsPatientSex("").value == nil && VM.mppsPatientSex("").error == nil)
+        #expect(VM.mppsPatientSex("U").error == "--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got 'U'")
+        #expect(VM.mppsBirthDate("19800115").value == "19800115")
+        #expect(VM.mppsBirthDate("1980-01-15").error == "--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '1980-01-15'")
+        let line = VM.mppsWarningLine(.from(0x0107), operation: "N-SET")
+        #expect(line == "warning: SCP completed the N-SET with "
+                + DIMSEServiceStatusText.describe(.from(0x0107), service: .mppsNSet)
+                + " — attributes may have been coerced or dropped\n")
+        #expect(VM.mppsWarningLine(.from(0x0107), operation: "N-CREATE").contains(DIMSEServiceStatusText.describe(.from(0x0107), service: .dimseN)))
+    }
 }
