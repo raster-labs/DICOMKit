@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — ViewModel for Structured Reporting Studio
+// NEMA-verified: 2026a, checked 2026-10-05 — the only standard data was the document title it built: retired (121070, DCM, "Findings") with the document type's display name as meaning; now SRBuilderHelpers.documentTitle(for:template:) (PS3.16 2026a CID 7000 / 7021 / 7010, TID 4000 / 4100 row 1); the rest is view state over StructuredReportService
 
 import Foundation
 import Observation
@@ -197,10 +198,9 @@ public final class StructuredReportViewModel {
 
     /// Creates a new document from the current builder settings.
     public func createDocument() -> SRDocument? {
-        let title = CodedConcept(
-            codeValue: "121070",
-            codingSchemeDesignator: "DCM",
-            codeMeaning: builderDocumentType.displayName
+        let title = SRBuilderHelpers.documentTitle(
+            for: builderDocumentType,
+            template: builderDocumentType == .basicText ? selectedTemplate : nil
         )
 
         var rootItem: SRContentItem

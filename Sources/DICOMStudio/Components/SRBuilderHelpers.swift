@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent SR document builder helpers
-// Reference: DICOM PS3.16 (Content Mapping Resources), TID 1500, TID 2000
+// Reference: DICOM PS3.16 (Content Mapping Resources), TID 1500, TID 1501, TID 2000, TID 2010
+// NEMA-verified: 2026a, checked 2026-10-05 — the 13 coded concepts diffed by script against PS3.16 2026a Table D-1 and the CID tables (7003, 7010, 7021, 7181, 7461, 7470, 9000): 7 matched, 6 corrected ((G-C0E3, SRT) -> (363698007, SCT, "Finding Site") per Table O-1 / TID 1501 row 6; 121200 is "Illustration of ROI"; 113000 is "Of Interest"; mm2 "square millimeter" (CID 7461); [hnsf'U] "Hounsfield unit" (CID 83); 1 "no units" (CID 7181)); (ml, UCUM) is in no CID table, its meaning is UCUM's print name (not verifiable from NEMA text); retired (121070, DCM, "Findings") no longer used as a title/heading with an arbitrary meaning — titles come from CID 7000 / 7021 / 7010 / TID 4000 / TID 4100, section headings from CID 7001, with a 99DCMSTUDIO private code (PS3.16 Section 8) for headings the standard has no code for; TID 1500 rows 1, 6 and TID 1501 rows 2, 3, 6 and TID 2010 rows 1, 7, 8 (IMAGE without a concept name) followed
 
 import Foundation
 
@@ -38,22 +39,25 @@ public enum SRBuilderHelpers: Sendable {
         codeMeaning: "Finding"
     )
 
-    /// Coded concept for finding site.
+    /// Coded concept for finding site (TID 1501 row 6; PS3.16 2026a uses the SCT concept id,
+    /// Table O-1 maps the SNOMED-RT id G-C0E3 to it).
     public static let findingSiteConcept = CodedConcept(
-        codeValue: "G-C0E3", codingSchemeDesignator: "SRT",
+        codeValue: "363698007", codingSchemeDesignator: "SCT",
         codeMeaning: "Finding Site"
     )
 
-    /// Coded concept for image reference purpose.
+    /// Purpose of reference for an image illustrating a region of interest
+    /// (CID 7003, TID 1501 row 9c). The Table D-1 meaning of 121200 is "Illustration of ROI".
     public static let imageReferenceConcept = CodedConcept(
         codeValue: "121200", codingSchemeDesignator: "DCM",
-        codeMeaning: "Image Reference"
+        codeMeaning: "Illustration of ROI"
     )
 
-    /// Coded concept for Key Object Selection title.
+    /// Default Key Object Selection document title: (113000, DCM, "Of Interest") from CID 7010
+    /// (TID 2010 row 1). `keyObjectTitle(for:)` picks the CID 7010 title that matches a purpose.
     public static let keyObjectSelectionTitle = CodedConcept(
         codeValue: "113000", codingSchemeDesignator: "DCM",
-        codeMeaning: "Key Object Selection"
+        codeMeaning: "Of Interest"
     )
 
     // MARK: - UCUM Unit Concepts
@@ -68,25 +72,101 @@ public enum SRBuilderHelpers: Sendable {
         codeValue: "cm", codingSchemeDesignator: "UCUM", codeMeaning: "cm"
     )
 
-    /// UCUM square millimeter unit.
+    /// UCUM square millimeter unit (CID 7461).
     public static let ucumSquareMillimeter = CodedConcept(
-        codeValue: "mm2", codingSchemeDesignator: "UCUM", codeMeaning: "mm2"
+        codeValue: "mm2", codingSchemeDesignator: "UCUM", codeMeaning: "square millimeter"
     )
 
-    /// UCUM milliliter unit.
+    /// UCUM milliliter unit. PS3.16 lists no `ml` in a volume context group (CID 7462 uses cm3);
+    /// the meaning is UCUM's print name.
     public static let ucumMilliliter = CodedConcept(
-        codeValue: "ml", codingSchemeDesignator: "UCUM", codeMeaning: "ml"
+        codeValue: "ml", codingSchemeDesignator: "UCUM", codeMeaning: "milliliter"
     )
 
-    /// UCUM Hounsfield unit.
+    /// UCUM Hounsfield unit (CID 83).
     public static let ucumHounsfieldUnit = CodedConcept(
-        codeValue: "[hnsf'U]", codingSchemeDesignator: "UCUM", codeMeaning: "HU"
+        codeValue: "[hnsf'U]", codingSchemeDesignator: "UCUM", codeMeaning: "Hounsfield unit"
     )
 
-    /// UCUM no units (dimensionless).
+    /// UCUM no units (dimensionless; CID 7181). `{ratio}` is a separate UCUM code with the meaning "ratio".
     public static let ucumNoUnits = CodedConcept(
-        codeValue: "1", codingSchemeDesignator: "UCUM", codeMeaning: "{ratio}"
+        codeValue: "1", codingSchemeDesignator: "UCUM", codeMeaning: "no units"
     )
+
+    // MARK: - Document Titles and Section Headings (PS3.16 CID 7000 / 7001 / 7010 / 7021)
+
+    /// Private coding scheme designator (PS3.16 Section 8: "99" prefix) for the app's own section
+    /// headings that PS3.16 has no code for.
+    static let privateCodingScheme = "99DCMSTUDIO"
+
+    /// Document title for a report template: CID 7000 where the standard has a matching title,
+    /// otherwise a private code carrying the template name.
+    static func documentTitle(for template: SRTemplate) -> CodedConcept {
+        switch template {
+        case .radiologyReport:
+            return CodedConcept(codeValue: "11528-7", codingSchemeDesignator: "LN", codeMeaning: "Radiology Report")
+        case .procedureReport, .pathologyReport, .clinicalFindings, .dischargeSummary:
+            return CodedConcept(codeValue: template.rawValue, codingSchemeDesignator: privateCodingScheme,
+                                codeMeaning: template.displayName)
+        }
+    }
+
+    /// Document title for an SR document type: the root concept name its template prescribes
+    /// (TID 2000 BCID 7000, TID 1500 DCID 7021, TID 2010 DCID 7010, TID 4000 / TID 4100 row 1).
+    static func documentTitle(for documentType: SRDocumentType, template: SRTemplate? = nil) -> CodedConcept {
+        switch documentType {
+        case .basicText, .enhanced, .comprehensive, .comprehensive3D:
+            if let template { return documentTitle(for: template) }
+            return CodedConcept(codeValue: "18748-4", codingSchemeDesignator: "LN", codeMeaning: "Diagnostic Imaging Report")
+        case .measurementReport:
+            return CodedConcept(codeValue: "126000", codingSchemeDesignator: "DCM", codeMeaning: "Imaging Measurement Report")
+        case .keyObjectSelection:
+            return keyObjectSelectionTitle
+        case .mammographyCAD:
+            return CodedConcept(codeValue: "111036", codingSchemeDesignator: "DCM", codeMeaning: "Mammography CAD Report")
+        case .chestCAD:
+            return CodedConcept(codeValue: "112000", codingSchemeDesignator: "DCM", codeMeaning: "Chest CAD Report")
+        }
+    }
+
+    /// CID 7001 "Diagnostic Imaging Report Heading" codes for the template section names.
+    private static let sectionHeadingCodes: [String: (String, String)] = [
+        "findings": ("59776-5", "Findings"),
+        "impression": ("19005-8", "Impressions"),
+        "impressions": ("19005-8", "Impressions"),
+        "recommendations": ("18783-1", "Recommendations"),
+        "history": ("11329-0", "History"),
+        "indication": ("18785-6", "Indications for Procedure"),
+        "indications": ("18785-6", "Indications for Procedure"),
+        "summary": ("55112-7", "Summary"),
+        "conclusions": ("55110-1", "Conclusions"),
+        "addendum": ("55107-7", "Addendum"),
+        "complications": ("55109-3", "Complications"),
+        "key images": ("55113-5", "Key Images"),
+        "request": ("55115-0", "Request"),
+    ]
+
+    /// Section heading concept: the CID 7001 code when the standard has one for the heading,
+    /// otherwise a private code carrying the heading text.
+    static func sectionHeading(for sectionName: String) -> CodedConcept {
+        if let (code, meaning) = sectionHeadingCodes[sectionName.lowercased()] {
+            return CodedConcept(codeValue: code, codingSchemeDesignator: "LN", codeMeaning: meaning)
+        }
+        let code = sectionName.uppercased().replacingOccurrences(of: " ", with: "_")
+        return CodedConcept(codeValue: code, codingSchemeDesignator: privateCodingScheme, codeMeaning: sectionName)
+    }
+
+    /// CID 7010 Key Object Selection Document Title for a selection purpose.
+    static func keyObjectTitle(for purpose: KeyObjectPurpose) -> CodedConcept {
+        switch purpose {
+        case .teaching:       return CodedConcept(codeValue: "113004", codingSchemeDesignator: "DCM", codeMeaning: "For Teaching")
+        case .qualityControl: return CodedConcept(codeValue: "113010", codingSchemeDesignator: "DCM", codeMeaning: "Quality Issue")
+        case .referral:       return CodedConcept(codeValue: "113002", codingSchemeDesignator: "DCM", codeMeaning: "For Referring Provider")
+        case .conference:     return CodedConcept(codeValue: "113005", codingSchemeDesignator: "DCM", codeMeaning: "For Conference")
+        case .research:       return CodedConcept(codeValue: "113009", codingSchemeDesignator: "DCM", codeMeaning: "For Research")
+        case .documentation:  return keyObjectSelectionTitle
+        }
+    }
 
     // MARK: - Content Item Builders
 
@@ -244,7 +324,8 @@ public enum SRBuilderHelpers: Sendable {
 
     // MARK: - Template Builders
 
-    /// Builds a Basic Text SR document from a template.
+    /// Builds a Basic Text SR document from a template (TID 2000 layout: a titled CONTAINER from
+    /// CID 7000 holding one CONTAINER per section heading from CID 7001).
     ///
     /// - Parameters:
     ///   - template: The report template.
@@ -254,15 +335,9 @@ public enum SRBuilderHelpers: Sendable {
         template: SRTemplate,
         sectionTexts: [String: String] = [:]
     ) -> SRContentItem {
-        let titleConcept = CodedConcept(
-            codeValue: "121070", codingSchemeDesignator: "DCM",
-            codeMeaning: template.displayName
-        )
+        let titleConcept = documentTitle(for: template)
         let sections = template.sections.map { sectionName in
-            let sectionConcept = CodedConcept(
-                codeValue: "121070", codingSchemeDesignator: "DCM",
-                codeMeaning: sectionName
-            )
+            let sectionConcept = sectionHeading(for: sectionName)
             let text = sectionTexts[sectionName] ?? ""
             let textChild = textItem(
                 conceptName: sectionConcept,
@@ -281,7 +356,9 @@ public enum SRBuilderHelpers: Sendable {
         )
     }
 
-    /// Builds a Key Object Selection document.
+    /// Builds a Key Object Selection document (TID 2010: the title is the CID 7010 code for the
+    /// purpose, row 7 is the Key Object Description TEXT, rows 8 are IMAGE items without a
+    /// concept name).
     ///
     /// - Parameters:
     ///   - purpose: The selection purpose.
@@ -302,21 +379,30 @@ public enum SRBuilderHelpers: Sendable {
         children.append(textItem(conceptName: purposeConcept, text: description))
 
         for (classUID, instanceUID) in imageReferences {
-            children.append(imageItem(
-                conceptName: imageReferenceConcept,
-                sopClassUID: classUID,
-                sopInstanceUID: instanceUID
+            children.append(SRContentItem(
+                valueType: .image,
+                conceptName: nil,
+                relationshipType: .contains,
+                referencedSOPClassUID: classUID,
+                referencedSOPInstanceUID: instanceUID
             ))
         }
 
         return containerItem(
-            conceptName: keyObjectSelectionTitle,
+            conceptName: keyObjectTitle(for: purpose),
             continuity: .separate,
             children: children
         )
     }
 
-    /// Builds a Measurement Report root item (TID 1500 skeleton).
+    /// Concept name of the TID 1500 row 6 CONTAINER that holds the measurement groups.
+    public static let imagingMeasurementsConcept = CodedConcept(
+        codeValue: "126010", codingSchemeDesignator: "DCM",
+        codeMeaning: "Imaging Measurements"
+    )
+
+    /// Builds a Measurement Report root item (TID 1500 skeleton: row 1 title from CID 7021,
+    /// row 6 "Imaging Measurements" CONTAINER holding one TID 1501 group per measurement).
     ///
     /// - Parameters:
     ///   - measurements: Tracked measurements to include.
@@ -324,23 +410,26 @@ public enum SRBuilderHelpers: Sendable {
     public static func buildMeasurementReport(
         measurements: [TrackedMeasurement] = []
     ) -> SRContentItem {
-        let reportTitle = CodedConcept(
-            codeValue: "126000", codingSchemeDesignator: "DCM",
-            codeMeaning: "Imaging Measurement Report"
-        )
+        let reportTitle = documentTitle(for: .measurementReport)
         var groups: [SRContentItem] = []
         for measurement in measurements {
             let group = buildMeasurementGroup(for: measurement)
             groups.append(group)
         }
-        return containerItem(
-            conceptName: reportTitle,
+        let imagingMeasurements = containerItem(
+            conceptName: imagingMeasurementsConcept,
             continuity: .separate,
             children: groups
         )
+        return containerItem(
+            conceptName: reportTitle,
+            continuity: .separate,
+            children: groups.isEmpty ? [] : [imagingMeasurements]
+        )
     }
 
-    /// Builds a single measurement group for a tracked measurement.
+    /// Builds a single measurement group for a tracked measurement (TID 1501 rows 1-3, 6 and a
+    /// CID 7470 "Length" NUM).
     public static func buildMeasurementGroup(
         for measurement: TrackedMeasurement
     ) -> SRContentItem {
