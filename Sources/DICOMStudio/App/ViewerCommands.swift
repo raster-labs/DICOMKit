@@ -15,14 +15,16 @@ extension FocusedValues {
 // MARK: - ViewerCommands
 
 @available(macOS 14.0, *)
-struct ViewerCommands: Commands {
+public struct ViewerCommands: Commands {
     @FocusedValue(\.imageViewerViewModel) private var viewModel: ImageViewerViewModel?
 
     private var hasImage: Bool { viewModel?.hasImage == true }
     private var hasFile: Bool  { viewModel?.dicomFile != nil }
     private var isMonochrome: Bool { viewModel?.isMonochrome == true }
 
-    var body: some Commands {
+    public init() {}
+
+    public var body: some Commands {
         // View menu additions (zoom, fit, overlays)
         CommandGroup(after: .toolbar) {
             Divider()

@@ -1382,7 +1382,7 @@ let package = Package(
                 "DICOMWeb"
             ],
             path: "Sources/DICOMStudio",
-            exclude: ["ARCHITECTURE.md", "App/DICOMStudioApp.swift"]
+            exclude: ["ARCHITECTURE.md"]
         ),
         .testTarget(
             name: "DICOMRenderKitTests",
