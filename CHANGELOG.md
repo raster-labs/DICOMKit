@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — DICOMStudio CLI shell, parameter builder, browser navigation (2026-10-05, DICOM 2026a)
+- Parameter Builder: the 12 tool forms now mirror the tools' ArgumentParser surfaces (29 of 59 rows were not options of the named tool: positional arguments spelled `--input`/`--host`/`--file-a`, `--calling-aet` for `--aet`, `--output-format` for `--format`, `--pretty-print` for `--pretty`, dicom-image given dicom-convert's `--format`/`--frame-*`, `--tls`); positional arguments are spelled `<host>`, `<file-path>` and emitted as bare values; `dicom-anon --profile` offers `ps315` (PS3.15 2026a E.1 Basic Profile, the tool's default) and the deprecated `legacy-*` lists instead of the refused `standard`/`full`; `dicom-query --level` offers the PS3.4 Query/Retrieve Level values `patient, study, series, image`; `dicom-compress --codec` / `--quality` offer the CompressionManager / CompressionConsole names; defaults follow the tools (port 11112 = PS3.8 2026a 9.1.1 registered DICOM port, `--called-aet ANY-SCP`).
+- Tool registry: the 4 shipped tools dicom-j2k, dicom-jpip, dicom-printscp, dicom-video are catalogued (42, one per `Sources/dicom-*` target); dicom-tags, dicom-image and dicom-wado descriptions say what the tools do (tag editing; images → Secondary Capture; WADO-RS / QIDO-RS / STOW-RS / UPS-RS client).
+- Integration testing scenarios: dicom-qido, dicom-stow, dicom-ups (dicom-wado subcommands, not tools) replaced by the 4 missing tools; counts derive from the lists.
+- Browser navigation: dicom-wado header cites PS3.18 §10 (Studies Service); PS3.18 2026a has no §6.5.
+- AE Title field documentation no longer claims upper case (PS3.5 2026a Table 6.2-1: 16 bytes maximum).
+
 ### Fixed — DICOMStudio DICOMweb panel (2026-10-05, DICOM 2026a)
 - `DICOMwebClientFactory.buildQIDOQuery` sends Modalities in Study (0008,0061) at the study level and Modality (0008,0060) at the series/instance levels (PS3.18 Table 10.6.1-5); the Fuzzy matching toggle is sent as `fuzzymatching=true` (8.3.4.2); a Study Date with one bound is sent as the open range of PS3.4 C.2.2.2.5. `DICOMwebViewModel.runQIDOQuery` passes the level picker into the query parameters.
 - `UPSState.scheduled.allowedTransitions` no longer offers CANCELED: PS3.4 Table CC.1.1-2 refuses a Change State to CANCELED from SCHEDULED (C310H); `DICOMwebViewModel.transitionUPSState` refuses a SCHEDULED target with the same message as `dicom-wado` (PS3.18 11.7.1.4, C303H) and names the Table CC.2.1-2 status of any other refused change. `UPSState.cancelled.displayName` is "Canceled" (PS3.3 C.30.1 spelling).
