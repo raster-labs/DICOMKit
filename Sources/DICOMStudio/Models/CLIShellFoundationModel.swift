@@ -2,12 +2,13 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for CLI Shell Foundation (Milestone 17)
+// NEMA-verified: 2026a, checked 2026-10-05 — the standard-derived content is the tool catalogue: the 42 ToolCategory.toolNames are exactly the Sources/dicom-* targets (dicom-j2k, dicom-jpip, dicom-printscp, dicom-video were missing; dicom-qido/stow/ups never existed, they are dicom-wado subcommands), diffed by Scripts/diff_studio_g1_shell.py; no tag, UID, port, AE title or PS3 clause is carried here (version, install and launch state only)
 
 import Foundation
 
 // MARK: - 17.1 Tool Discovery & Registry
 
-/// The 9 browser categories for organizing the 38 CLI tools.
+/// The 9 browser categories for organizing the 42 `dicom-*` CLI tools (one per `Sources/dicom-*` target).
 public enum ToolCategory: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
     case networking       = "NETWORKING"
     case viewerImaging    = "VIEWER_IMAGING"
@@ -57,9 +58,9 @@ public enum ToolCategory: String, Sendable, Equatable, Hashable, CaseIterable, I
         case .networking:       return "DICOM network operations including echo, query, send, and retrieve"
         case .viewerImaging:    return "Image viewing, rendering, and 3D visualization"
         case .fileInspection:   return "Inspect, dump, tag-lookup, and diff DICOM files"
-        case .fileProcessing:   return "Convert, validate, anonymize, and compress DICOM files"
+        case .fileProcessing:   return "Convert, validate, anonymize, compress, and inspect JPEG 2000 codestreams of DICOM files"
         case .fileOrganization: return "Split, merge, create DICOMDIR, and archive files"
-        case .dataExchange:     return "Export to JSON, XML, PDF, images, and pixel editing"
+        case .dataExchange:     return "Export to JSON, XML, PDF, images, video, and pixel editing"
         case .clinical:         return "Structured reports, measurements, and study-level operations"
         case .utilities:        return "UID generation, scripting, and general-purpose tools"
         case .cloudAI:          return "Cloud storage, DICOMweb, and AI-assisted processing"
@@ -73,18 +74,18 @@ public enum ToolCategory: String, Sendable, Equatable, Hashable, CaseIterable, I
             return [
                 "dicom-echo", "dicom-query", "dicom-send", "dicom-retrieve",
                 "dicom-qr", "dicom-wado", "dicom-mwl", "dicom-mpps",
-                "dicom-print", "dicom-gateway", "dicom-server"
+                "dicom-print", "dicom-printscp", "dicom-jpip", "dicom-gateway", "dicom-server"
             ]
         case .viewerImaging:
             return ["dicom-viewer", "dicom-image", "dicom-3d"]
         case .fileInspection:
             return ["dicom-info", "dicom-dump", "dicom-tags", "dicom-diff"]
         case .fileProcessing:
-            return ["dicom-convert", "dicom-validate", "dicom-anon", "dicom-compress"]
+            return ["dicom-convert", "dicom-validate", "dicom-anon", "dicom-compress", "dicom-j2k"]
         case .fileOrganization:
             return ["dicom-split", "dicom-merge", "dicom-dcmdir", "dicom-archive"]
         case .dataExchange:
-            return ["dicom-json", "dicom-xml", "dicom-pdf", "dicom-export", "dicom-pixedit"]
+            return ["dicom-json", "dicom-xml", "dicom-pdf", "dicom-export", "dicom-pixedit", "dicom-video"]
         case .clinical:
             return ["dicom-report", "dicom-measure", "dicom-study"]
         case .utilities:

@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Helpers for CLI Shell Foundation (Milestone 17)
+// NEMA-verified: 2026a, checked 2026-10-05 — the 42 allToolNames and toolDescription rows diffed against the Sources/dicom-* targets and their ArgumentParser abstracts (4 tools added, dicom-tags / dicom-image / dicom-wado descriptions corrected to what the tools do); the DIMSE names in the descriptions (C-ECHO, C-FIND, C-STORE, C-MOVE, C-GET) are PS3.7 2026a 9.1.1-9.1.5 services, WADO-RS / QIDO-RS / STOW-RS / UPS-RS are PS3.18 2026a service names, Modality Worklist / Modality Performed Procedure Step are PS3.4 2026a Annex K / F.7 SOP Classes; no port, AE title or UID is carried (version and GitHub plumbing otherwise)
 
 import Foundation
 
@@ -19,22 +20,22 @@ public enum ToolRegistryHelpers: Sendable {
     .systemPath
   ]
 
-  /// Names of every shipped `dicom-*` CLI tool (38 total).
+  /// Names of every shipped `dicom-*` CLI tool (42 total, one per `Sources/dicom-*` target).
   public static let allToolNames: [String] = [
-    // Networking (11)
+    // Networking (13)
     "dicom-echo", "dicom-query", "dicom-send", "dicom-retrieve",
     "dicom-qr", "dicom-wado", "dicom-mwl", "dicom-mpps",
-    "dicom-print", "dicom-gateway", "dicom-server",
+    "dicom-print", "dicom-printscp", "dicom-jpip", "dicom-gateway", "dicom-server",
     // Viewer & Imaging (3)
     "dicom-viewer", "dicom-image", "dicom-3d",
     // File Inspection (4)
     "dicom-info", "dicom-dump", "dicom-tags", "dicom-diff",
-    // File Processing (4)
-    "dicom-convert", "dicom-validate", "dicom-anon", "dicom-compress",
+    // File Processing (5)
+    "dicom-convert", "dicom-validate", "dicom-anon", "dicom-compress", "dicom-j2k",
     // File Organization (4)
     "dicom-split", "dicom-merge", "dicom-dcmdir", "dicom-archive",
-    // Data Exchange (5)
-    "dicom-json", "dicom-xml", "dicom-pdf", "dicom-export", "dicom-pixedit",
+    // Data Exchange (6)
+    "dicom-json", "dicom-xml", "dicom-pdf", "dicom-export", "dicom-pixedit", "dicom-video",
     // Clinical (3)
     "dicom-report", "dicom-measure", "dicom-study",
     // Utilities (2)
@@ -44,7 +45,7 @@ public enum ToolRegistryHelpers: Sendable {
   ]
 
   /// Total number of CLI tools shipped with DICOMKit.
-  public static let totalToolCount: Int = 38
+  public static let totalToolCount: Int = 42
 
   /// Creates a default `ToolInfo` entry for a tool that has not yet been discovered.
   public static func defaultToolInfo(name: String, category: ToolCategory) -> ToolInfo {
@@ -59,7 +60,7 @@ public enum ToolRegistryHelpers: Sendable {
     )
   }
 
-  /// Returns the full set of 38 default `ToolInfo` entries, one per tool name.
+  /// Returns the full set of 42 default `ToolInfo` entries, one per tool name.
   public static func allDefaultTools() -> [ToolInfo] {
     allToolNames.map { name in
       defaultToolInfo(name: name, category: toolCategory(for: name))
@@ -83,6 +84,9 @@ public enum ToolRegistryHelpers: Sendable {
       : toolName
 
     if suffix == "3d" { return "3D" }
+    if suffix == "j2k" { return "J2K" }
+    if suffix == "jpip" { return "JPIP" }
+    if suffix == "printscp" { return "Print SCP" }
     if suffix == "ai" { return "AI" }
     if suffix == "qr" { return "QR" }
     if suffix == "uid" { return "UID" }
@@ -108,22 +112,24 @@ public enum ToolRegistryHelpers: Sendable {
     case "dicom-send":     return "Send DICOM files to servers (C-STORE)"
     case "dicom-retrieve": return "Retrieve from PACS (C-MOVE/C-GET)"
     case "dicom-qr":      return "Combined query and retrieve operations"
-    case "dicom-wado":     return "Web Access to DICOM Objects (WADO)"
+    case "dicom-wado":     return "DICOMweb client (WADO-RS, QIDO-RS, STOW-RS, UPS-RS)"
     case "dicom-mwl":      return "Modality Worklist management"
     case "dicom-mpps":     return "Modality Performed Procedure Step"
-    case "dicom-print":    return "DICOM print management"
+    case "dicom-print":    return "DICOM print management (Print SCU)"
+    case "dicom-printscp": return "DICOM Print SCP (printer emulator)"
+    case "dicom-jpip":     return "JPIP (JPEG 2000 Interactive Protocol) streaming"
     case "dicom-gateway":  return "DICOM gateway and proxy service"
     case "dicom-server":   return "DICOM SCP server"
 
     // Viewer & Imaging
     case "dicom-viewer":   return "Terminal-based DICOM viewing"
-    case "dicom-image":    return "Image extraction and manipulation"
+    case "dicom-image":    return "Convert standard images to DICOM Secondary Capture"
     case "dicom-3d":       return "3D volume rendering"
 
     // File Inspection
     case "dicom-info":     return "Display DICOM file metadata"
     case "dicom-dump":     return "Hexadecimal dump with DICOM structure"
-    case "dicom-tags":     return "Tag dictionary lookup"
+    case "dicom-tags":     return "Add, modify, and delete tags in DICOM files"
     case "dicom-diff":     return "Compare DICOM files"
 
     // File Processing
@@ -131,6 +137,7 @@ public enum ToolRegistryHelpers: Sendable {
     case "dicom-validate": return "DICOM conformance validation"
     case "dicom-anon":     return "DICOM file anonymization"
     case "dicom-compress": return "DICOM compression operations"
+    case "dicom-j2k":      return "JPEG 2000 / HTJ2K codestream operations"
 
     // File Organization
     case "dicom-split":    return "Split multi-frame DICOM files"
@@ -144,6 +151,7 @@ public enum ToolRegistryHelpers: Sendable {
     case "dicom-pdf":      return "Encapsulated PDF operations"
     case "dicom-export":   return "Export DICOM data to external formats"
     case "dicom-pixedit":  return "Pixel data editing and manipulation"
+    case "dicom-video":    return "Video to and from DICOM Video IODs"
 
     // Clinical
     case "dicom-report":   return "Structured report operations"

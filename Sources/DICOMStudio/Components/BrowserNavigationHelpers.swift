@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Helpers for Browser Navigation (Milestone 18)
+// NEMA-verified: 2026a, checked 2026-10-05 — the 15 dicomStandardReference citations resolved against the 2026a DocBook section ids and titles (PS3.7 9.1.5 C-ECHO Service, PS3.4 C.4 / B.2 / K.6 / F.7 / H.4, PS3.7 7.1, PS3.3 C.17 / C.18 / C.7, PS3.15, PS3.10): 14 exist, "PS3.18 §6.5" does not exist in PS3.18 2026a (chapter 6 has no subsections) and is now §10 Studies Service; the 15 tool names are Sources/dicom-* targets; shortcuts, menus and layout carry no standard data
 
 import Foundation
 
@@ -192,7 +193,8 @@ public enum ContentLayoutHelpers: Sendable {
 
     // MARK: Private
 
-    /// Maps networking tools to their DICOM standard references.
+    /// Maps tools to the DICOM 2026a clause they implement (section ids checked by Scripts/diff_studio_g1_shell.py).
+    /// dicom-wado is the Studies Service (WADO-RS, QIDO-RS, STOW-RS, PS3.18 §10); its UPS-RS half is §11.
     private static func dicomStandardReference(for toolName: String) -> String? {
         switch toolName {
         case "dicom-echo":     return "PS3.7 §9.1.5"
@@ -200,7 +202,7 @@ public enum ContentLayoutHelpers: Sendable {
         case "dicom-send":     return "PS3.4 §B.2"
         case "dicom-retrieve": return "PS3.4 §C.4"
         case "dicom-qr":      return "PS3.4 §C.4"
-        case "dicom-wado":     return "PS3.18 §6.5"
+        case "dicom-wado":     return "PS3.18 §10"
         case "dicom-mwl":      return "PS3.4 §K.6"
         case "dicom-mpps":     return "PS3.4 §F.7"
         case "dicom-print":    return "PS3.4 §H.4"
