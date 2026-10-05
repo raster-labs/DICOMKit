@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — DICOMStudio (2026-10-05, DICOM 2026a)
+- SR builder: coded concepts corrected to PS3.16 2026a — Finding Site is (363698007, SCT) (was the SRT id G-C0E3), (121200, DCM) is "Illustration of ROI", (113000, DCM) is "Of Interest", UCUM meanings "square millimeter" / "Hounsfield unit" / "no units"; document titles come from CID 7000 / 7021 / 7010 and TID 4000 / 4100 (the retired heading code 121070 is no longer used as a title), section headings from CID 7001, Key Object Selection documents follow TID 2010, Measurement Reports nest their groups under (126010, DCM, "Imaging Measurements") (TID 1500 row 6).
+- Terminology browser: three SNOMED CT ids corrected (Liver 10200004 — 816092008 is "Pelvis"; Chest 816094009; Nodule 27925004), nine LOINC meanings aligned with CID 7000 / 7001, coding scheme names per PS3.16 Table 8-1 ("DICOM Controlled Terminology", SRT → "SNOMED CT").
+- ROI statistics show the area with its UCUM code as dicom-measure does ("250.0 mm2 (mm²)", PS3.16 CID 7461).
+- Waveform display names cover all 16 PS3.6 2026a Table A-1 Waveform Storage SOP Classes (e.g. "12-lead ECG", "Cardiac Electrophysiology", "Basic Voice Audio"; the 32-bit ECG, multi-channel respiratory, EEG / EMG / EOG and body-position classes were unnamed).
+- Encapsulated CDA MIME type is "text/XML" (PS3.3 2026a A.45.2.4 Enumerated Value).
+- Security Center: the anonymization preview and default rules list exactly the attributes the shared DICOMKit engine removes (Basic / HIPAA Safe Harbor 14, Clinical Trial 22; the former "18 HIPAA direct identifiers" list shared only 7 tags with what ran), profile descriptions say so, and the Development TLS mode no longer advertises TLS 1.0 (PS3.15 2026a B.12 / RFC 8996 prohibit it; minimum TLS 1.2).
+- Citations corrected to 2026a: Parametric Map modules are C.8.32 (C.8.23 is Surface Segmentation), C.8.8.5 is the Structure Set Module, the STL / OBJ / MTL IODs are A.85.1-A.85.3, calibration references 10.7.1.1 / 10.7.1.3, PS3.15 B.9 / B.10 (retired) no longer cited.
+
 ### Fixed — DICOMStudio viewer (2026-10-05, DICOM 2026a)
 - The viewer, its tiles, film cells, `ImageRenderingService` and the progressive decoder render through the PS3.4 N.2 chain — the image's Modality LUT (or the applied presentation state's), then the window in modality units or the VOI LUT Sequence, then the Presentation LUT — and pass the image's ICC Profile; a stored-unit window is no longer handed to the renderer, so rescale slopes other than 1 (PET, NM) and negative slopes show the standard's picture (PS3.3 C.11.2.1.2.1, C.11.15.1.1; D65, D68).
 - Saved views carry the image's Photometric Interpretation and Rescale Type: a MONOCHROME1 image saves and restores with the right Presentation LUT, a colour image is saved as a Color Softcopy Presentation State, and the state's Modality LUT names its units (PS3.4 N.2; PS3.3 A.33.1.1, Table A.33.2-1; D42).
