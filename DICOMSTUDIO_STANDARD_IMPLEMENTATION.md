@@ -166,6 +166,7 @@ Table O-1). Every other generic check is ok.
 | 2026-10-05 | IntegrationTestingModel scenarios | Sources/dicom-* targets | 41 → 42 names: dicom-qido, dicom-stow, dicom-ups removed (they are dicom-wado subcommands, not tools), dicom-j2k, dicom-jpip, dicom-printscp, dicom-video added; toolCount networking 14 → 13, fileProcessing 4 → 5, dataExchange 5 → 6; IntegrationTestingHelpers.totalToolCount (NST) now derives from the categories instead of the literal 41 (a148b084) | IntegrationTestingTests (41 → 42, 14 → 13) |
 | 2026-10-05 | IntegratedTerminalHelpers redactPHI | PS3.6 2026a Table 6-1 keyword → name; PS3.15 2026a Table E.1-1 rows | 7 of 7 keywords are E.1-1 attributes; comment now names Table E.1-1 (86aae0ee) | IntegratedTerminalHelpersTests, CLIShellCatalogueTests |
 | 2026-10-05 | Marker | PS3.4 N.2; PS3.3 C.10.4 | `PrintViewModel+PresentationStates.swift` marked (no standard literal; D42 photometric hand-off) (`0dbb6047`) | — |
+| 2026-10-05 | Server-profile injection (shell finding) | CLI ArgumentParser surface of the 7 DIMSE tools and dicom-wado | `NetworkInjectorHelpers.dicomParameters` / `dicomwebParameters` inject the positional `<host>` / `<base-url>` and `--token` instead of `--host`, `--tls`, `--url`, `--auth`, which no tool accepts (`diff_studio_g1_shell.py`: 37 / 0) | `ShellServerConfigHelpersTests` +2 |
 
 ---
 
