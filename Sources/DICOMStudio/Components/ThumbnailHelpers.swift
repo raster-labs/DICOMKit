@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent thumbnail generation helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — supportedPhotometricInterpretations is built from DICOMCore PhotometricInterpretation == the 11 PS3.3 2026a C.7.6.3.1.2 Defined Terms less the three retired in PS3.3-2001 (was 7: YBR_PARTIAL_420, YBR_ICT, YBR_RCT, XYB missing — D10); default window presets are not standard data
 
 import Foundation
 import DICOMCore
@@ -103,10 +105,23 @@ public enum ThumbnailHelpers: Sendable {
         return true
     }
 
-    /// Returns the supported photometric interpretations for thumbnail generation.
-    public static let supportedPhotometricInterpretations: Set<String> = [
-        "MONOCHROME1", "MONOCHROME2", "RGB",
-        "PALETTE COLOR", "YBR_FULL", "YBR_FULL_422", "YBR_PARTIAL_422"
+    /// The photometric interpretations a thumbnail can be rendered from.
+    ///
+    /// Every ``DICOMCore/PhotometricInterpretation`` the decoders produce — the
+    /// PS3.3 C.7.6.3.1.2 Defined Terms except HSV, ARGB and CMYK, retired in
+    /// PS3.3-2001 and absent from DICOMCore. The compressed-domain terms
+    /// (YBR_ICT, YBR_RCT, XYB) and the video term YBR_PARTIAL_420 are included
+    /// because the decode path hands the viewer RGB samples for them; leaving
+    /// them out left every JPEG 2000 / JPEG XL colour file without a thumbnail.
+    public static let supportedPhotometricInterpretations: Set<String> = Set(
+        renderablePhotometricInterpretations.map(\.rawValue))
+
+    /// ``supportedPhotometricInterpretations`` as DICOMCore values, so a new
+    /// case in DICOMCore is a compile-time nudge rather than a silent gap.
+    static let renderablePhotometricInterpretations: [PhotometricInterpretation] = [
+        .monochrome1, .monochrome2, .paletteColor, .rgb,
+        .ybrFull, .ybrFull422, .ybrPartial422, .ybrPartial420,
+        .ybrICT, .ybrRCT, .xyb,
     ]
 
     /// Checks if a photometric interpretation is supported for thumbnail rendering.

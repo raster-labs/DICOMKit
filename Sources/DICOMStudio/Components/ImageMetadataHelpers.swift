@@ -2,8 +2,11 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent image metadata formatting helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — photometricLabel's 11 `case` terms == the PS3.3 2026a C.7.6.3.1.2 Defined Terms less the three retired in PS3.3-2001 (HSV, ARGB, CMYK): 10 matched, XYB added (D11); transfer-syntax labels are DICOMCore shortName / displayName (PS3.6 2026a Table A-1 names) instead of a 29-row hand table (D9); planar configuration 0/1 wording per C.7.6.3.1.3
 
 import Foundation
+import DICOMCore
 
 /// Platform-independent helpers for formatting DICOM image pixel metadata
 /// for overlay display.
@@ -57,6 +60,10 @@ public enum ImageMetadataHelpers: Sendable {
 
     /// Returns a human-readable photometric interpretation label.
     ///
+    /// One label per PS3.3 C.7.6.3.1.2 Defined Term that DICOMCore's
+    /// ``PhotometricInterpretation`` carries (the 2001-retired HSV, ARGB and
+    /// CMYK have none and fall through unchanged, as does any private value).
+    ///
     /// - Parameter interpretation: The photometric interpretation string.
     /// - Returns: Human-readable label.
     public static func photometricLabel(for interpretation: String) -> String {
@@ -81,6 +88,8 @@ public enum ImageMetadataHelpers: Sendable {
             return "YBR ICT (JPEG 2000)"
         case "YBR_RCT":
             return "YBR RCT (JPEG 2000 Lossless)"
+        case "XYB":
+            return "XYB (JPEG XL)"
         default:
             return interpretation
         }
@@ -112,46 +121,35 @@ public enum ImageMetadataHelpers: Sendable {
         "Frame \(current) / \(total)"
     }
 
-    /// Returns a human-readable label for a DICOM transfer syntax UID.
+    /// Returns a short label for a DICOM transfer syntax UID, for overlays and
+    /// corner annotations.
+    ///
+    /// The label is DICOMCore's ``TransferSyntax/shortName`` — "JPEG 2000",
+    /// "HTJ2K Lossless Only", "JPEG Lossless SV1 (Process 14)" — which is a
+    /// compact handle, not the registered name. The PS3.6 Table A-1 name is
+    /// ``transferSyntaxStandardName(for:)``; show it wherever there is room
+    /// (tooltips, detail panels). Every registered transfer syntax gets a label;
+    /// an unknown UID is shown as is.
     ///
     /// - Parameter uid: Transfer syntax UID string.
-    /// - Returns: Human-readable transfer syntax name.
+    /// - Returns: Short transfer syntax label.
     public static func transferSyntaxLabel(for uid: String) -> String {
-        switch uid {
-        case "1.2.840.10008.1.2":        return "Implicit VR Little Endian"
-        case "1.2.840.10008.1.2.1":      return "Explicit VR Little Endian"
-        case "1.2.840.10008.1.2.1.99":   return "Deflated Explicit VR LE"
-        case "1.2.840.10008.1.2.2":      return "Explicit VR Big Endian"
-        case "1.2.840.10008.1.2.4.50":   return "JPEG Baseline"
-        case "1.2.840.10008.1.2.4.51":   return "JPEG Extended"
-        case "1.2.840.10008.1.2.4.57":   return "JPEG Lossless"
-        case "1.2.840.10008.1.2.4.70":   return "JPEG Lossless SV1"
-        case "1.2.840.10008.1.2.4.80":   return "JPEG-LS Lossless"
-        case "1.2.840.10008.1.2.4.81":   return "JPEG-LS Near-Lossless"
-        case "1.2.840.10008.1.2.4.90":   return "JPEG 2000 Lossless Only"
-        case "1.2.840.10008.1.2.4.91":   return "JPEG 2000"
-        case "1.2.840.10008.1.2.5":      return "RLE Lossless"
-        case "1.2.840.10008.1.2.4.100":  return "MPEG2 Main Profile"
-        case "1.2.840.10008.1.2.4.101":  return "MPEG2 High Level"
-        case "1.2.840.10008.1.2.4.102":  return "MPEG-4 AVC/H.264"
-        case "1.2.840.10008.1.2.4.103":  return "MPEG-4 BD-Compatible"
-        case "1.2.840.10008.1.2.4.107":  return "HEVC/H.265 Main"
-        case "1.2.840.10008.1.2.4.104":  return "MPEG-4 AVC/H.264 4.2 2D"
-        case "1.2.840.10008.1.2.4.105":  return "MPEG-4 AVC/H.264 4.2 3D"
-        case "1.2.840.10008.1.2.4.106":  return "MPEG-4 AVC/H.264 Stereo 4.2"
-        case "1.2.840.10008.1.2.4.108":  return "HEVC/H.265 Main 10"
-        case "1.2.840.10008.1.2.4.100.1": return "MPEG2 Main Profile (fragmentable)"
-        case "1.2.840.10008.1.2.4.101.1": return "MPEG2 High Level (fragmentable)"
-        case "1.2.840.10008.1.2.4.102.1": return "MPEG-4 AVC/H.264 (fragmentable)"
-        case "1.2.840.10008.1.2.4.103.1": return "MPEG-4 BD-Compatible (fragmentable)"
-        case "1.2.840.10008.1.2.4.104.1": return "MPEG-4 AVC/H.264 4.2 2D (fragmentable)"
-        case "1.2.840.10008.1.2.4.105.1": return "MPEG-4 AVC/H.264 4.2 3D (fragmentable)"
-        case "1.2.840.10008.1.2.4.106.1": return "MPEG-4 AVC/H.264 Stereo 4.2 (fragmentable)"
-        default:                          return uid.isEmpty ? "Unknown" : uid
-        }
+        guard !uid.isEmpty else { return "Unknown" }
+        return TransferSyntax.from(uid: uid)?.shortName ?? uid
     }
 
-    /// Returns a human-readable label for a DICOM transfer syntax UID.
+    /// Returns the PS3.6 Table A-1 name of a transfer syntax UID
+    /// (``TransferSyntax/displayName``), e.g. "JPEG 2000 Image Compression
+    /// (Lossless Only)"; the UID itself when it is not registered.
+    ///
+    /// - Parameter uid: Transfer syntax UID string.
+    /// - Returns: The registered name.
+    public static func transferSyntaxStandardName(for uid: String) -> String {
+        guard !uid.isEmpty else { return "Unknown" }
+        return TransferSyntax.from(uid: uid)?.displayName ?? uid
+    }
+
+    /// Returns a human-readable memory size for a byte count.
     ///
     /// - Parameter totalBytes: Total bytes of pixel data.
     /// - Returns: Formatted string, e.g., "25.0 MB".
