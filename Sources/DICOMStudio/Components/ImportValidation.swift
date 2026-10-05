@@ -2,8 +2,11 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent DICOM file validation logic
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — DICM at offset 128 after the 128-byte preamble and the 132-byte minimum (PS3.10 2026a 7.1); the 16 import-list UIDs are PS3.6 2026a Table A-1 Transfer Syntax rows and their comment names text-diffed against A-1 (16 match after 8 abbreviations were spelled out — D9); a registered but unlisted syntax is now named from DICOMCore rather than called unrecognized; required-tag messages name (0008,0018), (0008,0016), (0020,000D) per Table 6-1
 
 import Foundation
+import DICOMCore
 
 /// Platform-independent helper for DICOM file validation.
 ///
@@ -138,31 +141,37 @@ public enum ImportValidation: Sendable {
             )]
         }
 
+        // The transfer syntaxes the viewer imports without comment, named as PS3.6 2026a Table A-1.
         let knownTransferSyntaxes: Set<String> = [
-            "1.2.840.10008.1.2",        // Implicit VR Little Endian
+            "1.2.840.10008.1.2",        // Implicit VR Little Endian: Default Transfer Syntax for DICOM
             "1.2.840.10008.1.2.1",      // Explicit VR Little Endian
-            "1.2.840.10008.1.2.2",      // Explicit VR Big Endian
+            "1.2.840.10008.1.2.2",      // Explicit VR Big Endian (Retired)
             "1.2.840.10008.1.2.1.99",   // Deflated Explicit VR Little Endian
-            "1.2.840.10008.1.2.4.50",   // JPEG Baseline
-            "1.2.840.10008.1.2.4.51",   // JPEG Extended
-            "1.2.840.10008.1.2.4.57",   // JPEG Lossless NH
-            "1.2.840.10008.1.2.4.70",   // JPEG Lossless FOP
-            "1.2.840.10008.1.2.4.80",   // JPEG-LS Lossless
-            "1.2.840.10008.1.2.4.81",   // JPEG-LS Lossy
-            "1.2.840.10008.1.2.4.90",   // JPEG 2000 Lossless
-            "1.2.840.10008.1.2.4.91",   // JPEG 2000
-            "1.2.840.10008.1.2.4.201",  // HTJ2K Lossless
-            "1.2.840.10008.1.2.4.202",  // HTJ2K RPCL Lossless
-            "1.2.840.10008.1.2.4.203",  // HTJ2K Lossy
+            "1.2.840.10008.1.2.4.50",   // JPEG Baseline (Process 1)
+            "1.2.840.10008.1.2.4.51",   // JPEG Extended (Process 2 & 4)
+            "1.2.840.10008.1.2.4.57",   // JPEG Lossless, Non-Hierarchical (Process 14)
+            "1.2.840.10008.1.2.4.70",   // JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])
+            "1.2.840.10008.1.2.4.80",   // JPEG-LS Lossless Image Compression
+            "1.2.840.10008.1.2.4.81",   // JPEG-LS Lossy (Near-Lossless) Image Compression
+            "1.2.840.10008.1.2.4.90",   // JPEG 2000 Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.91",   // JPEG 2000 Image Compression
+            "1.2.840.10008.1.2.4.201",  // High-Throughput JPEG 2000 Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.202",  // High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.203",  // High-Throughput JPEG 2000 Image Compression
             "1.2.840.10008.1.2.5",      // RLE Lossless
         ]
 
         if !knownTransferSyntaxes.contains(uid) {
-            return [ValidationIssue(
-                severity: .warning,
-                message: "Unrecognized Transfer Syntax UID: \(uid)",
-                rule: .transferSyntax
-            )]
+            // A UID the registry knows (PS3.6 Table A-1) is not "unrecognized": it is
+            // registered but outside the list above, and the warning names it.
+            let message: String
+            if let registered = TransferSyntax.from(uid: uid) {
+                message = "Transfer Syntax \(registered.displayName) (\(uid)) is registered in PS3.6 "
+                    + "but is not among the transfer syntaxes DICOM Studio imports without warning"
+            } else {
+                message = "Unrecognized Transfer Syntax UID: \(uid)"
+            }
+            return [ValidationIssue(severity: .warning, message: message, rule: .transferSyntax)]
         }
 
         return []

@@ -2,6 +2,12 @@
 // DICOMStudio
 //
 // DICOM Studio — Helper enums for File Operations & Drag-and-Drop (Milestone 22)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — DICM prefix at bytes 128–131 after the 128-byte File Preamble (PS3.10
+// 2026a 7.1); the preamble-less fallback accepting a leading group 0002/0008 tag is a heuristic, not standard;
+// `isUnusualTransferSyntax`: the 13 UIDs are PS3.6 2026a Table A-1 Transfer Syntax rows — their comment names are
+// corrected by the codec pass and not claimed here; `formattedPatientName` reads PN components (PS3.5 2026a
+// 6.2.1.1); file extensions are not standard data.
 
 import Foundation
 import DICOMCore
@@ -238,20 +244,21 @@ public enum FileValidationHelpers {
 
     /// Returns `true` when the transfer syntax UID is unusual or rarely supported.
     public static func isUnusualTransferSyntax(_ uid: String) -> Bool {
-        // Well-known standard transfer syntaxes that are widely supported.
+        // Well-known standard transfer syntaxes that are widely supported, named as
+        // PS3.6 2026a Table A-1.
         let commonSyntaxes: Set<String> = [
-            "1.2.840.10008.1.2",       // Implicit VR Little Endian
+            "1.2.840.10008.1.2",       // Implicit VR Little Endian: Default Transfer Syntax for DICOM
             "1.2.840.10008.1.2.1",     // Explicit VR Little Endian
-            "1.2.840.10008.1.2.2",     // Explicit VR Big Endian (retired, but common)
-            "1.2.840.10008.1.2.4.50",  // JPEG Baseline
-            "1.2.840.10008.1.2.4.51",  // JPEG Extended
-            "1.2.840.10008.1.2.4.57",  // JPEG Lossless
-            "1.2.840.10008.1.2.4.70",  // JPEG Lossless SV1
-            "1.2.840.10008.1.2.4.90",  // JPEG 2000 Lossless
-            "1.2.840.10008.1.2.4.91",  // JPEG 2000
-            "1.2.840.10008.1.2.4.201", // HTJ2K Lossless
-            "1.2.840.10008.1.2.4.202", // HTJ2K RPCL Lossless
-            "1.2.840.10008.1.2.4.203", // HTJ2K Lossy
+            "1.2.840.10008.1.2.2",     // Explicit VR Big Endian (Retired) — still common in old archives
+            "1.2.840.10008.1.2.4.50",  // JPEG Baseline (Process 1)
+            "1.2.840.10008.1.2.4.51",  // JPEG Extended (Process 2 & 4)
+            "1.2.840.10008.1.2.4.57",  // JPEG Lossless, Non-Hierarchical (Process 14)
+            "1.2.840.10008.1.2.4.70",  // JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])
+            "1.2.840.10008.1.2.4.90",  // JPEG 2000 Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.91",  // JPEG 2000 Image Compression
+            "1.2.840.10008.1.2.4.201", // High-Throughput JPEG 2000 Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.202", // High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.203", // High-Throughput JPEG 2000 Image Compression
             "1.2.840.10008.1.2.5",     // RLE Lossless
         ]
         return !commonSyntaxes.contains(uid)

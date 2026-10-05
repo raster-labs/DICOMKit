@@ -5,6 +5,8 @@
 //
 // Lives outside any `#if canImport(SwiftUI)` guard so it can be
 // unit-tested on Linux as well as all Apple platforms.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — codecDisplayName resolves the UID through DICOMCore TransferSyntax and names the codec family; JPEG XL, video, Deflated Image Frame Compression (PS3.5 2026a A.4.13) and Encapsulated Uncompressed (A.4.11) were "Unknown" and are now named; every non-retired PS3.6 2026a Table A-1 transfer syntax gets a name (CodecInspectorTests)
 
 import Foundation
 import DICOMCore
@@ -60,9 +62,15 @@ public enum CodecInspectorHelpers: Sendable {
         if ts.isRLE           { return "RLE (Run-Length Encoding)" }
         if ts.isJP3D          { return "JP3D (Volumetric JPEG 2000)" }
         if ts.isJPIP          { return "JPIP (streaming)" }
+        if ts.isJPEGXL        { return "JPEG XL" }
+        if ts.isVideo         { return "Video (\(ts.shortName))" }
+        if ts.uid == TransferSyntax.deflatedImageFrameCompression.uid {
+            return "Deflate (per-frame, PS3.5 A.4.13)"
+        }
 
-        // Uncompressed
-        if !ts.isEncapsulated {
+        // Uncompressed: the native syntaxes, the deflated data set (deflate wraps the
+        // whole data set, not the samples) and Encapsulated Uncompressed (PS3.5 A.4.11).
+        if !ts.isEncapsulated || ts.uid == TransferSyntax.encapsulatedUncompressedExplicitVRLittleEndian.uid {
             return "Uncompressed"
         }
         return "Unknown (\(transferSyntaxUID))"

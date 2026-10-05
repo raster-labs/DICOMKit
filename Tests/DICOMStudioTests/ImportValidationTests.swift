@@ -5,6 +5,7 @@
 
 import Testing
 @testable import DICOMStudio
+import DICOMCore
 import Foundation
 
 @Suite("ImportValidation Tests")
@@ -122,6 +123,33 @@ struct ImportValidationTests {
         #expect(issues.count == 1)
         #expect(issues[0].severity == .warning)
         #expect(issues[0].rule == .transferSyntax)
+        #expect(issues[0].message.hasPrefix("Unrecognized Transfer Syntax UID"))
+    }
+
+    @Test("A registered transfer syntax outside the import list is named, not called unrecognized")
+    func testTransferSyntaxRegisteredButUnlisted() {
+        // 1.2.840.10008.1.2.4.110 is "JPEG XL Lossless" in PS3.6 2026a Table A-1.
+        let issues = ImportValidation.validateTransferSyntax("1.2.840.10008.1.2.4.110")
+        #expect(issues.count == 1)
+        #expect(issues[0].severity == .warning)
+        #expect(issues[0].rule == .transferSyntax)
+        #expect(issues[0].message.contains("JPEG XL Lossless (1.2.840.10008.1.2.4.110)"))
+        #expect(!issues[0].message.contains("Unrecognized"))
+    }
+
+    @Test("The import list is the 16 syntaxes named in the source, all registered in PS3.6")
+    func testTransferSyntaxImportList() {
+        // The UIDs listed in ImportValidation.validateTransferSyntax, PS3.6 2026a Table A-1.
+        let listed = ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.2",
+                      "1.2.840.10008.1.2.1.99", "1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51",
+                      "1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.80",
+                      "1.2.840.10008.1.2.4.81", "1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91",
+                      "1.2.840.10008.1.2.4.201", "1.2.840.10008.1.2.4.202", "1.2.840.10008.1.2.4.203",
+                      "1.2.840.10008.1.2.5"]
+        for uid in listed {
+            #expect(ImportValidation.validateTransferSyntax(uid).isEmpty, "\(uid)")
+            #expect(TransferSyntax.from(uid: uid) != nil, "\(uid) is registered")
+        }
     }
 
     @Test("Nil transfer syntax produces info")

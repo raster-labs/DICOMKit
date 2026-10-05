@@ -34,6 +34,17 @@ struct CodecInspectorHelpersTests {
     func testCDN_htj2k() { #expect(CodecInspectorHelpers.codecDisplayName(for: "1.2.840.10008.1.2.4.201").isEmpty == false) }
     @Test("codecDisplayName unknown nonEmpty")
     func testCDN_unk() { #expect(CodecInspectorHelpers.codecDisplayName(for: "9.9.9.9").isEmpty == false) }
+    @Test("Every non-retired PS3.6 2026a Table A-1 transfer syntax names its codec")
+    func testCDN_everyRegisteredSyntaxNamed() {
+        for ts in TransferSyntax.allKnown where !ts.isRetired {
+            #expect(!CodecInspectorHelpers.codecDisplayName(for: ts.uid).hasPrefix("Unknown"), "\(ts.uid) \(ts.displayName)")
+        }
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegXL.uid) == "JPEG XL")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.encapsulatedUncompressedExplicitVRLittleEndian.uid) == "Uncompressed")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.deflatedExplicitVRLittleEndian.uid) == "Uncompressed")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.deflatedImageFrameCompression.uid).hasPrefix("Deflate"))
+        #expect(CodecInspectorHelpers.codecDisplayName(for: "1.2.840.10008.1.2.4.102").hasPrefix("Video"))
+    }
     @Test("statusSummary noImage nonEmpty")
     func testSS_noImage() { #expect(CodecInspectorHelpers.statusSummary(.noImage).isEmpty == false) }
     @Test("statusSummary decoding nonEmpty")
@@ -97,6 +108,8 @@ struct CodecInspectorViewModelTests {
         vm.update(from: result, frameCount: 1)
         guard case .decoded(let e) = vm.status else { Issue.record("Expected .decoded"); return }
         #expect(e.codecName == "J2KSwift" && e.decodeTimeMs == 23.5 && e.frameCount == 1)
+        // PS3.6 2026a Table A-1 name of .4.90 — not "Explicit VR Little Endian (…)".
+        #expect(e.transferSyntaxDescription == "JPEG 2000 Image Compression (Lossless Only)")
     }
     @Test("update sets hasEntry true")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)

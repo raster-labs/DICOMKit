@@ -19,6 +19,40 @@ final class J2KTestBenchPart2Tests: XCTestCase {
         J2KBenchSyntax.all.filter { Self.part2UIDs.contains($0.uid) }
     }
 
+    /// D9: every bench row is named by the shared catalog, so .110 reads "JPEG XL
+    /// Lossless" (PS3.6 2026a Table A-1), not "JPEG XL Lossless Only"; the default
+    /// selection resolves to five rows whose names are Table A-1 names.
+    func test_benchSyntaxNames_followTableA1() {
+        XCTAssertEqual(J2KBenchSyntax.named(TransferSyntax.jpegXLLossless.uid)?.shortName, "JPEG XL Lossless")
+        XCTAssertEqual(J2KBenchSyntax.named(TransferSyntax.htj2kLossless.uid)?.shortName,
+                       "High-Throughput JPEG 2000 Image Compression (Lossless Only)")
+        XCTAssertEqual(J2KBenchSyntax.named(TransferSyntax.jpegLosslessSV1.uid)?.shortName,
+                       TransferSyntax.jpegLosslessSV1.displayName)
+        for row in J2KBenchSyntax.all {
+            XCTAssertFalse(row.shortName.contains("Lossless Only Only"), row.shortName)
+            XCTAssertTrue(row.shortName.hasPrefix(TransferSyntax.from(uid: row.uid)?.displayName ?? "?"),
+                          "\(row.shortName) does not start with the Table A-1 name of \(row.uid)")
+        }
+        let defaults = J2KTestPlan().selectedSyntaxIDs
+        XCTAssertEqual(defaults.count, 5)
+        for id in defaults {
+            XCTAssertNotNil(J2KBenchSyntax.all.first { $0.id == id }, "default selection \(id) is a bench row")
+        }
+    }
+
+    /// A row built without an explicit flag asks the registry: PS3.6 2026a Table A-1's
+    /// lossy-only syntaxes (JPEG Baseline .50, JPEG-LS Near-Lossless .81) and the
+    /// `both` UIDs (.91, .203, .112) score by PSNR; the lossless-only ones bit-exact.
+    func test_defaultIsLossless_followsRegistry() {
+        XCTAssertFalse(J2KBenchSyntax(uid: TransferSyntax.jpegBaseline.uid, shortName: "", format: .jpeg).isLossless)
+        XCTAssertFalse(J2KBenchSyntax(uid: TransferSyntax.jpegLSNearLossless.uid, shortName: "", format: .jpegLS).isLossless)
+        XCTAssertFalse(J2KBenchSyntax(uid: TransferSyntax.jpegXL.uid, shortName: "", format: .jpegXL).isLossless)
+        XCTAssertFalse(J2KBenchSyntax(uid: TransferSyntax.jpeg2000.uid, shortName: "").isLossless)
+        XCTAssertTrue(J2KBenchSyntax(uid: TransferSyntax.jpeg2000Lossless.uid, shortName: "").isLossless)
+        XCTAssertTrue(J2KBenchSyntax(uid: TransferSyntax.jpegLSLossless.uid, shortName: "", format: .jpegLS).isLossless)
+        XCTAssertTrue(J2KBenchSyntax(uid: TransferSyntax.jpegXLLossless.uid, shortName: "", format: .jpegXL).isLossless)
+    }
+
     /// The bench surfaces three Part-2 rows: `.93` splits into Lossless + Lossy, and
     /// `.92` is lossless-only. This pins the set the user actually sees.
     func test_benchListsThreePart2Rows() {
