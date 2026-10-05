@@ -97,8 +97,13 @@ struct ViewerAnnotationTextTests {
         #expect(ViewerAnnotationText.compressionLine(for: "1.2.840.10008.1.2") == "Uncompressed")
         #expect(ViewerAnnotationText.compressionLine(for: "1.2.840.10008.1.2.1") == "Uncompressed")
         #expect(ViewerAnnotationText.compressionLine(for: "1.2.840.10008.1.2.2") == "Uncompressed")
+        // PS3.5 2026a A.4.11: encapsulated, but the frames are uncompressed pixel data.
+        #expect(ViewerAnnotationText.compressionLine(for: "1.2.840.10008.1.2.1.98") == "Uncompressed")
+        #expect(ViewerAnnotationText.compressionLine(for: "1.2.840.10008.1.2.1.99") == "Uncompressed")
         #expect(ViewerAnnotationText.compressionLine(for: "1.2.840.10008.1.2.4.91")
                 == "JPEG 2000", "a lossy codec must be visible to the reader")
+        #expect(ViewerAnnotationText.compressionLine(for: "1.2.840.10008.1.2.4.201")
+                == "HTJ2K Lossless Only", "HTJ2K had no label and showed the bare UID")
         #expect(ViewerAnnotationText.compressionLine(for: "").isEmpty)
     }
 
@@ -161,14 +166,15 @@ struct ViewerOrientationLabelTests {
         let labels = ViewerOrientationLabels.make(fromImageOrientationPatient: "0\\1\\0\\0\\0\\-1")
         #expect(labels?.right == "P")
         #expect(labels?.left == "A")
-        #expect(labels?.top == "S")
-        #expect(labels?.bottom == "I")
+        // PS3.3 2026a C.7.6.1.1.1 Patient Orientation letters: H (head), F (foot).
+        #expect(labels?.top == "H")
+        #expect(labels?.bottom == "F")
     }
 
     @Test("An oblique direction names both axes it leans along")
     func testObliqueLetters() {
         let letters = ViewerOrientationLabels.letters(for: [0.0, -0.8, 0.6])
-        #expect(letters == "AS", "strongest axis first")
+        #expect(letters == "AH", "strongest axis first")
     }
 
     @Test("A file with no orientation gets no letters rather than wrong ones")
@@ -466,7 +472,7 @@ struct ViewerAnnotationCornerTests {
         compressionLine: "Uncompressed",
         geometryLine: "Thickness: 3.00 mm",
         dateTimeLine: "2026-05-16 14:25:00",
-        orientation: ViewerOrientationLabels(left: "A", right: "P", top: "S", bottom: "I"),
+        orientation: ViewerOrientationLabels(left: "A", right: "P", top: "H", bottom: "F"),
         fileWindowCenter: 476,
         fileWindowWidth: 1036)
 

@@ -14,6 +14,8 @@
 // angle, position in the series — is passed in at draw time, because a drag
 // changes it many times a second. Mixing the two would re-read a header on every
 // mouse delta.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — orientation letters: direction cosines read in the PS3.3 2026a C.7.6.2.1.1 patient coordinate system (+x L, +y P, +z head) and lettered with the Patient Orientation abbreviations of C.7.6.1.1.1 (A/P, L/R, H/F — S/I corrected); compressionLine's 5 "Uncompressed" UIDs are the PS3.6 2026a Table A-1 "… VR … Endian" rows (Encapsulated Uncompressed .1.98 added, PS3.5 A.4.11); the 11 tags read are Table 6-1 rows
 
 import Foundation
 import DICOMCore
@@ -105,11 +107,15 @@ public struct ViewerOrientationLabels: Sendable, Equatable, Hashable {
     /// really lean towards.
     static func letters(for direction: [Double]) -> String? {
         guard direction.count == 3 else { return nil }
-        // DICOM patient coordinates are LPS: +x left, +y posterior, +z superior.
+        // Direction cosines are in the patient-based coordinate system of PS3.3
+        // C.7.6.2.1.1: +x towards the patient's left, +y towards posterior, +z towards
+        // the head. The letters are the Patient Orientation (0020,0020) abbreviations
+        // of PS3.3 C.7.6.1.1.1 — A/P, L/R and H (head) / F (foot), not the S/I a
+        // workstation might improvise.
         let axes = [
             (value: direction[0], positive: "L", negative: "R"),
             (value: direction[1], positive: "P", negative: "A"),
-            (value: direction[2], positive: "S", negative: "I")
+            (value: direction[2], positive: "H", negative: "F")
         ]
         let ordered = axes.sorted { abs($0.value) > abs($1.value) }
         let text = ordered
@@ -286,16 +292,21 @@ public struct ViewerAnnotationText: Sendable, Equatable, Hashable {
 
     /// How the pixels are stored, in the words a reader checks image quality by.
     ///
-    /// "Uncompressed" is the reading-room word for the native syntaxes; anything
-    /// else is named by its codec, because whether a picture has been through a
-    /// lossy codec is part of reading it.
+    /// "Uncompressed" is the reading-room word for the syntaxes whose pixel data
+    /// has been through no codec — the native ones, the deflated one (deflate
+    /// wraps the data set, not the samples) and Encapsulated Uncompressed
+    /// (PS3.5 A.4.11: "encodes a stream of one or more Frames of uncompressed
+    /// Pixel Data as Encapsulated Fragments"); anything else is named by its
+    /// codec, because whether a picture has been through a lossy codec is part
+    /// of reading it.
     static func compressionLine(for transferSyntaxUID: String) -> String {
         guard !transferSyntaxUID.isEmpty else { return "" }
         switch transferSyntaxUID {
-        case "1.2.840.10008.1.2",
-             "1.2.840.10008.1.2.1",
-             "1.2.840.10008.1.2.1.99",
-             "1.2.840.10008.1.2.2":
+        case "1.2.840.10008.1.2",        // Implicit VR Little Endian
+             "1.2.840.10008.1.2.1",      // Explicit VR Little Endian
+             "1.2.840.10008.1.2.1.98",   // Encapsulated Uncompressed Explicit VR Little Endian
+             "1.2.840.10008.1.2.1.99",   // Deflated Explicit VR Little Endian
+             "1.2.840.10008.1.2.2":      // Explicit VR Big Endian (Retired)
             return "Uncompressed"
         default:
             return ImageMetadataHelpers.transferSyntaxLabel(for: transferSyntaxUID)
