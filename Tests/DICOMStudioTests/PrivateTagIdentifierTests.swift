@@ -95,6 +95,16 @@ struct PrivateTagIdentifierTests {
         #expect(!PrivateTagIdentifier.isPrivateGroup(0x7FE0))
     }
 
+    @Test("The five odd groups PS3.5 2026a 7.8.1 excludes are not private")
+    func testReservedOddGroupsNotPrivate() {
+        for group: UInt16 in [0x0001, 0x0003, 0x0005, 0x0007, 0xFFFF] {
+            #expect(!PrivateTagIdentifier.isPrivateGroup(group), "\(String(format: "%04X", group))")
+            #expect(!PrivateTagIdentifier.isPrivateCreator(group: group, element: 0x0010))
+        }
+        #expect(PrivateTagIdentifier.isPrivateGroup(0x0009))
+        #expect(PrivateTagIdentifier.isPrivateGroup(0xFFFD))
+    }
+
     @Test("Group 0 is not private")
     func testGroupZeroNotPrivate() {
         #expect(!PrivateTagIdentifier.isPrivateGroup(0x0000))

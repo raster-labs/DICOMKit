@@ -2,6 +2,11 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent private DICOM tag vendor identification
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `isPrivateGroup` and `isPrivateCreator` checked against PS3.5 2026a
+// 7.8.1: odd group, Private Creator Data Elements (gggg,0010-00FF); the five odd groups 7.8.1 excludes from private
+// use (0001, 0003, 0005, 0007, FFFF) were reported as private and are now refused. `vendorCreators` is vendor data
+// (private creator strings, not in NEMA text; cf. DCMTK private.dic) and was not compared.
 
 import Foundation
 
@@ -73,12 +78,17 @@ public enum PrivateTagIdentifier: Sendable {
         return identifyVendorByPrefix(upper)
     }
 
+    /// The odd groups PS3.5 7.8.1 excludes from private use: "Elements with Tags (0001,xxxx),
+    /// (0003,xxxx), (0005,xxxx), (0007,xxxx) and (FFFF,xxxx) shall not be used."
+    static let reservedOddGroups: Set<UInt16> = [0x0001, 0x0003, 0x0005, 0x0007, 0xFFFF]
+
     /// Determines if a tag group number is a private group.
     ///
     /// - Parameter group: The tag group number.
-    /// - Returns: `true` if the group is odd (private).
+    /// - Returns: `true` if the group is odd and not one of the five odd groups PS3.5 7.8.1
+    ///   reserves (0001, 0003, 0005, 0007, FFFF).
     public static func isPrivateGroup(_ group: UInt16) -> Bool {
-        group % 2 != 0
+        group % 2 != 0 && !reservedOddGroups.contains(group)
     }
 
     /// Determines if a tag is a private creator element.
