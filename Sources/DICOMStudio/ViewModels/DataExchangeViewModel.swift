@@ -3,9 +3,15 @@
 //
 // DICOM Studio — ViewModel for Data Exchange & Export (Milestone 12)
 // Reference: DICOM PS3.10 (Media Storage), PS3.18 Annex F (JSON), PS3.19 Annex A (XML)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — default target Transfer Syntax 1.2.840.10008.1.2.1 is Explicit VR Little
+// Endian (PS3.6 2026a Table A-1); the Secondary Capture modality default "SC" was not a Modality Defined Term of
+// PS3.3 2026a C.7.3.1.1.1 (97 terms) and is now "OT", dicom-image's own default; the rest is UI state and the
+// command lines handed to the CLI tools.
 
 import Foundation
 import Observation
+import DICOMCore
 
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
 @Observable
@@ -70,7 +76,9 @@ public final class DataExchangeViewModel {
     public var secondaryCapturePatientName: String = ""
     public var secondaryCapturePatientID: String = ""
     public var secondaryCaptureStudyDate: String = ""
-    public var secondaryCaptureModality: String = "SC"
+    /// Modality for the Secondary Capture written by `dicom-image secondary-capture`. "OT" (Other)
+    /// is the tool's own default; "SC" is not a Modality Defined Term (PS3.3 C.7.3.1.1.1).
+    public var secondaryCaptureModality: String = Modality.ot.rawValue
     public var secondaryCaptureOutputPath: String = ""
     public var secondaryCaptureResult: String = ""
 
