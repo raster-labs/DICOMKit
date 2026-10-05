@@ -303,18 +303,15 @@ final class VideoStandard2026dConformanceTests: XCTestCase {
     }
 
     func test_audioViolation_remedyCopiesTheVideo() {
-        // Audio that breaks PS3.5 8.2.12 is a warning here (`validateAudio` and the audio
-        // notices), not a rejection, so `validate(probe:)` stays conformant ...
+        // PS3.5 8.2.12: audio "shall follow the constraints", so a known violation rejects.
+        let track = VideoAudioTrack(
+            format: .aac, codecTag: "mp4a", samplingFrequency: 44_100, channelCount: 2)
         let result = VideoConformanceValidator.validate(
             probe: probe(h264(), audio: [AudioStreamInfo(format: .aac, sampleRate: 44_100, channels: 2)]),
             transferSyntax: .mpeg4AVCHP41)
-        XCTAssertTrue(result.isConformant)
-        // ... while the violation, where a caller raises it, still carries the audio-only remedy.
-        let raised = VideoConformanceResult(violations: [.audioNotPermitted(
-            track: 1, summary: "AAC, 44.1 kHz, 2 ch",
-            problem: "is sampled at 44.1 kHz; AAC must be 48 kHz (PS3.5 8.2.12)", videoCodec: .h264)])
-        XCTAssertTrue(raised.report.contains("audio track 1 (AAC, 44.1 kHz, 2 ch)"))
-        XCTAssertTrue(raised.report.contains("-c:v copy -c:a aac -ar 48000"))
+        XCTAssertEqual(result.violations.count, 1, result.report)
+        XCTAssertTrue(result.report.contains("audio track 1 (\(track.summary))"), result.report)
+        XCTAssertTrue(result.report.contains("-c:v copy -c:a aac -ar 48000"), result.report)
     }
 
     // MARK: - Audio header parsing

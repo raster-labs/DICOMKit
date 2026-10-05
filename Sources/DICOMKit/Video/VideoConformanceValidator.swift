@@ -846,8 +846,8 @@ public enum VideoConformanceValidator {
     }
 
     /// Validates what PS3.5 constrains about an input: the container, the video bit
-    /// stream, and whether the payload fits the fragmentation the transfer syntax
-    /// allows. Audio is checked separately (see below).
+    /// stream, any audio interleaved with it (PS3.5 8.2.5, 8.2.12), and whether the
+    /// payload fits the fragmentation the transfer syntax allows.
     ///
     /// - Parameters:
     ///   - probe: The probed input.
@@ -870,11 +870,22 @@ public enum VideoConformanceValidator {
             numberOfFrames: probe.frameCount
         ).violations
 
-        // Audio is not part of this verdict. Audio that breaks PS3.5 8.2.5 / 8.2.12 is reported
-        // as warnings by `validateAudio(tracks:container:transferSyntax:)` and the audio notices
-        // (`dicom-video` has no strict mode, and the payload is never altered). Origin/main's
-        // `VideoAudioRules.problems` / `.audioNotPermitted` would turn the same findings into a
-        // rejection; that difference is left for the owners to decide.
+        // Audio interleaved with the video "shall follow the constraints" of PS3.5 8.2.12 (AVC,
+        // HEVC) or 8.2.5 (MPEG-2), so a track known to break them makes the object non-conformant.
+        // Only known violations count: a value the container does not state is reported as "not
+        // checked" by `validateAudio`, never as a violation.
+        let audio = validateAudio(
+            tracks: probe.audioTracks, container: probe.container, transferSyntax: transferSyntax)
+        for check in audio.tracks {
+            for violation in check.violations {
+                violations.append(.audioNotPermitted(
+                    track: check.trackNumber,
+                    summary: check.track.summary,
+                    problem: violation.message,
+                    videoCodec: probe.stream.codec
+                ))
+            }
+        }
 
         if let bytes = payloadByteCount, bytes + bytes % 2 > maximumFragmentLength,
            !transferSyntax.allowsMultipleFragments {

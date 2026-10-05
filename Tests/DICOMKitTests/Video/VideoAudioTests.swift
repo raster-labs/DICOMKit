@@ -369,15 +369,18 @@ final class VideoAudioTests: XCTestCase {
         XCTAssertEqual(result.violations.first?.message,
                        "sampling frequency 44.1 kHz is not permitted for AAC; PS3.5 8.2.12 allows 48 kHz")
 
-        // A warning, not a rejection: the object is still written, audio intact.
-        let outcome = try VideoWorkflow.convert(bitstream: input, type: .endoscopic, typeWasExplicit: true)
-        XCTAssertTrue(outcome.output.hasPrefix("""
-            warning: audio track 1 (AAC, 44.1 kHz, 2 channels, max 192 kbit/s): \
-            sampling frequency 44.1 kHz is not permitted for AAC; PS3.5 8.2.12 allows 48 kHz; \
-            the audio is kept unchanged.
-            """), outcome.output)
-        let fragment = try XCTUnwrap(outcome.video?.toDataSet()[.pixelData]?.encapsulatedFragments?.first)
-        XCTAssertEqual(fragment.prefix(input.count), input)
+        // A known violation of PS3.5 8.2.12 is a rejection ("shall follow the constraints"):
+        // nothing is written, and the remedy re-encodes only the audio.
+        XCTAssertThrowsError(try VideoWorkflow.convert(
+            bitstream: input, type: .endoscopic, typeWasExplicit: true)) { error in
+            guard case let VideoWorkflow.Failure.conformance(report) = error else {
+                return XCTFail("expected a conformance rejection, got \(error)")
+            }
+            XCTAssertTrue(report.contains(
+                "audio track 1 (AAC, 44.1 kHz, 2 channels, max 192 kbit/s) "
+                + "sampling frequency 44.1 kHz is not permitted for AAC; PS3.5 8.2.12 allows 48 kHz"), report)
+            XCTAssertTrue(report.contains("-c:v copy"), report)
+        }
     }
 
     func test_mp4_lpcm_violatesContainerRuleOfTable8_2_12_1() throws {

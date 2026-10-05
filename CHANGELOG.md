@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — audio that breaks PS3.5 8.2.5 / 8.2.12 is rejected (2026-10-05, DICOM 2026a)
+
+- `VideoConformanceValidator.validate(probe:transferSyntax:)` raises `.audioNotPermitted` for each known violation found by
+  `validateAudio` (the 2026a per-format checks), so `convert` and `probe` exit 2 instead of writing an object whose audio
+  the standard forbids. A value the container does not state is still "not checked", never a violation. The remedy
+  re-encodes only the audio (`-c:v copy`). Previously these findings were warnings.
+
 ### Fixed — JPEG XL JPEG Recompression source check per PS3.5 Table 8.2.15-1 (2026-10-01)
 
 - **DICOMKit** `ConversionDiagnostics`: a source for .4.111 must be MONOCHROME2 with 1 sample or YBR_FULL_422 / XYB / RGB with 3 samples (PS3.5 2026a Table 8.2.15-1); PALETTE COLOR and YBR_FULL sources were accepted before and are now refused with the table named. The file now carries its NEMA-verified marker (it arrived from main after the DICOMKit audit).

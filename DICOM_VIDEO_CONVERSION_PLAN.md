@@ -1073,9 +1073,9 @@ separate series.
   it is kept in the bit stream, not stripped. The earlier premise that DICOM video
   IODs have no audio was wrong, and `convert` never removed it. Since D46 the probe
   reads each track's format, sampling frequency, channels, bits per sample and bit rate
-  (MP4 and MPEG-TS) and checks them against 8.2.5/8.2.12; it **warns, doesn't fail**
-  (`VideoConsole.audioCheckLines`), e.g.
-  `warning: audio track 1 (AAC, 44.1 kHz, 2 channels, max 192 kbit/s): sampling frequency 44.1 kHz is not permitted for AAC; PS3.5 8.2.12 allows 48 kHz; the audio is kept unchanged.`
+  (MP4 and MPEG-TS) and checks them against 8.2.5/8.2.12; a track known to break them is **rejected** (exit 2; PS3.5
+  says audio "shall follow the constraints"), with a remedy that re-encodes only the audio, e.g.
+  `error: audio track 1 (AAC, 44.1 kHz, 2 channels, max 192 kbit/s) sampling frequency 44.1 kHz is not permitted for AAC; PS3.5 8.2.12 allows 48 kHz`.
   When no track's format can be identified the earlier `VideoConsole.audioCarriedLine`
   text is used. (003A,0300) gets Items only when the Channel Source (CID 3000) is named
   through the library (`VideoWorkflow.Metadata.audioChannelSource`; no CLI option, D56);

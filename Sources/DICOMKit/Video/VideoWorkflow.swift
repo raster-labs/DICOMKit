@@ -584,10 +584,9 @@ public enum VideoWorkflow {
             throw VerboseFailure(failure: failure, commentary: notices.joined(separator: "\n"))
         }
 
-        // Audio is permitted (PS3.5 8.2.5-8.2.12) and is not removed: the notices
-        // name each known violation of those constraints, and what could not be
-        // checked, as warnings. dicom-video has no strict mode that would turn
-        // them into a rejection, and the pixel data is never altered.
+        // Audio is permitted (PS3.5 8.2.5-8.2.12) and is not removed. A track known to break
+        // those constraints was already rejected by the validator above; the notices here say
+        // what meets them and what could not be checked. The pixel data is never altered.
         notices += audioNotices(for: plan, metadata: metadata)
 
         guard !dryRun else {
@@ -716,8 +715,8 @@ public enum VideoWorkflow {
             )
         }
 
-        // The audio check is reported with the verdict but does not change it:
-        // audio that breaks PS3.5 8.2.5 / 8.2.12 is a warning (see `convert`).
+        // Known audio violations are already part of the verdict (they reject, PS3.5 8.2.5 /
+        // 8.2.12); what is added here is what meets the rules and what could not be checked.
         // Tracks whose format is unknown are already described by the report.
         var audioLines: [String] = []
         if result.audioTracks.contains(where: { $0.format != nil }) {
