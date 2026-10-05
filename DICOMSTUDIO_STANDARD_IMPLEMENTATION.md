@@ -38,7 +38,7 @@ the same tool option, wire value and default as the CLI contract.
 
 | Group | ST | CR | NST | Files | Status |
 |---|---|---|---|---|---|
-| G1 CLI Workshop | 20 | 2 | 15 | 37 | ⏳ |
+| G1 CLI Workshop | 20 | 2 | 15 | 37 | ✅ 2026-10-05 (file tools `2f730cac`, shell `6b57be6c`…`86aae0ee`, network `a2a828c2`…`7af3cce0`, pixel `38a2eea0`, markers `5678fa8e`; `diff_studio.py --group G1`: 67 ok, 0 FAIL, 2 PEND) |
 | G2 Viewer and rendering | 52 | 31 | 54 | 137 | ✅ 2026-10-05 (viewer `6372e096`…`adf75ca6`, codec `1b0588eb`…`aaa81726`; `diff_studio.py --group G2`: 0 FAIL, 1 PEND P-STUDIO-ANNOTATION-UNITS; `PatientOverlayText.swift` promoted CR → ST) |
 | G3 Network and web | 19 | 5 | 13 | 37 | ✅ 2026-10-05 (DIMSE / print model `6ab02140`…`fa11dbd0`; DICOMweb `abce7d7e`…`104c0052`; `diff_studio.py --group G3`: 36 ok, 0 FAIL, 4 PEND) |
 | G4 File, media and DICOMDIR | 31 | 8 | 3 | 42 | ✅ 2026-10-05 (markers `b0eca043`, checks `f02ee47a`, fixes `e6c2a11a`…`1793c091`; `diff_studio.py --group G4`: 22 ok, 0 FAIL; two files share hunks with the codec pass) |
@@ -173,6 +173,14 @@ Table O-1). Every other generic check is ok.
 | 2026-10-05 | dicom-mwl: --sps-status picker = PS3.3 C.4.10 Defined Terms (was PPS words), --specific-character-set, --strict-modality, CLI help; executor: validator, spsStatusWarning mirror, specificCharacterSet passed, exit 64 / 1 texts. dicom-mpps: --modality required (Type 1), --strict-modality, CID 9301 placeholder / examples (D85), CLI help; executor: Type 1 refusal, sex / DA validation, status guards, --image-uid / --sop-class-uid rules, warning via DIMSEServiceStatusText, CLI header fields | PS3.3 2026a C.4.10 (5 terms: 5 matched), Table C.2-3 (3), Table C.4-14; PS3.4 Tables K.6-1a, F.7.2-1 rows 1 / 105; PS3.5 Table 6.2-1 DA; PS3.16 CID 9301 (17 DCM rows: 4 examples matched); PS3.4 Table F.7.2-2 / PS3.7 Annex C | d716de90 | mwlRows, mppsRows, mwlSPSStatusWarning, mppsValueRules; g1 "net mwl mpps terms" (33 matched); P-STUDIO-MWL-CREATE PEND |
 | 2026-10-05 | dicom-wado query / retrieve / store / ups: qido --strict-modality, --fuzzy-matching, --format dicom-json, --limit ≥ 0; retrieve --content-type real flag (WADOURIClient.MediaType.allowed, 15 values), 12 WADO-URI parameters, --timeout wired, WADOURIClient.Parameters, CLI refusals / warnings, previews removed; store exit 1 on any unstored instance, Warning Reason lines, CLI refusals; ups --change-state / deprecated --update, --state IN PROGRESS / COMPLETED / CANCELED with SCHEDULED refusal, PS3.3 spellings, HIGH / MEDIUM / LOW, --format csv / dicom-json, CLI print structure; WorkshopWADOOptionRules text-identical mirror | PS3.18 2026a Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1, 9.1.2.2.1 / Table 8.7.4-1 (14 Rendered Media Types), 9.5.1.2.1, 8.3.4.2 / 8.3.4.4, 10.5.3-1, Table I.2-1, 11.7.1.4 (3 values: 3 matched), F.2; PS3.3 C.30.1 (4 states), C.30.2 (3 priorities), Table C.7-1; PS3.4 Table CC.1.1-2 | d52bbfa9 | qidoRows, wadoRetrieveRows, upsRows, upsChangeStateRefusal, wadoURIRules; g1 "net web rules" (59 matched); EXEMPT 5 rows, DEFERRED 1 |
 | 2026-10-05 | dicom-echo: --count 0 refused with the CLI's text (64) instead of clamped; host refusal as usage error; ups catch prints String(describing:) as ArgumentParser | dicom-echo run() ValidationError; ArgumentParser MessageInfo | 7af3cce0 | (covered by the suites; no new row) |
+| 2026-10-05 | dicom-anon: the 12 PS3.15 E.3 Option flags (`--retain-dates` deprecated), `--clean-pixel-data`, `--redact-region`, `--redact-fill`, `--allow-burned-in-phi` offered with the CLI's help; executor runs dicom-anon's run() (Anonymizer + PixelRedactor, AnonConsole lines, legacy-profile notice, E.1-1a action report on --dry-run / --verbose, (0002,0003) = (0008,0018), the CLI's refusals and exit codes); E.3 flags refused with the CLI's "apply only to --profile ps315" text; ps315 / basic refused (PEND P-STUDIO-ANON-PS315) | PS3.15 2026a Table E.1-1 (10 Option columns: 10 matched), E.3.1-E.3.11 titles (11 named), PS3.16 CID 7050 (13 rows: 11 Option meanings matched), PS3.10 7.1 | 38a2eea0 | anonOptionFlags, anonMirrorTexts; g1 "pixel anon options" (95 matched) |
+| 2026-10-05 | dicom-image: `--conversion-type` (Table C.8-24 via ConversionType.definedTerms), `--strict-modality`, CLI help texts, modality default omitted; executor: P-IMAGE-VR refusals before ImageConverter, ModalityOptionValidator per file, SCOutput.finalize ((0002,0003), ISO_IR 192) mirror, CLI order / exit codes (64 usage, 1 refusal, 0 directory) | PS3.3 2026a Table C.8-24 (8 terms: 8 matched), Table C.12-1 / C.12-5, PS3.5 Table 6.2-1 (LO / PN 64, UI 64 — 3 phrases read), 9.1, PS3.10 Table 7.1-1 | 38a2eea0 | conversionTypePickers, imagePdfPixeditRules; g1 "pixel conversion type" (32), "pixel image pdf pixedit rules" (35) |
+| 2026-10-05 | dicom-pdf: `--conversion-type`, `--burned-in-annotation`, `--hl7-instance-identifier`, `--strict-modality`, CLI help; executor: dicom-pdf's encapsulatedDataSet chain with Encapsulated Document Length (0042,0015) and Specific Character Set as the CLI writes them, padding cut on extraction (D182), the CLI's refusals (64) and exit codes | PS3.3 2026a Table C.24-2 (0042,0015 Type 3, (0028,0301) Type 1, (0040,E001) Type 1C), Table C.8-24, Table C.12-1 / C.12-5, PS3.6 Table A-1 SOP Classes (engine) | 38a2eea0 | conversionTypePickers, imagePdfPixeditRules; g1 (as above) |
+| 2026-10-05 | dicom-pixedit: CLI help texts, `--fill-value` without default; executor: DerivedImage mirror (P-PIXEDIT-RANGE refusals, exit 1), PixelEditDerivation(descriptionPrefix: "dicom-pixedit"), the CLI's run() order, ArgumentParser two-line message for unparseable numbers (64) | PS3.3 2026a C.7.6.3.1 (Bits Stored / Pixel Representation range), C.11.2.1.2 ("shall always be greater than or equal to 1" read), C.7.6.1.1.2 | 38a2eea0 | pixeditRows, imagePdfPixeditRules; g1 "pixel image pdf pixedit rules" |
+| 2026-10-05 | dicom-video: `--strict-modality`, `--audio-channel-source` (CID 3000 keywords / SCHEME:VALUE[:MEANING], one per track, D56), CLI help suffixes stating the refusals; executor: validatedShared() mirror (ModalityOptionValidator, audio sources into VideoWorkflow.Metadata.audioChannelSource(s)), VideoOptionConformance.violations mirror (ES/GM/XC, M/F/O, DA, unregistered HEVC UIDs; exit 1) in the CLI's order for convert and batch | PS3.16 2026a CID 3000 (6 rows: 6 matched, keywords = hyphenated meanings), PS3.3 A.32.5.4.1 / A.32.6.4.1 / A.32.7.4.1 ("shall be" ES / GM / XC read), C.7.1.1 Patient's Sex (M F O read), Table C.7-13, PS3.5 Table 6.2-1 DA, PS3.6 Table A-1 (UIDDictionary.registered) | 38a2eea0 | videoConformanceRows; CLIWorkshopVideoTests flag set; g1 "pixel cid3000 audio source" (40) |
+| 2026-10-05 | dicom-convert: `--transfer-syntax` picker = DICOMConverter.cliTokens (Reversible names), old spellings canonicalised on entry (WorkshopTransferSyntaxKeywords.canonicalToken), TransferSyntaxKeywords mirror (+7 Table A-1 keywords), `--frame-number` (from 1) with `--frame` deprecated, CLI help; executor: validate() refusals (64), both-frame-spellings exit 1, deprecation and reassigned-keyword notes, invalidFrameNumberMessage, directory run exits 1 on a failure, app-only chrome removed | PS3.6 2026a Table A-1 (7 added keywords + 3 reassigned: 10 matched), PS3.3 Table 10-3 ("The first Frame shall be denoted as Frame number 1" read), C.11.2.1.2.1 | 38a2eea0 | convertTokensAndFrames, testDicomConvertParameterCount (14); g1 "pixel convert tokens" (24) |
+| 2026-10-05 | dicom-compress: decompress / batch `--syntax` picker = NativeTargetSyntax.accepted (explicit-le, implicit-le, deflate, explicit-be), refusals mirrored (exit 1), CLI help texts; executors: validate() texts (64), `Error: \(error)` formatting, "Error scanning directory", info --json via CompressionConsole.infoJSON (already shared) | PS3.6 2026a Table A-1 (4 native UIDs: 4 matched), PS3.5 A.1, A.2, A.3 (retired, D206), A.5 | 38a2eea0 | compressSyntaxPicker; g1 "pixel compress syntax" (15) |
+| 2026-10-05 | Markers on CLIWorkshopHelpers.swift and CLIWorkshopViewModel.swift summarising the three Workshop passes (33 tool ids; G1 parity 0 FAIL, 2 PEND) | — | 5678fa8e | — |
 
 ---
 
@@ -180,6 +188,7 @@ Table O-1). Every other generic check is ok.
 
 | Item | What | Standard | Recommendation | Status |
 |---|---|---|---|---|
+| P-STUDIO-ANON-PS315 (existing, PEND) | the Workshop `--profile` picker offers the legacy lists only (default legacy-basic; the CLI default is ps315); ps315 / basic are refused with exit 1; the E.3 Option flags, `--allow-burned-in-phi` and the ps315 engine path (`Anonymizer.deidentify`, the ps315 audit log, the burned-in PHI refusal) therefore cannot run in the Workshop. The CLI-local AnonCLI texts are mirrored now, so adding the Studio enum case is the remaining step | PS3.15 2026a Table E.1-1 | approve the new AnonymizationProfile case (ps315) so the picker can default to ps315 like the CLI; the executor then runs `Anonymizer.deidentify(file:options:)` with `WorkshopAnonCLI` extended by the ps315-only AnonCLI texts (validate rules, retainDatesNotice, visualFeaturesLines, auditLogText) | | ⏳ pending |
 | P-STUDIO-MWL-CREATE | The Workshop's dicom-mwl `create` operation (HL7 ORM^O01 over MLLP or the archive REST API; all its fields isInternal, preview rendered commented out) has no dicom-mwl CLI counterpart — the CLI registers only `query` (no DIMSE service creates a worklist item). The parity check flags the subcommand picker value; annotated PEND in diff_studio_g1 | PS3.4 Annex K (C-FIND only) | Either add a `dicom-mwl create` subcommand (HL7 / REST) to the CLI so the preview becomes paste-runnable, or move the create flow out of the CLI Workshop into the Networking panel. Until decided the arm stays as is (behaviour unchanged) | | ⏳ pending |
 | — | none: all fixes are data/returned-value changes; `FormRenderingHelpers.isPositional` is an additive public helper | | | | ⏳ pending |
 | P-STUDIO-TLS-PROFILES (shared with the DIMSE half) | `DICOMwebTLSMode` (NONE / COMPATIBLE / STRICT / DEVELOPMENT) selects TLS versions, not PS3.15 Annex B Secure Transport Connection Profiles (B.12 Non-Downgrading BCP 195, B.13 Extended BCP 195); `DICOMwebClientFactory` ignores the mode entirely | PS3.15 2026a Annex B | Offer the Annex B profile names as cases and pass the choice to `DICOMwebConfiguration` when DICOMWeb exposes one; same decision as NetworkingModel.TLSMode | | ⏳ pending |
@@ -210,6 +219,10 @@ standard violation; each is listed so the owner can keep or restore it:
 | dicom-retrieve (Workshop) | the app-only Study-UID C-FIND lookup before a series / instance retrieve is gone; `--relational-retrieve` (PS3.4 C.5.2.1) is offered instead, as in the CLI | the CLI never did the lookup; parity of output and refusals | `f8e70094` |
 | dicom-wado retrieve (Workshop) | per-instance previews after a retrieve removed | not CLI output | `d52bbfa9` |
 | dicom-wado ups (Workshop) | app-only chrome removed: query dump, curl block, pre-flight check, hints | not CLI output; the print structure now equals the CLI's | `d52bbfa9` |
+| dicom-anon (Workshop) | the executor runs dicom-anon's own loop (Anonymizer, PixelRedactor, AnonConsole, E.1-1a action report) instead of `SecurityViewModel` | parity of output and refusals | `38a2eea0` |
+| dicom-convert (Workshop) | app-only header / banner removed | not CLI output | `38a2eea0` |
+| dicom-image / dicom-pdf (Workshop) | directory runs exit 0 with failed files, as the CLIs do | parity; the CLI behaviour is itself a new finding | `38a2eea0` |
+| dicom-pixedit (Workshop) | refuses out-of-range fill values and widths < 1 instead of clamping; output marked as a Derived Image | P-PIXEDIT-RANGE; PS3.3 C.7.6.1.1.2 | `38a2eea0` |
 | dicom-anon (Workshop and Security panel) | `--profile` values are the CLI's `legacy-*` names; `ps315` / `basic` refused with exit 1 until P-STUDIO-ANON-PS315 | the old `basic` now means the PS3.15 Basic Profile in the CLI | `61670c42` |
 
 ---
@@ -227,7 +240,7 @@ standard violation; each is listed so the owner can keep or restore it:
 | D28 | DICOMKit | `ImageViewerViewModel+PresentationStates` (~L1057); `Views/DICOMInspectorView.swift:41` | PR without Modality LUT falls back to the image's rescale (S-2 migration rule); "is binary" check omits OV (D5 half) | PS3.4 N.2.1.1; PS3.5 Table 6.2-1 | ✅ 2026-10-05 `6372e096`: PR without Modality LUT = identity, with the S-2 rule (only this app's own, non-imported, pre-2026-09-29 objects keep the image rescale); inspector binary VRs include OV (PS3.5 Table 6.2-1) |
 | D29 | DICOMKit | `CLIWorkshopViewModel.swift:1730`, `CLIWorkshopHelpers.swift:3128` | dcmdir `--profile` choices list STD-GEN-DVD / STD-GEN-USB (family headings) | PS3.11 Annexes H, J | ✅ 2026-10-05 `2f730cac` (Workshop file tools mirror the CLI; see the parity section) |
 | D42 | DICOMPrintKit | `ImageViewerViewModel+PresentationStates.swift` (~L460, 610, 1040), `PrintViewModel+PresentationStates.swift` (~L365) | pass Photometric Interpretation and Rescale Type to the bridge and `ImageToSave` | PS3.4 N.2; PS3.3 A.33.1.1, Table A.33.2-1 | ✅ 2026-10-05 `6372e096`: Photometric Interpretation and Rescale Type passed to `ViewerPresentationStateBridge.capture/restore` and `ImageToSave`; MONOCHROME1 → INVERSE Presentation LUT fold, colour → Color Softcopy PS |
-| D56 | DICOMKit | CLI Workshop video form | no Audio Channel Source field | PS3.3 Table C.7-13; PS3.16 CID 3000 | ⏳ pixel Workshop agent |
+| D56 | DICOMKit | CLI Workshop video form | no Audio Channel Source field | PS3.3 Table C.7-13; PS3.16 CID 3000 | ✅ 2026-10-05 `38a2eea0`: `--audio-channel-source` per audio track (CID 3000 keywords or SCHEME:VALUE[:MEANING]) → `VideoWorkflow.Metadata.audioChannelSources` |
 | D65 (viewer half) | DICOMRenderKit | `ImageViewerViewModel.swift` ~L1390, ~L1432; `+PresentationStates.swift` ~L1060 | stored-unit window conversion exact for slope 1 only | PS3.3 C.11.2.1.2.1 | ✅ 2026-10-05 `6372e096`: the viewer renders through the N.2 chain; a stored-unit window is converted c·m+b, w·|m| before the renderer (exact for every slope) |
 | D68 | DICOMRenderKit | `Services/FrameRenderer.swift`, `ViewModels/ImageViewerViewModel.swift` | pass Modality LUT, VOI and ICC Profile to `FrameRenderRequest` | PS3.4 N.2; PS3.3 C.11.2.1.2.1, C.11.15.1.1 | ✅ 2026-10-05 `6372e096`: viewer, tiles, film cells, `ImageRenderingService` and the progressive decoder pass `modalityLUT` / `voiLUT` / `presentationLUT` / `iccProfile` to `FrameRenderRequest` (or use `renderFrameForExport`); VOI LUT Sequence shown until a drag; `ViewerDisplayPipelineTests` 13 |
 | D85 | DICOMCLI | `CLIWorkshopHelpers.swift:1379-1380, 1217-1221` | mpps placeholder "110513\|DCM\|Doctor cancelled procedure"; `--modality` optional | PS3.16 Table D-1; PS3.4 Table F.7.2-1 | ✅ 2026-10-05: CLIWorkshopHelpers mpps `--discontinuation-reason` placeholder "110513\ (Doctor cancelled procedure" → "110513\) |
@@ -242,6 +255,16 @@ standard violation; each is listed so the owner can keep or restore it:
 
 | ID | Module | File | Problem | Standard | Severity | Status |
 |---|---|---|---|---|---|---|
+| D266 | Scripts (orchestrator) | Scripts/diff_studio.py parse_definition | a picker written `[""] + Expr` is read as the literal `[""]`, so dicom-video --type (an enum-typed CLI option) is reported as offering only '' and lacking the three values — annotated DEFR in diff_studio_g1.DEFERRED; the g1 checks therefore test such pickers on the definition's source text (raw_definition). Teach parse_definition the `[""] + expr` form | — (tooling) | Low | ⏳ |
+| D267 | dicom-compress | Sources/dicom-compress/main.swift (NativeTargetSyntax) | CLI-local native-target set and refusal texts mirrored by WorkshopNativeTargetSyntax; lift into CompressionConsole | PS3.6 Table A-1; PS3.5 A.1, A.2, A.3, A.5 | Low (duplication) | ⏳ |
+| D268 | dicom-convert | Sources/dicom-convert/TransferSyntaxKeywords.swift | CLI-local 7 Table A-1 keywords and the composed --transfer-syntax help mirrored by WorkshopTransferSyntaxKeywords; fold the keywords into the DICOMConverter catalog (extraAliases) | PS3.6 Table A-1 | Low (duplication) | ⏳ |
+| D269 | dicom-video | Sources/dicom-video/OptionConformance.swift, AudioChannelSourceOption.swift | CLI-local refusals and CID 3000 option grammar mirrored by WorkshopVideoOptionConformance / WorkshopAudioChannelSourceOption; lift into DICOMKit Video (VideoConsole / VideoWorkflow) | PS3.3 A.32.x, Table C.7-1; PS3.16 CID 3000 | Low (duplication) | ⏳ |
+| D270 | dicom-pixedit | Sources/dicom-pixedit/DerivedImage.swift | CLI-local P-PIXEDIT-RANGE refusals mirrored by WorkshopDerivedImage; lift next to PixelEditor | PS3.3 C.7.6.3.1, C.11.2.1.2 | Low (duplication) | ⏳ |
+| D271 | dicom-pdf | Sources/dicom-pdf/main.swift (extractFromDirectory / encapsulateFromDirectory) | a directory run exits 0 whatever the per-file outcomes; the Workshop mirrors it | — (tool contract) | Low | ⏳ |
+| D272 | dicom-pdf | Sources/dicom-pdf/EncapsulationAttributes.swift | CLI-local PDFEncapsulation ((0042,0015), ISO_IR 192, padding cut, option vocabularies); mirrored by WorkshopPDFEncapsulation. Lift into EncapsulatedDocumentBuilder / EncapsulatedDocumentParser (D182 engine half) | PS3.3 Table C.24-2, Table C.12-1 | Low (duplication) | ⏳ |
+| D273 | dicom-image | Sources/dicom-image/main.swift (convertDirectory) | a directory run exits 0 when files failed (only the summary carries the count), unlike dicom-convert (P-CONVERT-EXIT); the Workshop mirrors exit 0 | — (tool contract) | Low | ⏳ |
+| D274 | dicom-image | Sources/dicom-image/SCOutput.swift | CLI-local P-IMAGE-VR refusals and finalize() ((0002,0003) = (0008,0018), ISO_IR 192); mirrored by WorkshopSCOutput. The engine (ImageConverter) mints two different UIDs for (0002,0003) / (0008,0018) and writes UTF-8 without Specific Character Set, so every caller must post-process — lift both into ImageConverter | PS3.10 Table 7.1-1; PS3.3 Table C.12-1 | Low (duplication; engine gap) | ⏳ |
+| D275 | dicom-anon | Sources/dicom-anon/AnonCLISupport.swift | CLI-local AnonCLI (profile aliases, notices, E.1-1a action report, (0002,0003) sync, validate texts); DICOMStudio carries a text-identical copy of the legacy-path parts (WorkshopAnonCLI, checked by diff_studio_g1). Lift into DICOMKit next to Anonymizer / AnonConsole so the ps315 path (P-STUDIO-ANON-PS315) can share it too | PS3.15 2026a Annex E; PS3.10 7.1 | Low (duplication) | ⏳ |
 | D258 | Scripts (orchestrator) | Scripts/diff_studio.py check_workshop_parity / parse_definition | (a) by-flag collapse: `retrieve --format` (MetadataFormat json \| xml) is compared with `ups --format` (OutputFormat) — 3 false FAILs annotated DEFR; (b) cliMapping tokens and non-literal allowedValues are not parsed, so flags emitted through a picker's cliMapping (ups --search / --create-workitem / --subscribe / --unsubscribe, retrieve --uri) need EXEMPT rows. Key options by (subcommand, flag) and count cliMapping tokens as offered | — | Low (tooling) | ⏳ |
 | D259 | DICOMStudio (naming) | Sources/DICOMStudio (local `UPSState` and a `DICOMWeb` namespace enum) | DICOMWeb.UPSState cannot be named inside DICOMStudio (shadowed), so the UPS rules carry the state as its PS3.3 Table C.30.1-1 word and resolve the enum contextually at the client call | PS3.3 Table C.30.1-1 | Low (tooling) | ⏳ |
 | D260 | DICOMStudio (Services) | Sources/DICOMStudio/Services/DICOMwebClientFactory.swift:25 | makeConfiguration has no timeouts parameter, so the Workshop rebuilds the DICOMwebConfiguration to honour `retrieve --timeout` (the field was never read before). A `timeouts:` parameter (defaulted) would remove the rebuild — public-API addition, owner's call | — | Low | ⏳ |
@@ -919,6 +942,194 @@ Output parity: STOWResultFormatter (shared) header / batchStart / batchResult / 
 | `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
 
 Output parity: UPSQuery.workitemSearch, UPSResultFormatter (table / json / csv / dicom-json), UPSConsole.createResponseText / updateVerboseHeader / finalStateUpdatingLine / finalStateUpdatedLine / updateResultText (all shared) in the CLI's structure — verbose-gated `DICOMweb Server:`, `Searching worklist items...`, `Retrieving worklist item:`, `Creating worklist item from …`, `Found N worklist item(s)`, `Retrieved worklist item …`, subscribe / unsubscribe lines incl. the global (Worklist) forms; the app-only query-URL / filter dump, field echo, curl block, pre-flight state check and Event-Monitor hints are gone. --change-state (PS3.18 11.7) with --update as deprecated alias (CLI note; both → refused), SCHEDULED refused with the CLI's text (PS3.18 11.7.1.4; PS3.4 Table CC.1.1-2 C303H; exit 1 — P-WADO-UPS-STATE / -UPDATE), `--transaction-uid is required for COMPLETED/CANCELED transition …` (64; the in-app IN PROGRESS claim cache stands in for the returned UID), `--label is required when using --create-workitem`, `Invalid patient sex …`, `Invalid priority …`, `Invalid date format for …` (64).
+
+### dicom-anon → dicom-anon
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output file or directory | PS3.10 7.1; (0002,0003) = (0008,0018) |  | `String?` | match |
+| `profile` (enumPicker) | `--profile` | Attribute Confidentiality Profile | PS3.15 E.1, E.2, Table E.1-1 | legacy-basic, legacy-clinical-trial, legacy-research / legacy-basic | `String` / AnonCLI.defaultProfile | match |
+| `retain-dates` (booleanToggle) | `--retain-dates` | Retain Longitudinal Temporal Information With Full Dates / With Modified Dates Option | PS3.15 E.3.6; CID 7050 113106/113107 |  | `Bool` / false | match |
+| `retain-full-dates` (booleanToggle) | `--retain-full-dates` | Retain Longitudinal Temporal Information With Full Dates Option | PS3.15 E.3.6; CID 7050 113106 |  | `Bool` / false | match |
+| `retain-modified-dates` (booleanToggle) | `--retain-modified-dates` | Retain Longitudinal Temporal Information With Modified Dates Option | PS3.15 E.3.6; CID 7050 113107 |  | `Bool` / false | match |
+| `retain-characteristics` (booleanToggle) | `--retain-characteristics` | Retain Patient Characteristics Option | PS3.15 E.3.7; CID 7050 113108 |  | `Bool` / false | match |
+| `retain-device` (booleanToggle) | `--retain-device` | Retain Device Identity Option | PS3.15 E.3.8; CID 7050 113109 |  | `Bool` / false | match |
+| `retain-institution` (booleanToggle) | `--retain-institution` | Retain Institution Identity Option | PS3.15 E.3.11; CID 7050 113112 |  | `Bool` / false | match |
+| `retain-uids` (booleanToggle) | `--retain-uids` | Retain UIDs Option | PS3.15 E.3.9; CID 7050 113110 |  | `Bool` / false | match |
+| `clean-descriptors` (booleanToggle) | `--clean-descriptors` | Clean Descriptors Option | PS3.15 E.3.5; CID 7050 113105 |  | `Bool` / false | match |
+| `retain-safe-private` (booleanToggle) | `--retain-safe-private` |  |  |  | `Bool` / false | match |
+| `clean-graphics` (booleanToggle) | `--clean-graphics` |  |  |  | `Bool` / false | match |
+| `clean-structured-content` (booleanToggle) | `--clean-structured-content` |  |  |  | `Bool` / false | match |
+| `clean-recognizable-visual-features` (booleanToggle) | `--clean-recognizable-visual-features` |  |  |  | `Bool` / false | match |
+| `clean-pixel-data` (booleanToggle) | `--clean-pixel-data` | Clean Pixel Data Option | PS3.15 E.3.1; CID 7050 113101; (0028,0301) NO |  | `Bool` / false | match |
+| `redact-region` (textField) | `--redact-region` | Clean Pixel Data region | PS3.15 E.3.1 |  | `[String]` / [] | match |
+| `redact-fill` (integerField) | `--redact-fill` | fill sample value for blanked pixels | PS3.15 E.3.1 |  | `Int?` | match |
+| `shift-dates` (integerField) | `--shift-dates` | date modification for Modified Dates Option | PS3.15 E.3.6 |  | `Int?` | match |
+| `regenerate-uids` (booleanToggle) | `--regenerate-uids` | UID replacement (U) | PS3.15 Table E.1-1 (U), E.3.9 |  | `Bool` / false | match |
+| `remove` (textField) | `--remove` | remove attribute (X) | PS3.15 Table E.1-1a X; PS3.6 Table 6-1 keywords |  | `[String]` / [] | match |
+| `replace` (textField) | `--replace` | replace attribute value | PS3.6 Table 6-1 keywords |  | `[String]` / [] | match |
+| `keep` (textField) | `--keep` | keep attribute (K) | PS3.15 Table E.1-1a K |  | `[String]` / [] | match |
+| `recursive` (booleanToggle) | `--recursive` | directory walk | - |  | `Bool` / false | match |
+| `dry-run` (booleanToggle) | `--dry-run` | preview | - |  | `Bool` / false | match |
+| `backup` (booleanToggle) | `--backup` | copy of input next to output | - |  | `Bool` / false | match |
+| `audit-log` (outputPath) | `--audit-log` | de-identification record | PS3.15 E.1.1 |  | `String?` | match |
+| `force` (booleanToggle) | `--force` | read without DICM prefix | PS3.10 7.1 |  | `Bool` / false | match |
+| `allow-burned-in-phi` (booleanToggle) | `--allow-burned-in-phi` | write despite Burned In Annotation YES / overlays | PS3.15 E.1.1 (0012,0062), E.3.1 |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` | verbosity | - |  | `Bool` / false | match |
+
+Output parity: the executor runs dicom-anon's run() in-process — `WorkshopAnonCLI.legacyProfileNotice` (the CLI's stderr Deprecated note for a legacy list), the shared Anonymizer for the legacy profiles, PixelRedactionPlan / PixelRedactor for `--clean-pixel-data` / `--redact-region` (AnonConsole.pixelRedactionLines when verbose), AnonConsole.fileSuccessLine / fileFailureLine in directory mode, the PS3.15 Table E.1-1a action report (`Attribute actions for … (PS3.15 Table E.1-1a: D dummy, Z zero length, X removed, C cleaned, U new UID)`) on --dry-run / --verbose, AnonConsole.summary, `Anonymizer.writeAuditLog` + auditLogLine, (0002,0003) synced to the replaced (0008,0018) before writing; refusals are the CLI's (`File not found`, `Invalid anonymization profile (…)`, `PS3.15 Annex E Option flags apply only to --profile ps315: …`, `Invalid tag format: …`, `Invalid replace format: …. Use TAG=VALUE`, `Directory anonymization requires --recursive flag` / `--output directory`, `Anonymization requires --output (or use --dry-run to preview without writing)`), all exit 1 as dicom-anon's own ValidationError type gives; the missing positional is ArgumentParser's (64); any failed file exits 1. `--profile ps315` / `basic` are refused (P-STUDIO-ANON-PS315).
+
+### dicom-image → dicom-image
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `input` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output PS3.10 file or directory | PS3.10 7.1 |  | `String?` | match |
+| `patient-name` (textField) | `--patient-name` | Patient's Name (0010,0010) | PS3.3 Table C.7-1 (Type 2); PS3.5 Table 6.2-1 PN |  | `String?` | match |
+| `patient-id` (textField) | `--patient-id` | Patient ID (0010,0020) | PS3.3 Table C.7-1 (Type 2); PS3.5 Table 6.2-1 LO |  | `String?` | match |
+| `study-description` (textField) | `--study-description` | Study Description (0008,1030) | PS3.3 Table C.7-3 (Type 3); LO |  | `String?` | match |
+| `series-description` (textField) | `--series-description` | Series Description (0008,103E) | PS3.3 Table C.7-5a (Type 3); LO |  | `String?` | match |
+| `study-uid` (textField) | `--study-uid` | Study Instance UID (0020,000D) | PS3.3 Table C.7-3 (Type 1); PS3.5 9.1 |  | `String?` | match |
+| `series-uid` (textField) | `--series-uid` | Series Instance UID (0020,000E) | PS3.3 Table C.7-5a (Type 1); PS3.5 9.1 |  | `String?` | match |
+| `series-number` (integerField) | `--series-number` | Series Number (0020,0011) | PS3.3 Table C.7-5a (Type 2); PS3.5 Table 6.2-1 IS |  | `Int?` | match |
+| `instance-number` (integerField) | `--instance-number` | Instance Number (0020,0013) | PS3.3 Table C.7-9 (Type 2); IS |  | `Int?` | match |
+| `modality` (textField) | `--modality` | Modality (0008,0060) | PS3.3 Table C.7-5a (Type 1); C.7.3.1.1.1 (97 Defined Terms) |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` | reject non-Defined-Term Modality | PS3.3 C.7.3.1.1.1 |  | `Bool` / false | match |
+| `conversion-type` (enumPicker) | `--conversion-type` | Conversion Type (0008,0064) | PS3.3 Table C.8-24 (Type 1) |  | `String?` | match |
+| `use-exif` (booleanToggle) | `--use-exif` | Acquisition Date/Time (0008,0022/0032), Nominal Scanned Pixel Spacing (0018,2010) | PS3.3 Table C.7.10.1-1; Table C.8-25 |  | `Bool` / false | match |
+| `split-pages` (booleanToggle) | `--split-pages` | one single-frame SC instance per TIFF page | PS3.3 A.8.1 |  | `Bool` / false | match |
+| `recursive` (booleanToggle) | `--recursive` |  |  |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: dicom-image's run() order — `--conversion-type` refusal (`… is not a Defined Term of PS3.3 Table C.8-24 (DV, DI, …)`, 64), the P-IMAGE-VR `Error: …` lines of WorkshopSCOutput.valueViolations (exit 1, nothing written), `Input path not found` / `Directory processing requires --recursive flag` / `Patient Name is required for (batch) conversion (--patient-name)` / `Patient ID is required …` (64); ImageConsole lines (batchHeader, skippedLine, fileSuccessLine / fileFailureLine, batchSummary, tiffHeader, pageSuccessLine / pageFailureLine, tiffSummary, convertingLine, convertedLine); `--modality` through the shared ModalityOptionValidator at the point of use, so a `--strict-modality` rejection is a per-file failure in batch and `Error: …` exit 1 for one file; every output passes WorkshopSCOutput.finalize ((0002,0003) = (0008,0018), ISO_IR 192); a directory / TIFF run exits 0 whatever its per-file outcomes, as the CLI does (section 4).
+
+### dicom-pdf → dicom-pdf
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output file or directory | PS3.10 7.1 |  | `String?` | match |
+| `extract` (booleanToggle) | `--extract` | DICOM -> document | PS3.3 Table C.24-2 Encapsulated Document (0042,0011), Encapsulated Document Length (0042,0015) | false | `Bool` / false | match |
+| `patient-name` (textField) | `--patient-name` | Patient's Name (0010,0010) | PS3.3 Table C.7-1 (Type 2); PN |  | `String?` | match |
+| `patient-id` (textField) | `--patient-id` | Patient ID (0010,0020) | PS3.3 Table C.7-1 (Type 2); LO |  | `String?` | match |
+| `title` (textField) | `--title` | Document Title (0042,0010) | PS3.3 Table C.24-2 (Type 2); ST |  | `String?` | match |
+| `study-uid` (textField) | `--study-uid` | Study Instance UID (0020,000D) | PS3.3 Table C.7-3 (Type 1) |  | `String?` | match |
+| `series-uid` (textField) | `--series-uid` | Series Instance UID (0020,000E) | PS3.3 Table C.24-1 (Type 1) |  | `String?` | match |
+| `modality` (textField) | `--modality` | Modality (0008,0060) | PS3.3 Table C.24-1 (Type 1, C.7.3.1.1.1 Defined Terms); A.85.x.4.3 (Enumerated M3D) |  | `String?` | match |
+| `strict-modality` (booleanToggle) | `--strict-modality` | Modality Defined Terms | PS3.3 C.7.3.1.1.1 | false | `Bool` / false | match |
+| `series-description` (textField) | `--series-description` | Series Description (0008,103E) | PS3.3 Table C.24-1 (Type 3); LO |  | `String?` | match |
+| `series-number` (integerField) | `--series-number` | Series Number (0020,0011) | PS3.3 Table C.24-1 (Type 1); IS |  | `Int?` | match |
+| `instance-number` (integerField) | `--instance-number` | Instance Number (0020,0013) | PS3.3 Table C.24-2 (Type 1); IS |  | `Int?` | match |
+| `conversion-type` (enumPicker) | `--conversion-type` | Conversion Type (0008,0064) | PS3.3 Table C.8-24 (Type 1, 8 Defined Terms) |  | `String?` | match |
+| `burned-in-annotation` (enumPicker) | `--burned-in-annotation` | Burned In Annotation (0028,0301) | PS3.3 Table C.24-2 (Type 1) | , YES, NO | `String?` | match |
+| `hl7-instance-identifier` (textField) | `--hl7-instance-identifier` | HL7 Instance Identifier (0040,E001) | PS3.3 Table C.24-2 (Type 1C, required for CDA); ST |  | `String?` | match |
+| `recursive` (booleanToggle) | `--recursive` | directory mode |  | false | `Bool` / false | match |
+| `show-metadata` (booleanToggle) | `--show-metadata` | metadata report (extract) |  | false | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` | progress output |  | false | `Bool` / false | match |
+
+Output parity: dicom-pdf's run() — `Input path not found` / `Directory processing requires --recursive flag` / `Patient's Name is required for (batch) encapsulation (--patient-name)` / `Patient ID is required …` / the two `--hl7-instance-identifier` rules / `--conversion-type … is not a Conversion Type (0008,0064) Defined Term of PS3.3 Table C.8-24: …` / `--burned-in-annotation … is not YES or NO …` as ArgumentParser ValidationErrors (64), other failures `Error: …` exit 1; the shared EncapsulatedDocumentBuilder chain plus setConversionType / setBurnedInAnnotation / setHL7InstanceIdentifier and WorkshopPDFEncapsulation.complete ((0042,0015), ISO_IR 192); extraction writes WorkshopPDFEncapsulation.documentBytes (cut to (0042,0015)) and reports its size; the verbose / non-verbose lines (`Extracting document from:`, `✓ Extracted … (size)`, `Extracted: …`, `Encapsulating document:`, `✓ Encapsulated … / DICOM size / Patient / Study UID / Output`, `Encapsulated: …`, the `Extraction complete:` / `Encapsulation complete:` blocks) are the CLI's; a directory run exits 0 (section 4). The Workshop keeps auto-naming inside a typed output directory (sandbox convenience).
+
+### dicom-pixedit → dicom-pixedit
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output PS3.10 file | PS3.10 7.1 |  | `String` | match |
+| `mask-region` (textField) | `--mask-region` | rectangle of pixels, 0-based column/row | PS3.3 C.7.6.2.1.1 (indices from 0) |  | `String?` | match |
+| `fill-value` (integerField) | `--fill-value` | stored sample value | PS3.3 C.7.6.3.1 (Bits Stored, Pixel Representation) |  | `Int?` | match |
+| `crop` (textField) | `--crop` | sub-matrix; Rows/Columns and Image Position (Patient) | PS3.3 Table C.7-11c; C.7.6.2.1.1 Equation C.7.6.2.1-1 |  | `String?` | match |
+| `window-center` (textField) | `--window-center` | Window Center (0028,1050) | PS3.3 C.11.2.1.2 (Modality LUT output units) |  | `Double?` | match |
+| `window-width` (textField) | `--window-width` | Window Width (0028,1051) | PS3.3 C.11.2.1.2 (>= 1) |  | `Double?` | match |
+| `apply-window` (booleanToggle) | `--apply-window` | bake the linear VOI function into stored values | PS3.3 C.11.2.1.2 |  | `Bool` / false | match |
+| `invert` (booleanToggle) | `--invert` | invert stored values across the Bits Stored range | PS3.3 C.7.6.3.1 |  | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  |  | `Bool` / false | match |
+
+Output parity: dicom-pixedit's run() — `Input file not found: …`, PixelEditError texts for a bad region, WorkshopDerivedImage.fillValueViolation (`--fill-value N is outside the stored range a...b given by Bits Stored (0028,0101) and Pixel Representation (0028,0103) (PS3.3 C.7.6.3.1)`), `--apply-window requires both --window-center and --window-width`, WorkshopDerivedImage.windowWidthViolation (`… shall always be greater than or equal to 1 (PS3.3 C.11.2.1.2)`), `No operations specified. Use --mask-region, --crop, --apply-window, or --invert` — all exit 1 (the CLI's own ValidationError type); an unparseable number is ArgumentParser's two-line message (64); PixelEditConsole.headerLines / writtenLine / doneLine and the engine's verbose log, verbose-gated; the edit runs through the shared PixelEditor with `PixelEditDerivation(descriptionPrefix: "dicom-pixedit")`, so the Derived Image marking is the CLI's.
+
+### dicom-video → dicom-video
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `operation` (subcommand) | `—` |  |  | convert, probe, extract, batch / convert | `—` | not a CLI option |
+| `input` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `dicomInput` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `inputDirectory` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` |  |  |  | `String` | match |
+| `videoOutput` (outputPath) | `--output` |  |  |  | `String` | match |
+| `outputDir` (outputPath) | `--output-dir` | output directory | PS3.10 7.1 |  | `String` | match |
+| `type` (enumPicker) | `--type` | SOP Class / IOD | PS3.3 A.32.5, A.32.6, A.32.7; PS3.6 Table A-1 (...77.1.1.1, ...77.1.2.1, ...77.1.4.1) |  | `VideoConsole.TypeArgument?` | match |
+| `transferSyntax` (textField) | `--transfer-syntax` | Transfer Syntax UID (0002,0010) | PS3.6 Table A-1 (16 MPEG2 / MPEG-4 AVC/H.264 / HEVC/H.265 rows); PS3.5 8.2.5-8.2.11 |  | `String?` | match |
+| `frameRate` (textField) | `--frame-rate` | Cine Rate (0018,0040), Frame Time (0018,1063), Recommended Display Frame Rate (0008,2144) | PS3.3 Table C.7-13; PS3.5 Tables 8-2, 8-5, 8-7 |  | `Double?` | match |
+| `instanceNumber` (integerField) | `--instance-number` |  |  | 1 | `Int` / 1 | match |
+| `seriesNumber` (integerField) | `--series-number` |  |  | 1 | `Int` / 1 | match |
+| `seriesMode` (enumPicker) | `--series-mode` | series grouping | IHE Endoscopy Image Archiving 3.10.4.1.1.1 (not DICOM) | single | `VideoConsole.SeriesMode` / .single | match |
+| `recursive` (booleanToggle) | `--recursive` | descend into subdirectories |  | false | `Bool` / false | match |
+| `continueOnError` (booleanToggle) | `--continue-on-error` | skip failures |  | false | `Bool` / false | match |
+| `dryRun` (booleanToggle) | `--dry-run` | probe and validate only |  | false | `Bool` / false | match |
+| `trustInput` (booleanToggle) | `--trust-input` | encapsulate MPEG-TS unvalidated; needs --transfer-syntax | PS3.5 8.2.7-8.2.11 | false | `Bool` / false | match |
+| `force` (booleanToggle) | `--force` | overwrite output |  | false | `Bool` / false | match |
+| `verbose` (booleanToggle) | `--verbose` | commentary on stderr |  | false | `Bool` / false | match |
+| `patientName` (textField) | `--patient-name` | Patient's Name (0010,0010) | PS3.3 Table C.7-1 (Type 2); PS3.6 Table 6-1 PN |  | `String?` | match |
+| `patientID` (textField) | `--patient-id` | Patient ID (0010,0020) | PS3.3 Table C.7-1 (Type 2); LO |  | `String?` | match |
+| `patientBirthDate` (textField) | `--patient-birth-date` | Patient's Birth Date (0010,0030) | PS3.3 Table C.7-1 (Type 2); PS3.6 Table 6-1 DA |  | `String?` | match |
+| `patientSex` (enumPicker) | `--patient-sex` | Patient's Sex (0010,0040) | PS3.3 Table C.7-1 (Type 2, Enumerated Values M F O) | , M, F, O | `String?` | match |
+| `studyUID` (textField) | `--study-uid` | Study Instance UID (0020,000D) | PS3.3 Table C.7-3 (Type 1); PS3.5 9.1 |  | `String?` | match |
+| `seriesUID` (textField) | `--series-uid` | Series Instance UID (0020,000E) | PS3.3 Table C.7-5a (Type 1); PS3.5 9.1 |  | `String?` | match |
+| `accessionNumber` (textField) | `--accession-number` | Accession Number (0008,0050) | PS3.3 Table C.7-3 (Type 2); SH |  | `String?` | match |
+| `studyID` (textField) | `--study-id` | Study ID (0020,0010) | PS3.3 Table C.7-3 (Type 2); SH |  | `String?` | match |
+| `referringPhysician` (textField) | `--referring-physician` | Referring Physician's Name (0008,0090) | PS3.3 Table C.7-3 (Type 2); PN |  | `String?` | match |
+| `seriesDescription` (textField) | `--series-description` | Series Description (0008,103E) | PS3.3 Table C.7-5a (Type 3); LO |  | `String?` | match |
+| `modality` (textField) | `--modality` | Modality (0008,0060) | PS3.3 A.32.5.4.1 / A.32.6.4.1 / A.32.7.4.1 ("shall be" ES / GM / XC) |  | `String?` | match |
+| `strictModality` (booleanToggle) | `--strict-modality` | Modality Defined Terms | PS3.3 C.7.3.1.1.1 (via DICOMCore ModalityOptionValidator) | false | `Bool` / false | match |
+| `manufacturer` (textField) | `--manufacturer` | Manufacturer (0008,0070) | PS3.3 Table C.7-8 (Type 2); LO |  | `String?` | match |
+| `institutionName` (textField) | `--institution-name` | Institution Name (0008,0080) | PS3.3 Table C.7-8 (Type 3); LO |  | `String?` | match |
+| `audioChannelSource` (textField) | `--audio-channel-source` | Channel Source Sequence (003A,0208) in (003A,0300) | PS3.3 Table C.7-13; PS3.16 CID 3000 |  | `[String]` / [] | match |
+
+Output parity: convert / batch validate the metadata as the CLI's `MetadataOptions.validatedShared()` does — `--modality` through the shared ModalityOptionValidator (`--strict-modality` → `Error: … Rejected because --strict-modality is set.`, exit 1), `--audio-channel-source` parsed by the mirrored AudioChannelSourceOption grammar (`Error: --audio-channel-source: "…" is neither a listed keyword nor SCHEME:VALUE[:MEANING]; keywords: …` / `… so its Code Meaning is required (SCHEME:VALUE:MEANING)`, exit 1) into VideoWorkflow.Metadata.audioChannelSource / audioChannelSources — then the mirrored VideoOptionConformance.violations lines (transfer syntax, modality, sex, birth date, in option order; exit 1, nothing written), in the CLI's order relative to the input read (convert) and validateBatchOptions (batch); everything else is the shared VideoWorkflow / VideoConsole as before (probe / extract unchanged).
+
+### dicom-convert → dicom-convert
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `inputPath` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` | output file or directory |  |  | `String` | match |
+| `format` (enumPicker) | `--format` | output: PS3.10 file or PNG/JPEG/TIFF raster |  | dicom, png, jpeg, tiff / dicom | `ExportFormat` / .dicom | match |
+| `transfer-syntax` (enumPicker) | `--transfer-syntax` | target Transfer Syntax UID + intent | PS3.6 Table A-1 (keyword column); PS3.5 A.1-A.4 |  | `String?` | match |
+| `quality` (integerField) | `--quality` | JPEG raster quality (not DICOM) |  | 90 | `Int` / 90 | match |
+| `window-center` (textField) | `--window-center` | Window Center (0028,1050) | PS3.3 C.11.2.1.2.1 |  | `Double?` | match |
+| `window-width` (textField) | `--window-width` | Window Width (0028,1051) | PS3.3 C.11.2.1.2.1 ("shall always be greater than or equal to 1") |  | `Double?` | match |
+| `apply-window` (booleanToggle) | `--apply-window` | VOI LINEAR window for export | PS3.3 C.11.2.1.2.1 |  | `Bool` / false | match |
+| `frame-number` (integerField) | `--frame-number` |  |  |  | `Int?` | match |
+| `frame` (integerField) | `--frame` | frame to export | PS3.3 C.7.6.6 / C.7.6.16 (frames numbered from 1) |  | `Int?` | match |
+| `strip-private` (booleanToggle) | `--strip-private` | remove Private Data Elements | PS3.5 7.8, 7.8.1 |  | `Bool` / false | match |
+| `recursive` (booleanToggle) | `--recursive` |  |  |  | `Bool` / false | match |
+| `validate` (booleanToggle) | `--validate` | re-read output as PS3.10 | PS3.10 7.1 |  | `Bool` / false | match |
+| `force` (booleanToggle) | `--force` | read files without preamble/DICM | PS3.10 7.1 |  | `Bool` / false | match |
+
+Output parity: dicom-convert's validate() / run() — ArgumentParser's missing-argument and invalid-value messages (64), `--quality must be between 1 and 100`, `--window-width must be at least 1 (Window Width (0028,1051), PS3.3 C.11.2.1.2.1)`, `--frame is a 0-based frame index and must be 0 or more`, `--frame-number must be 1 or more (PS3.3 Table 10-3: …)` (64), `--frame (deprecated, 0-based) and --frame-number (numbered from 1) cannot be used together` (exit 1), the `warning: --frame is deprecated …` and `TransferSyntax.reassignedKeywordNote` notes first, `Input path not found` / `Directory conversion requires --recursive flag` (64); a single-file failure prints ConvertConsole.failureReport (exit 1), success prints only ConvertConsole.transcodeLine (DICOM) or nothing (image export); the directory run prints the shared batchProgressLine / batchSummary and exits 1 when any file failed; out-of-range frames use DICOMConverter.invalidFrameNumberMessage (Frame number) or invalidFrameMessage (deprecated index); `--transfer-syntax` resolves through the mirrored TransferSyntaxKeywords (catalog, then the 7 Table A-1 keywords) with DICOMConverter.unknownTargetMessage.
+
+### dicom-compress → dicom-compress
+
+| Workshop parameter | CLI option | DICOM concept | 2026a reference | Workshop values / default | CLI values / default | Verdict |
+|---|---|---|---|---|---|---|
+| `operation` (subcommand) | `—` |  |  | info, compress, decompress, batch, backends / info | `—` | not a CLI option |
+| `input` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `json` (booleanToggle) | `--json` |  |  | false | `Bool` / false | match |
+| `inputDir` (filePath) | `—` |  |  |  | `—` | not a CLI option |
+| `output` (outputPath) | `--output` |  |  |  | `String` | match |
+| `outputDir` (outputPath) | `--output` |  |  |  | `String` | match |
+| `codec` (enumPicker) | `--codec` |  |  | jpeg-lossless | `String?` | match |
+| `batchCodec` (enumPicker) | `--codec` |  |  |  | `String?` | match |
+| `jpegCodec` (enumPicker) | `—` |  |  | JPEGCodecEngine.jli.rawValue | `—` | internal |
+| `quality` (textField) | `--quality` |  |  |  | `String?` | match |
+| `syntax` (enumPicker) | `--syntax` |  |  | explicit-le | `String` / "explicit-le" | match |
+| `decompress` (booleanToggle) | `--decompress` |  |  | false | `Bool` / false | match |
+| `recursive` (booleanToggle) | `--recursive` |  |  | false | `Bool` / false | match |
+| `backend` (enumPicker) | `--backend` |  |  | auto, metal, accelerate, scalar / auto | `String` / "auto" | match |
+| `verbose` (booleanToggle) | `--verbose` |  |  | false | `Bool` / false | match |
+
+Output parity: every line is the shared CompressionConsole's (infoText / infoJSON / infoErrorLine, compressPreamble / recompressNoteLine / compressResultLine / compressStats / compressSummary, decompressPreamble / decompressResultLine / decompressStats / decompressSummary, batchFoundLine / batchProgressLine / batchSummaryLine, backendsText / backendsJSON); the CLI's validate() refusals as exit 64 (`Input file not found: …`, `File not found: …`, `Input directory not found: …`, `Unknown codec '…'. Supported: …`, `Specify --codec for compression or use --decompress for decompression`, ArgumentParser's missing arguments), `--syntax` through the mirrored NativeTargetSyntax (`--syntax X names <uid>, an encapsulated (compressed) Transfer Syntax (PS3.6 2026a Table A-1); …` / `Unknown syntax '…'. Native targets: …`, exit 1), run failures as `Error: \(error)` (the CLI's String(describing:)), `Error scanning directory: …` and `No DICOM files found in: …` (exit 1), a batch with a failed file exits 1. The app-only JPEG engine picker (isInternal) stays out of the preview.
 
 ---
 
