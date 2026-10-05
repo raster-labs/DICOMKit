@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own (SwiftUI for the dicom-validate panel: the level picker shows ValidationHelpers.levelDescription, the IOD popover ValidationHelpers.knownIODs, both verified in ValidationModel.swift; the console text is DICOMKit.ValidationReport's)
 // ValidationView.swift
 // DICOMStudio
 //

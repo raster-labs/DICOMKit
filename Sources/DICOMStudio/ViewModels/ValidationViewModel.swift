@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: validation runs through the shared DICOMKit.DICOMValidator and renders through DICOMKit.ValidationReport (the dicom-validate engine and renderer); the level range 1-5 and its refusal text are dicom-validate's; IOD suggestions come from ValidationHelpers.knownIODs (PS3.6 Table A-1 keywords)
 // ValidationViewModel.swift
 // DICOMStudio
 //
@@ -87,7 +88,7 @@ public final class ValidationViewModel {
             return
         }
         guard level >= 1 && level <= 5 else {
-            validationOutput = "Error: Validation level must be between 1 and 5.\n"
+            validationOutput = "Error: Validation level must be between 1 and 5\n"   // dicom-validate's text
             return
         }
 
