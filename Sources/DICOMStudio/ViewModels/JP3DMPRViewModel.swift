@@ -4,6 +4,8 @@
 // ViewModel for the JP3D MPR three-panel view.
 // Manages slice indices, crosshair synchronisation, window/level,
 // and slice image generation using JP3DMPRSliceExtractor.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — MONOCHROME1 is inverted after windowing, as PS3.3 2026a C.7.6.3.1.2 requires ("displayed as white after any VOI gray scale transformations"; quote text-checked); the rest is MPR view state
 
 import Foundation
 import Observation

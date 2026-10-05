@@ -2,6 +2,8 @@
 // DICOMStudio
 
 import Foundation
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — codecOptions are DICOMCore TransferSyntax.selectableEncodings filtered by isJPEG2000 and named by SelectableEncoding.displayName (PS3.6 2026a Table A-1 names); the .4.90 default is an A-1 row; no other standard data
 import Observation
 import DICOMKit
 import DICOMCore

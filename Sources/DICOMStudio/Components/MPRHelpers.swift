@@ -3,6 +3,8 @@
 //
 // DICOM Studio — Platform-independent MPR calculation helpers
 // Reference: DICOM PS3.3 C.7.6.2 (Image Plane Module)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no transcribed DICOM-standard data — voxel-index slice, crosshair and reference-line arithmetic; the PS3.3 C.7.6.2 (Image Plane Module) citation names the right 2026a clause
 
 import Foundation
 

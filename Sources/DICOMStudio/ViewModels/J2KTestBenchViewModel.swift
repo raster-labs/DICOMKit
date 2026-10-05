@@ -7,6 +7,8 @@
 // matrix off the main actor, scores every cell, renders decoded-image
 // previews, computes decode-speed standings, persists each run, and exposes
 // regression deltas against a baseline and the published numbers.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (bench orchestration, persistence and standings); fixtures record Photometric Interpretation as DICOMCore's rawValue and syntax names as J2KBenchSyntax.shortName (A-1 names)
 
 import Foundation
 import Observation

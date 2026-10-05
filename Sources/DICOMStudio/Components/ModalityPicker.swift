@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — a sectioned picker over the DICOM modality defined terms.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — offers DICOMCore Modality.groupedByCategory: 79 current codes == the PS3.3 2026a C.7.3.1.1.1 Defined Terms (0 wrong, 0 missing); retired and private codes stay selectable when already bound
 
 #if canImport(SwiftUI)
 import SwiftUI

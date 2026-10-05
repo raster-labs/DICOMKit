@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — J2KSwift implementation testing panel ViewModel
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the support matrix is DICOMCore TransferSyntax.selectableEncodings filtered by isJPEG2000, named by SelectableEncoding.displayName (PS3.6 2026a Table A-1 names); the one UID literal (.4.90 default) is an A-1 row; no other standard data
 
 import Foundation
 import Observation

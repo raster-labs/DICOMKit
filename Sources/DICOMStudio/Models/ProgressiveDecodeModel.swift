@@ -7,6 +7,8 @@
 // preview first, then refines to half resolution, and finally full resolution.
 // This simulates J2K multi-resolution progressive display since
 // `J2KDecoder.decodeResolution` is not yet available upstream (see J2KSWIFT_BUG_REPORT.md).
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no transcribed DICOM-standard data — isJ2KTransferSyntax is the 7 PS3.6 2026a Table A-1 JPEG 2000 / HTJ2K rows (.90 .91 .92 .93 .201 .202 .203) resolved through DICOMCore TransferSyntax.isJPEG2000; resolution levels are codec, not DICOM, concepts
 
 import Foundation
 import DICOMCore

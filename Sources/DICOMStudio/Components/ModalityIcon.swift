@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Modality-specific SF Symbol icons
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the codes offered are DICOMCore Modality.allCases: 79 == the PS3.3 2026a C.7.3.1.1.1 Defined Terms (0 wrong, 0 missing) and 18 retired terms recognised on parse; the "79" quoted here equals that count; icons are presentation
 
 import Foundation
 import DICOMCore

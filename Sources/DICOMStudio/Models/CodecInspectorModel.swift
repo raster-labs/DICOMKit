@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Codec inspector models for the J2KSwift v3 integration (Phase 8)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (inspector state; transferSyntaxDescription is filled by CodecInspectorViewModel with the Table A-1 name)
 
 import Foundation
 import DICOMCore
