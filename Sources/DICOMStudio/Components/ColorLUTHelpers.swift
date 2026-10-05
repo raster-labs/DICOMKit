@@ -2,13 +2,20 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent color lookup table helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data: the palette ramps are this app's own (PS3.6 2026a Table B.1-1 defines HOT_IRON, PET, HOT_METAL_BLUE, PET_20_STEP, SPRING, SUMMER, FALL and WINTER by 256-entry tables in B.1.1–B.1.8; the ramps here are formulae that share three of those names and are not those tables — the standard palettes live in DICOMCore `PseudoColorPalette`); the citation was "C.11.10", which in 2026a is the Presentation State Identification Module: corrected to PS3.6 Annex B / PS3.3 A.33.3
 
 import Foundation
 
 /// Platform-independent helpers for pseudo-color palette and color LUT operations.
 ///
-/// Provides standard pseudo-color palettes and LUT application logic
-/// per DICOM PS3.3 C.11.10.
+/// Generates the palettes a stored Pseudo-Color Softcopy Presentation State
+/// (PS3.3 A.33.3) names through `PresentationStatePalette`. These ramps are
+/// computed, not the Well-known Color Palettes of PS3.6 Annex B (Table B.1-1
+/// lists them by UID; their tables are B.1.1–B.1.8): "Hot Iron", "PET" and
+/// "PET 20-Step" here share a name with those but are not those tables, and
+/// "Rainbow", "Hot Metal" and "Grayscale" have no standard counterpart. The
+/// standard tables themselves are DICOMCore's `PseudoColorPalette`.
 public enum ColorLUTHelpers: Sendable {
 
     /// Standard LUT size (256 entries for 8-bit output).

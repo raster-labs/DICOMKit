@@ -84,12 +84,14 @@ struct VOILUTTransformTests {
 @Suite("ModalityLUTTransform Tests")
 struct ModalityLUTTransformTests {
 
-    @Test("Default is slope=1, intercept=0")
+    /// Rescale Type (0028,1054) defaults to US, "Unspecified" — a PS3.3 2026a
+    /// C.11.1.1.2 Defined Term that claims no unit. HU is CT's alone.
+    @Test("Default is slope=1, intercept=0, Rescale Type US (PS3.3 C.11.1.1.2)")
     func testDefaults() {
         let lut = ModalityLUTTransform()
         #expect(lut.rescaleSlope == 1.0)
         #expect(lut.rescaleIntercept == 0.0)
-        #expect(lut.rescaleType == "HU")
+        #expect(lut.rescaleType == "US")
     }
 
     @Test("Custom values")

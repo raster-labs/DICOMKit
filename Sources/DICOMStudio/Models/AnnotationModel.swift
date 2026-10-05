@@ -2,10 +2,12 @@
 // DICOMStudio
 //
 // DICOM Studio — GSPS graphic and text annotation models
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `GraphicType` raw values are the 5 Graphic Type (0070,0023) Enumerated Values of PS3.3 2026a C.10.5 (POINT, POLYLINE, INTERPOLATED, CIRCLE, ELLIPSE), all match; `GraphicLayer` field comments name (0070,0002) Graphic Layer, (0070,0062) Graphic Layer Order, (0070,0066) Graphic Layer Recommended Display Grayscale Value and (0070,0068) Graphic Layer Description as PS3.6 2026a Table 6-1 does; `TextAnchorType` raw value IMAGE is not an Anchor Point Annotation Units (0070,0004) value (C.10.5: PIXEL, DISPLAY, MATRIX) — a public raw value, pending P-STUDIO-ANNOTATION-UNITS; checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 
-/// Types of GSPS graphic annotations per DICOM PS3.3 C.10.5.
+/// Graphic Type (0070,0023) Enumerated Values, PS3.3 C.10.5 / C.10.5.1.2.
 public enum GraphicType: String, Sendable, Equatable, Hashable, CaseIterable {
     case point = "POINT"
     case polyline = "POLYLINE"
@@ -29,11 +31,18 @@ public struct AnnotationPoint: Sendable, Equatable, Hashable {
     }
 }
 
-/// Anchor point type for text annotations per DICOM PS3.3 C.10.5.1.
+/// Anchor point units for text annotations — Anchor Point Annotation Units
+/// (0070,0004), PS3.3 C.10.5.
+///
+/// The standard's Enumerated Values are PIXEL (image relative, sub-pixel),
+/// DISPLAY (a fraction of the Specified Displayed Area) and MATRIX (Total
+/// Pixel Matrix relative, for tiled images). `imageRelative` means PIXEL; its
+/// raw value `IMAGE` is this app's and is not a DICOM value (renaming it is a
+/// public API change: P-STUDIO-ANNOTATION-UNITS).
 public enum TextAnchorType: String, Sendable, Equatable, Hashable {
-    /// Text is anchored to a specific image location.
+    /// Text is anchored to a specific image location (PIXEL units).
     case imageRelative = "IMAGE"
-    /// Text is anchored relative to the display.
+    /// Text is anchored relative to the display (DISPLAY units).
     case displayRelative = "DISPLAY"
 }
 
