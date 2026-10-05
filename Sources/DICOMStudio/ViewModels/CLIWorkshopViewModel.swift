@@ -9103,7 +9103,100 @@ case "dicom-study":
 
     // MARK: - C-MOVE / C-GET Execution (dicom-retrieve)
 
-    /// Performs a C-MOVE or C-GET retrieval from the configured server.
+    /// The `--priority` words of dicom-retrieve / dicom-qr → Priority (0000,0700) of the
+    /// C-MOVE-RQ / C-GET-RQ (PS3.7 2026a Tables 9.3-9 / 9.3-6: LOW 0002H, MEDIUM 0000H,
+    /// HIGH 0001H), as RetrievePriorityOption / QRPriorityOption map them.
+    nonisolated static func retrievePriorityOption(_ raw: String) -> DIMSEPriority {
+        switch raw.trimmingCharacters(in: .whitespaces).lowercased() {
+        case "low": return .low
+        case "high": return .high
+        default: return .medium
+        }
+    }
+
+    /// dicom-retrieve's validateUIDOptions(): baseline (PS3.4 C.4.2.2.1 / C.4.3.2.1) needs a
+    /// Unique Key for each level above the retrieve level; with --relational-retrieve
+    /// (PS3.4 C.4.2.2.2.1 / C.4.3.2.2.1) the retrieve level's own UID is enough. Returns the
+    /// CLI's ValidationError text (exit 64), or nil.
+    nonisolated static func retrieveUIDRefusal(studyUID: String, seriesUID: String, instanceUID: String,
+                                               uidList: String, relationalRetrieve: Bool) -> String? {
+        let hasStudy = !studyUID.isEmpty, hasSeries = !seriesUID.isEmpty, hasInstance = !instanceUID.isEmpty
+        guard hasStudy || !uidList.isEmpty || (relationalRetrieve && (hasSeries || hasInstance)) else {
+            return relationalRetrieve
+                ? "Must specify --study-uid, --series-uid, --instance-uid or --uid-list"
+                : "Must specify either --study-uid or --uid-list"
+        }
+        if relationalRetrieve { return nil }
+        if hasSeries && !hasStudy {
+            return "--series-uid requires --study-uid (PS3.4 C.4.2.2.1), or --relational-retrieve"
+        }
+        if hasInstance && (!hasStudy || !hasSeries) {
+            return "--instance-uid requires both --study-uid and --series-uid (PS3.4 C.4.2.2.1), or --relational-retrieve"
+        }
+        return nil
+    }
+
+    /// The Identifier dicom-retrieve builds (RetrieveExecutor.retrieveKeys): Query/Retrieve
+    /// Level from the most specific UID given, and every UID given (PS3.4 C.4.2.2.1;
+    /// relational-retrieve allows the above-level ones to be absent, C.4.2.2.2.1).
+    nonisolated static func retrieveKeys(studyUID: String?, seriesUID: String?, sopUID: String?) -> RetrieveKeys {
+        let level: QueryLevel = sopUID != nil ? .image : (seriesUID != nil ? .series : .study)
+        var keys = RetrieveKeys(level: level)
+        if let studyUID { keys = keys.studyInstanceUID(studyUID) }
+        if let seriesUID { keys = keys.seriesInstanceUID(seriesUID) }
+        if let sopUID { keys = keys.sopInstanceUID(sopUID) }
+        return keys
+    }
+
+    /// dicom-retrieve's RetrieveExecutor.checkResult: the Failed SOP Instance UID List
+    /// (0008,0058) lines, then — unless the result is a full success (status 0000 and no
+    /// failed sub-operations, PS3.4 C.4.2.2.1 / C.4.3.2.1) — the "Final … response" line
+    /// worded per PS3.4 2026a Table C.4-2 (C-MOVE) / C.4-3 (C-GET) via
+    /// DIMSEServiceStatusText and the counters per PS3.7 Tables 9.3-10 / 9.3-7, plus the
+    /// RetrieveError.retrievalFailed text the CLI exits 1 with.
+    nonisolated static func retrieveCheck(_ result: RetrieveResult, service: DIMSEStatusService)
+        -> (lines: [String], failure: String?) {
+        var lines: [String] = []
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            lines.append("Failed SOP Instance UID List (0008,0058), \(result.failedSOPInstanceUIDs.count) UID(s):")
+            for uid in result.failedSOPInstanceUIDs { lines.append("  \(uid)") }
+        }
+        if result.isSuccess { return (lines, nil) }
+        let described = DIMSEServiceStatusText.describe(result.status, service: service)
+        let counts = DIMSEServiceStatusText.subOperationCounts(result.progress)
+        lines.append("Final \(service.rawValue) response: " + described + " — " + counts)
+        var text = "\(service.rawValue) final response " + described + " (" + counts + ")"
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            text += "; Failed SOP Instance UID List (0008,0058): " + result.failedSOPInstanceUIDs.joined(separator: ", ")
+        }
+        return (lines, text)
+    }
+
+    /// dicom-qr's RetrieveExecutor.checkRetrieveResult: the stderr Failed SOP Instance UID
+    /// List block and the DICOMQRError.retrievalFailed text ("Retrieval failed: …") for a
+    /// final response that is not a full success.
+    nonisolated static func qrRetrieveCheck(_ result: RetrieveResult, service: DIMSEStatusService)
+        -> (lines: [String], failure: String?) {
+        if result.isSuccess { return ([], nil) }
+        let summary = "\(service.rawValue) final response "
+            + DIMSEServiceStatusText.describe(result.status, service: service)
+            + " (" + DIMSEServiceStatusText.subOperationCounts(result.progress) + ")"
+        var lines: [String] = []
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            lines.append("  Failed SOP Instance UID List (0008,0058):")
+            for uid in result.failedSOPInstanceUIDs { lines.append("    \(uid)") }
+        }
+        var text = "Retrieval failed: \(summary)"
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            text += "; Failed SOP Instance UID List (0008,0058): " + result.failedSOPInstanceUIDs.joined(separator: ", ")
+        }
+        return (lines, text)
+    }
+
+    /// Performs a C-MOVE or C-GET retrieval from the configured server — the in-app
+    /// dicom-retrieve: the same RetrieveConfiguration (Study Root, Priority (0000,0700),
+    /// optional relational-retrieval Extended Negotiation), the same RetrieveKeys, the
+    /// shared NetworkConsole chrome and DIMSEServiceStatusText status wording.
     private func executeDicomRetrieve() async {
         let hostValue = paramValue("host")
         let portValue = paramValue("port")
@@ -9119,16 +9212,24 @@ case "dicom-study":
         let outputDir = resolvedOutputDir(paramValue("output"))
         let hierarchical = paramValue("hierarchical") == "true"
         let verbose = paramValue("verbose") == "true"
+        let priority = Self.retrievePriorityOption(paramValue("priority"))
+        let relationalRetrieve = paramValue("relational-retrieve") == "true"
+        let parallel = Int(paramValue("parallel")) ?? 1
+
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: exitCode, output: message)
+        }
 
         // Clear previous retrieval state
         lastRetrievedFiles.removeAll()
         lastRetrievedOutputURL = securityScopedURLs["output"]
 
         guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
-            appendConsoleOutput("Error: A valid host is required (e.g. hostname or hostname:11112).\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1, output: "Invalid host")
+            refuse("A valid host is required (e.g. hostname or hostname:11112).", exitCode: 64)
             return
         }
 
@@ -9136,43 +9237,52 @@ case "dicom-study":
         let port = server.port
         let timeout = TimeInterval(timeoutStr) ?? 60
 
-        guard !studyUID.isEmpty || !seriesUID.isEmpty || !instanceUID.isEmpty || !uidListPath.isEmpty else {
-            appendConsoleOutput("Error: At least one UID is required (Study, Series, Instance, or a UID List file).\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1, output: "At least one UID required")
-            return
-        }
-
-        let isCMove = methodStr != "c-get"
-        if isCMove && moveDest.isEmpty {
-            appendConsoleOutput("Error: Move Destination AET is required for C-MOVE.\n")
-            appendConsoleOutput("  Tip: Switch to C-GET or provide a destination AE title.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1,
-                         output: "Move destination required for C-MOVE")
-            return
-        }
-
-        // Transfer syntax via the SHARED DICOMCore parser — the IDENTICAL alias map
-        // the dicom-retrieve CLI uses (TransferSyntax.parse), so both surfaces
-        // negotiate the same transfer syntax for the same command text. An
-        // unrecognized name is an error (CLI ValidationError), never a silent nil.
+        // Transfer syntax via the SHARED DICOMCore parser — the IDENTICAL alias map the
+        // dicom-retrieve CLI uses (TransferSyntax.parse); an unknown name is a usage error.
         let transferSyntaxRetrieve = paramValue("transfer-syntax")
         let preferredTSRetrieve: String?
         if !transferSyntaxRetrieve.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             guard let parsedTS = TransferSyntax.parse(transferSyntaxRetrieve) else {
-                appendConsoleOutput("Error: Unknown transfer syntax: \(transferSyntaxRetrieve)\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1,
-                             output: "Unknown transfer syntax: \(transferSyntaxRetrieve)")
+                refuse("Unknown transfer syntax: \(transferSyntaxRetrieve)", exitCode: 64)
                 return
             }
             preferredTSRetrieve = parsedTS.uid
         } else {
             preferredTSRetrieve = nil
+        }
+
+        let isCMove = methodStr != "c-get"
+        if isCMove && moveDest.isEmpty {
+            refuse("C-MOVE requires --move-dest parameter", exitCode: 64)
+            return
+        }
+        guard parallel >= 1 else {
+            refuse("--parallel must be at least 1", exitCode: 64)
+            return
+        }
+        // PS3.4 C.4.2.2.1 / C.4.3.2.1 (or C.4.2.2.2.1 with relational-retrieve): the UIDs
+        // the retrieve level needs — dicom-retrieve's validateUIDOptions texts, exit 64.
+        if let message = Self.retrieveUIDRefusal(studyUID: studyUID, seriesUID: seriesUID, instanceUID: instanceUID,
+                                                 uidList: uidListPath, relationalRetrieve: relationalRetrieve) {
+            refuse(message, exitCode: 64)
+            return
+        }
+
+        // The engine configuration exactly as RetrieveExecutor.retrieveConfiguration():
+        // Study Root, the requested Priority and, when asked, the relational-retrieval
+        // SOP Class Extended Negotiation (PS3.4 C.5.2.1 / C.5.3.1, Table C.5-3 byte 1).
+        let configuration: RetrieveConfiguration
+        do {
+            configuration = RetrieveConfiguration(
+                callingAETitle: try AETitle(callingAET),
+                calledAETitle: try AETitle(calledAET),
+                timeout: timeout,
+                informationModel: .studyRoot,
+                priority: priority,
+                extendedNegotiation: relationalRetrieve ? RetrieveExtendedNegotiation(relationalRetrieval: true) : nil)
+        } catch {
+            refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
+            return
         }
 
         // ── Bulk retrieval from a UID list file (--uid-list, honoring --parallel) ──
@@ -9182,175 +9292,26 @@ case "dicom-study":
         if !uidListPath.isEmpty {
             await executeDicomRetrieveBulk(
                 uidListPath: uidListPath,
-                host: host, port: port,
-                callingAET: callingAET, calledAET: calledAET,
+                host: host, port: port, configuration: configuration,
                 isCMove: isCMove, moveDest: moveDest,
                 preferredTransferSyntaxUID: preferredTSRetrieve,
                 outputDir: outputDir, hierarchical: hierarchical,
-                timeout: timeout, verbose: verbose
+                parallel: parallel, verbose: verbose
             )
             return
         }
 
-        // Recorded command for history: kept paste-runnable — when the app's
-        // C-FIND convenience resolves a missing Study/Series UID below, the
-        // resolved flags are substituted in (the CLI requires them explicitly).
-        var recordedCommand = commandPreview
-
-        // If Study UID is missing, look it up from the server (dcm4chee5 style).
-        // Try direct child-level query first (empty Study UID = universal match per PS3.4 C.6).
-        // If the server rejects it, fall back to iterating studies.
-        var resolvedStudyUID = studyUID
-        if resolvedStudyUID.isEmpty {
-            appendConsoleOutput("Resolving Study UID from server...\n")
-            do {
-                let lookupConfig = QueryConfiguration(
-                    callingAETitle: try AETitle(callingAET),
-                    calledAETitle: try AETitle(calledAET),
-                    timeout: timeout,
-                    informationModel: .studyRoot
-                )
-
-                // Attempt 1: direct child-level query with empty Study UID
-                var resolved = false
-                do {
-                    let lookupLevel: QueryLevel = !seriesUID.isEmpty ? .series : .image
-                    var lookupKeys = QueryKeys(level: lookupLevel)
-                        .requestStudyInstanceUID()
-                    if !seriesUID.isEmpty { lookupKeys = lookupKeys.seriesInstanceUID(seriesUID) }
-                    if !instanceUID.isEmpty { lookupKeys = lookupKeys.sopInstanceUID(instanceUID) }
-                    let lookupResults = try await DICOMQueryService.find(
-                        host: host, port: port,
-                        configuration: lookupConfig,
-                        queryKeys: lookupKeys
-                    )
-                    if let first = lookupResults.first,
-                       let uid = first.toStudyResult().studyInstanceUID, !uid.isEmpty {
-                        resolvedStudyUID = uid
-                        resolved = true
-                        appendConsoleOutput("  Resolved Study UID: \(resolvedStudyUID)\n")
-                    }
-                } catch {
-                    // Direct query failed — fall through to study iteration
-                    appendConsoleOutput("  Direct lookup failed, searching studies...\n")
-                }
-
-                // Attempt 2: iterate studies to find the one containing the target series/instance
-                if !resolved {
-                    let studyKeys = QueryKeys(level: .study)
-                        .requestStudyInstanceUID()
-                    let studies = try await DICOMQueryService.find(
-                        host: host, port: port,
-                        configuration: lookupConfig,
-                        queryKeys: studyKeys
-                    )
-                    let studyUIDs = studies.compactMap { $0.toStudyResult().studyInstanceUID }
-                    appendConsoleOutput("  Searching \(studyUIDs.count) study(ies)...\n")
-
-                    for sUID in studyUIDs {
-                        var subKeys: QueryKeys
-                        if !seriesUID.isEmpty {
-                            subKeys = QueryKeys(level: .series)
-                                .studyInstanceUID(sUID)
-                                .seriesInstanceUID(seriesUID)
-                                .requestSeriesInstanceUID()
-                        } else {
-                            // Instance UID only — discover series first, then check
-                            subKeys = QueryKeys(level: .image)
-                                .studyInstanceUID(sUID)
-                                .sopInstanceUID(instanceUID)
-                                .requestSOPInstanceUID()
-                        }
-                        let subResults = try await DICOMQueryService.find(
-                            host: host, port: port,
-                            configuration: lookupConfig,
-                            queryKeys: subKeys
-                        )
-                        if !subResults.isEmpty {
-                            resolvedStudyUID = sUID
-                            resolved = true
-                            appendConsoleOutput("  Resolved Study UID: \(resolvedStudyUID)\n")
-                            break
-                        }
-                    }
-                }
-
-                if !resolved {
-                    appendConsoleOutput("Error: Could not resolve Study UID from server.\n")
-                    consoleStatus = .error
-                    service.setConsoleStatus(.error)
-                    addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1,
-                                 output: "Study UID lookup failed")
-                    return
-                }
-            } catch {
-                appendConsoleOutput("Error: Study UID lookup failed — \(error.localizedDescription)\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1,
-                             output: "Study UID lookup failed: \(error.localizedDescription)")
-                return
-            }
-
-            // The CLI requires --study-uid explicitly — substitute the resolved
-            // UID into the recorded command so the history entry is paste-runnable.
-            recordedCommand += " --study-uid \(resolvedStudyUID)"
-            appendConsoleOutput("Resolved Study Instance UID: \(resolvedStudyUID) — added --study-uid to the recorded command.\n")
-        }
-
-        // If an Instance UID is given without its Series UID, resolve the series
-        // via an image-level C-FIND. The CLI rejects this state outright
-        // ("--instance-uid requires both --study-uid and --series-uid"); the app
-        // keeps its lookup convenience but must NEVER silently fall back to a
-        // whole-study retrieval under an "Instance" header.
-        var resolvedSeriesUID = seriesUID
-        if !instanceUID.isEmpty && resolvedSeriesUID.isEmpty {
-            appendConsoleOutput("Resolving Series UID from server...\n")
-            do {
-                let lookupConfig = QueryConfiguration(
-                    callingAETitle: try AETitle(callingAET),
-                    calledAETitle: try AETitle(calledAET),
-                    timeout: timeout,
-                    informationModel: .studyRoot
-                )
-                let lookupKeys = QueryKeys(level: .image)
-                    .studyInstanceUID(resolvedStudyUID)
-                    .sopInstanceUID(instanceUID)
-                    .requestSeriesInstanceUID()
-                let lookupResults = try await DICOMQueryService.find(
-                    host: host, port: port,
-                    configuration: lookupConfig,
-                    queryKeys: lookupKeys
-                )
-                if let first = lookupResults.first,
-                   let uid = first.toSeriesResult().seriesInstanceUID, !uid.isEmpty {
-                    resolvedSeriesUID = uid
-                    appendConsoleOutput("  Resolved Series UID: \(resolvedSeriesUID)\n")
-                }
-            } catch {
-                // Lookup failure falls through to the guard below.
-            }
-            guard !resolvedSeriesUID.isEmpty else {
-                appendConsoleOutput("Error: --instance-uid requires both --study-uid and --series-uid\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-retrieve", command: recordedCommand, exitCode: 1,
-                             output: "--instance-uid requires both --study-uid and --series-uid")
-                return
-            }
-            // Keep the recorded command paste-runnable (the CLI requires the flag).
-            recordedCommand += " --series-uid \(resolvedSeriesUID)"
-        }
-
-        // Determine retrieval level
+        // Determine retrieval level (the most specific UID given)
         let levelLabel: String
         if !instanceUID.isEmpty { levelLabel = "Instance" }
-        else if !resolvedSeriesUID.isEmpty { levelLabel = "Series" }
+        else if !seriesUID.isEmpty { levelLabel = "Series" }
         else { levelLabel = "Study" }
 
         // Header via the SHARED NetworkConsole formatter (DICOMNetwork) — identical to
-        // the dicom-retrieve CLI. The Output line shows the raw `--output` value (what
-        // the command preview passes), not the sandbox-resolved path, so it matches.
+        // the dicom-retrieve CLI: the Output line shows the raw `--output` value (what the
+        // command preview passes), Priority only when not the MEDIUM default, the
+        // relational-retrieval proposal when set, and the CLI's placeholder for a Study
+        // UID that relational-retrieve leaves out.
         let rawOutput = paramValue("output").isEmpty ? "." : paramValue("output")
         appendConsoleOutput(NetworkConsole.retrieveHeader(
             method: isCMove ? "C-MOVE" : "C-GET",
@@ -9358,157 +9319,165 @@ case "dicom-study":
             callingAE: callingAET, calledAE: calledAET,
             moveDestination: isCMove ? moveDest : nil,
             level: levelLabel,
-            studyUID: resolvedStudyUID,
-            seriesUID: resolvedSeriesUID.isEmpty ? nil : resolvedSeriesUID,
+            studyUID: studyUID.isEmpty ? "(not sent — relational-retrieve)" : studyUID,
+            seriesUID: seriesUID.isEmpty ? nil : seriesUID,
             instanceUID: instanceUID.isEmpty ? nil : instanceUID,
             output: rawOutput, hierarchical: hierarchical, timeout: Int(timeout),
-            transferSyntax: transferSyntaxRetrieve.isEmpty ? nil : transferSyntaxRetrieve))
+            transferSyntax: transferSyntaxRetrieve.isEmpty ? nil : transferSyntaxRetrieve,
+            priority: priority == .medium ? nil : priority,
+            relationalRetrieval: relationalRetrieve))
 
         appendConsoleOutput("Executing \(isCMove ? "C-MOVE" : "C-GET")...\n")
 
+        let keys = Self.retrieveKeys(studyUID: studyUID.isEmpty ? nil : studyUID,
+                                     seriesUID: seriesUID.isEmpty ? nil : seriesUID,
+                                     sopUID: instanceUID.isEmpty ? nil : instanceUID)
+
         do {
             if isCMove {
-                let onProgress: @Sendable (RetrieveProgress) -> Void = { _ in }
-
-                if !instanceUID.isEmpty {
-                    let result = try await DICOMRetrieveService.moveInstance(
-                        host: host, port: port,
-                        callingAE: callingAET, calledAE: calledAET,
-                        studyInstanceUID: resolvedStudyUID,
-                        seriesInstanceUID: resolvedSeriesUID,
-                        sopInstanceUID: instanceUID,
-                        moveDestination: moveDest,
-                        onProgress: onProgress,
-                        timeout: timeout
-                    )
-                    appendConsoleOutput(NetworkConsole.cMoveResult(
-                        status: "\(result.status)",
-                        completed: result.progress.completed,
-                        failed: result.progress.failed,
-                        warning: result.progress.warning,
-                        isSuccess: result.isSuccess))
-                } else if !resolvedSeriesUID.isEmpty {
-                    let result = try await DICOMRetrieveService.moveSeries(
-                        host: host, port: port,
-                        callingAE: callingAET, calledAE: calledAET,
-                        studyInstanceUID: resolvedStudyUID,
-                        seriesInstanceUID: resolvedSeriesUID,
-                        moveDestination: moveDest,
-                        onProgress: onProgress,
-                        timeout: timeout
-                    )
-                    appendConsoleOutput(NetworkConsole.cMoveResult(
-                        status: "\(result.status)",
-                        completed: result.progress.completed,
-                        failed: result.progress.failed,
-                        warning: result.progress.warning,
-                        isSuccess: result.isSuccess))
-                } else {
-                    let result = try await DICOMRetrieveService.moveStudy(
-                        host: host, port: port,
-                        callingAE: callingAET, calledAE: calledAET,
-                        studyInstanceUID: resolvedStudyUID,
-                        moveDestination: moveDest,
-                        onProgress: onProgress,
-                        timeout: timeout
-                    )
-                    appendConsoleOutput(NetworkConsole.cMoveResult(
-                        status: "\(result.status)",
-                        completed: result.progress.completed,
-                        failed: result.progress.failed,
-                        warning: result.progress.warning,
-                        isSuccess: result.isSuccess))
+                // Intermediate progress is suppressed (SCP pacing is not comparable);
+                // only the deterministic final result is rendered.
+                let result = try await DICOMRetrieveService.move(
+                    host: host, port: port,
+                    configuration: configuration,
+                    keys: keys,
+                    moveDestination: moveDest,
+                    onProgress: { _ in })
+                // C-MOVE result via the SHARED formatter, the status worded per PS3.4
+                // 2026a Table C.4-2 (DIMSEServiceStatusText; Studio half of D76).
+                appendConsoleOutput(NetworkConsole.cMoveResult(
+                    status: DIMSEServiceStatusText.describe(result.status, service: .cMove),
+                    completed: result.progress.completed,
+                    failed: result.progress.failed,
+                    warning: result.progress.warning,
+                    isSuccess: result.isSuccess))
+                let check = Self.retrieveCheck(result, service: .cMove)
+                for line in check.lines { appendConsoleOutput(line + "\n") }
+                if let failure = check.failure {
+                    refuse(failure, exitCode: 1)
+                    return
                 }
             } else {
-                // C-GET — pass preferred TS so the SCP sends back in that encoding
-                let stream: AsyncStream<DICOMRetrieveService.GetEvent>
-                if !instanceUID.isEmpty {
-                    stream = try await DICOMRetrieveService.getInstance(
-                        host: host, port: port,
-                        callingAE: callingAET, calledAE: calledAET,
-                        studyInstanceUID: resolvedStudyUID,
-                        seriesInstanceUID: resolvedSeriesUID,
-                        sopInstanceUID: instanceUID,
-                        preferredTransferSyntaxUID: preferredTSRetrieve,
-                        timeout: timeout
-                    )
-                } else if !resolvedSeriesUID.isEmpty {
-                    stream = try await DICOMRetrieveService.getSeries(
-                        host: host, port: port,
-                        callingAE: callingAET, calledAE: calledAET,
-                        studyInstanceUID: resolvedStudyUID,
-                        seriesInstanceUID: resolvedSeriesUID,
-                        preferredTransferSyntaxUID: preferredTSRetrieve,
-                        timeout: timeout
-                    )
-                } else {
-                    stream = try await DICOMRetrieveService.getStudy(
-                        host: host, port: port,
-                        callingAE: callingAET, calledAE: calledAET,
-                        studyInstanceUID: resolvedStudyUID,
-                        preferredTransferSyntaxUID: preferredTSRetrieve,
-                        timeout: timeout
-                    )
-                }
+                // C-GET — the preferred TS is proposed for the C-STORE sub-operations.
+                let stream = DICOMRetrieveService.get(
+                    host: host, port: port,
+                    configuration: configuration,
+                    keys: keys,
+                    preferredTransferSyntaxUID: preferredTSRetrieve)
 
                 var receivedCount = 0
+                var finalResult: RetrieveResult?
                 for await event in stream {
                     switch event {
                     case .instance(let sopInstanceUID, let sopClassUID, let transferSyntaxUID, let data):
                         receivedCount += 1
                         // Save the received data (Part 10). Per-instance lines are NOT
                         // printed: the SCP's send order/timing is volatile across
-                        // associations and would diverge from the CLI run. Only the
-                        // deterministic received count is reported in the summary.
+                        // associations and would diverge from the CLI run.
                         let savedPath = try writeReceivedDICOMFile(
                             data: data,
                             sopInstanceUID: sopInstanceUID,
                             sopClassUID: sopClassUID,
                             transferSyntaxUID: transferSyntaxUID,
-                            studyUID: resolvedStudyUID,
-                            seriesUID: resolvedSeriesUID.isEmpty ? nil : resolvedSeriesUID,
+                            studyUID: studyUID.isEmpty
+                                ? (Self.extractUID(element: 0x000D, fromDataSet: data, transferSyntaxUID: transferSyntaxUID) ?? "")
+                                : studyUID,
+                            seriesUID: seriesUID.isEmpty ? nil : seriesUID,
                             outputDir: outputDir,
                             hierarchical: hierarchical
                         )
                         lastRetrievedFiles.append(savedPath)
-                    case .progress, .completed:
-                        // Suppressed: progress cadence is SCP-dependent and differs
-                        // run-to-run; the summary below is the single deterministic line.
+                    case .progress:
+                        // Suppressed: progress cadence is SCP-dependent and differs run-to-run.
                         break
+                    case .completed(let result):
+                        finalResult = result
                     case .error(let error):
                         throw error
                     }
                 }
                 // C-GET summary via the SHARED formatter (handles the 0-instances case).
                 appendConsoleOutput(NetworkConsole.cGetSummary(received: receivedCount))
+                // PS3.4 C.4.3.2.1: same success rule as C-MOVE (Table C.4-3 wording).
+                if let result = finalResult {
+                    let check = Self.retrieveCheck(result, service: .cGet)
+                    for line in check.lines { appendConsoleOutput(line + "\n") }
+                    if let failure = check.failure {
+                        refuse(failure, exitCode: 1)
+                        return
+                    }
+                }
             }
 
             consoleStatus = .success
             service.setConsoleStatus(.success)
-            addToHistory(toolName: "dicom-retrieve", command: recordedCommand, exitCode: 0,
+            addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 0,
                          output: "Retrieve completed")
         } catch {
-            appendConsoleOutput("\n❌ Retrieval failed: \(error.localizedDescription)\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-retrieve", command: recordedCommand, exitCode: 1,
-                         output: error.localizedDescription)
+            refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
         }
+    }
+
+    /// Best-effort scan of a raw data set for a group 0020 UID — Study Instance UID
+    /// (0020,000D) or Series Instance UID (0020,000E) — as dicom-retrieve's
+    /// RetrieveExecutor.extractUID does for a relational retrieve that carries no study
+    /// UID to file under. Explicit / Implicit VR Little Endian; nil when unsure.
+    nonisolated static func extractUID(element target: UInt16, fromDataSet data: Data, transferSyntaxUID: String) -> String? {
+        let bytes = [UInt8](data)
+        let implicitVR = (transferSyntaxUID == "1.2.840.10008.1.2")
+        let longFormVRs: Set<String> = ["OB", "OW", "OF", "OD", "OL", "SQ", "UT", "UN", "UC", "UR"]
+        func u16(_ at: Int) -> UInt16? {
+            guard at + 2 <= bytes.count else { return nil }
+            return UInt16(bytes[at]) | (UInt16(bytes[at + 1]) << 8)
+        }
+        func u32(_ at: Int) -> UInt32? {
+            guard at + 4 <= bytes.count else { return nil }
+            return UInt32(bytes[at]) | (UInt32(bytes[at + 1]) << 8) | (UInt32(bytes[at + 2]) << 16) | (UInt32(bytes[at + 3]) << 24)
+        }
+        var offset = 0
+        while offset + 8 <= bytes.count {
+            guard let group = u16(offset), let element = u16(offset + 2) else { return nil }
+            if group > 0x0020 || (group == 0x0020 && element > target) { return nil }
+            let valueLength: Int
+            let valueOffset: Int
+            if implicitVR {
+                guard let len = u32(offset + 4) else { return nil }
+                valueLength = Int(len); valueOffset = offset + 8
+            } else {
+                let vr = String(decoding: bytes[offset + 4 ..< offset + 6], as: UTF8.self)
+                if longFormVRs.contains(vr) {
+                    guard let len = u32(offset + 8) else { return nil }
+                    valueLength = Int(len); valueOffset = offset + 12
+                } else {
+                    guard let len = u16(offset + 6) else { return nil }
+                    valueLength = Int(len); valueOffset = offset + 8
+                }
+            }
+            if valueLength == 0xFFFF_FFFF { return nil }
+            guard valueOffset + valueLength <= bytes.count else { return nil }
+            if group == 0x0020 && element == target {
+                let uid = String(decoding: bytes[valueOffset ..< valueOffset + valueLength], as: UTF8.self)
+                    .trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))
+                return uid.isEmpty ? nil : uid
+            }
+            offset = valueOffset + valueLength
+        }
+        return nil
     }
 
     /// Bulk study retrieval from a `--uid-list` file — the in-app equivalent of the
     /// CLI's `loadUIDList` + `RetrieveExecutor.retrieveBulk` (dicom-retrieve):
     /// newline-split UIDs (trimmed, empties and `#` comment lines dropped), study
-    /// retrievals batched by `--parallel` (clamped 1–8), one C-MOVE/C-GET result
-    /// block per study, then the closing "Bulk retrieval complete" tally.
+    /// retrievals batched by `--parallel`, one C-MOVE/C-GET result block per study
+    /// (status worded by DIMSEServiceStatusText), then the closing "Bulk retrieval
+    /// complete" tally and the CLI's partialFailure error (exit 1).
     private func executeDicomRetrieveBulk(
         uidListPath: String,
-        host: String, port: UInt16,
-        callingAET: String, calledAET: String,
+        host: String, port: UInt16, configuration: RetrieveConfiguration,
         isCMove: Bool, moveDest: String,
         preferredTransferSyntaxUID: String?,
         outputDir: String, hierarchical: Bool,
-        timeout: TimeInterval, verbose: Bool
+        parallel: Int, verbose: Bool
     ) async {
         // Load UIDs with the CLI's exact convention (DICOMRetrieve.loadUIDList).
         let listScopedURL = securityScopedURLs["uid-list"]
@@ -9532,7 +9501,6 @@ case "dicom-study":
             return
         }
 
-        let parallel = min(max(Int(paramValue("parallel")) ?? 1, 1), 8)
         if verbose {
             appendConsoleOutput("Loaded \(uids.count) UIDs from \(uidListPath)\n\n")
             appendConsoleOutput("Bulk retrieving \(uids.count) studies with parallelism: \(parallel)\n")
@@ -9563,34 +9531,33 @@ case "dicom-study":
                 for (offset, studyUID) in batch.enumerated() {
                     group.addTask {
                         do {
+                            let keys = RetrieveKeys.forStudy(studyUID)
                             if isCMove {
-                                let result = try await DICOMRetrieveService.moveStudy(
+                                let result = try await DICOMRetrieveService.move(
                                     host: host, port: port,
-                                    callingAE: callingAET, calledAE: calledAET,
-                                    studyInstanceUID: studyUID,
+                                    configuration: configuration,
+                                    keys: keys,
                                     moveDestination: moveDest,
-                                    onProgress: { _ in },
-                                    timeout: timeout
-                                )
-                                let text = NetworkConsole.cMoveResult(
-                                    status: "\(result.status)",
+                                    onProgress: { _ in })
+                                var text = NetworkConsole.cMoveResult(
+                                    status: DIMSEServiceStatusText.describe(result.status, service: .cMove),
                                     completed: result.progress.completed,
                                     failed: result.progress.failed,
                                     warning: result.progress.warning,
                                     isSuccess: result.isSuccess)
+                                let check = Self.retrieveCheck(result, service: .cMove)
+                                text += check.lines.map { $0 + "\n" }.joined()
                                 return BulkStudyOutcome(
                                     index: batchStart + offset, consoleText: text,
-                                    savedPaths: [], success: result.isSuccess,
-                                    errorText: result.isSuccess ? nil : "Retrieval failed with status: \(result.status)")
+                                    savedPaths: [], success: check.failure == nil, errorText: check.failure)
                             } else {
-                                let stream = try await DICOMRetrieveService.getStudy(
+                                let stream = DICOMRetrieveService.get(
                                     host: host, port: port,
-                                    callingAE: callingAET, calledAE: calledAET,
-                                    studyInstanceUID: studyUID,
-                                    preferredTransferSyntaxUID: preferredTransferSyntaxUID,
-                                    timeout: timeout
-                                )
+                                    configuration: configuration,
+                                    keys: keys,
+                                    preferredTransferSyntaxUID: preferredTransferSyntaxUID)
                                 var savedPaths: [String] = []
+                                var finalResult: RetrieveResult?
                                 for await event in stream {
                                     switch event {
                                     case .instance(let sopInstanceUID, let sopClassUID, let transferSyntaxUID, let data):
@@ -9604,23 +9571,30 @@ case "dicom-study":
                                             hierarchical: hierarchical
                                         )
                                         savedPaths.append(savedPath)
-                                    case .progress, .completed:
-                                        // Suppressed: cadence is SCP-dependent (see single-study path).
+                                    case .progress:
                                         break
+                                    case .completed(let result):
+                                        finalResult = result
                                     case .error(let error):
                                         throw error
                                     }
                                 }
+                                var text = NetworkConsole.cGetSummary(received: savedPaths.count)
+                                var failure: String?
+                                if let result = finalResult {
+                                    let check = Self.retrieveCheck(result, service: .cGet)
+                                    text += check.lines.map { $0 + "\n" }.joined()
+                                    failure = check.failure
+                                }
                                 return BulkStudyOutcome(
-                                    index: batchStart + offset,
-                                    consoleText: NetworkConsole.cGetSummary(received: savedPaths.count),
-                                    savedPaths: savedPaths, success: true, errorText: nil)
+                                    index: batchStart + offset, consoleText: text,
+                                    savedPaths: savedPaths, success: failure == nil, errorText: failure)
                             }
                         } catch {
                             return BulkStudyOutcome(
                                 index: batchStart + offset, consoleText: "",
                                 savedPaths: [], success: false,
-                                errorText: error.localizedDescription)
+                                errorText: (error as? DICOMNetworkError)?.description ?? error.localizedDescription)
                         }
                     }
                 }
@@ -9651,12 +9625,12 @@ case "dicom-study":
         appendConsoleOutput("  Failed: \(failureCount)\n")
 
         if failureCount > 0 {
-            // Mirrors the CLI's RetrieveError.partialFailure exit.
-            appendConsoleOutput("Error: Bulk retrieval partially failed: \(successCount) succeeded, \(failureCount) failed\n")
+            // Mirrors the CLI's RetrieveError.partialFailure exit (1).
+            let message = "Bulk retrieval partially failed: \(successCount) succeeded, \(failureCount) failed"
+            appendConsoleOutput("Error: \(message)\n")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1,
-                         output: "Bulk retrieval partially failed: \(successCount) succeeded, \(failureCount) failed")
+            addToHistory(toolName: "dicom-retrieve", command: commandPreview, exitCode: 1, output: message)
         } else {
             consoleStatus = .success
             service.setConsoleStatus(.success)
@@ -9667,7 +9641,11 @@ case "dicom-study":
 
     // MARK: - Query-Retrieve Execution (dicom-qr)
 
-    /// Performs an integrated C-FIND query followed by C-MOVE/C-GET retrieval.
+    /// Performs an integrated C-FIND query followed by C-MOVE/C-GET retrieval — the in-app
+    /// dicom-qr: keys through DICOMQueryService.buildQueryKeys (STUDY level), each
+    /// retrieval through a RetrieveConfiguration carrying the Priority (0000,0700), up
+    /// to --parallel studies at once with the CLI's line order, the final response
+    /// checked per PS3.4 C.4.2.2.1 / C.4.3.2.1 with DIMSEServiceStatusText wording.
     private func executeDicomQR() async {
         let hostValue = paramValue("host")
         let portValue = paramValue("port")
@@ -9680,23 +9658,43 @@ case "dicom-study":
         let patientName = paramValue("patient-name")
         let patientID = paramValue("patient-id")
         let studyDate = paramValue("study-date")
-        let modality = paramValue("modality")
+        var modality = paramValue("modality")
+        let strictModality = paramValue("strict-modality") == "true"
         let studyUID = paramValue("study-uid")
         let accession = paramValue("accession")
         let studyDesc = paramValue("study-description")
         let outputDir = resolvedOutputDir(paramValue("output"))
         let hierarchical = paramValue("hierarchical") == "true"
         let validate = paramValue("validate") == "true"
+        let verbose = paramValue("verbose") == "true"
+        let includeParentKeys = paramValue("include-parent-keys") == "true"
+        let priority = Self.retrievePriorityOption(paramValue("priority"))
+        let parallel = Int(paramValue("parallel")) ?? 1
+
+        /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-qr", command: commandPreview, exitCode: exitCode, output: message)
+        }
 
         // Clear previous retrieval state
         lastRetrievedFiles.removeAll()
         lastRetrievedOutputURL = securityScopedURLs["output"]
 
+        // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), as
+        // the CLI's run() does first.
+        let resolvedModality = Self.resolveModalityOption(modality, strict: strictModality, verbose: verbose)
+        if let message = resolvedModality.error {
+            refuse(message, exitCode: 1)
+            return
+        }
+        modality = resolvedModality.value
+        for line in resolvedModality.lines { appendConsoleOutput(line + "\n") }
+
         guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
-            appendConsoleOutput("Error: A valid host is required (e.g. hostname or hostname:11112).\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-qr", command: commandPreview, exitCode: 1, output: "Invalid host")
+            refuse("A valid host is required (e.g. hostname or hostname:11112).", exitCode: 64)
             return
         }
 
@@ -9704,21 +9702,28 @@ case "dicom-study":
         let port = server.port
         let timeout = TimeInterval(timeoutStr) ?? 60
 
-        let isCMove = methodStr != "c-get"
-        let isReviewOnly = modeStr == "review"
-
-        // The CLI requires --move-dest for c-move even in --review mode
-        // (DICOMQR run() validation) — enforce identically regardless of mode so
-        // the pasted preview and the in-app run agree.
-        if isCMove && moveDest.isEmpty {
-            appendConsoleOutput("Error: --move-dest is required for C-MOVE method\n")
-            appendConsoleOutput("  Tip: Switch to C-GET or provide a destination AE title.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-qr", command: commandPreview, exitCode: 1,
-                         output: "Move destination required for C-MOVE")
+        // --parallel sizes the concurrent batches; 0 or less would never retrieve.
+        guard parallel >= 1 else {
+            refuse("--parallel must be at least 1", exitCode: 64)
             return
         }
+
+        let isCMove: Bool
+        switch methodStr {
+        case "c-move", "":
+            isCMove = true
+            // The CLI requires --move-dest for c-move even in --review mode.
+            guard !moveDest.isEmpty else {
+                refuse("--move-dest is required for C-MOVE method", exitCode: 64)
+                return
+            }
+        case "c-get":
+            isCMove = false
+        default:
+            refuse("Invalid method: \(methodStr). Use c-move or c-get", exitCode: 64)
+            return
+        }
+        let isReviewOnly = modeStr == "review"
 
         let modeLabel: String = {
             switch modeStr {
@@ -9732,17 +9737,12 @@ case "dicom-study":
         }()
 
         // Transfer syntax via the SHARED DICOMCore parser (TransferSyntax.parse) —
-        // the IDENTICAL alias map the CLI uses; an unrecognized name is an error,
-        // never a silent nil.
+        // the IDENTICAL alias map the CLI uses; an unrecognized name is a usage error.
         let transferSyntaxQR = paramValue("transfer-syntax")
         let preferredTSQR: String?
         if !transferSyntaxQR.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             guard let parsedTS = TransferSyntax.parse(transferSyntaxQR) else {
-                appendConsoleOutput("Error: Unknown transfer syntax: \(transferSyntaxQR)\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-qr", command: commandPreview, exitCode: 1,
-                             output: "Unknown transfer syntax: \(transferSyntaxQR)")
+                refuse("Unknown transfer syntax: \(transferSyntaxQR)", exitCode: 64)
                 return
             }
             preferredTSQR = parsedTS.uid
@@ -9775,26 +9775,19 @@ case "dicom-study":
             filters: qrFilters))
 
         do {
-            var queryKeys = QueryKeys(level: .study)
-                .requestPatientName()
-                .requestPatientID()
-                .requestStudyInstanceUID()
-                .requestStudyDate()
-                .requestStudyDescription()
-                .requestAccessionNumber()
-                .requestModalitiesInStudy()
-                .requestNumberOfStudyRelatedSeries()
-                .requestNumberOfStudyRelatedInstances()
-
-            // Uppercase the patient-name match key like the CLI (DICOMQR.buildQueryKeys)
-            // so both surfaces send the identical C-FIND on case-sensitive PACS.
-            if !patientName.isEmpty { queryKeys = queryKeys.patientName(patientName.uppercased()) }
-            if !patientID.isEmpty { queryKeys = queryKeys.patientID(patientID) }
-            if !studyDate.isEmpty { queryKeys = queryKeys.studyDate(studyDate) }
-            if !modality.isEmpty { queryKeys = queryKeys.modalitiesInStudy(modality) }
-            if !studyUID.isEmpty { queryKeys = queryKeys.studyInstanceUID(studyUID) }
-            if !accession.isEmpty { queryKeys = queryKeys.accessionNumber(accession) }
-            if !studyDesc.isEmpty { queryKeys = queryKeys.studyDescription(studyDesc) }
+            // dicom-qr always queries at STUDY level, so every filter is a level-appropriate
+            // key (PS3.4 C.4.1.2.1). Keys are built through the SHARED DICOMNetwork mapping
+            // (DICOMQR.buildQueryKeys); the patient-name match key is upper-cased as before.
+            let queryKeys = DICOMQueryService.buildQueryKeys(
+                level: .study,
+                patientName: patientName.uppercased(),
+                patientID: patientID,
+                studyDate: studyDate,
+                modality: modality,
+                accession: accession,
+                studyDescription: studyDesc,
+                studyUID: studyUID,
+                includeParentLevelReturnKeys: includeParentKeys)
 
             let config = QueryConfiguration(
                 callingAETitle: try AETitle(callingAET),
@@ -9885,67 +9878,63 @@ case "dicom-study":
 
             appendConsoleOutput(NetworkConsole.qrRetrieving(count: studiesToRetrieve.count))
 
+            // Study Root configuration carrying the requested Priority (dicom-qr's
+            // RetrieveExecutor.retrieveConfiguration; relational-retrieval is not offered
+            // at STUDY level, PS3.4 C.4.2.2.1).
+            let retrieveConfiguration = RetrieveConfiguration(
+                callingAETitle: try AETitle(callingAET),
+                calledAETitle: try AETitle(calledAET),
+                timeout: timeout,
+                informationModel: .studyRoot,
+                priority: priority)
+
             var successCount = 0
             var failureCount = 0
+            let total = studiesToRetrieve.count
+            let numbered = Array(studiesToRetrieve.enumerated())
 
-            for (index, result) in studiesToRetrieve.enumerated() {
-                // Honor cancellation so a user-cancelled run stops promptly. (Not exercised
-                // by the parity compare, which always runs to completion.)
+            // Each retrieval opens its own association, so up to --parallel of them run
+            // at once; the per-study lines are printed in study order once a batch is
+            // done (with --parallel 1 each line is printed before its retrieval starts).
+            var batchStart = 0
+            while batchStart < numbered.count {
                 if Task.isCancelled { break }
-                let s = result.toStudyResult()
-                guard let uid = s.studyInstanceUID else {
-                    appendConsoleOutput(NetworkConsole.qrMissingStudyUID(index: index + 1, total: studiesToRetrieve.count))
-                    failureCount += 1
+                let batch = Array(numbered[batchStart ..< min(batchStart + parallel, numbered.count)])
+                batchStart += parallel
+
+                if parallel == 1, let (index, result) = batch.first {
+                    let s = result.toStudyResult()
+                    if let uid = s.studyInstanceUID {
+                        appendConsoleOutput(NetworkConsole.qrRetrieveLine(
+                            index: index + 1, total: total, patientName: s.patientName, studyUID: uid))
+                    }
+                    let outcome = await qrRetrieveStudy(result, host: host, port: port,
+                                                        configuration: retrieveConfiguration,
+                                                        isCMove: isCMove, moveDest: moveDest,
+                                                        preferredTransferSyntaxUID: preferredTSQR,
+                                                        outputDir: outputDir, hierarchical: hierarchical)
+                    qrPrintOutcome(outcome, index: index, total: total, result: result, lineAlreadyPrinted: true)
+                    if outcome.success { successCount += 1 } else { failureCount += 1 }
                     continue
                 }
-
-                appendConsoleOutput(NetworkConsole.qrRetrieveLine(
-                    index: index + 1, total: studiesToRetrieve.count,
-                    patientName: s.patientName, studyUID: uid))
-
-                do {
-                    if isCMove {
-                        _ = try await DICOMRetrieveService.moveStudy(
-                            host: host, port: port,
-                            callingAE: callingAET, calledAE: calledAET,
-                            studyInstanceUID: uid,
-                            moveDestination: moveDest,
-                            timeout: timeout
-                        )
-                    } else {
-                        let stream = try await DICOMRetrieveService.getStudy(
-                            host: host, port: port,
-                            callingAE: callingAET, calledAE: calledAET,
-                            studyInstanceUID: uid,
-                            preferredTransferSyntaxUID: preferredTSQR,
-                            timeout: timeout
-                        )
-                        for await event in stream {
-                            switch event {
-                            case .instance(let sopInstanceUID, let sopClassUID, let transferSyntaxUID, let data):
-                                let savedPath = try writeReceivedDICOMFile(
-                                    data: data,
-                                    sopInstanceUID: sopInstanceUID,
-                                    sopClassUID: sopClassUID,
-                                    transferSyntaxUID: transferSyntaxUID,
-                                    studyUID: uid,
-                                    outputDir: outputDir,
-                                    hierarchical: hierarchical
-                                )
-                                lastRetrievedFiles.append(savedPath)
-                            case .progress, .completed:
-                                break
-                            case .error(let err):
-                                throw err
-                            }
+                var outcomes: [Int: QRStudyRetrieveOutcome] = [:]
+                await withTaskGroup(of: (Int, QRStudyRetrieveOutcome).self) { group in
+                    for (index, result) in batch {
+                        group.addTask { [self] in
+                            (index, await self.qrRetrieveStudy(result, host: host, port: port,
+                                                               configuration: retrieveConfiguration,
+                                                               isCMove: isCMove, moveDest: moveDest,
+                                                               preferredTransferSyntaxUID: preferredTSQR,
+                                                               outputDir: outputDir, hierarchical: hierarchical))
                         }
                     }
-                    successCount += 1
-                    appendConsoleOutput(NetworkConsole.qrRetrieveOutcome(success: true, error: nil))
-                } catch {
-                    failureCount += 1
-                    appendConsoleOutput(NetworkConsole.qrRetrieveOutcome(
-                        success: false, error: error.localizedDescription))
+                    for await (index, outcome) in group { outcomes[index] = outcome }
+                }
+                for (index, result) in batch {
+                    let outcome = outcomes[index] ?? QRStudyRetrieveOutcome(success: false, missingStudyUID: false,
+                                                                            lines: [], error: "not run", savedPaths: [])
+                    qrPrintOutcome(outcome, index: index, total: total, result: result, lineAlreadyPrinted: false)
+                    if outcome.success { successCount += 1 } else { failureCount += 1 }
                 }
             }
 
@@ -9960,23 +9949,109 @@ case "dicom-study":
                 qrValidateRetrievedFiles(in: outputDir)
             }
 
-            if failureCount == 0 {
-                consoleStatus = .success
-                service.setConsoleStatus(.success)
-            } else {
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
+            // A study whose final C-MOVE/C-GET response was not Success with no failed
+            // sub-operations (PS3.4 C.4.2.2.1 / C.4.3.2.1), or that could not be
+            // requested at all, must not leave the exit code at 0 (DICOMQRError.retrievalIncomplete).
+            if failureCount > 0 {
+                refuse("Retrieval incomplete: \(successCount) study(ies) succeeded, \(failureCount) failed", exitCode: 1)
+                return
             }
-
-            addToHistory(toolName: "dicom-qr", command: commandPreview,
-                         exitCode: failureCount == 0 ? 0 : 1,
+            consoleStatus = .success
+            service.setConsoleStatus(.success)
+            addToHistory(toolName: "dicom-qr", command: commandPreview, exitCode: 0,
                          output: "\(successCount)/\(studiesToRetrieve.count) studies retrieved")
         } catch {
-            appendConsoleOutput("❌ Query-Retrieve failed: \(error.localizedDescription)\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-qr", command: commandPreview, exitCode: 1,
-                         output: error.localizedDescription)
+            refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
+        }
+    }
+
+    /// One study's dicom-qr retrieval outcome (DICOMQR.Query.StudyRetrieveOutcome plus
+    /// the console lines the CLI writes to stderr and the files written).
+    struct QRStudyRetrieveOutcome: Sendable {
+        let success: Bool
+        let missingStudyUID: Bool
+        let lines: [String]
+        let error: String?
+        let savedPaths: [String]
+    }
+
+    /// Retrieves one study the way dicom-qr's RetrieveExecutor.retrieveStudy does (silent:
+    /// the caller renders the `[i/N] Retrieving…` line and the ✅/❌ outcome); never throws.
+    private func qrRetrieveStudy(_ result: GenericQueryResult, host: String, port: UInt16,
+                                 configuration: RetrieveConfiguration,
+                                 isCMove: Bool, moveDest: String,
+                                 preferredTransferSyntaxUID: String?,
+                                 outputDir: String, hierarchical: Bool) async -> QRStudyRetrieveOutcome {
+        guard let uid = result.toStudyResult().studyInstanceUID else {
+            return QRStudyRetrieveOutcome(success: false, missingStudyUID: true, lines: [], error: nil, savedPaths: [])
+        }
+        do {
+            let keys = RetrieveKeys.forStudy(uid)
+            if isCMove {
+                let moveResult = try await DICOMRetrieveService.move(
+                    host: host, port: port, configuration: configuration,
+                    keys: keys, moveDestination: moveDest, onProgress: { _ in })
+                let check = Self.qrRetrieveCheck(moveResult, service: .cMove)
+                return QRStudyRetrieveOutcome(success: check.failure == nil, missingStudyUID: false,
+                                              lines: check.lines, error: check.failure, savedPaths: [])
+            }
+            let stream = DICOMRetrieveService.get(
+                host: host, port: port, configuration: configuration,
+                keys: keys, preferredTransferSyntaxUID: preferredTransferSyntaxUID)
+            var savedPaths: [String] = []
+            var finalResult: RetrieveResult?
+            for await event in stream {
+                switch event {
+                case .instance(let sopInstanceUID, let sopClassUID, let transferSyntaxUID, let data):
+                    let savedPath = try writeReceivedDICOMFile(
+                        data: data,
+                        sopInstanceUID: sopInstanceUID,
+                        sopClassUID: sopClassUID,
+                        transferSyntaxUID: transferSyntaxUID,
+                        studyUID: uid,
+                        outputDir: outputDir,
+                        hierarchical: hierarchical
+                    )
+                    savedPaths.append(savedPath)
+                case .progress:
+                    break
+                case .completed(let result):
+                    finalResult = result
+                case .error(let err):
+                    throw err
+                }
+            }
+            if let finalResult {
+                let check = Self.qrRetrieveCheck(finalResult, service: .cGet)
+                return QRStudyRetrieveOutcome(success: check.failure == nil, missingStudyUID: false,
+                                              lines: check.lines, error: check.failure, savedPaths: savedPaths)
+            }
+            return QRStudyRetrieveOutcome(success: true, missingStudyUID: false, lines: [], error: nil, savedPaths: savedPaths)
+        } catch {
+            return QRStudyRetrieveOutcome(success: false, missingStudyUID: false, lines: [],
+                                          error: (error as? DICOMNetworkError)?.description ?? error.localizedDescription,
+                                          savedPaths: [])
+        }
+    }
+
+    /// The per-study lines via the shared NetworkConsole formatter (DICOMQR.Query.printOutcome).
+    private func qrPrintOutcome(_ outcome: QRStudyRetrieveOutcome, index: Int, total: Int,
+                                result: GenericQueryResult, lineAlreadyPrinted: Bool) {
+        let s = result.toStudyResult()
+        if outcome.missingStudyUID {
+            appendConsoleOutput(NetworkConsole.qrMissingStudyUID(index: index + 1, total: total))
+            return
+        }
+        if !lineAlreadyPrinted, let uid = s.studyInstanceUID {
+            appendConsoleOutput(NetworkConsole.qrRetrieveLine(
+                index: index + 1, total: total, patientName: s.patientName, studyUID: uid))
+        }
+        for line in outcome.lines { appendConsoleOutput(line + "\n") }
+        lastRetrievedFiles.append(contentsOf: outcome.savedPaths)
+        if let error = outcome.error {
+            appendConsoleOutput(NetworkConsole.qrRetrieveOutcome(success: false, error: error))
+        } else {
+            appendConsoleOutput(NetworkConsole.qrRetrieveOutcome(success: true, error: nil))
         }
     }
 

@@ -643,6 +643,76 @@ def check_priority_and_store_outcomes(rep, parts, files, ctx):
               'dicom-send outcome classes, warning tally and SendError texts (D75 / P-SEND-SUMMARY Studio half)', matched, wrong)
 
 
+def check_retrieve_status_text_source(rep, parts, files, ctx):
+    """The dicom-retrieve / dicom-qr executors word a final C-MOVE / C-GET response through
+    DICOMNetwork.DIMSEServiceStatusText (PS3.4 2026a Tables C.4-2 / C.4-3) and the PS3.7 Tables 9.3-10 / 9.3-7
+    counters (subOperationCounts), build the request through RetrieveConfiguration(priority:extendedNegotiation:)
+    and RetrieveKeys at the most specific level, print the shared retrieveHeader(priority:relationalRetrieval:),
+    and carry the CLI-local RetrieveError / DICOMQRError / validateUIDOptions texts verbatim (Studio half of D76)."""
+    dw = ctx['dw']
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    wrong, matched = [], 0
+    # the PS3.4 status tables behind the wording exist and carry the Success / Warning rows
+    for lab, service in (('C.4-2', 'C-MOVE'), ('C.4-3', 'C-GET')):
+        rows = dw.table_rows(parts[4], lab)
+        text = ' '.join(' '.join(r) for r in rows)
+        if 'Sub-operations Complete - No Failures' not in text or 'B000' not in text:
+            wrong.append(f'PS3.4 Table {lab} ({service}): Success 0000 / Warning B000 rows not found; re-read')
+        else:
+            matched += 1
+    retrieve = block(vm, r'private func executeDicomRetrieve\(\) async \{', 'executeDicomRetrieve')
+    bulk = block(vm, r'private func executeDicomRetrieveBulk\([^{]*\{', 'executeDicomRetrieveBulk')
+    qr = block(vm, r'private func executeDicomQR\(\) async \{', 'executeDicomQR')
+    qr_study = block(vm, r'private func qrRetrieveStudy\([^{]*\{', 'qrRetrieveStudy')
+    for name, body, needles in (
+        ('executeDicomRetrieve', retrieve, (
+            'DIMSEServiceStatusText.describe(result.status, service: .cMove)',
+            'Self.retrieveCheck(result, service: .cMove)', 'Self.retrieveCheck(result, service: .cGet)',
+            'priority: priority == .medium ? nil : priority', 'relationalRetrieval: relationalRetrieve))',
+            'RetrieveExtendedNegotiation(relationalRetrieval: true)', 'Self.retrieveUIDRefusal(',
+            '"(not sent — relational-retrieve)"')),
+        ('executeDicomRetrieveBulk', bulk, (
+            'DIMSEServiceStatusText.describe(result.status, service: .cMove)', 'Self.retrieveCheck(result, service: .cGet)',
+            'RetrieveKeys.forStudy(studyUID)')),
+        ('executeDicomQR', qr, ('priority: priority)', 'DICOMQueryService.buildQueryKeys(', 'Self.resolveModalityOption(',
+                                '"--parallel must be at least 1"', 'Retrieval incomplete: ')),
+        ('qrRetrieveStudy', qr_study, ('Self.qrRetrieveCheck(moveResult, service: .cMove)', 'Self.qrRetrieveCheck(finalResult, service: .cGet)')),
+    ):
+        for needle in needles:
+            if needle in body:
+                matched += 1
+            else:
+                wrong.append(f'{name} must contain `{needle}`')
+    for stale in ('status: "\\(result.status)"', 'Resolving Study UID from server', '"INSTANCE"'):
+        if stale in retrieve + bulk + qr:
+            wrong.append(f'retrieve / qr executors still carry `{stale}` (raw DIMSEStatus or app-only lookup; the CLI words the status per PS3.4 Tables C.4-2 / C.4-3)')
+    helper_body = (block(vm, r'nonisolated static func retrieveCheck\([^{]*\{', 'retrieveCheck')
+                   + block(vm, r'nonisolated static func qrRetrieveCheck\([^{]*\{', 'qrRetrieveCheck'))
+    for needle in ('DIMSEServiceStatusText.describe(result.status, service: service)', 'DIMSEServiceStatusText.subOperationCounts(result.progress)'):
+        if helper_body.count(needle) >= 2:
+            matched += 1
+        else:
+            wrong.append(f'retrieveCheck / qrRetrieveCheck must both use `{needle}`')
+    # CLI-local texts mirrored verbatim (a trailing newline may sit inside the literal on one side and be
+    # appended by print() on the other): dicom-retrieve (RetrieveExecutor, DICOMRetrieve) and dicom-qr (DICOMQR)
+    def unnl(l):
+        return l[:-2] if l.endswith('\\n') else l
+    ws_lit = {unnl(l) for l in literals(vm) | literals(src(files, 'CLIWorkshopHelpers.swift'))}
+    for rel, keys in (('dicom-retrieve/RetrieveExecutor.swift', ('final response', 'Failed SOP Instance UID List', 'Bulk retrieval', 'Final ')),
+                      ('dicom-retrieve/DICOMRetrieve.swift', ('--relational-retrieve', '--uid-list', '--parallel must', '--move-dest parameter')),
+                      ('dicom-qr/DICOMQR.swift', ('Retrieval incomplete', 'Retrieval failed: ', 'Failed SOP Instance UID List', '--parallel must', '--move-dest is required', 'Invalid method'))):
+        for lit in literals(read(ctx, rel)):
+            if not any(k in lit for k in keys) or lit.startswith('#'):
+                continue
+            if unnl(lit) in ws_lit:
+                matched += 1
+            else:
+                wrong.append(f'{rel.split("/")[0]} text not mirrored by the Workshop: "{lit[:90]}"')
+    rep.check('PS3.4 2026a Tables C.4-2 / C.4-3, PS3.7 Tables 9.3-10 / 9.3-7 / 9.3-9 / 9.3-6, PS3.4 C.5.2.1: dicom-retrieve / dicom-qr '
+              'Workshop status wording, priority, relational-retrieve and CLI texts (D76 Studio half, P-RETRIEVE-PRIORITY / -EXTNEG, P-QR-PARALLEL)',
+              matched, wrong)
+
+
 CHECKS = [
     ('G1 workshop dcmdir profile picker', check_dcmdir_profile_picker),
     ('G1 workshop dcmdir fileset rules', check_dcmdir_fileset_rules),
@@ -655,4 +725,5 @@ CHECKS = [
     ('G1 validation panel', check_validation_panel),
     ('G1 workshop net query levels', check_query_retrieve_levels),
     ('G1 workshop net priority send', check_priority_and_store_outcomes),
+    ('G1 workshop net retrieve status', check_retrieve_status_text_source),
 ]

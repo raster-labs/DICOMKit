@@ -1220,4 +1220,24 @@ struct CLIWorkshopHelpersTests {
         #expect(priority.defaultValue == "medium")
         #expect(priority.helpText.contains("PS3.7 Table 9.3-1"))
     }
+
+    @Test("dicom-retrieve / dicom-qr offer --priority (PS3.7 Tables 9.3-9 / 9.3-6), --relational-retrieve (PS3.4 C.5.2.1), --strict-modality and --include-parent-keys")
+    func retrieveAndQRRows() throws {
+        for tool in ["dicom-retrieve", "dicom-qr"] {
+            let priority = try #require(netParam(tool, "priority"), Comment(rawValue: tool))
+            #expect(priority.allowedValues == ["low", "medium", "high"])
+            #expect(priority.defaultValue == "medium")
+            #expect(priority.helpText.contains("PS3.7 Tables 9.3-9 / 9.3-6"))
+            let ts = try #require(netParam(tool, "transfer-syntax"))
+            #expect(ts.allowedValues == [""] + TransferSyntax.negotiableImageTokens)
+        }
+        let relational = try #require(netParam("dicom-retrieve", "relational-retrieve"))
+        #expect(relational.flag == "--relational-retrieve")
+        #expect(relational.helpText.contains("PS3.4 C.5.2.1 / C.5.3.1, Table C.5-3 byte 1"))
+        #expect(netParam("dicom-retrieve", "series-uid")?.helpText.contains("Query/Retrieve Level SERIES") == true)
+        #expect(netParam("dicom-retrieve", "instance-uid")?.helpText.contains("Query/Retrieve Level IMAGE") == true)
+        #expect(netParam("dicom-qr", "strict-modality")?.flag == "--strict-modality")
+        #expect(netParam("dicom-qr", "include-parent-keys")?.flag == "--include-parent-keys")
+        #expect(netParam("dicom-qr", "modality")?.helpText == ModalityOptionValidator.helpText("filter"))
+    }
 }

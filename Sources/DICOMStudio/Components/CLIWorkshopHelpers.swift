@@ -673,22 +673,26 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "move-dest", flag: "--move-dest", displayName: "Move Destination AET",
                     parameterType: .textField, placeholder: "e.g. MY_STORE_SCP",
-                    helpText: "Destination AE title to receive files (required for C-MOVE)"
+                    helpText: "Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)"
                 ),
+                // Query/Retrieve Level (0008,0052) follows the most specific UID given
+                // (PS3.4 2026a Table C.6.1-1: STUDY / SERIES / IMAGE); baseline retrieval
+                // needs the Unique Key of every level above (C.4.2.2.1 / C.4.3.2.1) unless
+                // relational-retrieval is negotiated (C.4.2.2.2.1 / C.4.3.2.2.1).
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study-uid", displayName: "Study Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Study Instance UID to retrieve (0020,000D)"
+                    helpText: "Study Instance UID (0020,000D) to retrieve — Query/Retrieve Level STUDY"
                 ),
                 CLIParameterDefinition(
                     id: "series-uid", flag: "--series-uid", displayName: "Series Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Series Instance UID for series-level retrieval (0020,000E)"
+                    helpText: "Series Instance UID (0020,000E) to retrieve — Query/Retrieve Level SERIES (requires --study-uid unless --relational-retrieve)"
                 ),
                 CLIParameterDefinition(
                     id: "instance-uid", flag: "--instance-uid", displayName: "SOP Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "SOP Instance UID for instance-level retrieval (0008,0018)",
+                    helpText: "SOP Instance UID (0008,0018) to retrieve — Query/Retrieve Level IMAGE (requires --study-uid and --series-uid unless --relational-retrieve)",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
@@ -706,14 +710,31 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "hierarchical", flag: "--hierarchical", displayName: "Hierarchical Output",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Organize output as Patient/Study/Series directory tree"
+                    helpText: "Organize C-GET output hierarchically (<output>/<Study Instance UID>/<Series Instance UID>/); C-MOVE output is stored by the move destination"
                 ),
                 CLIParameterDefinition(
                     id: "parallel", flag: "--parallel", displayName: "Parallel Operations",
                     parameterType: .integerField, placeholder: "1",
-                    helpText: "Number of concurrent retrieval operations",
+                    helpText: "Number of parallel retrieval operations (default: 1)",
                     isAdvanced: true,
                     defaultValue: "1", minValue: 1, maxValue: 8
+                ),
+                // Priority (0000,0700) of the C-MOVE-RQ / C-GET-RQ, PS3.7 2026a Tables 9.3-9 /
+                // 9.3-6: LOW = 0002H, MEDIUM = 0000H, HIGH = 0001H (RetrievePriorityOption →
+                // DIMSEPriority → RetrieveConfiguration.priority).
+                CLIParameterDefinition(
+                    id: "priority", flag: "--priority", displayName: "Priority",
+                    parameterType: .enumPicker, placeholder: "medium",
+                    helpText: "Priority (0000,0700) of the C-MOVE-RQ / C-GET-RQ: low (0002H), medium (0000H), high (0001H) — PS3.7 Tables 9.3-9 / 9.3-6 (default: medium)",
+                    isAdvanced: true,
+                    defaultValue: "medium",
+                    allowedValues: ["low", "medium", "high"]
+                ),
+                CLIParameterDefinition(
+                    id: "relational-retrieve", flag: "--relational-retrieve", displayName: "Relational Retrieve",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Propose relational-retrieval in a SOP Class Extended Negotiation Sub-Item (PS3.4 C.5.2.1 / C.5.3.1, Table C.5-3 byte 1). With it, --series-uid or --instance-uid may be given without the UIDs of the levels above (PS3.4 C.4.2.2.2.1); if the SCP turns relational-retrieval down, such a request is not sent (exit 1)",
+                    isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "timeout", flag: "--timeout", displayName: "Timeout (s)",
@@ -725,7 +746,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "transfer-syntax", flag: "--transfer-syntax", displayName: "Transfer Syntax",
                     parameterType: .enumPicker, placeholder: "Any (negotiate)",
-                    helpText: "Requested transfer syntax for retrieved files — negotiated during association setup (PS3.8 §9.3.2)",
+                    helpText: "Requested transfer syntax for retrieved files — applies directly to C-GET and is advisory for C-MOVE. Accepts any name/UID the shared parser understands; canonical tokens: \(TransferSyntax.negotiableImageTokens.joined(separator: ", ")).",
                     // Single source of truth: DICOMCore's TransferSyntax.negotiableImageTokens —
                     // the same UID-level list the dicom-retrieve/dicom-qr CLIs derive their
                     // --transfer-syntax help from. Every token parses via TransferSyntax.parse
@@ -787,22 +808,22 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "move-dest", flag: "--move-dest", displayName: "Move Destination AET",
                     parameterType: .textField, placeholder: "e.g. MY_STORE_SCP",
-                    helpText: "Destination AE title to receive files (required for C-MOVE)"
+                    helpText: "Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)"
                 ),
                 CLIParameterDefinition(
                     id: "patient-name", flag: "--patient-name", displayName: "Patient Name",
                     parameterType: .textField, placeholder: "e.g. DOE^JOHN or DOE*",
-                    helpText: "Patient name filter — supports wildcards * and ? (0010,0010)"
+                    helpText: "Patient's Name (0010,0010) — wildcards * and ? per PS3.4 C.2.2.2.4 (case handling of PN matching is the SCP's)"
                 ),
                 CLIParameterDefinition(
                     id: "patient-id", flag: "--patient-id", displayName: "Patient ID",
                     parameterType: .textField, placeholder: "e.g. PAT001",
-                    helpText: "Patient ID to search for (0010,0020)"
+                    helpText: "Patient ID (0010,0020)"
                 ),
                 CLIParameterDefinition(
                     id: "study-date", flag: "--study-date", displayName: "Study Date",
                     parameterType: .textField, placeholder: "e.g. 20260101 or 20260101-20260310",
-                    helpText: "Study date or range in YYYYMMDD format (0008,0020)"
+                    helpText: "Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD or YYYYMMDD- (PS3.4 C.2.2.2.5)"
                 ),
                 CLIParameterDefinition(
                     id: "accession", flag: "--accession-number", displayName: "Accession Number",
@@ -812,19 +833,31 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .enumPicker, placeholder: "Any",
-                    helpText: "Imaging modality filter (0008,0060)",
+                    helpText: ModalityOptionValidator.helpText("filter"),
                     allowedValues: optionalModalityAllowedValues
+                ),
+                CLIParameterDefinition(
+                    id: "strict-modality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+                    isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study-uid", displayName: "Study Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Study Instance UID to filter by (0020,000D)",
+                    helpText: "Study Instance UID (0020,000D)",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "study-description", flag: "--study-description", displayName: "Study Description",
                     parameterType: .textField, placeholder: "e.g. CHEST* or *ABDOMEN*",
-                    helpText: "Study description filter — supports wildcards (0008,1030)",
+                    helpText: "Study Description (0008,1030) — wildcards * and ? per PS3.4 C.2.2.2.4",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "include-parent-keys", flag: "--include-parent-keys", displayName: "Include Parent Keys",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Non-baseline: also request parent-level attributes as return keys at SERIES/INSTANCE level (dicom-qr queries at STUDY level, where every requested key is already level-appropriate; accepted for parity with dicom-query)",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
@@ -836,20 +869,30 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "hierarchical", flag: "--hierarchical", displayName: "Hierarchical Output",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Organize output as Patient/Study/Series directory tree"
+                    helpText: "Organize C-GET output hierarchically (<output>/<Study Instance UID>/); C-MOVE output is stored by the move destination"
                 ),
                 CLIParameterDefinition(
                     id: "validate", flag: "--validate", displayName: "Validate Files",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Validate retrieved files after download",
+                    helpText: "Validate retrieved files",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "parallel", flag: "--parallel", displayName: "Parallel Operations",
                     parameterType: .integerField, placeholder: "1",
-                    helpText: "Maximum concurrent retrieval operations",
+                    helpText: "Maximum concurrent retrievals: up to N studies are retrieved at once, each on its own association; per-study lines are printed in study order (default: 1)",
                     isAdvanced: true,
                     defaultValue: "1", minValue: 1, maxValue: 8
+                ),
+                // Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ, PS3.7 2026a Tables 9.3-9 /
+                // 9.3-6 (QRPriorityOption → DIMSEPriority → RetrieveConfiguration.priority).
+                CLIParameterDefinition(
+                    id: "priority", flag: "--priority", displayName: "Priority",
+                    parameterType: .enumPicker, placeholder: "medium",
+                    helpText: "Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ: low (0002H), medium (0000H), high (0001H) — PS3.7 Tables 9.3-9 / 9.3-6 (default: medium)",
+                    isAdvanced: true,
+                    defaultValue: "medium",
+                    allowedValues: ["low", "medium", "high"]
                 ),
                 CLIParameterDefinition(
                     id: "timeout", flag: "--timeout", displayName: "Timeout (s)",
@@ -861,7 +904,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "transfer-syntax", flag: "--transfer-syntax", displayName: "Transfer Syntax",
                     parameterType: .enumPicker, placeholder: "Any (negotiate)",
-                    helpText: "Requested transfer syntax for retrieved files — negotiated during association setup (PS3.8 §9.3.2)",
+                    helpText: "Requested transfer syntax for retrieved files — negotiated during association setup. Accepts any name/UID the shared parser understands; canonical tokens: \(TransferSyntax.negotiableImageTokens.joined(separator: ", ")).",
                     // Single source of truth: DICOMCore's TransferSyntax.negotiableImageTokens —
                     // the same UID-level list the dicom-retrieve/dicom-qr CLIs derive their
                     // --transfer-syntax help from. Every token parses via TransferSyntax.parse

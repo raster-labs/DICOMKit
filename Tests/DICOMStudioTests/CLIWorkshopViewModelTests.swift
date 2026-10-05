@@ -597,4 +597,68 @@ struct CLIWorkshopViewModelTests {
         #expect(CLIWorkshopViewModel.sendStoreFailedText(.from(0xA700)).hasPrefix("C-STORE response status "))
         #expect(CLIWorkshopViewModel.sendPartialFailureText(succeeded: 2, failed: 1) == "Send completed with 2 succeeded and 1 failed")
     }
+
+    @Test("dicom-retrieve / dicom-qr --priority words → Priority (0000,0700) LOW 0002H / MEDIUM 0000H / HIGH 0001H (PS3.7 Tables 9.3-9 / 9.3-6)")
+    func retrievePriorityOption() {
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("low") == .low)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("medium") == .medium)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("high") == .high)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("") == .medium)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("low").rawValue == 0x0002)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("medium").rawValue == 0x0000)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("high").rawValue == 0x0001)
+    }
+
+    @Test("dicom-retrieve UID rules: baseline needs the Unique Keys of the levels above (PS3.4 C.4.2.2.1); --relational-retrieve relaxes them (C.4.2.2.2.1) — the CLI's texts")
+    func retrieveUIDRefusal() {
+        typealias VM = CLIWorkshopViewModel
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "", instanceUID: "", uidList: "", relationalRetrieve: false)
+                == "Must specify either --study-uid or --uid-list")
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "", instanceUID: "", uidList: "", relationalRetrieve: true)
+                == "Must specify --study-uid, --series-uid, --instance-uid or --uid-list")
+        // Without --study-uid (or --uid-list) the CLI's first guard answers; the per-level texts
+        // are reached when a --uid-list run also names a series / instance without its parents.
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "1.2", instanceUID: "", uidList: "", relationalRetrieve: false)
+                == "Must specify either --study-uid or --uid-list")
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "1.2", instanceUID: "", uidList: "uids.txt", relationalRetrieve: false)
+                == "--series-uid requires --study-uid (PS3.4 C.4.2.2.1), or --relational-retrieve")
+        #expect(VM.retrieveUIDRefusal(studyUID: "1", seriesUID: "", instanceUID: "1.2.3", uidList: "", relationalRetrieve: false)
+                == "--instance-uid requires both --study-uid and --series-uid (PS3.4 C.4.2.2.1), or --relational-retrieve")
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "1.2", instanceUID: "", uidList: "", relationalRetrieve: true) == nil)
+        #expect(VM.retrieveUIDRefusal(studyUID: "1", seriesUID: "1.2", instanceUID: "1.2.3", uidList: "", relationalRetrieve: false) == nil)
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "", instanceUID: "", uidList: "uids.txt", relationalRetrieve: false) == nil)
+        // The Identifier's level follows the most specific UID (PS3.4 Table C.6.1-1).
+        #expect(VM.retrieveKeys(studyUID: "1", seriesUID: nil, sopUID: nil).level == .study)
+        #expect(VM.retrieveKeys(studyUID: nil, seriesUID: "1.2", sopUID: nil).level == .series)
+        #expect(VM.retrieveKeys(studyUID: "1", seriesUID: "1.2", sopUID: "1.2.3").level == .image)
+    }
+
+    @Test("C-MOVE / C-GET final response: success only for 0000 with no failed sub-operations (PS3.4 C.4.2.2.1); failures worded by DIMSEServiceStatusText (Tables C.4-2 / C.4-3) with the PS3.7 counters")
+    func retrieveCheckTexts() {
+        typealias VM = CLIWorkshopViewModel
+        let ok = RetrieveResult(status: .from(0x0000), progress: RetrieveProgress(completed: 3))
+        #expect(VM.retrieveCheck(ok, service: .cMove).failure == nil)
+        #expect(VM.retrieveCheck(ok, service: .cMove).lines.isEmpty)
+        #expect(VM.qrRetrieveCheck(ok, service: .cGet).failure == nil)
+
+        let warning = RetrieveResult(status: .from(0xB000), progress: RetrieveProgress(completed: 2, failed: 1),
+                                     failedSOPInstanceUIDs: ["1.2.3"])
+        let check = VM.retrieveCheck(warning, service: .cMove)
+        let described = DIMSEServiceStatusText.describe(.from(0xB000), service: .cMove)
+        let counts = DIMSEServiceStatusText.subOperationCounts(warning.progress)
+        #expect(check.lines == ["Failed SOP Instance UID List (0008,0058), 1 UID(s):", "  1.2.3",
+                                "Final C-MOVE response: " + described + " — " + counts])
+        #expect(check.failure == "C-MOVE final response " + described + " (" + counts + "); Failed SOP Instance UID List (0008,0058): 1.2.3")
+        #expect(described.hasPrefix("Warning (0xB000): "))
+        #expect(counts == "Number of Completed Sub-operations: 2, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 0")
+
+        let qr = VM.qrRetrieveCheck(warning, service: .cGet)
+        let describedGet = DIMSEServiceStatusText.describe(.from(0xB000), service: .cGet)
+        #expect(qr.lines == ["  Failed SOP Instance UID List (0008,0058):", "    1.2.3"])
+        #expect(qr.failure == "Retrieval failed: C-GET final response " + describedGet + " (" + counts + "); Failed SOP Instance UID List (0008,0058): 1.2.3")
+
+        // A failed sub-operation makes a 0000 status a failure too (PS3.4 C.4.2.2.1).
+        let partial = RetrieveResult(status: .from(0x0000), progress: RetrieveProgress(completed: 1, failed: 1))
+        #expect(VM.retrieveCheck(partial, service: .cGet).failure != nil)
+    }
 }
