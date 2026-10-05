@@ -371,6 +371,32 @@ struct JP3DMPRWindowLevelTests {
         #expect(out[1] == 255)
     }
 
+    @Test("The mapping is the PS3.3 C.11.2.1.2.1 default LINEAR function")
+    func testLinearFunctionPerPS3_3() {
+        // PS3.3 2026a C.11.2.1.2.1, c = 128, w = 101: x <= 128 - 0.5 - 50 = 77.5 → 0;
+        // x > 128 - 0.5 + 50 = 177.5 → 255; x = 127.5 (the centre, c - 0.5) → 127.5 → 128;
+        // x = 100 → ((100 - 127.5) / 100 + 0.5) * 255 = 57.375 → 57.
+        let slice = makeSlice(values: [77, 78, 100, 127, 128, 177, 178])
+        let out = JP3DMPRSliceExtractor.applyWindowLevel(to: slice, windowCenter: 128, windowWidth: 101)
+        #expect(out[0] == 0)
+        #expect(out[1] == 1)    // ((78 - 127.5)/100 + 0.5) * 255 = 1.275
+        #expect(out[2] == 57)
+        #expect(out[3] == 126)  // ((127 - 127.5)/100 + 0.5) * 255 = 126.225
+        #expect(out[4] == 129)  // ((128 - 127.5)/100 + 0.5) * 255 = 128.775
+        #expect(out[5] == 254)  // ((177 - 127.5)/100 + 0.5) * 255 = 253.725
+        #expect(out[6] == 255)
+    }
+
+    @Test("Width 1 is a threshold at c - 0.5, never a division by zero")
+    func testWidthOneIsThreshold() {
+        // PS3.3 2026a C.11.2.1.2.1: "the value of 1 for w does not cause division by zero".
+        let slice = makeSlice(values: [99, 100, 101])
+        let out = JP3DMPRSliceExtractor.applyWindowLevel(to: slice, windowCenter: 100, windowWidth: 1)
+        #expect(out[0] == 0)    // 99 <= 99.5
+        #expect(out[1] == 255)  // 100 > 99.5
+        #expect(out[2] == 255)
+    }
+
     @Test("Output count equals pixel count")
     func testOutputCount() {
         let slice = makeSlice(values: [10, 20, 30, 40])

@@ -4,6 +4,8 @@
 // Platform-independent slice extraction from DICOMVolume for JP3D MPR views.
 // Supports axial, sagittal, and coronal orientations using the decoded
 // voxel data produced by the J2K3D codec.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — applyWindowLevel is the PS3.3 2026a C.11.2.1.2.1 default LINEAR function (thresholds c − 0.5 ∓ (w−1)/2, slope 255/(w−1); was c ∓ w/2 with slope 255/w); slice extraction is voxel-index geometry, not Image Plane Module data
 
 import Foundation
 import DICOMKit
@@ -247,8 +249,11 @@ public enum JP3DMPRSliceExtractor: Sendable {
 
     /// Applies window/level to produce a 8-bit display buffer.
     ///
-    /// Values are clamped to `[windowCenter - windowWidth/2,
-    /// windowCenter + windowWidth/2]` and linearly mapped to `[0, 255]`.
+    /// The default LINEAR VOI function of PS3.3 C.11.2.1.2.1, with ymin = 0 and
+    /// ymax = 255: `x <= c - 0.5 - (w-1)/2` → 0, `x > c - 0.5 + (w-1)/2` → 255,
+    /// otherwise `((x - (c - 0.5)) / (w-1) + 0.5) * 255`. A width of 1 is the
+    /// threshold the standard describes (the continuous segment is never reached);
+    /// a width below 1 is forbidden by the standard and gives a flat mid-grey.
     ///
     /// - Parameters:
     ///   - slice: The extracted raw slice.
@@ -260,12 +265,16 @@ public enum JP3DMPRSliceExtractor: Sendable {
         windowCenter: Double,
         windowWidth: Double
     ) -> Data {
-        guard windowWidth > 0 else {
+        guard windowWidth >= 1 else {
             return Data(repeating: 128, count: slice.pixelCount)
         }
 
-        let lower = windowCenter - windowWidth * 0.5
-        let scale = 255.0 / windowWidth
+        // PS3.3 C.11.2.1.2.1: the window spans (c - 0.5) ± (w - 1)/2.
+        let halfSpan = (windowWidth - 1) * 0.5
+        let lowerEdge = windowCenter - 0.5 - halfSpan
+        let upperEdge = windowCenter - 0.5 + halfSpan
+        let centreOffset = windowCenter - 0.5
+        let span = max(windowWidth - 1, Double.leastNonzeroMagnitude)
         let bytesPerVoxel = (slice.bitsAllocated + 7) / 8
         var output = Data(count: slice.pixelCount)
 
@@ -285,8 +294,15 @@ public enum JP3DMPRSliceExtractor: Sendable {
                     rawVal = Int((src + offset).loadUnaligned(as: UInt8.self))
                 }
 
-                let mapped = (Double(rawVal) - lower) * scale
-                output[i] = UInt8(max(0, min(255, Int(mapped.rounded()))))
+                let x = Double(rawVal)
+                if x <= lowerEdge {
+                    output[i] = 0
+                } else if x > upperEdge {
+                    output[i] = 255
+                } else {
+                    let y = ((x - centreOffset) / span + 0.5) * 255.0
+                    output[i] = UInt8(max(0, min(255, Int(y.rounded()))))
+                }
             }
         }
 
