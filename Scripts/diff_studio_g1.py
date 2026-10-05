@@ -25,6 +25,10 @@ or against the CLI source the Workshop must stay text-identical with:
                                      every UID / name is a PS3.6 Table A-1 row
   * uid / dump refusal texts         the Workshop's copies of the CLI-local UIDRootRule and dicom-dump texts
   * ValidationModel (panel)          --iod suggestions are PS3.6 Table A-1 UID Keywords; level texts = dicom-validate --level help
+  * pixel / codec tools (anon, image, pdf, pixedit, video, convert, compress): the E.3 Option flags vs PS3.15 Table E.1-1
+                                     columns / CID 7050, Conversion Type vs Table C.8-24, CID 3000 keywords, the compress
+                                     native --syntax set, the convert token set (DICOMConverter.cliTokens) and the
+                                     text-identical mirrors of the CLI-local rule files
 """
 import os
 import re
@@ -49,6 +53,12 @@ DEFERRED = {
     # PS3.18 Table 8.7.3-3) and the Workshop mirrors it; the by-flag collapse compares it with the LAST --format
     # declared (ups: OutputFormat table/json/csv/dicom-json). Not a finding (checked by "net web rules").
     "dicom-wado: --format (CLIWorkshopHelpers.swift": 'diff_studio.py by-flag collapse (retrieve --format is MetadataFormat json | xml on both surfaces; query / ups --format is OutputFormat)',
+    # dicom-video: the --type picker is `[""] + VideoConsole.TypeArgument.allCases.map(\.rawValue)` (the shared
+    # enum; the empty entry omits --type so the engine announces its endoscopic default, as the CLI does without
+    # --type). parse_definition reads that expression as the literal [""], so the generic check reports a picker of
+    # [''] lacking the three values. Pinned by CLIWorkshopVideoTests "pickers offer exactly the shared enums' raw
+    # values" and by "G1 workshop pixel cid3000 audio source" below.
+    "dicom-video: --type (CLIWorkshopHelpers.swift": 'diff_studio.py parse_definition reads `[""] + VideoConsole.TypeArgument.allCases.map(\\.rawValue)` as the literal [""]; the picker offers the shared enum\'s three values after the empty entry that omits --type',
 }
 # Flags the Workshop emits through an internal picker's cliMapping (not a flag-bearing parameter, so the
 # surface parser cannot see them): the operation picker of dicom-ups maps search / create-workitem / subscribe /
@@ -954,6 +964,441 @@ def check_web_rules(rep, parts, files, ctx):
               matched, wrong)
 
 
+
+
+# --- pixel / codec tools (dicom-anon, dicom-image, dicom-pdf, dicom-pixedit, dicom-video, dicom-convert, dicom-compress) ----
+
+def raw_definition(helpers, pid, flag):
+    """Source text of the CLIParameterDefinition with this id and flag (parse_definition reads a `[""] + Expr`
+    picker as the literal [""], so expression pickers are checked on the source text)."""
+    out = []
+    for m in re.finditer(r'id: "' + re.escape(pid) + r'", flag: "' + re.escape(flag) + r'"', helpers):
+        start = helpers.rfind('CLIParameterDefinition(', 0, m.start())
+        depth, i = 0, start + len('CLIParameterDefinition')
+        while i < len(helpers):
+            if helpers[i] == '(':
+                depth += 1
+            elif helpers[i] == ')':
+                depth -= 1
+                if depth == 0:
+                    out.append(helpers[start:i + 1])
+                    break
+            i += 1
+    return '\n'.join(out)
+
+
+def mirror_literals(cli_body, ws_body, keep, label, matched, wrong, limit=100):
+    """Every CLI literal containing one of `keep` must be in the Workshop mirror, text-identical."""
+    cli_lit, ws_lit = literals(cli_body), literals(ws_body)
+    for lit in sorted(cli_lit):
+        if not any(k in lit for k in keep):
+            continue
+        if lit in ws_lit:
+            matched += 1
+        else:
+            wrong.append(f'{label} text not mirrored by the Workshop: "{lit[:limit]}"')
+    return matched
+
+
+def check_pixel_anon_options(rep, parts, files, ctx):
+    """PS3.15 2026a Annex E / Table E.1-1 Option columns / PS3.16 CID 7050: the dicom-anon Workshop form offers every
+    E.3 Option flag the CLI declares (help texts the CLI's, each naming its CID 7050 Option), plus the pixel-cleaning
+    options; WorkshopAnonCLI mirrors the CLI-local AnonCLI texts."""
+    dk = ctx['dk']
+    ws = ctx['workshop_surface']()
+    helpers, vm = src(files, 'CLIWorkshopHelpers.swift'), src(files, 'CLIWorkshopViewModel.swift')
+    cli_support = read(ctx, 'dicom-anon/AnonCLISupport.swift')
+    cli_main = read(ctx, 'dicom-anon/main.swift')
+    wrong, matched = [], 0
+    # the CLI's PS315Flags.setFlags, in order
+    set_flags = re.findall(r'\("(--[a-z-]+)",\s*\w+\)', block(cli_support, r'var setFlags: \[String\] \{', 'PS315Flags.setFlags'))
+    ws_ids = re.findall(r'"([a-z-]+)"', block(vm, r'static let optionFlagIDs = \[', 'WorkshopAnonCLI.optionFlagIDs'))
+    if ['--' + i for i in ws_ids] != set_flags:
+        wrong.append(f'WorkshopAnonCLI.optionFlagIDs {ws_ids} != dicom-anon PS315Flags.setFlags {set_flags}')
+    else:
+        matched += len(set_flags)
+    cid7050 = {m.lower(): v for s_, v, m in dk.cid_rows(parts[16], 'CID 7050') if s_ == 'DCM'}
+    e3_titles = {ctx['dw'].section_title(parts[15], f'sect_E.3.{n}') for n in range(1, 12)}
+    for flag in set_flags + ['--clean-pixel-data', '--redact-region', '--redact-fill', '--allow-burned-in-phi']:
+        p = next((q for q in ws.get('dicom-anon', []) if q.get('flag') == flag), None)
+        if p is None:
+            wrong.append(f'dicom-anon form lacks {flag} (PS3.15 E.3 / E.1.1)')
+            continue
+        matched += 1
+        cli = cli_help(ctx, 'dicom-anon', flag)
+        help_text = str(p.get('helpText', ''))
+        if not cli or not help_text.startswith(cli[-1]):
+            wrong.append(f'{flag}: Workshop help {help_text[:70]!r} does not carry the CLI help {cli and cli[-1][:70]!r}')
+        else:
+            matched += 1
+        if flag in set_flags and flag != '--retain-dates':
+            norm = help_text.replace('With ', '').lower()
+            if not any(meaning in norm for meaning in cid7050):
+                wrong.append(f'{flag}: help names no PS3.16 CID 7050 De-identification Method Option')
+            else:
+                matched += 1
+    # Table E.1-1 Option columns (10 "Opt." columns) each have a flag
+    header = []
+    for lab, cap, t in parts[15].tables():
+        if lab == 'E.1-1':
+            header = [ctx['nd'].norm(' '.join(x.itertext())) for x in t.iter() if x.tag.split('}')[-1] == 'th']
+            break
+    columns = [h for h in header if h.endswith('Opt.')]
+    column_flags = {'Rtn. Safe Priv. Opt.': '--retain-safe-private', 'Rtn. UIDs Opt.': '--retain-uids',
+                    'Rtn. Dev. Id. Opt.': '--retain-device', 'Rtn. Inst. Id. Opt.': '--retain-institution',
+                    'Rtn. Pat. Chars. Opt.': '--retain-characteristics', 'Rtn. Long. Full Dates Opt.': '--retain-full-dates',
+                    'Rtn. Long. Modif. Dates Opt.': '--retain-modified-dates', 'Clean Desc. Opt.': '--clean-descriptors',
+                    'Clean Struct. Cont. Opt.': '--clean-structured-content', 'Clean Graph. Opt.': '--clean-graphics'}
+    if len(columns) != 10:
+        wrong.append(f'PS3.15 Table E.1-1: expected 10 Option columns, read {columns}; re-read the table')
+    for col in columns:
+        flag = column_flags.get(col)
+        if flag is None or flag not in set_flags:
+            wrong.append(f'Table E.1-1 column "{col}" has no dicom-anon flag in the Workshop form')
+        else:
+            matched += 1
+    for title in e3_titles - {'Retain Longitudinal Temporal Information Options'}:
+        if not any(title.replace(' Option', '').lower() in str(p.get('helpText', '')).lower() for p in ws.get('dicom-anon', [])):
+            wrong.append(f'PS3.15 E.3 "{title}" is named by no dicom-anon form help')
+        else:
+            matched += 1
+    # the mirror: every WorkshopAnonCLI text is an AnonCLI text (the mirror carries only what the legacy
+    # path needs; the ps315-only rules stay in the CLI until P-STUDIO-ANON-PS315)
+    ws_body = block(vm, r'enum WorkshopAnonCLI \{', 'WorkshopAnonCLI')
+    cli_lit = literals(cli_support) | literals(cli_main)
+    only_text = 'PS3.15 Annex E Option flags apply only to --profile ps315: '
+    for lit in sorted(literals(ws_body)):
+        if not any(k in lit for k in ('PS3', 'Deprecated', 'Note:', 'profile', 'not in PS3.6', 'Private Data Element', 'Attribute actions')):
+            continue
+        if lit in cli_lit or lit.startswith(only_text):
+            matched += 1
+        else:
+            wrong.append(f'WorkshopAnonCLI text is not a dicom-anon AnonCLI text: "{lit[:100]}"')
+    if only_text not in cli_support:
+        wrong.append(f'dicom-anon AnonCLI.validate no longer says "{only_text}"; update the mirror')
+    for lit in literals(cli_main):
+        if lit.startswith('Invalid anonymization profile') or lit == 'File not found':
+            if lit in literals(ws_body):
+                matched += 1
+            else:
+                wrong.append(f'dicom-anon text not mirrored: "{lit}"')
+    cli_aliases = re.findall(r'"([a-z0-9-]+)":\s*\.(\w+)', block(cli_support, r'static let profileAliases: \[String: Profile\] = \[', 'profileAliases'))
+    ws_aliases = re.findall(r'"([a-z0-9-]+)":\s*\.(\w+)', block(ws_body, r'static let profileAliases: \[String: Profile\] = \[', 'profileAliases'))
+    if cli_aliases != ws_aliases:
+        wrong.append(f'WorkshopAnonCLI.profileAliases {ws_aliases} != AnonCLI.profileAliases {cli_aliases}')
+    else:
+        matched += len(cli_aliases)
+    if 'WorkshopAnonCLI.optionsOnlyForPS315(setOptionFlags)' not in vm:
+        wrong.append('the dicom-anon executor must refuse set E.3 flags with the CLI\'s "apply only to --profile ps315" text')
+    else:
+        matched += 1
+    rep.check(f'PS3.15 2026a Annex E (Table E.1-1 {len(columns)} Option columns, E.3.1-E.3.11), PS3.16 CID 7050: dicom-anon Workshop '
+              f'E.3 option flags, pixel-cleaning options, CLI help and the WorkshopAnonCLI mirror (P-ANON-RETAIN-DATES; ps315 PEND)',
+              matched, wrong)
+
+
+def check_pixel_conversion_type(rep, parts, files, ctx):
+    """PS3.3 2026a Table C.8-24 Conversion Type (0008,0064) Defined Terms: DICOMKit ConversionType.definedTerms, the
+    CLI lists (dicom-pdf PDFEncapsulation.conversionTypes) and the dicom-image / dicom-pdf Workshop pickers."""
+    dw, nd = ctx['dw'], ctx['nd']
+    ws = ctx['workshop_surface']()
+    wrong, matched = [], 0
+    sec = dw.section_by_id(parts[3], 'sect_C.8.6.1')
+    text = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+    m = re.search(r'Conversion Type \(0008,0064\) 1 Describes the kind of image conversion\. Defined Terms: (.*?) Modality \(0008,0060\)', text)
+    std = re.findall(r'\b([A-Z]{2,3})\b(?= [A-Z][a-z])', m.group(1)) if m else []
+    if len(std) != 8:
+        wrong.append(f'PS3.3 Table C.8-24: could not read the 8 Defined Terms (got {std}); re-read the table')
+    kit = read(ctx, 'DICOMKit/SecondaryCapture/SecondaryCaptureImage.swift')
+    kit_terms = re.findall(r'"(\w+)"', re.search(r'static let definedTerms: \[String\] = \[([^\]]*)\]', kit).group(1))
+    if kit_terms != std:
+        wrong.append(f'ConversionType.definedTerms {kit_terms} != PS3.3 Table C.8-24 {std} (DICOMKit)')
+    else:
+        matched += len(std)
+    pdf_cli = read(ctx, 'dicom-pdf/EncapsulationAttributes.swift')
+    for label, body in (('dicom-pdf PDFEncapsulation.conversionTypes', pdf_cli),
+                        ('WorkshopPDFEncapsulation.conversionTypes', src(files, 'CLIWorkshopViewModel.swift'))):
+        terms = re.findall(r'"(\w+)"', re.search(r'static let conversionTypes = \[([^\]]*)\]', body).group(1))
+        if terms != std:
+            wrong.append(f'{label} {terms} != Table C.8-24 {std}')
+        else:
+            matched += 1
+    helpers = src(files, 'CLIWorkshopHelpers.swift')
+    if helpers.count('allowedValues: [""] + ConversionType.definedTerms') != 2:
+        wrong.append('the dicom-image and dicom-pdf --conversion-type pickers must both be [""] + ConversionType.definedTerms')
+    else:
+        matched += 2
+    for tool in ('dicom-image', 'dicom-pdf'):
+        p = param(ws, tool, 'conversion-type')
+        if p is None or 'allowedValues: [""] + ConversionType.definedTerms' not in raw_definition(helpers, 'conversion-type', '--conversion-type') or p.get('defaultValue'):
+            wrong.append(f'{tool} --conversion-type picker must be [""] + ConversionType.definedTerms with no default (the CLI writes WSD when absent)')
+        else:
+            matched += 1
+            cli = cli_help(ctx, tool, '--conversion-type')
+            if tool == 'dicom-image' and cli and cli[-1] != p.get('helpText'):
+                wrong.append(f'{tool} --conversion-type help differs from the CLI: {p.get("helpText")!r}')
+            for term in std:
+                if term not in str(p.get('helpText', '')):
+                    wrong.append(f'{tool} --conversion-type help does not name {term}')
+                else:
+                    matched += 1
+    bia = param(ws, 'dicom-pdf', 'burned-in-annotation')
+    pdf_values = re.findall(r'"(\w+)"', re.search(r'static let burnedInAnnotationValues = \[([^\]]*)\]', pdf_cli).group(1))
+    if bia is None or bia.get('allowedValues') != [''] + pdf_values:
+        wrong.append(f'dicom-pdf --burned-in-annotation picker must be [""] + {pdf_values} (PS3.3 Table C.24-2)')
+    else:
+        matched += len(pdf_values)
+    rep.check('PS3.3 2026a Table C.8-24 (8 Conversion Type Defined Terms) / Table C.24-2: dicom-image and dicom-pdf Workshop '
+              '--conversion-type / --burned-in-annotation pickers, DICOMKit ConversionType.definedTerms and the CLI lists',
+              matched, wrong)
+
+
+def check_pixel_cid3000_audio(rep, parts, files, ctx):
+    """PS3.16 2026a CID 3000 Audio Channel Source and PS3.3 A.32.x / Table C.7-1: the dicom-video Workshop mirrors of
+    AudioChannelSourceOption and VideoOptionConformance are text-identical and the CID rows match."""
+    dk = ctx['dk']
+    ws = ctx['workshop_surface']()
+    helpers = src(files, 'CLIWorkshopHelpers.swift')
+    cli_audio = read(ctx, 'dicom-video/AudioChannelSourceOption.swift')
+    cli_conf = read(ctx, 'dicom-video/OptionConformance.swift')
+    wrong, matched = [], 0
+    pat = r'\("([a-z-]+)",\s*VideoAudioChannel\.Source\(dcmCodeValue:\s*"(\d+)",\s*codeMeaning:\s*"([^"]+)"\)\)'
+    cli_rows = re.findall(pat, cli_audio)
+    ws_rows = re.findall(pat, block(helpers, r'enum WorkshopAudioChannelSourceOption \{', 'WorkshopAudioChannelSourceOption'))
+    if cli_rows != ws_rows:
+        wrong.append(f'WorkshopAudioChannelSourceOption.keywords differ from the CLI: {ws_rows} vs {cli_rows}')
+    cid = [(v, m) for s_, v, m in dk.cid_rows(parts[16], 'CID 3000') if s_ == 'DCM']
+    if [(v, m) for _, v, m in ws_rows] != cid:
+        wrong.append(f'Workshop CID 3000 rows {[(v, m) for _, v, m in ws_rows]} != PS3.16 CID 3000 {cid}')
+    else:
+        matched += len(cid)
+    for kw, _, meaning in ws_rows:
+        if kw != re.sub(r"[^a-z0-9]+", '-', meaning.lower().replace("'", '')).strip('-'):
+            wrong.append(f'keyword {kw} is not the hyphenated Code Meaning "{meaning}"')
+        else:
+            matched += 1
+    ws_body = block(helpers, r'enum WorkshopAudioChannelSourceOption \{', 'WorkshopAudioChannelSourceOption')
+    matched = mirror_literals(cli_audio, ws_body, ('CID 3000', '--audio-channel-source', 'keywords', 'SCHEME'), 'dicom-video AudioChannelSourceOption', matched, wrong)
+    ws_conf = block(helpers, r'enum WorkshopVideoOptionConformance \{', 'WorkshopVideoOptionConformance')
+    matched = mirror_literals(cli_conf, ws_conf, ('refused', 'PS3', 'ES', 'GM', 'XC', 'A.32'), 'dicom-video VideoOptionConformance', matched, wrong)
+    for mod, sect in (('ES', 'A.32.5.4.1'), ('GM', 'A.32.6.4.1'), ('XC', 'A.32.7.4.1')):
+        s = ctx['dw'].section_by_id(parts[3], 'sect_' + sect)
+        t = ctx['nd'].norm(' '.join(s.itertext())) if s is not None else ''
+        if f'shall be {mod}' not in t:
+            wrong.append(f'PS3.3 {sect}: "shall be {mod}" not found; re-read')
+        elif f'return ("{mod}", "{sect}")' not in ws_conf:
+            wrong.append(f'WorkshopVideoOptionConformance.requiredModality lacks ("{mod}", "{sect}")')
+        else:
+            matched += 1
+    sex = ctx['dw'].section_by_id(parts[3], 'sect_C.7.1.1')
+    sex_text = ctx['nd'].norm(' '.join(sex.itertext())) if sex is not None else ''
+    sex_values = re.findall(r'\b([MFO]) (?:male|female|other)\b', sex_text.partition("Patient's Sex")[2].partition('See Note')[0])
+    if sex_values[:3] != ['M', 'F', 'O'] or 'static let patientSexValues = ["M", "F", "O"]' not in ws_conf:
+        wrong.append(f'Patient\'s Sex Enumerated Values (PS3.3 C.7.1.1 / Table C.7-1): standard {sex_values[:3]}, Workshop patientSexValues must be ["M", "F", "O"]')
+    else:
+        matched += 3
+    for pid, expr in (('modality', 'WorkshopVideoOptionConformance.modalityHelp'), ('patientSex', 'WorkshopVideoOptionConformance.patientSexHelp'),
+                      ('patientBirthDate', 'WorkshopVideoOptionConformance.patientBirthDateHelp'), ('transferSyntax', 'WorkshopVideoOptionConformance.transferSyntaxHelp')):
+        p = param(ws, 'dicom-video', pid)
+        if p is None or not str(p.get('helpText', '')).startswith(expr):
+            wrong.append(f'dicom-video {pid} help must be the CLI\'s {expr} (states the refusal)')
+        else:
+            matched += 1
+    for pid, flag in (('strictModality', '--strict-modality'), ('audioChannelSource', '--audio-channel-source')):
+        p = param(ws, 'dicom-video', pid)
+        if p is None or p.get('flag') != flag:
+            wrong.append(f'dicom-video form lacks {flag}')
+        else:
+            matched += 1
+    t = param(ws, 'dicom-video', 'type')
+    if t is None or 'allowedValues: [""] + VideoConsole.TypeArgument.allCases.map(\\.rawValue)' not in raw_definition(helpers, 'type', '--type'):
+        wrong.append('dicom-video --type picker must be [""] + VideoConsole.TypeArgument.allCases (the DEFERRED by-parser row)')
+    else:
+        matched += 1
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    for needle in ('WorkshopVideoOptionConformance.violations(', 'WorkshopAudioChannelSourceOption.parse(', 'metadata.audioChannelSources = sources'):
+        if needle in vm:
+            matched += 1
+        else:
+            wrong.append(f'dicom-video executor does not use {needle}')
+    rep.check(f'PS3.16 2026a CID 3000 ({len(cid)} rows), PS3.3 A.32.5.4.1 / A.32.6.4.1 / A.32.7.4.1, C.7.1.1 Patient\'s Sex: dicom-video Workshop '
+              '--audio-channel-source (D56) and the P-VIDEO-* refusals mirror the CLI', matched, wrong)
+
+
+def check_pixel_compress_syntax(rep, parts, files, ctx):
+    """PS3.6 2026a Table A-1 / PS3.5 A.1, A.2, A.3, A.5: dicom-compress decompress / batch --syntax picker is the
+    CLI's NativeTargetSyntax (explicit-le, implicit-le, deflate, explicit-be) and the refusal texts are mirrored."""
+    dw = ctx['dw']
+    ws = ctx['workshop_surface']()
+    helpers = src(files, 'CLIWorkshopHelpers.swift')
+    cli = read(ctx, 'dicom-compress/main.swift')
+    core = read(ctx, 'DICOMCore/TransferSyntax.swift')
+    wrong, matched = [], 0
+    pat = r'\("([a-z-]+)",\s*\.(\w+)\)'
+    cli_acc = re.findall(pat, block(cli, r'enum NativeTargetSyntax \{', 'NativeTargetSyntax'))
+    ws_body = block(helpers, r'enum WorkshopNativeTargetSyntax \{', 'WorkshopNativeTargetSyntax')
+    ws_acc = re.findall(pat, ws_body)
+    if cli_acc != ws_acc or not cli_acc:
+        wrong.append(f'WorkshopNativeTargetSyntax.accepted {ws_acc} != dicom-compress NativeTargetSyntax.accepted {cli_acc}')
+    registry = dw.uid_registry(parts[6])
+    for name, const in cli_acc:
+        m = re.search(r'static let ' + const + r' = TransferSyntax\(\s*uid:\s*"([\d.]+)"', core)
+        uid = m.group(1) if m else None
+        if uid is None or uid not in registry:
+            wrong.append(f'{name}: DICOMCore TransferSyntax.{const} UID {uid} is not a PS3.6 Table A-1 row')
+        elif not any(registry[uid][0].startswith(n) for n in ('Implicit VR Little Endian', 'Explicit VR Little Endian', 'Deflated Explicit VR Little Endian', 'Explicit VR Big Endian')):
+            wrong.append(f'{name}: {uid} is "{registry[uid][0]}", not a native (PS3.5 A.1 / A.2 / A.3 / A.5) Transfer Syntax')
+        else:
+            matched += 1
+    for sub, pid in (('decompress', 'syntax'), ('batch', 'syntax')):
+        p = param(ws, 'dicom-compress', pid)
+        if p is None or p.get('allowedValues') != 'WorkshopNativeTargetSyntax.accepted.map(\\.name)' or p.get('defaultValue') != 'explicit-le':
+            wrong.append(f'dicom-compress --syntax picker must be WorkshopNativeTargetSyntax.accepted.map(\\.name) with default explicit-le')
+        else:
+            matched += 1
+        cli_h = cli_help(ctx, 'dicom-compress', '--syntax')
+        if p is not None and cli_h and p.get('helpText') not in cli_h:
+            wrong.append(f'dicom-compress --syntax help {p.get("helpText")!r} is neither subcommand\'s CLI help')
+        else:
+            matched += 1
+    matched = mirror_literals(block(cli, r'enum NativeTargetSyntax \{', 'NativeTargetSyntax'), ws_body, ('syntax', 'PS3', 'Native targets'), 'dicom-compress NativeTargetSyntax', matched, wrong)
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    if vm.count('WorkshopNativeTargetSyntax.resolve(syntax)') < 2:
+        wrong.append('decompress and batch executors must resolve --syntax through WorkshopNativeTargetSyntax.resolve')
+    else:
+        matched += 2
+    if 'CompressionConsole.infoJSON(info, filePath: displayPath)' not in vm:
+        wrong.append('info --json must render through the shared CompressionConsole.infoJSON (P-COMPRESS-JSON)')
+    else:
+        matched += 1
+    rep.check(f'PS3.6 2026a Table A-1 / PS3.5 A.1, A.2, A.3, A.5: dicom-compress Workshop decompress / batch --syntax picker is the '
+              f'{len(cli_acc)} native targets of NativeTargetSyntax, refusals mirrored (P-COMPRESS-SYNTAX); info --json shared (P-COMPRESS-JSON)',
+              matched, wrong)
+
+
+def check_pixel_convert_tokens(rep, parts, files, ctx):
+    """PS3.6 2026a Table A-1 keywords / PS3.3 Table 10-3: the dicom-convert Workshop --transfer-syntax picker is
+    DICOMConverter.cliTokens, the CLI-local TransferSyntaxKeywords are mirrored and their keywords are Table A-1 rows,
+    frames are selected by Frame number from 1 with --frame deprecated."""
+    dw = ctx['dw']
+    ws = ctx['workshop_surface']()
+    helpers, vm = src(files, 'CLIWorkshopHelpers.swift'), src(files, 'CLIWorkshopViewModel.swift')
+    cli = read(ctx, 'dicom-convert/TransferSyntaxKeywords.swift')
+    wrong, matched = [], 0
+    pat = r'"(\w+)":\s*"([\d.]+)"'
+    cli_add = re.findall(pat, block(cli, r'static let additional: \[String: String\] = \[', 'additional'))
+    ws_body = block(helpers, r'enum WorkshopTransferSyntaxKeywords \{', 'WorkshopTransferSyntaxKeywords')
+    ws_add = re.findall(pat, block(ws_body, r'static let additional: \[String: String\] = \[', 'additional'))
+    if cli_add != ws_add or not cli_add:
+        wrong.append(f'WorkshopTransferSyntaxKeywords.additional differs from dicom-convert: {ws_add} vs {cli_add}')
+    registry = dw.uid_registry(parts[6])
+    for keyword, uid in ws_add:
+        row = registry.get(uid)
+        if row is None or row[1].strip() != keyword:
+            wrong.append(f'{keyword} -> {uid}: PS3.6 Table A-1 keyword of that UID is {row and row[1]!r}')
+        else:
+            matched += 1
+    matched = mirror_literals(cli, ws_body, ('Table A-1', 'Changed', 'Reversible'), 'dicom-convert TransferSyntaxKeywords', matched, wrong)
+    p = param(ws, 'dicom-convert', 'transfer-syntax')
+    if p is None or 'allowedValues: [""] + DICOMConverter.cliTokens' not in raw_definition(helpers, 'transfer-syntax', '--transfer-syntax') or p.get('helpText') != 'WorkshopTransferSyntaxKeywords.optionHelp':
+        wrong.append('dicom-convert --transfer-syntax picker must be [""] + DICOMConverter.cliTokens with the CLI\'s TransferSyntaxKeywords.optionHelp')
+    else:
+        matched += 1
+    # the three reassigned keywords are Table A-1 rows of their UIDs, and the Reversible spellings are catalog tokens
+    core = read(ctx, 'DICOMCore/TransferSyntax.swift')
+    kit = read(ctx, 'DICOMKit/DICOMConverter.swift')
+    for keyword, uid, name, reversible, general in re.findall(r'\("(\w+)",\s*"([\d.]+)",\s*"([^"]+)",\s*"(\w+)",\s*"([\d.]+)"\)', block(core, r'static let reassignedTableA1Keywords[^=]*= \[', 'reassignedTableA1Keywords')):
+        row = registry.get(uid)
+        if row is None or row[1].strip() != keyword:
+            wrong.append(f'{keyword}: PS3.6 Table A-1 keyword of {uid} is {row and row[1]!r} (DICOMCore)')
+        elif f'cli: "{reversible}"' not in kit:
+            wrong.append(f'{reversible} is not a DICOMConverter catalog cliToken (DICOMKit)')
+        else:
+            matched += 2
+    t103 = ' '.join(' '.join(r) for r in dw.table_rows(parts[3], '10-3'))
+    if 'The first Frame shall be denoted as Frame number 1' not in t103:
+        wrong.append('PS3.3 Table 10-3: "The first Frame shall be denoted as Frame number 1" not found; re-read')
+    else:
+        matched += 1
+    fn = param(ws, 'dicom-convert', 'frame-number')
+    cli_fn = cli_help(ctx, 'dicom-convert', '--frame-number')
+    if fn is None or str(fn.get('minValue')) != '1' or (cli_fn and fn.get('helpText') != cli_fn[-1]):
+        wrong.append('dicom-convert --frame-number must have minValue 1 and the CLI\'s help (PS3.3 Table 10-3)')
+    else:
+        matched += 1
+    fr = param(ws, 'dicom-convert', 'frame')
+    cli_fr = cli_help(ctx, 'dicom-convert', '--frame')
+    if fr is None or fr.get('defaultValue') or (cli_fr and fr.get('helpText') != cli_fr[-1]) or not str(fr.get('helpText', '')).startswith('deprecated'):
+        wrong.append('dicom-convert --frame must be deprecated (the CLI\'s help, no default)')
+    else:
+        matched += 1
+    for needle in ('WorkshopTransferSyntaxKeywords.meaningChangeNote(for: transferSyntax)', 'ConvertError.invalidFrameNumber(number, pixelData.descriptor.numberOfFrames)',
+                   'DICOMConverter.invalidFrameNumberMessage(requested: requested, total: total)', 'cannot be used together', 'WorkshopTransferSyntaxKeywords.canonicalToken(value)'):
+        if needle in vm:
+            matched += 1
+        else:
+            wrong.append(f'dicom-convert executor lacks {needle}')
+    rep.check(f'PS3.6 2026a Table A-1 ({len(ws_add)} added keywords + 3 reassigned), PS3.3 Table 10-3: dicom-convert Workshop --transfer-syntax tokens '
+              '(DICOMConverter.cliTokens, P-CONVERT-TS-KEYWORDS), --frame-number / deprecated --frame (P-CONVERT-FRAME)', matched, wrong)
+
+
+def check_pixel_rules_mirrors(rep, parts, files, ctx):
+    """The dicom-image SCOutput, dicom-pdf PDFEncapsulation and dicom-pixedit DerivedImage CLI-local rules are mirrored
+    text-identically by the Workshop (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.24-2 / C.12-1 / C.7.6.3.1 / C.11.2.1.2)."""
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    ws = ctx['workshop_surface']()
+    wrong, matched = [], 0
+    for cli_path, cli_pat, ws_pat, keep, label in (
+            ('dicom-image/SCOutput.swift', r'enum SCOutput \{', r'enum WorkshopSCOutput \{', ('PS3', 'ISO_IR'), 'dicom-image SCOutput'),
+            ('dicom-pdf/EncapsulationAttributes.swift', r'enum PDFEncapsulation \{', r'enum WorkshopPDFEncapsulation \{', ('PS3', 'ISO_IR', 'WSD'), 'dicom-pdf PDFEncapsulation'),
+            ('dicom-pixedit/DerivedImage.swift', r'enum DerivedImage \{', r'enum WorkshopDerivedImage \{', ('PS3',), 'dicom-pixedit DerivedImage')):
+        cli_body = block(read(ctx, cli_path), cli_pat, label)
+        ws_body = block(vm, ws_pat, label + ' mirror')
+        matched = mirror_literals(cli_body, ws_body, keep, label, matched, wrong)
+        for name, value in re.findall(r'static let (\w+)(?:: [^=]+)? = (.+)', cli_body):
+            m = re.search(r'static let ' + name + r'(?:: [^=]+)? = (.+)', ws_body)
+            if not m:
+                wrong.append(f'{label} mirror lacks {name}')
+            elif m.group(1).strip() != value.strip():
+                wrong.append(f'{label} mirror {name} = {m.group(1).strip()}; CLI has {value.strip()}')
+            else:
+                matched += 1
+    # PS3.5 2026a Table 6.2-1 limits behind the refusals: LO / PN 64, UI 64; PS3.3 C.11.2.1.2 width >= 1
+    rows = {r[0].split('\n')[0].strip(): ' '.join(r) for r in ctx['dw'].table_rows(parts[5], '6.2-1') if r}
+    for vr, phrase in (('LO', '64 chars maximum'), ('PN', '64 chars maximum per component group'), ('UI', '64 bytes maximum')):
+        key = next((k for k in rows if k.startswith(vr)), None)
+        if key is None or phrase not in rows[key]:
+            wrong.append(f'PS3.5 Table 6.2-1 {vr}: "{phrase}" not found; re-read the table')
+        else:
+            matched += 1
+    sec = ctx['dw'].section_by_id(parts[3], 'sect_C.11.2.1.2')
+    t = ctx['nd'].norm(' '.join(sec.itertext())) if sec is not None else ''
+    if 'shall always be greater than or equal to 1' not in t:
+        wrong.append('PS3.3 C.11.2.1.2: "shall always be greater than or equal to 1" not found; re-read')
+    else:
+        matched += 1
+    for tool, pid, needle in (('dicom-image', 'strict-modality', '--strict-modality'), ('dicom-pdf', 'strict-modality', '--strict-modality'),
+                              ('dicom-pdf', 'hl7-instance-identifier', '--hl7-instance-identifier')):
+        p = param(ws, tool, pid)
+        if p is None or p.get('flag') != needle:
+            wrong.append(f'{tool} form lacks {needle}')
+        else:
+            matched += 1
+    fv = param(ws, 'dicom-pixedit', 'fill-value')
+    if fv is None or fv.get('defaultValue'):
+        wrong.append('dicom-pixedit --fill-value must carry no default (the CLI\'s is nil; the executor refuses out-of-range values, P-PIXEDIT-RANGE)')
+    else:
+        matched += 1
+    for needle in ('WorkshopSCOutput.valueViolations(', 'WorkshopSCOutput.finalize(data)', 'WorkshopPDFEncapsulation.complete(&dataSet, documentByteCount: documentData.count)',
+                   'WorkshopPDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet)', 'WorkshopDerivedImage.fillValueViolation(', 'WorkshopDerivedImage.windowWidthViolation(width)',
+                   'PixelEditDerivation(descriptionPrefix: "dicom-pixedit")'):
+        if needle in vm:
+            matched += 1
+        else:
+            wrong.append(f'executor lacks {needle}')
+    rep.check('PS3.5 2026a Table 6.2-1 / 9.1, PS3.3 Tables C.24-2 / C.12-1 / C.7.6.3.1 / C.11.2.1.2: dicom-image, dicom-pdf and dicom-pixedit '
+              'Workshop mirrors of SCOutput / PDFEncapsulation / DerivedImage (P-IMAGE-VR, P-PIXEDIT-RANGE, D182)', matched, wrong)
+
 CHECKS = [
     ('G1 workshop dcmdir profile picker', check_dcmdir_profile_picker),
     ('G1 workshop dcmdir fileset rules', check_dcmdir_fileset_rules),
@@ -969,4 +1414,10 @@ CHECKS = [
     ('G1 workshop net retrieve status', check_retrieve_status_text_source),
     ('G1 workshop net mwl mpps terms', check_mwl_mpps_terms),
     ('G1 workshop net web rules', check_web_rules),
+    ('G1 workshop pixel anon options', check_pixel_anon_options),
+    ('G1 workshop pixel conversion type', check_pixel_conversion_type),
+    ('G1 workshop pixel cid3000 audio source', check_pixel_cid3000_audio),
+    ('G1 workshop pixel compress syntax', check_pixel_compress_syntax),
+    ('G1 workshop pixel convert tokens', check_pixel_convert_tokens),
+    ('G1 workshop pixel image pdf pixedit rules', check_pixel_rules_mirrors),
 ]

@@ -537,6 +537,54 @@ struct CLIWorkshopViewModelTests {
 
     // MARK: - Network tools (workshop-net, DICOM 2026a)
 
+
+    // MARK: - Pixel / codec executors mirror the dicom-* CLIs (DICOM 2026a)
+
+    @Test("dicom-anon executor rules: the CLI's legacy profile notice, the 'apply only to --profile ps315' refusal, the E.1-1a action report (PS3.15 2026a Annex E)")
+    func anonMirrorTexts() {
+        #expect(WorkshopAnonCLI.resolveProfile("legacy-basic") == .legacyBasic)
+        #expect(WorkshopAnonCLI.resolveProfile("clinical-trial") == .legacyClinicalTrial)
+        #expect(WorkshopAnonCLI.resolveProfile("basic") == .ps315)                 // P-ANON-PROFILE: the PS3.15 Basic Profile alias
+        #expect(WorkshopAnonCLI.resolveProfile("nonsense") == nil)
+        #expect(WorkshopAnonCLI.legacyProfileNotice("ps315") == nil)
+        #expect(WorkshopAnonCLI.legacyProfileNotice("legacy-basic")?.hasPrefix("Deprecated: --profile legacy-basic is a legacy attribute list, not a PS3.15 Annex E profile") == true)
+        #expect(WorkshopAnonCLI.legacyProfileNotice("research")?.contains("(now legacy-research)") == true)
+        #expect(WorkshopAnonCLI.optionsOnlyForPS315(["--retain-uids", "--clean-descriptors"]) ==
+                "PS3.15 Annex E Option flags apply only to --profile ps315: --retain-uids, --clean-descriptors")
+        #expect(WorkshopAnonCLI.optionFlagIDs.count == 12)                        // the 12 PS3.15 E.3 Options
+        let lines = WorkshopAnonCLI.actionLines(path: "/f.dcm", actions: [
+            .init(tag: Tag(group: 0x0010, element: 0x0010), code: "D", name: "Patient's Name")])
+        #expect(lines.contains("PS3.15 Table E.1-1a: D dummy, Z zero length, X removed, C cleaned, U new UID"))
+        #expect(lines.contains("  D        (0010,0010) Patient's Name"))
+        #expect(WorkshopAnonCLI.name(of: Tag(group: 0x0009, element: 0x0010)) == "Private Data Element")
+    }
+
+    @Test("dicom-image / dicom-pdf / dicom-pixedit refusal rules carry the CLI texts (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.8-24 / C.24-2, C.7.6.3.1, C.11.2.1.2)")
+    func imagePdfPixeditRules() throws {
+        let v = WorkshopSCOutput.valueViolations(
+            patientName: String(repeating: "A", count: 65), patientID: "a\\b", studyDescription: nil, seriesDescription: nil,
+            studyUID: "1.02.3", seriesUID: nil, seriesNumber: Int(Int32.max) + 1, instanceNumber: nil)
+        #expect(v.count == 4)
+        #expect(v[0].contains("--study-uid '1.02.3' is not a valid UID (PS3.5 9.1"))
+        #expect(v[1] == "--patient-id contains a backslash, which LO does not allow (PS3.5 Table 6.2-1)")
+        #expect(v[2].contains("PN allows at most 64 per component group"))
+        #expect(v[3].contains("outside the IS range -2^31...2^31-1"))
+        #expect(WorkshopSCOutput.conversionType(nil) == .workstation)
+        #expect(WorkshopSCOutput.conversionType("sd") == .scannedDocument)
+        #expect(WorkshopSCOutput.conversionType("XYZ") == nil)
+        #expect(try WorkshopPDFEncapsulation.conversionType("drw") == "DRW")
+        #expect(try WorkshopPDFEncapsulation.burnedInAnnotation("no") == false)
+        #expect(throws: WorkshopPDFEncapsulation.ValidationError.self) { try WorkshopPDFEncapsulation.burnedInAnnotation("maybe") }
+        let cda = Data("<ClinicalDocument xmlns=\"urn:hl7-org:v3\"><id root=\"2.16.840.1.113883.19\" extension=\"X1\"/></ClinicalDocument>".utf8)
+        #expect(WorkshopPDFEncapsulation.hl7InstanceIdentifier(fromCDA: cda) == "2.16.840.1.113883.19^X1")
+        #expect(WorkshopDerivedImage.storedRange(bitsStored: 12, signed: false) == 0...4095)
+        #expect(WorkshopDerivedImage.storedRange(bitsStored: 16, signed: true) == -32768...32767)
+        #expect(WorkshopDerivedImage.fillValueViolation(5000, range: 0...4095)?.contains("outside the stored range 0...4095") == true)
+        #expect(WorkshopDerivedImage.fillValueViolation(7, range: 0...4095) == nil)
+        #expect(WorkshopDerivedImage.windowWidthViolation(0.5)?.contains("shall always be greater than or equal to 1 (PS3.3 C.11.2.1.2)") == true)
+        #expect(WorkshopDerivedImage.windowWidthViolation(1) == nil)
+    }
+
     @Test("dicom-query --level: patient/study/series/image → Query/Retrieve Level (0008,0052); 'instance' is the CLI alias of IMAGE (PS3.4 Table C.6.1-1)")
     func queryLevelOption() {
         #expect(CLIWorkshopViewModel.queryLevelOption("patient") == .patient)

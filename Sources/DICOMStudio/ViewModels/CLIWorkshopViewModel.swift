@@ -7,6 +7,7 @@ import Foundation
 import Observation
 import DICOMCore
 import DICOMKit
+import DICOMDictionary
 import DICOMNetwork
 import DICOMWeb
 
@@ -818,6 +819,13 @@ public final class CLIWorkshopViewModel {
 
     /// Updates a single parameter value.
     public func updateParameterValue(parameterID: String, value: String) {
+        var value = value
+        // dicom-convert --transfer-syntax: the picker lists the catalog's CamelCase tokens
+        // (DICOMConverter.cliTokens); a value saved or typed in another spelling the CLI accepts
+        // (kebab alias, UID, PS3.6 Table A-1 keyword) is shown as its token (P-CONVERT-TS-KEYWORDS).
+        if parameterID == "transfer-syntax", selectedToolID == "dicom-convert" {
+            value = WorkshopTransferSyntaxKeywords.canonicalToken(value)
+        }
         if let idx = parameterValues.firstIndex(where: { $0.parameterID == parameterID }) {
             parameterValues[idx].stringValue = value
         } else {
@@ -2131,242 +2139,238 @@ private func executeDicomDcmdir() async {
 
     // MARK: - dicom-pdf Execution
 
-    /// Extracts an embedded document from a DICOM Encapsulated Document, or
-    /// encapsulates a document (PDF/CDA/STL/OBJ/MTL) into a DICOM file.
-    /// In-process reimplementation of the `dicom-pdf` CLI using DICOMKit's
-    /// EncapsulatedDocumentParser / EncapsulatedDocumentBuilder. Directory
-    /// (`--recursive`) mode is supported via the scoped directory URL.
+    /// Extracts an embedded document from a DICOM Encapsulated Document, or encapsulates a
+    /// document (PDF/CDA/STL/OBJ/MTL), by running dicom-pdf's own run() in-process
+    /// (Sources/dicom-pdf/main.swift): the shared DICOMKit EncapsulatedDocumentParser /
+    /// EncapsulatedDocumentBuilder option chain, `--modality` through the shared
+    /// ModalityOptionValidator (`--strict-modality`), `--conversion-type` (PS3.3 2026a Table C.8-24),
+    /// `--burned-in-annotation` and `--hl7-instance-identifier` (Table C.24-2), Encapsulated Document
+    /// Length (0042,0015) and Specific Character Set (0008,0005) as dicom-pdf writes them and the
+    /// padding cut on extraction (D182) through the text-identical `WorkshopPDFEncapsulation` mirror
+    /// (equality checked by Scripts/diff_studio_g1.py). Exit codes are the CLI's: 64 for a usage
+    /// error (ArgumentParser ValidationError), 1 for any other failure, 0 for a directory run.
     private func executeDicomPdf() async {
         let inputPath = paramValue("inputPath")
+        let outputPath = paramValue("output")
+        let extractMode = paramValue("extract") == "true"
+        func optional(_ id: String) -> String? { paramValue(id).isEmpty ? nil : paramValue(id) }
+        let patientName = optional("patient-name")
+        let patientID = optional("patient-id")
+        let title = paramValue("title")
+        let studyUID = optional("study-uid")
+        let seriesUID = optional("series-uid")
+        let modality = optional("modality")
+        let strictModality = paramValue("strict-modality") == "true"
+        let seriesDesc = paramValue("series-description")
+        let seriesNumber = Int(paramValue("series-number"))
+        let instanceNumber = Int(paramValue("instance-number"))
+        let conversionTypeArg = optional("conversion-type")
+        let burnedInAnnotationArg = optional("burned-in-annotation")
+        let hl7InstanceIdentifier = optional("hl7-instance-identifier")
+        let recursive = paramValue("recursive") == "true"
+        let showMeta = paramValue("show-metadata") == "true"
+        let verbose = paramValue("verbose") == "true"
+
+        func finish(_ text: String, exitCode: Int) {
+            appendConsoleOutput(text)
+            addToHistory(toolName: "dicom-pdf", command: commandPreview, exitCode: exitCode, output: text)
+            consoleStatus = exitCode == 0 ? .success : .error
+            service.setConsoleStatus(exitCode == 0 ? .success : .error)
+        }
         guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input path is required.\n")
-            consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-pdf", command: commandPreview, exitCode: 1, output: "Missing input path")
+            finish("Error: Missing expected argument '<input>'\n", exitCode: 64)
             return
         }
 
-        let outputPath  = paramValue("output")
-        let extractMode = paramValue("extract") == "true"
-        let patientName = paramValue("patient-name")
-        let patientID   = paramValue("patient-id")
-        let title       = paramValue("title")
-        let studyUID    = paramValue("study-uid")
-        let seriesUID   = paramValue("series-uid")
-        let modality    = paramValue("modality")
-        let seriesDesc  = paramValue("series-description")
-        let seriesNumber   = Int(paramValue("series-number"))
-        let instanceNumber = Int(paramValue("instance-number"))
-        let recursive   = paramValue("recursive") == "true"
-        let showMeta    = paramValue("show-metadata") == "true"
-        let verbose     = paramValue("verbose") == "true"
-
         // Gain sandbox access via security-scoped URLs registered by the file pickers.
-        let inputScopedURL  = securityScopedURLs["inputPath"]
+        let inputScopedURL = securityScopedURLs["inputPath"]
         let outputScopedURL = securityScopedURLs["output"]
-        let accessingInput  = inputScopedURL?.startAccessingSecurityScopedResource()  ?? false
+        let accessingInput = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         let accessingOutput = outputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer {
-            if accessingInput  { inputScopedURL?.stopAccessingSecurityScopedResource() }
+            if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
-
         let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+
+        // run(): input exists, then directory needs --recursive (ValidationError, 64).
+        var isDir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDir) else {
+            finish("Error: Input path not found: \(inputURL.path)\n", exitCode: 64)
+            return
+        }
+        if isDir.boolValue, !recursive {
+            finish("Error: Directory processing requires --recursive flag\n", exitCode: 64)
+            return
+        }
 
         // Resolve a sandbox-writable destination (scoped URL → ~/Downloads → fallback).
         let (resolvedOutput, redirectNote) = SecurityViewModel.resolveWritableOutput(
             path: outputScopedURL?.path ?? outputPath,
             scopedURL: outputScopedURL
         )
-        if let note = redirectNote { appendConsoleOutput(note) }
+        var preamble = ""
+        if let note = redirectNote { preamble += note }
         let effectiveOutput = resolvedOutput.isEmpty ? outputPath : resolvedOutput
+        let workIsDirectory = isDir.boolValue
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             let fm = FileManager.default
+            var log = ""
 
-            // MARK: helpers
-            //
-            // Document-type ↔ extension mapping, default modality, the byte-size
-            // formatter, the `--show-metadata` report, and the builder option chain
-            // all come from DICOMKit's shared `EncapsulatedDocumentWorkflow`, so this
-            // reimplementation and the `dicom-pdf` CLI share one source of truth and
-            // cannot drift. UID generation uses the shared `UIDGenerator` (DICOMCore).
+            /// ArgumentParser's ValidationError (exit 64) raised by the CLI's helpers.
+            struct Usage: Error { let message: String }
 
-            func generateUID() -> String { UIDGenerator.generateUID().value }
-
-            // MARK: input classification
-
-            var isDir: ObjCBool = false
-            guard fm.fileExists(atPath: inputURL.path, isDirectory: &isDir) else {
-                return ("Error: Input path not found: \(inputURL.path)\n", 1)
+            /// dicom-pdf's `encapsulatedDataSet`: the shared builder option chain, then this
+            /// tool's options and the attributes the builder leaves out.
+            func encapsulatedDataSet(documentData: Data, documentType: DICOMKit.EncapsulatedDocumentType,
+                                     patientName: String, patientID: String, studyUID: String, seriesUID: String,
+                                     instanceNumber: Int?, hl7Override: String?) throws -> DataSet {
+                let resolved = Self.resolveModalityOption(modality ?? "", strict: strictModality, verbose: verbose)
+                if let error = resolved.error { throw ModalityOptionError.rejected(error) }
+                for line in resolved.lines { log += line + "\n" }
+                let finalModality = modality == nil ? documentType.defaultModality : resolved.value
+                let builder = EncapsulatedDocumentBuilder(
+                    documentData: documentData,
+                    mimeType: documentType.expectedMIMEType,
+                    documentType: documentType,
+                    studyInstanceUID: studyUID,
+                    seriesInstanceUID: seriesUID
+                )
+                .applyStandardOptions(
+                    patientName: patientName,
+                    patientID: patientID,
+                    modality: finalModality,
+                    title: title,
+                    seriesDescription: seriesDesc,
+                    seriesNumber: seriesNumber,
+                    instanceNumber: instanceNumber
+                )
+                if let conversionTypeArg {
+                    builder.setConversionType(try WorkshopPDFEncapsulation.conversionType(conversionTypeArg))
+                }
+                if let burnedInAnnotationArg {
+                    builder.setBurnedInAnnotation(try WorkshopPDFEncapsulation.burnedInAnnotation(burnedInAnnotationArg))
+                }
+                if documentType == .cda {
+                    guard let identifier = hl7Override ?? WorkshopPDFEncapsulation.hl7InstanceIdentifier(fromCDA: documentData) else {
+                        throw Usage(message: "HL7 Instance Identifier (0040,E001) is required for a CDA document (PS3.3 Table C.24-2) and /ClinicalDocument/id has no root; pass --hl7-instance-identifier")
+                    }
+                    builder.setHL7InstanceIdentifier(identifier)
+                }
+                var dataSet = try builder.buildDataSet()
+                WorkshopPDFEncapsulation.complete(&dataSet, documentByteCount: documentData.count)
+                return dataSet
             }
 
-            // MARK: single-file extraction
+            func dicomData(_ dataSet: DataSet, sopClassUID: String) throws -> Data {
+                try DICOMFile.create(dataSet: dataSet, sopClassUID: sopClassUID,
+                                     transferSyntaxUID: "1.2.840.10008.1.2.1").write()   // Explicit VR Little Endian
+            }
 
-            func extractFromFile(_ srcURL: URL, outURLOrPath: String?) -> (String, Int) {
-                var log = ""
+            /// Output file path for one input: the typed path, a typed directory (auto-named
+            /// inside it, a Workshop convenience) or the CLI's default next to the input.
+            func outputFile(for srcURL: URL, specified: String?, ext: String) -> String {
+                if let specified, !specified.isEmpty {
+                    var d: ObjCBool = false
+                    if fm.fileExists(atPath: specified, isDirectory: &d), d.boolValue {
+                        return URL(fileURLWithPath: specified)
+                            .appendingPathComponent("\(srcURL.deletingPathExtension().lastPathComponent).\(ext)").path
+                    }
+                    return specified
+                }
+                return srcURL.deletingLastPathComponent()
+                    .appendingPathComponent("\(srcURL.deletingPathExtension().lastPathComponent).\(ext)").path
+            }
+
+            // MARK: single-file extraction (extractFromFile)
+
+            func extractFromFile(_ srcURL: URL, outURLOrPath: String?) throws {
                 if verbose { log += "Extracting document from: \(srcURL.path)\n" }
-                do {
-                    let data = try Data(contentsOf: srcURL)
-                    let dicomFile = try DICOMFile.read(from: data, force: false)
-                    let document = try EncapsulatedDocumentParser.parse(from: dicomFile.dataSet)
-
-                    if showMeta { log += document.metadataReport() }
-
-                    // Determine output path.
-                    let finalOutputPath: String
-                    if let specified = outURLOrPath, !specified.isEmpty {
-                        // If a directory was supplied, auto-name inside it.
-                        var d: ObjCBool = false
-                        if fm.fileExists(atPath: specified, isDirectory: &d), d.boolValue {
-                            let baseName = srcURL.deletingPathExtension().lastPathComponent
-                            let ext = document.documentType.fileExtension
-                            finalOutputPath = URL(fileURLWithPath: specified)
-                                .appendingPathComponent("\(baseName).\(ext)").path
-                        } else {
-                            finalOutputPath = specified
-                        }
-                    } else {
-                        let baseName = srcURL.deletingPathExtension().lastPathComponent
-                        let ext = document.documentType.fileExtension
-                        finalOutputPath = srcURL.deletingLastPathComponent()
-                            .appendingPathComponent("\(baseName).\(ext)").path
-                    }
-
-                    let writeRes = try OutputAccess.write(document.documentData, toPath: finalOutputPath,
-                                                          scopedURL: outputScopedURL, subfolder: "PDF/Extracted")
-                    if let note = writeRes.note { log += note + "\n" }
-
-                    if verbose {
-                        log += "✓ Extracted \(document.documentType) (\(EncapsulatedDocumentFormatting.fileSize(Int64(document.documentData.count))))\n"
-                        log += "  Output: \(writeRes.url.path)\n"
-                    } else {
-                        log += "Extracted: \(writeRes.url.path)\n"
-                    }
-                    return (log, 0)
-                } catch {
-                    log += "Error: \(error.localizedDescription)\n"
-                    return (log, 1)
+                let data = try Data(contentsOf: srcURL)
+                let dicomFile = try DICOMFile.read(from: data)
+                let document = try EncapsulatedDocumentParser.parse(from: dicomFile.dataSet)
+                if showMeta { log += document.metadataReport() }
+                let finalOutputPath = outputFile(for: srcURL, specified: outURLOrPath, ext: document.documentType.fileExtension)
+                // Document bytes without the trailing padding (0042,0015).
+                let documentBytes = WorkshopPDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet)
+                let writeRes = try OutputAccess.write(documentBytes, toPath: finalOutputPath,
+                                                      scopedURL: outputScopedURL, subfolder: "PDF/Extracted")
+                if let note = writeRes.note { log += note + "\n" }
+                if verbose {
+                    log += "✓ Extracted \(document.documentType) (\(EncapsulatedDocumentFormatting.fileSize(Int64(documentBytes.count))))\n"
+                    log += "  Output: \(writeRes.url.path)\n"
+                } else {
+                    log += "Extracted: \(writeRes.url.path)\n"
                 }
             }
 
-            // MARK: single-file encapsulation
+            // MARK: single-file encapsulation (encapsulateFile)
 
-            func encapsulateFile(_ srcURL: URL, outURLOrPath: String?) -> (String, Int) {
-                var log = ""
+            func encapsulateFile(_ srcURL: URL, outURLOrPath: String?) throws {
                 if verbose { log += "Encapsulating document: \(srcURL.path)\n" }
-
-                guard !patientName.isEmpty else {
-                    return ("Error: Patient Name is required for encapsulation (--patient-name)\n", 1)
+                let documentData = try Data(contentsOf: srcURL)
+                let documentType = DICOMKit.EncapsulatedDocumentType(fileExtension: srcURL.pathExtension)
+                guard let patientName, !patientName.isEmpty else {
+                    throw Usage(message: "Patient's Name is required for encapsulation (--patient-name)")
                 }
-                guard !patientID.isEmpty else {
-                    return ("Error: Patient ID is required for encapsulation (--patient-id)\n", 1)
+                guard let patientID, !patientID.isEmpty else {
+                    throw Usage(message: "Patient ID is required for encapsulation (--patient-id)")
                 }
-
-                do {
-                    let documentData = try Data(contentsOf: srcURL)
-                    let documentType = DICOMKit.EncapsulatedDocumentType(fileExtension: srcURL.pathExtension)
-
-                    let finalStudyUID  = studyUID.isEmpty  ? generateUID() : studyUID
-                    let finalSeriesUID = seriesUID.isEmpty ? generateUID() : seriesUID
-
-                    let finalModality = modality.isEmpty ? documentType.defaultModality : modality
-
-                    let builder = EncapsulatedDocumentBuilder(
-                        documentData: documentData,
-                        mimeType: documentType.expectedMIMEType,
-                        documentType: documentType,
-                        studyInstanceUID: finalStudyUID,
-                        seriesInstanceUID: finalSeriesUID
-                    )
-                    .applyStandardOptions(
-                        patientName: patientName,
-                        patientID: patientID,
-                        modality: finalModality,
-                        title: title,
-                        seriesDescription: seriesDesc,
-                        seriesNumber: seriesNumber,
-                        instanceNumber: instanceNumber
-                    )
-
-                    let dataSet = try builder.buildDataSet()
-                    let dicomFile = DICOMFile.create(
-                        dataSet: dataSet,
-                        sopClassUID: documentType.sopClassUID,
-                        transferSyntaxUID: "1.2.840.10008.1.2.1" // Explicit VR Little Endian
-                    )
-                    let dicomData = try dicomFile.write()
-
-                    let finalOutputPath: String
-                    if let specified = outURLOrPath, !specified.isEmpty {
-                        var d: ObjCBool = false
-                        if fm.fileExists(atPath: specified, isDirectory: &d), d.boolValue {
-                            let baseName = srcURL.deletingPathExtension().lastPathComponent
-                            finalOutputPath = URL(fileURLWithPath: specified)
-                                .appendingPathComponent("\(baseName).dcm").path
-                        } else {
-                            finalOutputPath = specified
-                        }
-                    } else {
-                        finalOutputPath = srcURL.deletingPathExtension()
-                            .appendingPathExtension("dcm").path
-                    }
-
-                    let writeRes = try OutputAccess.write(dicomData, toPath: finalOutputPath,
-                                                          scopedURL: outputScopedURL, subfolder: "PDF/Encapsulated")
-                    if let note = writeRes.note { log += note + "\n" }
-
-                    if verbose {
-                        log += "✓ Encapsulated \(documentType) (\(EncapsulatedDocumentFormatting.fileSize(Int64(documentData.count))))\n"
-                        log += "  DICOM size: \(EncapsulatedDocumentFormatting.fileSize(Int64(dicomData.count)))\n"
-                        log += "  Patient: \(patientName) [\(patientID)]\n"
-                        log += "  Study UID: \(finalStudyUID)\n"
-                        log += "  Output: \(writeRes.url.path)\n"
-                    } else {
-                        log += "Encapsulated: \(writeRes.url.path)\n"
-                    }
-                    return (log, 0)
-                } catch {
-                    log += "Error: \(error.localizedDescription)\n"
-                    return (log, 1)
+                let finalStudyUID = studyUID ?? UIDGenerator.generateUID().value
+                let finalSeriesUID = seriesUID ?? UIDGenerator.generateUID().value
+                if hl7InstanceIdentifier != nil, documentType != .cda {
+                    throw Usage(message: "--hl7-instance-identifier applies to CDA documents only (HL7 Instance Identifier (0040,E001) is Type 1C, required if the document is CDA; PS3.3 Table C.24-2)")
+                }
+                let dataSet = try encapsulatedDataSet(
+                    documentData: documentData, documentType: documentType,
+                    patientName: patientName, patientID: patientID,
+                    studyUID: finalStudyUID, seriesUID: finalSeriesUID,
+                    instanceNumber: instanceNumber, hl7Override: hl7InstanceIdentifier)
+                let bytes = try dicomData(dataSet, sopClassUID: documentType.sopClassUID)
+                let finalOutputPath = outputFile(for: srcURL, specified: outURLOrPath, ext: "dcm")
+                let writeRes = try OutputAccess.write(bytes, toPath: finalOutputPath,
+                                                      scopedURL: outputScopedURL, subfolder: "PDF/Encapsulated")
+                if let note = writeRes.note { log += note + "\n" }
+                if verbose {
+                    log += "✓ Encapsulated \(documentType) (\(EncapsulatedDocumentFormatting.fileSize(Int64(documentData.count))))\n"
+                    log += "  DICOM size: \(EncapsulatedDocumentFormatting.fileSize(Int64(bytes.count)))\n"
+                    log += "  Patient: \(patientName) [\(patientID)]\n"
+                    log += "  Study UID: \(finalStudyUID)\n"
+                    log += "  Output: \(writeRes.url.path)\n"
+                } else {
+                    log += "Encapsulated: \(writeRes.url.path)\n"
                 }
             }
 
             // MARK: directory mode
 
-            func enumerateFiles(_ dir: URL) -> [URL] {
-                // Shared, sorted directory walk — the same gatherer the dicom-pdf
-                // CLI uses, so both surfaces process the same files in the same order.
-                FileGatherer.regularFiles(under: dir) ?? []
+            func resolvedOutputDirectory(_ dir: URL, defaultName: String, subfolder: String) throws -> URL {
+                let requested: URL = effectiveOutput.isEmpty
+                    ? dir.appendingPathComponent(defaultName) : URL(fileURLWithPath: effectiveOutput)
+                let od = OutputAccess.resolveWritableURL(forPath: requested.path, scopedURL: outputScopedURL,
+                                                         subfolder: subfolder, isDirectory: true)
+                if let note = od.note { log += note + "\n" }
+                try fm.createDirectory(at: od.url, withIntermediateDirectories: true)
+                return od.url
             }
 
-            func extractFromDirectory(_ dir: URL) -> (String, Int) {
-                var log = ""
-                let outDirRequested: URL = (outURLOrPathString().isEmpty)
-                    ? dir.appendingPathComponent("extracted")
-                    : URL(fileURLWithPath: outURLOrPathString())
-                // Sandbox/TCC-resilient output directory (else fall back to ~/Downloads/DICOMStudio).
-                let _od = OutputAccess.resolveWritableURL(forPath: outDirRequested.path, scopedURL: outputScopedURL, subfolder: "PDF/Extracted", isDirectory: true)
-                let outDir = _od.url
-                if let note = _od.note { log += note + "\n" }
-                do {
-                    try fm.createDirectory(at: outDir, withIntermediateDirectories: true)
-                } catch {
-                    return ("Error: Unable to create output directory: \(error.localizedDescription)\n", 1)
-                }
+            func extractFromDirectory(_ dir: URL) throws {
+                let outDir = try resolvedOutputDirectory(dir, defaultName: "extracted", subfolder: "PDF/Extracted")
                 if verbose {
                     log += "Extracting documents from: \(dir.path)\n"
                     log += "Output directory: \(outDir.path)\n\n"
                 }
                 var success = 0, failure = 0
-                for f in enumerateFiles(dir) {
+                // Shared, sorted directory walk — the same gatherer the dicom-pdf CLI uses.
+                for f in FileGatherer.regularFiles(under: dir) ?? [] {
                     do {
                         let data = try Data(contentsOf: f)
-                        let dicomFile = try DICOMFile.read(from: data, force: false)
+                        let dicomFile = try DICOMFile.read(from: data)
                         let document = try EncapsulatedDocumentParser.parse(from: dicomFile.dataSet)
-                        let baseName = f.deletingPathExtension().lastPathComponent
-                        let ext = document.documentType.fileExtension
-                        let outFile = outDir.appendingPathComponent("\(baseName).\(ext)")
-                        try document.documentData.write(to: outFile)
+                        let outFile = outDir.appendingPathComponent(
+                            "\(f.deletingPathExtension().lastPathComponent).\(document.documentType.fileExtension)")
+                        try WorkshopPDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet).write(to: outFile)
                         success += 1
                         if verbose { log += "✓ \(f.lastPathComponent) → \(outFile.lastPathComponent)\n" }
                     } catch {
@@ -2378,39 +2382,29 @@ private func executeDicomDcmdir() async {
                 log += "  Successful: \(success)\n"
                 if failure > 0 { log += "  Failed: \(failure)\n" }
                 log += "  Output directory: \(outDir.path)\n"
-                return (log, failure > 0 && success == 0 ? 1 : 0)
             }
 
-            func encapsulateFromDirectory(_ dir: URL) -> (String, Int) {
-                var log = ""
-                guard !patientName.isEmpty else {
-                    return ("Error: Patient Name is required for batch encapsulation (--patient-name)\n", 1)
-                }
-                guard !patientID.isEmpty else {
-                    return ("Error: Patient ID is required for batch encapsulation (--patient-id)\n", 1)
-                }
-                let outDirRequested: URL = (outURLOrPathString().isEmpty)
-                    ? dir.appendingPathComponent("encapsulated")
-                    : URL(fileURLWithPath: outURLOrPathString())
-                // Sandbox/TCC-resilient output directory (else fall back to ~/Downloads/DICOMStudio).
-                let _od = OutputAccess.resolveWritableURL(forPath: outDirRequested.path, scopedURL: outputScopedURL, subfolder: "PDF/Encapsulated", isDirectory: true)
-                let outDir = _od.url
-                if let note = _od.note { log += note + "\n" }
-                do {
-                    try fm.createDirectory(at: outDir, withIntermediateDirectories: true)
-                } catch {
-                    return ("Error: Unable to create output directory: \(error.localizedDescription)\n", 1)
-                }
+            func encapsulateFromDirectory(_ dir: URL) throws {
+                let outDir = try resolvedOutputDirectory(dir, defaultName: "encapsulated", subfolder: "PDF/Encapsulated")
                 if verbose {
                     log += "Encapsulating documents from: \(dir.path)\n"
                     log += "Output directory: \(outDir.path)\n\n"
                 }
+                guard let patientName, !patientName.isEmpty else {
+                    throw Usage(message: "Patient's Name is required for batch encapsulation (--patient-name)")
+                }
+                // One identifier cannot name several CDA documents.
+                if hl7InstanceIdentifier != nil {
+                    throw Usage(message: "--hl7-instance-identifier names one CDA document; in directory mode each CDA's /ClinicalDocument/id is used")
+                }
+                guard let patientID, !patientID.isEmpty else {
+                    throw Usage(message: "Patient ID is required for batch encapsulation (--patient-id)")
+                }
                 var success = 0, failure = 0
                 var instNum = instanceNumber ?? 1
-                let finalStudyUID  = studyUID.isEmpty  ? generateUID() : studyUID
-                let finalSeriesUID = seriesUID.isEmpty ? generateUID() : seriesUID
-
-                for f in enumerateFiles(dir) {
+                let finalStudyUID = studyUID ?? UIDGenerator.generateUID().value
+                let finalSeriesUID = seriesUID ?? UIDGenerator.generateUID().value
+                for f in FileGatherer.regularFiles(under: dir) ?? [] {
                     let docType = DICOMKit.EncapsulatedDocumentType(fileExtension: f.pathExtension)
                     guard docType != .unknown else {
                         if verbose { log += "⊘ \(f.lastPathComponent): Unsupported file type\n" }
@@ -2418,34 +2412,13 @@ private func executeDicomDcmdir() async {
                     }
                     do {
                         let documentData = try Data(contentsOf: f)
-                        let finalModality = modality.isEmpty ? docType.defaultModality : modality
-                        let builder = EncapsulatedDocumentBuilder(
-                            documentData: documentData,
-                            mimeType: docType.expectedMIMEType,
-                            documentType: docType,
-                            studyInstanceUID: finalStudyUID,
-                            seriesInstanceUID: finalSeriesUID
-                        )
-                        .applyStandardOptions(
-                            patientName: patientName,
-                            patientID: patientID,
-                            modality: finalModality,
-                            title: title,
-                            seriesDescription: seriesDesc,
-                            seriesNumber: seriesNumber,
-                            instanceNumber: instNum
-                        )
-
-                        let dataSet = try builder.buildDataSet()
-                        let dicomFile = DICOMFile.create(
-                            dataSet: dataSet,
-                            sopClassUID: docType.sopClassUID,
-                            transferSyntaxUID: "1.2.840.10008.1.2.1"
-                        )
-                        let dicomData = try dicomFile.write()
-                        let baseName = f.deletingPathExtension().lastPathComponent
-                        let outFile = outDir.appendingPathComponent("\(baseName).dcm")
-                        try dicomData.write(to: outFile)
+                        let dataSet = try encapsulatedDataSet(
+                            documentData: documentData, documentType: docType,
+                            patientName: patientName, patientID: patientID,
+                            studyUID: finalStudyUID, seriesUID: finalSeriesUID,
+                            instanceNumber: instNum, hl7Override: nil)
+                        let outFile = outDir.appendingPathComponent("\(f.deletingPathExtension().lastPathComponent).dcm")
+                        try dicomData(dataSet, sopClassUID: docType.sopClassUID).write(to: outFile)
                         success += 1
                         instNum += 1
                         if verbose { log += "✓ \(f.lastPathComponent) → \(outFile.lastPathComponent)\n" }
@@ -2460,107 +2433,75 @@ private func executeDicomDcmdir() async {
                 log += "  Study UID: \(finalStudyUID)\n"
                 log += "  Series UID: \(finalSeriesUID)\n"
                 log += "  Output directory: \(outDir.path)\n"
-                return (log, failure > 0 && success == 0 ? 1 : 0)
             }
 
-            func outURLOrPathString() -> String { effectiveOutput }
+            // MARK: dispatch (the CLI's run(); a directory run exits 0 whatever its per-file outcomes)
 
-            // MARK: dispatch
-
-            if isDir.boolValue {
-                guard recursive else {
-                    return ("Error: Directory processing requires --recursive flag\n", 1)
+            do {
+                if workIsDirectory {
+                    if extractMode { try extractFromDirectory(inputURL) } else { try encapsulateFromDirectory(inputURL) }
+                } else {
+                    let outArg = effectiveOutput.isEmpty ? nil : effectiveOutput
+                    if extractMode { try extractFromFile(inputURL, outURLOrPath: outArg) }
+                    else { try encapsulateFile(inputURL, outURLOrPath: outArg) }
                 }
-                return extractMode ? extractFromDirectory(inputURL) : encapsulateFromDirectory(inputURL)
-            } else {
-                let outArg = effectiveOutput.isEmpty ? nil : effectiveOutput
-                return extractMode
-                    ? extractFromFile(inputURL, outURLOrPath: outArg)
-                    : encapsulateFile(inputURL, outURLOrPath: outArg)
+                return (log, 0)
+            } catch let usage as Usage {
+                return (log + "Error: \(usage.message)\n", 64)
+            } catch {
+                return (log + "Error: \(error.localizedDescription)\n", 1)
             }
         }.value
 
-        appendConsoleOutput(output)
-        addToHistory(toolName: "dicom-pdf", command: commandPreview, exitCode: exitCode, output: output)
-        consoleStatus = exitCode == 0 ? .success : .error
-        service.setConsoleStatus(exitCode == 0 ? .success : .error)
+        finish(preamble + output, exitCode: exitCode)
     }
 
     // MARK: - dicom-pixedit Execution
 
-    /// Edits pixel data in a DICOM file (mask / crop / window-level / invert) and
-    /// writes a new DICOM file. Reimplements the executable-local PixelEditor logic
-    /// in-process using DICOMKit/DICOMCore APIs.
+    /// Edits pixel data in a DICOM file (mask / crop / window-level / invert) by running dicom-pixedit's
+    /// own run() in-process (Sources/dicom-pixedit/main.swift): the shared DICOMKit `PixelEditor` with the
+    /// `dicom-pixedit` derivation prefix (the output is a Derived Image, PS3.3 C.7.6.1.1.2), the shared
+    /// `PixelEditConsole` lines, and the P-PIXEDIT-RANGE refusals of the CLI-local `DerivedImage`
+    /// (mirrored text-identically by `WorkshopDerivedImage`; equality checked by Scripts/diff_studio_g1.py).
+    /// dicom-pixedit's `ValidationError` is its own type, so every refusal exits 1, as here; a value
+    /// ArgumentParser cannot parse is its two-line message (exit 64).
     private func executeDicomPixedit() async {
         let inputPath = paramValue("inputPath")
         let outputPath = paramValue("output")
         let maskRegionStr = paramValue("mask-region")
-        let fillValueStr = paramValue("fill-value")
+        let fillValueStr = paramValue("fill-value").trimmingCharacters(in: .whitespaces)
         let cropStr = paramValue("crop")
-        let windowCenterStr = paramValue("window-center")
-        let windowWidthStr = paramValue("window-width")
+        let windowCenterStr = paramValue("window-center").trimmingCharacters(in: .whitespaces)
+        let windowWidthStr = paramValue("window-width").trimmingCharacters(in: .whitespaces)
         let applyWindow = paramValue("apply-window") == "true"
         let invert = paramValue("invert") == "true"
         let verbose = paramValue("verbose") == "true"
 
-        guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input file path is required.\n")
-            consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 1, output: "Missing input path")
+        func finish(_ text: String, exitCode: Int) {
+            appendConsoleOutput(text)
+            addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: exitCode, output: text)
+            consoleStatus = exitCode == 0 ? .success : .error
+            service.setConsoleStatus(exitCode == 0 ? .success : .error)
+        }
+        func refuse(_ message: String) { finish("Error: \(message)\n", exitCode: 1) }
+
+        // ArgumentParser: missing positional / option, unparseable numeric values (exit 64).
+        guard !inputPath.isEmpty else { finish("Error: Missing expected argument '<input>'\n", exitCode: 64); return }
+        guard !outputPath.isEmpty else { finish("Error: Missing expected argument '--output <output>'\n", exitCode: 64); return }
+        let defs = ToolCatalogHelpers.parameterDefinitions(for: "dicom-pixedit")
+        func help(_ id: String) -> String { defs.first { $0.id == id }?.helpText ?? "" }
+        for (raw, option, id, ok) in [
+            (fillValueStr, "--fill-value", "fill-value", fillValueStr.isEmpty || Int(fillValueStr) != nil),
+            (windowCenterStr, "--window-center", "window-center", windowCenterStr.isEmpty || Double(windowCenterStr) != nil),
+            (windowWidthStr, "--window-width", "window-width", windowWidthStr.isEmpty || Double(windowWidthStr) != nil),
+        ] where !ok {
+            let lines = SplitConsole.invalidValueLines(value: raw, option: option, help: help(id))
+            finish(lines.joined(separator: "\n") + "\n", exitCode: 64)
             return
         }
-        guard !outputPath.isEmpty else {
-            appendConsoleOutput("Error: Output path is required.\n")
-            consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 1, output: "Missing output path")
-            return
-        }
-
-        // Build the operation list (shared DICOMKit PixelOperation), mirroring
-        // main.swift validation order. Region strings parse via the shared
-        // PixelEditor.parseRegion — the exact parser the CLI uses.
-        let regionParser = PixelEditor(verbose: false)
-
-        var operations: [PixelOperation] = []
-
-        if !maskRegionStr.isEmpty {
-            guard let r = try? regionParser.parseRegion(maskRegionStr) else {
-                appendConsoleOutput("Error: \(PixelEditError.invalidRegion(maskRegionStr).errorDescription ?? "Invalid region")\n")
-                consoleStatus = .error; service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 1, output: "Invalid mask region")
-                return
-            }
-            operations.append(.mask(x: r.x, y: r.y, width: r.width, height: r.height, fillValue: Int(fillValueStr) ?? 0))
-        }
-
-        if !cropStr.isEmpty {
-            guard let r = try? regionParser.parseRegion(cropStr) else {
-                appendConsoleOutput("Error: \(PixelEditError.invalidRegion(cropStr).errorDescription ?? "Invalid region")\n")
-                consoleStatus = .error; service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 1, output: "Invalid crop region")
-                return
-            }
-            operations.append(.crop(x: r.x, y: r.y, width: r.width, height: r.height))
-        }
-
-        if applyWindow {
-            guard let center = Double(windowCenterStr), let width = Double(windowWidthStr) else {
-                appendConsoleOutput("Error: --apply-window requires both --window-center and --window-width\n")
-                consoleStatus = .error; service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 1, output: "Window center/width required")
-                return
-            }
-            operations.append(.windowLevel(center: center, width: width))
-        }
-
-        if invert { operations.append(.invert) }
-
-        guard !operations.isEmpty else {
-            appendConsoleOutput("Error: No operations specified. Use --mask-region, --crop, --apply-window, or --invert\n")
-            consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 1, output: "No operations specified")
-            return
-        }
+        let fillValue = Int(fillValueStr)
+        let windowCenter = Double(windowCenterStr)
+        let windowWidth = Double(windowWidthStr)
 
         // Gain sandbox access via security-scoped URLs.
         let inputScopedURL = securityScopedURLs["inputPath"]
@@ -2574,56 +2515,87 @@ private func executeDicomDcmdir() async {
         let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
         let outputURL = outputScopedURL ?? URL(fileURLWithPath: outputPath)
 
+        // run(): input exists, read, then the operations in the CLI's order with its refusals.
+        guard FileManager.default.fileExists(atPath: inputURL.path) else {
+            refuse("Input file not found: \(inputURL.path)"); return
+        }
+        let inputData: Data
+        let source: DICOMFile
+        do {
+            inputData = try Data(contentsOf: inputURL)
+            source = try DICOMFile.read(from: inputData)
+        } catch {
+            refuse(error.localizedDescription); return
+        }
+        var operations: [PixelOperation] = []
+        let regionParser = PixelEditor(verbose: false)
+        if !maskRegionStr.isEmpty {
+            let region: (x: Int, y: Int, width: Int, height: Int)
+            do { region = try regionParser.parseRegion(maskRegionStr) } catch { refuse(error.localizedDescription); return }
+            let fill = fillValue ?? 0
+            if let refusal = WorkshopDerivedImage.fillValueViolation(fill, range: WorkshopDerivedImage.storedRange(of: source.dataSet)) {
+                refuse(refusal); return
+            }
+            operations.append(.mask(x: region.x, y: region.y, width: region.width, height: region.height, fillValue: fill))
+        }
+        if !cropStr.isEmpty {
+            let region: (x: Int, y: Int, width: Int, height: Int)
+            do { region = try regionParser.parseRegion(cropStr) } catch { refuse(error.localizedDescription); return }
+            operations.append(.crop(x: region.x, y: region.y, width: region.width, height: region.height))
+        }
+        if applyWindow {
+            guard let center = windowCenter, let width = windowWidth else {
+                refuse("--apply-window requires both --window-center and --window-width"); return
+            }
+            if let refusal = WorkshopDerivedImage.windowWidthViolation(width) { refuse(refusal); return }
+            // Modality LUT output units (C.11.2.1.2); the engine applies Rescale / LUT.
+            operations.append(.windowLevel(center: center, width: width))
+        }
+        if invert { operations.append(.invert) }
+        guard !operations.isEmpty else {
+            refuse("No operations specified. Use --mask-region, --crop, --apply-window, or --invert"); return
+        }
+
+        var preamble = ""
         if verbose {
             for line in PixelEditConsole.headerLines(input: inputURL.path, output: outputURL.path, operationCount: operations.count) {
-                appendConsoleOutput(line + "\n")
+                preamble += line + "\n"
             }
         }
 
         let (output, outputData, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Data?, Int) in
             var log = ""
             do {
-                let fileData = try Data(contentsOf: inputURL)
-                // Apply pixel operations via the shared DICOMKit engine — the exact
-                // same PixelEditor the `dicom-pixedit` CLI uses, so the produced
-                // DICOM bytes AND the verbose log lines (Image:, Applied mask:, …)
-                // are identical. Output is written below via the sandbox-aware
-                // OutputAccess path.
+                // The engine writes a Derived Image (new SOP Instance UID, Image Type DERIVED,
+                // Derivation Description "dicom-pixedit: …", Source Image Sequence) — the exact
+                // PixelEditor call the CLI makes, verbose log lines included.
                 let editor = PixelEditor(verbose: verbose, log: { log += $0 + "\n" })
-                let (written, _) = try editor.processData(fileData, operations: operations)
+                let (written, _) = try editor.processData(
+                    inputData, operations: operations,
+                    derivation: PixelEditDerivation(descriptionPrefix: "dicom-pixedit"))
                 return (log, written, 0)
-            } catch let e as PixelEditError {
-                return ("Error: \(e.errorDescription ?? "\(e)")\n", nil, 1)
             } catch {
-                return ("Error: \(error.localizedDescription)\n", nil, 1)
+                return (log + "Error: \(error.localizedDescription)\n", nil, 1)
             }
         }.value
 
+        var text = preamble + output
         if exitCode == 0, let outputData {
             do {
                 // Sandbox/TCC-resilient write (prefer scoped URL; else fall back to ~/Downloads).
                 let writeRes = try OutputAccess.write(outputData, toPath: outputPath, scopedURL: outputScopedURL, subfolder: "PixEdit")
-                appendConsoleOutput(output)
-                if let note = writeRes.note { appendConsoleOutput(note + "\n") }
-                // CLI parity: Written/Done are verbose-gated shared lines — a
-                // non-verbose dicom-pixedit run is silent on success.
+                if let note = writeRes.note { text += note + "\n" }
+                // Written / Done are verbose-gated shared lines — a non-verbose run is silent on success.
                 if verbose {
-                    appendConsoleOutput(PixelEditConsole.writtenLine(path: writeRes.url.path) + "\n")
-                    appendConsoleOutput(PixelEditConsole.doneLine() + "\n")
+                    text += PixelEditConsole.writtenLine(path: writeRes.url.path) + "\n"
+                    text += PixelEditConsole.doneLine() + "\n"
                 }
-                consoleStatus = .success; service.setConsoleStatus(.success)
-                addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 0, output: output)
+                finish(text, exitCode: 0)
             } catch {
-                let msg = "Error: Failed to write output: \(error.localizedDescription)\n"
-                appendConsoleOutput(output)
-                appendConsoleOutput(msg)
-                consoleStatus = .error; service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: 1, output: msg)
+                finish(text + "Error: \(error.localizedDescription)\n", exitCode: 1)
             }
         } else {
-            appendConsoleOutput(output)
-            consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-pixedit", command: commandPreview, exitCode: exitCode, output: output)
+            finish(text, exitCode: exitCode)
         }
     }
 
@@ -3232,18 +3204,21 @@ private nonisolated static func dcCompressParseQuality(_ q: String?) throws -> C
 
 private func executeDicomCompressInfo() async {
     let inputPath = paramValue("input")
-    guard !inputPath.isEmpty else {
-        appendConsoleOutput("Error: Input file path is required.\n")
+    func refuse(_ msg: String, exitCode: Int) {
+        appendConsoleOutput(msg)
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: "Missing input path")
-        return
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: exitCode, output: msg)
     }
+    guard !inputPath.isEmpty else { refuse("Error: Missing expected argument '<input>'\n", exitCode: 64); return }
     let asJSON = paramValue("json") == "true"
     let inputScopedURL = securityScopedURLs["input"]
     let accessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
     defer { if accessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
     let fileURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
     let displayPath = inputPath
+    guard FileManager.default.fileExists(atPath: fileURL.path) else {
+        refuse("Error: File not found: \(fileURL.path)\n", exitCode: 64); return
+    }
 
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
         do {
@@ -3280,23 +3255,27 @@ private func executeDicomCompressCompress() async {
     // and the engine itself ignores it for every syntax other than JPEG Baseline.
     let jpegEngine = JPEGCodecEngine(rawValue: paramValue("jpegCodec")) ?? .jli
 
+    // ArgumentParser / validate() refusals, exit 64 (the CLI's texts).
     guard !inputPath.isEmpty else {
-        appendConsoleOutput("Error: Input file path is required.\n")
+        let msg = "Error: Missing expected argument '<input>'\n"
+        appendConsoleOutput(msg)
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: "Missing input path")
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 64, output: msg)
         return
     }
     guard !outputPath.isEmpty else {
-        appendConsoleOutput("Error: Output file path is required.\n")
+        let msg = "Error: Missing expected argument '--output <output>'\n"
+        appendConsoleOutput(msg)
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: "Missing output path")
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 64, output: msg)
         return
     }
     guard CompressionManager.transferSyntax(for: codec) != nil else {
-        let msg = "Error: Unknown codec '\(codec)'.\n"
+        let supported = CompressionManager.supportedCodecs().map { $0.name }.joined(separator: ", ")
+        let msg = "Error: Unknown codec '\(codec)'. Supported: \(supported)\n"
         appendConsoleOutput(msg)
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: msg)
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 64, output: msg)
         return
     }
 
@@ -3309,6 +3288,13 @@ private func executeDicomCompressCompress() async {
         if accessingOut { outputScopedURL?.stopAccessingSecurityScopedResource() }
     }
     let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+    guard FileManager.default.fileExists(atPath: inputURL.path) else {
+        let msg = "Error: Input file not found: \(inputURL.path)\n"
+        appendConsoleOutput(msg)
+        consoleStatus = .error; service.setConsoleStatus(.error)
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 64, output: msg)
+        return
+    }
     // Shared backend resolution (same helper the CLI uses) — the preference is
     // both displayed AND forwarded into the engine (J2K/HTJ2K honor metal→GPU).
     // Report the backend selected for this codec's encode step, not merely the
@@ -3376,7 +3362,8 @@ private func executeDicomCompressCompress() async {
             }
             return (log, 0)
         } catch {
-            log += "Error: \(error.localizedDescription)\n"
+            // The CLI prints `Error: \(error)` (String(describing:)), not localizedDescription.
+            log += "Error: \(error)\n"
             return (log, 1)
         }
     }.value
@@ -3395,25 +3382,13 @@ private func executeDicomCompressDecompress() async {
     let syntax = paramValue("syntax").isEmpty ? "explicit-le" : paramValue("syntax")
     let verbose = paramValue("verbose") == "true"
 
-    guard !inputPath.isEmpty else {
-        appendConsoleOutput("Error: Input file path is required.\n")
-        consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: "Missing input path")
-        return
-    }
-    guard !outputPath.isEmpty else {
-        appendConsoleOutput("Error: Output file path is required.\n")
-        consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: "Missing output path")
-        return
-    }
-    guard let targetSyntax = CompressionManager.transferSyntax(for: syntax) else {
-        let msg = "Error: Unknown syntax '\(syntax)'. Use explicit-le or implicit-le.\n"
+    func refuse(_ msg: String, exitCode: Int) {
         appendConsoleOutput(msg)
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: msg)
-        return
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: exitCode, output: msg)
     }
+    guard !inputPath.isEmpty else { refuse("Error: Missing expected argument '<input>'\n", exitCode: 64); return }
+    guard !outputPath.isEmpty else { refuse("Error: Missing expected argument '--output <output>'\n", exitCode: 64); return }
 
     let inputScopedURL = securityScopedURLs["input"]
     let outputScopedURL = securityScopedURLs["output"]
@@ -3424,6 +3399,13 @@ private func executeDicomCompressDecompress() async {
         if accessingOut { outputScopedURL?.stopAccessingSecurityScopedResource() }
     }
     let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+    // validate(): input exists (64), then --syntax must be a native target (P-COMPRESS-SYNTAX; exit 1).
+    guard FileManager.default.fileExists(atPath: inputURL.path) else {
+        refuse("Error: Input file not found: \(inputURL.path)\n", exitCode: 64); return
+    }
+    let targetSyntax: TransferSyntax
+    do { targetSyntax = try WorkshopNativeTargetSyntax.resolve(syntax) }
+    catch { refuse("Error: \(error)\n", exitCode: 1); return }
     let targetName = CompressionManager.transferSyntaxDisplayName(targetSyntax)
 
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
@@ -3447,7 +3429,7 @@ private func executeDicomCompressDecompress() async {
             }
             return (log, 0)
         } catch {
-            log += "Error: \(error.localizedDescription)\n"
+            log += "Error: \(error)\n"
             return (log, 1)
         }
     }.value
@@ -3470,32 +3452,13 @@ private func executeDicomCompressBatch() async {
     let recursive = paramValue("recursive") == "true"
     let verbose = paramValue("verbose") == "true"
 
-    guard !inputDir.isEmpty else {
-        appendConsoleOutput("Error: Input directory is required.\n")
-        consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: "Missing input directory")
-        return
-    }
-    guard !outputDir.isEmpty else {
-        appendConsoleOutput("Error: Output directory is required.\n")
-        consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: "Missing output directory")
-        return
-    }
-    if !decompress && codec.trimmingCharacters(in: .whitespaces).isEmpty {
-        let msg = "Error: Specify --codec for compression or enable Decompress for decompression.\n"
+    func refuse(_ msg: String, exitCode: Int) {
         appendConsoleOutput(msg)
         consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: msg)
-        return
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: exitCode, output: msg)
     }
-    if !codec.trimmingCharacters(in: .whitespaces).isEmpty, CompressionManager.transferSyntax(for: codec) == nil {
-        let msg = "Error: Unknown codec '\(codec)'.\n"
-        appendConsoleOutput(msg)
-        consoleStatus = .error; service.setConsoleStatus(.error)
-        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 1, output: msg)
-        return
-    }
+    guard !inputDir.isEmpty else { refuse("Error: Missing expected argument '<input>'\n", exitCode: 64); return }
+    guard !outputDir.isEmpty else { refuse("Error: Missing expected argument '--output <output>'\n", exitCode: 64); return }
 
     let inputScopedURL = securityScopedURLs["inputDir"]
     let outputScopedURL = securityScopedURLs["outputDir"]
@@ -3508,6 +3471,25 @@ private func executeDicomCompressBatch() async {
     let inputBase = inputScopedURL ?? URL(fileURLWithPath: inputDir)
     let outputBase = outputScopedURL ?? URL(fileURLWithPath: outputDir)
 
+    // validate(), in the CLI's order and with its texts (ValidationError, 64; --syntax refusal, 1).
+    var inputIsDir: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: inputBase.path, isDirectory: &inputIsDir), inputIsDir.boolValue else {
+        refuse("Error: Input directory not found: \(inputBase.path)\n", exitCode: 64); return
+    }
+    let codecGiven = !codec.trimmingCharacters(in: .whitespaces).isEmpty
+    if !decompress && !codecGiven {
+        refuse("Error: Specify --codec for compression or use --decompress for decompression\n", exitCode: 64); return
+    }
+    if codecGiven, CompressionManager.transferSyntax(for: codec) == nil {
+        let supported = CompressionManager.supportedCodecs().map { $0.name }.joined(separator: ", ")
+        refuse("Error: Unknown codec '\(codec)'. Supported: \(supported)\n", exitCode: 64); return
+    }
+    var decompressTarget: TransferSyntax = .explicitVRLittleEndian
+    if decompress {
+        do { decompressTarget = try WorkshopNativeTargetSyntax.resolve(syntax) }
+        catch { refuse("Error: \(error)\n", exitCode: 1); return }
+    }
+
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
         var log = ""
         let fm = FileManager.default
@@ -3518,8 +3500,14 @@ private func executeDicomCompressBatch() async {
             // Discover DICOM files via the shared CompressionManager finder — the
             // exact call the dicom-compress CLI batch path makes, so both surfaces
             // use one detection heuristic and one (sorted) ordering.
-            let files = (try CompressionManager.findDICOMFiles(in: inputBase.path, recursive: recursive))
-                .map { URL(fileURLWithPath: $0) }
+            let files: [URL]
+            do {
+                files = (try CompressionManager.findDICOMFiles(in: inputBase.path, recursive: recursive))
+                    .map { URL(fileURLWithPath: $0) }
+            } catch {
+                log += "Error scanning directory: \(error)\n"
+                return (log, 1)
+            }
 
             if files.isEmpty {
                 log += "No DICOM files found in: \(inputDir)\n"
@@ -3547,8 +3535,7 @@ private func executeDicomCompressBatch() async {
                     // Compress/decompress via the shared DICOMKit engine.
                     let outputData: Data
                     if decompress {
-                        let target = CompressionManager.transferSyntax(for: syntax) ?? .explicitVRLittleEndian
-                        outputData = try CompressionManager().decompressData(inputData, syntax: target)
+                        outputData = try CompressionManager().decompressData(inputData, syntax: decompressTarget)
                     } else {
                         outputData = try CompressionManager().compressData(inputData, codec: codec, quality: quality)
                     }
@@ -3564,7 +3551,7 @@ private func executeDicomCompressBatch() async {
                 decompress: decompress, success: successCount, fail: failCount, total: files.count)
             return (log, failCount > 0 ? 1 : 0)
         } catch {
-            log += "Error: \(error.localizedDescription)\n"
+            log += "Error: \(error)\n"
             return (log, 1)
         }
     }.value
@@ -3916,6 +3903,38 @@ private func executeDicomStudy() async {
         )
     }
 
+    /// The CLI's `MetadataOptions.validatedShared()` followed by `VideoOptionConformance.violations`:
+    /// `--modality` through the shared ModalityOptionValidator (`--strict-modality` rejects, exit 1),
+    /// `--audio-channel-source` values parsed as PS3.16 CID 3000 keywords or SCHEME:VALUE[:MEANING]
+    /// (one for every track, or one per track; D56), then the P-VIDEO-* refusals (modality other than
+    /// the IOD's ES/GM/XC, sex outside M/F/O, non-DA birth date, unregistered HEVC UID), all exit 1.
+    /// Returns the metadata, the notice lines to print, the `validatedShared()` error (ArgumentParser
+    /// prints `Error: <description>`, exit 1) and the conformance refusal lines.
+    private func validatedDicomVideoMetadata(type: VideoConsole.TypeArgument, transferSyntax: String?)
+        -> (metadata: VideoWorkflow.Metadata, lines: [String], parseError: String?, violations: [String]) {
+        var metadata = dicomVideoMetadata()
+        var lines: [String] = []
+        let strict = paramValue("strictModality") == "true"
+        if let raw = metadata.modality {
+            let resolved = Self.resolveModalityOption(raw, strict: strict, verbose: false)
+            if let error = resolved.error { return (metadata, lines, "Error: \(error)", []) }
+            lines += resolved.lines
+            metadata.modality = resolved.value
+        }
+        var sources: [VideoAudioChannel.Source] = []
+        for spec in CommandBuilderHelpers.splitMultiValue(paramValue("audioChannelSource")) {
+            do { sources.append(try WorkshopAudioChannelSourceOption.parse(spec)) }
+            catch { return (metadata, lines, "Error: \(error)", []) }
+        }
+        if sources.count == 1 {
+            metadata.audioChannelSource = sources[0]
+        } else if sources.count > 1 {
+            metadata.audioChannelSources = sources
+        }
+        let violations = WorkshopVideoOptionConformance.violations(type: type, metadata: metadata, transferSyntax: transferSyntax)
+        return (metadata, lines, nil, violations)
+    }
+
     /// Finishes a `dicom-video` run: prints, records history and sets status.
     ///
     /// Exit code 2 is a conformance rejection — the input was understood and
@@ -3998,7 +4017,6 @@ private func executeDicomStudy() async {
         let trustInput = paramValue("trustInput") == "true"
         let force = paramValue("force") == "true"
         let verbose = paramValue("verbose") == "true"
-        let metadata = dicomVideoMetadata()
         let typeWasExplicit = !typeRaw.isEmpty
 
         let inputScopedURL = securityScopedURLs["input"]
@@ -4006,6 +4024,24 @@ private func executeDicomStudy() async {
         let accessingIn = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessingIn { inputScopedURL?.stopAccessingSecurityScopedResource() } }
         let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+
+        // The CLI reads the input first, then validates the metadata and refuses (exit 1).
+        guard FileManager.default.contents(atPath: inputURL.path) != nil else {
+            finishDicomVideo(output: VideoConsole.cannotReadLine(inputPath), exitCode: .inputError)
+            return
+        }
+        let validated = validatedDicomVideoMetadata(
+            type: type, transferSyntax: transferSyntaxRaw.isEmpty ? nil : transferSyntaxRaw)
+        if let parseError = validated.parseError {
+            finishDicomVideo(output: (validated.lines + [parseError]).joined(separator: "\n"), exitCode: .inputError)
+            return
+        }
+        if !validated.violations.isEmpty {
+            finishDicomVideo(output: (validated.lines + validated.violations).joined(separator: "\n"), exitCode: .inputError)
+            return
+        }
+        let metadata = validated.metadata
+        let noticeLines = validated.lines
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
             () -> (String, VideoConsole.ExitCode) in
@@ -4038,7 +4074,7 @@ private func executeDicomStudy() async {
                 return (error.localizedDescription, .inputError)
             }
 
-            var lines: [String] = []
+            var lines: [String] = noticeLines
             if !outcome.output.isEmpty { lines.append(outcome.output) }
 
             let report = VideoConsole.describe(
@@ -4255,7 +4291,6 @@ private func executeDicomStudy() async {
         let dryRun = paramValue("dryRun") == "true"
         let force = paramValue("force") == "true"
         let verbose = paramValue("verbose") == "true"
-        let metadata = dicomVideoMetadata()
         let typeWasExplicit = !typeRaw.isEmpty
 
         let inputScopedURL = securityScopedURLs["inputDirectory"]
@@ -4276,6 +4311,10 @@ private func executeDicomStudy() async {
         let outputBase = resolvedOutput.url
         let redirectNote = resolvedOutput.note
 
+        let validated = validatedDicomVideoMetadata(
+            type: type, transferSyntax: transferSyntaxRaw.isEmpty ? nil : transferSyntaxRaw)
+        let metadata = validated.metadata
+
         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
             () -> (String, VideoConsole.ExitCode) in
             var isDirectory: ObjCBool = false
@@ -4285,13 +4324,21 @@ private func executeDicomStudy() async {
                 return (VideoConsole.notADirectoryLine(inputDirectory), .inputError)
             }
 
+            // The CLI's order: validatedShared() (modality / audio sources), the batch options,
+            // then the conformance refusals — texts are the CLI's, exit 1.
+            if let parseError = validated.parseError {
+                return ((validated.lines + [parseError]).joined(separator: "\n"), .inputError)
+            }
             do {
                 try VideoWorkflow.validateBatchOptions(
                     seriesMode: seriesMode, metadata: metadata)
             } catch let failure as VideoWorkflow.Failure {
-                return (failure.message, failure.exitCode)
+                return ((validated.lines + [failure.message]).joined(separator: "\n"), failure.exitCode)
             } catch {
-                return (error.localizedDescription, .inputError)
+                return ((validated.lines + [error.localizedDescription]).joined(separator: "\n"), .inputError)
+            }
+            if !validated.violations.isEmpty {
+                return ((validated.lines + validated.violations).joined(separator: "\n"), .inputError)
             }
 
             let files: [URL]
@@ -4339,8 +4386,9 @@ private func executeDicomStudy() async {
 
             // The Workshop has one console, so the CLI's two streams are shown
             // together — diagnostics first, exactly as a terminal interleaves them.
-            guard let note = redirectNote else { return (outcome.combined, outcome.exitCode) }
-            return (note + "\n" + outcome.combined, outcome.exitCode)
+            let head = (redirectNote.map { [$0] } ?? []) + validated.lines
+            guard !head.isEmpty else { return (outcome.combined, outcome.exitCode) }
+            return ((head + [outcome.combined]).joined(separator: "\n"), outcome.exitCode)
         }.value
 
         finishDicomVideo(output: output, exitCode: exitCode)
@@ -4348,34 +4396,64 @@ private func executeDicomStudy() async {
 
     // MARK: - dicom-image Execution
 
-    /// Converts standard image files (JPEG/PNG/TIFF/BMP/GIF) to DICOM Secondary
-    /// Capture, faithfully reproducing the `dicom-image` CLI in-process using
-    /// CoreGraphics/ImageIO + DICOMKit. Supports single-file, recursive batch
-    /// directory, and multi-page TIFF splitting, plus optional EXIF extraction.
+    /// Converts standard image files (JPEG/PNG/TIFF/BMP/GIF) to DICOM Secondary Capture by running
+    /// dicom-image's own run() in-process (Sources/dicom-image/main.swift): the shared DICOMKit
+    /// `ImageConverter` and `ImageConsole`, `--conversion-type` (PS3.3 2026a Table C.8-24),
+    /// `--strict-modality` through the shared `ModalityOptionValidator`, the P-IMAGE-VR refusals
+    /// (PS3.5 2026a Table 6.2-1 / Section 9) and the `SCOutput.finalize` post-processing ((0002,0003)
+    /// = (0008,0018), Specific Character Set ISO_IR 192) through the text-identical `WorkshopSCOutput`
+    /// mirror (equality checked by Scripts/diff_studio_g1.py). Exit codes are the CLI's: 64 for a
+    /// usage error (ArgumentParser ValidationError), 1 for a refused value or a failed single file,
+    /// 0 for a directory / TIFF run whatever its per-file outcomes.
     private func executeDicomImage() async {
         let input = paramValue("input")
-        guard !input.isEmpty else {
-            appendConsoleOutput("Error: Input path is required.\n")
-            consoleStatus = .error; service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-image", command: commandPreview, exitCode: 1, output: "Missing input path")
-            return
-        }
-
         let outputRaw = paramValue("output")
         let outputPath: String? = outputRaw.isEmpty ? nil : outputRaw
-        let patientName = paramValue("patient-name")
-        let patientID = paramValue("patient-id")
-        let studyDescription = paramValue("study-description").isEmpty ? nil : paramValue("study-description")
-        let seriesDescription = paramValue("series-description").isEmpty ? nil : paramValue("series-description")
-        let studyUIDArg = paramValue("study-uid").isEmpty ? nil : paramValue("study-uid")
-        let seriesUIDArg = paramValue("series-uid").isEmpty ? nil : paramValue("series-uid")
+        func optional(_ id: String) -> String? { paramValue(id).isEmpty ? nil : paramValue(id) }
+        let patientNameArg = optional("patient-name")
+        let patientIDArg = optional("patient-id")
+        let studyDescription = optional("study-description")
+        let seriesDescription = optional("series-description")
+        let studyUIDArg = optional("study-uid")
+        let seriesUIDArg = optional("series-uid")
         let seriesNumber = Int(paramValue("series-number"))
         let instanceNumberArg = Int(paramValue("instance-number"))
-        let modalityVal = paramValue("modality").isEmpty ? "OT" : paramValue("modality")
+        let modalityArg = optional("modality")
+        let strictModality = paramValue("strict-modality") == "true"
+        let conversionTypeArg = optional("conversion-type")
         let useExif = paramValue("use-exif") == "true"
         let splitPages = paramValue("split-pages") == "true"
         let recursive = paramValue("recursive") == "true"
         let verbose = paramValue("verbose") == "true"
+
+        func finish(_ text: String, exitCode: Int) {
+            appendConsoleOutput(text)
+            addToHistory(toolName: "dicom-image", command: commandPreview, exitCode: exitCode, output: text)
+            consoleStatus = exitCode == 0 ? .success : .error
+            service.setConsoleStatus(exitCode == 0 ? .success : .error)
+        }
+
+        guard !input.isEmpty else {
+            finish("Error: Missing expected argument '<input>'\n", exitCode: 64)
+            return
+        }
+
+        #if canImport(CoreGraphics)
+        // run(): --conversion-type first (ValidationError, 64), then the P-IMAGE-VR refusals (exit 1).
+        guard let conversionType = WorkshopSCOutput.conversionType(conversionTypeArg) else {
+            finish("Error: --conversion-type '\(conversionTypeArg ?? "")' is not a Defined Term of PS3.3 Table C.8-24 "
+                   + "(\(ConversionType.definedTerms.joined(separator: ", ")))\n", exitCode: 64)
+            return
+        }
+        let violations = WorkshopSCOutput.valueViolations(
+            patientName: patientNameArg, patientID: patientIDArg,
+            studyDescription: studyDescription, seriesDescription: seriesDescription,
+            studyUID: studyUIDArg, seriesUID: seriesUIDArg,
+            seriesNumber: seriesNumber, instanceNumber: instanceNumberArg)
+        if !violations.isEmpty {
+            finish(violations.map { "Error: " + $0 + "\n" }.joined(), exitCode: 1)
+            return
+        }
 
         // Security-scoped access for input and output (when provided as bookmarks).
         let inputScopedURL = securityScopedURLs["input"]
@@ -4386,151 +4464,143 @@ private func executeDicomStudy() async {
         defer { if outputAccessing { outputScopedURL?.stopAccessingSecurityScopedResource() } }
 
         let inputURL = inputScopedURL ?? URL(fileURLWithPath: input)
+        guard FileManager.default.fileExists(atPath: inputURL.path) else {
+            finish("Error: Input path not found: \(inputURL.path)\n", exitCode: 64)
+            return
+        }
+        var isDir: ObjCBool = false
+        _ = FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDir)
+        if isDir.boolValue, !recursive {
+            finish("Error: Directory processing requires --recursive flag\n", exitCode: 64)
+            return
+        }
+
         // Resolve the output URL: prefer a scoped bookmark; else probe the typed path and
         // redirect to ~/Downloads/DICOMStudio if it isn't writable (sandbox/TCC).
+        var preamble = ""
         let resolvedOutputURL: URL?
         if let scoped = outputScopedURL {
             resolvedOutputURL = scoped
-        } else if let op = outputPath, !op.isEmpty {
+        } else if let op = outputPath {
             let r = OutputAccess.resolveWritableURL(forPath: op, scopedURL: nil,
                                                     subfolder: "ImageConversion",
-                                                    isDirectory: recursive || splitPages)
-            if let note = r.note { appendConsoleOutput(note + "\n") }
+                                                    isDirectory: isDir.boolValue || splitPages)
+            if let note = r.note { preamble += note + "\n" }
             resolvedOutputURL = r.url
         } else {
             resolvedOutputURL = nil
         }
 
-        #if canImport(CoreGraphics)
+        let workIsDirectory = isDir.boolValue
         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
             () -> (String, Int) in
             let fm = FileManager.default
-
-            // Validate input exists.
-            guard fm.fileExists(atPath: inputURL.path) else {
-                return ("Error: Input path not found: \(inputURL.path)\n", 1)
-            }
-
-            // Patient identity is mandatory for any conversion.
-            guard !patientName.isEmpty else {
-                return ("Error: Patient Name is required for conversion (--patient-name)\n", 1)
-            }
-            guard !patientID.isEmpty else {
-                return ("Error: Patient ID is required for conversion (--patient-id)\n", 1)
-            }
-
             var out = ""
 
-            // Pixel extraction, EXIF mapping, and Secondary Capture assembly now
-            // come from the shared DICOMKit ImageConverter — the exact same code
-            // the dicom-image CLI runs. These thin wrappers keep call sites tidy.
-            func generateUID() -> String { ImageConverter.generateUID() }
-            func isImageFile(_ url: URL) -> Bool { ImageConverter.isImageFile(url) }
-
-            func makeMetadata(studyUID: String, seriesUID: String, instanceNumber: Int) -> ImageConverter.Metadata {
-                ImageConverter.Metadata(
+            /// The CLI's `metadata(...)`: --modality is resolved where it is consumed, so
+            /// --strict-modality can stop the run; the warning lines go to the console.
+            func makeMetadata(studyUID: String, seriesUID: String, instanceNumber: Int,
+                              patientName: String, patientID: String) throws -> ImageConverter.Metadata {
+                let resolved = Self.resolveModalityOption(modalityArg ?? "", strict: strictModality, verbose: verbose)
+                if let error = resolved.error { throw ModalityOptionError.rejected(error) }
+                for line in resolved.lines { out += line + "\n" }
+                return ImageConverter.Metadata(
                     patientName: patientName, patientID: patientID,
                     studyUID: studyUID, seriesUID: seriesUID, instanceNumber: instanceNumber,
                     studyDescription: studyDescription, seriesDescription: seriesDescription,
-                    modality: modalityVal, seriesNumber: seriesNumber)
+                    modality: modalityArg == nil ? Modality.ot.rawValue : resolved.value,
+                    seriesNumber: seriesNumber,
+                    conversionType: conversionType)
             }
 
-            // Loads, encodes and writes a single image (page 0) to a .dcm file URL
-            // via the shared engine. The write goes through `OutputAccess.write`:
-            // the output Browse picker grants a FOLDER, so when the user then types
-            // a filename the file must be written INSIDE that grant, named from the
-            // typed path. Writing straight onto the scoped folder URL produced
-            // "The file "Test" couldn't be saved in the folder "Desktop"".
-            // Returns the URL actually written, or an error message.
-            func convertImageFile(
-                imageURL: URL,
-                outputURL: URL,
-                studyUID: String,
-                seriesUID: String,
-                instanceNumber: Int
-            ) -> (written: URL?, error: String?) {
-                do {
-                    let data = try ImageConverter.secondaryCaptureData(
-                        imageURL: imageURL,
-                        metadata: makeMetadata(studyUID: studyUID, seriesUID: seriesUID, instanceNumber: instanceNumber),
-                        useExif: useExif)
-                    let r = try OutputAccess.write(data, toPath: outputURL.path, scopedURL: outputScopedURL,
-                                                   subfolder: "ImageConversion")
-                    if let note = r.note { out += note + "\n" }
-                    return (r.url, nil)
-                } catch let e as ImageConversionError {
-                    return (nil, e.errorDescription)
-                } catch {
-                    return (nil, error.localizedDescription)
+            /// Encodes one image (page) and writes it through `OutputAccess.write`: the output
+            /// Browse picker grants a FOLDER, so a typed filename must land INSIDE that grant.
+            func write(imageURL: URL, pageIndex: Int? = nil, outputURL: URL, studyUID: String, seriesUID: String,
+                       instanceNumber: Int, patientName: String, patientID: String) throws -> URL {
+                let metadata = try makeMetadata(studyUID: studyUID, seriesUID: seriesUID, instanceNumber: instanceNumber,
+                                                patientName: patientName, patientID: patientID)
+                let data: Data
+                if let pageIndex {
+                    data = try ImageConverter.secondaryCaptureData(imageURL: imageURL, pageIndex: pageIndex,
+                                                                   metadata: metadata, useExif: useExif)
+                } else {
+                    data = try ImageConverter.secondaryCaptureData(imageURL: imageURL, metadata: metadata, useExif: useExif)
                 }
+                let r = try OutputAccess.write(try WorkshopSCOutput.finalize(data), toPath: outputURL.path,
+                                               scopedURL: outputScopedURL, subfolder: "ImageConversion")
+                if let note = r.note { out += note + "\n" }
+                return r.url
             }
 
-            // MARK: Dispatch on input kind.
-
-            var isDir: ObjCBool = false
-            _ = fm.fileExists(atPath: inputURL.path, isDirectory: &isDir)
-
-            if isDir.boolValue {
-                // ---- Directory (batch) conversion ----
-                guard recursive else {
-                    return ("Error: Directory processing requires --recursive flag\n", 1)
-                }
+            if workIsDirectory {
+                // ---- convertDirectory ----
                 let outputDirURL = resolvedOutputURL ?? inputURL.appendingPathComponent("dicom")
                 do {
                     try fm.createDirectory(at: outputDirURL, withIntermediateDirectories: true)
                 } catch {
-                    return ("Error: \(error.localizedDescription)\n", 1)
+                    return (out + "Error: \(error.localizedDescription)\n", 1)
                 }
                 if verbose {
                     out += ImageConsole.batchHeader(inputPath: inputURL.path, outputDir: outputDirURL.path)
                 }
-
-                let finalStudyUID = studyUIDArg ?? generateUID()
-                let finalSeriesUID = seriesUIDArg ?? generateUID()
-                var instanceNum = instanceNumberArg ?? 1
+                guard let patientName = patientNameArg, !patientName.isEmpty else {
+                    return (out + "Error: Patient Name is required for batch conversion (--patient-name)\n", 64)
+                }
+                guard let patientID = patientIDArg, !patientID.isEmpty else {
+                    return (out + "Error: Patient ID is required for batch conversion (--patient-id)\n", 64)
+                }
                 var successCount = 0
                 var failureCount = 0
-
+                var instanceNum = instanceNumberArg ?? 1
+                let finalStudyUID = studyUIDArg ?? ImageConverter.generateUID()
+                let finalSeriesUID = seriesUIDArg ?? ImageConverter.generateUID()
                 // Shared, sorted directory walk — the exact gatherer dicom-image uses.
                 let fileURLs = FileGatherer.regularFiles(under: inputURL) ?? []
                 for fileURL in fileURLs {
-                    guard isImageFile(fileURL) else {
+                    guard ImageConverter.isImageFile(fileURL) else {
                         if verbose { out += ImageConsole.skippedLine(fileName: fileURL.lastPathComponent) + "\n" }
                         continue
                     }
-                    let baseName = fileURL.deletingPathExtension().lastPathComponent
-                    let outFileURL = outputDirURL.appendingPathComponent("\(baseName).dcm")
-                    let result = convertImageFile(
-                        imageURL: fileURL, outputURL: outFileURL,
-                        studyUID: finalStudyUID, seriesUID: finalSeriesUID,
-                        instanceNumber: instanceNum
-                    )
-                    if let err = result.error {
-                        failureCount += 1
-                        if verbose { out += ImageConsole.fileFailureLine(inputName: fileURL.lastPathComponent, message: err) + "\n" }
-                    } else {
+                    do {
+                        let baseName = fileURL.deletingPathExtension().lastPathComponent
+                        let outFileURL = outputDirURL.appendingPathComponent("\(baseName).dcm")
+                        let written = try write(imageURL: fileURL, outputURL: outFileURL,
+                                                studyUID: finalStudyUID, seriesUID: finalSeriesUID,
+                                                instanceNumber: instanceNum, patientName: patientName, patientID: patientID)
                         successCount += 1
                         instanceNum += 1
-                        let writtenName = (result.written ?? outFileURL).lastPathComponent
-                        if verbose { out += ImageConsole.fileSuccessLine(inputName: fileURL.lastPathComponent, outputName: writtenName) + "\n" }
+                        if verbose {
+                            out += ImageConsole.fileSuccessLine(inputName: fileURL.lastPathComponent, outputName: written.lastPathComponent) + "\n"
+                        }
+                    } catch {
+                        failureCount += 1
+                        if verbose {
+                            out += ImageConsole.fileFailureLine(inputName: fileURL.lastPathComponent, message: error.localizedDescription) + "\n"
+                        }
                     }
                 }
-
                 out += ImageConsole.batchSummary(
                     successful: successCount, failed: failureCount,
-                    studyUID: finalStudyUID, seriesUID: finalSeriesUID, outputDir: outputDirURL.path
-                )
-                return (out, successCount > 0 || failureCount == 0 ? 0 : 1)
+                    studyUID: finalStudyUID, seriesUID: finalSeriesUID, outputDir: outputDirURL.path)
+                // The CLI's convertDirectory never throws for a failed file: exit 0.
+                return (out, 0)
             }
 
+            // ---- convertFile ----
+            guard let patientName = patientNameArg, !patientName.isEmpty else {
+                return (out + "Error: Patient Name is required for conversion (--patient-name)\n", 64)
+            }
+            guard let patientID = patientIDArg, !patientID.isEmpty else {
+                return (out + "Error: Patient ID is required for conversion (--patient-id)\n", 64)
+            }
             let ext = inputURL.pathExtension.lowercased()
             if splitPages && (ext == "tiff" || ext == "tif") {
-                // ---- Multi-page TIFF split (shared ImageConverter) ----
+                // ---- convertMultiPageTIFF ----
                 let pageCount: Int
                 do { pageCount = try ImageConverter.pageCount(of: inputURL) }
-                catch { return ("Error: Failed to load image file\n", 1) }
+                catch { return (out + "Error: \(error.localizedDescription)\n", 1) }
                 guard pageCount > 0 else {
-                    return ("Error: TIFF file contains no pages\n", 1)
+                    return (out + "Error: \(ImageConversionError.noPages.errorDescription ?? "TIFF file contains no pages")\n", 1)
                 }
                 let outputDirURL: URL
                 if let resolved = resolvedOutputURL {
@@ -4542,25 +4612,21 @@ private func executeDicomStudy() async {
                 do {
                     try fm.createDirectory(at: outputDirURL, withIntermediateDirectories: true)
                 } catch {
-                    return ("Error: \(error.localizedDescription)\n", 1)
+                    return (out + "Error: \(error.localizedDescription)\n", 1)
                 }
                 if verbose {
                     out += ImageConsole.tiffHeader(fileName: inputURL.lastPathComponent, pages: pageCount, outputDir: outputDirURL.path)
                 }
-                let finalStudyUID = studyUIDArg ?? generateUID()
-                let finalSeriesUID = seriesUIDArg ?? generateUID()
+                let finalStudyUID = studyUIDArg ?? ImageConverter.generateUID()
+                let finalSeriesUID = seriesUIDArg ?? ImageConverter.generateUID()
                 for pageIndex in 0..<pageCount {
                     let fileName = String(format: "frame_%04d.dcm", pageIndex + 1)
-                    let outFileURL = outputDirURL.appendingPathComponent(fileName)
                     do {
-                        let data = try ImageConverter.secondaryCaptureData(
-                            imageURL: inputURL, pageIndex: pageIndex,
-                            metadata: makeMetadata(studyUID: finalStudyUID, seriesUID: finalSeriesUID,
-                                                   instanceNumber: (instanceNumberArg ?? 1) + pageIndex),
-                            // Honor --use-exif per page (matches the CLI fix): the
-                            // converter reads each page's own EXIF at pageIndex.
-                            useExif: useExif)
-                        try data.write(to: outFileURL, options: .atomic)
+                        _ = try write(imageURL: inputURL, pageIndex: pageIndex,
+                                      outputURL: outputDirURL.appendingPathComponent(fileName),
+                                      studyUID: finalStudyUID, seriesUID: finalSeriesUID,
+                                      instanceNumber: (instanceNumberArg ?? 1) + pageIndex,
+                                      patientName: patientName, patientID: patientID)
                         if verbose { out += ImageConsole.pageSuccessLine(page: pageIndex + 1, outputName: fileName) + "\n" }
                     } catch {
                         if verbose { out += ImageConsole.pageFailureLine(page: pageIndex + 1, message: error.localizedDescription) + "\n" }
@@ -4570,12 +4636,11 @@ private func executeDicomStudy() async {
                 return (out, 0)
             }
 
-            // ---- Single-file conversion ----
+            // ---- single file ----
             let finalOutputURL: URL
             if outputScopedURL != nil, let op = outputPath {
-                // Browse granted a folder; the field may now hold folder + filename.
-                // Hand the TYPED path to OutputAccess.write, which places it inside
-                // the grant (or names a file after it when it falls outside).
+                // Browse granted a folder; the field may now hold folder + filename. Hand the TYPED
+                // path to OutputAccess.write, which places it inside the grant.
                 finalOutputURL = URL(fileURLWithPath: op)
             } else if let resolved = resolvedOutputURL {
                 finalOutputURL = resolved
@@ -4583,27 +4648,22 @@ private func executeDicomStudy() async {
                 finalOutputURL = inputURL.deletingPathExtension().appendingPathExtension("dcm")
             }
             if verbose { out += ImageConsole.convertingLine(inputPath: inputURL.path) + "\n" }
-            let single = convertImageFile(
-                imageURL: inputURL, outputURL: finalOutputURL,
-                studyUID: studyUIDArg ?? generateUID(),
-                seriesUID: seriesUIDArg ?? generateUID(),
-                instanceNumber: instanceNumberArg ?? 1
-            )
-            if let err = single.error {
-                return (out + "Error: \(err)\n", 1)
+            do {
+                let written = try write(imageURL: inputURL, outputURL: finalOutputURL,
+                                        studyUID: studyUIDArg ?? ImageConverter.generateUID(),
+                                        seriesUID: seriesUIDArg ?? ImageConverter.generateUID(),
+                                        instanceNumber: instanceNumberArg ?? 1,
+                                        patientName: patientName, patientID: patientID)
+                out += ImageConsole.convertedLine(outputPath: written.path, verbose: verbose) + "\n"
+                return (out, 0)
+            } catch {
+                return (out + "Error: \(error.localizedDescription)\n", 1)
             }
-            out += ImageConsole.convertedLine(outputPath: (single.written ?? finalOutputURL).path, verbose: verbose) + "\n"
-            return (out, 0)
         }.value
+        finish(preamble + output, exitCode: exitCode)
         #else
-        let output = "Error: Image conversion not supported on this platform\n"
-        let exitCode = 1
+        finish("Error: Image conversion not supported on this platform\n", exitCode: 64)
         #endif
-
-        appendConsoleOutput(output)
-        addToHistory(toolName: "dicom-image", command: commandPreview, exitCode: exitCode, output: output)
-        consoleStatus = exitCode == 0 ? .success : .error
-        service.setConsoleStatus(exitCode == 0 ? .success : .error)
     }
 
     // MARK: - dicom-export Execution
@@ -5304,35 +5364,84 @@ case "dicom-study":
 
     // MARK: - dicom-convert Execution
 
-    /// Performs DICOM file conversion: transfer syntax conversion or image export.
+    /// Performs DICOM file conversion (transfer syntax conversion or image export) by running
+    /// dicom-convert's own validate() / run() in-process (Sources/dicom-convert/DICOMConvert.swift):
+    /// the shared DICOMKit `DICOMConverter` / `DICOMImageExporter` / `ConvertConsole`, the CLI's
+    /// usage refusals (exit 64), Frame numbers from 1 (`--frame-number`, PS3.3 2026a Table 10-3) with
+    /// the deprecated 0-based `--frame` and its stderr note (P-CONVERT-FRAME), the reassigned Table A-1
+    /// keyword note (P-CONVERT-TS-KEYWORDS, `TransferSyntax.reassignedKeywordNote`), the CLI-local
+    /// `TransferSyntaxKeywords` through the text-identical `WorkshopTransferSyntaxKeywords` mirror, and
+    /// a directory run that exits 1 when any file failed (P-CONVERT-EXIT). The console carries only
+    /// what the CLI prints: the transcode line, the batch lines and `ConvertConsole.failureReport`.
     private func executeDicomConvert() async {
         let inputPath = paramValue("inputPath")
         let outputPath = paramValue("output")
         let format = paramValue("format").isEmpty ? "dicom" : paramValue("format")
-        let transferSyntax = paramValue("transfer-syntax")
-        let qualityStr = paramValue("quality")
-        let windowCenterStr = paramValue("window-center")
-        let windowWidthStr = paramValue("window-width")
+        let transferSyntax = paramValue("transfer-syntax").trimmingCharacters(in: .whitespaces)
+        let qualityStr = paramValue("quality").trimmingCharacters(in: .whitespaces)
+        let windowCenterStr = paramValue("window-center").trimmingCharacters(in: .whitespaces)
+        let windowWidthStr = paramValue("window-width").trimmingCharacters(in: .whitespaces)
         let applyWindow = paramValue("apply-window") == "true"
-        let frameStr = paramValue("frame")
+        let frameStr = paramValue("frame").trimmingCharacters(in: .whitespaces)
+        let frameNumberStr = paramValue("frame-number").trimmingCharacters(in: .whitespaces)
         let stripPrivate = paramValue("strip-private") == "true"
         let recursive = paramValue("recursive") == "true"
         let validateOutput = paramValue("validate") == "true"
         let force = paramValue("force") == "true"
 
-        guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input file path is required.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1, output: "Missing input path")
+        func finish(_ text: String, exitCode: Int, summary: String? = nil) {
+            if !text.isEmpty { appendConsoleOutput(text) }
+            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: exitCode, output: summary ?? text)
+            consoleStatus = exitCode == 0 ? .success : .error
+            service.setConsoleStatus(exitCode == 0 ? .success : .error)
+        }
+        func usage(_ message: String) { finish("Error: \(message)\n", exitCode: 64) }
+
+        // ArgumentParser: the missing positional / option, then an unparseable numeric value (exit 64).
+        guard !inputPath.isEmpty else { usage("Missing expected argument '<input-path>'"); return }
+        guard !outputPath.isEmpty else { usage("Missing expected argument '--output <output>'"); return }
+        let defs = ToolCatalogHelpers.parameterDefinitions(for: "dicom-convert")
+        func help(_ id: String) -> String { defs.first { $0.id == id }?.helpText ?? "" }
+        for (raw, option, id, ok) in [
+            (qualityStr, "--quality", "quality", qualityStr.isEmpty || Int(qualityStr) != nil),
+            (windowCenterStr, "--window-center", "window-center", windowCenterStr.isEmpty || Double(windowCenterStr) != nil),
+            (windowWidthStr, "--window-width", "window-width", windowWidthStr.isEmpty || Double(windowWidthStr) != nil),
+            (frameNumberStr, "--frame-number", "frame-number", frameNumberStr.isEmpty || Int(frameNumberStr) != nil),
+            (frameStr, "--frame", "frame", frameStr.isEmpty || Int(frameStr) != nil),
+        ] where !ok {
+            finish(SplitConsole.invalidValueLines(value: raw, option: option, help: help(id)).joined(separator: "\n") + "\n", exitCode: 64)
             return
         }
-        guard !outputPath.isEmpty else {
-            appendConsoleOutput("Error: Output path is required.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1, output: "Missing output path")
+        let quality = Int(qualityStr) ?? 90
+        let windowCenter = Double(windowCenterStr)
+        let windowWidth = Double(windowWidthStr)
+        let frame = Int(frameStr)
+        let frameNumber = Int(frameNumberStr)
+
+        // validate(): the documented ranges, PS3.3 C.11.2.1.2.1, the two frame spellings.
+        guard (1...100).contains(quality) else { usage("--quality must be between 1 and 100"); return }
+        if let width = windowWidth, width < 1 {
+            usage("--window-width must be at least 1 (Window Width (0028,1051), PS3.3 C.11.2.1.2.1)"); return
+        }
+        if let f = frame, f < 0 { usage("--frame is a 0-based frame index and must be 0 or more"); return }
+        if let n = frameNumber, n < 1 {
+            usage("--frame-number must be 1 or more (PS3.3 Table 10-3: the first Frame is Frame number 1)"); return
+        }
+        if frame != nil && frameNumber != nil {
+            // Both spellings at once: refused with exit 1 (not a usage error).
+            finish("Error: --frame (deprecated, 0-based) and --frame-number (numbered from 1) cannot be used together\n", exitCode: 1)
             return
+        }
+        /// 0-based index of the frame to export: --frame-number − 1, else the deprecated 0-based --frame, else the first frame.
+        let frameIndex = frameNumber.map { $0 - 1 } ?? frame ?? 0
+
+        // run(): the stderr notes come first.
+        var preamble = ""
+        if frame != nil {
+            preamble += "warning: --frame is deprecated (0-based index); use --frame-number (numbered from 1, PS3.3 Table 10-3)\n"
+        }
+        if !transferSyntax.isEmpty, let note = WorkshopTransferSyntaxKeywords.meaningChangeNote(for: transferSyntax) {
+            preamble += note + "\n"
         }
 
         // Gain sandbox access via security-scoped URLs
@@ -5346,6 +5455,17 @@ case "dicom-study":
         }
 
         let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
+            finish(preamble + "Error: Input path not found: \(inputURL.path)\n", exitCode: 64)
+            return
+        }
+        if isDirectory.boolValue, !recursive {
+            finish(preamble + "Error: Directory conversion requires --recursive flag\n", exitCode: 64)
+            return
+        }
+        if !preamble.isEmpty { appendConsoleOutput(preamble) }
+
         // Sandbox/TCC-resilient output: prefer the picker's scoped URL; else probe the typed
         // path and redirect to ~/Downloads/DICOMStudio if it isn't writable. Covers both the
         // DICOM-convert Data write and the image-export CGImageDestination below.
@@ -5353,91 +5473,46 @@ case "dicom-study":
         var outputURL = _convOut.url
         if let note = _convOut.note { appendConsoleOutput(note + "\n") }
 
-        appendConsoleOutput("Input:  \(inputURL.path)\n")
-        appendConsoleOutput("Output: \(outputURL.path)\n")
-        appendConsoleOutput("Format: \(format)\n")
-        if format == "dicom" && !transferSyntax.isEmpty {
-            appendConsoleOutput("Transfer Syntax: \(transferSyntax)\n")
-        }
-        appendConsoleOutput("\n")
-
-        // Check if the input is a directory
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
-            appendConsoleOutput("Error: Input path not found: \(inputURL.path)\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1, output: "Input not found")
-            return
-        }
-
-        // When converting a single file and the output path is (or was chosen as) a
-        // directory, write the result *inside* that directory using the input filename.
-        // Resolved through the SAME shared `OutputPathResolver` + `ConvertConsole`
-        // extension map the CLI uses (dicom-convert's `convert()`), so the two surfaces
-        // cannot disagree on the destination. This previously duplicated both the
-        // directory test and the format→extension switch here.
-        if !isDirectory.boolValue {
-            outputURL = URL(fileURLWithPath: OutputPathResolver.resolveFileOutput(
-                output: outputURL.path,
-                input: inputURL.path,
-                fileExtension: ConvertConsole.fileExtension(forFormat: format)))
-            // The GUI can hand us a destination whose parent doesn't exist yet; create it
-            // so the write below doesn't fail (the CLI does the same after resolving).
-            try? FileManager.default.createDirectory(
-                at: outputURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        } else {
-            // Directory-to-directory: make sure output dir exists
-            try? FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
-        }
-
         if isDirectory.boolValue {
-            guard recursive else {
-                appendConsoleOutput("Error: Directory conversion requires the Recursive option to be enabled.\n")
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1, output: "Recursive required")
-                return
-            }
+            try? FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
             await convertDirectory(
                 inputURL: inputURL, outputURL: outputURL,
                 format: format, transferSyntax: transferSyntax,
-                quality: Int(qualityStr) ?? 90,
-                windowCenter: Double(windowCenterStr), windowWidth: Double(windowWidthStr),
-                applyWindow: applyWindow, frame: Int(frameStr),
+                quality: quality, windowCenter: windowCenter, windowWidth: windowWidth,
+                applyWindow: applyWindow, frameIndex: frameIndex, frameNumber: frameNumber,
                 stripPrivate: stripPrivate, validateOutput: validateOutput, force: force
             )
-        } else {
-            do {
-                try convertSingleFile(
-                    inputURL: inputURL, outputURL: outputURL,
-                    format: format, transferSyntax: transferSyntax,
-                    quality: Int(qualityStr) ?? 90,
-                    windowCenter: Double(windowCenterStr), windowWidth: Double(windowWidthStr),
-                    applyWindow: applyWindow, frame: Int(frameStr),
-                    stripPrivate: stripPrivate, validateOutput: validateOutput, force: force
-                )
-                appendConsoleOutput("\n✅ Conversion completed successfully.\n")
-                consoleStatus = .success
-                service.setConsoleStatus(.success)
-                addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 0, output: "Success")
-            } catch {
-                // Same failure report as the dicom-convert CLI (shared ConvertConsole).
-                appendConsoleOutput("\n" + ConvertConsole.failureReport(for: error))
-                consoleStatus = .error
-                service.setConsoleStatus(.error)
-                addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1, output: ConvertConsole.failureSummary(for: error))
-            }
+            return
+        }
+
+        // `--output` may name a directory: resolve it to a concrete file through the SAME shared
+        // OutputPathResolver + ConvertConsole extension map the CLI uses.
+        outputURL = URL(fileURLWithPath: OutputPathResolver.resolveFileOutput(
+            output: outputURL.path, input: inputURL.path,
+            fileExtension: ConvertConsole.fileExtension(forFormat: format)))
+        try? FileManager.default.createDirectory(at: outputURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        do {
+            try convertSingleFile(
+                inputURL: inputURL, outputURL: outputURL,
+                format: format, transferSyntax: transferSyntax,
+                quality: quality, windowCenter: windowCenter, windowWidth: windowWidth,
+                applyWindow: applyWindow, frameIndex: frameIndex, frameNumber: frameNumber,
+                stripPrivate: stripPrivate, validateOutput: validateOutput, force: force
+            )
+            finish("", exitCode: 0, summary: "Success")
+        } catch {
+            // Same failure report as the dicom-convert CLI (shared ConvertConsole), exit 1.
+            finish(ConvertConsole.failureReport(for: error), exitCode: 1, summary: ConvertConsole.failureSummary(for: error))
         }
     }
 
-    /// Converts a single DICOM file to the specified format.
+    /// Converts a single DICOM file to the specified format (the CLI's convertFile).
     private func convertSingleFile(
         inputURL: URL, outputURL: URL,
         format: String, transferSyntax: String,
         quality: Int,
         windowCenter: Double?, windowWidth: Double?,
-        applyWindow: Bool, frame: Int?,
+        applyWindow: Bool, frameIndex: Int, frameNumber: Int?,
         stripPrivate: Bool, validateOutput: Bool, force: Bool
     ) throws {
         let fileData = try Data(contentsOf: inputURL)
@@ -5448,7 +5523,7 @@ case "dicom-study":
             try exportDicomImage(
                 dicomFile: dicomFile, outputURL: outputURL, format: format,
                 quality: quality, windowCenter: windowCenter, windowWidth: windowWidth,
-                applyWindow: applyWindow, frame: frame
+                applyWindow: applyWindow, frameIndex: frameIndex, frameNumber: frameNumber
             )
         default:
             // DICOM transfer syntax conversion
@@ -5465,41 +5540,35 @@ case "dicom-study":
                 to: targetEncoding,
                 stripPrivate: stripPrivate
             )
-            let outputData = outcome.data
-
-            // Create output directory if needed
-            let outputDir = outputURL.deletingLastPathComponent()
-            try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
-
-            try outputData.write(to: outputURL)
-            // Console via the SHARED ConvertConsole (DICOMKit) — the CLI's exact
-            // (terse) output: one transcode line when bytes were transcoded,
-            // nothing extra. The old app-only Read/Wrote/Transfer-Syntax chrome
-            // made terminal-compare diff on every run.
+            try FileManager.default.createDirectory(at: outputURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try outcome.data.write(to: outputURL)
+            // Console via the SHARED ConvertConsole (DICOMKit) — the CLI's exact (terse) output.
             appendConsoleOutput(ConvertConsole.transcodeLine(
                 wasTranscoded: outcome.wasTranscoded,
                 sourceUID: outcome.sourceSyntax.uid, targetUID: outcome.targetSyntax.uid,
                 isLossless: outcome.isLossless))
+        }
 
-            if validateOutput {
-                // Mirror the CLI: re-read to validate, silent on success.
-                let validationData = try Data(contentsOf: outputURL)
-                _ = try DICOMFile.read(from: validationData, force: false)
-            }
+        // Validate if requested — mirror the CLI: re-read, silent on success.
+        if validateOutput && format == "dicom" {
+            let validationData = try Data(contentsOf: outputURL)
+            _ = try DICOMFile.read(from: validationData, force: false)
         }
     }
 
-    /// Exports DICOM pixel data to an image format (PNG, JPEG, or TIFF).
+    /// Exports DICOM pixel data to an image format (PNG, JPEG, or TIFF) — the CLI's exportImage.
     private func exportDicomImage(
         dicomFile: DICOMFile, outputURL: URL,
         format: String, quality: Int,
         windowCenter: Double?, windowWidth: Double?,
-        applyWindow: Bool, frame: Int?
+        applyWindow: Bool, frameIndex: Int, frameNumber: Int?
     ) throws {
         #if canImport(CoreGraphics)
         let pixelData = try dicomFile.tryPixelData()
-        let frameIndex = frame ?? 0
         guard frameIndex >= 0 && frameIndex < pixelData.descriptor.numberOfFrames else {
+            if let number = frameNumber {
+                throw ConvertError.invalidFrameNumber(number, pixelData.descriptor.numberOfFrames)
+            }
             throw ConvertError.invalidFrame(frameIndex, pixelData.descriptor.numberOfFrames)
         }
 
@@ -5507,9 +5576,7 @@ case "dicom-study":
             throw ConvertError.exportFailed
         }
 
-        // Create output directory if needed
-        let outputDir = outputURL.deletingLastPathComponent()
-        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: outputURL.deletingLastPathComponent(), withIntermediateDirectories: true)
 
         // Shared render (incl. window resolution) + shared encode → identical raster in CLI and app.
         let image = try DICOMImageExporter.renderFrameForExport(
@@ -5519,39 +5586,37 @@ case "dicom-study":
         try DICOMImageExporter.exportCGImage(
             image, to: outputURL, format: imageFormat, quality: quality, metadata: nil
         )
-        // Image export prints nothing — the CLI is silent here (ConvertConsole
-        // has no export line), so the app console must be too.
+        // Image export prints nothing — the CLI is silent here, so the app console must be too.
         #else
         throw ConvertError.unsupportedPlatform
         #endif
     }
 
-    /// Recursively converts all DICOM files in a directory.
+    /// Recursively converts all DICOM files in a directory (the CLI's convertDirectory).
     private func convertDirectory(
         inputURL: URL, outputURL: URL,
         format: String, transferSyntax: String,
         quality: Int,
         windowCenter: Double?, windowWidth: Double?,
-        applyWindow: Bool, frame: Int?,
+        applyWindow: Bool, frameIndex: Int, frameNumber: Int?,
         stripPrivate: Bool, validateOutput: Bool, force: Bool
     ) async {
+        func fail(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: exitCode, output: message)
+        }
         do {
             try FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
         } catch {
-            appendConsoleOutput("Error: Could not create output directory: \(error.localizedDescription)\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1, output: error.localizedDescription)
+            fail(error.localizedDescription, exitCode: 1)
             return
         }
 
-        // Shared, sorted directory walk — the same gatherer the dicom-convert CLI
-        // uses, so both surfaces convert the same files in the same order.
+        // Shared, sorted directory walk — the same gatherer the dicom-convert CLI uses.
         guard let fileURLs = FileGatherer.regularFiles(under: inputURL) else {
-            appendConsoleOutput("Error: Failed to enumerate directory.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1, output: "Enumeration failed")
+            fail("Failed to enumerate directory: \(inputURL.path)", exitCode: 64)
             return
         }
 
@@ -5560,27 +5625,23 @@ case "dicom-study":
         var errorCount = 0
 
         for fileURL in fileURLs {
-
             fileCount += 1
             let relativePath = fileURL.path.replacingOccurrences(of: inputURL.path, with: "")
                 .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
             var outFileURL = outputURL.appendingPathComponent(relativePath)
-            // Image formats must not keep the source `.dcm` extension: the bytes are
-            // PNG/JPEG/TIFF, so retag to match contents (the single-file path already
-            // does this via OutputPathResolver). `dicom` keeps its original name.
+            // Image formats must not keep the source `.dcm` extension (the CLI retags them too).
             if format != "dicom" {
                 outFileURL.deletePathExtension()
                 outFileURL.appendPathExtension(ConvertConsole.fileExtension(forFormat: format))
             }
-            let outDir = outFileURL.deletingLastPathComponent()
-            try? FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
+            try? FileManager.default.createDirectory(at: outFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
 
             do {
                 try convertSingleFile(
                     inputURL: fileURL, outputURL: outFileURL,
                     format: format, transferSyntax: transferSyntax,
                     quality: quality, windowCenter: windowCenter, windowWidth: windowWidth,
-                    applyWindow: applyWindow, frame: frame,
+                    applyWindow: applyWindow, frameIndex: frameIndex, frameNumber: frameNumber,
                     stripPrivate: stripPrivate, validateOutput: validateOutput, force: force
                 )
                 successCount += 1
@@ -5591,31 +5652,21 @@ case "dicom-study":
             }
         }
 
-        // Summary via the SHARED ConvertConsole — the CLI's exact
-        // "Conversion complete: …" line (not the old app-only "Batch conversion…").
+        // Summary via the SHARED ConvertConsole; like dicom-compress batch, a run with any
+        // failed file is a failure (P-CONVERT-EXIT).
         appendConsoleOutput(ConvertConsole.batchSummary(succeeded: successCount, total: fileCount, failed: errorCount))
-        if errorCount == 0 {
-            consoleStatus = .success
-            service.setConsoleStatus(.success)
-            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 0,
-                         output: "\(successCount)/\(fileCount) converted")
-        } else {
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: 1,
-                         output: "\(successCount)/\(fileCount) succeeded, \(errorCount) failed")
-        }
+        let exitCode = errorCount > 0 ? 1 : 0
+        consoleStatus = exitCode == 0 ? .success : .error
+        service.setConsoleStatus(exitCode == 0 ? .success : .error)
+        addToHistory(toolName: "dicom-convert", command: commandPreview, exitCode: exitCode,
+                     output: "\(successCount)/\(fileCount) succeeded, \(errorCount) failed")
     }
 
-    /// Parses a transfer syntax name string to a TransferSyntax value.
-    ///
-    /// Single source of truth: the shared ``DICOMConverter`` target catalog (DICOMKit),
-    /// so the CLI Workshop accepts exactly the same tokens (UID / CamelCase / kebab /
-    /// short aliases) as the `dicom-convert` CLI.
+    /// Parses a `--transfer-syntax` token exactly as dicom-convert does: the shared DICOMConverter
+    /// catalog (UID / CamelCase / kebab / short aliases), then the Table A-1 keywords of the CLI-local
+    /// TransferSyntaxKeywords (mirrored), with the CLI's refusal text.
     private func parseTransferSyntax(_ name: String) throws -> SelectableEncoding {
-        // Resolve the full encoding (UID + intent) so the app matches the CLI: `…-lossless`
-        // names encode reversibly into the general UID, `…-lossy` names carry the provenance.
-        guard let encoding = DICOMConverter.resolveTargetEncoding(name) else {
+        guard let encoding = WorkshopTransferSyntaxKeywords.resolve(name) else {
             throw ConvertError.unknownTransferSyntax(name)
         }
         return encoding
@@ -5914,135 +5965,251 @@ case "dicom-study":
 
     // MARK: - dicom-anon Execution
 
-    /// Anonymizes DICOM files, matching dicom-anon CLI output exactly.
+    /// Anonymizes DICOM files by running dicom-anon's own loop in-process (Sources/dicom-anon/main.swift):
+    /// the shared DICOMKit `Anonymizer` for the legacy attribute lists, the shared `PixelRedactor` for
+    /// `--clean-pixel-data` / `--redact-region`, `AnonConsole` for every printed line, the per-attribute
+    /// PS3.15 Table E.1-1a action report of `--dry-run` / `--verbose`, the (0002,0003) sync of PS3.10 7.1
+    /// and the CLI's refusal texts. The CLI-local `AnonCLI` texts are mirrored by `WorkshopAnonCLI`
+    /// (equality checked by Scripts/diff_studio_g1.py).
+    ///
+    /// `--profile ps315` (the CLI default) and its alias `basic` are refused until the owner approves the
+    /// Studio enum case (P-STUDIO-ANON-PS315, commit 61670c42); the PS3.15 Annex E Option flags therefore
+    /// always meet the CLI's "apply only to --profile ps315" refusal here.
     private func executeDicomAnon() async {
         let inputPath = paramValue("inputPath")
-        guard !inputPath.isEmpty else {
-            appendConsoleOutput("Error: Input path is required.\n")
-            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: 1, output: "Missing input path")
+        let outputPath = paramValue("output")
+        let profileStr = paramValue("profile").isEmpty ? "legacy-basic" : paramValue("profile")
+        let shiftDays = Int(paramValue("shift-dates"))
+        let regenUIDs = paramValue("regenerate-uids") == "true"
+        let removeTags = CommandBuilderHelpers.splitMultiValue(paramValue("remove"))
+        let replacePairs = CommandBuilderHelpers.splitMultiValue(paramValue("replace"))
+        let keepTags = CommandBuilderHelpers.splitMultiValue(paramValue("keep"))
+        let redactRegions = CommandBuilderHelpers.splitMultiValue(paramValue("redact-region"))
+        let redactFill = Int(paramValue("redact-fill"))
+        let cleanPixelData = paramValue("clean-pixel-data") == "true"
+        let recursive = paramValue("recursive") == "true"
+        let dryRun = paramValue("dry-run") == "true"
+        let backup = paramValue("backup") == "true"
+        let auditLogPath = paramValue("audit-log")
+        let force = paramValue("force") == "true"
+        let verbose = paramValue("verbose") == "true"
+        // The PS3.15 E.3 Option flags, in the CLI's `PS315Flags.setFlags` order.
+        let setOptionFlags = WorkshopAnonCLI.optionFlagIDs
+            .filter { paramValue($0) == "true" }
+            .map { "--" + $0 }
+
+        func refuse(_ message: String, exitCode: Int) {
+            appendConsoleOutput("Error: \(message)\n")
+            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: exitCode, output: message)
             consoleStatus = .error
             service.setConsoleStatus(.error)
-            return
         }
 
-        let outputPath     = paramValue("output")
-        let profileStr     = paramValue("profile").isEmpty ? "legacy-basic" : paramValue("profile")
-        let shiftDaysStr   = paramValue("shift-dates")
-        let regenUIDs      = paramValue("regenerate-uids") == "true"
-        let removeTagsRaw  = paramValue("remove")
-        let replaceRaw     = paramValue("replace")
-        let keepTagsRaw    = paramValue("keep")
-        let recursive      = paramValue("recursive") == "true"
-        let dryRun         = paramValue("dry-run") == "true"
-        let backup         = paramValue("backup") == "true"
-        let auditLogPath   = paramValue("audit-log")
-        let force          = paramValue("force") == "true"
-        let verbose        = paramValue("verbose") == "true"
+        // ArgumentParser reports the missing positional (exit 64).
+        guard !inputPath.isEmpty else {
+            refuse("Missing expected argument '<input-path>'", exitCode: 64)
+            return
+        }
 
         // Gain sandbox access via security-scoped URLs registered by the file picker.
-        let inputScopedURL  = securityScopedURLs["inputPath"]
+        let inputScopedURL = securityScopedURLs["inputPath"]
         let outputScopedURL = securityScopedURLs["output"]
-        let accessingInput  = inputScopedURL?.startAccessingSecurityScopedResource()  ?? false
+        let accessingInput = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         let accessingOutput = outputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer {
-            if accessingInput  { inputScopedURL?.stopAccessingSecurityScopedResource() }
+            if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
+        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
 
-        // Map the CLI profile string to the app's profile. The app's profiles are the
-        // CLI's deprecated `legacy-*` attribute lists; `ps315` and its alias `basic`
-        // (the PS3.15 Basic Profile, the CLI default since 2026-10-01) have no app
-        // profile yet, so they are refused rather than silently run as legacy-basic.
-        let profile: AnonymizationProfile
-        switch profileStr.lowercased() {
-        case "legacy-clinical-trial", "clinical-trial", "clinicaltrial": profile = .clinicalTrial
-        case "legacy-research", "research":                               profile = .research
-        case "legacy-basic":                                              profile = .basic
-        case "ps315", "basic":
-            appendConsoleOutput("Error: --profile \(profileStr) is the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1), which the Workshop cannot run yet; use legacy-basic, legacy-clinical-trial or legacy-research, or run dicom-anon in the terminal.\n")
-            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: 1, output: "PS3.15 profile not available in the Workshop")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            return
-        default:
-            appendConsoleOutput("Error: Unknown --profile '\(profileStr)': use legacy-basic, legacy-clinical-trial or legacy-research (dicom-anon also accepts ps315 and its alias basic).\n")
-            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: 1, output: "Unknown profile")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
+        // dicom-anon's run() order: input exists → profile → option validation → notices → tags.
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
+            refuse(WorkshopAnonCLI.fileNotFound, exitCode: 1)
             return
         }
-
-        let shiftDays = Int(shiftDaysStr)
-
-        // Parse tag lists via the shared semicolon `splitMultiValue` convention (the same
-        // splitter `buildCommand()` uses for these repeatable flags). Do NOT split on
-        // commas: a tag is written `GGGG,EEEE` (and --replace is `GGGG,EEEE=value`), so
-        // comma-splitting `0010,0010` would shred it into "0010"+"0010", match nothing,
-        // and silently drop the modifier (F19 — same class as the F18 xml --filter-tag bug).
-        let removeTags   = CommandBuilderHelpers.splitMultiValue(removeTagsRaw)
-        let replacePairs = CommandBuilderHelpers.splitMultiValue(replaceRaw)
-        let keepTags     = CommandBuilderHelpers.splitMultiValue(keepTagsRaw)
-
-        // Build a SecurityViewModel scoped just for this run.
-        // Resolve a sandbox-writable output path: scoped URL → ~/Downloads path → fallback.
-        let (resolvedOutputPath, outputRedirectNote) = SecurityViewModel.resolveWritableOutput(
-            path: outputScopedURL?.path ?? outputPath,
-            scopedURL: outputScopedURL
-        )
-        if let note = outputRedirectNote { appendConsoleOutput(note) }
-
-        // Parity with the dicom-anon CLI: a single-file run with no output path (and not
-        // a dry run) has nowhere to write, so error instead of running and reporting
-        // success on a file that was never anonymized. Directory runs resolve an output
-        // dir separately and are unaffected.
-        var anonInputIsDir: ObjCBool = false
-        let anonInputPathResolved = (inputScopedURL ?? URL(fileURLWithPath: inputPath)).path
-        let anonInputExists = FileManager.default.fileExists(atPath: anonInputPathResolved, isDirectory: &anonInputIsDir)
-        if !dryRun && resolvedOutputPath.isEmpty && anonInputExists && !anonInputIsDir.boolValue {
-            appendConsoleOutput("Error: Anonymization requires an output path (or enable Dry Run to preview without writing).\n")
-            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: 1, output: "Output required")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
+        guard let resolvedProfile = WorkshopAnonCLI.resolveProfile(profileStr) else {
+            refuse(WorkshopAnonCLI.invalidProfile, exitCode: 1)
             return
         }
-
-        let secVM = SecurityViewModel()
-        secVM.anonInputPath       = (inputScopedURL ?? URL(fileURLWithPath: inputPath)).path
-        secVM.anonOutputPath      = resolvedOutputPath
-        secVM.anonProfile         = profile
-        secVM.anonShiftDatesEnabled = shiftDays != nil
-        secVM.anonShiftDays       = shiftDays ?? 0
-        secVM.anonRegenerateUIDs  = regenUIDs
-        secVM.anonRemoveTags      = removeTags
-        secVM.anonReplacePairs    = replacePairs
-        secVM.anonKeepTags        = keepTags
-        secVM.anonRecursive       = recursive
-        secVM.anonDryRun          = dryRun
-        secVM.anonBackup          = backup
-        secVM.anonAuditLogPath    = auditLogPath
-        secVM.anonForce           = force
-        secVM.anonVerbose         = verbose
-        secVM.anonInputScopedURL  = inputScopedURL
-        secVM.anonOutputScopedURL = outputScopedURL
-
-        secVM.runAnonymization()
-
-        var waited = 0
-        while secVM.anonIsRunning && waited < 300 {
-            try? await Task.sleep(nanoseconds: 100_000_000)
-            waited += 1
+        guard let engineProfile = resolvedProfile.legacyProfile else {
+            // P-STUDIO-ANON-PS315: the PS3.15 Basic Profile has no Studio engine path yet.
+            refuse("--profile \(profileStr) is the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1), which the Workshop cannot run yet; use legacy-basic, legacy-clinical-trial or legacy-research, or run dicom-anon in the terminal.", exitCode: 1)
+            return
+        }
+        if !setOptionFlags.isEmpty {
+            refuse(WorkshopAnonCLI.optionsOnlyForPS315(setOptionFlags), exitCode: 1)
+            return
+        }
+        var output = ""
+        if let notice = WorkshopAnonCLI.legacyProfileNotice(profileStr) {
+            output += notice + "\n"
         }
 
-        let output = secVM.anonOutput
-        appendConsoleOutput(output)
+        // --remove / --replace / --keep (the CLI's parseCustomActions / parsePreserveTags).
+        var customActions: [Tag: AnonymizationAction] = [:]
+        for spec in removeTags {
+            guard let tag = Anonymizer.parseFlexibleTag(spec) else {
+                refuse("Invalid tag format: \(spec)", exitCode: 1); return
+            }
+            customActions[tag] = .remove
+        }
+        for pair in replacePairs {
+            let parts = pair.split(separator: "=", maxSplits: 1)
+            guard parts.count == 2 else {
+                refuse("Invalid replace format: \(pair). Use TAG=VALUE", exitCode: 1); return
+            }
+            guard let tag = Anonymizer.parseFlexibleTag(String(parts[0])) else {
+                refuse("Invalid tag format: \(parts[0])", exitCode: 1); return
+            }
+            customActions[tag] = .replaceWithDummy(String(parts[1]))
+        }
+        var preserveTags = Set<Tag>()
+        for spec in keepTags {
+            guard let tag = Anonymizer.parseFlexibleTag(spec) else {
+                refuse("Invalid tag format: \(spec)", exitCode: 1); return
+            }
+            preserveTags.insert(tag)
+        }
 
-        // (The single-file "no output path" case is rejected up front now, matching the
-        // dicom-anon CLI — see the guard above.)
+        if isDirectory.boolValue {
+            guard recursive else { refuse("Directory anonymization requires --recursive flag", exitCode: 1); return }
+            guard !outputPath.isEmpty else { refuse("Directory anonymization requires --output directory", exitCode: 1); return }
+        } else {
+            // Writing back over the input is never implied (dicom-anon's rule).
+            guard dryRun || !outputPath.isEmpty else {
+                refuse("Anonymization requires --output (or use --dry-run to preview without writing)", exitCode: 1)
+                return
+            }
+        }
 
-        // Structured exit code from the run itself (CLI rule: any failed file → 1) —
-        // never derived by sniffing the output text.
-        let exitCode = secVM.anonLastExitCode
-        addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: exitCode, output: output)
+        // Sandbox-writable destination (scoped URL → the typed path → ~/Downloads/DICOMStudio).
+        var outputBase: URL? = nil
+        if !outputPath.isEmpty {
+            let resolved = OutputAccess.resolveWritableURL(
+                forPath: outputScopedURL?.path ?? outputPath, scopedURL: outputScopedURL,
+                subfolder: "Anonymized", isDirectory: isDirectory.boolValue)
+            if let note = resolved.note { output += note + "\n" }
+            outputBase = resolved.url
+        }
+        if let note = output.isEmpty ? nil : output { appendConsoleOutput(note); output = "" }
+
+        let workIsDirectory = isDirectory.boolValue
+        let workOutputBase = outputBase
+        let (text, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
+            let anonymizer = Anonymizer(
+                profile: engineProfile, shiftDates: shiftDays, regenerateUIDs: regenUIDs,
+                preserveTags: preserveTags, customActions: customActions)
+            var out = ""
+            var results: [AnonymizationResult] = []
+            var reports: [(path: String, actions: [WorkshopAnonCLI.AttributeAction])] = []
+
+            /// dicom-anon's anonymizeFile: pixel cleaning first (the region decision reads
+            /// Modality / Manufacturer, which de-identification removes), then the engine,
+            /// then the write with (0002,0003) following the replaced SOP Instance UID.
+            func anonymizeFile(_ fileURL: URL, outputURL: URL?) throws -> (AnonymizationResult, [WorkshopAnonCLI.AttributeAction]) {
+                var fileData = try Data(contentsOf: fileURL)
+                var dicomFile = try DICOMFile.read(from: fileData, force: force)
+                let sourceDataSet = dicomFile.dataSet
+                let editor = PixelEditor(verbose: false)
+                let explicit = try redactRegions.map { spec -> PixelRedactionPlan.Region in
+                    let r = try editor.parseRegion(spec)
+                    return PixelRedactionPlan.Region(x: r.x, y: r.y, width: r.width, height: r.height)
+                }
+                if cleanPixelData || !redactRegions.isEmpty {
+                    let plan = PixelRedactionPlan.plan(for: dicomFile.dataSet, explicitRegions: explicit)
+                    if let (redacted, outcome) = try PixelRedactor().redact(
+                        fileData: fileData, plan: plan, fillValue: redactFill) {
+                        fileData = redacted
+                        dicomFile = try DICOMFile.read(from: redacted, force: force)
+                        if verbose { out += AnonConsole.pixelRedactionLines(outcome: outcome) }
+                    }
+                }
+                let (anonymizedFile, result) = try anonymizer.anonymize(file: dicomFile, filePath: fileURL.path)
+                if !dryRun, let outputURL {
+                    if backup {
+                        let backupURL = outputURL.appendingPathExtension("backup")
+                        try? FileManager.default.copyItem(at: fileURL, to: backupURL)
+                    }
+                    let outputData = try WorkshopAnonCLI.syncingMediaStorageSOPInstanceUID(anonymizedFile).write()
+                    let written = try OutputAccess.write(outputData, toPath: outputURL.path,
+                                                         scopedURL: workIsDirectory ? nil : outputScopedURL,
+                                                         subfolder: "Anonymized")
+                    if let note = written.note { out += note + "\n" }
+                }
+                let actions = WorkshopAnonCLI.attributeActions(before: sourceDataSet, after: anonymizedFile.dataSet, options: nil)
+                return (result, actions)
+            }
+
+            if workIsDirectory {
+                guard let outDir = workOutputBase else { return ("Error: Directory anonymization requires --output directory\n", 1) }
+                do {
+                    try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
+                } catch {
+                    return (out + "Error: \(error.localizedDescription)\n", 1)
+                }
+                guard let fileURLs = FileGatherer.regularFiles(under: inputURL) else {
+                    return (out + "Error: Failed to enumerate directory: \(inputURL.path)\n", 1)
+                }
+                for fileURL in fileURLs {
+                    let relativePath = String(fileURL.path.replacingOccurrences(of: inputURL.path, with: "").dropFirst())
+                    guard !relativePath.isEmpty else { continue }
+                    let outputFileURL = outDir.appendingPathComponent(relativePath)
+                    do {
+                        try FileManager.default.createDirectory(
+                            at: outputFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    } catch {
+                        return (out + "Error: \(error.localizedDescription)\n", 1)
+                    }
+                    do {
+                        let (result, actions) = try anonymizeFile(fileURL, outputURL: outputFileURL)
+                        results.append(result)
+                        reports.append((fileURL.path, actions))
+                        if verbose { out += AnonConsole.fileSuccessLine(relativePath: relativePath) + "\n" }
+                    } catch {
+                        if verbose {
+                            out += AnonConsole.fileFailureLine(relativePath: relativePath, message: error.localizedDescription) + "\n"
+                        }
+                        results.append(AnonymizationResult(
+                            filePath: fileURL.path, success: false, changedTags: [], warnings: [error.localizedDescription]))
+                    }
+                }
+            } else {
+                do {
+                    let (result, actions) = try anonymizeFile(inputURL, outputURL: workOutputBase)
+                    results = [result]
+                    reports = [(inputURL.path, actions)]
+                } catch {
+                    return (out + "Error: \(error.localizedDescription)\n", 1)
+                }
+            }
+
+            if dryRun || verbose {
+                for report in reports {
+                    out += WorkshopAnonCLI.actionLines(path: report.path, actions: report.actions)
+                }
+            }
+            out += AnonConsole.summary(
+                totalFiles: results.count,
+                successful: results.filter { $0.success }.count,
+                failed: results.filter { !$0.success }.count,
+                dryRun: dryRun,
+                warnings: results.flatMap { $0.warnings },
+                modifiedTags: Set(results.flatMap { $0.changedTags }.map { "\($0)" }),
+                verbose: verbose)
+            if !auditLogPath.isEmpty {
+                do {
+                    try anonymizer.writeAuditLog(to: URL(fileURLWithPath: auditLogPath))
+                } catch {
+                    return (out + "Error: \(error.localizedDescription)\n", 1)
+                }
+                if verbose { out += AnonConsole.auditLogLine(path: auditLogPath) + "\n" }
+            }
+            return (out, results.contains(where: { !$0.success }) ? 1 : 0)
+        }.value
+
+        appendConsoleOutput(text)
+        addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: exitCode, output: text)
         consoleStatus = exitCode == 0 ? .success : .error
         service.setConsoleStatus(exitCode == 0 ? .success : .error)
     }
@@ -11094,6 +11261,7 @@ enum ConvertError: LocalizedError {
     case missingTransferSyntax
     case unknownTransferSyntax(String)
     case invalidFrame(Int, Int)
+    case invalidFrameNumber(Int, Int)
     case renderFailed
     case exportFailed
     case unsupportedPlatform
@@ -11107,6 +11275,9 @@ enum ConvertError: LocalizedError {
             return DICOMConverter.unknownTargetMessage(name)
         case .invalidFrame(let requested, let total):
             return DICOMConverter.invalidFrameMessage(requested: requested, total: total)
+        case .invalidFrameNumber(let requested, let total):
+            // Frame numbers from 1 (PS3.3 Table 10-3), as dicom-convert's ConversionError.invalidFrameNumber.
+            return DICOMConverter.invalidFrameNumberMessage(requested: requested, total: total)
         case .renderFailed:
             return "Failed to render pixel data to image"
         case .exportFailed:
@@ -11114,6 +11285,449 @@ enum ConvertError: LocalizedError {
         case .unsupportedPlatform:
             return "Image export is not supported on this platform"
         }
+    }
+}
+
+// MARK: - dicom-anon CLI texts (PS3.15 2026a Annex E; Sources/dicom-anon/AnonCLISupport.swift, CLI-local)
+
+/// The parts of dicom-anon's CLI-local `AnonCLI` / `AnonymizationError` the Workshop executor needs for
+/// the legacy profiles, mirrored text-identically (equality checked by Scripts/diff_studio_g1.py "pixel anon
+/// options"). The PS3.15 Basic Profile path (`--profile ps315`, `Anonymizer.deidentify`) is pending
+/// P-STUDIO-ANON-PS315 and is refused by the executor.
+enum WorkshopAnonCLI {
+
+    /// A `--profile` value resolved to what the run applies (P-ANON-PROFILE), as `AnonCLI.Profile`.
+    enum Profile: String, CaseIterable, Equatable {
+        case ps315
+        case legacyBasic = "legacy-basic"
+        case legacyClinicalTrial = "legacy-clinical-trial"
+        case legacyResearch = "legacy-research"
+
+        var isPS315: Bool { self == .ps315 }
+
+        /// The legacy engine list; nil for `ps315`, which bypasses the legacy engine.
+        var legacyProfile: DICOMKit.AnonymizationProfile? {
+            switch self {
+            case .ps315: return nil
+            case .legacyBasic: return .basic
+            case .legacyClinicalTrial: return .clinicalTrial
+            case .legacyResearch: return .research
+            }
+        }
+    }
+
+    /// The default `--profile`: the PS3.15 Basic Profile.
+    static let defaultProfile = "ps315"
+
+    /// Old spellings and what they now resolve to (`AnonCLI.profileAliases`).
+    static let profileAliases: [String: Profile] = [
+        "ps315": .ps315,
+        "basic": .ps315,
+        "legacy-basic": .legacyBasic,
+        "legacy-clinical-trial": .legacyClinicalTrial,
+        "legacy-research": .legacyResearch,
+        "clinical-trial": .legacyClinicalTrial,
+        "clinicaltrial": .legacyClinicalTrial,
+        "research": .legacyResearch,
+    ]
+
+    static func resolveProfile(_ value: String) -> Profile? {
+        profileAliases[value.trimmingCharacters(in: .whitespaces).lowercased()]
+    }
+
+    /// The PS3.15 E.3 Option flags of the form, by parameter id, in the CLI's `PS315Flags.setFlags` order.
+    static let optionFlagIDs = [
+        "retain-dates", "retain-full-dates", "retain-modified-dates", "retain-characteristics", "retain-device",
+        "retain-institution", "retain-uids", "clean-descriptors", "retain-safe-private", "clean-graphics",
+        "clean-structured-content", "clean-recognizable-visual-features",
+    ]
+
+    /// `AnonCLI.validate`: the PS3.15 E.3 option flags act only on `--profile ps315`.
+    static func optionsOnlyForPS315(_ setFlags: [String]) -> String {
+        "PS3.15 Annex E Option flags apply only to --profile ps315: \(setFlags.joined(separator: ", "))"
+    }
+
+    /// `AnonymizationError.invalidProfile` / `.fileNotFound` texts.
+    static let invalidProfile = "Invalid anonymization profile (use ps315, basic, legacy-basic, legacy-clinical-trial or legacy-research)"
+    static let fileNotFound = "File not found"
+
+    /// Stderr notice for a `--profile` value (`AnonCLI.legacyProfileNotice`). Nil for `ps315`.
+    static func legacyProfileNotice(_ profile: String) -> String? {
+        let key = profile.trimmingCharacters(in: .whitespaces).lowercased()
+        guard let resolved = resolveProfile(key) else { return nil }
+        if key == "basic" {
+            return "Note: --profile basic is the PS3.15 Basic Application Level Confidentiality Profile "
+                + "(same as ps315, PS3.15 Table E.1-1). The former basic attribute list is --profile legacy-basic."
+        }
+        guard !resolved.isPS315 else { return nil }
+        var text = "Deprecated: --profile \(profile) "
+        if key != resolved.rawValue { text += "(now \(resolved.rawValue)) " }
+        return text + "is a legacy attribute list, not a PS3.15 Annex E profile; it records no "
+            + "Patient Identity Removed (0012,0062). Use --profile ps315 (PS3.15 Basic Application Level "
+            + "Confidentiality Profile, Table E.1-1)."
+    }
+
+    /// PS3.10 7.1: the file meta Media Storage SOP Instance UID (0002,0003) is the SOP
+    /// Instance UID (0008,0018) of the data set (`AnonCLI.syncingMediaStorageSOPInstanceUID`).
+    static func syncingMediaStorageSOPInstanceUID(_ file: DICOMFile) -> DICOMFile {
+        guard let uid = file.dataSet.string(for: .sopInstanceUID)?
+                .trimmingCharacters(in: CharacterSet(charactersIn: " \0")), !uid.isEmpty,
+              file.fileMetaInformation[.mediaStorageSOPInstanceUID] != nil else { return file }
+        var meta = file.fileMetaInformation
+        meta.setString(uid, for: .mediaStorageSOPInstanceUID, vr: .UI)
+        return DICOMFile(fileMetaInformation: meta, dataSet: file.dataSet)
+    }
+
+    // MARK: - Per-attribute action report (AnonCLI)
+
+    /// One top-level attribute the run changed, with the PS3.15 Table E.1-1a action code.
+    struct AttributeAction: Equatable {
+        let tag: Tag
+        /// D, Z, X, C or U (Table E.1-1a), or "recorded" for the de-identification
+        /// method / attestation attributes the run writes.
+        let code: String
+        /// PS3.6 Table 6-1 name.
+        let name: String
+    }
+
+    /// The attributes the run writes to record what it did (PS3.15 E.1.1, E.3).
+    static let recordingTags: Set<Tag> = [
+        Tag(group: 0x0012, element: 0x0062), // Patient Identity Removed
+        Tag(group: 0x0012, element: 0x0063), // De-identification Method
+        Tag(group: 0x0012, element: 0x0064), // De-identification Method Code Sequence
+        Tag(group: 0x0028, element: 0x0301), // Burned In Annotation
+        Tag(group: 0x0028, element: 0x0302), // Recognizable Visual Features
+        Tag(group: 0x0028, element: 0x0303), // Longitudinal Temporal Information Modified
+    ]
+
+    /// PS3.6 name of a tag; private and unknown tags are labelled as such.
+    static func name(of tag: Tag) -> String {
+        if tag.isPrivate { return "Private Data Element" }
+        return DataElementDictionary.lookup(tag: tag)?.name ?? "(not in PS3.6)"
+    }
+
+    /// Compares the source and output data sets attribute by attribute (top level;
+    /// Pixel Data and group 0002 excluded) and labels each change with its E.1-1a code.
+    /// `options` is nil for the legacy profiles.
+    static func attributeActions(before: DataSet, after: DataSet,
+                                 options: ConfidentialityProfile.Options?) -> [AttributeAction] {
+        var out: [AttributeAction] = []
+        let tags = Set(before.tags).union(after.tags)
+            .filter { $0 != .pixelData && $0.group != 0x0002 }
+            .sorted { ($0.group, $0.element) < ($1.group, $1.element) }
+        for tag in tags {
+            let old = before[tag], new = after[tag]
+            if let old, let new, fingerprint(old) == fingerprint(new) { continue }
+            let code: String
+            if recordingTags.contains(tag) {
+                code = "recorded"
+            } else if old == nil {
+                code = "added"
+            } else if let new {
+                if isZeroLength(new) {
+                    code = "Z"
+                } else if let options, let applied = ConfidentialityProfile.action(for: tag, options: options),
+                          applied == .clean
+                            || (applied == .zeroOrDummy && options.retainLongitudinalTemporal
+                                && options.dateOffsetDays != nil) {
+                    code = "C"
+                } else {
+                    code = new.vr == .UI ? "U" : "D"
+                }
+            } else {
+                code = "X"
+            }
+            out.append(AttributeAction(tag: tag, code: code, name: name(of: tag)))
+        }
+        return out
+    }
+
+    /// The action lines printed for one file (--dry-run or --verbose).
+    static func actionLines(path: String, actions: [AttributeAction]) -> String {
+        var s = "\nAttribute actions for \(path) (PS3.15 Table E.1-1a: D dummy, Z zero length, "
+            + "X removed, C cleaned, U new UID):\n"
+        if actions.isEmpty { s += "  (none)\n" }
+        for a in actions { s += "  \(a.code.padding(toLength: 8, withPad: " ", startingAt: 0)) \(a.tag) \(a.name)\n" }
+        return s
+    }
+
+    private static func isZeroLength(_ e: DataElement) -> Bool {
+        if let items = e.sequenceItems { return items.isEmpty }
+        return e.valueData.allSatisfy { $0 == 0x20 || $0 == 0x00 }
+    }
+
+    private static func fingerprint(_ e: DataElement) -> String {
+        if let items = e.sequenceItems {
+            return "SQ[" + items.map { item in
+                item.allElements.sorted { ($0.tag.group, $0.tag.element) < ($1.tag.group, $1.tag.element) }
+                    .map(fingerprint).joined(separator: ",")
+            }.joined(separator: "|") + "]"
+        }
+        return "\(e.tag)\(e.vr):\(e.valueData.base64EncodedString())"
+    }
+}
+
+// MARK: - dicom-image output rules (PS3.5 2026a Table 6.2-1 / Section 9; PS3.3 Table C.8-24; Sources/dicom-image/SCOutput.swift, CLI-local)
+
+/// dicom-image's CLI-local `SCOutput`, mirrored text-identically (equality checked by
+/// Scripts/diff_studio_g1.py "pixel image pdf pixedit rules"): the --conversion-type parser, the
+/// P-IMAGE-VR refusals and the output post-processing around the shared `ImageConverter`.
+enum WorkshopSCOutput {
+
+    // MARK: - --conversion-type
+
+    /// Parses `--conversion-type` (case-insensitive) into a PS3.3 2026a Table C.8-24
+    /// Defined Term. Nil means "not one of the eight terms".
+    static func conversionType(_ raw: String?) -> ConversionType? {
+        guard let raw else { return .workstation }
+        let term = raw.trimmingCharacters(in: .whitespaces).uppercased()
+        guard ConversionType.definedTerms.contains(term) else { return nil }
+        return ConversionType(rawValue: term)
+    }
+
+    // MARK: - Value checks (refusals; PS3.5 2026a Table 6.2-1, Section 9)
+
+    /// Refusals for option values that the written VR cannot hold (P-IMAGE-VR, approved
+    /// 2026-10-01). Any line returned stops the run with exit 1 before anything is
+    /// written; until then the values were written with a warning.
+    static func valueViolations(patientName: String?, patientID: String?,
+                              studyDescription: String?, seriesDescription: String?,
+                              studyUID: String?, seriesUID: String?,
+                              seriesNumber: Int?, instanceNumber: Int?) -> [String] {
+        var out: [String] = []
+        for (option, value) in [("--study-uid", studyUID), ("--series-uid", seriesUID)] {
+            if let value, DICOMUniqueIdentifier.parse(value) == nil {
+                out.append("\(option) '\(value)' is not a valid UID (PS3.5 9.1: digits and '.', "
+                           + "no leading zero in a component, at most 64 bytes; VR UI, Table 6.2-1)")
+            }
+        }
+        for (option, value) in [("--patient-id", patientID), ("--study-description", studyDescription),
+                                ("--series-description", seriesDescription)] {
+            guard let value else { continue }
+            if value.count > 64 {
+                out.append("\(option) has \(value.count) characters; LO allows at most 64 (PS3.5 Table 6.2-1)")
+            }
+            if value.contains("\\") {
+                out.append("\(option) contains a backslash, which LO does not allow (PS3.5 Table 6.2-1)")
+            }
+        }
+        if let name = patientName {
+            for group in name.split(separator: "=", omittingEmptySubsequences: false) where group.count > 64 {
+                out.append("--patient-name component group has \(group.count) characters; "
+                           + "PN allows at most 64 per component group (PS3.5 Table 6.2-1)")
+            }
+            if name.contains("\\") {
+                out.append("--patient-name contains a backslash, which PN does not allow (PS3.5 Table 6.2-1)")
+            }
+        }
+        let isRange = Int(Int32.min)...Int(Int32.max)
+        for (option, value) in [("--series-number", seriesNumber), ("--instance-number", instanceNumber)] {
+            if let value, !isRange.contains(value) {
+                out.append("\(option) \(value) is outside the IS range -2^31...2^31-1 (PS3.5 Table 6.2-1)")
+            }
+        }
+        return out
+    }
+
+    // MARK: - Output post-processing
+
+    /// Specific Character Set (0008,0005) Defined Term for UTF-8 (PS3.3 2026a Table C.12-5).
+    static let utf8CharacterSet = "ISO_IR 192"
+
+    /// Fixes the engine's output file:
+    /// - Media Storage SOP Instance UID (0002,0003) set to the data set's SOP Instance
+    ///   UID (0008,0018) — PS3.10 Table 7.1-1 (the engine minted two different UIDs).
+    /// - Specific Character Set (0008,0005) = ISO_IR 192 when a text value is not ASCII:
+    ///   Type 1C "Required if an expanded or replacement character set is used"
+    ///   (Table C.12-1); the engine writes text as UTF-8.
+    static func finalize(_ data: Data) throws -> Data {
+        let file = try DICOMFile.read(from: data)
+        var meta = file.fileMetaInformation
+        var ds = file.dataSet
+        if let sop = ds.string(for: .sopInstanceUID),
+           meta.string(for: .mediaStorageSOPInstanceUID) != sop {
+            meta.setString(sop, for: .mediaStorageSOPInstanceUID, vr: .UI)
+            meta.remove(tag: .fileMetaInformationGroupLength)   // recomputed by write()
+        }
+        if ds[.specificCharacterSet] == nil, usesNonASCIIText(ds) {
+            ds.setString(utf8CharacterSet, for: .specificCharacterSet, vr: .CS)
+        }
+        return try DICOMFile(fileMetaInformation: meta, dataSet: ds).write()
+    }
+
+    /// Whether any top-level text value (PN, LO, SH, ST, LT, UT, UC) holds a non-ASCII byte.
+    static func usesNonASCIIText(_ ds: DataSet) -> Bool {
+        let textVRs: Set<VR> = [.PN, .LO, .SH, .ST, .LT, .UT, .UC]
+        for element in ds where textVRs.contains(element.vr) {
+            if element.valueData.contains(where: { $0 >= 0x80 }) { return true }
+        }
+        return false
+    }
+}
+
+// MARK: - dicom-pdf encapsulation attributes (PS3.3 2026a Tables C.24-2 / C.8-24 / C.12-1; Sources/dicom-pdf/EncapsulationAttributes.swift, CLI-local)
+
+/// dicom-pdf's CLI-local `PDFEncapsulation`, mirrored text-identically (equality checked by
+/// Scripts/diff_studio_g1.py "pixel image pdf pixedit rules"): the attributes the tool adds around the
+/// shared `EncapsulatedDocumentBuilder` / `EncapsulatedDocumentParser` and its option vocabularies.
+enum WorkshopPDFEncapsulation {
+
+    /// Encapsulated Document Length (0042,0015), UL (PS3.3 Table C.24-2, Type 3).
+    static let encapsulatedDocumentLength = Tag(group: 0x0042, element: 0x0015)
+
+    /// PS3.3 2026a Table C.8-24 Conversion Type (0008,0064) Defined Terms, in table order.
+    static let conversionTypes = ["DV", "DI", "DF", "WSD", "SD", "SI", "DRW", "SYN"]
+
+    /// Default Conversion Type: the document was produced on a workstation.
+    static let defaultConversionType = "WSD"
+
+    /// Burned In Annotation (0028,0301) values (PS3.3 Table C.24-2).
+    static let burnedInAnnotationValues = ["YES", "NO"]
+
+    /// Specific Character Set Defined Term for UTF-8 (PS3.3 Table C.12-5).
+    static let utf8CharacterSet = "ISO_IR 192"
+
+    /// The VRs whose values Specific Character Set governs (PS3.5 6.1.2.2).
+    private static let characterSetVRs: Set<VR> = [.SH, .LO, .ST, .LT, .UT, .PN, .UC]
+
+    /// A refused option value: ArgumentParser's ValidationError on the CLI (exit 64).
+    struct ValidationError: Error, LocalizedError {
+        let message: String
+        init(_ message: String) { self.message = message }
+        var errorDescription: String? { message }
+    }
+
+    // MARK: - Option values
+
+    /// Validates `--conversion-type` (case-insensitive) and returns the Defined Term.
+    static func conversionType(_ raw: String) throws -> String {
+        let value = raw.uppercased()
+        guard conversionTypes.contains(value) else {
+            throw ValidationError("--conversion-type \(raw) is not a Conversion Type (0008,0064) Defined Term of PS3.3 Table C.8-24: \(conversionTypes.joined(separator: ", "))")
+        }
+        return value
+    }
+
+    /// Validates `--burned-in-annotation` (case-insensitive): `true` for YES.
+    static func burnedInAnnotation(_ raw: String) throws -> Bool {
+        switch raw.uppercased() {
+        case "YES": return true
+        case "NO": return false
+        default:
+            throw ValidationError("--burned-in-annotation \(raw) is not YES or NO (Burned In Annotation (0028,0301), PS3.3 Table C.24-2)")
+        }
+    }
+
+    /// The HL7 Instance Identifier of a CDA document: `root^extension` (or `root`)
+    /// of the first `<id>` child of `<ClinicalDocument>`, as Table C.24-2 defines it.
+    static func hl7InstanceIdentifier(fromCDA data: Data) -> String? {
+        let finder = WorkshopClinicalDocumentIDFinder()
+        let parser = XMLParser(data: data)
+        parser.shouldProcessNamespaces = true
+        parser.delegate = finder
+        parser.parse()
+        guard let root = finder.root, !root.isEmpty else { return nil }
+        if let ext = finder.extensionValue, !ext.isEmpty { return "\(root)^\(ext)" }
+        return root
+    }
+
+    // MARK: - Dataset completion and extraction
+
+    /// Adds Encapsulated Document Length (0042,0015) with the unpadded byte count,
+    /// and Specific Character Set (0008,0005) `ISO_IR 192` when a string value is
+    /// not plain ASCII (the writer encodes strings as UTF-8).
+    static func complete(_ dataSet: inout DataSet, documentByteCount: Int) {
+        dataSet[encapsulatedDocumentLength] = DataElement.uint32(
+            tag: encapsulatedDocumentLength, value: UInt32(documentByteCount))
+        if dataSet[.specificCharacterSet] == nil, hasNonASCIIText(dataSet) {
+            dataSet.setString(utf8CharacterSet, for: .specificCharacterSet, vr: .CS)
+        }
+    }
+
+    /// Whether any top-level text value carries a byte outside ASCII.
+    static func hasNonASCIIText(_ dataSet: DataSet) -> Bool {
+        dataSet.allElements.contains { element in
+            characterSetVRs.contains(element.vr) && element.valueData.contains { $0 > 0x7F }
+        }
+    }
+
+    /// The document bytes without the trailing padding: the Encapsulated Document
+    /// value cut to Encapsulated Document Length (0042,0015) when that is present
+    /// and not longer than the value (PS3.3 Table C.24-2). Without it the value is
+    /// returned as stored, since nothing says whether a last byte is padding.
+    static func documentBytes(_ value: Data, in dataSet: DataSet) -> Data {
+        guard let length = dataSet[encapsulatedDocumentLength]?.uint32Value,
+              Int(length) <= value.count else { return value }
+        return value.prefix(Int(length))
+    }
+}
+
+/// Finds `/ClinicalDocument/id/@root` and `@extension` (HL7 CDA R2).
+private final class WorkshopClinicalDocumentIDFinder: NSObject, XMLParserDelegate {
+    var root: String?
+    var extensionValue: String?
+    private var depth = 0
+    private var isClinicalDocument = false
+
+    func parser(_ parser: XMLParser, didStartElement elementName: String,
+                namespaceURI: String?, qualifiedName: String?,
+                attributes: [String: String] = [:]) {
+        depth += 1
+        if depth == 1 {
+            isClinicalDocument = elementName == "ClinicalDocument"
+            if !isClinicalDocument { parser.abortParsing() }
+        }
+        if depth == 2, isClinicalDocument, elementName == "id", root == nil {
+            root = attributes["root"]
+            extensionValue = attributes["extension"]
+            parser.abortParsing()
+        }
+    }
+
+    func parser(_ parser: XMLParser, didEndElement elementName: String,
+                namespaceURI: String?, qualifiedName: String?) {
+        depth -= 1
+    }
+}
+
+// MARK: - dicom-pixedit input checks (PS3.3 2026a C.7.6.3.1, C.11.2.1.2; Sources/dicom-pixedit/DerivedImage.swift, CLI-local)
+
+/// dicom-pixedit's CLI-local `DerivedImage`, mirrored text-identically (equality checked by
+/// Scripts/diff_studio_g1.py "pixel image pdf pixedit rules"): the P-PIXEDIT-RANGE refusals applied
+/// before the shared `PixelEditor` engine runs.
+enum WorkshopDerivedImage {
+
+    // MARK: - Input checks done before the engine runs
+
+    /// Range of a stored sample: Bits Stored (0028,0101) and Pixel Representation
+    /// (0028,0103) of the Image Pixel Module (PS3.3 2026a C.7.6.3.1).
+    static func storedRange(bitsStored: Int, signed: Bool) -> ClosedRange<Int> {
+        let bits = max(1, min(bitsStored, 32))
+        return signed ? -(1 << (bits - 1)) ... (1 << (bits - 1)) - 1 : 0 ... (1 << bits) - 1
+    }
+
+    static func storedRange(of dataSet: DataSet) -> ClosedRange<Int> {
+        let allocated = Int(dataSet.uint16(for: .bitsAllocated) ?? 16)
+        let stored = Int(dataSet.uint16(for: .bitsStored) ?? UInt16(allocated))
+        let signed = (dataSet.uint16(for: .pixelRepresentation) ?? 0) == 1
+        return storedRange(bitsStored: stored, signed: signed)
+    }
+
+    /// A refusal when `--fill-value` lies outside the stored range (P-PIXEDIT-RANGE,
+    /// approved 2026-10-01: it was clamped with a warning); nil when it fits.
+    static func fillValueViolation(_ value: Int, range: ClosedRange<Int>) -> String? {
+        guard !range.contains(value) else { return nil }
+        return "--fill-value \(value) is outside the stored range \(range.lowerBound)...\(range.upperBound) "
+            + "given by Bits Stored (0028,0101) and Pixel Representation (0028,0103) (PS3.3 C.7.6.3.1)"
+    }
+
+    /// A refusal when `--window-width` is below 1 (P-PIXEDIT-RANGE): PS3.3 2026a
+    /// C.11.2.1.2 "Window Width (0028,1051) shall always be greater than or equal to 1"
+    /// (it was raised to 1 with a warning, and a width <= 0 went to the engine).
+    static func windowWidthViolation(_ width: Double) -> String? {
+        guard !(width >= 1) else { return nil }
+        return "--window-width \(width) is below 1; Window Width (0028,1051) shall always be greater than "
+            + "or equal to 1 (PS3.3 C.11.2.1.2)"
     }
 }
 

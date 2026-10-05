@@ -878,10 +878,10 @@ struct CLIWorkshopHelpersTests {
         #expect(required.count == 2)
     }
 
-    @Test("dicom-convert has expected parameter count")
+    @Test("dicom-convert has expected parameter count (14: --frame-number joined the deprecated --frame)")
     func testDicomConvertParameterCount() {
         let defs = ToolCatalogHelpers.parameterDefinitions(for: "dicom-convert")
-        #expect(defs.count == 13)
+        #expect(defs.count == 14)
     }
 
     @Test("dicom-convert format parameter has enum values")
@@ -1043,6 +1043,127 @@ struct CLIWorkshopHelpersTests {
             #expect(!preset.commandString.contains("--profile basic"), Comment(rawValue: preset.commandString))
             #expect(preset.commandString.contains("--profile legacy-basic"), Comment(rawValue: preset.commandString))
         }
+    }
+
+
+    // MARK: - Pixel / codec tools mirror the dicom-* CLIs (DICOM 2026a; P-ANON-*, P-IMAGE-VR, P-PIXEDIT-RANGE, P-VIDEO-*, P-CONVERT-*, P-COMPRESS-*)
+
+    private func pixelParam(_ tool: String, _ id: String) -> CLIParameterDefinition? {
+        ToolCatalogHelpers.parameterDefinitions(for: tool).first { $0.id == id }
+    }
+
+    @Test("dicom-anon offers every PS3.15 2026a E.3 Option flag of dicom-anon (CID 7050 names in the help), --retain-dates deprecated, the pixel-cleaning options")
+    func anonOptionFlags() throws {
+        let expected = ["retain-dates", "retain-full-dates", "retain-modified-dates", "retain-characteristics", "retain-device",
+                        "retain-institution", "retain-uids", "clean-descriptors", "retain-safe-private", "clean-graphics",
+                        "clean-structured-content", "clean-recognizable-visual-features", "clean-pixel-data", "allow-burned-in-phi"]
+        for id in expected {
+            let p = try #require(pixelParam("dicom-anon", id), Comment(rawValue: id))
+            #expect(p.flag == "--" + id)
+            #expect(p.parameterType == .booleanToggle)
+            #expect(p.defaultValue.isEmpty)                      // never emitted unless switched on
+        }
+        #expect(pixelParam("dicom-anon", "retain-dates")?.helpText.hasPrefix("Deprecated: use --retain-full-dates or --retain-modified-dates") == true)
+        #expect(pixelParam("dicom-anon", "retain-uids")?.helpText.contains("Retain UIDs Option") == true)              // CID 7050 113110
+        #expect(pixelParam("dicom-anon", "retain-full-dates")?.helpText.contains("Retain Longitudinal Temporal Information With Full Dates Option") == true)
+        let region = try #require(pixelParam("dicom-anon", "redact-region"))
+        #expect(region.isRepeatable && region.flag == "--redact-region")
+        #expect(pixelParam("dicom-anon", "redact-fill")?.parameterType == .integerField)
+    }
+
+    @Test("dicom-image / dicom-pdf --conversion-type offer the 8 PS3.3 2026a Table C.8-24 Defined Terms (ConversionType.definedTerms), empty = the CLI's WSD")
+    func conversionTypePickers() throws {
+        for tool in ["dicom-image", "dicom-pdf"] {
+            let p = try #require(pixelParam(tool, "conversion-type"), Comment(rawValue: tool))
+            #expect(p.allowedValues == [""] + ConversionType.definedTerms)
+            #expect(ConversionType.definedTerms == ["DV", "DI", "DF", "WSD", "SD", "SI", "DRW", "SYN"])
+            #expect(p.defaultValue.isEmpty)
+            #expect(pixelParam(tool, "strict-modality")?.flag == "--strict-modality")
+        }
+        #expect(pixelParam("dicom-pdf", "burned-in-annotation")?.allowedValues == ["", "YES", "NO"])        // PS3.3 Table C.24-2
+        #expect(pixelParam("dicom-pdf", "hl7-instance-identifier")?.flag == "--hl7-instance-identifier")   // Type 1C for CDA
+        #expect(pixelParam("dicom-image", "modality")?.helpText == ModalityOptionValidator.helpText("to write (default: OT)"))
+        #expect(pixelParam("dicom-image", "modality")?.defaultValue.isEmpty == true)
+    }
+
+    @Test("dicom-video offers --strict-modality and --audio-channel-source (PS3.16 CID 3000 keywords, D56); the refusal help suffixes are the CLI's")
+    func videoConformanceRows() throws {
+        let src = try #require(pixelParam("dicom-video", "audioChannelSource"))
+        #expect(src.flag == "--audio-channel-source" && src.isRepeatable)
+        #expect(src.helpText.hasPrefix(WorkshopAudioChannelSourceOption.help))
+        #expect(WorkshopAudioChannelSourceOption.keywords.map(\.keyword) ==
+                ["voice", "operators-narrative", "ambient-room-environment", "doppler-audio", "phonocardiogram", "physiological-audio-signal"])
+        #expect(WorkshopAudioChannelSourceOption.keywords.map(\.source.codeValue) == ["109110", "109111", "109112", "109113", "109114", "109115"])
+        #expect(try WorkshopAudioChannelSourceOption.parse("Voice") == .voice)
+        #expect(try WorkshopAudioChannelSourceOption.parse("DCM:109113") == .dopplerAudio)
+        #expect(throws: WorkshopAudioChannelSourceOption.ParseError.missingMeaning("DCM:1")) { try WorkshopAudioChannelSourceOption.parse("DCM:1") }
+        #expect(pixelParam("dicom-video", "strictModality")?.flag == "--strict-modality")
+        #expect(pixelParam("dicom-video", "modality")?.helpText == WorkshopVideoOptionConformance.modalityHelp)
+        #expect(pixelParam("dicom-video", "patientSex")?.helpText == WorkshopVideoOptionConformance.patientSexHelp)
+        #expect(pixelParam("dicom-video", "patientBirthDate")?.helpText == WorkshopVideoOptionConformance.patientBirthDateHelp)
+        #expect(pixelParam("dicom-video", "transferSyntax")?.helpText.hasPrefix(WorkshopVideoOptionConformance.transferSyntaxHelp) == true)
+        // PS3.3 A.32.5.4.1 / A.32.6.4.1 / A.32.7.4.1 and Table C.7-1
+        var meta = VideoWorkflow.Metadata(patientBirthDate: "2024-01-01", patientSex: "U", modality: "CT")
+        var lines = WorkshopVideoOptionConformance.violations(type: .endoscopic, metadata: meta, transferSyntax: "1.2.840.10008.1.2.4.107.1")
+        #expect(lines.count == 4)
+        #expect(lines[0].contains("not registered in PS3.6 Table A-1"))
+        #expect(lines[1].contains("PS3.3 A.32.5.4.1 requires Modality (0008,0060) ES"))
+        #expect(lines[2].contains("M, F or O; PS3.3 Table C.7-1"))
+        #expect(lines[3].contains("is not a DA value"))
+        meta = VideoWorkflow.Metadata(patientBirthDate: "20240101", patientSex: "F", modality: "GM")
+        lines = WorkshopVideoOptionConformance.violations(type: .microscopic, metadata: meta, transferSyntax: "1.2.840.10008.1.2.4.108")
+        #expect(lines.isEmpty)
+    }
+
+    @Test("dicom-convert --transfer-syntax offers DICOMConverter.cliTokens (P-CONVERT-TS-KEYWORDS), old spellings canonicalise, --frame-number from 1 with --frame deprecated (P-CONVERT-FRAME)")
+    func convertTokensAndFrames() throws {
+        let ts = try #require(pixelParam("dicom-convert", "transfer-syntax"))
+        #expect(ts.allowedValues == [""] + DICOMConverter.cliTokens)
+        #expect(ts.allowedValues.contains("JPEG2000Reversible") && ts.allowedValues.contains("ExplicitVRLittleEndian"))
+        #expect(ts.helpText == WorkshopTransferSyntaxKeywords.optionHelp)
+        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("jpeg2000-lossless") == "JPEG2000Reversible")
+        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("1.2.840.10008.1.2.1") == "ExplicitVRLittleEndian")
+        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("JPEG2000Lossless") == "JPEG2000Lossless")   // reassigned: kept, the executor prints the note
+        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("bogus") == "bogus")
+        #expect(WorkshopTransferSyntaxKeywords.resolve("JPEGBaseline8Bit")?.transferSyntax.uid == "1.2.840.10008.1.2.4.50")
+        #expect(WorkshopTransferSyntaxKeywords.resolve("JPEG2000Lossless")?.transferSyntax.uid == "1.2.840.10008.1.2.4.90")
+        #expect(WorkshopTransferSyntaxKeywords.meaningChangeNote(for: "JPEG2000Lossless") == TransferSyntax.reassignedKeywordNote(for: "JPEG2000Lossless"))
+        let fn = try #require(pixelParam("dicom-convert", "frame-number"))
+        #expect(fn.minValue == 1 && fn.defaultValue.isEmpty && fn.helpText.contains("numbered from 1 (PS3.3 Table 10-3"))
+        let fr = try #require(pixelParam("dicom-convert", "frame"))
+        #expect(fr.helpText == "deprecated: 0-based index; use --frame-number" && fr.defaultValue.isEmpty)
+        #expect(pixelParam("dicom-convert", "window-width")?.helpText == "Window width value (Window Width (0028,1051), at least 1)")
+    }
+
+    @Test("dicom-compress --syntax offers only the native targets of dicom-compress' NativeTargetSyntax (P-COMPRESS-SYNTAX); codec names are refused with the CLI's text")
+    func compressSyntaxPicker() throws {
+        let p = try #require(pixelParam("dicom-compress", "syntax"))
+        #expect(p.allowedValues == ["explicit-le", "implicit-le", "deflate", "explicit-be"])
+        #expect(p.defaultValue == "explicit-le")
+        #expect(try WorkshopNativeTargetSyntax.resolve("deflate") == .deflatedExplicitVRLittleEndian)
+        #expect(try WorkshopNativeTargetSyntax.resolve("Explicit-BE") == .explicitVRBigEndian)
+        do {
+            _ = try WorkshopNativeTargetSyntax.resolve("jpeg2000")
+            Issue.record("jpeg2000 must be refused as a decompress target")
+        } catch {
+            #expect("\(error)".contains("an encapsulated (compressed) Transfer Syntax (PS3.6 2026a Table A-1)"))
+            #expect("\(error)".contains("Native targets: explicit-le, implicit-le, deflate, explicit-be"))
+        }
+        do {
+            _ = try WorkshopNativeTargetSyntax.resolve("nope")
+            Issue.record("unknown must be refused")
+        } catch {
+            #expect("\(error)" == "Unknown syntax 'nope'. Native targets: explicit-le, implicit-le, deflate, explicit-be")
+        }
+    }
+
+    @Test("dicom-pixedit help texts are the CLI's; --fill-value carries no default (P-PIXEDIT-RANGE refusals in the executor)")
+    func pixeditRows() throws {
+        let fv = try #require(pixelParam("dicom-pixedit", "fill-value"))
+        #expect(fv.defaultValue.isEmpty)
+        #expect(fv.helpText.contains("Bits Stored (0028,0101) and Pixel Representation (0028,0103) (PS3.3 C.7.6.3.1), else exit 1"))
+        #expect(pixelParam("dicom-pixedit", "window-width")?.helpText.contains("at least 1 (PS3.3 C.11.2.1.2), else exit 1") == true)
+        #expect(pixelParam("dicom-pixedit", "crop")?.helpText.contains("Image Position (Patient) are updated") == true)
     }
 
     // MARK: - File tools mirror the dicom-* CLIs (DICOM 2026a; D29, D114, D127, D132, D154)

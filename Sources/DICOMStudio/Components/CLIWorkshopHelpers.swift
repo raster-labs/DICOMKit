@@ -6,6 +6,7 @@
 import Foundation
 import DICOMCore
 import DICOMKit
+import DICOMDictionary
 import DICOMWeb
 
 // MARK: - 16.1 Network Configuration Helpers
@@ -2282,94 +2283,102 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
             ]
         case "dicom-convert":
+            // Help texts are dicom-convert's (Sources/dicom-convert/DICOMConvert.swift). The
+            // --transfer-syntax picker is the shared DICOMConverter catalog's CamelCase tokens
+            // (DICOMConverter.cliTokens: the CLI's --help listing, incl. the …Reversible names of
+            // P-CONVERT-TS-KEYWORDS); every other spelling the CLI accepts (kebab alias, UID, PS3.6
+            // Table A-1 keyword) is canonicalised to its token when typed (WorkshopTransferSyntaxKeywords).
+            // Frames are selected by Frame number from 1 (--frame-number, PS3.3 Table 10-3); --frame is
+            // the deprecated 0-based index (P-CONVERT-FRAME).
             return [
                 CLIParameterDefinition(
                     id: "inputPath", flag: "", displayName: "Input File/Directory",
                     parameterType: .filePath, placeholder: "Path to DICOM file or directory",
-                    helpText: "DICOM file or directory to convert",
+                    helpText: "Path to DICOM file or directory",
                     isRequired: true
                 ),
                 CLIParameterDefinition(
                     id: "output", flag: "--output", displayName: "Output Path",
                     parameterType: .outputPath, placeholder: "Output file or directory path",
-                    helpText: "Destination file or directory for the converted output",
+                    helpText: "Output file or directory path",
                     isRequired: true
                 ),
                 CLIParameterDefinition(
                     id: "format", flag: "--format", displayName: "Output Format",
                     parameterType: .enumPicker, placeholder: "dicom",
-                    helpText: "Output format: DICOM (transfer syntax conversion) or image export (PNG, JPEG, TIFF)",
+                    helpText: "Output format for image export: png, jpeg, tiff, dicom (default: dicom)",
                     defaultValue: "dicom",
                     allowedValues: ["dicom", "png", "jpeg", "tiff"]
                 ),
                 CLIParameterDefinition(
                     id: "transfer-syntax", flag: "--transfer-syntax", displayName: "Transfer Syntax",
                     parameterType: .enumPicker, placeholder: "Target transfer syntax",
-                    helpText: "Target transfer syntax for DICOM-to-DICOM conversion — supports uncompressed and compressed encoding (PS3.5 §10)",
-                    // Single source of truth: the shared DICOMConverter target catalog
-                    // (DICOMKit), so the picker stays in step with the dicom-convert CLI.
-                    // Show the short kebab aliases (aliasTokens: "jpeg2000-lossless", "htj2k",
-                    // …) rather than the CamelCase cliTokens, so this dropdown reads the same as
-                    // dicom-compress/dicom-retrieve/dicom-qr. The dicom-convert CLI accepts the
-                    // kebab alias identically (DICOMConverter.resolveTarget), so the generated
-                    // command and in-process execution are unchanged.
-                    allowedValues: [""] + DICOMConverter.aliasTokens,
+                    helpText: WorkshopTransferSyntaxKeywords.optionHelp,
+                    allowedValues: [""] + DICOMConverter.cliTokens,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["dicom"])
                 ),
                 CLIParameterDefinition(
                     id: "quality", flag: "--quality", displayName: "JPEG Quality",
                     parameterType: .integerField, placeholder: "90",
-                    helpText: "JPEG compression quality (1–100, default: 90)",
+                    helpText: "JPEG quality (1-100, default: 90)",
                     defaultValue: "90", minValue: 1, maxValue: 100,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["jpeg"])
                 ),
                 CLIParameterDefinition(
                     id: "window-center", flag: "--window-center", displayName: "Window Center",
                     parameterType: .textField, placeholder: "e.g. 40",
-                    helpText: "Window center value (Hounsfield units for CT)",
+                    helpText: "Window center value (Window Center (0028,1050))",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["png", "jpeg", "tiff"])
                 ),
                 CLIParameterDefinition(
                     id: "window-width", flag: "--window-width", displayName: "Window Width",
                     parameterType: .textField, placeholder: "e.g. 400",
-                    helpText: "Window width value for controlling brightness range",
+                    helpText: "Window width value (Window Width (0028,1051), at least 1)",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["png", "jpeg", "tiff"])
                 ),
                 CLIParameterDefinition(
                     id: "apply-window", flag: "--apply-window", displayName: "Apply Window/Level",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Apply window center/width values during image export",
+                    helpText: "Apply window/level during export",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["png", "jpeg", "tiff"])
                 ),
                 CLIParameterDefinition(
-                    id: "frame", flag: "--frame", displayName: "Frame Number",
+                    id: "frame-number", flag: "--frame-number", displayName: "Frame Number",
+                    parameterType: .integerField, placeholder: "1",
+                    helpText: "Frame to export, numbered from 1 (PS3.3 Table 10-3: the first Frame is Frame number 1; default 1)",
+                    minValue: 1, maxValue: 99999,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["png", "jpeg", "tiff"])
+                ),
+                CLIParameterDefinition(
+                    id: "frame", flag: "--frame", displayName: "Frame (deprecated)",
                     parameterType: .integerField, placeholder: "0",
-                    helpText: "Frame number to export from multi-frame DICOM files (0-indexed)",
-                    minValue: 0, maxValue: 9999,
+                    helpText: "deprecated: 0-based index; use --frame-number",
+                    isAdvanced: true,
+                    minValue: 0, maxValue: 99998,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["png", "jpeg", "tiff"])
                 ),
                 CLIParameterDefinition(
                     id: "strip-private", flag: "--strip-private", displayName: "Strip Private Tags",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Remove vendor-specific private tags from the output file",
+                    helpText: "Strip private tags during conversion",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "recursive", flag: "--recursive", displayName: "Recursive",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Process all DICOM files in subdirectories when input is a directory",
+                    helpText: "Process directories recursively",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "validate", flag: "--validate", displayName: "Validate Output",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Validate the converted output file for DICOM conformance",
+                    helpText: "Validate output after conversion",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "force", flag: "--force", displayName: "Force Parse",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Attempt to parse files that lack the standard DICM preamble",
+                    helpText: "Force parsing of files without DICM prefix",
                     isAdvanced: true
                 ),
             ]
@@ -2449,72 +2458,174 @@ public enum ToolCatalogHelpers: Sendable {
                     defaultValue: "legacy-basic",
                     allowedValues: ["legacy-basic", "legacy-clinical-trial", "legacy-research"]
                 ),
+                // PS3.15 2026a Annex E Options (E.3; the 12 Option columns of Table E.1-1, codes of
+                // PS3.16 CID 7050) and the pixel-cleaning options, as dicom-anon declares them
+                // (help texts are the CLI's, checked by diff_studio_g1). They act only on
+                // --profile ps315, which the picker does not offer yet (P-STUDIO-ANON-PS315): the
+                // executor refuses a set flag with the CLI's "apply only to --profile ps315" text.
+                CLIParameterDefinition(
+                    id: "retain-dates", flag: "--retain-dates", displayName: "Retain Dates (deprecated)",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Deprecated: use --retain-full-dates or --retain-modified-dates. PS3.15 Retain Longitudinal Temporal Information With Full Dates Option; with --shift-dates, ... With Modified Dates Option (--profile ps315)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "retain-full-dates", flag: "--retain-full-dates", displayName: "Retain Full Dates",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Retain Longitudinal Temporal Information With Full Dates Option: dates and times kept (--profile ps315)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "retain-modified-dates", flag: "--retain-modified-dates", displayName: "Retain Modified Dates",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Retain Longitudinal Temporal Information With Modified Dates Option: dates shifted by --shift-dates, which it requires; times kept (--profile ps315)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "retain-characteristics", flag: "--retain-characteristics", displayName: "Retain Patient Characteristics",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Retain Patient Characteristics Option (--profile ps315)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "retain-device", flag: "--retain-device", displayName: "Retain Device Identity",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Retain Device Identity Option (--profile ps315)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "retain-institution", flag: "--retain-institution", displayName: "Retain Institution Identity",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Retain Institution Identity Option (--profile ps315)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "retain-uids", flag: "--retain-uids", displayName: "Retain UIDs",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Retain UIDs Option: UIDs kept instead of replaced (U) (--profile ps315)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "clean-descriptors", flag: "--clean-descriptors", displayName: "Clean Descriptors",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Clean Descriptors Option (--profile ps315): descriptor attributes are kept with the names, identifiers and dates the profile removes elsewhere taken out of their text (E.3.5); review free text before release",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "retain-safe-private", flag: "--retain-safe-private", displayName: "Retain Safe Private",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Retain Safe Private Option (--profile ps315): keep the private attributes PS3.15 Table E.3.10-1 lists for their Private Creator, or that the file declares safe in Private Data Element Characteristics Sequence (0008,0300); other private attributes are removed (E.3.10)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "clean-graphics", flag: "--clean-graphics", displayName: "Clean Graphics",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Clean Graphics Option (--profile ps315): keep Graphic Annotation Sequence (0070,0001) with the names, identifiers and dates the profile removes taken out of its text (E.3.3); overlays are still removed",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "clean-structured-content", flag: "--clean-structured-content", displayName: "Clean Structured Content",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Clean Structured Content Option (--profile ps315): keep Content Sequence (0040,A730) values (without it, Basic D: every Text Value and numeric value is a dummy), Acquisition Context Sequence and Specimen Preparation Sequence; each Content Item gets the action PS3.15 Table E.3.4-1 gives its Concept Name (removed, dummy, kept or cleaned) and the text kept is cleaned (E.3.4)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "clean-recognizable-visual-features", flag: "--clean-recognizable-visual-features", displayName: "Clean Recognizable Visual Features",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15 Clean Recognizable Visual Features Option (--profile ps315): blank the --redact-region areas (required; not detected automatically) on every frame, set Recognizable Visual Features (0028,0302) = NO and record code 113102 (E.3.2)",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "clean-pixel-data", flag: "--clean-pixel-data", displayName: "Clean Pixel Data",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "PS3.15: Clean Pixel Data — blank burned-in identifiers out of the image itself. Chooses the region automatically (declared clinical region, else device template) and REFUSES rather than guessing when it cannot. Records code 113101 and sets Burned In Annotation = NO only when pixels were actually blanked.",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "redact-region", flag: "--redact-region", displayName: "Redact Region(s)",
+                    parameterType: .textField, placeholder: "e.g. 0,0,200,50; 10,400,300,40",
+                    helpText: "Region to blank as x,y,width,height (repeatable). Implies --clean-pixel-data and overrides automatic region selection; with --clean-recognizable-visual-features the regions are the recognizable features to blank, and imply nothing else. Separate regions with “ ; ”.",
+                    isAdvanced: true,
+                    isRepeatable: true
+                ),
+                CLIParameterDefinition(
+                    id: "redact-fill", flag: "--redact-fill", displayName: "Redact Fill Value",
+                    parameterType: .integerField, placeholder: "0",
+                    helpText: "Fill value for blanked pixels (default: 0 = black)",
+                    isAdvanced: true
+                ),
                 CLIParameterDefinition(
                     id: "shift-dates", flag: "--shift-dates", displayName: "Shift Dates (days)",
                     parameterType: .integerField, placeholder: "0",
-                    helpText: "Shift all date tags by this many days (positive or negative)",
+                    helpText: "Number of days to shift dates (preserves intervals). With --profile ps315 this is the Modified Dates Option and needs --retain-modified-dates",
                     isAdvanced: true,
                     minValue: -36500, maxValue: 36500
                 ),
                 CLIParameterDefinition(
                     id: "regenerate-uids", flag: "--regenerate-uids", displayName: "Regenerate UIDs",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Regenerate all UIDs (StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID)",
+                    helpText: "Regenerate Study, Series and SOP Instance UIDs (legacy-* profiles). --profile ps315 always replaces UIDs (Table E.1-1 action U) unless --retain-uids",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "remove", flag: "--remove", displayName: "Remove Tag(s)",
                     parameterType: .textField, placeholder: "e.g. 0010,0040; PatientName",
-                    helpText: "Additional tags to remove (GGGG,EEEE or keyword). Separate with “ ; ”.",
+                    helpText: "Tags to remove (format: 0010,0010 or a PS3.6 keyword). Separate with “ ; ”.",
                     isAdvanced: true,
                     isRepeatable: true
                 ),
                 CLIParameterDefinition(
                     id: "replace", flag: "--replace", displayName: "Replace Tag(s)",
                     parameterType: .textField, placeholder: "e.g. 0010,0010=ANON; 0010,0020=ID001",
-                    helpText: "Replace tags with fixed values in TAG=VALUE format. Separate pairs with “ ; ”.",
+                    helpText: "Tags to replace (format: 0010,0010=VALUE or KEYWORD=VALUE). Separate pairs with “ ; ”.",
                     isAdvanced: true,
                     isRepeatable: true
                 ),
                 CLIParameterDefinition(
                     id: "keep", flag: "--keep", displayName: "Keep Tag(s)",
                     parameterType: .textField, placeholder: "e.g. 0008,0060; Modality",
-                    helpText: "Preserve tags the profile would otherwise remove (GGGG,EEEE or keyword). Separate with “ ; ”.",
+                    helpText: "Tags to keep (preserve from anonymization; legacy-* profiles only). Separate with “ ; ”.",
                     isAdvanced: true,
                     isRepeatable: true
                 ),
                 CLIParameterDefinition(
                     id: "recursive", flag: "--recursive", displayName: "Recursive",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Process all DICOM files in a directory and its sub-directories"
+                    helpText: "Process directories recursively"
                 ),
                 CLIParameterDefinition(
                     id: "dry-run", flag: "--dry-run", displayName: "Dry Run",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Preview changes without writing any files to disk"
+                    helpText: "Preview changes without modifying files"
                 ),
                 CLIParameterDefinition(
                     id: "backup", flag: "--backup", displayName: "Backup Originals",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Keep a .backup copy of each original file",
+                    helpText: "Create backup of original files",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "audit-log", flag: "--audit-log", displayName: "Audit Log Path",
                     parameterType: .outputPath, placeholder: "Optional audit log file path",
-                    helpText: "Write an anonymization audit log to the specified file",
+                    helpText: "Path to audit log file",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "force", flag: "--force", displayName: "Force Parse",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Attempt to parse files that lack the standard DICM preamble",
+                    helpText: "Force parsing of files without DICM prefix",
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "allow-burned-in-phi", flag: "--allow-burned-in-phi", displayName: "Allow Burned-in PHI",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Proceed even when the pixels may still carry PHI (Burned In Annotation = YES, or overlay planes present) (--profile ps315). Without this, such files are refused unwritten, because without --clean-pixel-data only the data set is de-identified.",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "verbose", flag: "--verbose", displayName: "Verbose",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Show per-file progress and tag changes in the console"
+                    helpText: "Verbose output"
                 ),
             ]
         case "dicom-info":
@@ -3504,6 +3615,10 @@ case "dicom-dcmdir":
                 ),
             ]
 case "dicom-pdf":
+    // Help texts are dicom-pdf's (Sources/dicom-pdf/main.swift). --conversion-type offers the 8 Defined
+    // Terms of PS3.3 2026a Table C.8-24 (ConversionType.definedTerms, the same list as the CLI's
+    // PDFEncapsulation.conversionTypes; checked by diff_studio_g1), --burned-in-annotation the two
+    // values of Table C.24-2; an empty picker value omits the option (the CLI writes WSD / YES).
     return [
         CLIParameterDefinition(
             id: "inputPath",
@@ -3511,7 +3626,7 @@ case "dicom-pdf":
             displayName: "Input",
             parameterType: .filePath,
             placeholder: "report.dcm or report.pdf",
-            helpText: "Input file (DICOM to extract from, or a document to encapsulate). Directory input requires --recursive.",
+            helpText: "Input file or directory (DICOM or document)",
             isRequired: true,
             defaultValue: ""
         ),
@@ -3521,7 +3636,7 @@ case "dicom-pdf":
             displayName: "Output",
             parameterType: .outputPath,
             placeholder: "Choose a location… (e.g. ExportedFile.pdf)",
-            helpText: "Output file or directory path. Auto-generated next to the input if omitted.",
+            helpText: "Output file or directory path",
             defaultValue: ""
         ),
         CLIParameterDefinition(
@@ -3529,16 +3644,16 @@ case "dicom-pdf":
             flag: "--extract",
             displayName: "Extract Mode",
             parameterType: .booleanToggle,
-            helpText: "Extract the embedded document out of a DICOM Encapsulated Document file.",
+            helpText: "Extract mode: Extract document from DICOM",
             defaultValue: "false"
         ),
         CLIParameterDefinition(
             id: "patient-name",
             flag: "--patient-name",
-            displayName: "Patient Name",
+            displayName: "Patient's Name",
             parameterType: .textField,
             placeholder: "DOE^JOHN",
-            helpText: "Patient Name (required for encapsulation mode).",
+            helpText: "Patient's Name (for encapsulation mode)",
             defaultValue: ""
         ),
         CLIParameterDefinition(
@@ -3547,7 +3662,7 @@ case "dicom-pdf":
             displayName: "Patient ID",
             parameterType: .textField,
             placeholder: "12345",
-            helpText: "Patient ID (required for encapsulation mode).",
+            helpText: "Patient ID (for encapsulation mode)",
             defaultValue: ""
         ),
         CLIParameterDefinition(
@@ -3556,7 +3671,7 @@ case "dicom-pdf":
             displayName: "Document Title",
             parameterType: .textField,
             placeholder: "Radiology Report",
-            helpText: "Document Title (encapsulation mode).",
+            helpText: "Document Title (0042,0010) (for encapsulation mode)",
             isAdvanced: true,
             defaultValue: ""
         ),
@@ -3566,7 +3681,7 @@ case "dicom-pdf":
             displayName: "Study Instance UID",
             parameterType: .textField,
             placeholder: "1.2.3.4.5 (auto if blank)",
-            helpText: "Study Instance UID (auto-generated if not provided).",
+            helpText: "Study Instance UID (auto-generated if not provided)",
             isAdvanced: true,
             defaultValue: ""
         ),
@@ -3576,7 +3691,7 @@ case "dicom-pdf":
             displayName: "Series Instance UID",
             parameterType: .textField,
             placeholder: "1.2.3.4.5.6 (auto if blank)",
-            helpText: "Series Instance UID (auto-generated if not provided).",
+            helpText: "Series Instance UID (auto-generated if not provided)",
             isAdvanced: true,
             defaultValue: ""
         ),
@@ -3586,9 +3701,18 @@ case "dicom-pdf":
             displayName: "Modality",
             parameterType: .textField,
             placeholder: "DOC (M3D for 3D models)",
-            helpText: "Modality (default: DOC for documents, M3D for 3D models).",
+            helpText: ModalityOptionValidator.helpText("to write (default: DOC; STL/OBJ/MTL require M3D, PS3.3 A.85.x.4.3)"),
             isAdvanced: true,
             defaultValue: ""
+        ),
+        CLIParameterDefinition(
+            id: "strict-modality",
+            flag: "--strict-modality",
+            displayName: "Strict Modality",
+            parameterType: .booleanToggle,
+            helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+            isAdvanced: true,
+            defaultValue: "false"
         ),
         CLIParameterDefinition(
             id: "series-description",
@@ -3596,7 +3720,7 @@ case "dicom-pdf":
             displayName: "Series Description",
             parameterType: .textField,
             placeholder: "Encapsulated PDF",
-            helpText: "Series Description (encapsulation mode).",
+            helpText: "Series Description",
             isAdvanced: true,
             defaultValue: ""
         ),
@@ -3606,7 +3730,7 @@ case "dicom-pdf":
             displayName: "Series Number",
             parameterType: .integerField,
             placeholder: "1",
-            helpText: "Series Number (encapsulation mode).",
+            helpText: "Series Number",
             isAdvanced: true,
             defaultValue: "",
             minValue: 0,
@@ -3618,18 +3742,50 @@ case "dicom-pdf":
             displayName: "Instance Number",
             parameterType: .integerField,
             placeholder: "1",
-            helpText: "Instance Number (encapsulation mode).",
+            helpText: "Instance Number",
             isAdvanced: true,
             defaultValue: "",
             minValue: 0,
             maxValue: 999999
         ),
         CLIParameterDefinition(
+            id: "conversion-type",
+            flag: "--conversion-type",
+            displayName: "Conversion Type",
+            parameterType: .enumPicker,
+            placeholder: "WSD",
+            helpText: "Conversion Type (0008,0064) for PDF and CDA, a PS3.3 Table C.8-24 Defined Term: DV, DI, DF, WSD, SD, SI, DRW, SYN (default: WSD)",
+            isAdvanced: true,
+            defaultValue: "",
+            allowedValues: [""] + ConversionType.definedTerms
+        ),
+        CLIParameterDefinition(
+            id: "burned-in-annotation",
+            flag: "--burned-in-annotation",
+            displayName: "Burned In Annotation",
+            parameterType: .enumPicker,
+            placeholder: "YES",
+            helpText: "Burned In Annotation (0028,0301): YES or NO, whether the document identifies the patient and the date (default: YES)",
+            isAdvanced: true,
+            defaultValue: "",
+            allowedValues: ["", "YES", "NO"]
+        ),
+        CLIParameterDefinition(
+            id: "hl7-instance-identifier",
+            flag: "--hl7-instance-identifier",
+            displayName: "HL7 Instance Identifier",
+            parameterType: .textField,
+            placeholder: "2.16.840.1.113883.19^X1",
+            helpText: "HL7 Instance Identifier (0040,E001) of a CDA document, UID or UID^extension (default: read from /ClinicalDocument/id; single file only)",
+            isAdvanced: true,
+            defaultValue: ""
+        ),
+        CLIParameterDefinition(
             id: "recursive",
             flag: "--recursive",
             displayName: "Recursive",
             parameterType: .booleanToggle,
-            helpText: "Process directories recursively (requires a directory input).",
+            helpText: "Process directories recursively",
             isAdvanced: true,
             defaultValue: "false"
         ),
@@ -3638,7 +3794,7 @@ case "dicom-pdf":
             flag: "--show-metadata",
             displayName: "Show Metadata",
             parameterType: .booleanToggle,
-            helpText: "Show document metadata (extract mode).",
+            helpText: "Show document metadata (extract mode)",
             isAdvanced: true,
             defaultValue: "false"
         ),
@@ -3647,66 +3803,70 @@ case "dicom-pdf":
             flag: "--verbose",
             displayName: "Verbose",
             parameterType: .booleanToggle,
-            helpText: "Verbose output.",
+            helpText: "Verbose output",
             isAdvanced: true,
             defaultValue: "false"
         )
     ]
 case "dicom-pixedit":
+    // Help texts are dicom-pixedit's (Sources/dicom-pixedit/main.swift). --fill-value carries no default
+    // so the option is omitted as on the CLI (the engine fills with 0); the executor refuses a value
+    // outside the Bits Stored / Pixel Representation range and a window width below 1 with the CLI's
+    // texts (P-PIXEDIT-RANGE, PS3.3 2026a C.7.6.3.1 / C.11.2.1.2).
     return [
         CLIParameterDefinition(
             id: "inputPath", flag: "", displayName: "Input File",
             parameterType: .filePath, placeholder: "Path to DICOM file",
-            helpText: "Input DICOM file whose pixel data will be edited",
+            helpText: "Input DICOM file path",
             isRequired: true
         ),
         CLIParameterDefinition(
             id: "output", flag: "--output", displayName: "Output File",
             parameterType: .outputPath, placeholder: "Choose a location… (e.g. ExportedFile.dcm)",
-            helpText: "Destination path for the edited DICOM file",
+            helpText: "Output DICOM file path",
             isRequired: true,
             defaultValue: ""
         ),
         CLIParameterDefinition(
             id: "mask-region", flag: "--mask-region", displayName: "Mask Region",
             parameterType: .textField, placeholder: "x,y,width,height",
-            helpText: "Rectangular region (x,y,width,height) to set to the fill value — e.g. for masking burned-in annotations"
+            helpText: "Mask region x,y,width,height (0-based column, row) - sets every sample in it to --fill-value"
         ),
         CLIParameterDefinition(
             id: "fill-value", flag: "--fill-value", displayName: "Fill Value",
             parameterType: .integerField, placeholder: "0",
-            helpText: "Pixel value written into the masked region (default: 0)",
-            defaultValue: "0", minValue: 0, maxValue: 65535
+            helpText: "Stored value for masked samples (default: 0); must lie in the range of Bits Stored (0028,0101) and Pixel Representation (0028,0103) (PS3.3 C.7.6.3.1), else exit 1",
+            minValue: Int(Int32.min), maxValue: Int(UInt32.max)
         ),
         CLIParameterDefinition(
             id: "crop", flag: "--crop", displayName: "Crop Region",
             parameterType: .textField, placeholder: "x,y,width,height",
-            helpText: "Crop the image to the rectangular region (x,y,width,height); updates Rows/Columns"
+            helpText: "Crop region x,y,width,height (0-based column, row); Rows/Columns and Image Position (Patient) are updated"
         ),
         CLIParameterDefinition(
             id: "window-center", flag: "--window-center", displayName: "Window Center",
             parameterType: .textField, placeholder: "e.g. 40",
-            helpText: "Window center for permanent window/level application (requires --apply-window)"
+            helpText: "Window Center (0028,1050) for --apply-window, in Modality LUT output units (e.g. HU for CT; PS3.3 C.11.2.1.2)"
         ),
         CLIParameterDefinition(
             id: "window-width", flag: "--window-width", displayName: "Window Width",
             parameterType: .textField, placeholder: "e.g. 400",
-            helpText: "Window width for permanent window/level application (requires --apply-window)"
+            helpText: "Window Width (0028,1051) for --apply-window, in Modality LUT output units; at least 1 (PS3.3 C.11.2.1.2), else exit 1"
         ),
         CLIParameterDefinition(
             id: "apply-window", flag: "--apply-window", displayName: "Apply Window/Level",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Bake the window center/width transform into the pixel data (PS3.3 C.11.2.1.2)"
+            helpText: "Bake the window (PS3.3 C.11.2.1.2 linear function) into the stored pixel values"
         ),
         CLIParameterDefinition(
             id: "invert", flag: "--invert", displayName: "Invert",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Invert all pixel values (maxValue - value)"
+            helpText: "Invert stored pixel values across the Bits Stored range"
         ),
         CLIParameterDefinition(
             id: "verbose", flag: "--verbose", displayName: "Verbose",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Show verbose progress output",
+            helpText: "Show verbose output",
             isAdvanced: true
         ),
     ]
@@ -3795,7 +3955,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "transferSyntax", flag: "--transfer-syntax", displayName: "Transfer Syntax UID",
                     parameterType: .textField, placeholder: "auto-detected",
-                    helpText: VideoConsole.Help.transferSyntax
+                    helpText: WorkshopVideoOptionConformance.transferSyntaxHelp
                         + ". An explicit UID is still validated: a mislabelled object is worse than a rejected one.",
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(
@@ -3912,7 +4072,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "patientBirthDate", flag: "--patient-birth-date", displayName: "Patient Birth Date",
                     parameterType: .textField, placeholder: "YYYYMMDD",
-                    helpText: VideoConsole.Help.patientBirthDate,
+                    helpText: WorkshopVideoOptionConformance.patientBirthDateHelp,
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(
                         parameterId: "operation", values: ["convert", "batch"])
@@ -3920,7 +4080,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "patientSex", flag: "--patient-sex", displayName: "Patient Sex",
                     parameterType: .enumPicker, placeholder: "",
-                    helpText: VideoConsole.Help.patientSex,
+                    helpText: WorkshopVideoOptionConformance.patientSexHelp,
                     isAdvanced: true,
                     defaultValue: "",
                     allowedValues: ["", "M", "F", "O"],
@@ -3978,8 +4138,17 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .textField, placeholder: "ES / GM / XC",
-                    helpText: VideoConsole.Help.modality,
+                    helpText: WorkshopVideoOptionConformance.modalityHelp,
                     isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(
+                        parameterId: "operation", values: ["convert", "batch"])
+                ),
+                CLIParameterDefinition(
+                    id: "strictModality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term",
+                    isAdvanced: true,
+                    defaultValue: "false",
                     visibleWhen: CLIParameterVisibilityCondition(
                         parameterId: "operation", values: ["convert", "batch"])
                 ),
@@ -3999,93 +4168,122 @@ case "dicom-pixedit":
                     visibleWhen: CLIParameterVisibilityCondition(
                         parameterId: "operation", values: ["convert", "batch"])
                 ),
+                // PS3.16 2026a CID 3000 Audio Channel Source into PS3.3 Table C.7-13 (003A,0300) /
+                // (003A,0208) (D56): one value is the source of every audio track, repeated values are
+                // one per track in container order (VideoWorkflow.Metadata.audioChannelSources). The
+                // keywords are the CLI's AudioChannelSourceOption (mirrored; checked by diff_studio_g1).
+                CLIParameterDefinition(
+                    id: "audioChannelSource", flag: "--audio-channel-source", displayName: "Audio Channel Source",
+                    parameterType: .textField, placeholder: "voice; operators-narrative",
+                    helpText: WorkshopAudioChannelSourceOption.help + " Separate several sources with “ ; ”.",
+                    isAdvanced: true,
+                    isRepeatable: true,
+                    visibleWhen: CLIParameterVisibilityCondition(
+                        parameterId: "operation", values: ["convert", "batch"])
+                ),
             ]
 
         case "dicom-image":
+            // Help texts are dicom-image's (Sources/dicom-image/main.swift); the Workshop adds only the
+            // " ; " separator note where a field takes several values. --conversion-type offers the 8
+            // Defined Terms of PS3.3 2026a Table C.8-24 through the shared ConversionType.definedTerms
+            // (checked against the DocBook by diff_studio_g1); empty omits the option (the CLI writes WSD).
             return [
                 CLIParameterDefinition(
                     id: "input", flag: "", displayName: "Input Image/Directory",
                     parameterType: .filePath, placeholder: "Path to image file or directory",
-                    helpText: "Standard image file (JPEG, PNG, TIFF, BMP, GIF) or a directory of images to convert to DICOM Secondary Capture",
+                    helpText: "Input image file or directory",
                     isRequired: true
                 ),
                 CLIParameterDefinition(
                     id: "output", flag: "--output", displayName: "Output File/Directory",
                     parameterType: .outputPath, placeholder: "Output file or directory path",
-                    helpText: "Destination .dcm file (single image) or directory (batch / split-pages). Defaults next to the input if omitted.",
+                    helpText: "Output file or directory path",
                     isRequired: false
                 ),
                 CLIParameterDefinition(
-                    id: "patient-name", flag: "--patient-name", displayName: "Patient Name",
+                    id: "patient-name", flag: "--patient-name", displayName: "Patient's Name",
                     parameterType: .textField, placeholder: "DOE^JOHN",
-                    helpText: "Patient Name in DICOM PN format (e.g. 'DOE^JOHN'). Required for conversion.",
+                    helpText: "Patient's Name (0010,0010), PN, e.g. 'DOE^JOHN' (at most 64 characters per component group, no backslash)",
                     isRequired: true
                 ),
                 CLIParameterDefinition(
                     id: "patient-id", flag: "--patient-id", displayName: "Patient ID",
                     parameterType: .textField, placeholder: "12345",
-                    helpText: "Patient ID. Required for conversion.",
+                    helpText: "Patient ID (0010,0020), LO (at most 64 characters, no backslash)",
                     isRequired: true
                 ),
                 CLIParameterDefinition(
                     id: "study-description", flag: "--study-description", displayName: "Study Description",
                     parameterType: .textField, placeholder: "Clinical Photography",
-                    helpText: "Study Description (0008,1030). Falls back to EXIF description when --use-exif is set."
+                    helpText: "Study Description (0008,1030), LO (at most 64 characters, no backslash)"
                 ),
                 CLIParameterDefinition(
                     id: "series-description", flag: "--series-description", displayName: "Series Description",
                     parameterType: .textField, placeholder: "Clinical Photos",
-                    helpText: "Series Description (0008,103E)."
+                    helpText: "Series Description (0008,103E), LO (at most 64 characters, no backslash)"
                 ),
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study-uid", displayName: "Study Instance UID",
                     parameterType: .textField, placeholder: "auto-generated",
-                    helpText: "Study Instance UID (auto-generated if not provided).",
+                    helpText: "Study Instance UID (0020,000D), UI per PS3.5 Section 9 (generated if not provided)",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "series-uid", flag: "--series-uid", displayName: "Series Instance UID",
                     parameterType: .textField, placeholder: "auto-generated",
-                    helpText: "Series Instance UID (auto-generated if not provided).",
+                    helpText: "Series Instance UID (0020,000E), UI per PS3.5 Section 9 (generated if not provided)",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
                     id: "series-number", flag: "--series-number", displayName: "Series Number",
                     parameterType: .integerField, placeholder: "1",
-                    helpText: "Series Number (0020,0011).",
-                    isAdvanced: true, minValue: 0, maxValue: 999999
+                    helpText: "Series Number (0020,0011), IS (written empty if not provided; Type 2)",
+                    isAdvanced: true, minValue: Int(Int32.min), maxValue: Int(Int32.max)
                 ),
                 CLIParameterDefinition(
                     id: "instance-number", flag: "--instance-number", displayName: "Instance Number",
                     parameterType: .integerField, placeholder: "1",
-                    helpText: "Instance Number (starting value for batch / split-pages).",
-                    isAdvanced: true, minValue: 0, maxValue: 999999
+                    helpText: "Instance Number (0020,0013), IS (default 1; starting value for batch and TIFF pages)",
+                    isAdvanced: true, minValue: Int(Int32.min), maxValue: Int(Int32.max)
                 ),
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .textField, placeholder: "OT",
-                    helpText: "Modality (0008,0060). Default: OT (Other).",
-                    defaultValue: "OT"
+                    helpText: ModalityOptionValidator.helpText("to write (default: OT)")
+                ),
+                CLIParameterDefinition(
+                    id: "strict-modality", flag: "--strict-modality", displayName: "Strict Modality",
+                    parameterType: .booleanToggle, placeholder: "",
+                    helpText: "Reject a --modality value that is not a current DICOM Defined Term"
+                ),
+                CLIParameterDefinition(
+                    id: "conversion-type", flag: "--conversion-type", displayName: "Conversion Type",
+                    parameterType: .enumPicker, placeholder: "WSD",
+                    helpText: "Conversion Type (0008,0064): DV, DI, DF, WSD, SD, SI, DRW or SYN (PS3.3 Table C.8-24; default: WSD)",
+                    isAdvanced: true,
+                    defaultValue: "",
+                    allowedValues: [""] + ConversionType.definedTerms
                 ),
                 CLIParameterDefinition(
                     id: "use-exif", flag: "--use-exif", displayName: "Use EXIF Metadata",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Extract EXIF metadata (acquisition date/time, DPI pixel spacing, description) from the image."
+                    helpText: "Use EXIF metadata: DateTimeOriginal -> Acquisition Date/Time (0008,0022/0032), DPI -> Nominal Scanned Pixel Spacing (0018,2010), description -> Study Description"
                 ),
                 CLIParameterDefinition(
                     id: "split-pages", flag: "--split-pages", displayName: "Split Multi-page TIFF",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Split a multi-page TIFF into one DICOM file per page (frame_0001.dcm …)."
+                    helpText: "Write each page of a multi-page TIFF as its own Secondary Capture instance"
                 ),
                 CLIParameterDefinition(
                     id: "recursive", flag: "--recursive", displayName: "Recursive Directory",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Process directories recursively (required when the input is a directory)."
+                    helpText: "Process directories recursively"
                 ),
                 CLIParameterDefinition(
                     id: "verbose", flag: "--verbose", displayName: "Verbose Output",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Print per-file conversion progress.",
+                    helpText: "Verbose output",
                     isAdvanced: true
                 ),
             ]
@@ -4352,7 +4550,7 @@ case "dicom-compress":
         CLIParameterDefinition(
             id: "json", flag: "--json", displayName: "JSON Output",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Output as JSON (info / backends)",
+            helpText: "Output as JSON",
             defaultValue: "false",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["info", "backends"])
         ),
@@ -4361,7 +4559,7 @@ case "dicom-compress":
         CLIParameterDefinition(
             id: "inputDir", flag: "", displayName: "Input Directory",
             parameterType: .filePath, placeholder: "input_dir/",
-            helpText: "Input directory containing DICOM files",
+            helpText: "Input directory path",
             isRequired: true,
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["batch"])
         ),
@@ -4386,7 +4584,7 @@ case "dicom-compress":
         CLIParameterDefinition(
             id: "codec", flag: "--codec", displayName: "Codec",
             parameterType: .enumPicker, placeholder: "jpeg-lossless",
-            helpText: "Target codec / transfer syntax",
+            helpText: "Target codec (e.g., jpeg-lossless, jpeg2000, rle)",
             isRequired: true,
             defaultValue: "jpeg-lossless",
             allowedValues: compressCodecValues,
@@ -4395,7 +4593,7 @@ case "dicom-compress":
         CLIParameterDefinition(
             id: "batchCodec", flag: "--codec", displayName: "Codec",
             parameterType: .enumPicker, placeholder: "jpeg-lossless",
-            helpText: "Target codec for compression (omit and enable Decompress to decode)",
+            helpText: "Target codec for compression (e.g., jpeg-lossless, jpeg2000)",
             defaultValue: "",
             allowedValues: [""] + compressCodecValues,
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["batch"])
@@ -4434,17 +4632,20 @@ case "dicom-compress":
         CLIParameterDefinition(
             id: "quality", flag: "--quality", displayName: "Quality",
             parameterType: .textField, placeholder: "high / 0.0-1.0",
-            helpText: "Quality: maximum, high, medium, low, or a value 0.0-1.0 (lossy codecs only)",
+            helpText: "Quality: maximum, high, medium, low, or a value 0.0-1.0",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["compress", "batch"])
         ),
 
         // ----- syntax (decompress / batch decompress) -----
+        // Only the native targets of dicom-compress' NativeTargetSyntax (PS3.5 2026a A.1, A.2, A.5 and
+        // the retired A.3 Explicit VR Big Endian, D206): explicit-le, implicit-le, deflate, explicit-be
+        // (P-COMPRESS-SYNTAX; mirrored by WorkshopNativeTargetSyntax, checked by diff_studio_g1).
         CLIParameterDefinition(
             id: "syntax", flag: "--syntax", displayName: "Target Syntax",
             parameterType: .enumPicker, placeholder: "explicit-le",
-            helpText: "Uncompressed target syntax for decompression",
+            helpText: "Native target syntax for decompression: explicit-le (default), implicit-le, deflate, explicit-be (retired)",
             defaultValue: "explicit-le",
-            allowedValues: ["explicit-le", "implicit-le"],
+            allowedValues: WorkshopNativeTargetSyntax.accepted.map(\.name),
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["decompress", "batch"])
         ),
 
@@ -4478,7 +4679,7 @@ case "dicom-compress":
         CLIParameterDefinition(
             id: "verbose", flag: "--verbose", displayName: "Verbose",
             parameterType: .booleanToggle, placeholder: "",
-            helpText: "Show verbose output (sizes, ratio, per-file results)",
+            helpText: "Show verbose output",
             defaultValue: "false",
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["compress", "decompress", "batch"])
         ),
@@ -5335,5 +5536,251 @@ public enum EducationalHelpers: Sendable {
     /// Returns a human-readable name for a DICOM tag, or the raw tag if unknown.
     public static func dicomTagName(for tag: String) -> String {
         return tagNames[tag.uppercased()] ?? tag
+    }
+}
+
+// MARK: - dicom-video option conformance and audio channel source (PS3.3 2026a A.32.5-A.32.7, Table C.7-1, Table C.7-13; PS3.6 Table A-1; PS3.16 CID 3000; Sources/dicom-video/OptionConformance.swift + AudioChannelSourceOption.swift, CLI-local)
+
+/// dicom-video's CLI-local `VideoOptionConformance`, mirrored text-identically (equality checked by
+/// Scripts/diff_studio_g1.py "pixel cid3000 audio source"): refusals for `convert` / `batch` option
+/// values that the engine accepts but that yield an object the standard does not allow
+/// (P-VIDEO-MODALITY-ENUMERATED, P-VIDEO-SEX-ENUMERATED, P-VIDEO-TS-REGISTERED; exit 1).
+enum WorkshopVideoOptionConformance {
+
+    /// The Modality (0008,0060) each IOD fixes, with the PS3.3 2026a section
+    /// that says "The Value of Modality (0008,0060) shall be …".
+    static func requiredModality(
+        for type: VideoConsole.TypeArgument
+    ) -> (value: String, section: String) {
+        switch type {
+        case .endoscopic: return ("ES", "A.32.5.4.1")
+        case .microscopic: return ("GM", "A.32.6.4.1")
+        case .photographic: return ("XC", "A.32.7.4.1")
+        }
+    }
+
+    /// PS3.3 2026a Table C.7-1, Patient's Sex (0010,0040): Enumerated Values.
+    static let patientSexValues = ["M", "F", "O"]
+
+    /// CLI help suffixes stating the refusal (the shared `VideoConsole.Help`
+    /// strings are also DICOMStudio's form help, which does not refuse yet).
+    static let modalityHelp = VideoConsole.Help.modality + "; any other value is refused (exit 1)"
+    static let patientSexHelp = VideoConsole.Help.patientSex + "; other values are refused (exit 1, PS3.3 Table C.7-1)"
+    static let patientBirthDateHelp = VideoConsole.Help.patientBirthDate + "; other forms are refused (exit 1, VR DA)"
+    static let transferSyntaxHelp = VideoConsole.Help.transferSyntax + "; a UID not registered there is refused (exit 1)"
+
+    /// Every refusal for one run, in option order.
+    static func violations(
+        type: VideoConsole.TypeArgument,
+        metadata: VideoWorkflow.Metadata,
+        transferSyntax: String?
+    ) -> [String] {
+        var lines: [String] = []
+        if let uid = transferSyntax, let line = transferSyntaxViolation(uid) {
+            lines.append(line)
+        }
+        if let modality = metadata.modality {
+            let required = requiredModality(for: type)
+            if modality != required.value {
+                lines.append(VideoConsole.errorLine("""
+                    --modality \(modality): PS3.3 \(required.section) requires Modality (0008,0060) \
+                    \(required.value) for \(type.sopClassName); refused.
+                    """))
+            }
+        }
+        if let sex = metadata.patientSex, !patientSexValues.contains(sex) {
+            lines.append(VideoConsole.errorLine("""
+                --patient-sex \(sex) is not an Enumerated Value of Patient's Sex (0010,0040) \
+                (M, F or O; PS3.3 Table C.7-1); refused.
+                """))
+        }
+        if let date = metadata.patientBirthDate, DICOMDate.parse(date) == nil {
+            lines.append(VideoConsole.errorLine("""
+                --patient-birth-date \(date) is not a DA value (YYYYMMDD; PS3.5 Table 6.2-1) for \
+                Patient's Birth Date (0010,0030); refused.
+                """))
+        }
+        return lines
+    }
+
+    /// A refusal when `--transfer-syntax` names a UID that DICOMCore treats as
+    /// video but PS3.6 Table A-1 does not register (the two "Fragmentable HEVC"
+    /// UIDs, kept in DICOMCore by decision P2).
+    static func transferSyntaxViolation(_ uid: String) -> String? {
+        guard let entry = UIDDictionary.lookup(uid: uid), !entry.registered else { return nil }
+        return VideoConsole.errorLine("""
+            --transfer-syntax \(uid) is not registered in PS3.6 Table A-1; \
+            HEVC/H.265 has only the non-fragmentable 1.2.840.10008.1.2.4.107 and .108; refused.
+            """)
+    }
+}
+
+/// dicom-video's CLI-local `AudioChannelSourceOption` (D56), mirrored text-identically (equality and
+/// the PS3.16 2026a CID 3000 rows checked by Scripts/diff_studio_g1.py "pixel cid3000 audio source").
+enum WorkshopAudioChannelSourceOption {
+    static let optionName = "--audio-channel-source"
+
+    /// PS3.16 2026a CID 3000 Audio Channel Source, all 6 rows in table
+    /// order; the keyword is the Code Meaning in lower-case hyphenated form.
+    static let keywords: [(keyword: String, source: VideoAudioChannel.Source)] = [
+        ("voice", VideoAudioChannel.Source(dcmCodeValue: "109110", codeMeaning: "Voice")),
+        ("operators-narrative", VideoAudioChannel.Source(dcmCodeValue: "109111", codeMeaning: "Operator's narrative")),
+        ("ambient-room-environment", VideoAudioChannel.Source(dcmCodeValue: "109112", codeMeaning: "Ambient room environment")),
+        ("doppler-audio", VideoAudioChannel.Source(dcmCodeValue: "109113", codeMeaning: "Doppler audio")),
+        ("phonocardiogram", VideoAudioChannel.Source(dcmCodeValue: "109114", codeMeaning: "Phonocardiogram")),
+        ("physiological-audio-signal", VideoAudioChannel.Source(dcmCodeValue: "109115", codeMeaning: "Physiological audio signal")),
+    ]
+
+    static var keywordList: String { keywords.map(\.keyword).joined(separator: ", ") }
+
+    static var help: String {
+        """
+        Source of the multiplexed audio (PS3.16 CID 3000): a keyword or SCHEME:VALUE[:MEANING] \
+        (the CID is Extensible; MEANING is required for a code that is not listed). Given once, it \
+        applies to every audio track; repeated, it gives one source per audio track in container \
+        order, and a count that does not match the tracks exits 1. It is written as the Channel \
+        Source Sequence (003A,0208) of each Multiplexed Audio Channels Description Code Sequence \
+        (003A,0300) Item (PS3.3 Table C.7-13: one Item per channel, each with its own source); \
+        without it that sequence has no Items. Keywords: \(keywordList)
+        """
+    }
+
+    enum ParseError: Error, CustomStringConvertible, Equatable {
+        case unknown(String)
+        case missingMeaning(String)
+
+        var description: String {
+            switch self {
+            case .unknown(let value):
+                return "\(optionName): \"\(value)\" is neither a listed keyword nor SCHEME:VALUE[:MEANING]; keywords: \(keywordList)"
+            case .missingMeaning(let value):
+                return "\(optionName): \"\(value)\" is not a listed code, so its Code Meaning is required (SCHEME:VALUE:MEANING)"
+            }
+        }
+    }
+
+    /// A keyword (case-insensitive), `SCHEME:VALUE` for a listed code, or
+    /// `SCHEME:VALUE:MEANING` for any code.
+    static func parse(_ value: String) throws -> VideoAudioChannel.Source {
+        let trimmed = value.trimmingCharacters(in: .whitespaces)
+        if let match = keywords.first(where: { $0.keyword == trimmed.lowercased() }) {
+            return match.source
+        }
+        let parts = trimmed.split(separator: ":", maxSplits: 2, omittingEmptySubsequences: false)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count >= 2, !parts[0].isEmpty, !parts[1].isEmpty else {
+            throw ParseError.unknown(value)
+        }
+        let scheme = parts[0], code = parts[1]
+        if parts.count == 3, !parts[2].isEmpty {
+            return VideoAudioChannel.Source(DICOMCore.CodedConcept(
+                codeValue: code, codingSchemeDesignator: scheme, codeMeaning: parts[2]))
+        }
+        guard let listed = keywords.first(where: {
+            $0.source.codeValue == code && $0.source.codingSchemeDesignator == scheme
+        }) else {
+            throw ParseError.missingMeaning(value)
+        }
+        return listed.source
+    }
+}
+
+// MARK: - dicom-convert --transfer-syntax keywords (PS3.6 2026a Table A-1; Sources/dicom-convert/TransferSyntaxKeywords.swift, CLI-local)
+
+/// dicom-convert's CLI-local `TransferSyntaxKeywords`, mirrored text-identically (equality and the
+/// Table A-1 rows checked by Scripts/diff_studio_g1.py "pixel convert tokens"): `--transfer-syntax`
+/// accepts the shared catalog's names (DICOMConverter) and, in addition, these PS3.6 2026a Table A-1
+/// keywords. Every Table A-1 keyword the tool accepts selects its Table A-1 UID: `JPEG2000Lossless`,
+/// `HTJ2KLossless` and `JPEGXLLossless` select .90 / .201 / .110; the reversible encode into the
+/// general UIDs .91 / .203 / .112 is spelled `JPEG2000Reversible`, `HTJ2KReversible`,
+/// `JPEGXLReversible` (P-CONVERT-TS-KEYWORDS).
+enum WorkshopTransferSyntaxKeywords {
+
+    /// Table A-1 keyword → Transfer Syntax UID, for catalog targets whose keyword is missing.
+    static let additional: [String: String] = [
+        "DeflatedExplicitVRLittleEndian": "1.2.840.10008.1.2.1.99",
+        "JPEGBaseline8Bit": "1.2.840.10008.1.2.4.50",
+        "JPEGExtended12Bit": "1.2.840.10008.1.2.4.51",
+        "JPEG2000MCLossless": "1.2.840.10008.1.2.4.92",
+        "JPEG2000MC": "1.2.840.10008.1.2.4.93",
+        "JPEGXLJPEGRecompression": "1.2.840.10008.1.2.4.111",
+        "HTJ2KLosslessRPCL": "1.2.840.10008.1.2.4.202",
+    ]
+
+    /// Resolves a `--transfer-syntax` token: the shared catalog first, then a Table A-1
+    /// keyword from `additional` (through its UID, so the catalog decides the intent).
+    static func resolve(_ token: String) -> SelectableEncoding? {
+        if let encoding = DICOMConverter.resolveTargetEncoding(token) { return encoding }
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard let uid = additional.first(where: { $0.key.lowercased() == trimmed })?.value else {
+            return nil
+        }
+        return DICOMConverter.resolveTargetEncoding(uid)
+    }
+
+    /// The stderr note for a keyword whose meaning changed on 2026-10-01, or `nil`.
+    static func meaningChangeNote(for token: String) -> String? {
+        TransferSyntax.reassignedKeywordNote(for: token)
+    }
+
+    /// `--transfer-syntax` help: the catalog names, plus what else is accepted.
+    static var optionHelp: String {
+        DICOMConverter.transferSyntaxOptionHelp
+            + ". Also a Transfer Syntax UID or a PS3.6 Table A-1 keyword ("
+            + (additional.keys + TransferSyntax.reassignedTableA1Keywords.map(\.keyword)).sorted()
+                .joined(separator: ", ")
+            + "); every Table A-1 keyword selects its Table A-1 UID. Changed: JPEG2000Lossless, "
+            + "HTJ2KLossless and JPEGXLLossless now select .90 / .201 / .110; the reversible encode "
+            + "into .91 / .203 / .112 is JPEG2000Reversible, HTJ2KReversible, JPEGXLReversible."
+    }
+
+    /// The picker's spelling (the catalog's CamelCase cliToken) of any accepted `--transfer-syntax`
+    /// token — a kebab alias (`jpeg2000-lossless`), a UID or a Table A-1 keyword — so a value saved
+    /// or typed in another spelling shows as the picker's entry. Unknown tokens are returned as
+    /// given (the executor then prints the CLI's refusal). A reassigned keyword
+    /// (`JPEG2000Lossless`) is kept as typed, so the executor still prints the CLI's note for it.
+    static func canonicalToken(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return raw }
+        if DICOMConverter.cliTokens.contains(trimmed) { return trimmed }
+        if TransferSyntax.reassignedTableA1Keywords.contains(where: { $0.keyword.lowercased() == trimmed.lowercased() }) {
+            return trimmed
+        }
+        guard let encoding = resolve(trimmed),
+              let target = DICOMConverter.targets.first(where: { $0.encoding == encoding }) else { return raw }
+        return target.cliToken
+    }
+}
+
+// MARK: - dicom-compress native decompress targets (PS3.6 2026a Table A-1; PS3.5 A.1, A.2, A.3, A.5; Sources/dicom-compress/main.swift, CLI-local)
+
+/// dicom-compress' CLI-local `NativeTargetSyntax`, mirrored text-identically (equality and the Table A-1
+/// rows checked by Scripts/diff_studio_g1.py "pixel compress syntax"): `decompress --syntax` /
+/// `batch --syntax` accept only native Transfer Syntaxes (P-COMPRESS-SYNTAX); every other name — the
+/// compressed codecs included — is refused with exit 1.
+enum WorkshopNativeTargetSyntax {
+    static let accepted: [(name: String, syntax: TransferSyntax)] = [
+        ("explicit-le", .explicitVRLittleEndian),
+        ("implicit-le", .implicitVRLittleEndian),
+        ("deflate", .deflatedExplicitVRLittleEndian),
+        ("explicit-be", .explicitVRBigEndian),
+    ]
+
+    /// A refused `--syntax` value. Not a `ValidationError`, so the command exits 1.
+    struct Refused: LocalizedError, CustomStringConvertible {
+        let description: String
+        var errorDescription: String? { description }
+    }
+
+    static func resolve(_ name: String) throws -> TransferSyntax {
+        let lower = name.trimmingCharacters(in: .whitespaces).lowercased()
+        if let hit = accepted.first(where: { $0.name == lower }) { return hit.syntax }
+        let allowed = accepted.map(\.name).joined(separator: ", ")
+        if let codec = CompressionManager.transferSyntax(for: lower) {
+            throw Refused(description: "--syntax \(name) names \(codec.uid), an encapsulated (compressed) "
+                + "Transfer Syntax (PS3.6 2026a Table A-1); decompression writes native Pixel Data "
+                + "(PS3.5 2026a A.1, A.2, A.5). Native targets: \(allowed). To compress, use `compress --codec`.")
+        }
+        throw Refused(description: "Unknown syntax '\(name)'. Native targets: \(allowed)")
     }
 }

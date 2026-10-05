@@ -149,8 +149,8 @@ struct CLIWorkshopVideoTests {
             "--trust-input", "--force", "--recursive", "--continue-on-error",
             "--patient-name", "--patient-id", "--patient-birth-date", "--patient-sex",
             "--study-uid", "--series-uid", "--accession-number", "--study-id",
-            "--referring-physician", "--series-description", "--modality",
-            "--manufacturer", "--institution-name", "--verbose",
+            "--referring-physician", "--series-description", "--modality", "--strict-modality",
+            "--manufacturer", "--institution-name", "--audio-channel-source", "--verbose",
         ]
 
         for def in definitions where !def.flag.isEmpty {
