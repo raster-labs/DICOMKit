@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — DICOMStudio (2026-10-05, DICOM 2026a)
+- `DICOMDIRParser.knownRecordTypes` now lists all 35 Directory Record Types of PS3.3 2026a Table F.4-1: RT TREAT RECORD, WAVEFORM, PLAN, ANNOTATION, INVENTORY and WF PRESENTATION were missing; HL7 STRUC DOC is kept and documented as retired (F.5.33, PS3.3-2018b).
+- `VRDescriptions.fullName` covers all 34 VRs of PS3.5 2026a Table 6.2-1 with the "VR Name" verbatim: AS, AT, OL, OV, SV, UV and UR were missing; UI is "Unique Identifier (UID)" and SQ "Sequence of Items". `category` groups the seven added VRs.
+- `DICOMValueParser.formatPersonName` formats the up-to-three "="-separated PN component groups separately (PS3.5 6.2.1.2) instead of running the ideographic/phonetic groups into the alphabetic name; `characterSetDescription` names all 32 Specific Character Set Defined Terms of PS3.3 2026a Tables C.12-2…C.12-5 (13 added, e.g. ISO_IR 203, GBK, ISO 2022 IR 58).
+- `PrivateTagIdentifier.isPrivateGroup` no longer reports groups 0001, 0003, 0005, 0007 and FFFF as private; PS3.5 2026a 7.8.1 excludes them from private use.
+- `TransferSyntaxDescriptions.describe` (metadata viewer) and `TransferSyntaxHelpers.wellKnownSyntaxes.displayName` (Data Exchange) return the PS3.6 2026a Table A-1 "UID Name" from DICOMCore `TransferSyntax.displayName` instead of their own abbreviated tables (5 of 13 and 6 of 8 names differed from A-1); `shortName` keeps the abbreviations.
+- Data Exchange Secondary Capture: the modality default was "SC", which is not a PS3.3 2026a C.7.3.1.1.1 Modality Defined Term; it is now "OT", dicom-image's own default.
+
 ### Fixed — DICOMStudio anonymization profile flags name the CLI's legacy lists (2026-10-05, DICOM 2026a)
 
 - **DICOMStudio** `AnonymizationProfile.cliFlag`: `basic`, `hipaaeSafeHarbor` and `custom` sent `--profile basic`, which since

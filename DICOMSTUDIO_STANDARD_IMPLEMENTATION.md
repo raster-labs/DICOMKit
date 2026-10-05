@@ -41,7 +41,7 @@ the same tool option, wire value and default as the CLI contract.
 | G1 CLI Workshop | 20 | 2 | 15 | 37 | ⏳ |
 | G2 Viewer and rendering | 52 | 31 | 54 | 137 | ⏳ |
 | G3 Network and web | 19 | 5 | 13 | 37 | ⏳ |
-| G4 File, media and DICOMDIR | 31 | 8 | 3 | 42 | ⏳ |
+| G4 File, media and DICOMDIR | 31 | 8 | 3 | 42 | ✅ 2026-10-05 (markers `b0eca043`, checks `f02ee47a`, fixes `e6c2a11a`…`1793c091`; `diff_studio.py --group G4`: 22 ok, 0 FAIL; two files share hunks with the codec pass) |
 | G5 Derived objects, SR and security | 36 | 0 | 6 | 42 | ⏳ |
 | G6 Print | 11 | 11 | 17 | 39 | ⏳ |
 | **All** | **169** | **57** | **108** | **334** | ⏳ |
@@ -103,6 +103,15 @@ Table O-1). Every other generic check is ok.
 | 2026-10-05 | Inventory | — | 334 files scanned by script for standard signals and classified into six groups and three tiers (`diff_studio.py FILES`); `check_nema_markers.py --inventory` added so inventoried NST files need no marker | — |
 | 2026-10-05 | Anon flag (urgent, from DICOMCLI "Rows handed to DICOMStudio" part 4) | PS3.15 2026a Annex E (E.1-1; E.3) | `AnonymizationProfile.cliFlag` → `legacy-basic` / `legacy-clinical-trial` / `legacy-research`; `AnonHelpers.buildCommand` always names `--profile`; Workshop form, presets and executor follow; `ps315` / `basic` refused in the Workshop until P-STUDIO-ANON-PS315 (`61670c42`) | `SecurityModelTests` +2, `CLIWorkshopHelpersTests` +2 (175 pass in the two suites) |
 | 2026-10-05 | Baseline | — | `diff_studio.py`: Workshop parity 17 / 33 FAIL, 1 PEND; generic literal checks: 6 FAIL rows (above) | — |
+| 2026-10-05 | DICOMDIRParser.knownRecordTypes | PS3.3 2026a Table F.4-1 (35 record types = F.3-3 Enumerated Values of (0004,1430)); F.5-1/F.5-2/F.5-3/F.3-3 record keys; PS3.10 8.2/8.6 File ID | 29/35 matched; 6 added (RT TREAT RECORD, WAVEFORM, PLAN, ANNOTATION, INVENTORY, WF PRESENTATION); HL7 STRUC DOC kept, documented as retired (F.5.33, PS3.3-2018b) (commit e6c2a11a) | DICOMDIRParserTests (+1 pin) |
+| 2026-10-05 | VRDescriptions (VRBadge.swift) | PS3.5 2026a Table 6.2-1, 34 VRs, "VR Name" verbatim | 25 matched, 2 corrected (UI → "Unique Identifier (UID)", SQ → "Sequence of Items"), 7 added (AS, AT, OL, OV, SV, UV, UR); category covers all 34 (commit 395aa723) | VRDescriptionsTests (+1 pin of all 34, 2 expectations corrected) |
+| 2026-10-05 | DICOMValueParser | PS3.5 Table 6.2-1 per-VR formats; 6.2.1.1/6.2.1.2 PN component groups; PS3.3 Tables C.12-2…C.12-5 (32 Specific Character Set Defined Terms) | PN "=" component groups now formatted per group (were run together as one name); charset keys 19 matched, 13 added (ISO_IR 203, GBK, ISO 2022 IR 13/58/101/109/110/126/127/138/144/148/166/203) (commit 3a975c0e) | DICOMValueParserTests (+3) |
+| 2026-10-05 | PrivateTagIdentifier | PS3.5 2026a 7.8.1 ("Elements with Tags (0001,xxxx), (0003,xxxx), (0005,xxxx), (0007,xxxx) and (FFFF,xxxx) shall not be used"; creators (gggg,0010-00FF)) | isPrivateGroup now refuses the 5 reserved odd groups (was: any odd group); creator range already correct (commit be45ab83) | PrivateTagIdentifierTests (+1) |
+| 2026-10-05 | TransferSyntaxDescriptions.describe (MetadataViewModel.swift) | PS3.6 2026a Table A-1 "UID Name" | own 13-row table (5 names not A-1: .4.70, .4.80, .4.90, .4.91, .2) replaced by DICOMCore `TransferSyntax.displayName` (A-1 verbatim, verified 2026-10-01) (commit fccbdef5) | TransferSyntaxDescriptionsTests (expectations → A-1 names, +1 pin over `TransferSyntax.allKnown`) |
+| 2026-10-05 | TransferSyntaxHelpers.wellKnownSyntaxes (DataExchangeHelpers.swift) | PS3.6 Table A-1 (8 Transfer Syntax rows) | 6 of 8 `displayName` literals were abbreviations → now `TransferSyntax.<x>.displayName`; `shortName` keeps the abbreviation (commit fccbdef5) | DataExchangeHelpersTests (+1 pin) |
+| 2026-10-05 | DataExchangeViewModel.secondaryCaptureModality | PS3.3 2026a C.7.3.1.1.1 Modality Defined Terms (97) | default "SC" is not a Defined Term → "OT" (`Modality.ot`, dicom-image's own default) (commit 1793c091) | DataExchangeViewModelTests (+1) |
+| 2026-10-05 | markers on 23 C1/C2 files | per-file (see inventory) | markers only, no data change (commit b0eca043) | — |
+| 2026-10-05 | Scripts/diff_studio_g4.py | F.4-1, F.5-1…F.5-3/F.3-3, 6.2-1, C.12-2…C.12-5, 7.8.1, A-1 (TS rows), C.7.3.1.1.1, PS3.10 7.1-1, PS3.11 A.1-1…N.1-1 | new check module, 22 checks ok (commit f02ee47a) | — |
 
 ---
 
@@ -394,48 +403,48 @@ are promoted to ST; NST files carry the scan result. "Marker" names the marker l
 
 | File | Tier | Bucket | What it carries / what was compared | Marker | Status |
 |---|---|---|---|---|---|
-| [DICOMDIRParser.swift](Sources/DICOMStudio/Components/DICOMDIRParser.swift) | ST | — | to verify | — | ⏳ |
-| [DICOMValueParser.swift](Sources/DICOMStudio/Components/DICOMValueParser.swift) | ST | — | to verify | — | ⏳ |
-| [DataExchangeHelpers.swift](Sources/DICOMStudio/Components/DataExchangeHelpers.swift) | ST | — | to verify | — | ⏳ |
-| [FileOperationsHelpers.swift](Sources/DICOMStudio/Components/FileOperationsHelpers.swift) | ST | — | to verify | — | ⏳ |
-| [PrivateTagIdentifier.swift](Sources/DICOMStudio/Components/PrivateTagIdentifier.swift) | ST | — | to verify | — | ⏳ |
-| [StudyBrowserHelpers.swift](Sources/DICOMStudio/Components/StudyBrowserHelpers.swift) | ST | — | to verify | — | ⏳ |
-| [VRBadge.swift](Sources/DICOMStudio/Components/VRBadge.swift) | ST | — | to verify | — | ⏳ |
-| [ArchiveManagementModel.swift](Sources/DICOMStudio/Models/ArchiveManagementModel.swift) | ST | — | to verify | — | ⏳ |
-| [DataExchangeModel.swift](Sources/DICOMStudio/Models/DataExchangeModel.swift) | ST | — | to verify | — | ⏳ |
-| [FileOperationsModel.swift](Sources/DICOMStudio/Models/FileOperationsModel.swift) | ST | — | to verify | — | ⏳ |
-| [ImportModels.swift](Sources/DICOMStudio/Models/ImportModels.swift) | ST | — | to verify | — | ⏳ |
-| [InstanceModel.swift](Sources/DICOMStudio/Models/InstanceModel.swift) | ST | — | to verify | — | ⏳ |
-| [LibraryModel.swift](Sources/DICOMStudio/Models/LibraryModel.swift) | ST | — | to verify | — | ⏳ |
-| [MetadataTreeNode.swift](Sources/DICOMStudio/Models/MetadataTreeNode.swift) | ST | — | to verify | — | ⏳ |
-| [SeriesModel.swift](Sources/DICOMStudio/Models/SeriesModel.swift) | ST | — | to verify | — | ⏳ |
-| [StudyModel.swift](Sources/DICOMStudio/Models/StudyModel.swift) | ST | — | to verify | — | ⏳ |
-| [StudyRowSummary.swift](Sources/DICOMStudio/Models/StudyRowSummary.swift) | ST | — | to verify | — | ⏳ |
-| [DICOMFileService.swift](Sources/DICOMStudio/Services/DICOMFileService.swift) | ST | — | to verify | — | ⏳ |
-| [DataExchangeService.swift](Sources/DICOMStudio/Services/DataExchangeService.swift) | ST | — | to verify | — | ⏳ |
-| [FileOperationsService.swift](Sources/DICOMStudio/Services/FileOperationsService.swift) | ST | — | to verify | — | ⏳ |
-| [ImportService.swift](Sources/DICOMStudio/Services/ImportService.swift) | ST | — | to verify | — | ⏳ |
-| [LibraryStorageService.swift](Sources/DICOMStudio/Services/LibraryStorageService.swift) | ST | — | to verify | — | ⏳ |
-| [ViewerSeriesCatalog.swift](Sources/DICOMStudio/Services/ViewerSeriesCatalog.swift) | ST | — | to verify | — | ⏳ |
-| [ArchiveManagementViewModel.swift](Sources/DICOMStudio/ViewModels/ArchiveManagementViewModel.swift) | ST | — | to verify | — | ⏳ |
-| [DataExchangeViewModel.swift](Sources/DICOMStudio/ViewModels/DataExchangeViewModel.swift) | ST | — | to verify | — | ⏳ |
-| [MainViewModel.swift](Sources/DICOMStudio/ViewModels/MainViewModel.swift) | ST | — | to verify | — | ⏳ |
-| [MetadataViewModel.swift](Sources/DICOMStudio/ViewModels/MetadataViewModel.swift) | ST | — | to verify | — | ⏳ |
-| [StudyBrowserViewModel.swift](Sources/DICOMStudio/ViewModels/StudyBrowserViewModel.swift) | ST | — | to verify | — | ⏳ |
-| [ArchiveManagementView.swift](Sources/DICOMStudio/Views/ArchiveManagementView.swift) | ST | — | to verify | — | ⏳ |
+| [DICOMDIRParser.swift](Sources/DICOMStudio/Components/DICOMDIRParser.swift) | ST | B2 | Table F.4-1 record types 35: 29 matched, 6 missing added, 1 retired kept; record keys 8/8 in F.5-1/F.5-2/F.5-3/F.3-3; File ID backslash split (PS3.10 8.2) | `NEMA-verified: 2026a, checked 2026-10-05 — \`knownRecordTypes\` diffed against the 35 Directory Record Types of PS3.3 2026a Table F.4-1 …` | fixed, ✅ |
+| [DICOMValueParser.swift](Sources/DICOMStudio/Components/DICOMValueParser.swift) | ST | B2 | per-VR formats (11 VR cases, all real VRs); PN component groups added; charset terms 32: 19 matched, 13 added | `NEMA-verified: 2026a, checked 2026-10-05 — per-VR formatting checked against PS3.5 2026a Table 6.2-1 …` | fixed, ✅ |
+| [DataExchangeHelpers.swift](Sources/DICOMStudio/Components/DataExchangeHelpers.swift) | ST | B2 | 8 TS UIDs all A-1 TS rows; 6/8 names were abbreviations → DICOMCore A-1 names; Encapsulated PDF Storage UID ok; citations 2026a ok | `NEMA-verified: 2026a, checked 2026-10-05 — \`TransferSyntaxHelpers.wellKnownSyntaxes\`: the 8 UIDs are PS3.6 2026a Table A-1 Transfer Syntax rows …` | fixed, ✅ |
+| [FileOperationsHelpers.swift](Sources/DICOMStudio/Components/FileOperationsHelpers.swift) | ST | C2 (+codec names) | DICM at 128–131 (PS3.10 7.1); 13 TS UIDs are A-1 TS rows (names: agent codec); PN components | `… DICM prefix at bytes 128–131 after the 128-byte File Preamble (PS3.10 2026a 7.1); … comment names are corrected by the codec pass and not claimed here …` | ✅ (marker only; file also carries codec hunks) |
+| [PrivateTagIdentifier.swift](Sources/DICOMStudio/Components/PrivateTagIdentifier.swift) | ST | B2 | 7.8.1 reserved groups 5/5 (were accepted), creator range 0010-00FF ok; vendor table not NEMA data | `NEMA-verified: 2026a, checked 2026-10-05 — \`isPrivateGroup\` and \`isPrivateCreator\` checked against PS3.5 2026a 7.8.1 …` | fixed, ✅ |
+| [StudyBrowserHelpers.swift](Sources/DICOMStudio/Components/StudyBrowserHelpers.swift) | ST | C1 | none | `… carries no DICOM-standard data (sorting, filtering and search over the library models).` | ✅ |
+| [VRBadge.swift](Sources/DICOMStudio/Components/VRBadge.swift) | ST | B2 | Table 6.2-1 34 VRs: 25 matched, 2 wrong, 7 missing → all 34 | `NEMA-verified: 2026a, checked 2026-10-05 — \`VRDescriptions.fullName\` diffed against the 34 VRs of PS3.5 2026a Table 6.2-1 …` | fixed, ✅ |
+| [ArchiveManagementModel.swift](Sources/DICOMStudio/Models/ArchiveManagementModel.swift) | ST | C1 | none | `… carries no DICOM-standard data (dicom-archive index entries, options and search fields; \`indexVersion\` is dicom-archive's).` | ✅ |
+| [DataExchangeModel.swift](Sources/DICOMStudio/Models/DataExchangeModel.swift) | ST | C2 | DICOMDIREntry fields 5/5 F.5 keys; citations; targetDisplayName from DICOMCore | `NEMA-verified: 2026a, checked 2026-10-05 — tab, format, status and job enums carry no DICOM-standard values; …` | ✅ |
+| [FileOperationsModel.swift](Sources/DICOMStudio/Models/FileOperationsModel.swift) | ST | C1 | none | `… carries no DICOM-standard data (drop-zone, output-path and scan state; …)` | ✅ |
+| [ImportModels.swift](Sources/DICOMStudio/Models/ImportModels.swift) | ST | C1 | none | `NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (import results, validation rule identifiers and progress).` | ✅ |
+| [InstanceModel.swift](Sources/DICOMStudio/Models/InstanceModel.swift) | ST | C2 | 10 fields ↔ Table 6-1 attributes | `… fields mirror PS3.6 2026a Table 6-1 attributes (SOP Instance UID, …); no standard values carried.` | ✅ |
+| [LibraryModel.swift](Sources/DICOMStudio/Models/LibraryModel.swift) | ST | C1 | none | `… carries no DICOM-standard data (in-memory study/series/instance index keyed by the UIDs).` | ✅ |
+| [MetadataTreeNode.swift](Sources/DICOMStudio/Models/MetadataTreeNode.swift) | ST | C2 | SQ, 0xFFFFFFFF undefined length (PS3.5 7.1.2, 7.5) | `NEMA-verified: 2026a, checked 2026-10-05 — \`isSequence\` keys on VR SQ and \`lengthString\` names 0xFFFFFFFF Undefined Length …` | ✅ |
+| [SeriesModel.swift](Sources/DICOMStudio/Models/SeriesModel.swift) | ST | C2 | 5 fields ↔ Table 6-1; "OT" default ∈ C.7.3.1.1.1 | `… fields mirror PS3.6 2026a Table 6-1 attributes (Series Instance UID, …); default Modality "OT" …` | ✅ |
+| [StudyModel.swift](Sources/DICOMStudio/Models/StudyModel.swift) | ST | C2 | 11 fields ↔ Table 6-1; PN display join | `… fields mirror PS3.6 2026a Table 6-1 attributes (Study Instance UID, …); \`patientDisplayName\` joins PN components …` | ✅ |
+| [StudyRowSummary.swift](Sources/DICOMStudio/Models/StudyRowSummary.swift) | ST | C1 | none | `… carries no DICOM-standard data (row text derived from the study, series and instance models).` | ✅ |
+| [DICOMFileService.swift](Sources/DICOMStudio/Services/DICOMFileService.swift) | ST | C2 | FMI reads 2/2 in Table 7.1-1; Media Storage Directory Storage UID ok; 3 Tag literals 6-1 ok; IS/DA handling; "OT" default | `NEMA-verified: 2026a, checked 2026-10-05 — Transfer Syntax UID read from File Meta Information (0002,0010) …` | ✅ |
+| [DataExchangeService.swift](Sources/DICOMStudio/Services/DataExchangeService.swift) | ST | C1 | default target TS 1.2.840.10008.1.2.1 = Explicit VR LE | `NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (locked state store); …` | ✅ |
+| [FileOperationsService.swift](Sources/DICOMStudio/Services/FileOperationsService.swift) | ST | C1 | none | `… carries no DICOM-standard data (drop handling and output path resolution).` | ✅ |
+| [ImportService.swift](Sources/DICOMStudio/Services/ImportService.swift) | ST | C2 | DICM at 128 (PS3.10 7.1) via ImportValidation (G1) | `NEMA-verified: 2026a, checked 2026-10-05 — DICM prefix at offset 128 after the 128-byte File Preamble (PS3.10 2026a 7.1) …` | ✅ |
+| [LibraryStorageService.swift](Sources/DICOMStudio/Services/LibraryStorageService.swift) | ST | C1 | none | `… carries no DICOM-standard data (JSON persistence of the library index).` | ✅ |
+| [ViewerSeriesCatalog.swift](Sources/DICOMStudio/Services/ViewerSeriesCatalog.swift) | ST | C2 | Image Orientation (Patient) normal = row × column, LPS (C.7.6.2.1.1); plane names are convention | `… plane label from Image Orientation (Patient) (0020,0037): slice normal = row × column direction cosines …` | ✅ |
+| [ArchiveManagementViewModel.swift](Sources/DICOMStudio/ViewModels/ArchiveManagementViewModel.swift) | ST | C1 | none | `… carries no DICOM-standard data (dicom-archive command lines and placeholder statistics).` | ✅ |
+| [DataExchangeViewModel.swift](Sources/DICOMStudio/ViewModels/DataExchangeViewModel.swift) | ST | B2 | modality default vs C.7.3.1.1.1: "SC" wrong → "OT" | `NEMA-verified: 2026a, checked 2026-10-05 — default target Transfer Syntax 1.2.840.10008.1.2.1 is Explicit VR Little Endian …` | fixed, ✅ |
+| [MainViewModel.swift](Sources/DICOMStudio/ViewModels/MainViewModel.swift) | ST | C1 | none | `… carries no DICOM-standard data (navigation, service wiring and viewer hand-off).` | ✅ |
+| [MetadataViewModel.swift](Sources/DICOMStudio/ViewModels/MetadataViewModel.swift) | ST | B2 | TS name table 13 rows: 8 matched A-1, 5 wrong → DICOMCore displayName; FMI before Data Set (7.1-1); 6-1 names via DICOMDictionary | `NEMA-verified: 2026a, checked 2026-10-05 — tree nodes carry the tag, the DICOMCore VR (PS3.5 2026a Table 6.2-1, 34 VRs) …` | fixed, ✅ |
+| [StudyBrowserViewModel.swift](Sources/DICOMStudio/ViewModels/StudyBrowserViewModel.swift) | ST | C1 | none | `… carries no DICOM-standard data (library state, import orchestration and file clean-up).` | ✅ |
+| [ArchiveManagementView.swift](Sources/DICOMStudio/Views/ArchiveManagementView.swift) | ST | C1 | none (ModalityPicker is G2) | `… carries no DICOM-standard data (layout; the modality field is \`ModalityPicker\`, verified with G2).` | ✅ |
 | [DICOMInspectorView.swift](Sources/DICOMStudio/Views/DICOMInspectorView.swift) | ST | — | to verify | — | ⏳ |
-| [DataExchangeView.swift](Sources/DICOMStudio/Views/DataExchangeView.swift) | ST | — | to verify | — | ⏳ |
-| [LibraryFilter.swift](Sources/DICOMStudio/Models/LibraryFilter.swift) | CR | — | confirm-read pending | — | ⏳ |
-| [StudyFileCleanup.swift](Sources/DICOMStudio/Services/StudyFileCleanup.swift) | CR | — | confirm-read pending | — | ⏳ |
-| [FileOperationsViewModel.swift](Sources/DICOMStudio/ViewModels/FileOperationsViewModel.swift) | CR | — | confirm-read pending | — | ⏳ |
-| [FileOperationsView.swift](Sources/DICOMStudio/Views/FileOperationsView.swift) | CR | — | confirm-read pending | — | ⏳ |
-| [ImageMetadataPanelView.swift](Sources/DICOMStudio/Views/ImageMetadataPanelView.swift) | CR | — | confirm-read pending | — | ⏳ |
-| [ImportedShapeView.swift](Sources/DICOMStudio/Views/ImportedShapeView.swift) | CR | — | confirm-read pending | — | ⏳ |
-| [MetadataView.swift](Sources/DICOMStudio/Views/MetadataView.swift) | CR | — | confirm-read pending | — | ⏳ |
-| [StudyBrowserView.swift](Sources/DICOMStudio/Views/StudyBrowserView.swift) | CR | — | confirm-read pending | — | ⏳ |
+| [DataExchangeView.swift](Sources/DICOMStudio/Views/DataExchangeView.swift) | ST | C1 (+codec block) | layout; `CompressionAlgorithmHelpers` block excluded (agent codec) | `NEMA-verified: 2026a, checked 2026-10-05 — UI layout; the only standard-derived data is \`CompressionAlgorithmHelpers.algorithms\`/\`isLossy\` … not claimed here …` | ✅ (marker only; file also carries codec hunks) |
+| [LibraryFilter.swift](Sources/DICOMStudio/Models/LibraryFilter.swift) | CR | — | read: filter fields and sort labels only | — | confirmed NST |
+| [StudyFileCleanup.swift](Sources/DICOMStudio/Services/StudyFileCleanup.swift) | CR | — | read: file deletion bookkeeping | — | confirmed NST |
+| [FileOperationsViewModel.swift](Sources/DICOMStudio/ViewModels/FileOperationsViewModel.swift) | CR | — | read: drop/output state; modality icon via helpers | — | confirmed NST |
+| [FileOperationsView.swift](Sources/DICOMStudio/Views/FileOperationsView.swift) | CR | — | read: layout, "Modality" label only | — | confirmed NST |
+| [ImageMetadataPanelView.swift](Sources/DICOMStudio/Views/ImageMetadataPanelView.swift) | CR | — | read: layout | — | confirmed NST |
+| [ImportedShapeView.swift](Sources/DICOMStudio/Views/ImportedShapeView.swift) | CR | — | read: cites PS3.3 C.10.5 = "Graphic Annotation Module" (title confirmed in 2026a); geometry is DICOMPrintKit's | — | confirmed NST |
+| [MetadataView.swift](Sources/DICOMStudio/Views/MetadataView.swift) | CR | — | read: labels "Transfer Syntax", "Character Set" (values from MetadataViewModel) | — | confirmed NST |
+| [StudyBrowserView.swift](Sources/DICOMStudio/Views/StudyBrowserView.swift) | CR | — | read: layout over StudyRowSummary | — | confirmed NST |
 | [DICOMTagView.swift](Sources/DICOMStudio/Components/DICOMTagView.swift) | NST | — | not standard-touching (scan: no UID, tag, VR, code, citation, CS term, option or wire literal) | — | ⏳ |
 | [ArchiveManagementService.swift](Sources/DICOMStudio/Services/ArchiveManagementService.swift) | NST | — | not standard-touching (scan: no UID, tag, VR, code, citation, CS term, option or wire literal) | — | ⏳ |
-| [StorageService.swift](Sources/DICOMStudio/Services/StorageService.swift) | NST | — | not standard-touching (scan: no UID, tag, VR, code, citation, CS term, option or wire literal) | — | ⏳ |
+| [StorageService.swift](Sources/DICOMStudio/Services/StorageService.swift) | NST | — | grep for UIDs/tags/terms: none | — | left alone |
 
 ### G5 — Derived objects, SR and security
 
