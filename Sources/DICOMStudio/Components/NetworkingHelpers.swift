@@ -3,49 +3,64 @@
 //
 // DICOM Studio — Platform-independent helpers for DICOM Networking Hub display
 // Reference: DICOM PS3.8 (Network Communication)
+// NEMA-verified: 2026a, checked 2026-10-05 — AE Title rule compared with PS3.5 2026a Table 6.2-1 (AE: 16 bytes
+// maximum, Default Character Repertoire without backslash and control characters, leading/trailing spaces
+// non-significant, not solely spaces) and PS3.8 Table 9-11: the former uppercase-letters/digits/space/underscore
+// rule rejected valid titles such as ANY-SCP and lowercase names and was replaced by DICOMNetwork's AETitle;
+// normalize() no longer upper-cases (the standard does not fold case). Ports compared with PS3.8 2026a 9.1.1
+// (104 well-known, 11112 registered) and PS3.15 2026a B.12 ("2762 dicom-tls"); 4242 is Orthanc's, not DICOM's.
+// The Film Layout helpers restate FilmLayout (Table C.13-3 STANDARD\C,R) and carry no terms of their own.
 
 import Foundation
+import DICOMNetwork
 
 // MARK: - AE Title Helpers
 
 /// Platform-independent helpers for AE title validation and formatting.
+///
+/// The rule is DICOMNetwork's `AETitle` — the one the association actually
+/// carries — so the form cannot accept a title the wire will refuse, or refuse
+/// one the wire would take.
 public enum AETitleHelpers: Sendable {
+
+    /// The longest an AE Title can be: 16 bytes (PS3.5 Table 6.2-1; PS3.8 Table 9-11).
+    public static let maximumLength = AETitle.maxLength
 
     /// Validates a DICOM AE title.
     ///
-    /// Rules (DICOM PS3.8 Section 9.3.1):
-    /// - 1–16 characters
-    /// - Only uppercase letters, digits, space, and `_`
-    /// - Must not be all spaces
-    /// - Must not be empty
+    /// Rules (PS3.5 2026a Table 6.2-1, VR AE; PS3.8 Table 9-11):
+    /// - at most 16 bytes once leading and trailing spaces are removed
+    /// - characters of the Default Character Repertoire (20H–7EH), without the
+    ///   backslash (5CH) and without control characters — lowercase letters,
+    ///   hyphens and punctuation are all permitted
+    /// - must not be empty or consist solely of spaces
     ///
     /// - Returns: `true` if the AE title is valid.
     public static func isValid(_ aeTitle: String) -> Bool {
-        guard !aeTitle.isEmpty, aeTitle.count <= 16 else { return false }
-        let allowed = CharacterSet.uppercaseLetters
-            .union(.decimalDigits)
-            .union(CharacterSet(charactersIn: " _"))
-        guard aeTitle.unicodeScalars.allSatisfy({ allowed.contains($0) }) else { return false }
-        // Must not be all spaces
-        return !aeTitle.allSatisfy { $0 == " " }
+        (try? AETitle(aeTitle)) != nil
     }
 
-    /// Normalises an AE title: trims whitespace and uppercases it.
+    /// Normalises an AE title: removes the leading and trailing spaces that are
+    /// not significant (PS3.8 Table 9-11).
+    ///
+    /// Case is left alone. An AE Title is a byte string and `orthanc` is a
+    /// different title from `ORTHANC`; folding it changed the title sent.
     public static func normalize(_ aeTitle: String) -> String {
-        aeTitle.trimmingCharacters(in: .whitespaces).uppercased()
+        aeTitle.trimmingCharacters(in: CharacterSet(charactersIn: " "))
     }
 
     /// Returns a validation error message, or nil if valid.
     public static func validationError(for aeTitle: String) -> String? {
+        let trimmed = normalize(aeTitle)
         if aeTitle.isEmpty { return "AE title must not be empty." }
-        if aeTitle.count > 16 { return "AE title must not exceed 16 characters." }
-        let allowed = CharacterSet.uppercaseLetters
-            .union(.decimalDigits)
-            .union(CharacterSet(charactersIn: " _"))
-        if !aeTitle.unicodeScalars.allSatisfy({ allowed.contains($0) }) {
-            return "AE title may only contain uppercase letters, digits, spaces, and underscores."
+        if trimmed.isEmpty { return "AE title must not be all spaces." }
+        if trimmed.utf8.count > maximumLength {
+            return "AE title must not exceed \(maximumLength) characters."
         }
-        if aeTitle.allSatisfy({ $0 == " " }) { return "AE title must not be all spaces." }
+        if !isValid(aeTitle) {
+            return "AE title may only contain printable ASCII characters (20H–7EH), "
+                + "and no backslash."
+        }
         return nil
     }
 }
@@ -55,11 +70,16 @@ public enum AETitleHelpers: Sendable {
 /// Helpers for DICOM port validation and display.
 public enum PortHelpers: Sendable {
 
-    /// Default DICOM port (unencrypted).
+    /// Default DICOM port: the IANA *registered* port 11112, which PS3.8 9.1.1
+    /// recommends when the well-known port 104 is privileged.
     public static let defaultDICOMPort: UInt16 = 11112
-    /// Default DICOM TLS port.
+    /// The well-known port registered for the DICOM Upper Layer Protocol (PS3.8 9.1.1).
+    public static let wellKnownDICOMPort: UInt16 = 104
+    /// Default DICOM TLS port: the registered "2762 dicom-tls" (PS3.15 B.12).
     public static let defaultTLSPort: UInt16 = 2762
-    /// Well-known DICOM ports.
+    /// Ports worth offering: DICOM's registered, TLS and well-known ports, and
+    /// Orthanc's default (not a DICOM assignment, but the server most often
+    /// found on a developer's machine).
     public static let wellKnownPorts: [UInt16] = [11112, 2762, 104, 4242]
 
     /// Returns true if the port is in the valid range (1–65535).
@@ -68,11 +88,14 @@ public enum PortHelpers: Sendable {
     }
 
     /// Returns a description for a known DICOM port, otherwise the port number.
+    ///
+    /// The two DICOM ports are told apart the way PS3.8 9.1.1 does: 104 is the
+    /// "well known port", 11112 the "registered" one.
     public static func displayName(for port: UInt16) -> String {
         switch port {
-        case 11112: return "11112 (DICOM)"
+        case 11112: return "11112 (DICOM, registered)"
         case 2762:  return "2762 (DICOM TLS)"
-        case 104:   return "104 (DICOM)"
+        case 104:   return "104 (DICOM, well-known)"
         case 4242:  return "4242 (Orthanc)"
         default:    return "\(port)"
         }
