@@ -1,5 +1,6 @@
 // DICOMwebViewModel.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-05 — transitionUPSState refuses per PS3.4 2026a Table CC.1.1-2 and refuses a SCHEDULED target with dicom-wado's PS3.18 2026a 11.7.1.4 message; UPS state and priority strings mapped from DICOMWeb diffed against PS3.3 2026a C.30.1 (4/4) and C.30.2 (3/3; STAT folded into HIGH as DICOMWeb does); the QIDO level is passed to the query so the Table 10.6.1-5 key is chosen; frames jobs with a frame list use the Frame Pixel Data resource of Table 10.4.1.6-1; the remaining code is request plumbing over DICOMWeb (verified 2026-09-28)
 //
 // DICOM Studio — ViewModel for the DICOMweb Integration Hub (Milestone 10)
 // Reference: DICOM PS3.18 (Web Services), PS3.19 (Application Hosting)
@@ -294,6 +295,9 @@ public final class DICOMwebViewModel {
     public func runQIDOQuery() async {
         isQIDORunning = true
         errorMessage = nil
+        // The level picker drives `qidoQueryLevel`; the query parameters carry their own copy,
+        // which chooses the matching key (Modalities in Study vs Modality, PS3.18 Table 10.6.1-5).
+        qidoQueryParams.queryLevel = qidoQueryLevel
         service.setQIDOQueryParams(qidoQueryParams)
         service.clearQIDOResults()
         qidoResults = []
@@ -480,7 +484,24 @@ public final class DICOMwebViewModel {
                 )
                 receivedInstances = 1
                 receivedBytes = Int64(data.count)
+            case .frames where !job.frameNumbers.isEmpty:
+                // Frame Pixel Data resource /studies/{study}/series/{series}/instances/{instance}/frames/{frames}
+                // (PS3.18 Table 10.4.1.6-1); frame numbers are 1-based (PS3.3 Table 10-3).
+                guard let seriesUID = job.seriesInstanceUID,
+                      let instanceUID = job.sopInstanceUID else {
+                    updateWADOJobStatus(id: jobID, status: .failed, error: "Instance UIDs required for this mode.")
+                    return
+                }
+                let frames = try await client.retrieveFrames(
+                    studyUID: job.studyInstanceUID,
+                    seriesUID: seriesUID,
+                    instanceUID: instanceUID,
+                    frames: job.frameNumbers
+                )
+                receivedInstances = 1
+                receivedBytes = Int64(frames.reduce(0) { $0 + $1.data.count })
             case .frames, .bulkData:
+                // Without a frame list (or a Bulk Data URI) the whole Instance resource is retrieved.
                 guard let seriesUID = job.seriesInstanceUID,
                       let instanceUID = job.sopInstanceUID else {
                     updateWADOJobStatus(id: jobID, status: .failed, error: "Instance UIDs required for this mode.")
@@ -714,11 +735,13 @@ public final class DICOMwebViewModel {
         }
     }
 
-    /// Transitions a UPS workitem to a new state, enforcing the DICOM state machine.
+    /// Transitions a UPS workitem to a new state, enforcing the UPS state machine of
+    /// PS3.4 Table CC.1.1-2 (Change Workitem State, PS3.18 11.7). SCHEDULED is refused as a
+    /// target with the same message as dicom-wado (PS3.18 11.7.1.4; Table CC.1.1-2 C303H).
     public func transitionUPSState(_ newState: UPSState, workitemID: UUID) {
         guard let workitem = upsWorkitems.first(where: { $0.id == workitemID }) else { return }
-        guard DICOMwebUPSHelpers.canTransition(from: workitem.state, to: newState) else {
-            errorMessage = "Cannot transition from \(workitem.state.displayName) to \(newState.displayName)."
+        if let refusal = DICOMwebUPSHelpers.changeStateRefusal(from: workitem.state, to: newState) {
+            errorMessage = refusal
             return
         }
         service.updateUPSWorkitemState(newState, for: workitemID)

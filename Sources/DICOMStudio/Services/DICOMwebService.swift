@@ -1,5 +1,6 @@
 // DICOMwebService.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (locked display state for profiles, jobs, workitems and statistics; the UPS state it stores is validated by DICOMwebViewModel against PS3.4 2026a Table CC.1.1-2)
 //
 // DICOM Studio — Thread-safe service for DICOMweb Integration Hub display state management
 // Reference: DICOM PS3.18 (Web Services)

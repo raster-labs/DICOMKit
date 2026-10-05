@@ -714,4 +714,109 @@ struct DICOMwebHelpersTests {
         #expect(UPSEventDetailHelpers.stateTransitionColor(newState: "CANCELED") == ".red")
         #expect(UPSEventDetailHelpers.stateTransitionColor(newState: nil) == ".secondary")
     }
+
+
+    // MARK: - Change Workitem State refusals (PS3.18 2026a 11.7.1.4; PS3.4 2026a Table CC.1.1-2)
+
+    @Test("DICOMwebUPSHelpers availableTransitions from scheduled is IN PROGRESS only (Table CC.1.1-2)")
+    func testUPSHelpersAvailableTransitionsScheduled() {
+        #expect(DICOMwebUPSHelpers.availableTransitions(from: .scheduled) == [.inProgress])
+        #expect(DICOMwebUPSHelpers.canTransition(from: .scheduled, to: .cancelled) == false)
+    }
+
+    @Test("DICOMwebUPSHelpers changeStateRefusal for a SCHEDULED target is the dicom-wado message")
+    func testUPSHelpersChangeStateRefusalScheduledTarget() {
+        let expected = "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+            + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+            + "to SCHEDULED (C303H)"
+        for from in UPSState.allCases {
+            #expect(DICOMwebUPSHelpers.changeStateRefusal(from: from, to: .scheduled) == expected)
+        }
+    }
+
+    @Test("DICOMwebUPSHelpers changeStateRefusal is nil for the allowed Table CC.1.1-2 transitions")
+    func testUPSHelpersChangeStateRefusalAllowed() {
+        #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .scheduled, to: .inProgress) == nil)
+        #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .completed) == nil)
+        #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .cancelled) == nil)
+    }
+
+    @Test("DICOMwebUPSHelpers changeStateRefusal names the Table CC.1.1-2 status code")
+    func testUPSHelpersChangeStateRefusalCodes() throws {
+        let c310 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .scheduled, to: .cancelled))
+        #expect(c310.contains("C310H"))
+        #expect(c310.contains("SCHEDULED to CANCELED"))
+        let c300 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .completed, to: .cancelled))
+        #expect(c300.contains("C300H"))
+        let b306 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .completed, to: .completed))
+        #expect(b306.contains("B306H"))
+        let c302 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .inProgress))
+        #expect(c302.contains("C302H"))
+    }
+
+
+    // MARK: - UPSEventPayloadParser vs PS3.4 2026a Table CC.2.4-1 (NEMA pins)
+
+    @Test("UPSEventPayloadParser reads progress nested in Procedure Step Progress Information Sequence (0074,1002)")
+    func testPayloadParserNestedProgress() throws {
+        let json: [String: Any] = [
+            "00741002": ["vr": "SQ", "Value": [[
+                "00741004": ["vr": "DS", "Value": ["42"]],
+                "00741006": ["vr": "ST", "Value": ["Reconstructing"]],
+                "00741008": ["vr": "SQ", "Value": [[
+                    "0074100A": ["vr": "UR", "Value": ["mailto:tech@example.org"]],
+                    "0074100C": ["vr": "LO", "Value": ["Tech on duty"]]
+                ]]]
+            ]]]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: json)
+        let result = UPSEventPayloadParser.parse(rawJSON: data, eventType: "ProgressReport")
+        #expect(result.progressPercentage == 42)
+        #expect(result.progressDescription == "Reconstructing")
+        #expect(result.contactDisplayName == "Tech on duty")
+    }
+
+    @Test("UPSEventPayloadParser reads Contact Display Name (0074,100C) of a Cancel Requested report")
+    func testPayloadParserCancelRequestedContact() throws {
+        let json: [String: Any] = [
+            "00741236": ["vr": "AE", "Value": ["WORKSTATION1"]],
+            "00741238": ["vr": "LT", "Value": ["Wrong patient"]],
+            "0074100C": ["vr": "LO", "Value": ["Dr. Who"]]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: json)
+        let result = UPSEventPayloadParser.parse(rawJSON: data, eventType: "CancelRequested")
+        #expect(result.reason == "Wrong patient")
+        #expect(result.contactDisplayName == "Dr. Who")
+    }
+
+    @Test("UPSEventPayloadParser reads the Human Performer Code Sequence meaning of a UPS Assigned report")
+    func testPayloadParserAssignedPerformer() throws {
+        let json: [String: Any] = [
+            "00404009": ["vr": "SQ", "Value": [[
+                "00080100": ["vr": "SH", "Value": ["RAD1"]],
+                "00080102": ["vr": "SH", "Value": ["99LOCAL"]],
+                "00080104": ["vr": "LO", "Value": ["Radiologist One"]]
+            ]]]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: json)
+        let result = UPSEventPayloadParser.parse(rawJSON: data, eventType: "Assigned")
+        #expect(result.contactDisplayName == "Radiologist One")
+    }
+
+    @Test("UPSEventPayloadParser infers IN PROGRESS before CANCELED (Table CC.1.1-2: Request Cancel of a SCHEDULED UPS reports IN PROGRESS first)")
+    func testPayloadParserInfersPreviousStateCanceled() throws {
+        let json: [String: Any] = ["00741000": ["vr": "CS", "Value": ["CANCELED"]]]
+        let data = try JSONSerialization.data(withJSONObject: json)
+        let result = UPSEventPayloadParser.parse(rawJSON: data, eventType: "StateReport")
+        #expect(result.previousState == "IN PROGRESS")
+        #expect(result.newState == "CANCELED")
+    }
+
+    @Test("UPSEventPayloadParser does not invent a previous state for SCHEDULED (only N-CREATE enters it)")
+    func testPayloadParserNoPreviousStateForScheduled() throws {
+        let json: [String: Any] = ["00741000": ["vr": "CS", "Value": ["SCHEDULED"]]]
+        let data = try JSONSerialization.data(withJSONObject: json)
+        let result = UPSEventPayloadParser.parse(rawJSON: data, eventType: "StateReport")
+        #expect(result.previousState == nil)
+    }
 }

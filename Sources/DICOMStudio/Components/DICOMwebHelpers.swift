@@ -1,5 +1,6 @@
 // DICOMwebHelpers.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-05 — UPSEventPayloadParser tags diffed against PS3.6 2026a Table 6-1 (11 tags, all match) and PS3.4 2026a Table CC.2.4-1 (progress attributes read inside Procedure Step Progress Information Sequence (0074,1002); Contact Display Name (0074,100C) top-level and inside (0074,1008); Human Performer Code Sequence (0040,4009) for UPS Assigned; bare-name keys kept as legacy fallbacks); previous-state inference against Table CC.1.1-2; changeStateRefusal text against PS3.18 2026a 11.7.1.4 and Table CC.1.1-2 / CC.2.1-2 status codes (same SCHEDULED message as dicom-wado); endpointSuffix against PS3.18 Table 10.6.1-1 (3/3); "409" against Table 10.5.3-1; URL, auth, TLS, byte and latency formatting are plumbing
 //
 // DICOM Studio — Platform-independent helpers for DICOMweb Integration Hub display
 // Reference: DICOM PS3.18 (Web Services)
@@ -425,35 +426,57 @@ public enum UPSEventPayloadParser: Sendable {
             details.reason = notes
         }
 
-        // Extract progress information
-        // Procedure Step Progress (0074,1004)
-        if let progressElement = json["00741004"] as? [String: Any],
+        // Progress information. PS3.4 Table CC.2.4-1 (UPS Progress Report) nests Procedure Step
+        // Progress (0074,1004) and Procedure Step Progress Description (0074,1006) in the first
+        // item of Procedure Step Progress Information Sequence (0074,1002); payloads that flatten
+        // them to the top level are read as a fallback.
+        let progressItem = firstSequenceItem(json["00741002"])
+        let progressScope: [String: Any] = progressItem ?? json
+
+        // Procedure Step Progress (0074,1004), DS
+        if let progressElement = progressScope["00741004"] as? [String: Any],
            let values = progressElement["Value"] as? [Any],
            let first = values.first {
             if let intVal = first as? Int {
                 details.progressPercentage = intVal
-            } else if let strVal = first as? String, let intVal = Int(strVal) {
-                details.progressPercentage = intVal
+            } else if let strVal = first as? String, let dblVal = Double(strVal.trimmingCharacters(in: .whitespaces)) {
+                details.progressPercentage = Int(dblVal)
             } else if let dblVal = first as? Double {
                 details.progressPercentage = Int(dblVal)
             }
         }
 
-        // Procedure Step Progress Description (0074,1006)
-        if let descElement = json["00741006"] as? [String: Any],
+        // Procedure Step Progress Description (0074,1006), ST
+        if let descElement = progressScope["00741006"] as? [String: Any],
            let values = descElement["Value"] as? [String],
            let desc = values.first {
             details.progressDescription = desc
         }
 
-        // Contact Display Name (various fields)
-        if let contactElement = json["ContactDisplayName"] as? [String: Any],
-           let values = contactElement["Value"] as? [String],
-           let name = values.first {
+        // Contact Display Name (0074,100C): top level in a UPS Cancel Requested report, inside
+        // Procedure Step Communications URI Sequence (0074,1008) of the progress item in a
+        // UPS Progress Report (PS3.4 Table CC.2.4-1).
+        if let name = firstString(json["0074100C"]) {
+            details.contactDisplayName = name
+        } else if let item = progressItem,
+                  let comms = firstSequenceItem(item["00741008"]),
+                  let name = firstString(comms["0074100C"]) {
+            details.contactDisplayName = name
+        } else if let contactElement = json["ContactDisplayName"] as? [String: Any],
+                  let values = contactElement["Value"] as? [String],
+                  let name = values.first {
+            // legacy bare-name key of earlier DICOMKit event payloads
             details.contactDisplayName = name
         }
 
-        // Try extracting performer from Actual Human Performers Sequence (0040,4035)
+        // UPS Assigned (Table CC.2.4-1): Human Performer Code Sequence (0040,4009) > Code Meaning (0008,0104)
+        if details.contactDisplayName == nil,
+           let performer = firstSequenceItem(json["00404009"]),
+           let meaning = firstString(performer["00080104"]) {
+            details.contactDisplayName = meaning
+        }
+
+        // Fallback: Actual Human Performers Sequence (0040,4035) > Human Performer's Name (0040,4037)
         if details.contactDisplayName == nil,
            let performerSeq = json["00404035"] as? [String: Any],
            let seqValues = performerSeq["Value"] as? [[String: Any]],
@@ -469,9 +492,11 @@ public enum UPSEventPayloadParser: Sendable {
             }
         }
 
-        // Infer state names for known transitions when only new state is present
+        // Infer the previous state when only the new state is present. PS3.4 Table CC.1.1-2 makes
+        // each one unambiguous: IN PROGRESS is entered only from SCHEDULED; COMPLETED only from
+        // IN PROGRESS; CANCELED only from IN PROGRESS (a Request Cancel of a SCHEDULED UPS reports
+        // the change to IN PROGRESS first).
         if details.previousState == nil, details.newState != nil {
-            // For stateReport-type events, infer previous state from the DICOM state machine
             if typeString.contains("stateReport") || typeString.contains("StateReport") {
                 if let newState = details.newState {
                     switch newState {
@@ -487,6 +512,20 @@ public enum UPSEventPayloadParser: Sendable {
         }
 
         return details
+    }
+
+    /// The first item of a DICOM JSON sequence element (`{"vr":"SQ","Value":[{…}]}`), if any.
+    private static func firstSequenceItem(_ element: Any?) -> [String: Any]? {
+        guard let seq = element as? [String: Any],
+              let items = seq["Value"] as? [[String: Any]] else { return nil }
+        return items.first
+    }
+
+    /// The first string value of a DICOM JSON element, if any.
+    private static func firstString(_ element: Any?) -> String? {
+        guard let el = element as? [String: Any],
+              let values = el["Value"] as? [String] else { return nil }
+        return values.first
     }
 }
 
@@ -596,6 +635,33 @@ public enum DICOMwebUPSHelpers: Sendable {
     /// Returns the list of states reachable from the given state.
     public static func availableTransitions(from state: UPSState) -> [UPSState] {
         state.allowedTransitions
+    }
+
+    /// The refusal for a Change Workitem State request from `from` to `to`, or nil when
+    /// PS3.4 Table CC.1.1-2 allows it.
+    ///
+    /// SCHEDULED is never a target: the text is the same as dicom-wado's
+    /// `WADOOptionRules.changeStateTarget` refusal (PS3.18 11.7.1.4; Table CC.1.1-2 C303H).
+    /// Any other refused pair names the table row that refuses it.
+    static func changeStateRefusal(from: UPSState, to: UPSState) -> String? {
+        if to == .scheduled {
+            return "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+                + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+                + "to SCHEDULED (C303H)"
+        }
+        guard !canTransition(from: from, to: to) else { return nil }
+        let code: String
+        switch (from, to) {
+        case (.scheduled, .cancelled):          code = "C310H: the UPS is not yet IN PROGRESS"
+        case (.scheduled, .completed):          code = "C310H: the UPS is not yet IN PROGRESS"
+        case (.inProgress, .inProgress):        code = "C302H: the UPS is already IN PROGRESS"
+        case (.completed, .completed):          code = "B306H: the UPS is already COMPLETED"
+        case (.cancelled, .cancelled):          code = "B304H: the UPS is already CANCELED"
+        case (.completed, _), (.cancelled, _):  code = "C300H: the UPS may no longer be updated"
+        default:                                code = "not an allowed transition"
+        }
+        return "Cannot change state from \(from.dicomTerm) to \(to.dicomTerm): "
+            + "PS3.4 2026a Table CC.1.1-2 refuses it (\(code))"
     }
 
     /// Returns a color name string representing the visual indicator for a UPS state.

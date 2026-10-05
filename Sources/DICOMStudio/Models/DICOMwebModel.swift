@@ -1,5 +1,6 @@
 // DICOMwebModel.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-05 — UPSState.allowedTransitions diffed against PS3.4 2026a Table CC.1.1-2 (Change State rows: SCHEDULED→IN PROGRESS; IN PROGRESS→COMPLETED/CANCELED; SCHEDULED→CANCELED removed, C310H; SCHEDULED is never a target, C303H); UPSState.dicomTerm against PS3.3 2026a C.30.1 (4/4), UPSPriority against C.30.2 (3/3); QIDOQueryLevel resources and WADOProtocol.protocolDescription parameter names against PS3.18 2026a Tables 10.6.1-1 and 9.1.2-1 (3/3, 4/4); the raw values IN_PROGRESS / CANCELLED are Studio-local spellings (P-STUDIO-UPS-STATE-RAW); DICOMwebTLSMode names TLS versions, not PS3.15 Annex B profiles (P-STUDIO-TLS-PROFILES); tabs, auth methods, job statuses, event-channel states and performance statistics carry no DICOM-standard data
 //
 // DICOM Studio — Data models for the DICOMweb Integration Hub (Milestone 10)
 // Reference: DICOM PS3.18 (Web Services)
@@ -49,7 +50,7 @@ public enum DICOMwebTab: String, Sendable, Equatable, Hashable, CaseIterable {
 // MARK: - Authentication Method
 
 /// HTTP authentication method for DICOMweb connections.
-/// Reference: DICOM PS3.18 Section 8.3 – Security
+/// Reference: DICOM PS3.18 8.11 Security and Privacy (names no mechanism; these are HTTP/OAuth2 conventions)
 public enum DICOMwebAuthMethod: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     case none       = "NONE"
     case bearer     = "BEARER"
@@ -135,7 +136,7 @@ public enum DICOMwebConnectionStatus: String, Sendable, Equatable, Hashable, Cas
 // MARK: - Service Type
 
 /// DICOMweb service types supported by a server.
-/// Reference: DICOM PS3.18 Section 6 – Services
+/// Reference: DICOM PS3.18 Chapters 9 (URI Service), 10 (Studies Service) and 11 (Worklist Service)
 public enum DICOMwebServiceType: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     case wadoRS = "WADO_RS"
     case qidoRS = "QIDO_RS"
@@ -166,7 +167,7 @@ public enum DICOMwebServiceType: String, Sendable, Equatable, Hashable, CaseIter
 // MARK: - Server Profile
 
 /// A DICOMweb server configuration profile.
-/// Reference: DICOM PS3.18 Section 8 – Conformance
+/// Reference: DICOM PS3.18 Chapter 8 Common Aspects of DICOM Web Services (8.2 Target Resources: Base URI)
 public struct DICOMwebServerProfile: Sendable, Identifiable, Equatable, Hashable, Codable {
     /// Unique profile identifier.
     public let id: UUID
@@ -232,7 +233,7 @@ public struct DICOMwebServerProfile: Sendable, Identifiable, Equatable, Hashable
 // MARK: - QIDO-RS Query Level
 
 /// Information model level for a QIDO-RS search request.
-/// Reference: DICOM PS3.18 Section 10.6 – QIDO-RS
+/// Reference: DICOM PS3.18 10.6 Search Transaction, Table 10.6.1-1 (All Studies, All Series, All Instances)
 public enum QIDOQueryLevel: String, Sendable, Equatable, Hashable, CaseIterable {
     case study    = "STUDY"
     case series   = "SERIES"
@@ -260,7 +261,8 @@ public enum QIDOQueryLevel: String, Sendable, Equatable, Hashable, CaseIterable 
 // MARK: - QIDO-RS Query Parameters
 
 /// Parameters for a QIDO-RS search request.
-/// Reference: DICOM PS3.18 Section 10.6.1 – Query Parameters
+/// Reference: DICOM PS3.18 8.3.4 Search Query Parameters (Table 8.3.4-1: fuzzymatching, limit, offset)
+/// and Table 10.6.1-5 Required Matching Attributes
 public struct QIDOQueryParams: Sendable, Equatable, Hashable {
     /// Unique identifier for this query.
     public let id: UUID
@@ -334,7 +336,7 @@ public struct QIDOQueryParams: Sendable, Equatable, Hashable {
 // MARK: - QIDO-RS Result Item
 
 /// A single result item returned from a QIDO-RS search.
-/// Reference: DICOM PS3.18 Section 10.6.2 – Response
+/// Reference: DICOM PS3.18 10.6.3 Response (Tables 10.6.3-3, 10.6.3-4, 10.6.3-5)
 public struct QIDOResultItem: Sendable, Identifiable, Equatable, Hashable {
     /// Unique local identifier.
     public let id: UUID
@@ -393,7 +395,7 @@ public struct QIDOResultItem: Sendable, Identifiable, Equatable, Hashable {
 // MARK: - WADO Protocol
 
 /// The WADO protocol variant to use for retrieval.
-/// Reference: DICOM PS3.18 §8 (WADO-URI) and §10.4 (WADO-RS)
+/// Reference: DICOM PS3.18 Chapter 9 URI Service (Table 9.1.2-1) and 10.4 Retrieve Transaction
 public enum WADOProtocol: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     /// WADO-RS (RESTful) — modern protocol using path-based URLs.
     /// Supported by dcm4chee5, Orthanc, Google Cloud Healthcare, etc.
@@ -424,7 +426,7 @@ public enum WADOProtocol: String, Sendable, Equatable, Hashable, CaseIterable, C
 // MARK: - WADO-RS Retrieve Mode
 
 /// The scope or mode for a WADO-RS retrieve request.
-/// Reference: DICOM PS3.18 Section 10.4 – WADO-RS
+/// Reference: DICOM PS3.18 10.4 Retrieve Transaction (Tables 10.4.1-1, 10.4.1-3, 10.4.1.5-1, 10.4.1.6-1)
 public enum WADORetrieveMode: String, Sendable, Equatable, Hashable, CaseIterable {
     case study    = "STUDY"
     case series   = "SERIES"
@@ -572,7 +574,7 @@ public struct WADORetrieveJob: Sendable, Identifiable, Equatable, Hashable {
 // MARK: - STOW-RS Duplicate Handling
 
 /// Policy for handling duplicate DICOM instances during a STOW-RS upload.
-/// Reference: DICOM PS3.18 Section 10.5 – STOW-RS
+/// Reference: DICOM PS3.18 10.5 Store Transaction (Table 10.5.3-1: 409 Conflict)
 public enum STOWDuplicateHandling: String, Sendable, Equatable, Hashable, CaseIterable {
     case reject    = "REJECT"
     case overwrite = "OVERWRITE"
@@ -703,13 +705,25 @@ public enum UPSState: String, Sendable, Equatable, Hashable, CaseIterable {
     case completed  = "COMPLETED"
     case cancelled  = "CANCELLED"
 
-    /// Human-readable display name.
+    /// Human-readable display name (the PS3.3 C.30.1 term in title case; CANCELED is the
+    /// standard's spelling).
     public var displayName: String {
         switch self {
         case .scheduled:  return "Scheduled"
         case .inProgress: return "In Progress"
         case .completed:  return "Completed"
-        case .cancelled:  return "Cancelled"
+        case .cancelled:  return "Canceled"
+        }
+    }
+
+    /// The Procedure Step State (0074,1000) term of PS3.3 C.30.1 for this case:
+    /// SCHEDULED, IN PROGRESS, COMPLETED or CANCELED (the raw values are Studio-local spellings).
+    var dicomTerm: String {
+        switch self {
+        case .scheduled:  return "SCHEDULED"
+        case .inProgress: return "IN PROGRESS"
+        case .completed:  return "COMPLETED"
+        case .cancelled:  return "CANCELED"
         }
     }
 
@@ -723,11 +737,14 @@ public enum UPSState: String, Sendable, Equatable, Hashable, CaseIterable {
         }
     }
 
-    /// Valid next states from this state per the UPS state machine.
-    /// Reference: DICOM PS3.4 Table CC.1.1-2
+    /// The target states a Change Workitem State request (PS3.18 11.7, N-ACTION Change UPS State)
+    /// may ask for from this state, per PS3.4 Table CC.1.1-2:
+    /// SCHEDULED → IN PROGRESS only (Change State to CANCELED from SCHEDULED is refused with C310H;
+    /// a SCHEDULED workitem is cancelled by the origin server on Request Cancellation, PS3.18 11.8),
+    /// IN PROGRESS → COMPLETED or CANCELED, final states → none. SCHEDULED is never a target (C303H).
     public var allowedTransitions: [UPSState] {
         switch self {
-        case .scheduled:  return [.inProgress, .cancelled]
+        case .scheduled:  return [.inProgress]
         case .inProgress: return [.completed, .cancelled]
         case .completed:  return []
         case .cancelled:  return []
@@ -738,7 +755,7 @@ public enum UPSState: String, Sendable, Equatable, Hashable, CaseIterable {
 // MARK: - UPS-RS Priority
 
 /// Scheduled procedure step priority for a UPS workitem.
-/// Reference: DICOM PS3.4 Annex CC
+/// Reference: DICOM PS3.3 C.30.2 Scheduled Procedure Step Priority (0074,1200): HIGH, MEDIUM, LOW
 public enum UPSPriority: String, Sendable, Equatable, Hashable, CaseIterable {
     case high   = "HIGH"
     case medium = "MEDIUM"
@@ -765,8 +782,10 @@ public enum UPSPriority: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - UPS-RS Event Type
 
-/// Event types that can be subscribed to via UPS-RS Watch.
-/// Reference: DICOM PS3.18 Section 11 – UPS-RS
+/// Display categories for UPS event reports. They group the Event Type IDs of PS3.4 Table CC.2.4-1
+/// (1 State Report, 2 Cancel Requested, 3 Progress Report, 4 SCP Status Change, 5 Assigned);
+/// `stepStateChange` has no counterpart and is never produced by the event channel.
+/// Reference: DICOM PS3.18 11.13 Workitem Event Reports; PS3.4 Table CC.2.4-1
 public enum UPSEventType: String, Sendable, Equatable, Hashable, CaseIterable {
     case stateChange           = "STATE_CHANGE"
     case progressChange        = "PROGRESS_CHANGE"
@@ -787,7 +806,7 @@ public enum UPSEventType: String, Sendable, Equatable, Hashable, CaseIterable {
 // MARK: - UPS-RS Event Subscription
 
 /// A subscription to UPS-RS watch events for one or all workitems.
-/// Reference: DICOM PS3.18 Section 11.11 – Subscribe to Receive UPS Event Reports
+/// Reference: DICOM PS3.18 11.10 Subscribe Transaction (Table 11.1.1-1 Worklist / Workitem Subscription)
 public struct UPSEventSubscription: Sendable, Identifiable, Equatable, Hashable {
     /// Unique subscription identifier.
     public let id: UUID

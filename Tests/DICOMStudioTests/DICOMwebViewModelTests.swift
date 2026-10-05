@@ -420,4 +420,45 @@ struct DICOMwebViewModelTests {
         vm.clearReceivedEvents()
         #expect(vm.upsReceivedEvents.isEmpty)
     }
+
+
+    // MARK: - Change Workitem State (PS3.18 2026a 11.7.1.4; PS3.4 2026a Table CC.1.1-2)
+
+    @Test("transitionUPSState refuses SCHEDULED as a target with the dicom-wado message")
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    func testTransitionUPSStateRefusesScheduledTarget() {
+        let service = DICOMwebService()
+        let item = UPSWorkitem(workitemUID: "1.2.3", state: .inProgress)
+        service.addUPSWorkitem(item)
+        let vm = DICOMwebViewModel(service: service)
+        vm.transitionUPSState(.scheduled, workitemID: item.id)
+        #expect(vm.errorMessage == "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+            + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+            + "to SCHEDULED (C303H)")
+        #expect(vm.upsWorkitems.first?.state == .inProgress)
+    }
+
+    @Test("transitionUPSState refuses SCHEDULED to CANCELED (Table CC.1.1-2 C310H) and keeps the state")
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    func testTransitionUPSStateRefusesScheduledToCanceled() {
+        let service = DICOMwebService()
+        let item = UPSWorkitem(workitemUID: "1.2.3", state: .scheduled)
+        service.addUPSWorkitem(item)
+        let vm = DICOMwebViewModel(service: service)
+        vm.transitionUPSState(.cancelled, workitemID: item.id)
+        #expect(vm.errorMessage?.contains("C310H") == true)
+        #expect(vm.upsWorkitems.first?.state == .scheduled)
+    }
+
+    @Test("transitionUPSState allows IN PROGRESS to CANCELED (Table CC.1.1-2)")
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    func testTransitionUPSStateInProgressToCanceled() {
+        let service = DICOMwebService()
+        let item = UPSWorkitem(workitemUID: "1.2.3", state: .inProgress)
+        service.addUPSWorkitem(item)
+        let vm = DICOMwebViewModel(service: service)
+        vm.transitionUPSState(.cancelled, workitemID: item.id)
+        #expect(vm.errorMessage == nil)
+        #expect(vm.upsWorkitems.first?.state == .cancelled)
+    }
 }
