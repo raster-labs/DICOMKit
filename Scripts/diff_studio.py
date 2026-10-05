@@ -721,7 +721,12 @@ def check_workshop_parity(rep, ws, tool_id):
 
 def check_generic(rep, parts, files, label):
     tags, local_tags = dk.tag_constants(os.path.join(SOURCES, 'DICOMCore'), files)
-    uid_files = {n: re.sub(r'hasPrefix\("1\.2\.840\.10008[\d.]*"\)', 'hasPrefix("")', s) for n, s in files.items()}
+    # UID family prefixes (`static let xPrefix = "1.2.840.10008.5.1.4.1.1.88."`, consumed only via hasPrefix) are
+    # Table A-1 OID arcs, not instances; diff_studio_g2_codec.check_sop_class_arcs validates them, so they are
+    # blanked here rather than reported as unregistered UIDs.
+    uid_files = {n: re.sub(r'hasPrefix\("1\.2\.840\.10008[\d.]*"\)', 'hasPrefix("")',
+                           re.sub(r'(static let \w+Prefix\s*=\s*)"1\.2\.840\.10008[\d.]*\."', r'\1""', s))
+                 for n, s in files.items()}
     dw.check_uids(rep, parts[6], uid_files)
     dk.check_coded_concepts(rep, parts[16], files)
     dk.check_tag_names(rep, parts[6], files, local_tags)
