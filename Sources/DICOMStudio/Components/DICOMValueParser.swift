@@ -2,6 +2,14 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent DICOM value representation parser
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — per-VR formatting checked against PS3.5 2026a Table 6.2-1 (DA YYYYMMDD,
+// TM HHMMSS.FFFFFF with trailing components optional, DT YYYYMMDDHHMMSS.FFFFFF&ZZXX, AS nnnD/W/M/Y, CS uppercase, UI
+// trailing NUL padding, AE/UR space handling, DS/IS multi-value backslash) and 6.2.1.1/6.2.1.2 (PN: five components
+// family^given^middle^prefix^suffix, up to three "="-separated component groups — group handling added);
+// `characterSetDescription` keys diffed against the Defined Terms of PS3.3 2026a Tables C.12-2, C.12-3, C.12-4,
+// C.12-5 (32 Defined Terms): 19 matched, 13 added (ISO_IR 203, GBK, ISO 2022 IR 13/58/101/109/110/126/127/138/144/
+// 148/166/203); descriptions are display text.
 
 import Foundation
 
@@ -113,9 +121,21 @@ public enum DICOMValueParser: Sendable {
 
     /// Formats a DICOM Person Name (PN) value.
     ///
-    /// Input format: FamilyName^GivenName^MiddleName^Prefix^Suffix
-    /// Output format: "Prefix GivenName MiddleName FamilyName, Suffix"
+    /// Input format: FamilyName^GivenName^MiddleName^Prefix^Suffix, in up to three component
+    /// groups (alphabetic=ideographic=phonetic, PS3.5 6.2.1.2) separated by "=".
+    /// Output format: "Prefix GivenName MiddleName FamilyName, Suffix", groups joined by " = ".
     public static func formatPersonName(_ value: String) -> String {
+        if value.contains("=") {
+            let groups = value.split(separator: "=", omittingEmptySubsequences: false)
+                .map { String($0).trimmingCharacters(in: .whitespaces) }
+            let formatted = groups.filter { !$0.isEmpty }.map(formatPersonNameGroup)
+            return formatted.isEmpty ? value : formatted.joined(separator: " = ")
+        }
+        return formatPersonNameGroup(value)
+    }
+
+    /// Formats one PN component group (PS3.5 6.2.1.1).
+    private static func formatPersonNameGroup(_ value: String) -> String {
         let components = value.split(separator: "^", omittingEmptySubsequences: false)
             .map { String($0).trimmingCharacters(in: .whitespaces) }
 
@@ -191,15 +211,29 @@ public enum DICOMValueParser: Sendable {
             "ISO_IR 126": "Greek",
             "ISO_IR 138": "Hebrew",
             "ISO_IR 148": "Latin-5 (Turkish)",
+            "ISO_IR 203": "Latin-9 (Western European, with Euro)",
             "ISO_IR 13": "Japanese (JIS X 0201)",
             "ISO_IR 166": "Thai (TIS 620-2533)",
             "ISO 2022 IR 6": "ASCII (ISO 646)",
             "ISO 2022 IR 100": "Latin-1 (ISO 2022)",
+            "ISO 2022 IR 101": "Latin-2 (ISO 2022)",
+            "ISO 2022 IR 109": "Latin-3 (ISO 2022)",
+            "ISO 2022 IR 110": "Latin-4 (ISO 2022)",
+            "ISO 2022 IR 144": "Cyrillic (ISO 2022)",
+            "ISO 2022 IR 127": "Arabic (ISO 2022)",
+            "ISO 2022 IR 126": "Greek (ISO 2022)",
+            "ISO 2022 IR 138": "Hebrew (ISO 2022)",
+            "ISO 2022 IR 148": "Latin-5 (ISO 2022)",
+            "ISO 2022 IR 203": "Latin-9 (ISO 2022)",
+            "ISO 2022 IR 166": "Thai (ISO 2022)",
+            "ISO 2022 IR 13": "Japanese Katakana (JIS X 0201, ISO 2022)",
             "ISO 2022 IR 87": "Japanese (JIS X 0208)",
             "ISO 2022 IR 159": "Japanese (JIS X 0212)",
             "ISO 2022 IR 149": "Korean (KS X 1001)",
+            "ISO 2022 IR 58": "Simplified Chinese (GB 2312)",
             "ISO_IR 192": "Unicode (UTF-8)",
             "GB18030": "Chinese (GB18030)",
+            "GBK": "Chinese (GBK)",
         ]
         let trimmed = characterSet.trimmingCharacters(in: .whitespaces)
         return mapping[trimmed] ?? trimmed
