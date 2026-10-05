@@ -126,7 +126,6 @@ Table O-1). Every other generic check is ok.
 |---|---|---|---|---|
 | P-STUDIO-ANON-PS315 | `AnonymizationProfile` (DICOMStudio, public enum) has no case for the PS3.15 Basic Profile, which is dicom-anon's default (`ps315`); the Workshop refuses it, the Security panel cannot run it | PS3.15 2026a Annex E, Table E.1-1 | Add `.ps315` (display "PS3.15 Basic Application Level Confidentiality Profile"), make it the default, route it to `Anonymizer.deidentify`; keep the legacy cases, labelled as not PS3.15 | ⏳ pending |
 | P-VIDEO-CONTAINER | DICOMKit `VideoContainer` lacks `.mpegPS` / `.mpegPES` because `ViewerNonImageContentView.swift` switches exhaustively (D237) | PS3.5 2026a 8.2.5, 8.2.6 | Give the Studio switch a `default`, then add the two cases in DICOMKit (D237) | ⏳ pending |
-| P-PRINT-ENUMS | `NetworkingModel.swift` re-declares `PrintPriority`, `PrintMediumType`, `PrintFilmSize`, `PrintJobStatus` with their own strings (D22); `BLU-RAY` is not a Medium Type term | PS3.3 2026a C.13.1 | Fix the strings as behaviour now; deprecate the four Studio enums in favour of the DICOMNetwork types | ⏳ pending |
 | P-STUDIO-TLS-PROFILES | `TLSMode` (NONE / TLS_1_2 / TLS_1_3 / MTLS) cites "PS3.15 Annex B" but selects TLS versions and client-certificate use, not a Secure Transport Connection Profile; B.9–B.11 are retired in 2026a, the live TLS profiles are B.12 "BCP 195 RFC 8996, 9325 TLS" (TLS 1.2 required, 1.3 preferred) and B.13 "Modified BCP 195 RFC 8996, 9325 TLS". | PS3.15 2026a Annex B (B.12, B.13) | Either re-label the doc comment as a transport setting (no profile claim) — text only, done implicitly by the marker — or add cases `bcp195` / `modifiedBcp195` that configure the DICOMNetwork TLS options per B.12 / B.13 and deprecate `tls12` / `tls13` (a profile forbids pinning TLS 1.2 alone). New enum cases are public API — not done. | | ⏳ pending |
 | P-STUDIO-PRINT-ENUMS | `DICOMStudio.PrintPriority`, `PrintMediumType`, `PrintFilmSize`, `PrintJobStatus` (NetworkingModel.swift) duplicate `DICOMNetwork.PrintPriority` / `MediumType` / `FilmSize` and the Execution Status terms; `PrintMediumType` offers 3 of the 5 Medium Type terms (no MAMMO). Their raw values are now the standard's terms and are mapped case-by-case onto DICOMNetwork's before anything reaches the wire. | PS3.3 2026a Table C.13-1, C.13-3, C.13-8 (D22) | Deprecate the three Studio enums with `@available(*, deprecated, renamed:)` typealiases onto `DICOMNetwork.PrintPriority`, `MediumType`, `FilmSize` (the raw-value sets are now identical for Priority and Film Size; Medium Type gains the two MAMMO terms in the picker), move `displayName` to extensions on the DICOMNetwork types, drop the switch mappings in `NetworkingViewModel.submitPrintJob`; keep `PrintJobStatus` (it is the panel's state, not a wire attribute) but rename to `NetworkPrintJobState` to stop it reading as the Print Job SOP Class's Execution Status. Public API — not done. | | ⏳ pending |
 
@@ -141,7 +140,7 @@ Table O-1). Every other generic check is ok.
 | D9 | DICOMCore | `Models/J2KTestBenchModels.swift:123,392` | .4.110 called "JPEG XL Lossless Only"; PS3.6 name "JPEG XL Lossless" | PS3.6 Table A-1 | ⏳ |
 | D10 | DICOMCore | `Components/ThumbnailHelpers.swift:107` | `supportedPhotometricInterpretations` omits XYB, YBR_PARTIAL_420, YBR_ICT, YBR_RCT | PS3.3 C.7.6.3.1.2 | ⏳ |
 | D11 | DICOMCore | `Components/ImageMetadataHelpers.swift:62` | no label for XYB | PS3.3 C.7.6.3.1.2 | ⏳ |
-| D22 | DICOMNetwork | `Models/NetworkingModel.swift` (~L907-1050) | `PrintMediumType.bluFilm = "BLU-RAY"`; re-declared print enums | PS3.3 C.13.1 | ⏳ (P-PRINT-ENUMS) |
+| D22 | DICOMNetwork | `Models/NetworkingModel.swift` (~L907-1050) | `PrintMediumType.bluFilm = "BLU-RAY"`; re-declared print enums | PS3.3 C.13.1 | ✅ 2026-10-05 strings (`6ab02140`: BLUE FILM, DONE/FAILURE, IN PROGRESS; FilmLayout now reaches the wire as Image Display Format); the duplicate enums are P-STUDIO-PRINT-ENUMS |
 | D28 | DICOMKit | `ImageViewerViewModel+PresentationStates` (~L1057); `Views/DICOMInspectorView.swift:41` | PR without Modality LUT falls back to the image's rescale (S-2 migration rule); "is binary" check omits OV (D5 half) | PS3.4 N.2.1.1; PS3.5 Table 6.2-1 | ⏳ |
 | D29 | DICOMKit | `CLIWorkshopViewModel.swift:1730`, `CLIWorkshopHelpers.swift:3128` | dcmdir `--profile` choices list STD-GEN-DVD / STD-GEN-USB (family headings) | PS3.11 Annexes H, J | ⏳ |
 | D42 | DICOMPrintKit | `ImageViewerViewModel+PresentationStates.swift` (~L460, 610, 1040), `PrintViewModel+PresentationStates.swift` (~L365) | pass Photometric Interpretation and Rescale Type to the bridge and `ImageToSave` | PS3.4 N.2; PS3.3 A.33.1.1, Table A.33.2-1 | ⏳ |
@@ -154,13 +153,13 @@ Table O-1). Every other generic check is ok.
 | D127 | DICOMCLI | `CLIWorkshopViewModel.swift:4410, 4557-4562, 4620-4628` | contact-sheet / animate copy the old render path; fps default | PS3.4 N.2; PS3.3 C.11.2.1.2.1 | ⏳ |
 | D132 | DICOMCLI | Workshop dcmdir executor | lacks the CLI validate rules and File-set ID default | PS3.10 8.x | ⏳ |
 | D154 | DICOMCLI | `CLIWorkshopHelpers.swift:2520` | split `--frames` help does not say 0-based | PS3.3 C.7.6.16.1.2 | ⏳ |
-| D237 | DICOMCLI | `Views/ViewerNonImageContentView.swift:422` | exhaustive switch blocks `VideoContainer.mpegPS` / `.mpegPES` | PS3.5 8.2.5, 8.2.6 | ⏳ (P-VIDEO-CONTAINER) |
+| D237 | DICOMCLI | `Views/ViewerNonImageContentView.swift:422` | exhaustive switch blocks `VideoContainer.mpegPS` / `.mpegPES` | PS3.5 8.2.5, 8.2.6 | ⏳ Studio `default` with the codec pass; DICOMKit cases are P-VIDEO-CONTAINER |
 
 ### New findings for other modules
 
 | ID | Module | File | Problem | Standard | Severity | Status |
 |---|---|---|---|---|---|---|
-| D-new | DICOMPrintKit | Sources/DICOMPrintKit/PrintOptionCatalog.swift:217 | `filmDestinations` offers only MAGAZINE, PROCESSOR, BIN_1, BIN_2; the dicom-print CLI therefore cannot name a bin above 2 although `FilmDestination.bin(n)` exists (Studio works around it with its own bin-number field) | PS3.3 2026a C.13.1 Table C.13-1 (BIN_i, "no maximum is placed on the number of BINs") | Low | ⏳ |
+| D242 | DICOMPrintKit | Sources/DICOMPrintKit/PrintOptionCatalog.swift:217 | `filmDestinations` offers only MAGAZINE, PROCESSOR, BIN_1, BIN_2; the dicom-print CLI therefore cannot name a bin above 2 although `FilmDestination.bin(n)` exists (Studio works around it with its own bin-number field) | PS3.3 2026a C.13.1 Table C.13-1 (BIN_i, "no maximum is placed on the number of BINs") | Low | ⏳ |
 
 ---
 
