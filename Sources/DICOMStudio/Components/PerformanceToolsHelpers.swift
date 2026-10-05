@@ -4,7 +4,7 @@
 // DICOM Studio — Platform-independent helpers for Performance & Developer Tools (Milestone 13)
 // Reference: DICOM PS3.2 (Conformance), PS3.5 (Data Structures), PS3.6 (Data Dictionary)
 // NEMA-verified: 2026a, checked 2026-10-05 — the 15 sample tag rows text-diffed against PS3.6 2026a Table 6-1
-// (name, keyword, VR, VM, retired: 15 of 15 match); the 35 VR names against PS3.5 2026a Table 6.2-1 (OB/OD/OF/OW
+// (name, keyword, VR, VM, retired: 15 of 15 match); the 34 VR names against PS3.5 2026a Table 6.2-1 (OB/OD/OF/OW
 // corrected from "Other … String" to "Other Byte/Double/Float/Word", UI and UR now carry the full "VR Name"
 // cell including its abbreviation); every UID literal and the name beside it against PS3.6 Table A-1 (the three Query/
 // Retrieve rows paired Study Root names with the Patient Root UIDs 1.2.840.10008.5.1.4.1.2.1.x — the Study
