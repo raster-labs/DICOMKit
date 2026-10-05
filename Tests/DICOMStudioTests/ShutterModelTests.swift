@@ -119,6 +119,16 @@ struct BitmapShutterTests {
         let shutter = BitmapShutter(overlayGroup: 0x5000, rows: 512, columns: 512)
         #expect(!shutter.isValid)
     }
+
+    /// PS3.5 2026a 7.6: "Repeating Groups shall only be allowed in the even
+    /// numbered Groups 6000-601E"; 6001–601F are private groups.
+    @Test("Overlay group must be an even Repeating Group 6000–601E (PS3.5 7.6)")
+    func testEvenRepeatingGroupsOnly() {
+        #expect(BitmapShutter(overlayGroup: 0x601E, rows: 1, columns: 1).isValid)
+        #expect(!BitmapShutter(overlayGroup: 0x6001, rows: 1, columns: 1).isValid)
+        #expect(!BitmapShutter(overlayGroup: 0x601F, rows: 1, columns: 1).isValid)
+        #expect(!BitmapShutter(overlayGroup: 0x6020, rows: 1, columns: 1).isValid)
+    }
 }
 
 @Suite("ShutterModel Tests")
