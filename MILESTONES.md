@@ -3972,6 +3972,14 @@ See [DICOM_PRINTER_PLAN.md](DICOM_PRINTER_PLAN.md) for the complete enhancement 
   - [x] Video Microscopic Image Storage (1.2.840.10008.5.1.4.1.1.77.1.2.1)
   - [x] Video Photographic Image Storage (1.2.840.10008.5.1.4.1.1.77.1.4.1)
 - [x] UID Dictionary entries for all video transfer syntaxes and SOP Classes
+- [x] DICOM 2026d conformance update (2026-10-01, `dicom-video`):
+  - [x] Level picture-size and throughput limits (H.264 Table A-1, H.265 Table A.8)
+  - [x] HEVC Main tier enforced; `.107` / `.108` fragmentable, bogus `.107.1` / `.108.1` removed
+  - [x] MPEG-2 Table 8-1 / 8.2.6 picture, frame-rate and 16:9 rules; level check direction fixed
+  - [x] Audio carried and validated (PS3.5 8.2.12 for AVC/HEVC, 8.2.5 for MPEG-2)
+  - [x] Frame packing SEI → `.105`, MVC subset SPS → `.106`, Stereo Pairs Present (0022,0028)
+  - [x] Empty Basic Offset Table; > 4 GiB payloads split into fragments
+  - [x] MPEG-TS demultiplexed and validated; container rotation reported
 - [x] Video-specific DICOM tags (Tag+Video.swift):
   - [x] Recommended Display Frame Rate (0008,2144)
   - [x] Start Trim (0008,2142) / Stop Trim (0008,2143)

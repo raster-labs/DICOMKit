@@ -819,7 +819,9 @@ let package = Package(
                 // PS3.3 C.11.1.1 / C.11.2.1.1 LUT Descriptor decoding (SRS FR-004).
                 "GrayscaleLUTTests.swift",
                 // Pseudo-colour palettes over RGB / YBR / PALETTE COLOR sources.
-                "ColorSourcePaletteTests.swift"
+                "ColorSourcePaletteTests.swift",
+                // PS3.5 2026d video conformance suite from origin/main (PR #217).
+                "Video/VideoStandard2026dConformanceTests.swift"
             ]
         ),
         .testTarget(

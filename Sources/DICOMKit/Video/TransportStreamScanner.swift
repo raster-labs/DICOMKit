@@ -10,15 +10,19 @@
 
 import Foundation
 
-/// Recovers the leading elementary-stream bytes from an MPEG-2 Transport Stream.
+/// Reads the elementary streams of an MPEG-2 Transport Stream.
 ///
-/// This is deliberately **not** a demuxer. It reassembles just enough of the
-/// first video PID to reach a sequence or parameter set header, because the
-/// alternative — encapsulating a stream whose geometry is entirely unknown —
-/// produces a DICOM object with Rows and Columns of zero, which no reader can
-/// display. Frame counts and timing still require real demuxing. Audio PIDs are
-/// listed from the PMT, and the first frame of each is read for the parameters
-/// PS3.5 8.2.12 constrains (``audioTracks(_:)``).
+/// ``demux(_:)`` reassembles the video PID in full - enough to read its
+/// parameter sets, count its pictures and recover its timing from the PES
+/// timestamps - and the head of each audio PID, which is where a transport
+/// stream states its audio format. PS3.5 blesses MPEG-TS as one of the two
+/// containers, so it is validated exactly like MP4 rather than taken on trust.
+///
+/// ``firstVideoPayload(_:)`` remains for the `--trust-input` path, which needs
+/// geometry for Rows and Columns but nothing else.
+///
+/// Audio PIDs are listed from the PMT, and the first frame of each is read for the
+/// parameters PS3.5 8.2.12 constrains (``audioTracks(_:)``).
 ///
 /// Reference: ISO/IEC 13818-1 Sections 2.4.3.2 (packet layer), 2.4.3.6 (PES)
 public enum TransportStreamScanner {
@@ -54,6 +58,79 @@ public enum TransportStreamScanner {
         /// The codec the PMT declares for this PID.
         public let codec: VideoCodec
     }
+
+    // MARK: - Demux
+
+    /// What a transport stream carries, as far as validation needs it.
+    public struct Demuxed: Sendable {
+        /// The codec the PMT declares for the video PID.
+        public let codec: VideoCodec
+        /// The whole video elementary stream, PES headers removed.
+        public let videoElementaryStream: Data
+        /// Presentation timestamps of the video PES packets, in stream order, in
+        /// 90 kHz ticks. Bounded: enough to recover a frame interval.
+        public let presentationTimestamps: [UInt64]
+        /// The audio PIDs, described from their first frames.
+        public let audio: [VideoAudioTrack]
+        /// The head of an MVC dependent-view sub-bitstream (stream_type 0x20),
+        /// when the program carries one; its subset SPS reveals Stereo High.
+        public let mvcSubBitstream: Data?
+    }
+
+    /// Demultiplexes the first program's video PID and audio PIDs.
+    ///
+    /// - Returns: The streams, or nil when there is no readable video PID.
+    public static func demux(_ data: Data) -> Demuxed? {
+        guard let layout = packetLayout(data) else { return nil }
+        let streams = programStreams(data, layout: layout)
+        guard let video = streams.first(where: { videoStreamTypes[$0.streamType] != nil }),
+              let codec = videoStreamTypes[video.streamType]
+        else { return nil }
+
+        let mvc = streams.first { $0.streamType == mvcSubBitstreamType }
+
+        var budgets: [Int: Int] = [video.pid: Int.max]
+        if let mvc = mvc { budgets[mvc.pid] = payloadBudget }
+
+        let collected = collect(data, layout: layout, budgets: budgets, timestampPID: video.pid)
+        guard let videoData = collected.payloads[video.pid], !videoData.isEmpty else { return nil }
+
+        // Audio is described by `audioTracks(_:)`, which reads each PID's own head and walks
+        // MP3 / AAC frames for the bit rate checks of PS3.5 8.2.5 / 8.2.12.
+        let audio = audioTracks(data)
+        return Demuxed(
+            codec: codec,
+            videoElementaryStream: videoData,
+            presentationTimestamps: collected.timestamps,
+            audio: audio,
+            mvcSubBitstream: mvc.flatMap { collected.payloads[$0.pid] }
+        )
+    }
+
+    /// The frame rate implied by a run of PES presentation timestamps: 90 kHz
+    /// over the most common gap between consecutive pictures in display order.
+    ///
+    /// The mode, not the mean, so that a dropped packet or a discontinuity does
+    /// not skew it.
+    public static func frameRate(fromTimestamps timestamps: [UInt64]) -> Double? {
+        let sorted = Array(Set(timestamps)).sorted()
+        guard sorted.count >= 3 else { return nil }
+        var counts: [UInt64: Int] = [:]
+        for (earlier, later) in zip(sorted, sorted.dropFirst()) {
+            let gap = later - earlier
+            if gap > 0, gap < 90_000 { counts[gap, default: 0] += 1 }
+        }
+        guard let gap = counts.max(by: { $0.value < $1.value || ($0.value == $1.value && $0.key > $1.key) })?.key
+        else { return nil }
+        let rate = 90_000.0 / Double(gap)
+        return rate.isFinite && rate > 0 && rate < 1000 ? rate : nil
+    }
+
+    /// stream_type of an MVC video sub-bitstream (ISO/IEC 13818-1 Table 2-34).
+    private static let mvcSubBitstreamType: UInt8 = 0x20
+
+    /// How much of each audio PID to read: a few dozen frames is enough to
+    /// judge a format, its rate and whether its bit rate is constant.
 
     /// The leading elementary-stream bytes of the first video PID.
     ///
@@ -373,6 +450,63 @@ public enum TransportStreamScanner {
     }
 
     // MARK: - Payload Assembly
+
+    /// Concatenates the PES payloads of several PIDs in one pass, each up to its
+    /// byte budget, and records the PTS of one PID's PES packets.
+    private static func collect(
+        _ data: Data,
+        layout: Layout,
+        budgets: [Int: Int],
+        timestampPID: Int
+    ) -> (payloads: [Int: Data], timestamps: [UInt64]) {
+        var payloads: [Int: Data] = [:]
+        var timestamps: [UInt64] = []
+        var finished: Set<Int> = []
+
+        forEachPacket(data, layout: layout) { packet in
+            let packetPID = pid(of: packet)
+            guard let budget = budgets[packetPID], !finished.contains(packetPID),
+                  let body = packetPayload(packet)
+            else { return true }
+
+            var bytes = body[...]
+            if payloadStarts(packet) {
+                if bytes.count >= 9, bytes[bytes.startIndex] == 0x00,
+                   bytes[bytes.startIndex + 1] == 0x00, bytes[bytes.startIndex + 2] == 0x01 {
+                    let base = bytes.startIndex
+                    let headerLength = Int(bytes[base + 8])
+                    if packetPID == timestampPID, timestamps.count < maxTimestamps,
+                       bytes[base + 7] & 0x80 != 0, bytes.count >= 14 {
+                        timestamps.append(presentationTimestamp(Array(bytes[(base + 9)..<(base + 14)])))
+                    }
+                    let elementaryStart = base + 9 + headerLength
+                    guard elementaryStart <= bytes.endIndex else { return true }
+                    bytes = bytes[elementaryStart...]
+                }
+            } else if payloads[packetPID] == nil {
+                // Wait for a payload start, so each stream begins at a PES boundary.
+                return true
+            }
+
+            payloads[packetPID, default: Data()].append(contentsOf: bytes)
+            if let count = payloads[packetPID]?.count, count >= budget {
+                finished.insert(packetPID)
+            }
+            return finished.count < budgets.count
+        }
+        return (payloads, timestamps)
+    }
+
+    /// How many PTS values to keep: enough for a stable frame interval.
+    private static let maxTimestamps = 512
+
+    /// Decodes a 33-bit PTS from its five-byte, marker-interleaved form.
+    private static func presentationTimestamp(_ bytes: [UInt8]) -> UInt64 {
+        let high = UInt64((bytes[0] >> 1) & 0x07) << 30
+        let middle = ((UInt64(bytes[1]) << 8 | UInt64(bytes[2])) >> 1) << 15
+        let low = (UInt64(bytes[3]) << 8 | UInt64(bytes[4])) >> 1
+        return high | middle | low
+    }
 
     /// Concatenates the PES payloads of one PID, up to the byte budget.
     private static func payload(

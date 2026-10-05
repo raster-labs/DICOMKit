@@ -2383,6 +2383,49 @@ network layer or the CLI tools.
   `Tag` constant against the dictionary; `TagAuditRegressionTests` rebuilds inputs from
   numeric tags.
 
+<!-- merged from origin/main (PR #217, DICOM 2026d video conformance) -->
+
+### Fixed — `dicom-video` conformance against DICOM 2026d (PS3.5 8.2.5 - 8.2.12)
+
+- **Level limits are checked against the coded picture.** Rows, Columns and
+  frame rate must be compliant with the transfer syntax's level, so picture
+  size and throughput are now checked against H.264 Table A-1 / H.265 Table
+  A.8. A 4K stream signalled as Level 4.1 (which `x264 -level 4.1` produces)
+  was previously accepted as `…4.102`.
+- **HEVC High tier is rejected**; PS3.5 8.2.10 / 8.2.11 require Main tier.
+- **MPEG-2:** the level ceiling check was inverted, letting a High Level stream
+  through as Main Level (`…4.100`). Table 8-1 limits (720x576 at 25 Hz,
+  720x480 at 30 Hz) and the 8.2.6 rules for `…4.101` (1280x720 or 1920x1080,
+  `aspect_ratio_information` 16:9, Table 8-2 frame rates) are now enforced.
+  MPEG-2 levels are reported by name ("Main", "High").
+- **Audio is carried and validated, not "discarded".** The bit stream was
+  always encapsulated unchanged, so audio tracks were in fact kept while the
+  tool claimed otherwise. Audio is now described (format, rate, channels, bit
+  rate) and validated against 8.2.12 for AVC/HEVC (LPCM and AC-3 in MPEG-TS
+  only; AAC 48 kHz 2/5.1 ch ≤ 640 kbps; CBR MP3; MP2) and 8.2.5 for MPEG-2
+  (CBR MP3 only). A non-conformant track is rejected with an audio-only
+  remedy that copies the video bit-for-bit.
+- **3D and stereo:** a frame packing arrangement SEI selects `…4.105` (and is
+  refused for `…4.104`), an MVC subset SPS selects Stereo High `…4.106`, and
+  Stereo Pairs Present (0022,0028) = YES is written for both (Table 8-8).
+- **Basic Offset Table is empty.** It carried a single zero entry for a
+  multi-frame object, which A.4 does not allow, and 8.2.5 / 8.2.6 require it
+  empty for MPEG-2.
+- **HEVC `…4.107` / `…4.108` are fragmentable**; the non-existent UIDs
+  `…4.107.1` / `…4.108.1` were removed from `TransferSyntax`, the UID
+  dictionary, the validator and DICOMStudio. Payloads larger than one 32-bit
+  fragment are split, selecting the `….1` twin for MPEG-2 / H.264.
+- **MPEG-TS input is demultiplexed and validated** instead of being accepted
+  only with `--trust-input`: PAT/PMT, video PES reassembly, access-unit
+  count, PTS-derived frame rate when the stream declares none, and audio PIDs.
+- `probe` now reports container and audio violations too, and an H.264 stream
+  too large for Level 4.1 is reported against Level 4.2, the highest H.264
+  ceiling DICOM offers. Remedies are geometry-aware (HEVC to keep the
+  resolution, or an orientation-aware scale to fit H.264 Level 4.2) and quote
+  `'0:a?'` so they paste into zsh.
+- A container display rotation (e.g. portrait iPhone clips) is reported with
+  a warning, since DICOM has no attribute to record it.
+
 ### Added — JPEG XL JPEG Recompression (…4.111) now supports JPEG Extended sources
 
 - `TransferSyntaxConverter` recompresses JPEG Extended (…4.51, SOF1/SOF2) in

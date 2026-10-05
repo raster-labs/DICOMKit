@@ -1466,8 +1466,9 @@ Each data element has:
 
 - ✅ **DICOM Video Support (NEW in v1.6.0)** - DICOM Video IOD support (PS3.3 A.32.5-7)
   - ✅ 3 Video SOP Classes (Video Endoscopic, Video Microscopic, Video Photographic)
-  - ✅ **All 18 Video Transfer Syntaxes** — the nine registry entries and their
-    fragmentable "….1" variants:
+  - ✅ **All 16 Video Transfer Syntaxes** (PS3.6 2026d) — the nine registry
+    entries, plus the fragmentable "….1" variants of the seven MPEG-2 / H.264
+    ones (HEVC `.107` / `.108` are fragmentable in their own right):
     - ✅ MPEG2 Main Profile / Main Level (1.2.840.10008.1.2.4.100)
     - ✅ MPEG2 Main Profile / High Level (1.2.840.10008.1.2.4.101)
     - ✅ MPEG-4 AVC/H.264 High Profile / Level 4.1 (1.2.840.10008.1.2.4.102)
@@ -1479,7 +1480,8 @@ Each data element has:
     - ✅ HEVC/H.265 Main 10 Profile / Level 5.1 (1.2.840.10008.1.2.4.108)
     - ✅ `.104`/`.105`/`.106` are the ones IHE Endoscopy requires of an Image Archive
   - ✅ Encapsulated Pixel Data (PS3.5 A.4), with `allowsMultipleFragments` enforcing
-    the one-fragment rule for every non-fragmentable syntax
+    the one-fragment rule for every non-fragmentable syntax, an empty Basic
+    Offset Table, and Stereo Pairs Present for the 3D / Stereo High syntaxes
   - ✅ `Video` data model with frame rate, duration, resolution, and cine metadata
   - ✅ `VideoType` enum (endoscopic, microscopic, photographic)
   - ✅ `VideoCodec` enum (mpeg2, h264, h265) with compression method identifiers
@@ -1491,9 +1493,12 @@ Each data element has:
 
 - ✅ **Video Conversion & Playback (NEW)** - see `DICOM_VIDEO_CONVERSION_PLAN.md`
   - ✅ Bitstream probing: `H264Parser`, `HEVCParser`, `MPEG2Parser`, `BitstreamReader`
-  - ✅ Container handling: `MP4ContainerParser` (MP4/MOV, `avcC`/`hvcC`/`esds`),
-    `TransportStreamScanner` (MPEG-TS geometry recovery)
-  - ✅ `VideoConformanceValidator` - reject-and-report, naming the violated constraint
+  - ✅ Container handling: `MP4ContainerParser` (MP4/MOV, `avcC`/`hvcC`/`mvcC`/`esds`,
+    audio tracks, display rotation), `TransportStreamScanner` (MPEG-TS demux:
+    PAT/PMT, PES, PTS timing, audio PIDs)
+  - ✅ `VideoConformanceValidator` - reject-and-report against DICOM 2026d PS3.5
+    8.2.5–8.2.12: level picture-size/throughput limits (`VideoLevelLimits`), HEVC
+    tier, MPEG-2 tables, frame packing / Stereo High, and audio (`VideoAudio`)
   - ✅ `VideoExtractor` - recover the encapsulated bit stream, unpadded
   - ✅ `VideoWorkflow` / `VideoConsole` - the shared engine behind the `dicom-video`
     CLI and DICOMStudio's CLI Workshop

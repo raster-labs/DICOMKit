@@ -1,8 +1,8 @@
 # DICOM Video Conversion Plan (H.264 / HEVC / MPEG-2)
 
-**Status:** Phases 1-10 delivered (v1 complete). Phases 11-12 remain future work.
+**Status:** Phases 1-11 delivered. Phase 12 (transcoding) remains out of scope.
 **Created:** 2026-09-09
-**Last updated:** 2026-09-10
+**Last updated:** 2026-10-01
 **Target CLI:** `dicom-video`
 **Owner:** TBD
 
@@ -16,6 +16,29 @@
 > `--trust-input` cannot emit Rows/Columns of zero, though full TS demuxing is still
 > deferred. See the per-phase status table below and the CHANGELOG entry dated
 > 2026-09-10.
+
+> **DICOM 2026d conformance update (2026-10-01).** Audited against PS3.5 8.2.5 -
+> 8.2.12 and PS3.6 Table A-1 (2026d) and fixed:
+> - **Level limits are enforced on the picture, not just `level_idc`** (H.264
+>   Table A-1, H.265 Table A.8): a 4K stream signalled as Level 4.1 is rejected.
+> - **HEVC High tier** is rejected (8.2.10 / 8.2.11 name Main tier).
+> - **MPEG-2**: the level comparison was inverted (a High Level stream passed the
+>   Main Level ceiling); Table 8-1 sizes and rates, and 8.2.6's 1280x720 /
+>   1920x1080, 16:9 and frame-rate rules, are now checked.
+> - **Audio is carried, not discarded**: the payload was always encapsulated
+>   unchanged, so the old "discarding" warning was false. Audio is now validated
+>   against 8.2.12 (AVC/HEVC: LPCM, AC-3, AAC, MP3, MP2 with their rate, channel
+>   and container limits) and 8.2.5 (MPEG-2: CBR MP3 only).
+> - **3D / stereo**: a frame packing SEI selects `.105`, an MVC subset SPS selects
+>   `.106`, and Stereo Pairs Present (0022,0028) = YES is written for both.
+> - **Basic Offset Table** is written empty (8.2.5 / 8.2.6 require it for MPEG-2;
+>   A.4 allows a non-empty one only with an offset per frame).
+> - **HEVC `.107` / `.108` are fragmentable in their own right**; the invented
+>   `.107.1` / `.108.1` UIDs were removed. Payloads over 4 GiB are split, using
+>   the `….1` twin for MPEG-2 / H.264.
+> - **MPEG-TS is demultiplexed and validated** (Phase 11): PAT/PMT, full video
+>   PES reassembly, frame count, PTS-derived frame rate, audio PIDs.
+> - Container display rotation is reported, since DICOM cannot record it.
 
 ---
 
@@ -33,7 +56,7 @@
 | 8 | Batch mode | ✅ Done | `VideoWorkflow.runBatch` |
 | 9 | Integration surface | ✅ Done — **exceeded** | `VideoWorkflow` + `VideoConsole`, CLI Workshop, Studio viewer playback |
 | 10 | Test matrix | ✅ Done | Unit, round-trip, parity and end-to-end suites |
-| 11 | MPEG-TS demuxing | 🟡 Partial | `TransportStreamScanner` reads geometry; PAT/PMT/PES demuxing still deferred |
+| 11 | MPEG-TS demuxing | ✅ Done | `TransportStreamScanner.demux`: PAT/PMT, PES reassembly, PTS timing, audio PIDs |
 | 12 | Transcoding | ⛔ Out of scope | Unchanged — reject-and-report stands |
 
 ---
@@ -109,8 +132,9 @@ The repo defines 6 (`.100`, `.101`, `.102`, `.103`, `.107`, `.108`). The registr
 | `…4.105.1` | Fragmentable H.264 HP@4.2 3D | |
 | **`…4.106`** | **H.264 Stereo HP@4.2** | **IHE-required for endoscopy** |
 | `…4.106.1` | Fragmentable H.264 Stereo HP@4.2 | |
-| `…4.107.1` | Fragmentable HEVC Main@5.1 | |
-| `…4.108.1` | Fragmentable HEVC Main 10@5.1 | |
+
+HEVC has no `….1` twins: `…4.107` and `…4.108` are each a Fragmentable
+Encapsulated Transfer Syntax already (PS3.5 8.2.10 / 8.2.11, PS3.6 Table A-1).
 
 IHE ENDO Table 3.10.4.1.3.1-2 lists `.100`-`.106` as the transfer syntaxes an
 endoscopy Image Archive must support — so **`.104`/`.105`/`.106` are not exotic**,

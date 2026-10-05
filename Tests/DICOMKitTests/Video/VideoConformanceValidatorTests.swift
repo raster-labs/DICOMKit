@@ -198,7 +198,8 @@ final class VideoConformanceValidatorTests: XCTestCase {
         let mismatch = VideoConformanceValidator.validate(
             stream: highLevel, transferSyntax: .mpeg2MainProfile
         )
-        XCTAssertTrue(mismatch.violations.contains(.levelExceedsMaximum(observed: "High", maximum: "Main")),
+        XCTAssertTrue(mismatch.violations.contains(.levelExceedsMaximum(
+            observed: "High", maximum: "Main", codec: .mpeg2, pictureFitsMaximum: false)),
                       mismatch.report)
 
         // Main Level is below the High Level ceiling: "An MPEG2 Main Profile / High Level
@@ -535,7 +536,8 @@ final class VideoConformanceValidatorTests: XCTestCase {
     }
 
     func test_selectTransferSyntax_prefersNonFragmentableForms() {
-        let streams = [h264Stream(), hevcStream(), mpeg2Stream()]
+        // HEVC is left out: .107 and .108 are fragmentable in their own right.
+        let streams = [h264Stream(), mpeg2Stream()]
         for stream in streams {
             let selected = VideoConformanceValidator.selectTransferSyntax(for: stream)
             XCTAssertEqual(selected?.allowsMultipleFragments, false,

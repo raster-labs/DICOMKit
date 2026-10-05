@@ -147,8 +147,6 @@ public enum ImageMetadataHelpers: Sendable {
         case "1.2.840.10008.1.2.4.104.1": return "MPEG-4 AVC/H.264 4.2 2D (fragmentable)"
         case "1.2.840.10008.1.2.4.105.1": return "MPEG-4 AVC/H.264 4.2 3D (fragmentable)"
         case "1.2.840.10008.1.2.4.106.1": return "MPEG-4 AVC/H.264 Stereo 4.2 (fragmentable)"
-        case "1.2.840.10008.1.2.4.107.1": return "HEVC/H.265 Main (fragmentable)"
-        case "1.2.840.10008.1.2.4.108.1": return "HEVC/H.265 Main 10 (fragmentable)"
         default:                          return uid.isEmpty ? "Unknown" : uid
         }
     }

@@ -3571,7 +3571,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "trustInput", flag: "--trust-input", displayName: "Trust Input",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Encapsulate an MPEG-2 Transport Stream without validating it. TS demuxing is deferred, so convert also requires an explicit Transfer Syntax UID.",
+                    helpText: "Encapsulate an MPEG-2 Transport Stream without validating it. Transport streams are demultiplexed and validated by default; this skips that, so convert also requires an explicit Transfer Syntax UID.",
                     isAdvanced: true,
                     defaultValue: "false",
                     visibleWhen: CLIParameterVisibilityCondition(

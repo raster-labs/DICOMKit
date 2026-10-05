@@ -138,7 +138,8 @@ final class MPEG2ParserTests: XCTestCase {
         let high = try XCTUnwrap(MPEG2Parser.parseSequenceHeader(Data(Self.mpHL1920x1080))).streamInfo
         let highInMainSyntax = VideoConformanceValidator.validate(
             stream: high, transferSyntax: .mpeg2MainProfile, numberOfFrames: 1)
-        XCTAssertTrue(highInMainSyntax.violations.contains(.levelExceedsMaximum(observed: "High", maximum: "Main")),
+        XCTAssertTrue(highInMainSyntax.violations.contains(.levelExceedsMaximum(
+            observed: "High", maximum: "Main", codec: .mpeg2, pictureFitsMaximum: false)),
                       "\(highInMainSyntax.violations)")
         let mainInHighSyntax = VideoConformanceValidator.validate(
             stream: main, transferSyntax: .mpeg2MainProfileHighLevel, numberOfFrames: 1)

@@ -57,7 +57,8 @@ public enum MPEG2Parser {
 
         /// The level identifier from `profile_and_level_indication`.
         ///
-        /// ISO/IEC 13818-2 Table 8-11: 4 is High, 6 is High 1440, 8 is Main, 10 is Low.
+        /// Per ITU-T H.262 Table 8-11, identifiers *descend* as levels rise: 4 is
+        /// High, 6 is High 1440, 8 is Main and 10 is Low.
         public var levelIdentifier: Int? {
             guard let value = profileAndLevel else { return nil }
             return value & 0x0F

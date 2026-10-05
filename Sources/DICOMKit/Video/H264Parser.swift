@@ -27,6 +27,17 @@ public enum H264Parser {
     public static let nonIDRSliceNALType: UInt8 = 1
     /// NAL unit type for a coded slice of an IDR picture.
     public static let idrSliceNALType: UInt8 = 5
+    /// NAL unit type for Supplemental Enhancement Information.
+    public static let seiNALType: UInt8 = 6
+    /// NAL unit type for a subset Sequence Parameter Set, which describes the
+    /// non-base views of an MVC (Stereo High / Multiview High) stream.
+    public static let subsetSPSNALType: UInt8 = 15
+
+    /// `profile_idc` of the Stereo High profile (ITU-T H.264 Annex H).
+    public static let stereoHighProfileIDC = 128
+
+    /// SEI `payloadType` of a frame packing arrangement (ITU-T H.264 D.1.26).
+    static let framePackingArrangementPayloadType = 45
 
     /// The `profile_idc` values whose SPS carries the extended chroma / bit-depth
     /// block. Skipping this block for these profiles misreads every later field.
@@ -48,6 +59,11 @@ public enum H264Parser {
         public let width: Int
         /// Height in luma samples, after subtracting the frame crop offsets.
         public let height: Int
+        /// Coded width in luma samples: `PicWidthInMbs * 16`, before cropping.
+        public let codedWidth: Int
+        /// Coded frame height in luma samples: `FrameHeightInMbs * 16`, before
+        /// cropping. For a field-coded stream this is the height of both fields.
+        public let codedHeight: Int
         public let frameMBSOnly: Bool
         /// Frame rate from the VUI timing information, when present.
         public let frameRate: Double?
@@ -63,6 +79,8 @@ public enum H264Parser {
                 && lhs.bitDepthChroma == rhs.bitDepthChroma
                 && lhs.width == rhs.width
                 && lhs.height == rhs.height
+                && lhs.codedWidth == rhs.codedWidth
+                && lhs.codedHeight == rhs.codedHeight
                 && lhs.frameMBSOnly == rhs.frameMBSOnly
                 && lhs.frameRate == rhs.frameRate
                 && lhs.sampleAspectRatio?.width == rhs.sampleAspectRatio?.width
@@ -237,6 +255,8 @@ public enum H264Parser {
             bitDepthChroma: Int(bitDepthChroma),
             width: width,
             height: height,
+            codedWidth: Int(codedWidth),
+            codedHeight: Int(codedHeight),
             frameMBSOnly: frameMBSOnlyFlag,
             frameRate: frameRate,
             sampleAspectRatio: sampleAspectRatio
@@ -251,6 +271,89 @@ public enum H264Parser {
             }
         }
         return nil
+    }
+
+    // MARK: - Subset Sequence Parameter Set
+
+    /// Parses the `seq_parameter_set_data` that opens a subset SPS.
+    ///
+    /// An MVC stream's base view is described by an ordinary SPS - usually High
+    /// profile, so that a 2D decoder can play it - and the dependent view by a
+    /// subset SPS carrying the Stereo High or Multiview High `profile_idc`. Only
+    /// the subset SPS reveals that the stream is stereo at all.
+    ///
+    /// - Parameter nalUnit: The NAL unit **including** its one-byte header.
+    /// - Returns: The parsed fields, or nil if the unit is not a subset SPS.
+    ///
+    /// Reference: ITU-T H.264 Section 7.3.2.1.3 (subset_seq_parameter_set_rbsp)
+    public static func parseSubsetSPS(nalUnit: Data) -> SequenceParameterSet? {
+        guard let first = nalUnit.first else { return nil }
+        guard first & 0x80 == 0, first & 0x1F == subsetSPSNALType else { return nil }
+        return parseSPSPayload(nalUnit.dropFirst())
+    }
+
+    /// The first subset SPS among some NAL units, when there is one.
+    public static func firstSubsetSPS(in nalUnits: [Data]) -> SequenceParameterSet? {
+        for unit in nalUnits {
+            if let sps = parseSubsetSPS(nalUnit: unit) { return sps }
+        }
+        return nil
+    }
+
+    // MARK: - Frame Packing
+
+    /// Whether any of the NAL units is an SEI carrying an active frame packing
+    /// arrangement - the signal that each picture packs two views for 3D.
+    ///
+    /// An arrangement with `frame_packing_arrangement_cancel_flag` set withdraws
+    /// an earlier one, so it does not count.
+    ///
+    /// Reference: ITU-T H.264 Sections 7.3.2.3 (sei_rbsp) and D.1.26
+    public static func containsFramePackingSEI(_ nalUnits: [Data]) -> Bool {
+        nalUnits.contains { unit in
+            guard let header = unit.first, header & 0x1F == seiNALType else { return false }
+            let rbsp = [UInt8](NALUnit.removeEmulationPrevention(Data(unit.dropFirst())))
+            return seiMessagesContainFramePacking(rbsp)
+        }
+    }
+
+    /// Walks the `sei_message` list of one SEI RBSP.
+    private static func seiMessagesContainFramePacking(_ rbsp: [UInt8]) -> Bool {
+        var offset = 0
+        // Each message needs at least a type byte and a size byte; anything
+        // shorter is the rbsp_trailing_bits.
+        while offset + 2 <= rbsp.count {
+            var payloadType = 0
+            while offset < rbsp.count, rbsp[offset] == 0xFF {
+                payloadType += 255
+                offset += 1
+            }
+            guard offset < rbsp.count else { return false }
+            payloadType += Int(rbsp[offset])
+            offset += 1
+
+            var payloadSize = 0
+            while offset < rbsp.count, rbsp[offset] == 0xFF {
+                payloadSize += 255
+                offset += 1
+            }
+            guard offset < rbsp.count else { return false }
+            payloadSize += Int(rbsp[offset])
+            offset += 1
+
+            guard offset + payloadSize <= rbsp.count else { return false }
+            if payloadType == framePackingArrangementPayloadType {
+                var reader = BitstreamReader(bytes: Array(rbsp[offset..<(offset + payloadSize)]))
+                // frame_packing_arrangement_id, then the cancel flag.
+                if reader.readUE() != nil, let cancelled = reader.readBit(), !cancelled {
+                    return true
+                }
+            }
+            offset += payloadSize
+            // rbsp_trailing_bits: a lone stop bit ends the message list.
+            if offset < rbsp.count, rbsp[offset] == 0x80, offset == rbsp.count - 1 { return false }
+        }
+        return false
     }
 
     // MARK: - Access Unit Counting
@@ -379,7 +482,9 @@ extension H264Parser.SequenceParameterSet {
             bitDepthChroma: bitDepthChroma,
             frameRate: frameRate,
             isProgressive: frameMBSOnly,
-            sampleAspectRatio: sampleAspectRatio
+            sampleAspectRatio: sampleAspectRatio,
+            codedWidth: codedWidth,
+            codedHeight: codedHeight
         )
     }
 }

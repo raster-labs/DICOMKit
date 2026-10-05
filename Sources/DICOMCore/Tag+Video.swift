@@ -30,6 +30,15 @@ extension Tag {
     /// The frame number of the last frame of interest in a multi-frame cine image
     public static let stopTrim = Tag(group: 0x0008, element: 0x2143)
 
+    // MARK: - Stereoscopic Video (PS3.5 8.2.8 - 8.2.9)
+
+    /// Stereo Pairs Present (0022,0028)
+    /// VR: CS, VM: 1
+    /// YES when the encapsulated video carries stereoscopic pairs. PS3.5 requires
+    /// YES for the H.264 "For 3D Video" and Stereo High transfer syntaxes, and NO
+    /// or absent for "For 2D Video" (Table 8-8, Section 8.2.9).
+    public static let stereoPairsPresent = Tag(group: 0x0022, element: 0x0028)
+
     // MARK: - Acquisition Context Module
 
     /// Acquisition Duration (0018,9073)

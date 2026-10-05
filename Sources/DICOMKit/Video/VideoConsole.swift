@@ -292,6 +292,9 @@ public enum VideoConsole {
                 }
             }
         }
+        if probe.rotationDegrees != 0 {
+            lines.append("Rotation:         \(probe.rotationDegrees)° (container display matrix)")
+        }
         if let syntax = transferSyntax {
             lines.append("Transfer syntax:  \(syntax.uid)")
             lines.append("                  \(syntax.displayName)")
@@ -476,6 +479,34 @@ public enum VideoConsole {
             kept in the bit stream; DICOMKit does not check \(trackCount == 1 ? "it" : "them") \
             against PS3.5 8.2.5/8.2.12 or describe \(trackCount == 1 ? "its" : "their") channels \
             in (003A,0300).
+            """)
+    }
+
+    /// The note emitted when audio is carried into the object.
+    ///
+    /// The payload is encapsulated unchanged, so its audio travels with it.
+    /// PS3.5 8.2.5 and 8.2.12 permit that, and the tracks have already passed
+    /// their rules by the time this is printed.
+    public static func audioCarriedLine(_ tracks: [AudioStreamInfo]) -> String {
+        let count = tracks.count
+        let summaries = tracks.map(\.summary).joined(separator: "; ")
+        return noteLine("""
+            carrying \(count) audio track\(count == 1 ? "" : "s") (\(summaries)) \
+            inside the encapsulated bit stream, as PS3.5 8.2.5 and 8.2.12 permit.
+            """)
+    }
+
+    /// The warning emitted when the container asks players to rotate the video.
+    ///
+    /// DICOM has no attribute for display rotation, so viewers show the coded
+    /// picture as stored. A warning rather than a rejection: the pixel data is
+    /// intact, and baking the rotation in means re-encoding, which is the
+    /// user's decision.
+    public static func rotationWarningLine(_ degrees: Int) -> String {
+        warningLine("""
+            the container asks players to rotate this video by \(degrees)°, which DICOM \
+            cannot record; DICOM viewers will show it unrotated. To bake the rotation in, \
+            re-encode it (ffmpeg applies the rotation automatically when re-encoding).
             """)
     }
 

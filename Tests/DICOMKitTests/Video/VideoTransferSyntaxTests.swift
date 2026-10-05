@@ -9,14 +9,15 @@ import XCTest
 @testable import DICOMKit
 @testable import DICOMCore
 
-/// Covers all 20 registered video transfer syntaxes.
+/// Covers all 16 registered video transfer syntaxes.
 ///
 /// The repository previously defined only 6, omitting the H.264 Level 4.2 UIDs that
 /// IHE Endoscopy Image Archiving Table 3.10.4.1.3.1-2 requires of an endoscopy
-/// archive, plus all 8 fragmentable variants.
+/// archive, plus the 7 fragmentable variants. HEVC has no ".1" variants: .107
+/// and .108 are each a Fragmentable Encapsulated Transfer Syntax already.
 ///
-/// Reference: PS3.6 Annex A - UID registry
-/// Reference: PS3.5 Sections A.4.5 - A.4.7
+/// Reference: PS3.6 Annex A - UID registry (DICOM 2026d)
+/// Reference: PS3.5 Sections 8.2.5 - 8.2.11, A.4.5 - A.4.7
 final class VideoTransferSyntaxTests: XCTestCase {
 
     /// Every video transfer syntax UID in the registry, with its expected codec.
@@ -35,16 +36,14 @@ final class VideoTransferSyntaxTests: XCTestCase {
         ("1.2.840.10008.1.2.4.105.1", .h264,  true),
         ("1.2.840.10008.1.2.4.106",   .h264,  false),
         ("1.2.840.10008.1.2.4.106.1", .h264,  true),
-        ("1.2.840.10008.1.2.4.107",   .h265,  false),
-        ("1.2.840.10008.1.2.4.107.1", .h265,  true),
-        ("1.2.840.10008.1.2.4.108",   .h265,  false),
-        ("1.2.840.10008.1.2.4.108.1", .h265,  true),
+        ("1.2.840.10008.1.2.4.107",   .h265,  true),
+        ("1.2.840.10008.1.2.4.108",   .h265,  true),
     ]
 
-    func test_allTwentyVideoSyntaxes_areDefined() {
-        // 18 UIDs here: the registry's 20 rows count the two MPEG2 base UIDs plus
-        // their fragmentable twins, which is exactly this list.
-        XCTAssertEqual(Self.allVideoSyntaxes.count, 18)
+    func test_allSixteenVideoSyntaxes_areDefined() {
+        // PS3.6 Table A-1 lists 16 video UIDs: seven MPEG-2/H.264 base UIDs and
+        // their seven ".1" twins, plus the two HEVC UIDs.
+        XCTAssertEqual(Self.allVideoSyntaxes.count, 16)
 
         for entry in Self.allVideoSyntaxes {
             let ts = TransferSyntax.from(uid: entry.uid)
@@ -93,6 +92,22 @@ final class VideoTransferSyntaxTests: XCTestCase {
             XCTAssertEqual(ts.allowsMultipleFragments, entry.fragmentable,
                            "\(entry.uid) fragmentability")
         }
+    }
+
+    func test_hevcIsFragmentableInItsOwnRight_andTheUnregisteredTwinsAreOnlyKept() {
+        // PS3.5 8.2.10 / 8.2.11: .107 and .108 are Fragmentable Encapsulated Transfer Syntaxes
+        // in their own right.
+        XCTAssertTrue(TransferSyntax.hevcH265MainProfile.allowsMultipleFragments)
+        XCTAssertTrue(TransferSyntax.hevcH265Main10Profile.allowsMultipleFragments)
+        // ".107.1" and ".108.1" are not registered UIDs (PS3.6 Table A-1). Origin/main removed
+        // the constants; this branch keeps them by decision (TransferSyntax.swift, Standard2026aTests)
+        // and `dicom-video` refuses them, so the library only recognises them, never offers them.
+        XCTAssertEqual(TransferSyntax.from(uid: "1.2.840.10008.1.2.4.107.1"), .hevcH265MainProfileFragmentable)
+        XCTAssertEqual(TransferSyntax.from(uid: "1.2.840.10008.1.2.4.108.1"), .hevcH265Main10ProfileFragmentable)
+        XCTAssertFalse(VideoConformanceValidator.candidates(for: VideoStreamInfo(
+            codec: .h265, width: 1920, height: 1080, profileIDC: 1, levelTimesTen: 51,
+            chromaFormat: .yuv420, bitDepthLuma: 8, bitDepthChroma: 8, frameRate: 30,
+            isProgressive: true)).contains(.hevcH265MainProfileFragmentable))
     }
 
     func test_allowsMultipleFragments_isFalseForNonVideoSyntaxes() {

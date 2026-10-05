@@ -16,14 +16,38 @@ import DICOMCore
 /// and silently "fixing" non-conformant input would mean re-encoding diagnostic
 /// pixel data.
 ///
-/// Reference: PS3.5 Sections 8.2.5 - 8.2.11
+/// Reference: PS3.5 Sections 8.2.5 - 8.2.12
 public enum VideoConformanceViolation: Sendable, Hashable {
 
     /// The coded profile is not permitted by the transfer syntax.
     case profileNotPermitted(observed: String, observedIDC: Int, required: String, requiredIDC: Int)
 
     /// The coded level exceeds the transfer syntax's ceiling.
-    case levelExceedsMaximum(observed: String, maximum: String)
+    ///
+    /// `pictureFitsMaximum` says whether the stream's actual geometry and frame
+    /// rate would fit the ceiling - in which case only the signalled level is too
+    /// high and re-encoding at the lower level loses nothing - or not, in which
+    /// case the picture has to shrink or the codec has to change.
+    case levelExceedsMaximum(
+        observed: String,
+        maximum: String,
+        codec: VideoCodec = .h264,
+        pictureFitsMaximum: Bool = true
+    )
+
+    /// The coded picture size or throughput exceeds the transfer syntax's level,
+    /// whatever level the stream signals.
+    case levelLimitsExceeded(
+        codec: VideoCodec,
+        width: Int,
+        height: Int,
+        frameRate: Double?,
+        level: String,
+        excesses: [VideoLevelLimits.Excess]
+    )
+
+    /// HEVC High tier, where PS3.5 requires Main tier.
+    case highTierNotPermitted(transferSyntax: String)
 
     /// Chroma subsampling other than 4:2:0.
     case chromaFormatNotPermitted(observed: String)
@@ -75,6 +99,21 @@ public enum VideoConformanceViolation: Sendable, Hashable {
     /// table of PS3.5 Table 8-4.
     case notBluRayCompatible(width: Int, height: Int, frameRate: Double, isProgressive: Bool)
 
+    /// The "For 3D Video" transfer syntax without a frame packing arrangement
+    /// SEI (PS3.5 Table 8-8).
+    case framePackingRequired(transferSyntax: String)
+
+    /// The "For 2D Video" transfer syntax with a frame packing arrangement SEI
+    /// (PS3.5 Table 8-8).
+    case framePackingNotPermitted(transferSyntax: String)
+
+    /// An audio track that breaks PS3.5 8.2.5 or 8.2.12.
+    case audioNotPermitted(track: Int, summary: String, problem: String, videoCodec: VideoCodec)
+
+    /// The payload is too large for the single fragment a non-fragmentable
+    /// transfer syntax allows.
+    case payloadExceedsSingleFragment(byteCount: Int, transferSyntax: String, fragmentableAlternative: String?)
+
     /// The payload is in a container DICOM does not bless.
     case containerNotPermitted(observed: String)
 
@@ -87,8 +126,19 @@ public enum VideoConformanceViolation: Sendable, Hashable {
                 profile_idc \(observedIDC) (\(observed)) is not permitted, \
                 which requires \(required) Profile (\(requiredIDC))
                 """
-        case let .levelExceedsMaximum(observed, maximum):
+        case let .levelExceedsMaximum(observed, maximum, _, _):
             return "level \(observed) exceeds the transfer syntax maximum of \(maximum)"
+        case let .levelLimitsExceeded(_, width, height, frameRate, level, excesses):
+            let rate = frameRate.map { " at " + String(format: "%.3f", $0) + " fps" } ?? ""
+            return """
+                \(width)x\(height)\(rate) does not fit Level \(level): \
+                \(excesses.map(\.description).joined(separator: "; "))
+                """
+        case let .highTierNotPermitted(transferSyntax):
+            return """
+                HEVC High tier is not permitted; transfer syntax \(transferSyntax) \
+                requires Main tier (PS3.5 8.2.10 - 8.2.11)
+                """
         case let .chromaFormatNotPermitted(observed):
             return """
                 chroma format \(observed) is not permitted; DICOM video requires \
@@ -165,6 +215,25 @@ public enum VideoConformanceViolation: Sendable, Hashable {
                 \(columns)x\(rows) at \(String(format: "%.3f", frameRate)) fps exceeds the MPEG2 Main Profile / \
                 Main Level maximum of \(maximumColumns)x\(maximumRows) for that frame rate (PS3.5 Table 8-1)
                 """
+        case let .framePackingRequired(transferSyntax):
+            return """
+                transfer syntax \(transferSyntax) is for 3D video, but the stream \
+                carries no frame packing arrangement SEI (PS3.5 Table 8-8)
+                """
+        case let .framePackingNotPermitted(transferSyntax):
+            return """
+                the stream packs two views per frame (frame packing arrangement \
+                SEI), which transfer syntax \(transferSyntax) for 2D video does not \
+                permit (PS3.5 Table 8-8)
+                """
+        case let .audioNotPermitted(track, summary, problem, _):
+            return "audio track \(track) (\(summary)) \(problem)"
+        case let .payloadExceedsSingleFragment(byteCount, transferSyntax, _):
+            return """
+                the \(byteCount)-byte bit stream exceeds the 4294967294-byte \
+                fragment that transfer syntax \(transferSyntax) requires it to fit \
+                in (PS3.5 8.2.5 - 8.2.8)
+                """
         case let .containerNotPermitted(observed):
             return """
                 \(observed) is not a permitted container; an H.264 or HEVC video \
@@ -178,16 +247,38 @@ public enum VideoConformanceViolation: Sendable, Hashable {
     ///
     /// Re-encoding is the user's decision to make, never something this toolkit
     /// does implicitly: remuxing preserves the camera's pixel data bit-for-bit,
-    /// while re-encoding degrades diagnostic imagery on every pass.
+    /// while re-encoding degrades diagnostic imagery on every pass. Where only the
+    /// audio is at fault, the remedy copies the video untouched.
+    ///
+    /// Multi-line remedies are joined with the report's indentation, so they
+    /// render as one aligned block.
     public var remedy: String? {
         switch self {
         case let .profileNotPermitted(_, _, required, _):
             let profile = required.lowercased().replacingOccurrences(of: " ", with: "")
-            return """
-                ffmpeg -i input.mp4 -c:v libx264 -profile:v \(profile) -level 4.1 fixed.mp4
-                """
-        case .levelExceedsMaximum:
-            return "ffmpeg -i input.mp4 -c:v libx264 -profile:v high -level 4.1 fixed.mp4"
+            return Remedy.h264(profile: profile, level: "4.1")
+        case let .levelExceedsMaximum(_, maximum, codec, fits):
+            switch codec {
+            case .h264 where fits:
+                return Remedy.lines([
+                    "The picture fits Level \(maximum); re-encode with that level signalled:",
+                    Remedy.h264(level: maximum),
+                ])
+            case .h264:
+                return Remedy.h264TooLarge
+            case .h265:
+                return Remedy.hevcTooLarge
+            case .mpeg2, .unknown:
+                return Remedy.mpeg2ToH264
+            }
+        case let .levelLimitsExceeded(codec, _, _, _, _, _):
+            switch codec {
+            case .h264: return Remedy.h264TooLarge
+            case .h265: return Remedy.hevcTooLarge
+            case .mpeg2, .unknown: return Remedy.mpeg2ToH264
+            }
+        case .highTierNotPermitted:
+            return Remedy.hevc(filter: nil)
         case .chromaFormatNotPermitted:
             return "ffmpeg -i input.mp4 -c:v libx264 -pix_fmt yuv420p fixed.mp4"
         case .bitDepthNotRepresentable, .bitDepthMismatch:
@@ -199,8 +290,26 @@ public enum VideoConformanceViolation: Sendable, Hashable {
                 Use transfer syntax 1.2.840.10008.1.2.4.102 (H.264 HP@4.1) or \
                 1.2.840.10008.1.2.4.104 (HP@4.2) instead of the BD-compatible UID.
                 """
+        case .framePackingRequired:
+            return """
+                Use transfer syntax 1.2.840.10008.1.2.4.104 for 2D video, or encode the \
+                3D pair with a frame packing SEI (x264: -x264-params frame-packing=3).
+                """
+        case .framePackingNotPermitted:
+            return "Use transfer syntax 1.2.840.10008.1.2.4.105 (For 3D Video) instead."
+        case let .audioNotPermitted(_, _, _, videoCodec):
+            let audio = videoCodec == .mpeg2 ? Remedy.mp3Audio : Remedy.aacAudio
+            return Remedy.lines([
+                "Re-encode only the audio; the video is copied bit-for-bit:",
+                "ffmpeg -i input.mp4 -map 0:v:0 -map 0:a -c:v copy \(audio) fixed.mp4",
+                "or drop the audio:",
+                "ffmpeg -i input.mp4 -map 0:v:0 -c copy fixed.mp4",
+            ])
+        case let .payloadExceedsSingleFragment(_, _, alternative):
+            guard let alternative = alternative else { return nil }
+            return "Use the fragmentable transfer syntax: --transfer-syntax \(alternative)"
         case .containerNotPermitted:
-            return "ffmpeg -i input -c copy output.mp4"
+            return "ffmpeg -i input.mov -map 0:v:0 -map '0:a?' -c copy output.mp4"
         case .mpeg2HighLevelGeometryNotPermitted, .mpeg2AspectRatioNotPermitted:
             return """
                 ffmpeg -i input -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1" \
@@ -221,6 +330,84 @@ public enum VideoConformanceViolation: Sendable, Hashable {
             return nil
         }
     }
+
+    /// Names an MPEG-2 `aspect_ratio_information` value (ITU-T H.262 Table 6-3).
+    static func mpeg2AspectName(_ value: Int) -> String {
+        switch value {
+        case 1: return "square samples"
+        case 2: return "4:3"
+        case 3: return "16:9"
+        case 4: return "2.21:1"
+        default: return "reserved"
+        }
+    }
+}
+
+/// The ffmpeg command lines the remedies are built from, kept in one place so
+/// that every suggestion produces audio and video DICOM accepts.
+enum Remedy {
+    /// Indentation of a continuation line inside a violation report.
+    static let indent = "\n       "
+
+    static func lines(_ lines: [String]) -> String {
+        lines.joined(separator: indent)
+    }
+
+    /// AAC at the 48 kHz stereo PS3.5 8.2.12 requires.
+    static let aacAudio = "-c:a aac -ar 48000 -ac 2 -b:a 192k"
+
+    /// CBR MP3, the only audio PS3.5 8.2.5 permits beside MPEG-2 video.
+    static let mp3Audio = "-c:a libmp3lame -ar 48000 -b:a 192k"
+
+    /// A scale filter that fits the picture inside 1920x1080 - or 1080x1920
+    /// for a portrait clip - without changing its shape, so the result fits
+    /// H.264 Level 4.1 / 4.2 picture sizes either way up.
+    static let fitWithin1080p = fit(long: 1920, short: 1080)
+
+    /// The same for 3840x2160 and HEVC Level 5.1.
+    static let fitWithin2160p = fit(long: 3840, short: 2160)
+
+    private static func fit(long: Int, short: Int) -> String {
+        "scale='if(gte(iw,ih),\(long),\(short))':'if(gte(iw,ih),\(short),\(long))'"
+            + ":force_original_aspect_ratio=decrease:force_divisible_by=2"
+    }
+
+    static func h264(profile: String = "high", level: String, filter: String? = nil) -> String {
+        let vf = filter.map { "-vf \"\($0)\" " } ?? ""
+        return "ffmpeg -i input.mp4 \(vf)-c:v libx264 -profile:v \(profile) -level \(level) "
+            + "-pix_fmt yuv420p \(aacAudio) fixed.mp4"
+    }
+
+    static func hevc(filter: String?) -> String {
+        let vf = filter.map { "-vf \"\($0)\" " } ?? ""
+        return "ffmpeg -i input.mp4 \(vf)-c:v libx265 -tag:v hvc1 -profile:v main "
+            + "-x265-params level-idc=5.1:high-tier=0 -pix_fmt yuv420p \(aacAudio) fixed.mp4"
+    }
+
+    static let h264TooLarge = lines([
+        "Keep the resolution by re-encoding as HEVC Main @ Level 5.1 (1.2.840.10008.1.2.4.107):",
+        hevc(filter: nil),
+        "or scale down to fit H.264 Level 4.2 (1.2.840.10008.1.2.4.104):",
+        h264(level: "4.2", filter: fitWithin1080p),
+    ])
+
+    static let hevcTooLarge = lines([
+        "Scale down to fit HEVC Level 5.1 (at most 4K at 60 fps):",
+        hevc(filter: fitWithin2160p),
+    ])
+
+    static let mpeg2MainLevel =
+        "ffmpeg -i input.mpg -vf scale=720:576 -c:v mpeg2video -profile:v 4 -level:v 8 "
+        + "-b:v 8M -maxrate 15M -bufsize 1835k \(mp3Audio) -f mpegts fixed.ts"
+
+    static let mpeg2HighLevel =
+        "ffmpeg -i input.mpg -vf scale=1920:1080 -aspect 16:9 -c:v mpeg2video -profile:v 4 "
+        + "-level:v 4 -b:v 40M -maxrate 80M -bufsize 9781k \(mp3Audio) -f mpegts fixed.ts"
+
+    static let mpeg2ToH264 = lines([
+        "Convert to H.264, which has no fixed picture sizes:",
+        h264(level: "4.2", filter: fitWithin1080p),
+    ])
 }
 
 /// The outcome of validating a bit stream against a transfer syntax.
@@ -251,7 +438,7 @@ public struct VideoConformanceResult: Sendable {
 ///
 /// Non-conformant input is rejected and reported, never silently re-encoded.
 ///
-/// Reference: PS3.5 Sections 8.2.5 - 8.2.11
+/// Reference: PS3.5 Sections 8.2.5 - 8.2.12
 public enum VideoConformanceValidator {
 
     // MARK: - Transfer Syntax Constraints
@@ -465,6 +652,10 @@ public enum VideoConformanceValidator {
 
     // MARK: - Validation
 
+    /// The largest fragment PS3.5 allows: an Item's length is a 32-bit value and
+    /// must be even, and 0xFFFFFFFF is reserved for undefined length.
+    public static let maximumFragmentLength = 0xFFFF_FFFE
+
     /// Validates a probed bit stream against a transfer syntax.
     ///
     /// - Parameters:
@@ -510,21 +701,50 @@ public enum VideoConformanceValidator {
             ))
         }
 
-        // Level must not exceed the ceiling. MPEG-2 codes levels as descending
-        // identifiers (ISO/IEC 13818-2 Table 8-11: High 4, High 1440 6, Main 8, Low 10),
-        // so a higher level is a *smaller* identifier and the comparison inverts.
-        if stream.codec == .mpeg2 {
+        // HEVC: Main tier only.
+        if stream.codec == .h265, stream.isHighTier {
+            violations.append(.highTierNotPermitted(transferSyntax: transferSyntax.uid))
+        }
+
+        // Level. The signalled level must not exceed the ceiling, and - since
+        // PS3.5 requires Rows, Columns and frame rate to be *compliant with* the
+        // level - what the stream actually codes must fit the ceiling too.
+        switch stream.codec {
+        case .mpeg2:
+            // MPEG-2 codes levels as descending identifiers (ISO/IEC 13818-2 Table 8-11: High 4,
+            // High 1440 6, Main 8, Low 10), so a higher level is a *smaller* identifier and the
+            // comparison inverts. Rows, Columns, frame rate and aspect ratio are checked below
+            // against PS3.5 2026a Tables 8-1 to 8-3.
             if stream.levelTimesTen != 0, stream.levelTimesTen < constraints.maximumLevelTimesTen {
                 violations.append(.levelExceedsMaximum(
                     observed: VideoStreamInfo.mpeg2LevelName(stream.levelTimesTen),
-                    maximum: VideoStreamInfo.mpeg2LevelName(constraints.maximumLevelTimesTen)
+                    maximum: VideoStreamInfo.mpeg2LevelName(constraints.maximumLevelTimesTen),
+                    codec: .mpeg2,
+                    pictureFitsMaximum: false
                 ))
             }
-        } else if stream.levelTimesTen > constraints.maximumLevelTimesTen {
-            violations.append(.levelExceedsMaximum(
-                observed: stream.levelDescription,
-                maximum: levelDescription(constraints.maximumLevelTimesTen)
-            ))
+        case .h264, .h265:
+            let excesses = VideoLevelLimits.excesses(
+                of: stream, levelTimesTen: constraints.maximumLevelTimesTen)
+            if stream.levelTimesTen > constraints.maximumLevelTimesTen {
+                violations.append(.levelExceedsMaximum(
+                    observed: stream.levelDescription,
+                    maximum: levelDescription(constraints.maximumLevelTimesTen),
+                    codec: stream.codec,
+                    pictureFitsMaximum: excesses.isEmpty
+                ))
+            } else if !excesses.isEmpty {
+                violations.append(.levelLimitsExceeded(
+                    codec: stream.codec,
+                    width: stream.width,
+                    height: stream.height,
+                    frameRate: stream.frameRate,
+                    level: levelDescription(constraints.maximumLevelTimesTen),
+                    excesses: excesses
+                ))
+            }
+        case .unknown:
+            break
         }
 
         // Chroma must be 4:2:0.
@@ -543,8 +763,10 @@ public enum VideoConformanceValidator {
             ))
         }
 
-        // Pixels must be square, since Pixel Aspect Ratio must be absent.
-        if let sar = stream.sampleAspectRatio, sar.width != sar.height {
+        // Pixels must be square, since Pixel Aspect Ratio must be absent. MPEG-2
+        // Main Level is the exception (PS3.5 8.2.5 permits every aspect ratio
+        // Main Level does), and High Level is checked by its own 16:9 rule.
+        if stream.codec != .mpeg2, let sar = stream.sampleAspectRatio, sar.width != sar.height {
             violations.append(.anamorphicPixels(width: sar.width, height: sar.height))
         }
 
@@ -608,66 +830,150 @@ public enum VideoConformanceValidator {
             }
         }
 
+        // PS3.5 Table 8-8: frame packing is required for 3D and forbidden for 2D.
+        // Nil means the pictures were not inspected; only "For 3D" then fails,
+        // because its requirement is positive.
+        switch baseUID(transferSyntax) {
+        case TransferSyntax.mpeg4AVCHP42For3DVideo.uid where stream.hasFramePacking != true:
+            violations.append(.framePackingRequired(transferSyntax: transferSyntax.uid))
+        case TransferSyntax.mpeg4AVCHP42For2DVideo.uid where stream.hasFramePacking == true:
+            violations.append(.framePackingNotPermitted(transferSyntax: transferSyntax.uid))
+        default:
+            break
+        }
+
+        return VideoConformanceResult(violations: violations)
+    }
+
+    /// Validates what PS3.5 constrains about an input: the container, the video bit
+    /// stream, and whether the payload fits the fragmentation the transfer syntax
+    /// allows. Audio is checked separately (see below).
+    ///
+    /// - Parameters:
+    ///   - probe: The probed input.
+    ///   - transferSyntax: The transfer syntax the caller intends to write.
+    ///   - payloadByteCount: The size of the bit stream to be encapsulated.
+    public static func validate(
+        probe: VideoProbeResult,
+        transferSyntax: TransferSyntax,
+        payloadByteCount: Int? = nil
+    ) -> VideoConformanceResult {
+        var violations: [VideoConformanceViolation] = []
+
+        if !probe.container.isPermittedByDICOM(for: probe.stream.codec) {
+            violations.append(.containerNotPermitted(observed: probe.container.displayName))
+        }
+
+        violations += validate(
+            stream: probe.stream,
+            transferSyntax: transferSyntax,
+            numberOfFrames: probe.frameCount
+        ).violations
+
+        // Audio is not part of this verdict. Audio that breaks PS3.5 8.2.5 / 8.2.12 is reported
+        // as warnings by `validateAudio(tracks:container:transferSyntax:)` and the audio notices
+        // (`dicom-video` has no strict mode, and the payload is never altered). Origin/main's
+        // `VideoAudioRules.problems` / `.audioNotPermitted` would turn the same findings into a
+        // rejection; that difference is left for the owners to decide.
+
+        if let bytes = payloadByteCount, bytes + bytes % 2 > maximumFragmentLength,
+           !transferSyntax.allowsMultipleFragments {
+            violations.append(.payloadExceedsSingleFragment(
+                byteCount: bytes,
+                transferSyntax: transferSyntax.uid,
+                fragmentableAlternative: fragmentableVariant(of: transferSyntax)?.uid
+            ))
+        }
+
         return VideoConformanceResult(violations: violations)
     }
 
     // MARK: - Transfer Syntax Selection
 
+    /// The transfer syntaxes that could carry a stream, in preference order.
+    ///
+    /// Non-fragmentable forms first: they are always legal when the payload fits
+    /// one fragment and are the simplest to write. For H.264, Level 4.1 (.102)
+    /// before Level 4.2 (.104). The BD-compatible UID (.103) is never offered,
+    /// since it adds constraints without adding capability.
+    static func candidates(for stream: VideoStreamInfo) -> [TransferSyntax] {
+        switch stream.codec {
+        case .mpeg2:
+            return [.mpeg2MainProfile, .mpeg2MainProfileHighLevel]
+        case .h264:
+            if stream.profileIDC == H264Parser.stereoHighProfileIDC { return [.mpeg4AVCStereoHP42] }
+            if stream.hasFramePacking == true { return [.mpeg4AVCHP42For3DVideo] }
+            return [.mpeg4AVCHP41, .mpeg4AVCHP42For2DVideo]
+        case .h265:
+            return stream.bitDepthLuma == 10 ? [.hevcH265Main10Profile] : [.hevcH265MainProfile]
+        case .unknown:
+            return []
+        }
+    }
+
     /// Chooses the transfer syntax that fits a probed bit stream.
     ///
-    /// Prefers the non-fragmentable form, which is always legal and simplest to
-    /// write. For H.264 it prefers Level 4.1 (.102) and falls back to Level 4.2
-    /// (.104), so 1080p60 is accepted rather than rejected — it is legal at 4.2.
-    /// The BD-compatible UID (.103) is never chosen automatically, since it adds
-    /// constraints without adding capability.
+    /// The first candidate the stream validates against wins, so a selection is
+    /// always one the validator accepts: 1080p60 lands on Level 4.2 (.104), a
+    /// frame-packed stream on "For 3D Video" (.105), an MVC stream on Stereo High
+    /// (.106).
     ///
     /// - Returns: The transfer syntax, or nil when no video transfer syntax can
     ///   carry the stream.
     public static func selectTransferSyntax(for stream: VideoStreamInfo) -> TransferSyntax? {
-        switch stream.codec {
-        case .mpeg2:
-            guard stream.profileIDC == 4 else { return nil }
-            // Main Level (8) is the tighter of the two; High Level (4) covers HD.
-            if stream.levelTimesTen >= 8 {
-                // PS3.5 2026a Table 8-1: 25 or 30 (29.97) fps within that rate's maximum geometry.
-                return mpeg2FrameRateViolations(frameRate: stream.frameRate, rows: stream.height,
-                                                columns: stream.width, highLevel: false).isEmpty
-                    ? .mpeg2MainProfile : nil
-            }
-            // High Level (4) only; MP@H-14 (6) "is not supported by this Transfer Syntax"
-            // (PS3.5 2026a 8.2.6), and neither is a geometry other than 1280x720 / 1920x1080
-            // nor a frame rate outside Table 8-2 / Table 8-3.
-            if stream.levelTimesTen == 4,
-               (stream.height == 720 && stream.width == 1280) || (stream.height == 1080 && stream.width == 1920),
-               mpeg2FrameRateViolations(frameRate: stream.frameRate, rows: stream.height,
-                                        columns: stream.width, highLevel: true).isEmpty {
-                return .mpeg2MainProfileHighLevel
-            }
-            return nil
-
-        case .h264:
-            if stream.profileIDC == 128 {
-                return stream.levelTimesTen <= 42 ? .mpeg4AVCStereoHP42 : nil
-            }
-            guard stream.profileIDC == 100 else { return nil }
-            if stream.levelTimesTen <= 41 { return .mpeg4AVCHP41 }
-            if stream.levelTimesTen <= 42 { return .mpeg4AVCHP42For2DVideo }
-            return nil
-
-        case .h265:
-            guard stream.levelTimesTen <= 51 else { return nil }
-            switch stream.bitDepthLuma {
-            case 8 where stream.profileIDC == 1: return .hevcH265MainProfile
-            case 10 where stream.profileIDC == 2: return .hevcH265Main10Profile
-            default: return nil
-            }
-
-        case .unknown:
-            return nil
+        candidates(for: stream).first { candidate in
+            validate(stream: stream, transferSyntax: candidate).isConformant
         }
     }
 
+    /// Chooses the transfer syntax for a stream and payload size, moving to the
+    /// fragmentable variant when the payload cannot fit one fragment.
+    public static func selectTransferSyntax(
+        for stream: VideoStreamInfo,
+        payloadByteCount: Int
+    ) -> TransferSyntax? {
+        guard let selected = selectTransferSyntax(for: stream) else { return nil }
+        guard payloadByteCount + payloadByteCount % 2 > maximumFragmentLength,
+              !selected.allowsMultipleFragments
+        else { return selected }
+        return fragmentableVariant(of: selected)
+    }
+
+    /// The transfer syntax whose constraints best explain a rejection: the one
+    /// the stream comes closest to fitting.
+    public static func closestCandidate(for stream: VideoStreamInfo) -> TransferSyntax {
+        switch stream.codec {
+        case .h264:
+            if stream.profileIDC == H264Parser.stereoHighProfileIDC { return .mpeg4AVCStereoHP42 }
+            if stream.hasFramePacking == true { return .mpeg4AVCHP42For3DVideo }
+            let fitsLevel41 = stream.levelTimesTen <= 41
+                && VideoLevelLimits.excesses(of: stream, levelTimesTen: 41).isEmpty
+            return fitsLevel41 ? .mpeg4AVCHP41 : .mpeg4AVCHP42For2DVideo
+        case .h265:
+            return stream.bitDepthLuma == 10 ? .hevcH265Main10Profile : .hevcH265MainProfile
+        case .mpeg2:
+            return stream.levelTimesTen == 4 || stream.height > 576
+                ? .mpeg2MainProfileHighLevel : .mpeg2MainProfile
+        case .unknown:
+            return .mpeg4AVCHP41
+        }
+    }
+
+    /// The "….1" twin of a non-fragmentable MPEG-2 or H.264 transfer syntax.
+    /// HEVC has none; it is fragmentable already.
+    public static func fragmentableVariant(of transferSyntax: TransferSyntax) -> TransferSyntax? {
+        guard transferSyntax.isVideo, !transferSyntax.allowsMultipleFragments else { return nil }
+        return TransferSyntax.from(uid: transferSyntax.uid + ".1")
+    }
+
     // MARK: - Private
+
+    /// The UID with any fragmentable ".1" suffix removed.
+    private static func baseUID(_ transferSyntax: TransferSyntax) -> String {
+        let uid = transferSyntax.uid
+        return transferSyntax.isVideo && !transferSyntax.isH265 && uid.hasSuffix(".1")
+            ? String(uid.dropLast(2)) : uid
+    }
 
     /// Renders a level-times-ten value as "4.1".
     private static func levelDescription(_ levelTimesTen: Int) -> String {

@@ -243,6 +243,33 @@ public enum NALUnit {
         return units
     }
 
+    /// Splits a length-prefixed sample, the ISO-BMFF form of a coded picture,
+    /// into its NAL units.
+    ///
+    /// MP4 stores NAL units behind a big-endian length of 1, 2 or 4 bytes - the
+    /// `lengthSizeMinusOne + 1` of the `avcC` / `hvcC` record - rather than
+    /// behind Annex B start codes. A truncated or malformed length ends the walk
+    /// rather than misreading the rest of the sample.
+    ///
+    /// Reference: ISO/IEC 14496-15 Sections 5.3.2 and 8.3.2
+    public static func splitLengthPrefixed(_ data: Data, lengthSize: Int) -> [Data] {
+        guard [1, 2, 4].contains(lengthSize) else { return [] }
+        let bytes = [UInt8](data)
+        var units: [Data] = []
+        var offset = 0
+        while offset + lengthSize <= bytes.count {
+            var length = 0
+            for index in 0..<lengthSize {
+                length = (length << 8) | Int(bytes[offset + index])
+            }
+            offset += lengthSize
+            guard length > 0, offset + length <= bytes.count else { break }
+            units.append(Data(bytes[offset..<(offset + length)]))
+            offset += length
+        }
+        return units
+    }
+
     /// Whether the buffer begins with an Annex B start code.
     public static func hasAnnexBStartCode(_ data: Data) -> Bool {
         let bytes = [UInt8](data.prefix(4))

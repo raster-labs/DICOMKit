@@ -44,6 +44,10 @@ public enum HEVCParser {
         public let width: Int
         /// Height in luma samples, after subtracting the conformance window.
         public let height: Int
+        /// `pic_width_in_luma_samples`: the coded width, before the window.
+        public let codedWidth: Int
+        /// `pic_height_in_luma_samples`: the coded height, before the window.
+        public let codedHeight: Int
         public let bitDepthLuma: Int
         public let bitDepthChroma: Int
         /// Frame rate from the VUI timing information, when present.
@@ -58,6 +62,8 @@ public enum HEVCParser {
                 && lhs.chromaFormatIDC == rhs.chromaFormatIDC
                 && lhs.width == rhs.width
                 && lhs.height == rhs.height
+                && lhs.codedWidth == rhs.codedWidth
+                && lhs.codedHeight == rhs.codedHeight
                 && lhs.bitDepthLuma == rhs.bitDepthLuma
                 && lhs.bitDepthChroma == rhs.bitDepthChroma
                 && lhs.frameRate == rhs.frameRate
@@ -170,6 +176,8 @@ public enum HEVCParser {
             chromaFormatIDC: Int(chromaFormatIDC),
             width: width,
             height: height,
+            codedWidth: Int(picWidth),
+            codedHeight: Int(picHeight),
             bitDepthLuma: Int(bitDepthLumaMinus8) + 8,
             bitDepthChroma: Int(bitDepthChromaMinus8) + 8,
             frameRate: frameRate,
@@ -474,7 +482,10 @@ extension HEVCParser.SequenceParameterSet {
             bitDepthChroma: bitDepthChroma,
             frameRate: frameRate,
             isProgressive: true,
-            sampleAspectRatio: sampleAspectRatio
+            sampleAspectRatio: sampleAspectRatio,
+            codedWidth: codedWidth,
+            codedHeight: codedHeight,
+            isHighTier: isHighTier
         )
     }
 }

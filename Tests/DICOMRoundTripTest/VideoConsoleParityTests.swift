@@ -234,6 +234,7 @@ final class VideoConsoleParityTests: XCTestCase {
     /// names the tracks without calling them discarded or forbidden (D34).
     func testProbeReportNamesCarriedAudioTracks() throws {
         let outcome = try VideoWorkflow.probe(bitstream: h264MP4WithAudio())
+        XCTAssertEqual(outcome.exitCode, .success)
         XCTAssertTrue(outcome.output.contains(
             "Audio tracks:     1 (carried in the bit stream; not checked against PS3.5 8.2.5/8.2.12)"),
             outcome.output)
@@ -265,7 +266,7 @@ final class VideoConsoleParityTests: XCTestCase {
                       "naming the type explicitly must silence the notice")
     }
 
-    func testAudioWarningIsEmittedOnConvert() throws {
+    func testAudioNoteIsEmittedOnConvert() throws {
         let outcome = try VideoWorkflow.convert(
             bitstream: h264MP4WithAudio(), type: .endoscopic,
             typeWasExplicit: true, dryRun: true)
@@ -331,7 +332,7 @@ final class VideoConsoleParityTests: XCTestCase {
             }
             XCTAssertEqual(failure.exitCode, .conformanceRejection)
             XCTAssertTrue(failure.message.contains("QuickTime (MOV) is not a permitted container"))
-            XCTAssertTrue(failure.message.contains("ffmpeg -i input -c copy output.mp4"),
+            XCTAssertTrue(failure.message.contains("ffmpeg -i input.mov -map 0:v:0 -map '0:a?' -c copy output.mp4"),
                           "a rejection has to carry its remedy")
         }
     }
@@ -604,7 +605,9 @@ final class VideoConsoleParityTests: XCTestCase {
     }
 
     /// Every video transfer syntax is encapsulated (PS3.5 A.4), and the
-    /// non-fragmentable ones want the whole stream in one fragment.
+    /// non-fragmentable ones want the whole stream in one fragment. The Basic
+    /// Offset Table is present but empty: A.4 allows a non-empty one only with
+    /// an offset per frame, which an inter-coded stream does not have.
     func testPixelDataIsEncapsulatedInASingleFragment() throws {
         let outcome = try VideoWorkflow.convert(
             bitstream: h264MP4(), type: .endoscopic, typeWasExplicit: true)
@@ -784,7 +787,7 @@ final class VideoConsoleParityTests: XCTestCase {
         XCTAssertTrue(outcome.output.isEmpty,
                       "nothing was converted, so there is no result to capture")
         XCTAssertTrue(outcome.diagnostics.contains(
-            "ffmpeg -i input -c copy output.mp4\n\nStopped at 'bad.mov'. 0 file(s) already written."),
+            "-c copy output.mp4\n\nStopped at 'bad.mov'. 0 file(s) already written."),
             "one blank line separates the remedy from the stop report, not two")
     }
 
@@ -935,6 +938,10 @@ final class VideoConsoleParityTests: XCTestCase {
             warning: input has 2 audio tracks, kept in the bit stream; DICOMKit does not \
             check them against PS3.5 8.2.5/8.2.12 or describe their channels in (003A,0300).
             """)
+        XCTAssertEqual(
+            VideoConsole.audioCarriedLine([AudioStreamInfo(format: .aac, sampleRate: 48_000, channels: 2)]),
+            "note: carrying 1 audio track (AAC, 48 kHz, 2 ch) inside the encapsulated bit stream, "
+                + "as PS3.5 8.2.5 and 8.2.12 permit.")
     }
 
     /// A rejection is only actionable if it names the constraint and the fix.

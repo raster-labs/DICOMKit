@@ -109,6 +109,18 @@ public enum MP4ContainerParser {
         public let parameterSets: [Data]
         /// Frame rate derived from the media timescale and sample durations.
         public let frameRate: Double?
+        /// The rotation the track header's matrix asks a player to apply, in
+        /// degrees clockwise (0, 90, 180 or 270).
+        ///
+        /// DICOM has no attribute for this: Rows and Columns describe the coded
+        /// picture, so a rotated clip displays sideways in a DICOM viewer.
+        public var rotationDegrees: Int = 0
+        /// Subset SPS NAL units from an `mvcC` box, which describe the dependent
+        /// view of an MVC stereo stream.
+        public var subsetParameterSets: [Data] = []
+        /// NAL units from the first few coded pictures, for facts only the
+        /// pictures carry - such as a frame packing arrangement SEI.
+        public var leadingNALUnits: [Data] = []
     }
 
     /// A summary of an MP4 file's structure.
@@ -331,7 +343,8 @@ public enum MP4ContainerParser {
             }
             guard handler == "vide" else { continue }
 
-            if let track = parseVideoTrack(data, mdiaRange: mdiaRange) {
+            if var track = parseVideoTrack(data, mdiaRange: mdiaRange) {
+                track.rotationDegrees = rotationDegrees(data, trakRange: trakRange)
                 videoTracks.append(track)
             }
         }
@@ -383,7 +396,7 @@ public enum MP4ContainerParser {
 
         let codec: VideoCodec
         switch sampleEntry.type {
-        case "avc1", "avc3", "avc2", "avc4":
+        case "avc1", "avc3", "avc2", "avc4", "mvc1", "mvc2":
             codec = .h264
         case "hvc1", "hev1", "hvc2", "hev2":
             codec = .h265
@@ -401,12 +414,24 @@ public enum MP4ContainerParser {
         let extensionsStart = sampleEntry.payloadOffset + 78
         let sampleEntryEnd = sampleEntry.offset + sampleEntry.size
         var parameterSets: [Data] = []
+        var subsetParameterSets: [Data] = []
+        var nalLengthSize: Int?
         if extensionsStart < sampleEntryEnd {
             let extensionRange = extensionsStart..<sampleEntryEnd
+            // MVC records the dependent view's subset SPS in its own box, beside
+            // (or, for an MVC-only entry, instead of) the base view's avcC.
+            if let mvcC = findBox(type: "mvcC", in: data, range: extensionRange) {
+                subsetParameterSets = parseAVCC(data, box: mvcC)
+                nalLengthSize = lengthSize(data, configurationBox: mvcC, offsetOfLengthByte: 4)
+            }
             if let avcC = findBox(type: "avcC", in: data, range: extensionRange) {
                 parameterSets = parseAVCC(data, box: avcC)
+                nalLengthSize = lengthSize(data, configurationBox: avcC, offsetOfLengthByte: 4)
             } else if let hvcC = findBox(type: "hvcC", in: data, range: extensionRange) {
                 parameterSets = parseHVCC(data, box: hvcC)
+                nalLengthSize = lengthSize(data, configurationBox: hvcC, offsetOfLengthByte: 21)
+            } else if !subsetParameterSets.isEmpty {
+                parameterSets = subsetParameterSets
             } else if codec == .mpeg2,
                       let esds = findBox(type: "esds", in: data, range: extensionRange),
                       let config = parseESDSDecoderSpecificInfo(data, box: esds) {
@@ -440,7 +465,7 @@ public enum MP4ContainerParser {
             }
         }
 
-        return TrackInfo(
+        var track = TrackInfo(
             codec: codec,
             width: width,
             height: height,
@@ -448,6 +473,128 @@ public enum MP4ContainerParser {
             parameterSets: parameterSets,
             frameRate: frameRate
         )
+        track.subsetParameterSets = subsetParameterSets
+        // The first few pictures are enough: an encoder that packs frames for
+        // 3D repeats the arrangement SEI with the first IDR picture.
+        if let lengthSize = nalLengthSize, codec == .h264 || codec == .h265 {
+            for range in sampleRanges(data, stblRange: stblRange, limit: leadingSampleCount) {
+                track.leadingNALUnits += NALUnit.splitLengthPrefixed(
+                    data.subdata(in: range), lengthSize: lengthSize)
+            }
+        }
+        return track
+    }
+
+    /// How many leading coded pictures are scanned for in-band facts.
+    private static let leadingSampleCount = 4
+
+    /// Reads `lengthSizeMinusOne + 1` from an `avcC` / `mvcC` / `hvcC` record.
+    private static func lengthSize(_ data: Data, configurationBox box: Box, offsetOfLengthByte: Int) -> Int? {
+        guard let byte = readUInt8(data, at: box.payloadOffset + offsetOfLengthByte) else { return nil }
+        return Int(byte & 0x03) + 1
+    }
+
+    // MARK: - Sample Table
+
+    /// The file ranges of the first `limit` samples of a track.
+    ///
+    /// Samples are located by walking the sample-to-chunk table against the
+    /// chunk offsets and sample sizes, which is the only way ISO-BMFF says
+    /// where a sample is. Stops early rather than guessing on a malformed table.
+    ///
+    /// Reference: ISO/IEC 14496-12 Sections 8.7.3 - 8.7.5
+    static func sampleRanges(_ data: Data, stblRange: Range<Int>, limit: Int) -> [Range<Int>] {
+        guard limit > 0 else { return [] }
+
+        // Sample sizes: a constant size, or a table of them.
+        var sizes: [Int] = []
+        var constantSize = 0
+        var sampleCount = 0
+        if let stsz = findBox(type: "stsz", in: data, range: stblRange) {
+            constantSize = Int(readUInt32(data, at: stsz.payloadOffset + 4) ?? 0)
+            sampleCount = Int(readUInt32(data, at: stsz.payloadOffset + 8) ?? 0)
+            if constantSize == 0 {
+                for index in 0..<min(sampleCount, limit) {
+                    guard let size = readUInt32(data, at: stsz.payloadOffset + 12 + index * 4) else { break }
+                    sizes.append(Int(size))
+                }
+            }
+        }
+        func size(of sample: Int) -> Int? {
+            if constantSize > 0 { return sample < sampleCount ? constantSize : nil }
+            return sample < sizes.count ? sizes[sample] : nil
+        }
+
+        // Chunk offsets, 32- or 64-bit.
+        var chunkOffsets: [Int] = []
+        if let stco = findBox(type: "stco", in: data, range: stblRange) {
+            let count = Int(readUInt32(data, at: stco.payloadOffset + 4) ?? 0)
+            for index in 0..<min(count, limit) {
+                guard let offset = readUInt32(data, at: stco.payloadOffset + 8 + index * 4) else { break }
+                chunkOffsets.append(Int(offset))
+            }
+        } else if let co64 = findBox(type: "co64", in: data, range: stblRange) {
+            let count = Int(readUInt32(data, at: co64.payloadOffset + 4) ?? 0)
+            for index in 0..<min(count, limit) {
+                guard let offset = readUInt64(data, at: co64.payloadOffset + 8 + index * 8),
+                      offset <= UInt64(Int.max) else { break }
+                chunkOffsets.append(Int(offset))
+            }
+        }
+
+        // Sample-to-chunk runs: (first_chunk, samples_per_chunk), 1-based chunks.
+        var runs: [(firstChunk: Int, samplesPerChunk: Int)] = []
+        if let stsc = findBox(type: "stsc", in: data, range: stblRange) {
+            let count = Int(readUInt32(data, at: stsc.payloadOffset + 4) ?? 0)
+            for index in 0..<min(count, 1024) {
+                let entry = stsc.payloadOffset + 8 + index * 12
+                guard let first = readUInt32(data, at: entry),
+                      let perChunk = readUInt32(data, at: entry + 4) else { break }
+                runs.append((Int(first), Int(perChunk)))
+            }
+        }
+        guard !runs.isEmpty else { return [] }
+
+        var ranges: [Range<Int>] = []
+        var sample = 0
+        for (chunkIndex, chunkOffset) in chunkOffsets.enumerated() {
+            let chunkNumber = chunkIndex + 1
+            let perChunk = runs.last(where: { $0.firstChunk <= chunkNumber })?.samplesPerChunk ?? 0
+            var cursor = chunkOffset
+            for _ in 0..<perChunk {
+                guard ranges.count < limit, let length = size(of: sample),
+                      cursor >= 0, length > 0, cursor + length <= data.count
+                else { return ranges }
+                ranges.append(cursor..<(cursor + length))
+                cursor += length
+                sample += 1
+            }
+            if ranges.count >= limit { break }
+        }
+        return ranges
+    }
+
+    // MARK: - Track Header
+
+    /// The display rotation a track header's matrix requests, in degrees
+    /// clockwise, rounded to a quarter turn.
+    ///
+    /// Reference: ISO/IEC 14496-12 Section 8.3.2 (TrackHeaderBox)
+    static func rotationDegrees(_ data: Data, trakRange: Range<Int>) -> Int {
+        guard let tkhd = findBox(type: "tkhd", in: data, range: trakRange),
+              let version = readUInt8(data, at: tkhd.payloadOffset)
+        else { return 0 }
+        // version/flags(4), then times and IDs whose width depends on the
+        // version, then reserved(8), layer(2), group(2), volume(2), reserved(2).
+        let matrixOffset = tkhd.payloadOffset + (version == 1 ? 52 : 40)
+        func fixed(_ index: Int) -> Double? {
+            guard let raw = readUInt32(data, at: matrixOffset + index * 4) else { return nil }
+            return Double(Int32(bitPattern: raw)) / 65536.0
+        }
+        guard let a = fixed(0), let b = fixed(1) else { return 0 }
+        let degrees = atan2(b, a) * 180.0 / .pi
+        let quarter = Int((degrees / 90.0).rounded()) * 90
+        return ((quarter % 360) + 360) % 360
     }
 
     /// Extracts SPS and PPS payloads from an `avcC` box.

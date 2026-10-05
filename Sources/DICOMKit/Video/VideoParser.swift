@@ -131,8 +131,10 @@ public struct VideoParser {
         // the concatenation of them all. The `valueData` branch is a fallback for
         // legacy files that (incorrectly) stored the stream as a native OB value.
         let pixelData: Data?
+        var fragmentCount = 0
         if let pixelElement = dataSet[.pixelData] {
             if let fragments = pixelElement.encapsulatedFragments, !fragments.isEmpty {
+                fragmentCount = fragments.count
                 var combined = Data()
                 for fragment in fragments {
                     combined.append(fragment)
@@ -228,7 +230,11 @@ public struct VideoParser {
             accessionNumber: accessionNumber,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            pixelData: pixelData
+            pixelData: pixelData,
+            // Stereo Pairs Present (PS3.5 Table 8-8) and the fragmentation the
+            // object already uses survive a parse-and-rewrite round trip.
+            stereoPairsPresent: dataSet.string(for: .stereoPairsPresent) == "YES" ? true : nil,
+            allowsMultipleFragments: fragmentCount > 1
         )
         // The sequence may be present with no Items, or with Items this model
         // cannot hold; keeping the flag writes it back rather than dropping it.

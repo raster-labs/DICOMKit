@@ -265,9 +265,9 @@ public enum VideoWorkflow {
                 // rather than a bare "unsupported".
                 let candidate = candidateSyntax(for: probe.stream)
                 let result = VideoConformanceValidator.validate(
-                    stream: probe.stream,
+                    probe: probe,
                     transferSyntax: candidate,
-                    numberOfFrames: probe.frameCount
+                    payloadByteCount: bitstream.count
                 )
                 verbose.append(VideoConsole.verboseNoCandidateSyntaxLine(candidate))
                 throw reject(.conformance(
@@ -285,13 +285,24 @@ public enum VideoWorkflow {
             }
             verbose.append(VideoConsole.verboseFrameRateOverrideLine(
                 from: stream.frameRate, to: override))
-            stream = withFrameRate(stream, frameRate: override)
+            stream = stream.with(frameRate: override)
         }
 
-        let result = VideoConformanceValidator.validate(
+        let resolved = VideoProbeResult(
+            container: probe.container,
             stream: stream,
+            frameCount: probe.frameCount,
+            frameCountSource: probe.frameCountSource,
+            audioTracks: probe.audioTracks,
+            suggestedTransferSyntax: transferSyntax,
+            frameRate: stream.frameRate,
+            mpeg2SystemsLayer: probe.mpeg2SystemsLayer,
+            rotationDegrees: probe.rotationDegrees
+        )
+        let result = VideoConformanceValidator.validate(
+            probe: resolved,
             transferSyntax: transferSyntax,
-            numberOfFrames: probe.frameCount
+            payloadByteCount: bitstream.count
         )
         guard result.isConformant else {
             verbose.append(VideoConsole.verboseSelectedSyntaxLine(
@@ -306,51 +317,16 @@ public enum VideoWorkflow {
         verbose.append(VideoConsole.verboseFrameCountLine(
             probe.frameCount, source: probe.frameCountSource))
 
-        let resolved = VideoProbeResult(
-            container: probe.container,
-            stream: stream,
-            frameCount: probe.frameCount,
-            frameCountSource: probe.frameCountSource,
-            audioTracks: probe.audioTracks,
-            suggestedTransferSyntax: transferSyntax,
-            frameRate: stream.frameRate,
-            mpeg2SystemsLayer: probe.mpeg2SystemsLayer
-        )
         return ConversionPlan(
             probe: resolved, transferSyntax: transferSyntax, bitstream: bitstream,
             verboseLines: verbose)
     }
 
-    /// The transfer syntax whose constraints best explain a rejection.
+    /// The transfer syntax whose constraints best explain a rejection: for an
+    /// H.264 stream too large for Level 4.1, the Level 4.2 syntax, so the report
+    /// names the highest ceiling DICOM actually offers.
     public static func candidateSyntax(for stream: VideoStreamInfo) -> TransferSyntax {
-        switch stream.codec {
-        case .h264: return .mpeg4AVCHP41
-        case .h265: return stream.bitDepthLuma == 10 ? .hevcH265Main10Profile : .hevcH265MainProfile
-        case .mpeg2: return .mpeg2MainProfile
-        case .unknown: return .mpeg4AVCHP41
-        }
-    }
-
-    /// Returns a copy of a stream summary carrying a different frame rate.
-    private static func withFrameRate(
-        _ stream: VideoStreamInfo,
-        frameRate: Double?
-    ) -> VideoStreamInfo {
-        guard stream.frameRate != frameRate else { return stream }
-        return VideoStreamInfo(
-            codec: stream.codec,
-            width: stream.width,
-            height: stream.height,
-            profileIDC: stream.profileIDC,
-            levelTimesTen: stream.levelTimesTen,
-            chromaFormat: stream.chromaFormat,
-            bitDepthLuma: stream.bitDepthLuma,
-            bitDepthChroma: stream.bitDepthChroma,
-            frameRate: frameRate,
-            isProgressive: stream.isProgressive,
-            sampleAspectRatio: stream.sampleAspectRatio,
-            mpeg2AspectRatioInformation: stream.mpeg2AspectRatioInformation
-        )
+        VideoConformanceValidator.closestCandidate(for: stream)
     }
 
     // MARK: - Building
@@ -383,6 +359,7 @@ public enum VideoWorkflow {
         builder.setSeriesNumber(seriesNumber)
         builder.setInstanceNumber(instanceNumber)
         builder.setPixelData(plan.bitstream)
+        builder.setTransferSyntax(plan.transferSyntax)
         builder.setLossyCompression(codec: stream.codec)
 
         // Bit depth follows the bitstream, so a Main 10 source gets 16/10/9.
@@ -594,6 +571,12 @@ public enum VideoWorkflow {
             notices.append(VideoConsole.verboseBlock(plan.verboseLines))
         }
 
+        // (Origin/main's `audioCarriedLine(_:)` note is not appended: `audioNotices(for:metadata:)`
+        // below already reports every carried track, with its PS3.5 8.2.5 / 8.2.12 findings.)
+        if plan.probe.rotationDegrees != 0 {
+            notices.append(VideoConsole.rotationWarningLine(plan.probe.rotationDegrees))
+        }
+
         do {
             try validateAudioChannelSources(for: plan, metadata: metadata)
         } catch let failure as Failure {
@@ -717,9 +700,9 @@ public enum VideoWorkflow {
         guard let syntax = result.suggestedTransferSyntax else {
             lines.append(VideoConsole.noCarryingSyntaxVerdictLine)
             let conformance = VideoConformanceValidator.validate(
-                stream: result.stream,
+                probe: result,
                 transferSyntax: candidateSyntax(for: result.stream),
-                numberOfFrames: result.frameCount
+                payloadByteCount: bitstream.count
             )
             if !conformance.isConformant {
                 lines.append("")
@@ -743,7 +726,7 @@ public enum VideoWorkflow {
         }
 
         let conformance = VideoConformanceValidator.validate(
-            stream: result.stream, transferSyntax: syntax, numberOfFrames: result.frameCount)
+            probe: result, transferSyntax: syntax, payloadByteCount: bitstream.count)
         if conformance.isConformant {
             lines.append(VideoConsole.conformanceOKLine)
             if !audioLines.isEmpty {

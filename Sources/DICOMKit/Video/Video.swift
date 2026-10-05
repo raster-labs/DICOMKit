@@ -293,6 +293,18 @@ public struct Video: Sendable {
     /// The encapsulated video pixel data
     public let pixelData: Data?
 
+    /// Stereo Pairs Present (0022,0028): true writes YES, nil omits it.
+    ///
+    /// Required YES for the H.264 "For 3D Video" (.105) and Stereo High (.106)
+    /// transfer syntaxes (PS3.5 Table 8-8, Section 8.2.9).
+    public let stereoPairsPresent: Bool?
+
+    /// Whether the transfer syntax lets Pixel Data span several fragments.
+    ///
+    /// Only then is a payload too large for one 32-bit Item split; otherwise the
+    /// whole bit stream goes in one fragment, as PS3.5 requires.
+    public let allowsMultipleFragments: Bool
+
     // MARK: - Initialization
 
     /// Creates a Video instance
@@ -350,8 +362,12 @@ public struct Video: Sendable {
         accessionNumber: String? = nil,
         patientBirthDate: DICOMDate? = nil,
         patientSex: String? = nil,
-        pixelData: Data? = nil
+        pixelData: Data? = nil,
+        stereoPairsPresent: Bool? = nil,
+        allowsMultipleFragments: Bool = false
     ) {
+        self.stereoPairsPresent = stereoPairsPresent
+        self.allowsMultipleFragments = allowsMultipleFragments
         self.sopInstanceUID = sopInstanceUID
         self.sopClassUID = sopClassUID
         self.studyInstanceUID = studyInstanceUID
