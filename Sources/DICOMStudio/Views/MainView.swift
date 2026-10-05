@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Main application shell with NavigationSplitView
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (navigation shell and library/presentation-series bookkeeping)
 
 #if canImport(SwiftUI)
 import SwiftUI

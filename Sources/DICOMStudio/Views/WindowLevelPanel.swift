@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Window/level controls panel
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data: the slider ranges (centre −1024…3072, width 1…4096) and ±10/±100 steps are UI conveniences in the viewer's stored-pixel units; the width floor of 1 is the LINEAR minimum (PS3.3 2026a C.11.2.1.2.1); presets and header windows come from WindowLevelPresets and DICOMKit
 
 #if canImport(SwiftUI)
 import SwiftUI

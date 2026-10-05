@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Window/level preset definitions for common modalities
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the preset centres and widths claim nothing standard-defined (clinical conventions in the units the Modality LUT puts out: HU on CT, PS3.3 2026a C.11.1.1.2, UCUM [hnsf'U]; stored values on 12-bit projection detectors); the 15 modality codes the lists are keyed by (CT, MR, CR, DX, RG, PX, IO, BMD, MG, PT, NM, XA, RF, IVUS, OPT and the OCT family) are PS3.3 2026a C.7.3.1.1.1 Defined Terms resolved through DICOMCore Modality; a preset is a LINEAR window (C.11.2.1.2.1) and every width is ≥ 1; checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 import DICOMCore

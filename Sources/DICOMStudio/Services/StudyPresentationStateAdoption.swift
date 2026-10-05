@@ -3,6 +3,8 @@
 //
 // DICOM Studio — taking a study's own presentation states into the store.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — reads Referenced Series Sequence (0008,1115) › Referenced Image Sequence (0008,1140) › Referenced SOP Instance UID (0008,1155) as PS3.3 2026a C.11.11 (Presentation State Relationship Module) lays them out, and Rows (0028,0010), Columns (0028,0011), Number of Frames (0028,0008) from image headers; the presentation-state SOP Classes themselves are DICOMPrintKit's PresentationStateStore.presentationStateSOPClasses
+//
 // A study imported with PR objects in it — a PACS export, a Weasis session
 // with its measurements saved — carried them into the library like any other
 // series, where the pane could name them and nothing could show them: the

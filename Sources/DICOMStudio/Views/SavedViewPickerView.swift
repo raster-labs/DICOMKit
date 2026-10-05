@@ -3,6 +3,8 @@
 //
 // DICOM Studio — choosing between the default view and the reader's saved ones.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (menu, naming and deletion of saved views; the objects themselves are written by DICOMPrintKit's PresentationStateStore); the user-facing text 'presentation state series' names PS3.3 2026a A.33 objects without claiming attributes
+//
 // A picture can be read more than one way: a chest CT at a lung window, then a
 // bone window, then soft tissue. Those are not revisions of one another — they
 // are three legitimate ways of looking at the same slice, and a reader wants to

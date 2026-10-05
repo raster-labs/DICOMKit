@@ -3,6 +3,8 @@
 //
 // DICOM Studio — the patient identification overlay burned over the image.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — the 8 tag literals (0010,0010) Patient's Name, (0010,0020) Patient ID, (0008,1030) Study Description, (0008,0060) Modality, (0008,0020) Study Date, (0018,1030) Protocol Name, (0040,0254) Performed Procedure Step Description, (0032,1060) Requested Procedure Description are PS3.6 2026a Table 6-1 rows with those names, all 8 match; Protocol Name is Type 3 in the General Series Module (PS3.3 C.7.3.1) as the fallback comment says; checked by Scripts/diff_studio_g2_viewer.py
+//
 // Reading rooms identify film by the patient, not by the file: name, ID and the
 // study it belongs to. These four values are study-level, so every tile of a
 // hung study shows the same text — the overlay is read from the file the viewer

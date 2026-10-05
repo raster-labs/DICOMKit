@@ -1,5 +1,7 @@
 // DICOMVolumeViewerViewModel.swift
 // DICOMStudio — Enterprise 3D MPR viewer ViewModel
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the 8 CT viewer presets claim nothing standard-defined (clinical HU windows, PS3.3 2026a C.11.1.1.2); the modality codes it keys on (CT, MR, PT) are C.7.3.1.1.1 Defined Terms; ViewerLUT names are this app's ramps (not PS3.6 Annex B palettes); window width floor 1 is the LINEAR minimum (C.11.2.1.2.1); checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 import Observation

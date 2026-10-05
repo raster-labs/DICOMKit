@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent annotation geometry helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — point counts and geometry checked against PS3.3 2026a C.10.5.1.2: POINT one point, POLYLINE/INTERPOLATED n ≥ 2 end points, CIRCLE exactly two (centre, then a point on the circumference), ELLIPSE exactly four (major-axis end points, then minor-axis end points); the 5 labels and symbols are display text; hit testing is this app's own
 
 import Foundation
 

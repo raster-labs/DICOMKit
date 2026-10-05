@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — SwiftUI overlay for rendering GSPS annotations
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — draws the 5 Graphic Types as PS3.3 2026a C.10.5.1.2 defines them (CIRCLE from centre and circumference point, ELLIPSE from its axis end points, POLYLINE/INTERPOLATED through all points, POINT as a single point) and text at its Anchor Point or Bounding Box TLHC (C.10.5); colours and line widths are this app's own
 
 import Foundation
 

@@ -3,6 +3,8 @@
 //
 // DICOM Studio — the identification text burned over an image.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — the 11 tag literals (0010,0010), (0010,0020), (0008,0060), (0008,1030), (0020,000D), (0010,0030), (0008,0050), (0008,0080), (0008,103E), (0008,0020), (0008,0030) are PS3.6 2026a Table 6-1 rows with the names the fields carry (Patient's Name, Patient ID, Modality, Study Description, Study Instance UID, Patient's Birth Date, Accession Number, Institution Name, Series Description, Study Date, Study Time), all 11 match; promoted from CR; checked by Scripts/diff_studio_g2_viewer.py
+//
 // One definition of what the overlay says, used by the viewer's tiles and by the
 // film preview's cells. Two of them would be two answers to "who is this
 // patient", and the film would eventually disagree with the screen it was

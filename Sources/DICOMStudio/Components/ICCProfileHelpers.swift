@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent ICC color profile helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data: parses the ICC.1 profile header (size, version, data colour space, PCS, rendering intent, 'acsp' at bytes 36–39, 'mntr' class), which PS3.3 2026a C.11.15.1.1 references but does not define; the Color Space (0028,2002) Defined Terms of C.11.15.1.2 (SRGB, ADOBERGB, ROMMRGB, DISPLAYP3) are not modelled here and ICCColorSpace's ICC signatures are not those terms
 
 import Foundation
 

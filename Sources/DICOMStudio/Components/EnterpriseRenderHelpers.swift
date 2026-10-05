@@ -4,6 +4,8 @@
 // Rendering helpers for the enterprise 3D viewer:
 // thick-slab MIP/MinIP/AvgIP projection, buffer inversion,
 // and color-LUT CGImage creation.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the one standard claim checked: a MONOCHROME1 volume is shown with the minimum sample as white, i.e. inverted after the VOI (PS3.3 2026a C.7.6.3.1.2: "The minimum sample value is intended to be displayed as white"); MIP/MinIP/AvgIP projection and the colour-LUT bitmap carry no standard data
 
 #if canImport(CoreGraphics)
 import Foundation
