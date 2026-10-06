@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — the 24 attribute-bearing options of `create`/`update` diffed
+// NEMA-verified: 2026a, checked 2026-10-06 — --status / --patient-sex / --patient-birth-date rules and the SCP warning line are DICOMNetwork DICOMMPPSService's (D263, re-read against PS3.3 Tables C.4-14 / C.2-3 and PS3.5 Table 6.2-1); the 24 attribute-bearing options of `create`/`update` diffed
 // against PS3.4 2026a Table F.7.2-1 (130 rows: N-CREATE / N-SET / Final State usage per tag); --status words
 // against PS3.3 Table C.4-14 (0040,0252) Enumerated Values (3) and the N-CREATE/N-SET rules of PS3.4 F.7.2.1.2,
 // F.7.2.1.3, F.7.2.2.2; --patient-sex against PS3.3 Table C.2-3 (0010,0040) Enumerated Values (3);
@@ -87,17 +87,13 @@ struct DICOMMPPSCommand: AsyncParsableCommand {
         return (resolvedHost, resolvedPort)
     }
     
+    /// The rule and refusal are DICOMNetwork's `DICOMMPPSService.parseStatus` /
+    /// `invalidStatusMessage` (PS3.3 Table C.4-14, D263).
     static func parseStatus(_ statusString: String) throws -> MPPSStatus {
-        switch statusString.uppercased().replacingOccurrences(of: " ", with: "") {
-        case "INPROGRESS", "IN_PROGRESS":
-            return .inProgress
-        case "COMPLETED":
-            return .completed
-        case "DISCONTINUED":
-            return .discontinued
-        default:
-            throw ValidationError("Invalid status. Use 'IN PROGRESS', 'COMPLETED', or 'DISCONTINUED'")
+        guard let status = DICOMMPPSService.parseStatus(statusString) else {
+            throw ValidationError(DICOMMPPSService.invalidStatusMessage)
         }
+        return status
     }
 
     /// Parses a `CODE|SCHEME|MEANING` coded entry (e.g. `110513|DCM|Discontinued for unspecified reason`,
@@ -114,41 +110,41 @@ struct DICOMMPPSCommand: AsyncParsableCommand {
     }
 
     /// Prints an SCP warning status to stderr — the operation was performed, but
-    /// the SCP coerced or dropped attributes (PS3.7 Annex C).
+    /// the SCP coerced or dropped attributes (PS3.7 Annex C). The line is
+    /// DICOMNetwork's `DICOMMPPSService.warningLine` (D263).
     static func reportWarning(_ result: MPPSOperationResult, operation: String) {
         if let warning = result.warning {
-            FileHandle.standardError.write(Data(
-                "warning: SCP completed the \(operation) with \(describe(warning, operation: operation)) — attributes may have been coerced or dropped\n".utf8))
+            FileHandle.standardError.write(Data(DICOMMPPSService.warningLine(warning, operation: operation).utf8))
         }
     }
 
-    /// The response status worded by DICOMNetwork's generated tables: PS3.4 Table F.7.2-2
-    /// for an N-SET, else PS3.7 2026a Annex C (MPPS N-CREATE has no specific codes, PS3.4
-    /// F.7.2.1.4), e.g. "Warning (0x0107): Attribute List warning". N-CREATE / N-SET
-    /// failures arrive already worded the same way in `DICOMNetworkError.mppsOperationFailed`.
+    /// The response status worded per PS3.4 Table F.7.2-2 (N-SET) or PS3.7 Annex C —
+    /// DICOMNetwork's `DICOMMPPSService.describeStatus` (D263).
     static func describe(_ status: DIMSEStatus, operation: String) -> String {
-        DIMSEServiceStatusText.describe(status, service: operation == "N-SET" ? .mppsNSet : .dimseN)
+        DICOMMPPSService.describeStatus(status, operation: operation)
     }
 
     /// Patient's Sex (0010,0040) Enumerated Values, PS3.3 2026a Table C.2-3: M, F, O.
-    static let patientSexEnumeratedValues: [String] = ["M", "F", "O"]
+    @available(*, deprecated, renamed: "DICOMMPPSService.patientSexEnumeratedValues")
+    static var patientSexEnumeratedValues: [String] { DICOMMPPSService.patientSexEnumeratedValues }
 
     /// Returns the canonical value of `--patient-sex`, or throws when it is not an
-    /// Enumerated Value (case-insensitive input is accepted and upper-cased).
+    /// Enumerated Value (case-insensitive input is accepted and upper-cased) —
+    /// DICOMNetwork's `DICOMMPPSService.canonicalPatientSex` (D263).
     static func validatePatientSex(_ value: String?) throws -> String? {
         guard let value else { return nil }
-        let upper = value.trimmingCharacters(in: .whitespaces).uppercased()
-        guard patientSexEnumeratedValues.contains(upper) else {
-            throw ValidationError("--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got '\(value)'")
+        guard let canonical = DICOMMPPSService.canonicalPatientSex(value) else {
+            throw ValidationError(DICOMMPPSService.patientSexErrorMessage(value))
         }
-        return upper
+        return canonical
     }
 
-    /// Checks `--patient-birth-date` is a DA value YYYYMMDD (PS3.5 Table 6.2-1: 8 bytes fixed, digits only).
+    /// Checks `--patient-birth-date` is a DA value YYYYMMDD (PS3.5 Table 6.2-1) —
+    /// DICOMNetwork's `DICOMMPPSService.isValidBirthDate` (D263).
     static func validateBirthDate(_ value: String?) throws -> String? {
         guard let value else { return nil }
-        guard value.count == 8, value.allSatisfy({ $0.isASCII && $0.isNumber }) else {
-            throw ValidationError("--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '\(value)'")
+        guard DICOMMPPSService.isValidBirthDate(value) else {
+            throw ValidationError(DICOMMPPSService.birthDateErrorMessage(value))
         }
         return value
     }

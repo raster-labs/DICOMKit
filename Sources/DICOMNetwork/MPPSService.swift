@@ -1,7 +1,7 @@
 import Foundation
 import DICOMCore
 import DICOMDictionary
-// NEMA-verified: 2026a, checked 2026-10-01 — N-CREATE/N-SET attribute set text-diffed against PS3.4 2026a Table F.7.2-1 (all 23 top-level Type 1/2 attributes emitted; Modality 1/1 required non-empty, D87; (0040,0281) created zero-length at N-CREATE per the F.7.2.1.1 note, D86; Scripts/diff_network.py); PPS status terms per PS3.3 C.4.14; command sets per PS3.7 Tables 10.3-5, 10.3-9; N-CREATE / N-SET failures thrown as mppsOperationFailed worded per Table F.7.2-2 / PS3.7 Annex C (D83); CID 9300 / 9301 / Table D-1 names per PS3.16 2026a (D84)
+// NEMA-verified: 2026a, checked 2026-10-06 — option rules lifted from dicom-mpps (D263): --status words vs PS3.3 2026a Table C.4-14 (0040,0252) Enumerated Values (IN PROGRESS / DISCONTINUED / COMPLETED, 3 of 3), Patient's Sex (0010,0040) vs Table C.2-3 (M / F / O, 3 of 3), birth date vs PS3.5 Table 6.2-1 DA (YYYYMMDD); N-CREATE/N-SET attribute set text-diffed against PS3.4 2026a Table F.7.2-1 (all 23 top-level Type 1/2 attributes emitted; Modality 1/1 required non-empty, D87; (0040,0281) created zero-length at N-CREATE per the F.7.2.1.1 note, D86; Scripts/diff_network.py); PPS status terms per PS3.3 C.4.14; command sets per PS3.7 Tables 10.3-5, 10.3-9; N-CREATE / N-SET failures thrown as mppsOperationFailed worded per Table F.7.2-2 / PS3.7 Annex C (D83); CID 9300 / 9301 / Table D-1 names per PS3.16 2026a (D84)
 
 /// SOP Class UID for Modality Performed Procedure Step
 /// Reference: PS3.4 Annex F - Modality Performed Procedure Step SOP Class
@@ -1604,3 +1604,71 @@ public enum DICOMMPPSService {
 }
 
 #endif
+
+// MARK: - Option value rules (D263)
+
+/// The value rules and texts of the `dicom-mpps` options, shared with the DICOMStudio
+/// CLI Workshop so the two front ends accept the same input and word a refusal or an
+/// SCP warning identically (formerly CLI-local in `DICOMMPPSCommand`, D263).
+extension DICOMMPPSService {
+
+    /// Parses a `--status` word into Performed Procedure Step Status (0040,0252), whose
+    /// Enumerated Values are IN PROGRESS, DISCONTINUED and COMPLETED (PS3.3 2026a
+    /// Table C.4-14). Case-insensitive; the space of IN PROGRESS may be omitted or
+    /// written `_`. Returns nil for any other word (see ``invalidStatusMessage``).
+    public static func parseStatus(_ statusString: String) -> MPPSStatus? {
+        switch statusString.uppercased().replacingOccurrences(of: " ", with: "") {
+        case "INPROGRESS", "IN_PROGRESS":
+            return .inProgress
+        case "COMPLETED":
+            return .completed
+        case "DISCONTINUED":
+            return .discontinued
+        default:
+            return nil
+        }
+    }
+
+    /// The refusal when ``parseStatus(_:)`` returns nil.
+    public static let invalidStatusMessage = "Invalid status. Use 'IN PROGRESS', 'COMPLETED', or 'DISCONTINUED'"
+
+    /// Patient's Sex (0010,0040) Enumerated Values, PS3.3 2026a Table C.2-3: M, F, O.
+    public static let patientSexEnumeratedValues: [String] = ["M", "F", "O"]
+
+    /// The canonical Patient's Sex (0010,0040) value of `value` (trimmed, upper-cased),
+    /// or nil when it is not one of ``patientSexEnumeratedValues`` (PS3.3 Table C.2-3).
+    public static func canonicalPatientSex(_ value: String) -> String? {
+        let upper = value.trimmingCharacters(in: .whitespaces).uppercased()
+        return patientSexEnumeratedValues.contains(upper) ? upper : nil
+    }
+
+    /// The refusal of a `--patient-sex` value that is not an Enumerated Value.
+    public static func patientSexErrorMessage(_ value: String) -> String {
+        "--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got '\(value)'"
+    }
+
+    /// Whether `value` is a DA value YYYYMMDD: 8 bytes fixed, ASCII digits only
+    /// (PS3.5 2026a Table 6.2-1 DA).
+    public static func isValidBirthDate(_ value: String) -> Bool {
+        value.count == 8 && value.allSatisfy { $0.isASCII && $0.isNumber }
+    }
+
+    /// The refusal of a `--patient-birth-date` value that is not DA YYYYMMDD.
+    public static func birthDateErrorMessage(_ value: String) -> String {
+        "--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '\(value)'"
+    }
+
+    /// The response status worded by DICOMNetwork's generated tables: PS3.4 2026a
+    /// Table F.7.2-2 for an N-SET (`operation == "N-SET"`), else PS3.7 Annex C (MPPS
+    /// N-CREATE has no specific codes, PS3.4 F.7.2.1.4), e.g.
+    /// "Warning (0x0107): Attribute List warning".
+    public static func describeStatus(_ status: DIMSEStatus, operation: String) -> String {
+        DIMSEServiceStatusText.describe(status, service: operation == "N-SET" ? .mppsNSet : .dimseN)
+    }
+
+    /// The stderr line for a Warning-class response — the SCP performed the operation
+    /// but coerced or dropped attributes (PS3.7 Annex C) — with its trailing newline.
+    public static func warningLine(_ warning: DIMSEStatus, operation: String) -> String {
+        "warning: SCP completed the \(operation) with \(describeStatus(warning, operation: operation)) — attributes may have been coerced or dropped\n"
+    }
+}
