@@ -1,6 +1,6 @@
 // DICOMwebHelpers.swift
 // DICOMStudio
-// NEMA-verified: 2026a, checked 2026-10-05 — UPSEventPayloadParser tags diffed against PS3.6 2026a Table 6-1 (11 tags, all match) and PS3.4 2026a Table CC.2.4-1 (progress attributes read inside Procedure Step Progress Information Sequence (0074,1002); Contact Display Name (0074,100C) top-level and inside (0074,1008); Human Performer Code Sequence (0040,4009) for UPS Assigned; bare-name keys kept as legacy fallbacks); previous-state inference against Table CC.1.1-2; changeStateRefusal text against PS3.18 2026a 11.7.1.4 and Table CC.1.1-2 / CC.2.1-2 status codes (same SCHEDULED message as dicom-wado); endpointSuffix against PS3.18 Table 10.6.1-1 (3/3); "409" against Table 10.5.3-1; URL, auth, TLS, byte and latency formatting are plumbing
+// NEMA-verified: 2026a, checked 2026-10-06 — changeStateRefusal's SCHEDULED text is DICOMWeb UPSState.changeStateRefusal (PS3.18 2026a 11.7.1.4, PS3.4 2026a Table CC.1.1-2 C303H; D255), the text dicom-wado prints; UPSEventPayloadParser tags diffed against PS3.6 2026a Table 6-1 (11 tags, all match) and PS3.4 2026a Table CC.2.4-1 (progress attributes read inside Procedure Step Progress Information Sequence (0074,1002); Contact Display Name (0074,100C) top-level and inside (0074,1008); Human Performer Code Sequence (0040,4009) for UPS Assigned; bare-name keys kept as legacy fallbacks); previous-state inference against Table CC.1.1-2; changeStateRefusal text against PS3.18 2026a 11.7.1.4 and Table CC.1.1-2 / CC.2.1-2 status codes (same SCHEDULED message as dicom-wado); endpointSuffix against PS3.18 Table 10.6.1-1 (3/3); "409" against Table 10.5.3-1; URL, auth, TLS, byte and latency formatting are plumbing
 //
 // DICOM Studio — Platform-independent helpers for DICOMweb Integration Hub display
 // Reference: DICOM PS3.18 (Web Services)
@@ -640,14 +640,12 @@ public enum DICOMwebUPSHelpers: Sendable {
     /// The refusal for a Change Workitem State request from `from` to `to`, or nil when
     /// PS3.4 Table CC.1.1-2 allows it.
     ///
-    /// SCHEDULED is never a target: the text is the same as dicom-wado's
-    /// `WADOOptionRules.changeStateTarget` refusal (PS3.18 11.7.1.4; Table CC.1.1-2 C303H).
+    /// SCHEDULED is never a target: the text is DICOMWeb's `UPSState.changeStateRefusal`, the
+    /// refusal dicom-wado prints (PS3.18 11.7.1.4; Table CC.1.1-2 C303H; D255).
     /// Any other refused pair names the table row that refuses it.
     static func changeStateRefusal(from: UPSState, to: UPSState) -> String? {
-        if to == .scheduled {
-            return "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
-                + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
-                + "to SCHEDULED (C303H)"
+        if let refusal = to.web.changeStateRefusal {
+            return refusal
         }
         guard !canTransition(from: from, to: to) else { return nil }
         let code: String

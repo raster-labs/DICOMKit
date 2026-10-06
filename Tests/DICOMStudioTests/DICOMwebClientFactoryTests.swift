@@ -292,7 +292,7 @@ struct DICOMwebClientFactoryTests {
         #expect(plain.timeouts.connectTimeout == DICOMwebConfiguration.TimeoutConfiguration.default.connectTimeout)
         #expect(plain.timeouts.readTimeout == DICOMwebConfiguration.TimeoutConfiguration.default.readTimeout)
 
-        let custom = WorkshopWADOOptionRules.timeouts(seconds: 7)
+        let custom = DICOMwebOptionRules.timeouts(seconds: 7)
         let config = try DICOMwebClientFactory.makeConfiguration(from: profile, timeouts: custom)
         #expect(config.timeouts.connectTimeout == 7)
         #expect(config.timeouts.readTimeout == 7)

@@ -755,42 +755,43 @@ struct CLIWorkshopViewModelTests {
 
     @Test("dicom-wado ups --state: IN PROGRESS / COMPLETED / CANCELED are Change State targets (PS3.18 11.7.1.4); SCHEDULED is refused with the CLI's text (PS3.4 Table CC.1.1-2, C303H), exit 1")
     func upsChangeStateRefusal() throws {
-        typealias Rules = WorkshopWADOOptionRules
-        // The rules hold the DICOMWeb enum (WebUPSState, D259), not its word.
-        #expect(try Rules.changeStateTarget("IN PROGRESS") == .inProgress)
-        #expect(try Rules.changeStateTarget("in_progress") == .inProgress)
-        #expect(try Rules.changeStateTarget("completed") == .completed)
-        #expect(try Rules.changeStateTarget("CANCELED") == .canceled)
-        #expect(Rules.changeStateTargets == [.inProgress, .completed, .canceled])
-        #expect(Rules.changeStateTargets.map(\.rawValue) == ["IN PROGRESS", "COMPLETED", "CANCELED"])
-        #expect(Rules.upsState("SCHEDULED") == .scheduled)
-        #expect(Rules.upsState("SCHEDULED")?.rawValue == "SCHEDULED")
+        typealias Rules = DICOMwebOptionRules
+        // The Workshop calls DICOMWeb's UPSState (reached as WebUPSState, D259) and DICOMwebOptionRules (D255, D265).
+        #expect(try WebUPSState.changeStateTarget(optionValue: "IN PROGRESS") == .inProgress)
+        #expect(try WebUPSState.changeStateTarget(optionValue: "in_progress") == .inProgress)
+        #expect(try WebUPSState.changeStateTarget(optionValue: "completed") == .completed)
+        #expect(try WebUPSState.changeStateTarget(optionValue: "CANCELED") == .canceled)
+        #expect(WebUPSState.changeStateTargets == [.inProgress, .completed, .canceled])
+        #expect(WebUPSState.changeStateTargets.map(\.rawValue) == ["IN PROGRESS", "COMPLETED", "CANCELED"])
+        #expect(WebUPSState(optionValue: "SCHEDULED") == .scheduled)
+        #expect(WebUPSState(optionValue: "SCHEDULED")?.rawValue == "SCHEDULED")
         do {
-            _ = try Rules.changeStateTarget("SCHEDULED")
+            _ = try WebUPSState.changeStateTarget(optionValue: "SCHEDULED")
             Issue.record("SCHEDULED must be refused")
-        } catch let e as Rules.Refusal {
+        } catch let e as DICOMwebOptionRefusal {
             #expect(e.exitCode == 1)
             #expect(e.message == "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
                     + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
                     + "to SCHEDULED (C303H)")
         }
         do {
-            _ = try Rules.changeStateTarget("DONE")
+            _ = try WebUPSState.changeStateTarget(optionValue: "DONE")
             Issue.record("an unknown state must be refused")
-        } catch let e as Rules.Refusal {
+        } catch let e as DICOMwebOptionRefusal {
             #expect(e.message == "Invalid state: DONE. Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, CANCELED (PS3.18 2026a 11.7.1.4)")
         }
+        #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .scheduled) == WebUPSState.scheduled.changeStateRefusal)
         // --change-state / --update: one or the other (deprecated alias), never both.
         #expect(try Rules.changeStateWorkitem(changeState: "1.2", update: nil) == "1.2")
         #expect(try Rules.changeStateWorkitem(changeState: nil, update: "1.2") == "1.2")
         #expect(try Rules.changeStateWorkitem(changeState: nil, update: nil) == nil)
-        #expect(throws: Rules.Refusal.self) { try Rules.changeStateWorkitem(changeState: "1", update: "2") }
+        #expect(throws: DICOMwebOptionRefusal.self) { try Rules.changeStateWorkitem(changeState: "1", update: "2") }
         #expect(Rules.updateDeprecationNote.hasPrefix("Note: --update is deprecated; use --change-state"))
     }
 
     @Test("dicom-wado retrieve --uri rules: contentType per PS3.18 9.1.2.2.1 / Table 8.7.4-1, frameNumber a positive integer (9.5.1.2.1), limit / offset unsigned (8.3.4.4) — the CLI's texts")
     func wadoURIRules() throws {
-        typealias Rules = WorkshopWADOOptionRules
+        typealias Rules = DICOMwebOptionRules
         #expect(try Rules.uriContentType(nil) == .dicom)
         #expect(try Rules.uriContentType("") == .dicom)
         #expect(try Rules.uriContentType("image/jpeg") == .jpeg)
@@ -799,7 +800,7 @@ struct CLIWorkshopViewModelTests {
         do {
             _ = try Rules.uriContentType("image/bmp")
             Issue.record("image/bmp is not a Rendered Media Type")
-        } catch let e as Rules.Refusal {
+        } catch let e as DICOMwebOptionRefusal {
             #expect(e.exitCode == 64)
             #expect(e.message.hasPrefix("--content-type 'image/bmp' cannot be requested over WADO-URI. Use one of: application/dicom, image/jpeg"))
             #expect(e.message.hasSuffix("(PS3.18 9.1.2.2.1: application/dicom or a Rendered Media Type of Table 8.7.4-1)"))
@@ -807,8 +808,8 @@ struct CLIWorkshopViewModelTests {
         #expect(try Rules.uriFrameNumber(nil) == nil)
         #expect(try Rules.uriFrameNumber("3")?.frame == 3)
         #expect(try Rules.uriFrameNumber("2, 4, 6")?.notSent == 2)
-        #expect(throws: Rules.Refusal.self) { try Rules.uriFrameNumber("0") }
-        #expect(throws: Rules.Refusal.self) { try Rules.uriFrameNumber("a") }
+        #expect(throws: DICOMwebOptionRefusal.self) { try Rules.uriFrameNumber("0") }
+        #expect(throws: DICOMwebOptionRefusal.self) { try Rules.uriFrameNumber("a") }
         #expect(Rules.pagingProblem(limit: 0, offset: 0) == nil)
         #expect(Rules.pagingProblem(limit: -1, offset: 0) == "--limit must be 0 or more (PS3.18 8.3.4.4: limit is an unsigned integer)")
         #expect(Rules.pagingProblem(limit: 1, offset: -1) == "--offset must be 0 or more (PS3.18 8.3.4.4: offset is an unsigned integer)")

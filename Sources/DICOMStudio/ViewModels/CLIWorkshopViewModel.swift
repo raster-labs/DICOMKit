@@ -6906,11 +6906,11 @@ case "dicom-study":
     // MARK: - DICOMweb Tool Execution
 
     /// The DICOMwebConfiguration the Workshop runs with: the profile's URL / auth and, for
-    /// `retrieve`, the CLI's `--timeout` mapping (WorkshopWADOOptionRules.timeouts).
+    /// `retrieve`, the CLI's `--timeout` mapping (DICOMwebOptionRules.timeouts).
     private func dicomwebConfiguration(from profile: DICOMwebServerProfile, timeoutSeconds: Int? = nil) throws -> DICOMwebConfiguration {
         guard let timeoutSeconds else { return try DICOMwebClientFactory.makeConfiguration(from: profile) }
         return try DICOMwebClientFactory.makeConfiguration(
-            from: profile, timeouts: WorkshopWADOOptionRules.timeouts(seconds: timeoutSeconds))
+            from: profile, timeouts: DICOMwebOptionRules.timeouts(seconds: timeoutSeconds))
     }
 
     /// Creates a `DICOMwebServerProfile` from the current parameter values.
@@ -6959,7 +6959,7 @@ case "dicom-study":
         let verbose = paramValue("verbose") == "true"
 
         // PS3.18 8.3.4.4: limit and offset are unsigned (the CLI's validate(), exit 64).
-        if let message = WorkshopWADOOptionRules.pagingProblem(limit: limit, offset: offset) {
+        if let message = DICOMwebOptionRules.pagingProblem(limit: limit, offset: offset) {
             refuse(message, exitCode: 64)
             return
         }
@@ -7307,8 +7307,8 @@ case "dicom-study":
 
     /// Executes a WADO-URI retrieve — the in-app `dicom-wado retrieve --uri`: the request
     /// parameters of PS3.18 2026a Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1 go through the shared
-    /// WADOURIClient.Parameters (validated by the client), the CLI-local rules through
-    /// WorkshopWADOOptionRules (text-identical), the console through
+    /// WADOURIClient.Parameters (validated by the client), the option rules through DICOMWeb's
+    /// DICOMwebOptionRules (the calls dicom-wado makes, D265), the console through
     /// WADORetrieveConsoleFormatter.
     private func executeDicomWADOURI(profile: DICOMwebServerProfile, studyUID: String) async {
         func refuse(_ message: String, exitCode: Int) {
@@ -7339,9 +7339,9 @@ case "dicom-study":
         // positive, every PS3.18 Section 9 pair / range rule the shared client checks.
         let contentType: WADOURIClient.MediaType
         do {
-            contentType = try WorkshopWADOOptionRules.uriContentType(paramValue("content-type"))
-        } catch let e as WorkshopWADOOptionRules.Refusal {
-            refuse(e.message, exitCode: e.exitCode)
+            contentType = try DICOMwebOptionRules.uriContentType(paramValue("content-type"))
+        } catch let e as DICOMwebOptionRefusal {
+            refuse(e.message, exitCode: Int(e.exitCode))
             return
         } catch {
             refuse(error.localizedDescription, exitCode: 1)
@@ -7368,10 +7368,10 @@ case "dicom-study":
         let parsedFrame: (frame: Int, notSent: Int)?
         let regionValue: WADOURIClient.Region?
         do {
-            parsedFrame = try WorkshopWADOOptionRules.uriFrameNumber(framesStr.isEmpty ? nil : framesStr)
-            regionValue = try WorkshopWADOOptionRules.uriRegion(region)
-        } catch let e as WorkshopWADOOptionRules.Refusal {
-            refuse(e.message, exitCode: e.exitCode)
+            parsedFrame = try DICOMwebOptionRules.uriFrameNumber(framesStr.isEmpty ? nil : framesStr)
+            regionValue = try DICOMwebOptionRules.uriRegion(region)
+        } catch let e as DICOMwebOptionRefusal {
+            refuse(e.message, exitCode: Int(e.exitCode))
             return
         } catch {
             refuse(error.localizedDescription, exitCode: 1)
@@ -7382,7 +7382,7 @@ case "dicom-study":
             contentType: [contentType],
             charset: charset.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty },
             anonymize: anonymize,
-            annotation: WorkshopWADOOptionRules.uriAnnotation(annotation),
+            annotation: DICOMwebOptionRules.uriAnnotation(annotation),
             transferSyntax: transferSyntax,
             frameNumber: frameNumber,
             imageQuality: imageQuality,
@@ -7407,7 +7407,7 @@ case "dicom-study":
         if region != nil { otherRendered.append("region (--region)") }
         if presentationUID != nil { otherRendered.append("presentationUID (--presentation-uid)") }
         if presentationSeriesUID != nil { otherRendered.append("presentationSeriesUID (--presentation-series-uid)") }
-        for warning in WorkshopWADOOptionRules.uriParameterWarnings(
+        for warning in DICOMwebOptionRules.uriParameterWarnings(
             contentType: contentType, frame: frameNumber, rows: rows, columns: columns,
             transferSyntax: transferSyntax, anonymize: anonymize, otherRendered: otherRendered) {
             appendConsoleOutput("Warning: \(warning)\n")
@@ -7727,8 +7727,8 @@ case "dicom-study":
 
     /// Executes a UPS-RS operation against a DICOMweb server — the in-app `dicom-wado ups`:
     /// the same DICOMwebClient calls, the shared UPSResultFormatter / UPSConsole text, the
-    /// CLI's verbose-gated chrome and its refusals (WorkshopWADOOptionRules, text-identical
-    /// to dicom-wado's WADOOptionRules).
+    /// CLI's verbose-gated chrome and its refusals (DICOMWeb's DICOMwebOptionRules and
+    /// UPSState.changeStateTarget(optionValue:), the calls dicom-wado makes, D265 / D255).
     private func executeDicomUPS() async {
         func refuse(_ message: String, exitCode: Int) {
             appendConsoleOutput("Error: \(message)\n")
@@ -7921,17 +7921,17 @@ case "dicom-study":
                 let update = paramValue("update-uid-deprecated").isEmpty ? nil : paramValue("update-uid-deprecated")
                 let uid: String
                 do {
-                    guard let resolved = try WorkshopWADOOptionRules.changeStateWorkitem(changeState: changeState, update: update) else {
+                    guard let resolved = try DICOMwebOptionRules.changeStateWorkitem(changeState: changeState, update: update) else {
                         refuse("Specify an operation: --search, --get, --create, --create-workitem, --change-state, --subscribe, or --unsubscribe", exitCode: 64)
                         return
                     }
                     uid = resolved
-                } catch let e as WorkshopWADOOptionRules.Refusal {
-                    refuse(e.message, exitCode: e.exitCode)
+                } catch let e as DICOMwebOptionRefusal {
+                    refuse(e.message, exitCode: Int(e.exitCode))
                     return
                 }
                 if changeState == nil {
-                    appendConsoleOutput(WorkshopWADOOptionRules.updateDeprecationNote + "\n")
+                    appendConsoleOutput(DICOMwebOptionRules.updateDeprecationNote + "\n")
                 }
                 let stateString = paramValue("state")
                 guard !stateString.isEmpty else {
@@ -7943,9 +7943,9 @@ case "dicom-study":
                 // PS3.4 2026a Table CC.1.1-2 (C303H) — P-WADO-UPS-STATE.
                 let newState: WebUPSState
                 do {
-                    newState = try WorkshopWADOOptionRules.changeStateTarget(stateString)
-                } catch let e as WorkshopWADOOptionRules.Refusal {
-                    refuse(e.message, exitCode: e.exitCode)
+                    newState = try WebUPSState.changeStateTarget(optionValue: stateString)
+                } catch let e as DICOMwebOptionRefusal {
+                    refuse(e.message, exitCode: Int(e.exitCode))
                     return
                 }
 
@@ -11049,181 +11049,3 @@ enum WorkshopAnonError {
     static let fileNotFound = "File not found"
 }
 
-// MARK: - dicom-wado option rules (PS3.18 2026a Section 9, 8.3.4.4, 11.7.1.4; PS3.3 Table C.30.1-1)
-
-/// The Workshop's copy of dicom-wado's CLI-local `WADOOptionRules` (Sources/dicom-wado/
-/// WADOOptionRules.swift): every text is identical, checked by Scripts/diff_studio_g1.py.
-/// A `Refusal` carries the CLI's exit code — 64 for a ValidationError (usage), 1 for a
-/// WADORefusal (an option value the standard refuses).
-enum WorkshopWADOOptionRules {
-
-    struct Refusal: Error, CustomStringConvertible, Equatable {
-        let message: String
-        let exitCode: Int
-        var description: String { message }
-    }
-
-    // MARK: - WADO-URI (PS3.18 Section 9)
-
-    /// The `--content-type` values the URI service accepts and `WADOURIClient` carries:
-    /// application/dicom (Retrieve DICOM Instance, 9.4) or a Rendered Media Type of
-    /// Table 8.7.4-1 (Retrieve Rendered Instance, 9.5), per 9.1.2.2.1.
-    static let uriContentTypes = WADOURIClient.MediaType.allowed.map(\.rawValue)
-
-    /// Maps `--content-type` to the request representation. An absent value is the
-    /// WADO-URI default, application/dicom. A value 9.1.2.2.1 does not allow is
-    /// rejected rather than silently fetched as application/dicom.
-    static func uriContentType(_ raw: String?) throws -> WADOURIClient.MediaType {
-        guard let raw = raw?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else { return .dicom }
-        guard let mapped = WADOURIClient.MediaType.fromRequestString(raw) else {
-            throw Refusal(message:
-                "--content-type '\(raw)' cannot be requested over WADO-URI. Use one of: "
-                + uriContentTypes.joined(separator: ", ")
-                + " (PS3.18 9.1.2.2.1: application/dicom or a Rendered Media Type of Table 8.7.4-1)", exitCode: 64)
-        }
-        return mapped
-    }
-
-    /// `annotation` / `imageAnnotation` (PS3.18 9.4.1.2.2): a comma-separated list of
-    /// "patient" and/or "technique" (a server may support more; those pass through).
-    static func uriAnnotation(_ raw: String?) -> [String] {
-        guard let raw else { return [] }
-        return raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-    }
-
-    /// `region` (PS3.18 9.5.1.2.5): `xmin,ymin,xmax,ymax`, four decimals.
-    static func uriRegion(_ raw: String?) throws -> WADOURIClient.Region? {
-        guard let raw else { return nil }
-        guard let region = WADOURIClient.Region(raw) else {
-            throw Refusal(message: "--region takes xmin,ymin,xmax,ymax, four decimal numbers (PS3.18 9.5.1.2.5); got '\(raw)'", exitCode: 64)
-        }
-        return region
-    }
-
-    /// `frameNumber` (PS3.18 9.5.1.2.1) names a single Frame and is a positive integer.
-    /// Returns the frame to send and how many further list entries were not sent.
-    static func uriFrameNumber(_ raw: String?) throws -> (frame: Int, notSent: Int)? {
-        guard let raw = raw else { return nil }
-        let items = raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        guard let first = items.first, let frame = Int(first), frame >= 1 else {
-            throw Refusal(message:
-                "--frames with --uri takes a positive frame number (PS3.18 9.5.1.2.1: frameNumber "
-                + "is a single positive integer, starting at 1); got '\(raw)'", exitCode: 64)
-        }
-        return (frame, items.count - 1)
-    }
-
-    /// Warnings for parameters sent with a representation whose transaction does not
-    /// define them: Table 9.4.1-1 (application/dicom) has anonymize, annotation and
-    /// transferSyntax; Table 9.5.1-1 (rendered) has frameNumber, rows, columns and others.
-    static func uriParameterWarnings(contentType: WADOURIClient.MediaType, frame: Int?,
-                                     rows: Int?, columns: Int?,
-                                     transferSyntax: String?, anonymize: Bool,
-                                     otherRendered: [String] = []) -> [String] {
-        var out: [String] = []
-        if contentType == .dicom {
-            var rendered: [String] = []
-            if frame != nil { rendered.append("frameNumber (--frames)") }
-            if rows != nil { rendered.append("rows (--rows)") }
-            if columns != nil { rendered.append("columns (--columns)") }
-            rendered += otherRendered
-            if !rendered.isEmpty {
-                out.append("\(rendered.joined(separator: ", ")) \(rendered.count == 1 ? "is a" : "are") "
-                    + "Retrieve Rendered Instance parameter\(rendered.count == 1 ? "" : "s") (PS3.18 Table 9.5.1-1), "
-                    + "not defined for application/dicom (Table 9.4.1-1); the server may ignore "
-                    + "\(rendered.count == 1 ? "it" : "them")")
-            }
-        } else {
-            var dicomOnly: [String] = []
-            if transferSyntax != nil { dicomOnly.append("transferSyntax (--transfer-syntax)") }
-            if anonymize { dicomOnly.append("anonymize (--anonymize)") }
-            if !dicomOnly.isEmpty {
-                out.append("\(dicomOnly.joined(separator: ", ")) \(dicomOnly.count == 1 ? "is a" : "are") "
-                    + "Retrieve DICOM Instance parameter\(dicomOnly.count == 1 ? "" : "s") (PS3.18 Table 9.4.1-1), "
-                    + "not defined for \(contentType.rawValue) (Table 9.5.1-1); the server may ignore "
-                    + "\(dicomOnly.count == 1 ? "it" : "them")")
-            }
-        }
-        return out
-    }
-
-    // MARK: - QIDO-RS (PS3.18 8.3.4.4)
-
-    /// `limit` and `offset` are uint (PS3.18 Table 8.3.4-1, 8.3.4.4): the CLI's
-    /// validatePaging ValidationError text, or nil.
-    static func pagingProblem(limit: Int, offset: Int) -> String? {
-        if limit < 0 {
-            return "--limit must be 0 or more (PS3.18 8.3.4.4: limit is an unsigned integer)"
-        }
-        if offset < 0 {
-            return "--offset must be 0 or more (PS3.18 8.3.4.4: offset is an unsigned integer)"
-        }
-        return nil
-    }
-
-    // MARK: - UPS-RS
-
-    /// Procedure Step State (0074,1000), PS3.3 Table C.30.1-1 Enumerated Values. The
-    /// standard spelling "IN PROGRESS" and the CLI spellings IN_PROGRESS / INPROGRESS
-    /// are accepted (case-insensitive). The state is held as the DICOMWeb enum through the
-    /// `WebUPSState` alias (D259).
-    static func upsState(_ raw: String) -> WebUPSState? {
-        switch raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "_", with: " ") {
-        case "SCHEDULED":                  return .scheduled
-        case "IN PROGRESS", "INPROGRESS":  return .inProgress
-        case "COMPLETED":                  return .completed
-        case "CANCELED":                   return .canceled
-        default:                           return nil
-        }
-    }
-
-    /// The Procedure Step State values a Change State request may carry
-    /// (PS3.18 11.7.1.4: "IN PROGRESS", "COMPLETED", or "CANCELED").
-    static let changeStateTargets: [WebUPSState] = [.inProgress, .completed, .canceled]
-
-    /// The Procedure Step State a Change Workitem State request (`--change-state`, or the
-    /// deprecated `--update`) sends. PS3.18 2026a 11.7.1.4 allows only "IN PROGRESS",
-    /// "COMPLETED" or "CANCELED"; PS3.4 2026a Table CC.1.1-2 answers a change to SCHEDULED
-    /// with C303H (or C307H). SCHEDULED and unknown values are refused (exit 1).
-    static func changeStateTarget(_ raw: String) throws -> WebUPSState {
-        guard let state = upsState(raw) else {
-            throw Refusal(message: "Invalid state: \(raw). Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, "
-                + "CANCELED (PS3.18 2026a 11.7.1.4)", exitCode: 1)
-        }
-        guard changeStateTargets.contains(state) else {
-            throw Refusal(message: "\(state.rawValue) is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
-                + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
-                + "to SCHEDULED (C303H)", exitCode: 1)
-        }
-        return state
-    }
-
-    /// The workitem whose state `ups` changes: `--change-state <uid>` (canonical, PS3.18
-    /// 11.7 Change Workitem State) or the deprecated alias `--update <uid>`. Both → refused.
-    static func changeStateWorkitem(changeState: String?, update: String?) throws -> String? {
-        if changeState != nil && update != nil {
-            throw Refusal(message: "--change-state and --update are the same operation (PS3.18 2026a 11.7 "
-                + "Change Workitem State); --update is a deprecated alias. Use --change-state only", exitCode: 1)
-        }
-        return changeState ?? update
-    }
-
-    /// Stderr note printed when the deprecated `--update` is used.
-    static let updateDeprecationNote =
-        "Note: --update is deprecated; use --change-state (it performs Change Workitem State, "
-        + "PS3.18 2026a 11.7, not Update Workitem, 11.6)"
-
-    // MARK: - Plumbing
-
-    /// `--timeout` drives the per-request timeout (URLSession timeoutIntervalForRequest,
-    /// i.e. `readTimeout`); the whole-resource timeout is never shorter than it.
-    static func timeouts(seconds: Int) -> DICOMwebConfiguration.TimeoutConfiguration {
-        let t = TimeInterval(max(1, seconds))
-        let defaults = DICOMwebConfiguration.TimeoutConfiguration.default
-        return DICOMwebConfiguration.TimeoutConfiguration(
-            connectTimeout: t,
-            readTimeout: t,
-            resourceTimeout: max(defaults.resourceTimeout, t),
-            operationTimeout: max(defaults.operationTimeout, t))
-    }
-}

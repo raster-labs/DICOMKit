@@ -22,7 +22,7 @@ public enum DICOMwebClientFactory: Sendable {
     /// - Parameters:
     ///   - profile: The DICOMweb server profile containing URL, auth, and TLS settings.
     ///   - timeouts: The request timeouts (default `.default`); the CLI Workshop passes the
-    ///     `retrieve --timeout` mapping (`WorkshopWADOOptionRules.timeouts(seconds:)`) so the
+    ///     `retrieve --timeout` mapping (`DICOMwebOptionRules.timeouts(seconds:)`, DICOMWeb) so the
     ///     configuration is built once instead of rebuilt around the profile's URL and auth (D260).
     /// - Throws: `DICOMwebError.invalidURL` if the profile's base URL is malformed.
     /// - Returns: A configured `DICOMwebConfiguration`.
