@@ -56,7 +56,6 @@ CONTRACT = load('cli_contracts').CONTRACT
 # Findings whose fix changes public API (a Studio enum case, a renamed member) and waits for the owner.
 # Key: substring of the finding text; value: P-item name (see the report).
 PENDING_API_APPROVAL = {
-    'ps315': 'P-STUDIO-ANON-PS315',          # AnonymizationProfile needs a .ps315 case to offer the CLI default
 }
 # Findings whose cause lives in another module (DEFR, with their D-number).
 DEFERRED = {
@@ -273,6 +272,7 @@ FILES = {
     'DICOMStudio/Views/LocalListenerView.swift': ('G3', 'NST'),
     'DICOMStudio/Views/NetworkUtilityView.swift': ('G3', 'NST'),
     'DICOMStudio/Views/PolishReleaseView.swift': ('G3', 'NST'),
+    'DICOMStudio/Views/Networking/WorklistCreateView.swift': ('G3', 'NST'),   # P-STUDIO-MWL-CREATE (labels only)
     'DICOMStudio/Components/DICOMwebHelpers.swift': ('G3', 'ST'),
     'DICOMStudio/Components/NetworkingHelpers.swift': ('G3', 'ST'),
     'DICOMStudio/Components/PerformanceToolsHelpers.swift': ('G3', 'ST'),
@@ -290,6 +290,7 @@ FILES = {
     'DICOMStudio/ViewModels/DICOMwebViewModel.swift': ('G3', 'ST'),
     'DICOMStudio/ViewModels/NetworkingViewModel.swift': ('G3', 'ST'),
     'DICOMStudio/ViewModels/PerformanceToolsViewModel.swift': ('G3', 'ST'),
+    'DICOMStudio/ViewModels/WorklistCreateViewModel.swift': ('G3', 'ST'),     # P-STUDIO-MWL-CREATE
     'DICOMStudio/Views/DICOMwebView.swift': ('G3', 'ST'),
     'DICOMStudio/Views/NetworkingView.swift': ('G3', 'ST'),
     'DICOMStudio/Views/PerformanceToolsView.swift': ('G3', 'ST'),
@@ -343,6 +344,7 @@ FILES = {
     'DICOMStudio/Services/CalibrationService.swift': ('G5', 'NST'),
     'DICOMStudio/Services/MeasurementService.swift': ('G5', 'NST'),
     'DICOMStudio/ViewModels/MeasurementViewModel.swift': ('G5', 'NST'),
+    'DICOMStudio/Components/AnonPS315Support.swift': ('G5', 'ST'),            # P-STUDIO-ANON-PS315
     'DICOMStudio/Components/CADVisualizationHelpers.swift': ('G5', 'ST'),
     'DICOMStudio/Components/CalibrationHelpers.swift': ('G5', 'ST'),
     'DICOMStudio/Components/EncapsulatedDocumentHelpers.swift': ('G5', 'ST'),
@@ -997,7 +999,7 @@ def main():
             for tool_id in (args.tool or sorted(WORKSHOP_TOOLS)):
                 check_workshop_parity(rep, ws, tool_id)
         ctx = {'root': ROOT, 'sources': SOURCES, 'dw': dw, 'dk': dk, 'dc': dc, 'nd': nd, 'studio_files': studio_files,
-               'workshop_surface': workshop_surface, 'split_pending': split_pending}
+               'workshop_surface': workshop_surface, 'split_pending': split_pending, 'cli_surface': cli_surface}
         for name, fn in GROUP_CHECKS[g]:
             if args.only and args.only not in name:
                 continue

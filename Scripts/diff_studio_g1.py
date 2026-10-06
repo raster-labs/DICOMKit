@@ -37,18 +37,22 @@ or against the engine symbol the Workshop and the CLI both call (the CLI source 
 import os
 import re
 
-# The Workshop's dicom-mwl `create` operation is Studio-only (HL7 ORM^O01 over MLLP or the archive REST API —
-# no DIMSE service creates a worklist item); the dicom-mwl CLI registers only `query`. The arm keeps the
-# `.subcommand` type so the form switches cleanly, and the preview is rendered commented out. Either adding a
-# CLI subcommand or moving the operation out of the Workshop changes a product surface: owner's call.
+# No pending rows. P-STUDIO-MWL-CREATE (2026-10-06): worklist-item creation (HL7 ORM^O01 / REST, not a DIMSE
+# service) moved to the Networking panel; the Workshop's dicom-mwl offers only the CLI's `query`
+# (check_mwl_mpps_terms). P-STUDIO-ANON-PS315: dicom-anon --profile ps315 (check_pixel_anon_options).
 PENDING_API_APPROVAL = {
-    "subcommand picker offers ['create'], dicom-mwl commands are": 'P-STUDIO-MWL-CREATE',
 }
 # Findings whose cause lives in another module (DEFR). The by-flag collapse (D247, D258 a), the cliMapping flags
 # (D258 b) and the `[""] + Expr` pickers (D266) are now handled by diff_studio.check_workshop_parity itself:
 # options are keyed by (subcommand, flag), cliMapping tokens count as offered, and non-literal pickers resolve.
 DEFERRED = {
 }
+# Deliberate non-mirroring that the parity diff cannot see (it compares flags, defaults and pickers, not
+# required-ness), recorded here as a note rather than a key, because EXEMPT keys are matched by flag across every
+# tool: P-STUDIO-EXPORT-SINGLE-OUTPUT (071ad9c0) — the Workshop's dicom-export `single` keeps --output required,
+# where the CLI derives a name from the input in the working directory when it is omitted; a sandboxed app has no
+# working directory to write to (empty --output: ArgumentParser's missing-option text, exit 64). Documented at the
+# parameter in CLIWorkshopHelpers.swift; not a DICOM 2026a matter.
 EXEMPT = {
 }
 
@@ -82,6 +86,14 @@ def block(s, start_pat, what):
                 return s[m.end():i]
         i += 1
     raise SystemExit(f'unbalanced {what}')
+
+
+def block_or_empty(s, start_pat, what):
+    """block(), or '' when the construct is absent — for checks that must report a missing symbol as a finding."""
+    try:
+        return block(s, start_pat, what)
+    except SystemExit:
+        return ''
 
 
 def param(ws, tool, pid):
@@ -845,6 +857,22 @@ def check_mwl_mpps_terms(rep, parts, files, ctx):
             wrong.append(f'dicom-mwl form lacks {flag} (PS3.4 Table K.6-1a / PS3.3 C.7.3.1.1.1)')
         else:
             matched += 1
+    # P-STUDIO-MWL-CREATE: the subcommand picker is exactly the CLI's commands (query: PS3.4 Annex K defines C-FIND
+    # only, no DIMSE service creates a worklist item); no internal create-only fields remain in the Workshop form.
+    mwl_form = ws.get('dicom-mwl', [])
+    op = next((q for q in mwl_form if q.get('parameterType') == 'subcommand'), None)
+    mwl_commands = [c for c in ctx['cli_surface']('dicom-mwl')[3] if c != 'dicom-mwl']   # the root command is listed too
+    if mwl_commands != ['query']:
+        wrong.append(f'dicom-mwl CLI commands read as {mwl_commands}; re-read (expected query only)')
+    elif op is None or op.get('allowedValues') != mwl_commands or op.get('defaultValue') != 'query':
+        wrong.append(f'dicom-mwl subcommand picker {op and op.get("allowedValues")} must be the CLI\'s {mwl_commands} (create is the Networking panel\'s)')
+    else:
+        matched += 1
+    internal = [q.get('id') for q in mwl_form if q.get('isInternal') == 'true' or any('create' in v for _, v in q.get('visibility', []))]
+    if internal:
+        wrong.append(f'dicom-mwl Workshop form still carries internal / create-only fields {internal} (P-STUDIO-MWL-CREATE)')
+    else:
+        matched += 1
     mwl_body = block(vm, r'private func executeDicomMWLQuery\([^{]*\{', 'executeDicomMWLQuery')
     for needle in ('specificCharacterSet: specificCharacterSet.isEmpty ? nil : specificCharacterSet', 'WorklistQueryKeys.spsStatusWarning(spsStatus)', 'Self.resolveModalityOption('):
         if needle in mwl_body:
@@ -1153,12 +1181,71 @@ def check_pixel_anon_options(rep, parts, files, ctx):
                 matched += 1
             else:
                 wrong.append(f'dicom-anon AnonymizationError text not mirrored by WorkshopAnonError: "{lit}"')
-    if 'try AnonCLI.validate(profile: profileStr, flags: ps315Flags' not in vm or 'catch let error as AnonCLI.ValidationError' not in vm:
-        wrong.append('the dicom-anon executor must refuse through AnonCLI.validate and report AnonCLI.ValidationError as the CLI\'s ValidationError (exit 64)')
+    # P-STUDIO-ANON-PS315: dicom-anon's validation refusals are its own CLI-local ValidationError, which exits 1
+    # (64 is only ArgumentParser's usage exit); the Workshop refuses through AnonCLI.validate with exit 1 too.
+    anon_exec = block(vm, r'private func executeDicomAnon\(\) async \{', 'executeDicomAnon')
+    if not re.search(r'try AnonCLI\.validate\(profile: profileStr, flags: ps315Flags.*?catch let error as AnonCLI\.ValidationError \{\s*'
+                     r'refuse\(error\.message, exitCode: 1\)', anon_exec, re.S):
+        wrong.append('the dicom-anon executor must refuse through AnonCLI.validate and report AnonCLI.ValidationError with exit 1, as dicom-anon does')
     else:
         matched += 1
-    rep.check(f'PS3.15 2026a Annex E (Table E.1-1 {len(columns)} Option columns, E.3.1-E.3.11), PS3.16 CID 7050: dicom-anon Workshop '
-              f'E.3 option flags, pixel-cleaning options, CLI help and the DICOMKit AnonCLI calls (P-ANON-RETAIN-DATES, D275; ps315 PEND)',
+    usage64 = [ln.strip() for ln in anon_exec.split('\n') if 'exitCode: 64' in ln and 'Missing expected argument' not in ln]
+    if usage64:
+        wrong.append(f'the dicom-anon executor exits 64 on a non-ArgumentParser refusal ({usage64[0][:80]}); dicom-anon\'s own refusals exit 1')
+    else:
+        matched += 1
+    # P-STUDIO-ANON-PS315: --profile default and picker are the CLI's (DICOMKit AnonCLI.defaultProfile / profileAliases):
+    # ps315 = the PS3.15 2026a E.1 Basic Application Level Confidentiality Profile (every row of Table E.1-1), basic its
+    # alias, the legacy-* lists last (deprecated, not PS3.15); the old clinical-trial / research spellings not offered.
+    e1 = ctx['dw'].section_by_id(parts[15], 'sect_E.1')
+    e1_text = ctx['nd'].norm(' '.join(e1.itertext())) if e1 is not None else ''
+    if 'Basic Application Level Confidentiality Profile' not in e1_text:
+        wrong.append('PS3.15 2026a E.1 no longer names the "Basic Application Level Confidentiality Profile"; re-read')
+    else:
+        matched += 1
+    aliases = dict(re.findall(r'"([a-z0-9-]+)":\s*\.(\w+)', block(cli_support, r'public static let profileAliases: \[String: Profile\] = ', 'AnonCLI.profileAliases')))
+    default = (re.search(r'public static let defaultProfile = "([^"]+)"', cli_support) or [None, None])[1]
+    expected = [default] + [k for k, v in aliases.items() if v == 'ps315' and k != default] + \
+               [k for k, v in aliases.items() if v != 'ps315' and k.startswith('legacy-')]
+    prof = param(ws, 'dicom-anon', 'profile')
+    if default != 'ps315' or aliases.get('basic') != 'ps315':
+        wrong.append(f'DICOMKit AnonCLI.defaultProfile is {default!r}, basic -> {aliases.get("basic")!r}; the CLI default must be ps315 with basic its alias')
+    elif prof is None or prof.get('defaultValue') != default or prof.get('allowedValues') != expected:
+        wrong.append(f'dicom-anon --profile: Workshop default {prof and prof.get("defaultValue")!r} / picker {prof and prof.get("allowedValues")} '
+                     f'must be the CLI default {default!r} / {expected} (ps315 first, legacy-* last)')
+    else:
+        matched += len(expected) + 1
+        help_text = str(prof.get('helpText', ''))
+        if 'PS3.15 Basic Application Level Confidentiality Profile' not in help_text or 'Table E.1-1' not in help_text \
+                or 'not PS3.15' not in help_text:
+            wrong.append('dicom-anon --profile help must name the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1) and label legacy-* not PS3.15')
+        else:
+            matched += 1
+    # ps315 / basic run DICOMKit Anonymizer.deidentify — the CLI's isPS315 branch — through StudioAnonPS315 (no copy)
+    ps315_support = read(ctx, 'DICOMStudio/Components/AnonPS315Support.swift')
+    deid = block_or_empty(ps315_support, r'static func deidentify\([^{]*\{', 'StudioAnonPS315.deidentify')
+    checks = [
+        (re.search(r'if isPS315 \{\s*\(anonymizedFile, result\) = try StudioAnonPS315\.deidentify\(', anon_exec),
+         'the dicom-anon executor\'s isPS315 branch must call StudioAnonPS315.deidentify'),
+        ('let isPS315 = resolvedProfile.isPS315' in anon_exec and 'AnonCLI.resolveProfile(profileStr)' in anon_exec,
+         'the dicom-anon executor must resolve --profile through AnonCLI.resolveProfile / Profile.isPS315'),
+        ('anonymizer.deidentify(file: dicomFile, options: options)' in deid,
+         'StudioAnonPS315.deidentify must call DICOMKit Anonymizer.deidentify(file:options:)'),
+        ('anonymizer.deidentify(file: dicomFile, options: ps315Options)' in cli_main,
+         'dicom-anon\'s ps315 branch no longer calls Anonymizer.deidentify(file:options:); re-read'),
+        ('AnonCLI.applyCustomActions(' in deid and '!allowBurnedInPHI' in deid,
+         'StudioAnonPS315.deidentify must refuse burned-in PHI unless allowed and apply --remove / --replace as the CLI does'),
+        ('Tag(group:' not in ps315_support and 'Tag.' not in deid,
+         'StudioAnonPS315 must not carry a Table E.1-1 copy (the rows are DICOMKit Anonymizer.deidentify\'s)'),
+    ]
+    for ok_, msg in checks:
+        if ok_:
+            matched += 1
+        else:
+            wrong.append(msg)
+    rep.check(f'PS3.15 2026a Annex E (E.1 Basic Profile, Table E.1-1 {len(columns)} Option columns, E.3.1-E.3.11), PS3.16 CID 7050: dicom-anon Workshop '
+              f'--profile ps315 default and picker, E.3 option flags, pixel-cleaning options, CLI help, refusals exit 1, and the DICOMKit '
+              f'AnonCLI / Anonymizer.deidentify calls (P-ANON-RETAIN-DATES, D275, P-STUDIO-ANON-PS315)',
               matched, wrong)
 
 
