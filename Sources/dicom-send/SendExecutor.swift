@@ -1,30 +1,13 @@
 import Foundation
 import DICOMCore
 import DICOMNetwork
-// NEMA-verified: 2026a, checked 2026-10-01 — C-STORE response handling diffed against PS3.4 2026a Table B.2-1 (7 rows: Success 0000 stored; Warning B000/B006/B007 stored and reported; Failure A7xx/A9xx/Cxxx not stored, counted as failed) and PS3.7 9.1.1.1.9 (0122 Refused: SOP Class not supported); status text comes from DICOMNetwork.DIMSEStatus; the per-file warning line and the summary Warnings count are rendered by the shared NetworkConsole (Table B.2-1 wording via DIMSEServiceStatusText, P-SEND-SUMMARY)
+// NEMA-verified: 2026a, checked 2026-10-06 — the three response classes, the per-file ✅ / warning line and the partial-failure text are DICOMNetwork's NetworkConsole.CStoreOutcome / sendFileResult(status:rtt:) / sendPartialFailureText (D261); C-STORE response handling diffed against PS3.4 2026a Table B.2-1 (7 rows: Success 0000 stored; Warning B000/B006/B007 stored and reported; Failure A7xx/A9xx/Cxxx not stored, counted as failed) and PS3.7 9.1.1.1.9 (0122 Refused: SOP Class not supported); status text comes from DICOMNetwork.DIMSEStatus; the per-file warning line and the summary Warnings count are rendered by the shared NetworkConsole (Table B.2-1 wording via DIMSEServiceStatusText, P-SEND-SUMMARY)
 
-/// How a C-STORE response status is reported, per PS3.4 Table B.2-1: Success
-/// (0000) and the Warning class (B000 Coercion of Data Elements, B006 Elements
-/// Discarded, B007 Data Set does not match SOP Class) mean the SCP stored the
-/// SOP Instance (PS3.7 9.1.1.1.9: "was able to store ... but detected a probable
-/// error"); the Failure class (A7xx Refused: Out of resources, A9xx Error: Data
-/// Set does not match SOP Class, Cxxx Error: Cannot understand, 0122 Refused:
-/// SOP Class not supported) means it was not stored.
-enum StoreOutcome: Equatable {
-    case stored
-    case storedWithWarning
-    case failed
-
-    init(status: DIMSEStatus) {
-        if status.isSuccess {
-            self = .stored
-        } else if status.isWarning {
-            self = .storedWithWarning
-        } else {
-            self = .failed
-        }
-    }
-}
+/// The three PS3.4 Table B.2-1 classes of a C-STORE response are the engine's
+/// `NetworkConsole.CStoreOutcome` (D261); this name stays for the DICOMStudio CLI
+/// Workshop until it is rewired.
+@available(*, deprecated, renamed: "NetworkConsole.CStoreOutcome")
+typealias StoreOutcome = NetworkConsole.CStoreOutcome
 
 #if canImport(Network)
 
@@ -81,13 +64,14 @@ struct SendExecutor {
                 totalBytesTransferred += fileData.count
                 successCount += 1
 
-                print(NetworkConsole.sendFileResultSuffix(
-                    success: true, rtt: result.roundTripTime, error: nil), terminator: "")
-                if StoreOutcome(status: result.status) == .storedWithWarning {
-                    // PS3.4 Table B.2-1 Warning class: stored, but the SCP reports a
-                    // deviation (coercion, discarded elements, SOP Class mismatch).
+                // The shared formatter renders the Table B.2-1 class of the status
+                // (D261): ` ✅ (rtt)`, plus the warning line for the Warning class
+                // (stored, but the SCP reports coercion, discarded elements or a
+                // SOP Class mismatch).
+                print(NetworkConsole.sendFileResult(status: result.status, rtt: result.roundTripTime),
+                      terminator: "")
+                if NetworkConsole.CStoreOutcome(status: result.status) == .storedWithWarning {
                     warningCount += 1
-                    print(NetworkConsole.sendFileWarningLine(status: result.status), terminator: "")
                 }
 
             } catch {
@@ -140,7 +124,7 @@ struct SendExecutor {
     /// returns such a response as a `StoreResult` rather than throwing).
     private func sendFile(fileData: Data) async throws -> StoreResult {
         let result = try await storeOnce(fileData: fileData)
-        if StoreOutcome(status: result.status) == .failed {
+        if NetworkConsole.CStoreOutcome(status: result.status) == .failed {
             throw SendError.storeFailed(result.status)
         }
         return result
@@ -172,7 +156,8 @@ struct SendExecutor {
     }
 }
 
-/// Errors that can occur during send operations
+/// Errors that can occur during send operations. The partial-failure text is the
+/// shared NetworkConsole one (D261).
 enum SendError: LocalizedError {
     case unknownError
     case partialFailure(succeeded: Int, failed: Int)
@@ -184,8 +169,12 @@ enum SendError: LocalizedError {
         case .unknownError:
             return "Unknown error occurred"
         case .partialFailure(let succeeded, let failed):
-            return "Send completed with \(succeeded) succeeded and \(failed) failed"
+            return NetworkConsole.sendPartialFailureText(succeeded: succeeded, failed: failed)
         case .storeFailed(let status):
+            // Kept CLI-local so the per-file ` ❌ ` line stays byte-identical
+            // (DIMSEStatus.description wording); NetworkConsole.sendFileResult words a
+            // Failure per Table B.2-1 via DIMSEServiceStatusText — adopting it changes
+            // this line, which is the owner's call (D261 note).
             return "C-STORE response status \(status) — not stored (PS3.4 Table B.2-1)"
         }
     }

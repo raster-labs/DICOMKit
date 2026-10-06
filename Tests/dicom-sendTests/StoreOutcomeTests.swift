@@ -31,6 +31,25 @@ final class StoreOutcomeTests: XCTestCase {
         XCTAssertTrue(text.contains("Out of resources"), text)
     }
 
+    // D261: the classes, the per-file ✅ / warning line and the partial-failure text
+    // are the shared NetworkConsole ones; the CLI's ❌ text is unchanged (byte-identical).
+    func testSharedOutcomeAndTexts() {
+        XCTAssertEqual(NetworkConsole.CStoreOutcome(status: .from(0x0000)), .stored)
+        XCTAssertEqual(NetworkConsole.CStoreOutcome(status: .from(0xB000)), .storedWithWarning)
+        XCTAssertEqual(NetworkConsole.CStoreOutcome(status: .from(0xA700)), .failed)
+        XCTAssertEqual(NetworkConsole.sendFileResult(status: .success, rtt: 0.012),
+                       NetworkConsole.sendFileResultSuffix(success: true, rtt: 0.012, error: nil))
+        XCTAssertEqual(NetworkConsole.sendFileResult(status: .from(0xB007), rtt: 0.012),
+                       NetworkConsole.sendFileResultSuffix(success: true, rtt: 0.012, error: nil)
+                       + NetworkConsole.sendFileWarningLine(status: .from(0xB007)))
+        XCTAssertEqual(SendError.storeFailed(.from(0xA700)).errorDescription,
+                       "C-STORE response status Refused: Out of resources (0xA700) — not stored (PS3.4 Table B.2-1)")
+        XCTAssertEqual(SendError.partialFailure(succeeded: 2, failed: 1).errorDescription,
+                       NetworkConsole.sendPartialFailureText(succeeded: 2, failed: 1))
+        XCTAssertEqual(NetworkConsole.sendPartialFailureText(succeeded: 2, failed: 1),
+                       "Send completed with 2 succeeded and 1 failed")
+    }
+
     // PS3.7 Table 9.3-1: LOW = 0002H, MEDIUM = 0000H, HIGH = 0001H.
     func testPriorityOptionValuesMatchPS37() {
         XCTAssertEqual(PriorityOption.low.dimseValue.rawValue, 0x0002)

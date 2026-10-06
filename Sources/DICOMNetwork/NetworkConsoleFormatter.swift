@@ -1,6 +1,6 @@
 import Foundation
 import DICOMCore
-// NEMA-verified: 2026a, checked 2026-10-01 — A-ASSOCIATE-RJ reason texts taken from AssociateRejectPDU (PS3.8 2026a Table 9-21); C-STORE warning lines, sendFileResult(status:) for the three classes and the summary Warnings count per PS3.4 2026a Table B.2-1 via DIMSEServiceStatusText (P-SEND-SUMMARY, D75); Query/Retrieve Level values PATIENT / STUDY / SERIES / IMAGE per PS3.4 Table C.6.1-1 (D74), C-MOVE counters under the PS3.7 Table 9.3-10 names and Modalities in Study (0008,0061) labelled per PS3.6 (D77); retrieve header Priority per PS3.7 Tables 9.3-9 / 9.3-6 and relational-retrieval per PS3.4 Table C.5-3; MWL JSON PS3.6 keyword keys (P-MWL-JSON-KEYS); other text is display labels
+// NEMA-verified: 2026a, checked 2026-10-06 — CStoreOutcome classes (Success 0000; Warning B000/B006/B007; Failure A7xx/A9xx/Cxxx) re-read from PS3.4 2026a Table B.2-1 (D261); A-ASSOCIATE-RJ reason texts taken from AssociateRejectPDU (PS3.8 2026a Table 9-21); C-STORE warning lines, sendFileResult(status:) for the three classes and the summary Warnings count per PS3.4 2026a Table B.2-1 via DIMSEServiceStatusText (P-SEND-SUMMARY, D75); Query/Retrieve Level values PATIENT / STUDY / SERIES / IMAGE per PS3.4 Table C.6.1-1 (D74), C-MOVE counters under the PS3.7 Table 9.3-10 names and Modalities in Study (0008,0061) labelled per PS3.6 (D77); retrieve header Priority per PS3.7 Tables 9.3-9 / 9.3-6 and relational-retrieval per PS3.4 Table C.5-3; MWL JSON PS3.6 keyword keys (P-MWL-JSON-KEYS); other text is display labels
 
 /// Shared console rendering for the network CLIs (`dicom-query`, `dicom-send`,
 /// `dicom-retrieve`, `dicom-qr`) AND the DICOMStudio CLI Workshop in-process
@@ -113,6 +113,30 @@ public enum NetworkConsole {
 
     // MARK: - Send (C-STORE)
 
+    /// How a C-STORE response status is reported, per PS3.4 2026a Table B.2-1:
+    /// Success (0000) and the Warning class (B000 Coercion of Data Elements, B006
+    /// Elements Discarded, B007 Data Set does not match SOP Class) mean the SCP
+    /// stored the SOP Instance (PS3.7 9.1.1.1.9: "was able to store ... but detected
+    /// a probable error"); the Failure class (A7xx Refused: Out of resources, A9xx
+    /// Error: Data Set does not match SOP Class, Cxxx Error: Cannot understand, 0122
+    /// Refused: SOP Class not supported) means it was not stored. Formerly
+    /// dicom-send's CLI-local `StoreOutcome` (D261).
+    public enum CStoreOutcome: Equatable, Sendable {
+        case stored
+        case storedWithWarning
+        case failed
+
+        public init(status: DIMSEStatus) {
+            if status.isSuccess {
+                self = .stored
+            } else if status.isWarning {
+                self = .storedWithWarning
+            } else {
+                self = .failed
+            }
+        }
+    }
+
     public static func sendHeader(
         host: String, port: UInt16,
         callingAE: String, calledAE: String,
@@ -162,15 +186,22 @@ public enum NetworkConsole {
     /// renders all three classes, so a caller holding a returned failure status
     /// cannot print it as a success (D75).
     public static func sendFileResult(status: DIMSEStatus, rtt: TimeInterval) -> String {
-        if status.isSuccess {
+        switch CStoreOutcome(status: status) {
+        case .stored:
             return sendFileResultSuffix(success: true, rtt: rtt, error: nil)
-        }
-        if status.isWarning {
+        case .storedWithWarning:
             return sendFileResultSuffix(success: true, rtt: rtt, error: nil) + sendFileWarningLine(status: status)
+        case .failed:
+            return sendFileResultSuffix(
+                success: false, rtt: rtt,
+                error: "C-STORE response status \(status.description(for: .cStore)) — not stored (PS3.4 Table B.2-1)")
         }
-        return sendFileResultSuffix(
-            success: false, rtt: rtt,
-            error: "C-STORE response status \(status.description(for: .cStore)) — not stored (PS3.4 Table B.2-1)")
+    }
+
+    /// dicom-send's end-of-run error when at least one file was not stored
+    /// (printed as `Error: …`, exit 1): `Send completed with S succeeded and F failed`.
+    public static func sendPartialFailureText(succeeded: Int, failed: Int) -> String {
+        "Send completed with \(succeeded) succeeded and \(failed) failed"
     }
 
     /// A dry-run listing line: `  [i/total] name (size)`.
