@@ -89,7 +89,7 @@ struct DICOMPixedit: ParsableCommand {
         if let maskRegionStr = maskRegion {
             let region = try editor.parseRegion(maskRegionStr)
             let fill = fillValue ?? 0
-            if let refusal = DerivedImage.fillValueViolation(fill, range: DerivedImage.storedRange(of: source.dataSet)) {
+            if let refusal = DICOMKit.PixelEditInputChecks.fillValueViolation(fill, range: DICOMKit.PixelEditInputChecks.storedRange(of: source.dataSet)) {
                 throw ValidationError(refusal)
             }
             operations.append(.mask(x: region.x, y: region.y, width: region.width, height: region.height, fillValue: fill))
@@ -105,7 +105,7 @@ struct DICOMPixedit: ParsableCommand {
                 throw ValidationError("--apply-window requires both --window-center and --window-width")
             }
             let width = requestedWidth
-            if let refusal = DerivedImage.windowWidthViolation(width) {
+            if let refusal = DICOMKit.PixelEditInputChecks.windowWidthViolation(width) {
                 throw ValidationError(refusal)
             }
             // Modality LUT output units (C.11.2.1.2); the engine applies Rescale / LUT.
