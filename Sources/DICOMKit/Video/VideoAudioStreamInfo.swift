@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — VideoAudioRules diffed by script (Scripts/diff_kit.py, check "video-audio") against PS3.5 2026a 8.2.12 per-format paragraphs (LPCM 4.608 Mbps / 48, 96 kHz / 16, 20, 24 bits / 2 ch, MPEG-2 TS only; AC-3 640 kbps / 48 kHz / 2 or 5.1 ch, MPEG-2 TS only; AAC 640 kbps / 48 kHz / 2 or 5.1 ch; CBR MP3 320 kbps / 32, 44.1, 48 kHz / one main mono or stereo channel; MP2 384 kbps / 32, 44.1, 48 kHz / 2 ch), Table 8.2.12-1 (LPCM and AC3 "-" in the MP4 column) and the audio paragraphs inside 8.2.5 (MPEG2 MP@ML: CBR MPEG-1 Layer III, 32/44.1/48 kHz, one main mono or stereo channel; 8.2.6 refers to them): 26 statements matched, 0 wrong (A1, A2). AudioFormat names the five 8.2.12 formats. Header syntax (ISO/IEC 11172-3, 13818-7, 14496-3 1.6.2.1, ETSI TS 102 366, Blu-ray LPCM) is codec-internal and out of scope. Merged from origin/main PR #217 (1416f7e2).
 //
 // VideoAudioStreamInfo.swift
 // DICOMKit
@@ -131,8 +132,9 @@ public enum VideoAudioRules {
         }
     }
 
-    /// PS3.5 8.2.5: CBR MPEG-1 Layer III only, at 32, 44.1 or 48 kHz, with one
-    /// mono or stereo main channel.
+    /// PS3.5 8.2.5 (MPEG2 MP@ML, audio): "CBR MPEG-1 LAYER III (MP3)" only, at
+    /// "32 kHz, 44.1 kHz or 48 kHz for the main channel", with "one main mono or
+    /// stereo channel" (8.2.6 applies the same restrictions to MP@HL).
     private static func mpeg2Problems(_ audio: AudioStreamInfo) -> [String] {
         guard audio.format == .mp3 else {
             return ["is \(audio.format.displayName); MPEG-2 video permits only CBR "

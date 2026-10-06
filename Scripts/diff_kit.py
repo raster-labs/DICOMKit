@@ -674,6 +674,132 @@ def check_mpeg2_frame_rates(rep, p5, files):
               'VideoConformanceValidator', matched, wrong, missing)
 
 
+def check_video_audio_rules(rep, p5, files):
+    """PS3.5 8.2.12 (per-format audio limits for AVC/HEVC, Table 8.2.12-1 container column) and
+    the MPEG-1 Layer III paragraph of 8.2.5 (MPEG2 MP@ML audio) against the literals of
+    VideoAudioRules in VideoAudioStreamInfo.swift (A1, A2)."""
+    src = files.get('Video/VideoAudioStreamInfo.swift', '')
+    matched, wrong, missing = 0, [], []
+
+    def paras(xml_id):
+        sec = dw.section_by_id(p5, xml_id)
+        return [p5.text(p) for p in sec.iter(dw.D + 'para')] if sec is not None else []
+
+    def khz(text):
+        # "48, 96 kHz" and "32 kHz, 44.1 kHz or 48 kHz" both list kilohertz values
+        return {int(round(float(v) * 1000)) for v in re.findall(r'\d+(?:\.\d+)?', text)} if 'kHz' in text else set()
+
+    # 8.2.12: "<Format>" heading paragraph, then "Maximum bit rate: …", "Sampling frequency: …",
+    # "Number of channels: …", and "If <Format> is used …, the container format shall be MPEG-2 TS."
+    heads = {'LPCM': 'lpcm', 'AC-3': 'ac3', 'AAC': 'aac', 'CBR MPEG-1 LAYER III (MP3) Audio Standard': 'mp3',
+             'MPEG-1 LAYER II (MP2)': 'mp2'}
+    std = {}
+    current = None
+    for text in paras('sect_8.2.12'):
+        if text in heads:
+            current = heads[text]
+            std[current] = {'ts_only': False}
+            continue
+        if current is None:
+            continue
+        m = re.match(r'Maximum bit rate:\s*([\d.]+)\s*(M|k)bps', text)
+        if m:
+            std[current]['max_bps'] = int(round(float(m.group(1)) * (1_000_000 if m.group(2) == 'M' else 1000)))
+        m = re.match(r'Sampling frequency:\s*(.*)', text)
+        if m:
+            std[current]['rates'] = khz(m.group(1))
+        m = re.match(r'Number of channels:\s*(.*)', text)
+        if m:
+            std[current]['channels'] = m.group(1)
+        if re.match(r'If .* is used for Audio components, the container format shall be MPEG-2 TS', text):
+            std[current]['ts_only'] = True
+    # Table 8.2.12-1: the MP4 column says "-" for the TS-only formats
+    for row in dw.table_rows(p5, '8.2.12-1'):
+        if len(row) == 3 and row[0] in ('LPCM', 'AC3'):
+            if (row[2] == '-') != std.get({'AC3': 'ac3'}.get(row[0], 'lpcm'), {}).get('ts_only'):
+                wrong.append(f'Table 8.2.12-1 {row[0]} MP4 column disagrees with the 8.2.12 "shall be MPEG-2 TS" sentence')
+            else:
+                matched += 1
+    if len(std) != 5:
+        missing.append(f'8.2.12 names {len(std)} formats, expected LPCM, AC-3, AAC, MP3, MP2')
+
+    body = dw.func_body(src, r'static\s+func\s+avcHEVCProblems\b')
+    for fmt, rule in std.items():
+        block = re.search(r'case \.' + fmt + r':(.*?)(?=\n\s+case |\Z)', body, re.S)
+        if not block:
+            missing.append(f'avcHEVCProblems has no case .{fmt}')
+            continue
+        code = block.group(1)
+        m = re.search(r'bitRateProblems\([^)]*maximum:\s*([\d_]+)', code)
+        if not m or int(m.group(1).replace('_', '')) != rule.get('max_bps'):
+            wrong.append(f'.{fmt} maximum bit rate: code {m and m.group(1)} vs 8.2.12 {rule.get("max_bps")}')
+        else:
+            matched += 1
+        m = re.search(r'sampleRateProblems\([^)]*permitted:\s*\[([^\]]*)\]', code)
+        rates = {int(v.replace('_', '')) for v in re.findall(r'[\d_]+', m.group(1))} if m else set()
+        if rates != rule.get('rates'):
+            wrong.append(f'.{fmt} sampling frequencies: code {sorted(rates)} vs 8.2.12 {sorted(rule.get("rates", []))}')
+        else:
+            matched += 1
+        ts_only = 'container != .mpegTS' in code
+        if ts_only != rule['ts_only']:
+            wrong.append(f'.{fmt} container: code {"TS only" if ts_only else "TS or MP4"} vs 8.2.12 / Table 8.2.12-1')
+        else:
+            matched += 1
+        chan = rule.get('channels', '')
+        m = re.search(r'channelProblems\([^)]*permitted:\s*\[([^\]]*)\]', code)
+        if m:
+            code_ch = {int(v) for v in re.findall(r'\d+', m.group(1))}
+            std_ch = {6 if v == '5.1' else int(v) for v in re.findall(r'\d(?:\.\d)?', chan)}
+            if code_ch != std_ch:
+                wrong.append(f'.{fmt} channels: code {sorted(code_ch)} vs 8.2.12 "{chan}"')
+            else:
+                matched += 1
+        elif 'channels > 2' in code and chan.startswith('one main mono or stereo channel'):
+            matched += 1
+        elif fmt != 'lpcm' or ('channels != 2' in code and chan.startswith('2 channels')):
+            matched += 1 if fmt == 'lpcm' else 0
+            if fmt != 'lpcm':
+                wrong.append(f'.{fmt} channels not checked by code; 8.2.12 says "{chan}"')
+        else:
+            wrong.append(f'.lpcm channels: 8.2.12 says "{chan}"')
+        if 'isConstantBitRate == false' in code:
+            if fmt == 'mp3':
+                matched += 1
+            else:
+                wrong.append(f'.{fmt} checks CBR but 8.2.12 names CBR only for MP3')
+        elif fmt == 'mp3':
+            wrong.append('.mp3: 8.2.12 requires CBR MPEG-1 Layer III, code does not check it')
+
+    # 8.2.5 audio paragraphs (MPEG2 MP@ML): CBR MP3, 32/44.1/48 kHz, one main mono or stereo channel
+    sect5 = paras('sect_8.2.5')
+    start = next((i for i, t in enumerate(sect5) if t.startswith('Any audio components')), None)
+    audio5 = sect5[start:start + 8] if start is not None else []
+    body5 = dw.func_body(src, r'static\s+func\s+mpeg2Problems\b')
+    if not any(t.startswith('CBR MPEG-1 LAYER III (MP3)') for t in audio5):
+        missing.append('8.2.5 audio paragraph "CBR MPEG-1 LAYER III (MP3)" not found')
+    elif 'audio.format == .mp3' in body5 and 'isConstantBitRate == false' in body5:
+        matched += 1
+    else:
+        wrong.append('mpeg2Problems does not require CBR MP3 (8.2.5)')
+    rates5 = set()
+    for t in audio5:
+        if 'kHz' in t:
+            rates5 = khz(t.split(' for the main channel')[0])
+    m = re.search(r'sampleRateProblems\([^)]*permitted:\s*\[([^\]]*)\]', body5)
+    code5 = {int(v.replace('_', '')) for v in re.findall(r'[\d_]+', m.group(1))} if m else set()
+    if rates5 and code5 == rates5:
+        matched += 1
+    else:
+        wrong.append(f'mpeg2Problems sampling frequencies: code {sorted(code5)} vs 8.2.5 {sorted(rates5)}')
+    if any(t.startswith('one main mono or stereo channel') for t in audio5) and 'channels > 2' in body5:
+        matched += 1
+    else:
+        wrong.append('mpeg2Problems channel rule vs 8.2.5 "one main mono or stereo channel"')
+    rep.check('PS3.5 8.2.12 (and Table 8.2.12-1) / 8.2.5 audio: VideoAudioRules per-format bit rate, sampling '
+              'frequency, channels, container and CBR limits', matched, wrong, missing)
+
+
 def check_waveform_sample_interpretation(rep, p3, files):
     """PS3.3 Table C.10-10: the Sample Interpretation terms and which of them are signed."""
     src = files.get('Waveform/Waveform.swift', '')
@@ -829,6 +955,7 @@ def main():
         ('deidentification', lambda: check_deidentification(rep, parts[15], files, tags)),
         ('video', lambda: check_video_constraints(rep, parts[6], files)),
         ('mpeg2-frame-rates', lambda: check_mpeg2_frame_rates(rep, parts[5], files)),
+        ('video-audio', lambda: check_video_audio_rules(rep, parts[5], files)),
         ('waveform', lambda: check_waveform_sample_interpretation(rep, parts[3], files)),
         ('photometric', lambda: check_photometric_terms(rep, parts[3], files)),
         ('non_image_sop_classes', lambda: check_non_image_sop_classes(rep, parts[3], parts[4], files)),
