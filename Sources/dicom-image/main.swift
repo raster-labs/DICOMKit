@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — output diffed against PS3.3 2026a Table A.8-1 (Secondary Capture Image IOD): all Type 1/2 attributes of the 9 M modules present (27 grayscale, 28 colour incl. Planar Configuration 1C; Tables C.7-1, C.7-3, C.7-5a, C.8-24, C.7.10.1-1, C.7-9, C.7-11a/c, C.8-25, C.12-1); 16 options: value options refused (exit 1) when PS3.5 2026a Table 6.2-1 / Section 9 forbids them (P-IMAGE-VR); --modality via ModalityOptionValidator (C.7.3.1.1.1, 97 terms), --conversion-type Table C.8-24 (8 terms), SOP Class name/UID per PS3.4 Table B.5-1 and PS3.6 Table A-1, help names per PS3.6 Table 6-1 (see SCOutput.swift)
+// NEMA-verified: 2026a, checked 2026-10-01 — output diffed against PS3.3 2026a Table A.8-1 (Secondary Capture Image IOD): all Type 1/2 attributes of the 9 M modules present (27 grayscale, 28 colour incl. Planar Configuration 1C; Tables C.7-1, C.7-3, C.7-5a, C.8-24, C.7.10.1-1, C.7-9, C.7-11a/c, C.8-25, C.12-1); 16 options: value options refused (exit 1) when PS3.5 2026a Table 6.2-1 / Section 9 forbids them (P-IMAGE-VR); --modality via ModalityOptionValidator (C.7.3.1.1.1, 97 terms), --conversion-type Table C.8-24 (8 terms), SOP Class name/UID per PS3.4 Table B.5-1 and PS3.6 Table A-1, help names per PS3.6 Table 6-1 (DICOMKit ImageConverter.OutputRules, D274)
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -114,12 +114,12 @@ struct DICOMImage: ParsableCommand {
 
     mutating func run() throws {
         #if canImport(CoreGraphics)
-        guard SCOutput.conversionType(conversionType) != nil else {
+        guard ImageConverter.OutputRules.conversionType(conversionType) != nil else {
             throw ValidationError("--conversion-type '\(conversionType ?? "")' is not a Defined Term of PS3.3 Table C.8-24 "
                 + "(\(ConversionType.definedTerms.joined(separator: ", ")))")
         }
         // P-IMAGE-VR: a value the written VR cannot hold is refused (exit 1), not written.
-        let violations = SCOutput.valueViolations(
+        let violations = ImageConverter.OutputRules.valueViolations(
             patientName: patientName, patientID: patientId,
             studyDescription: studyDescription, seriesDescription: seriesDescription,
             studyUID: studyUid, seriesUID: seriesUid,
@@ -163,7 +163,7 @@ struct DICOMImage: ParsableCommand {
             studyDescription: studyDescription, seriesDescription: seriesDescription,
             modality: resolved ?? Modality.ot.rawValue,
             seriesNumber: seriesNumber,
-            conversionType: SCOutput.conversionType(conversionType) ?? .workstation)
+            conversionType: ImageConverter.OutputRules.conversionType(conversionType) ?? .workstation)
     }
 
     // MARK: - Directory Processing
@@ -217,7 +217,7 @@ struct DICOMImage: ParsableCommand {
                     metadata: metadata(studyUID: finalStudyUID, seriesUID: finalSeriesUID,
                                        instanceNumber: instanceNum, patientName: patientName, patientID: patientId),
                     useExif: useExif)
-                try SCOutput.finalize(data).write(to: outputFileURL)
+                try ImageConverter.OutputRules.finalize(data).write(to: outputFileURL)
 
                 successCount += 1
                 instanceNum += 1
@@ -275,7 +275,7 @@ struct DICOMImage: ParsableCommand {
                                    instanceNumber: instanceNumber ?? 1,
                                    patientName: patientName, patientID: patientId),
                 useExif: useExif)
-            try SCOutput.finalize(data).write(to: outputURL)
+            try ImageConverter.OutputRules.finalize(data).write(to: outputURL)
 
             print(ImageConsole.convertedLine(outputPath: finalOutputPath, verbose: verbose))
         }
@@ -320,7 +320,7 @@ struct DICOMImage: ParsableCommand {
                     // Honor --use-exif per page: ImageConverter reads each page's
                     // own EXIF via CGImageSourceCopyPropertiesAtIndex(pageIndex).
                     useExif: useExif)
-                try SCOutput.finalize(data).write(to: outputFileURL)
+                try ImageConverter.OutputRules.finalize(data).write(to: outputFileURL)
 
                 if verbose {
                     print(ImageConsole.pageSuccessLine(page: pageIndex + 1, outputName: outputFileName))

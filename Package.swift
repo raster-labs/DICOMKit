@@ -632,6 +632,8 @@ let package = Package(
                 "ConvenienceRenderPipelineTests.swift",
                 // dicom-export ExportStandard rules lifted into DICOMImageExporter (D252), 2026-10-06.
                 "ExporterStandardRulesTests.swift",
+                // dicom-image SCOutput rules lifted into ImageConverter.OutputRules (D274), 2026-10-06.
+                "ImageConverterOutputRulesTests.swift",
                 // GPU_RENDERING_PLAN.md M1: the WindowLUT ⇄ scalar-chain equality
                 // gate. (The benchmark harness lives in DICOMRenderKitTests, which
                 // can reach both backends.)

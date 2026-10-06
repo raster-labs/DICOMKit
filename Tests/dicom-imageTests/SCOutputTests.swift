@@ -20,19 +20,19 @@ final class SCOutputTests: XCTestCase {
 
     func testConversionTypeAcceptsTheEightDefinedTerms() {
         for term in tableC824 {
-            XCTAssertEqual(SCOutput.conversionType(term)?.rawValue, term)
-            XCTAssertEqual(SCOutput.conversionType(term.lowercased())?.rawValue, term)
+            XCTAssertEqual(ImageConverter.OutputRules.conversionType(term)?.rawValue, term)
+            XCTAssertEqual(ImageConverter.OutputRules.conversionType(term.lowercased())?.rawValue, term)
         }
-        XCTAssertEqual(SCOutput.conversionType(nil), .workstation, "default WSD")
-        XCTAssertNil(SCOutput.conversionType("XYZ"))
-        XCTAssertNil(SCOutput.conversionType(""))
+        XCTAssertEqual(ImageConverter.OutputRules.conversionType(nil), .workstation, "default WSD")
+        XCTAssertNil(ImageConverter.OutputRules.conversionType("XYZ"))
+        XCTAssertNil(ImageConverter.OutputRules.conversionType(""))
     }
 
     func testValueViolationsFollowPS35Table621() {
-        XCTAssertTrue(SCOutput.valueViolations(
+        XCTAssertTrue(ImageConverter.OutputRules.valueViolations(
             patientName: "DOE^JOHN", patientID: "P1", studyDescription: "d", seriesDescription: nil,
             studyUID: "1.2.840.10008.1", seriesUID: "1.2.3", seriesNumber: 1, instanceNumber: 1).isEmpty)
-        let w = SCOutput.valueViolations(
+        let w = ImageConverter.OutputRules.valueViolations(
             patientName: String(repeating: "A", count: 65), patientID: String(repeating: "9", count: 65),
             studyDescription: "a\\b", seriesDescription: nil,
             studyUID: "1.02.3", seriesUID: "1..2", seriesNumber: Int(Int32.max) + 1, instanceNumber: Int(Int32.min))
@@ -60,7 +60,7 @@ final class SCOutputTests: XCTestCase {
         let before = try DICOMFile.read(from: data)
         XCTAssertNotEqual(before.fileMetaInformation.string(for: .mediaStorageSOPInstanceUID), "1.2.3.4.5")
 
-        let after = try DICOMFile.read(from: SCOutput.finalize(data))
+        let after = try DICOMFile.read(from: ImageConverter.OutputRules.finalize(data))
         XCTAssertEqual(after.fileMetaInformation.string(for: .mediaStorageSOPInstanceUID), "1.2.3.4.5")
         // PS3.3 2026a Table C.12-5: "Unicode in UTF-8" = ISO_IR 192.
         XCTAssertEqual(after.dataSet.string(for: .specificCharacterSet), "ISO_IR 192")
@@ -74,7 +74,7 @@ final class SCOutputTests: XCTestCase {
         ds.setString("DOE^JOHN", for: .patientName, vr: .PN)
         let data = try DICOMFile.create(dataSet: ds, sopInstanceUID: "1.2.3.4.6",
                                         transferSyntaxUID: "1.2.840.10008.1.2.1").write()
-        let after = try DICOMFile.read(from: SCOutput.finalize(data))
+        let after = try DICOMFile.read(from: ImageConverter.OutputRules.finalize(data))
         XCTAssertNil(after.dataSet[.specificCharacterSet])
         XCTAssertEqual(after.fileMetaInformation.string(for: .mediaStorageSOPInstanceUID), "1.2.3.4.6")
     }
@@ -90,8 +90,8 @@ final class SCOutputTests: XCTestCase {
 
         let meta = ImageConverter.Metadata(
             patientName: "Ünïcode^Name", patientID: "P1", studyUID: "1.2.3", seriesUID: "1.2.3.4",
-            instanceNumber: 1, conversionType: SCOutput.conversionType("drw")!)
-        let data = try SCOutput.finalize(
+            instanceNumber: 1, conversionType: ImageConverter.OutputRules.conversionType("drw")!)
+        let data = try ImageConverter.OutputRules.finalize(
             ImageConverter.secondaryCaptureData(imageURL: url, metadata: meta, useExif: false))
         let file = try DICOMFile.read(from: data)
         let ds = file.dataSet
