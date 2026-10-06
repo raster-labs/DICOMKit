@@ -10,7 +10,8 @@ import Foundation
 /// Platform-independent helpers for RT dose and structure-set visualization.
 public enum RTHelpers: Sendable {
 
-    /// Returns the conventional color for a given RT ROI type.
+    /// Returns the conventional color for a given RT ROI type (a display convention; every
+    /// Defined Term gets a distinct colour).
     public static func colorForROIType(_ roiType: RTROIType) -> RTColor {
         switch roiType {
         case .ptv:      return .red
@@ -19,7 +20,26 @@ public enum RTHelpers: Sendable {
         case .oar:      return .yellow
         case .external: return .cyan
         case .support:  return .orange
-        case .other:    return .purple
+        case .treatedVolume:          return RTColor(red: 0.8, green: 0.2, blue: 0.2)
+        case .irradiatedVolume:       return RTColor(red: 0.6, green: 0.1, blue: 0.1)
+        case .bolus:                  return RTColor(red: 0.5, green: 0.8, blue: 1.0)
+        case .avoidance:              return RTColor(red: 0.9, green: 0.9, blue: 0.5)
+        case .organ:                  return .pink
+        case .marker:                 return RTColor(red: 1.0, green: 0.0, blue: 1.0)
+        case .registration:           return RTColor(red: 0.5, green: 0.5, blue: 1.0)
+        case .isocenter:              return .white
+        case .contrastAgent:          return RTColor(red: 0.0, green: 0.6, blue: 0.6)
+        case .cavity:                 return RTColor(red: 0.4, green: 0.4, blue: 0.4)
+        case .brachyChannel:          return RTColor(red: 0.6, green: 0.4, blue: 0.2)
+        case .brachyAccessory:        return RTColor(red: 0.8, green: 0.6, blue: 0.4)
+        case .brachySourceApplicator: return RTColor(red: 0.7, green: 0.5, blue: 0.0)
+        case .brachyChannelShield:    return RTColor(red: 0.3, green: 0.2, blue: 0.1)
+        case .fixation:               return RTColor(red: 0.6, green: 0.6, blue: 0.8)
+        case .doseRegion:             return RTColor(red: 0.0, green: 0.5, blue: 0.0)
+        case .control:                return RTColor(red: 0.5, green: 1.0, blue: 0.5)
+        case .doseMeasurement:        return RTColor(red: 0.0, green: 0.3, blue: 0.7)
+        case .device:                 return RTColor(red: 0.7, green: 0.7, blue: 0.7)
+        default:                      return .purple   // deprecated `other`
         }
     }
 

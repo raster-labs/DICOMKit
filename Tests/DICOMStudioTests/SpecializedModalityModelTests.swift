@@ -31,9 +31,28 @@ struct SpecializedModalityModelTests {
         }
     }
 
-    @Test("RTROIType has six expected cases")
+    @Test("RTROIType carries the 25 RT ROI Interpreted Type Defined Terms")
     func testRTROITypeCaseCount() {
-        #expect(RTROIType.allCases.count == 7)
+        // PS3.3 2026a C.8.8.8.1 (Table C.8-44 RT ROI Interpreted Type (3006,00A4)), in order
+        let terms = ["EXTERNAL", "PTV", "CTV", "GTV", "TREATED_VOLUME", "IRRAD_VOLUME", "OAR", "BOLUS",
+                     "AVOIDANCE", "ORGAN", "MARKER", "REGISTRATION", "ISOCENTER", "CONTRAST_AGENT", "CAVITY",
+                     "BRACHY_CHANNEL", "BRACHY_ACCESSORY", "BRACHY_SRC_APP", "BRACHY_CHNL_SHLD", "SUPPORT",
+                     "FIXATION", "DOSE_REGION", "CONTROL", "DOSE_MEASUREMENT", "DEVICE"]
+        #expect(RTROIType.allCases.count == 25)
+        #expect(RTROIType.allCases.map(\.rawValue) == terms)
+        for term in terms {
+            #expect(RTROIType(rawValue: term)?.rawValue == term)
+        }
+        #expect(RTROIType(rawValue: "BRACHY_SRC_APP") == .brachySourceApplicator)
+        #expect(RTROIType.gtv.displayName == "Gross Tumor Volume")
+    }
+
+    @Test("RTROIType maps OTHER, unknown and empty values to nil")
+    func testRTROITypeUnknownIsNil() {
+        #expect(RTROIType(rawValue: "OTHER") == nil)
+        #expect(RTROIType(rawValue: "NOT_A_TERM") == nil)
+        #expect(RTROIType(rawValue: "") == nil)
+        #expect(RTROIType(rawValue: "ptv") == nil)
     }
 
     @Test("RTROIType PTV raw value is PTV")
