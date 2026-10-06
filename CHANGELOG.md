@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — P-STUDIO items (2026-10-06, DICOM 2026a)
+
+All 14 DICOMStudio P-items approved by the owner on 2026-10-06 ("complete everything as per the recommendation").
+
+- **DICOMNetwork** `SecureTransportConnectionProfile` (B.12 BCP 195, B.13 Modified BCP 195), `TLSConfiguration.bcp195` / `.modifiedBCP195` / `profile(...)`, `TLSCipherSuite`; **DICOMWeb** `DICOMwebConfiguration.TLSProfile` / `tlsProfile`, applied by `HTTPClient` (P-STUDIO-TLS-PROFILES; PS3.15 2026a Annex B.12, B.13; `586c8f31`). Limits: Security offers 9 of B.13's suites (no CCM / CCM_8 / Camellia / DHE); key-length and certificate rules are not checked; URLSession applies only the TLS 1.2 minimum. B.9–B.11 are retired in 2026a.
+- **DICOMStudio** `AnonymizationProfile.ps315` — the PS3.15 Basic Application Level Confidentiality Profile, runs `Anonymizer.deidentify` as `dicom-anon --profile ps315` does; the Security panel offers the 10 E.3 Option toggles and `--allow-burned-in-phi` (P-STUDIO-ANON-PS315; PS3.15 2026a Annex E, Table E.1-1, E.3.3–E.3.11; PS3.10 Table 7.1-1; `45457ff9`).
+- **DICOMStudio** Networking › Modality Worklist › "New Worklist Item" sheet (HL7 ORM^O01 / REST) — `WorklistCreateViewModel`, `WorklistCreateView` (P-STUDIO-MWL-CREATE; PS3.3 2026a Tables C.4-10, C.4-11, C.4-12, C.7-1; `dbcca0fa`). Owner decision: worklist-item creation stays in the app only, not in the CLI; no `dicom-mwl create` subcommand and no DICOMNetwork change.
+- **DICOMStudio** `MeasurementUnit.micrometers` ("um", shown µm); area code um2 (P-STUDIO-MEASURE-UM; PS3.16 2026a CID 7460, 7461; `824bcfab`).
+- **DICOMStudio** `TextAnchorType.matrixRelative` = "MATRIX" (P-STUDIO-ANNOTATION-UNITS; PS3.3 2026a C.10.5 Table C.10-5; `cb143f1b`).
+- **DICOMStudio** `RTROIType` carries all 25 RT ROI Interpreted Type Defined Terms (P-STUDIO-RT-ROI-TYPES; PS3.3 2026a C.8.8.8.1 / Table C.8-44; `0c97d71e`).
+- **DICOMStudio** `RTDoseUnits.relative`, `.coded`; `RTDoseDisplayScale`, `RTHelpers.formattedDose(gray:scale:)` (P-STUDIO-RT-DOSE-UNITS; PS3.3 2026a Table C.8-39, C.8.8.3; `a6f2c0dd`).
+- **DICOMStudio** `ContentItemValueType.table`; SRTreeHelpers maps all 16 value types (P-STUDIO-SR-TABLE; PS3.3 2026a Table C.17.3-7; `7c860399`).
+- **DICOMStudio** Medium Type pickers offer MAMMO CLEAR FILM / MAMMO BLUE FILM; `displayName` extensions on DICOMNetwork `PrintPriority` / `MediumType` / `FilmSize` (P-STUDIO-PRINT-ENUMS; PS3.3 2026a Table C.13-1, C.13-3, C.13-8; `298ef7a7`).
+
+### Changed — P-STUDIO items (2026-10-06, DICOM 2026a)
+
+- DICOMStudio: `ps315` is the default anonymization profile in the Security panel and the CLI Workshop; the Workshop dicom-anon accepts `ps315` / `basic` and prints dicom-anon's output (byte-identical to the CLI apart from the `$ command` echo); the legacy lists are labelled "(not PS3.15)"; the Workshop's option-validation refusals exit 1 as the CLI's do (P-STUDIO-ANON-PS315; PS3.15 2026a Annex E; `45457ff9`).
+- DICOMStudio: TLS mode pickers offer NONE / BCP195 / MODIFIED_BCP195 / MTLS (DIMSE) and NONE / BCP195 / MODIFIED_BCP195 / DEVELOPMENT (DICOMweb); saved tls12 / tls13 / COMPATIBLE / STRICT values load as the nearest profile (P-STUDIO-TLS-PROFILES; PS3.15 2026a Annex B.12, B.13; `586c8f31`).
+- DICOMStudio: the CLI Workshop's dicom-mwl offers only the CLI's `query`; a saved `create` is refused (exit 64) with a pointer to the Networking panel (P-STUDIO-MWL-CREATE; `dbcca0fa`).
+- DICOMStudio: `UPSState` raw values are the Procedure Step State terms "IN PROGRESS" / "CANCELED" (it is now DICOMWeb's `UPSState`); IN_PROGRESS / CANCELLED still decode (P-STUDIO-UPS-STATE-RAW; PS3.3 2026a Table C.30.1-1, PS3.4 Table CC.1.1-2; `574f5eb0`).
+- DICOMStudio: `ImageSortDirection` raw values INCREASING / DECREASING; ASCENDING / DESCENDING still decode (P-STUDIO-HP-SORTING-DIRECTION; PS3.3 2026a Table C.23.3-1; `e9bada7f`).
+- DICOMStudio: `TextAnchorType.imageRelative` raw value "PIXEL"; "IMAGE" still decodes (P-STUDIO-ANNOTATION-UNITS; PS3.3 2026a C.10.5 Table C.10-5; `cb143f1b`).
+- DICOMStudio: `RTROIType` decodes OTHER and unknown values to nil (P-STUDIO-RT-ROI-TYPES; PS3.3 2026a Table C.8-44; `0c97d71e`); "CGY" decodes as `.gy`, cGy is a display scale (P-STUDIO-RT-DOSE-UNITS; PS3.3 2026a Table C.8-39; `a6f2c0dd`).
+- DICOMStudio: SCOORD writers emit a closed POLYLINE instead of POLYGON; "POLYGON" still reads (P-STUDIO-SCOORD-POLYGON; PS3.3 2026a C.18.6.1.2; `36fdb6d6`).
+- DICOMStudio: `PrintJobStatus` renamed `NetworkPrintJobState` (the panel's job state, not the Execution Status attribute) (P-STUDIO-PRINT-ENUMS; PS3.3 2026a Table C.13-8; `298ef7a7`).
+- DICOMStudio: `dicom-export single` keeps `--output` required in the Workshop — a deliberate, documented non-mirroring (a sandboxed app has no working directory); comments only (P-STUDIO-EXPORT-SINGLE-OUTPUT; not a DICOM 2026a matter; `071ad9c0`).
+
+### Deprecated — P-STUDIO items (2026-10-06, DICOM 2026a)
+
+- **DICOMStudio** `AnonymizationHelpers.hipaaDirectIdentifierTags` → `basicProfileTags` (14/14 tags are PS3.15 2026a Table E.1-1 rows) (P-STUDIO-ANON-TAGLIST-NAME; `f5aceea1`).
+- **DICOMStudio** `TLSMode.tls12` / `.tls13`, `DICOMwebTLSMode.compatible` / `.strict` (P-STUDIO-TLS-PROFILES; `586c8f31`).
+- **DICOMStudio** `UPSState` (deprecated alias of DICOMWeb's `UPSState`) and `.cancelled` → `.canceled` (P-STUDIO-UPS-STATE-RAW; `574f5eb0`).
+- **DICOMStudio** `PrintPriority`, `PrintMediumType`, `PrintFilmSize` (typealiases onto DICOMNetwork `PrintPriority` / `MediumType` / `FilmSize`), `PrintJobStatus` (→ `NetworkPrintJobState`) and the old case names (`.med`, `.bluFilm`, `.size8x10` …) (P-STUDIO-PRINT-ENUMS; `298ef7a7`).
+- **DICOMStudio** `RTROIType.other` (`0c97d71e`); `RTDoseUnits.cgy` (`a6f2c0dd`); `SpatialCoordGraphicType.polygon` → `polyline` (`36fdb6d6`).
+
 ### Added — deferred-findings follow-up: rules lifted from the CLIs into the engines (2026-10-06, DICOM 2026a)
 
 - **DICOMKit** `VideoContainer.mpegPS` / `.mpegPES`: MPEG-2 Program Stream and PES input are reported as such instead of `.elementaryStream` (D237, P-VIDEO-CONTAINER approved 2026-10-06; PS3.5 2026a 8.2.5, 8.2.6).
@@ -44,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DICOMStudio: CLI Workshop copies replaced by the engine symbols (D248–D275) — Studio pass `2bd8e408`…`3060ee3e` (9 commits)
 - dicom-send: the per-file failure line uses the engine's PS3.4 Table B.2-1 wording, `❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)` (was `… status Refused: Out of resources (0xA700) — not stored …`); new `NetworkConsole.sendStoreFailedText(status:)` (D261; `04aa31ea`).
 - dicom-pdf `--extract` over a directory skips files that are not DICOM or carry no Encapsulated Document (0042,0011) (PS3.3 2026a C.24.2), printing `⊘ <file>: not an Encapsulated Document (skipped)` with `--verbose`; only a document that fails to extract, or an unreadable/unwritable file, makes the run exit 1 (D271; `66bd8c42`).
-- DICOMStudio CLI Workshop: directory runs of dicom-export bulk, dicom-image and dicom-pdf exit 1 after the summary when a file failed, as the CLIs do (D251, D271, D273; `726957b5`); dicom-anon's "Option flags apply only to --profile ps315" refusal exits 64 as the CLI does (was 1); dicom-qr reports a failed final response in dicom-retrieve's wording (D262; `e4a73d9a`).
+- DICOMStudio CLI Workshop: directory runs of dicom-export bulk, dicom-image and dicom-pdf exit 1 after the summary when a file failed, as the CLIs do (D251, D271, D273; `726957b5`); dicom-anon's "Option flags apply only to --profile ps315" refusal exits 1 as the CLI does (corrected 2026-10-06: the CLI exits 1 on its option-validation refusals, 64 only for ArgumentParser errors; the Workshop briefly exited 64 after `2bd8e408` and exits 1 again since `45457ff9`); dicom-qr reports a failed final response in dicom-retrieve's wording (D262; `e4a73d9a`).
 - DICOMStudio: the viewer and film-cell default window come from `DICOMImageExporter.determineModalityWindow` (modality units; the viewer converts to its stored-unit state with (c−b)/m, w/|m|); no `determineWindowSettings` call remains (A6 / D65; `123b81a5`).
 - DICOMStudio: the print bin-number field parses through `FilmDestination(catalogToken:)` and shows the dicom-print token (D242; `a169450e`).
 - Scripts: `diff_studio.py` checks that the Workshop and the CLI call each lifted engine symbol and that no Workshop-local copy remains, reads standard values from the engine files, and checks the directory-run exit codes (D248–D275; `3060ee3e`).
