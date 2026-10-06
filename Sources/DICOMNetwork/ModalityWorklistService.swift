@@ -374,6 +374,26 @@ public enum WorklistDateFilterError: Error, CustomStringConvertible, Sendable {
 
 extension WorklistQueryKeys {
 
+    /// Scheduled Procedure Step Status (0040,0020) Defined Terms, PS3.3 2026a
+    /// Table C.4-10: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED. Defined Terms may be
+    /// extended, so an unlisted value is sent as given — but it is almost always a
+    /// Performed Procedure Step Status (IN PROGRESS / COMPLETED / DISCONTINUED, Table
+    /// C.4-14) typed by mistake, which matches nothing. Formerly dicom-mwl's CLI-local
+    /// copy (D264).
+    public static let scheduledProcedureStepStatusDefinedTerms: [String] =
+        ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"]
+
+    /// The stderr warning (with its trailing newline) for a `--sps-status` value
+    /// outside ``scheduledProcedureStepStatusDefinedTerms``, or nil when the value is a
+    /// Defined Term, empty or absent (D264).
+    public static func spsStatusWarning(_ value: String?) -> String? {
+        guard let value, !value.isEmpty,
+              !scheduledProcedureStepStatusDefinedTerms.contains(value) else { return nil }
+        return "warning: --sps-status '\(value)' is not a Scheduled Procedure Step Status Defined Term "
+            + "(PS3.3 Table C.4-10: \(scheduledProcedureStepStatusDefinedTerms.joined(separator: ", "))); "
+            + "it is sent as given and will match only an SCP that uses that private term\n"
+    }
+
     /// Formats today (or a day offset from today) as a DICOM `YYYYMMDD` date string,
     /// pinned to `en_US_POSIX` so the result is always a Gregorian calendar date
     /// regardless of the host device's locale/calendar.
@@ -769,7 +789,7 @@ public struct WorklistItem: Sendable {
 
 #if canImport(Network)
 import Network
-// NEMA-verified: 2026a, checked 2026-09-28 — MWL FIND UID per PS3.4 2026a Table K.6.1.4-1; identifier keys and (0008,0005) rule per Tables K.6-1/K.6-1a, K.4.1.1.3.1 and C.2.2.2; response decoding per PS3.5 §6.1.2; Scheduled Station AE Title (0040,0001) Single Value Matching only per Table K.6-1 (wild cards refused, D81, 2026-10-01)
+// NEMA-verified: 2026a, checked 2026-10-06 — Scheduled Procedure Step Status (0040,0020) Defined Terms re-read from PS3.3 2026a Table C.4-10 (5: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED) for WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms / spsStatusWarning (D264); MWL FIND UID per PS3.4 2026a Table K.6.1.4-1; identifier keys and (0008,0005) rule per Tables K.6-1/K.6-1a, K.4.1.1.3.1 and C.2.2.2; response decoding per PS3.5 §6.1.2; Scheduled Station AE Title (0040,0001) Single Value Matching only per Table K.6-1 (wild cards refused, D81, 2026-10-01)
 
 // MARK: - DICOM Modality Worklist Service
 

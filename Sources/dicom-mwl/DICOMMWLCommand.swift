@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — the 9 matching keys behind --date/--time/--station/--patient/
+// NEMA-verified: 2026a, checked 2026-10-06 — --sps-status Defined Terms and warning are DICOMNetwork WorklistQueryKeys' (D264, PS3.3 Table C.4-10 re-read); the 9 matching keys behind --date/--time/--station/--patient/
 // --patient-id/--modality/--sps-status/--accession-number/--performing-physician diffed against PS3.4 2026a
 // Table K.6-1 (139 rows; matching-key type and allowed matching per row); Range Matching forms against PS3.4
 // C.2.2.2.5.1/.2 and the combined date-time remark under (0040,0003) in Table K.6-1; SPS Status values against
@@ -149,21 +149,18 @@ extension DICOMMWLCommand {
         @Flag(name: .long, help: "Output as JSON. Keys are PS3.6 keywords (e.g. ScheduledProcedureStepStartDate, ReferencedStudySequence); the abbreviated keys SPSStartDate, SPSStartTime, SPSStatus, SPSID, SPSDescription, SPSLocation, ScheduledPerformingPhysician, RequestedProcedureCode, ScheduledProtocolCodes, ReferencedStudySOPInstanceUID are still written but deprecated")
         var json: Bool = false
         
-        /// Scheduled Procedure Step Status (0040,0020) Defined Terms, PS3.3 2026a Table C.4-10.
-        /// Defined Terms may be extended, so an unlisted value is sent as given — but it is
-        /// almost always a Performed Procedure Step Status (IN PROGRESS / COMPLETED /
-        /// DISCONTINUED, Table C.4-14) typed by mistake, which matches nothing.
-        static let scheduledProcedureStepStatusDefinedTerms: [String] =
-            ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"]
+        /// Scheduled Procedure Step Status (0040,0020) Defined Terms, PS3.3 2026a Table C.4-10 —
+        /// DICOMNetwork's `WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms` (D264).
+        @available(*, deprecated, renamed: "WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms")
+        static var scheduledProcedureStepStatusDefinedTerms: [String] {
+            WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms
+        }
 
         /// The warning printed to stderr for a `--sps-status` value outside Table C.4-10,
-        /// or nil when the value is a Defined Term (or absent).
+        /// or nil when the value is a Defined Term (or absent) — DICOMNetwork's
+        /// `WorklistQueryKeys.spsStatusWarning` (D264).
         static func spsStatusWarning(_ value: String?) -> String? {
-            guard let value, !value.isEmpty,
-                  !scheduledProcedureStepStatusDefinedTerms.contains(value) else { return nil }
-            return "warning: --sps-status '\(value)' is not a Scheduled Procedure Step Status Defined Term "
-                + "(PS3.3 Table C.4-10: \(scheduledProcedureStepStatusDefinedTerms.joined(separator: ", "))); "
-                + "it is sent as given and will match only an SCP that uses that private term\n"
+            WorklistQueryKeys.spsStatusWarning(value)
         }
 
         mutating func run() async throws {
