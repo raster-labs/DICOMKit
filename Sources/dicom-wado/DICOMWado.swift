@@ -146,7 +146,7 @@ struct RetrieveCommand: AsyncParsableCommand {
     var verbose: Bool = false
 
     func validate() throws {
-        _ = try WADOOptionRules.uriContentType(contentType)
+        _ = try cliRefusal { try DICOMwebOptionRules.uriContentType(contentType) }
         let uriOnly = charset != nil || annotation != nil || imageQuality != nil || region != nil
             || windowCenter != nil || windowWidth != nil || presentationUid != nil || presentationSeriesUid != nil
         if !uri && (transferSyntax != nil || anonymize || rows != nil || columns != nil || uriOnly) {
@@ -156,7 +156,7 @@ struct RetrieveCommand: AsyncParsableCommand {
         if let c = columns, c < 1 { throw ValidationError("--columns must be a positive integer (PS3.18 9.5.1.2.4.2)") }
         if uri {
             // Every rule of PS3.18 Section 9 the shared client checks (pairs, ranges, exclusions)
-            let problems = try uriParameters(frame: WADOOptionRules.uriFrameNumber(frames)?.frame).problems()
+            let problems = try uriParameters(frame: cliRefusal { try DICOMwebOptionRules.uriFrameNumber(frames) }?.frame).problems()
             if !problems.isEmpty { throw ValidationError(problems.joined(separator: "; ")) }
         }
     }
@@ -164,16 +164,16 @@ struct RetrieveCommand: AsyncParsableCommand {
     /// The WADO-URI request parameters (PS3.18 Tables 9.1.2-2, 9.4.1-1, 9.5.1-1) from the options.
     func uriParameters(frame: Int?) throws -> WADOURIClient.Parameters {
         WADOURIClient.Parameters(
-            contentType: [try WADOOptionRules.uriContentType(contentType)],
+            contentType: [try cliRefusal { try DICOMwebOptionRules.uriContentType(contentType) }],
             charset: charset.map { $0.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } } ?? [],
             anonymize: anonymize,
-            annotation: WADOOptionRules.uriAnnotation(annotation),
+            annotation: DICOMwebOptionRules.uriAnnotation(annotation),
             transferSyntax: transferSyntax,
             frameNumber: frame,
             imageQuality: imageQuality,
             rows: rows,
             columns: columns,
-            region: try WADOOptionRules.uriRegion(region),
+            region: try cliRefusal { try DICOMwebOptionRules.uriRegion(region) },
             windowCenter: windowCenter,
             windowWidth: windowWidth,
             presentationSeriesUID: presentationSeriesUid,
@@ -192,7 +192,7 @@ struct RetrieveCommand: AsyncParsableCommand {
         let config = DICOMwebConfiguration(
             baseURL: baseURLValue,
             authentication: token.map { .bearer(token: $0) },
-            timeouts: WADOOptionRules.timeouts(seconds: timeout)
+            timeouts: DICOMwebOptionRules.timeouts(seconds: timeout)
         )
         
         // WADO-URI mode
@@ -240,10 +240,10 @@ struct RetrieveCommand: AsyncParsableCommand {
         // Shared mapping (single source of truth) — the CLI-parity reference calls the
         // same factory, so both request the identical representation for a --content-type.
         // A value it cannot request is rejected (9.1.2.2.1) instead of becoming application/dicom.
-        let wadoContentType = try WADOOptionRules.uriContentType(contentType)
+        let wadoContentType = try cliRefusal { try DICOMwebOptionRules.uriContentType(contentType) }
 
         // frameNumber names a single Frame (9.5.1.2.1): only the first list entry is sent.
-        let parsedFrame = try WADOOptionRules.uriFrameNumber(frames)
+        let parsedFrame = try cliRefusal { try DICOMwebOptionRules.uriFrameNumber(frames) }
         let frameNumber = parsedFrame?.frame
         if let dropped = parsedFrame?.notSent, dropped > 0 {
             fprintln("Warning: WADO-URI frameNumber names a single frame (PS3.18 9.5.1.2.1); "
@@ -255,7 +255,7 @@ struct RetrieveCommand: AsyncParsableCommand {
         if region != nil { otherRendered.append("region (--region)") }
         if presentationUid != nil { otherRendered.append("presentationUID (--presentation-uid)") }
         if presentationSeriesUid != nil { otherRendered.append("presentationSeriesUID (--presentation-series-uid)") }
-        for warning in WADOOptionRules.uriParameterWarnings(
+        for warning in DICOMwebOptionRules.uriParameterWarnings(
             contentType: wadoContentType, frame: frameNumber, rows: rows, columns: columns,
             transferSyntax: transferSyntax, anonymize: anonymize, otherRendered: otherRendered) {
             fprintln("Warning: \(warning)", to: .standardError)
@@ -588,7 +588,7 @@ struct QueryCommand: AsyncParsableCommand {
     var verbose: Bool = false
     
     func validate() throws {
-        try WADOOptionRules.validatePaging(limit: limit, offset: offset)
+        try cliRefusal { try DICOMwebOptionRules.validatePaging(limit: limit, offset: offset) }
     }
 
     /// The QIDO-RS query the options describe (PS3.18 10.6.1; query parameters of Table 8.3.4-1).
@@ -1070,7 +1070,7 @@ struct UPSCommand: AsyncParsableCommand {
         if let s = state {
             _ = try cliRefusal { try UPSState.changeStateTarget(optionValue: s) }
         }
-        _ = try WADOOptionRules.changeStateWorkitem(changeState: changeState, update: update)
+        _ = try cliRefusal { try DICOMwebOptionRules.changeStateWorkitem(changeState: changeState, update: update) }
     }
 
     func run() async throws {
@@ -1094,9 +1094,9 @@ struct UPSCommand: AsyncParsableCommand {
             try await createWorkitemFromJSON(client: client, jsonFile: jsonFile)
         } else if createWorkitemFlag {
             try await createWorkitemFromOptions(client: client)
-        } else if let uid = try WADOOptionRules.changeStateWorkitem(changeState: changeState, update: update) {
+        } else if let uid = try cliRefusal({ try DICOMwebOptionRules.changeStateWorkitem(changeState: changeState, update: update) }) {
             if changeState == nil {
-                fprintln(WADOOptionRules.updateDeprecationNote, to: .standardError)
+                fprintln(DICOMwebOptionRules.updateDeprecationNote, to: .standardError)
             }
             try await updateWorkitem(client: client, uid: uid)
         } else if subscribe {

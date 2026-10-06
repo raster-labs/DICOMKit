@@ -284,6 +284,34 @@ final class WADOOptionRulesTests: XCTestCase {
         XCTAssertEqual(StoreCommand.exitCode(failed: 1), .failure)
     }
 
+    // MARK: - D265: the CLI prints the engine's DICOMwebOptionRules texts with its old exit codes
+
+    func testCLIReportsTheEngineRulesWithItsExitCodes() {
+        // usage refusals (exit 64) carry the engine message verbatim
+        XCTAssertThrowsError(try RetrieveCommand.parse(["http://h/wado", "--uri", "--study", "1", "--content-type", "image/bmp"])) { error in
+            XCTAssertEqual(RetrieveCommand.exitCode(for: error), .validationFailure)
+            XCTAssertEqual(RetrieveCommand.message(for: error), engineMessage { _ = try DICOMwebOptionRules.uriContentType("image/bmp") })
+        }
+        XCTAssertThrowsError(try QueryCommand.parse(["http://h/rs", "--limit=-1"])) { error in
+            XCTAssertEqual(QueryCommand.exitCode(for: error), .validationFailure)
+            XCTAssertEqual(QueryCommand.message(for: error), DICOMwebOptionRules.pagingProblem(limit: -1, offset: 0))
+        }
+        // the --change-state / --update refusal stays exit 1
+        XCTAssertThrowsError(try UPSCommand.parse(["http://h/rs", "--change-state", "1", "--update", "1", "--state", "COMPLETED"])) { error in
+            XCTAssertEqual(UPSCommand.exitCode(for: error), .failure)
+            XCTAssertEqual(UPSCommand.message(for: error),
+                           engineMessage { _ = try DICOMwebOptionRules.changeStateWorkitem(changeState: "1", update: "1") })
+        }
+        // the deprecated forwarders keep their CLI error types
+        XCTAssertThrowsError(try WADOOptionRules.uriFrameNumber("0")) { XCTAssertTrue($0 is ValidationError) }
+        XCTAssertThrowsError(try WADOOptionRules.changeStateWorkitem(changeState: "1", update: "1")) { XCTAssertTrue($0 is WADORefusal) }
+        XCTAssertEqual(WADOOptionRules.uriContentTypes, DICOMwebOptionRules.uriContentTypes)
+    }
+
+    private func engineMessage(_ rule: () throws -> Void) -> String? {
+        do { try rule(); return nil } catch { return (error as? DICOMwebOptionRefusal)?.message }
+    }
+
     func testTimeoutDrivesTheRequestTimeout() {
         let t = WADOOptionRules.timeouts(seconds: 600)
         XCTAssertEqual(t.readTimeout, 600)
