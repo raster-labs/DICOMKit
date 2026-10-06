@@ -1569,12 +1569,12 @@ public struct DICOMwebView: View {
         }
     }
 
-    private func upsStateColor(_ state: UPSState) -> Color {
+    private func upsStateColor(_ state: WebUPSState) -> Color {
         switch state {
         case .scheduled:  return .blue
         case .inProgress: return .orange
         case .completed:  return .green
-        case .cancelled:  return .red
+        case .canceled:   return .red
         }
     }
 

@@ -353,28 +353,28 @@ struct DICOMwebModelTests {
 
     @Test("UPSState scheduled allowedTransitions contains inProgress")
     func testUPSStateScheduledAllowsInProgress() {
-        #expect(UPSState.scheduled.allowedTransitions.contains(.inProgress))
+        #expect(WebUPSState.scheduled.allowedTransitions.contains(.inProgress))
     }
 
     @Test("UPSState inProgress allowedTransitions contains completed and cancelled")
     func testUPSStateInProgressAllowsCompletedAndCancelled() {
-        #expect(UPSState.inProgress.allowedTransitions.contains(.completed))
-        #expect(UPSState.inProgress.allowedTransitions.contains(.cancelled))
+        #expect(WebUPSState.inProgress.allowedTransitions.contains(.completed))
+        #expect(WebUPSState.inProgress.allowedTransitions.contains(.canceled))
     }
 
     @Test("UPSState completed allowedTransitions is empty")
     func testUPSStateCompletedNoTransitions() {
-        #expect(UPSState.completed.allowedTransitions.isEmpty)
+        #expect(WebUPSState.completed.allowedTransitions.isEmpty)
     }
 
     @Test("UPSState cancelled allowedTransitions is empty")
     func testUPSStateCancelledNoTransitions() {
-        #expect(UPSState.cancelled.allowedTransitions.isEmpty)
+        #expect(WebUPSState.canceled.allowedTransitions.isEmpty)
     }
 
     @Test("UPSState all cases have non-empty display names")
     func testUPSStateDisplayNames() {
-        for state in UPSState.allCases {
+        for state in WebUPSState.allCases {
             #expect(!state.displayName.isEmpty)
         }
     }
@@ -535,36 +535,36 @@ struct DICOMwebModelTests {
 
     // MARK: - UPSState vs PS3.4 2026a Table CC.1.1-2 / PS3.3 C.30.1 (NEMA pins)
 
-    @Test("UPSState.scheduled allows only IN PROGRESS as a Change State target (PS3.4 Table CC.1.1-2: CANCELED from SCHEDULED is C310H)")
+    @Test("WebUPSState.scheduled allows only IN PROGRESS as a Change State target (PS3.4 Table CC.1.1-2: CANCELED from SCHEDULED is C310H)")
     func testUPSStateScheduledChangeStateTargets() {
-        #expect(UPSState.scheduled.allowedTransitions == [.inProgress])
-        #expect(!UPSState.scheduled.allowedTransitions.contains(.cancelled))
+        #expect(WebUPSState.scheduled.allowedTransitions == [.inProgress])
+        #expect(!WebUPSState.scheduled.allowedTransitions.contains(.canceled))
     }
 
-    @Test("UPSState.inProgress allows exactly COMPLETED and CANCELED (PS3.4 Table CC.1.1-2)")
+    @Test("WebUPSState.inProgress allows exactly COMPLETED and CANCELED (PS3.4 Table CC.1.1-2)")
     func testUPSStateInProgressChangeStateTargets() {
-        #expect(Set(UPSState.inProgress.allowedTransitions) == Set([.completed, .cancelled]))
+        #expect(Set(WebUPSState.inProgress.allowedTransitions) == Set([.completed, .canceled]))
     }
 
     @Test("UPSState is never a target for SCHEDULED (PS3.4 Table CC.1.1-2 C303H; PS3.18 11.7.1.4)")
     func testUPSStateScheduledIsNeverATarget() {
-        for state in UPSState.allCases {
+        for state in WebUPSState.allCases {
             #expect(!state.allowedTransitions.contains(.scheduled))
         }
     }
 
-    @Test("UPSState.dicomTerm is the PS3.3 C.30.1 Procedure Step State term")
+    @Test("WebUPSState.dicomTerm is the PS3.3 C.30.1 Procedure Step State term")
     func testUPSStateDicomTerms() {
-        #expect(UPSState.scheduled.dicomTerm == "SCHEDULED")
-        #expect(UPSState.inProgress.dicomTerm == "IN PROGRESS")
-        #expect(UPSState.completed.dicomTerm == "COMPLETED")
-        #expect(UPSState.cancelled.dicomTerm == "CANCELED")
-        #expect(Set(UPSState.allCases.map(\.dicomTerm)) == Set(["SCHEDULED", "IN PROGRESS", "CANCELED", "COMPLETED"]))
+        #expect(WebUPSState.scheduled.dicomTerm == "SCHEDULED")
+        #expect(WebUPSState.inProgress.dicomTerm == "IN PROGRESS")
+        #expect(WebUPSState.completed.dicomTerm == "COMPLETED")
+        #expect(WebUPSState.canceled.dicomTerm == "CANCELED")
+        #expect(Set(WebUPSState.allCases.map(\.dicomTerm)) == Set(["SCHEDULED", "IN PROGRESS", "CANCELED", "COMPLETED"]))
     }
 
-    @Test("UPSState.cancelled displays the standard's spelling CANCELED (PS3.3 C.30.1)")
+    @Test("WebUPSState.canceled displays the standard's spelling CANCELED (PS3.3 C.30.1)")
     func testUPSStateCanceledDisplayName() {
-        #expect(UPSState.cancelled.displayName == "Canceled")
+        #expect(WebUPSState.canceled.displayName == "Canceled")
     }
 
     @Test("UPSPriority raw values are the PS3.3 C.30.2 Scheduled Procedure Step Priority terms")

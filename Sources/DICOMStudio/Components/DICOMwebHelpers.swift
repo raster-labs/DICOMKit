@@ -613,27 +613,27 @@ public enum UPSEventDetailHelpers: Sendable {
 public enum DICOMwebUPSHelpers: Sendable {
 
     /// Returns the human-readable display name for a UPS state.
-    public static func displayName(for state: UPSState) -> String {
+    public static func displayName(for state: WebUPSState) -> String {
         state.displayName
     }
 
     /// Returns the SF Symbol name for a UPS state.
-    public static func sfSymbol(for state: UPSState) -> String {
+    public static func sfSymbol(for state: WebUPSState) -> String {
         switch state {
         case .scheduled:  return "calendar"
         case .inProgress: return "arrow.triangle.2.circlepath"
         case .completed:  return "checkmark.circle.fill"
-        case .cancelled:  return "xmark.circle.fill"
+        case .canceled:   return "xmark.circle.fill"
         }
     }
 
     /// Returns true if a state transition from `from` to `to` is allowed.
-    public static func canTransition(from: UPSState, to: UPSState) -> Bool {
+    public static func canTransition(from: WebUPSState, to: WebUPSState) -> Bool {
         from.allowedTransitions.contains(to)
     }
 
     /// Returns the list of states reachable from the given state.
-    public static func availableTransitions(from state: UPSState) -> [UPSState] {
+    public static func availableTransitions(from state: WebUPSState) -> [WebUPSState] {
         state.allowedTransitions
     }
 
@@ -643,19 +643,19 @@ public enum DICOMwebUPSHelpers: Sendable {
     /// SCHEDULED is never a target: the text is DICOMWeb's `UPSState.changeStateRefusal`, the
     /// refusal dicom-wado prints (PS3.18 11.7.1.4; Table CC.1.1-2 C303H; D255).
     /// Any other refused pair names the table row that refuses it.
-    static func changeStateRefusal(from: UPSState, to: UPSState) -> String? {
-        if let refusal = to.web.changeStateRefusal {
+    static func changeStateRefusal(from: WebUPSState, to: WebUPSState) -> String? {
+        if let refusal = to.changeStateRefusal {
             return refusal
         }
         guard !canTransition(from: from, to: to) else { return nil }
         let code: String
         switch (from, to) {
-        case (.scheduled, .cancelled):          code = "C310H: the UPS is not yet IN PROGRESS"
+        case (.scheduled, .canceled):           code = "C310H: the UPS is not yet IN PROGRESS"
         case (.scheduled, .completed):          code = "C310H: the UPS is not yet IN PROGRESS"
         case (.inProgress, .inProgress):        code = "C302H: the UPS is already IN PROGRESS"
         case (.completed, .completed):          code = "B306H: the UPS is already COMPLETED"
-        case (.cancelled, .cancelled):          code = "B304H: the UPS is already CANCELED"
-        case (.completed, _), (.cancelled, _):  code = "C300H: the UPS may no longer be updated"
+        case (.canceled, .canceled):            code = "B304H: the UPS is already CANCELED"
+        case (.completed, _), (.canceled, _):   code = "C300H: the UPS may no longer be updated"
         default:                                code = "not an allowed transition"
         }
         return "Cannot change state from \(from.dicomTerm) to \(to.dicomTerm): "
@@ -666,12 +666,12 @@ public enum DICOMwebUPSHelpers: Sendable {
     ///
     /// The returned strings are SwiftUI `Color` property name strings, suitable for
     /// platform-independent storage and lookup (e.g. `.blue`, `.orange`).
-    public static func stateColor(for state: UPSState) -> String {
+    public static func stateColor(for state: WebUPSState) -> String {
         switch state {
         case .scheduled:  return ".blue"
         case .inProgress: return ".orange"
         case .completed:  return ".green"
-        case .cancelled:  return ".red"
+        case .canceled:   return ".red"
         }
     }
 

@@ -306,7 +306,7 @@ struct DICOMwebViewModelTests {
         let item = UPSWorkitem(workitemUID: "1.2.3", state: .completed)
         service.addUPSWorkitem(item)
         let vm = DICOMwebViewModel(service: service)
-        vm.transitionUPSState(.cancelled, workitemID: item.id)
+        vm.transitionUPSState(.canceled, workitemID: item.id)
         #expect(vm.errorMessage != nil)
     }
 
@@ -445,7 +445,7 @@ struct DICOMwebViewModelTests {
         let item = UPSWorkitem(workitemUID: "1.2.3", state: .scheduled)
         service.addUPSWorkitem(item)
         let vm = DICOMwebViewModel(service: service)
-        vm.transitionUPSState(.cancelled, workitemID: item.id)
+        vm.transitionUPSState(.canceled, workitemID: item.id)
         #expect(vm.errorMessage?.contains("C310H") == true)
         #expect(vm.upsWorkitems.first?.state == .scheduled)
     }
@@ -457,8 +457,8 @@ struct DICOMwebViewModelTests {
         let item = UPSWorkitem(workitemUID: "1.2.3", state: .inProgress)
         service.addUPSWorkitem(item)
         let vm = DICOMwebViewModel(service: service)
-        vm.transitionUPSState(.cancelled, workitemID: item.id)
+        vm.transitionUPSState(.canceled, workitemID: item.id)
         #expect(vm.errorMessage == nil)
-        #expect(vm.upsWorkitems.first?.state == .cancelled)
+        #expect(vm.upsWorkitems.first?.state == .canceled)
     }
 }

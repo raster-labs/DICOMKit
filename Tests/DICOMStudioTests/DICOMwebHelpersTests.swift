@@ -306,7 +306,7 @@ struct DICOMwebHelpersTests {
 
     @Test("DICOMwebUPSHelpers canTransition from completed to cancelled is false")
     func testUPSHelpersCanTransitionCompletedToCancelled() {
-        #expect(DICOMwebUPSHelpers.canTransition(from: .completed, to: .cancelled) == false)
+        #expect(DICOMwebUPSHelpers.canTransition(from: .completed, to: .canceled) == false)
     }
 
     @Test("DICOMwebUPSHelpers availableTransitions from inProgress has 2 transitions")
@@ -721,7 +721,7 @@ struct DICOMwebHelpersTests {
     @Test("DICOMwebUPSHelpers availableTransitions from scheduled is IN PROGRESS only (Table CC.1.1-2)")
     func testUPSHelpersAvailableTransitionsScheduled() {
         #expect(DICOMwebUPSHelpers.availableTransitions(from: .scheduled) == [.inProgress])
-        #expect(DICOMwebUPSHelpers.canTransition(from: .scheduled, to: .cancelled) == false)
+        #expect(DICOMwebUPSHelpers.canTransition(from: .scheduled, to: .canceled) == false)
     }
 
     @Test("DICOMwebUPSHelpers changeStateRefusal for a SCHEDULED target is the dicom-wado message")
@@ -729,7 +729,7 @@ struct DICOMwebHelpersTests {
         let expected = "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
             + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
             + "to SCHEDULED (C303H)"
-        for from in UPSState.allCases {
+        for from in WebUPSState.allCases {
             #expect(DICOMwebUPSHelpers.changeStateRefusal(from: from, to: .scheduled) == expected)
         }
     }
@@ -738,15 +738,15 @@ struct DICOMwebHelpersTests {
     func testUPSHelpersChangeStateRefusalAllowed() {
         #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .scheduled, to: .inProgress) == nil)
         #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .completed) == nil)
-        #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .cancelled) == nil)
+        #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .canceled) == nil)
     }
 
     @Test("DICOMwebUPSHelpers changeStateRefusal names the Table CC.1.1-2 status code")
     func testUPSHelpersChangeStateRefusalCodes() throws {
-        let c310 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .scheduled, to: .cancelled))
+        let c310 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .scheduled, to: .canceled))
         #expect(c310.contains("C310H"))
         #expect(c310.contains("SCHEDULED to CANCELED"))
-        let c300 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .completed, to: .cancelled))
+        let c300 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .completed, to: .canceled))
         #expect(c300.contains("C300H"))
         let b306 = try #require(DICOMwebUPSHelpers.changeStateRefusal(from: .completed, to: .completed))
         #expect(b306.contains("B306H"))

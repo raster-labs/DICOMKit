@@ -697,60 +697,18 @@ public struct STOWUploadJob: Sendable, Identifiable, Equatable, Hashable {
 
 // MARK: - UPS-RS State
 
-/// State of a Unified Procedure Step (UPS) workitem.
+/// State of a Unified Procedure Step (UPS) workitem — DICOMWeb's `UPSState` (P-STUDIO-UPS-STATE-RAW).
+///
+/// Formerly a Studio enum whose raw values `IN_PROGRESS` and `CANCELLED` were not the Procedure
+/// Step State (0074,1000) words; it is now the DICOMWeb enum, whose raw values are PS3.3 2026a
+/// Table C.30.1-1's SCHEDULED, IN PROGRESS, COMPLETED, CANCELED. The case `.cancelled` is a
+/// deprecated alias of `.canceled`; a value stored with an old raw spelling decodes through
+/// `WebUPSState(legacyRawValue:)`. Display name, SF Symbol, `dicomTerm` and `allowedTransitions`
+/// are extensions in WebUPSState.swift.
 /// Reference: DICOM PS3.4 Annex CC – Unified Procedure Step Service Class
-public enum UPSState: String, Sendable, Equatable, Hashable, CaseIterable {
-    case scheduled  = "SCHEDULED"
-    case inProgress = "IN_PROGRESS"
-    case completed  = "COMPLETED"
-    case cancelled  = "CANCELLED"
-
-    /// Human-readable display name (the PS3.3 C.30.1 term in title case; CANCELED is the
-    /// standard's spelling).
-    public var displayName: String {
-        switch self {
-        case .scheduled:  return "Scheduled"
-        case .inProgress: return "In Progress"
-        case .completed:  return "Completed"
-        case .cancelled:  return "Canceled"
-        }
-    }
-
-    /// The Procedure Step State (0074,1000) term of PS3.3 C.30.1 for this case:
-    /// SCHEDULED, IN PROGRESS, COMPLETED or CANCELED (the raw values are Studio-local spellings).
-    var dicomTerm: String {
-        switch self {
-        case .scheduled:  return "SCHEDULED"
-        case .inProgress: return "IN PROGRESS"
-        case .completed:  return "COMPLETED"
-        case .cancelled:  return "CANCELED"
-        }
-    }
-
-    /// SF Symbol for this state.
-    public var sfSymbol: String {
-        switch self {
-        case .scheduled:  return "clock"
-        case .inProgress: return "arrow.triangle.2.circlepath"
-        case .completed:  return "checkmark.circle.fill"
-        case .cancelled:  return "xmark.circle"
-        }
-    }
-
-    /// The target states a Change Workitem State request (PS3.18 11.7, N-ACTION Change UPS State)
-    /// may ask for from this state, per PS3.4 Table CC.1.1-2:
-    /// SCHEDULED → IN PROGRESS only (Change State to CANCELED from SCHEDULED is refused with C310H;
-    /// a SCHEDULED workitem is cancelled by the origin server on Request Cancellation, PS3.18 11.8),
-    /// IN PROGRESS → COMPLETED or CANCELED, final states → none. SCHEDULED is never a target (C303H).
-    public var allowedTransitions: [UPSState] {
-        switch self {
-        case .scheduled:  return [.inProgress]
-        case .inProgress: return [.completed, .cancelled]
-        case .completed:  return []
-        case .cancelled:  return []
-        }
-    }
-}
+@available(*, deprecated, renamed: "WebUPSState",
+           message: "UPSState is DICOMWeb's UPSState; raw values are the PS3.3 Table C.30.1-1 words")
+public typealias UPSState = WebUPSState
 
 // MARK: - UPS-RS Priority
 
@@ -855,7 +813,7 @@ public struct UPSWorkitem: Sendable, Identifiable, Equatable, Hashable {
     /// Scheduled procedure step start date/time.
     public var scheduledDateTime: Date?
     /// Current state.
-    public var state: UPSState
+    public var state: WebUPSState
     /// Priority of this workitem.
     public var priority: UPSPriority
     /// Free-text progress information.
@@ -870,7 +828,7 @@ public struct UPSWorkitem: Sendable, Identifiable, Equatable, Hashable {
         patientID: String = "",
         procedureStepLabel: String = "",
         scheduledDateTime: Date? = nil,
-        state: UPSState = .scheduled,
+        state: WebUPSState = .scheduled,
         priority: UPSPriority = .medium,
         progressInformation: String = "",
         completionPercentage: Int = 0

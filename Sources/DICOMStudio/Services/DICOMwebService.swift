@@ -265,7 +265,7 @@ public final class DICOMwebService: @unchecked Sendable {
     }
 
     /// Updates the state of the UPS-RS workitem with the given ID.
-    public func updateUPSWorkitemState(_ state: UPSState, for id: UUID) {
+    public func updateUPSWorkitemState(_ state: WebUPSState, for id: UUID) {
         lock.withLock {
             guard let idx = _upsWorkitems.firstIndex(where: { $0.id == id }) else { return }
             _upsWorkitems[idx].state = state

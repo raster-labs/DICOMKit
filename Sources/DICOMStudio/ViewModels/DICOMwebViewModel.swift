@@ -701,9 +701,9 @@ public final class DICOMwebViewModel {
             let client = try DICOMwebClientFactory.makeClient(from: profile)
             let result = try await client.searchWorkitems()
             let items: [UPSWorkitem] = result.workitems.map { workitem in
-                // The DICOMWeb state (WebUPSState, D259) mapped to the Studio case by its
-                // PS3.3 Table C.30.1-1 word; a missing state reads as SCHEDULED.
-                let mappedState: UPSState = workitem.state.map(UPSState.init(web:)) ?? .scheduled
+                // The DICOMWeb state (WebUPSState, D259; Studio's UPSState since
+                // P-STUDIO-UPS-STATE-RAW); a missing state reads as SCHEDULED.
+                let mappedState: WebUPSState = workitem.state ?? .scheduled
                 let mappedPriority: UPSPriority = {
                     switch workitem.priority?.rawValue {
                     case "STAT", "HIGH": return .high
@@ -732,7 +732,7 @@ public final class DICOMwebViewModel {
     /// Transitions a UPS workitem to a new state, enforcing the UPS state machine of
     /// PS3.4 Table CC.1.1-2 (Change Workitem State, PS3.18 11.7). SCHEDULED is refused as a
     /// target with the same message as dicom-wado (PS3.18 11.7.1.4; Table CC.1.1-2 C303H).
-    public func transitionUPSState(_ newState: UPSState, workitemID: UUID) {
+    public func transitionUPSState(_ newState: WebUPSState, workitemID: UUID) {
         guard let workitem = upsWorkitems.first(where: { $0.id == workitemID }) else { return }
         if let refusal = DICOMwebUPSHelpers.changeStateRefusal(from: workitem.state, to: newState) {
             errorMessage = refusal
