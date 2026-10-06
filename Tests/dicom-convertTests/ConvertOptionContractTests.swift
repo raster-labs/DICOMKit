@@ -129,11 +129,15 @@ final class ConvertOptionContractTests: XCTestCase {
         XCTAssertNil(TransferSyntaxKeywords.meaningChangeNote(for: "jpeg2000-lossless"))
     }
 
-    func test_addedKeywords_doNotShadowTheCatalog() {
-        for keyword in TransferSyntaxKeywords.additional.keys {
-            XCTAssertNil(DICOMConverter.resolveTargetEncoding(keyword), keyword)
-            XCTAssertEqual(TransferSyntaxKeywords.additional[keyword], Self.tableA1[keyword], keyword)
+    func test_addedKeywords_areCatalogKeywordsOfTheirTableA1UID() {
+        // D268: the 7 keywords live in the DICOMConverter catalog, which resolves them itself.
+        for (keyword, uid) in TransferSyntaxKeywords.additional {
+            XCTAssertEqual(DICOMConverter.resolveTargetEncoding(keyword)?.transferSyntax.uid, uid, keyword)
+            XCTAssertEqual(uid, Self.tableA1[keyword], keyword)
+            XCTAssertFalse(DICOMConverter.cliTokens.contains(keyword), "\(keyword) is a cliToken; it is not additional")
         }
+        XCTAssertEqual(TransferSyntaxKeywords.additional, DICOMConverter.additionalTableA1Keywords)
+        XCTAssertEqual(TransferSyntaxKeywords.optionHelp, DICOMConverter.transferSyntaxOptionHelpWithKeywords)
     }
 
     func test_catalogNamesAndUIDs_stillResolve() {

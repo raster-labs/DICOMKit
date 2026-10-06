@@ -812,6 +812,7 @@ let package = Package(
                 "UIDRootRuleTests.swift",
                 "DICOMDIRFileSetRulesTests.swift",
                 "CompressionNativeTargetTests.swift",
+                "ConverterTableA1KeywordTests.swift",
                 "CompressionManagerXYBTests.swift",
                 // Lossy output new SOP Instance UID, J2K/JPEG colour labels, File Meta UI padding,
                 // Explicit VR Big Endian values, nested --strip-private, per-frame rescale

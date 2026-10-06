@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — 14 options classified against PS3.6 2026a Table A-1 (--transfer-syntax: 25 catalog targets, 21 UIDs; all 21 A-1 keywords select their A-1 UID — JPEG2000Lossless / HTJ2KLossless / JPEGXLLossless now .90 / .201 / .110 with a stderr note, old meaning renamed …Reversible (P-CONVERT-TS-KEYWORDS); 7 keywords added in TransferSyntaxKeywords.swift), PS3.3 C.11.2.1.2.1 (--window-width ≥ 1, now enforced), Table 10-3 ("The first Frame shall be denoted as Frame number 1": new 1-based --frame-number, 0-based --frame deprecated, P-CONVERT-FRAME), PS3.5 7.8 (--strip-private, engine deferred), PS3.10 7.1 (--force); directory run exits 1 when a file failed (P-CONVERT-EXIT); DICOM output checked on fixtures against PS3.3 C.7.6.1.1.5 and PS3.5 8.2, 8.2.4 (engine findings deferred)
+// NEMA-verified: 2026a, checked 2026-10-01 — 14 options classified against PS3.6 2026a Table A-1 (--transfer-syntax: 25 catalog targets, 21 UIDs; all 21 A-1 keywords select their A-1 UID — JPEG2000Lossless / HTJ2KLossless / JPEGXLLossless now .90 / .201 / .110 with a stderr note, old meaning renamed …Reversible (P-CONVERT-TS-KEYWORDS); 7 keywords folded into DICOMConverter.additionalTableA1Keywords, D268), PS3.3 C.11.2.1.2.1 (--window-width ≥ 1, now enforced), Table 10-3 ("The first Frame shall be denoted as Frame number 1": new 1-based --frame-number, 0-based --frame deprecated, P-CONVERT-FRAME), PS3.5 7.8 (--strip-private, engine deferred), PS3.10 7.1 (--force); directory run exits 1 when a file failed (P-CONVERT-EXIT); DICOM output checked on fixtures against PS3.3 C.7.6.1.1.5 and PS3.5 8.2, 8.2.4 (engine findings deferred)
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -43,7 +43,7 @@ struct DICOMConvert: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Output file or directory path")
     var output: String
     
-    @Option(name: .long, help: "\(TransferSyntaxKeywords.optionHelp)")
+    @Option(name: .long, help: "\(DICOMConverter.transferSyntaxOptionHelpWithKeywords)")
     var transferSyntax: String?
     
     @Option(name: .long, help: "Output format for image export: png, jpeg, tiff, dicom (default: dicom)")
@@ -111,7 +111,7 @@ struct DICOMConvert: AsyncParsableCommand {
         if frame != nil {
             FileHandle.standardError.write(Data("warning: --frame is deprecated (0-based index); use --frame-number (numbered from 1, PS3.3 Table 10-3)\n".utf8))
         }
-        if let token = transferSyntax, let note = TransferSyntaxKeywords.meaningChangeNote(for: token) {
+        if let token = transferSyntax, let note = TransferSyntax.reassignedKeywordNote(for: token) {
             FileHandle.standardError.write(Data((note + "\n").utf8))
         }
         let inputURL = URL(fileURLWithPath: inputPath)
@@ -279,7 +279,7 @@ struct DICOMConvert: AsyncParsableCommand {
         // Single source of truth: the shared DICOMConverter target catalog (DICOMKit).
         // Resolve the full encoding (UID + intent) so `…-lossless` names encode reversibly
         // into the general UID and `…-lossy` names carry the lossy provenance.
-        guard let encoding = TransferSyntaxKeywords.resolve(name) else {
+        guard let encoding = DICOMConverter.resolveTargetEncoding(name) else {
             throw ValidationError(DICOMConverter.unknownTargetMessage(name))
         }
         return encoding

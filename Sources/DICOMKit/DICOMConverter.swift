@@ -1,4 +1,5 @@
 // NEMA-verified: 2026a, checked 2026-10-01 — transfer syntax capabilities via DICOMCore; UID literals, names and PS3.5 citations diffed by Scripts/diff_kit.py against PS3.6 2026a Table A-1 and the PS3.5 text; --strip-private recurses into Sequence Items (PS3.5 2026a 7.8.1, D191); lossy output gets a new SOP Instance UID (PS3.3 2026a C.7.6.1.1.5, D192)
+// NEMA-verified: 2026a, checked 2026-10-06 — additionalTableA1Keywords (folded in from dicom-convert TransferSyntaxKeywords, D268): the 7 keyword → UID rows are the PS3.6 2026a Table A-1 keyword column of 1.2.840.10008.1.2.1.99, .4.50, .4.51, .4.92, .4.93, .4.111, .4.202 (dumped by script), the catalog target UIDs whose keyword no cliToken spells; transferSyntaxOptionHelpWithKeywords is the CLI's composed help, unchanged
 import Foundation
 import DICOMCore
 
@@ -182,8 +183,28 @@ public enum DICOMConverter {
                 return t
             }
         }
+        // A PS3.6 Table A-1 keyword that is not a catalog token selects its UID (first match =
+        // lossy for a shared UID, as for a bare UID).
+        if let uid = additionalTableA1Keywords.first(where: { $0.key.lowercased() == lower })?.value {
+            return targets.first { $0.syntax.uid == uid }
+        }
         return nil
     }
+
+    /// The PS3.6 2026a Table A-1 keywords of catalog target UIDs whose keyword is not a
+    /// ``Target/cliToken`` (nor one of the three reassigned keywords of
+    /// ``DICOMCore/TransferSyntax/reassignedTableA1Keywords``), keyword → Transfer Syntax UID.
+    /// ``resolveTarget(_:)`` accepts them case-insensitively, so every Table A-1 keyword of a
+    /// target UID selects its Table A-1 UID (D268; was `dicom-convert`'s TransferSyntaxKeywords).
+    public static let additionalTableA1Keywords: [String: String] = [
+        "DeflatedExplicitVRLittleEndian": "1.2.840.10008.1.2.1.99",
+        "JPEGBaseline8Bit": "1.2.840.10008.1.2.4.50",
+        "JPEGExtended12Bit": "1.2.840.10008.1.2.4.51",
+        "JPEG2000MCLossless": "1.2.840.10008.1.2.4.92",
+        "JPEG2000MC": "1.2.840.10008.1.2.4.93",
+        "JPEGXLJPEGRecompression": "1.2.840.10008.1.2.4.111",
+        "HTJ2KLosslessRPCL": "1.2.840.10008.1.2.4.202",
+    ]
 
     /// Resolves a user-supplied token to a ``SelectableEncoding`` (UID + intent). This is the
     /// intent-aware entry point the CLI and app use so a `…-lossless` name encodes reversibly
@@ -207,6 +228,21 @@ public enum DICOMConverter {
     /// accepted CamelCase target names (kept in sync with ``targets``).
     public static var transferSyntaxOptionHelp: String {
         "Target transfer syntax: " + cliTokens.joined(separator: ", ")
+    }
+
+    /// The `dicom-convert --transfer-syntax` help: ``transferSyntaxOptionHelp`` plus what else
+    /// is accepted — a Transfer Syntax UID and the PS3.6 Table A-1 keywords
+    /// (``additionalTableA1Keywords`` and the reassigned ones), with the 2026-10-01 meaning
+    /// change of `JPEG2000Lossless` / `HTJ2KLossless` / `JPEGXLLossless` (P-CONVERT-TS-KEYWORDS).
+    /// The CLI and the Workshop print this text (D268).
+    public static var transferSyntaxOptionHelpWithKeywords: String {
+        transferSyntaxOptionHelp
+            + ". Also a Transfer Syntax UID or a PS3.6 Table A-1 keyword ("
+            + (additionalTableA1Keywords.keys + TransferSyntax.reassignedTableA1Keywords.map(\.keyword)).sorted()
+                .joined(separator: ", ")
+            + "); every Table A-1 keyword selects its Table A-1 UID. Changed: JPEG2000Lossless, "
+            + "HTJ2KLossless and JPEGXLLossless now select .90 / .201 / .110; the reversible encode "
+            + "into .91 / .203 / .112 is JPEG2000Reversible, HTJ2KReversible, JPEGXLReversible."
     }
 
     /// A multi-line, grouped listing of the supported convert targets for error output.
