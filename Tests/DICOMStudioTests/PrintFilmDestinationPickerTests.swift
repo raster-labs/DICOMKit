@@ -47,6 +47,17 @@ struct PrintFilmDestinationPickerTests {
         #expect(FilmDestinationPicker.bin(Int.max).rawValue.count <= 16)
     }
 
+    @Test("The bin field speaks dicom-print's --film-destination tokens (DICOMPrintKit catalogToken, D242)")
+    func testCatalogToken() {
+        for n in [1, 2, 12, 999] {
+            let destination = FilmDestinationPicker.bin(n)
+            #expect(destination.catalogToken == "bin-\(n)")
+            #expect(FilmDestination(catalogToken: destination.catalogToken) == destination)
+        }
+        #expect(FilmDestinationPicker.termAndToken(.bin(12)) == "BIN_12 (bin-12)")
+        #expect(FilmDestinationPicker.termAndToken(.magazine) == "MAGAZINE (magazine)")
+    }
+
     @Test("The bin reaches the job request as Film Destination BIN_n")
     @MainActor
     func testBinReachesRequest() {

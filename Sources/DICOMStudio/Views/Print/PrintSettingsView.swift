@@ -16,11 +16,12 @@
 // Behind More: printer tests, the marked images, everything the CLI exposes,
 // and the focused cell's own window and annotation controls.
 //
-// NEMA-verified: 2026a, checked 2026-10-05 — every print term offered here comes from DICOMPrintKit's
+// NEMA-verified: 2026a, checked 2026-10-06 — every print term offered here comes from DICOMPrintKit's
 // PrintOptionCatalog over DICOMNetwork's enums (verified in those modules against PS3.3 2026a Tables C.13-1,
-// C.13-3, C.13-5 and C.11-4); this file adds no literal of its own. Film Destination (2000,0040) now offers
-// BIN_i for any i ≥ 1 through FilmDestination.bin(n) — Table C.13-1 puts no maximum on the number of sorter
-// bins and the catalogue lists only BIN_1 and BIN_2. The bit-depth help cited Table C.13-3 for the Bits
+// C.13-3, C.13-5 and C.11-4); this file adds no literal of its own. Film Destination (2000,0040) offers
+// BIN_i for any i ≥ 1 — Table C.13-1 puts no maximum on the number of sorter bins and the catalogue lists only
+// BIN_1 and BIN_2 — and since 2026-10-06 the bin field goes through DICOMPrintKit FilmDestination(catalogToken:)
+// and shows catalogToken / catalogTokenList, the dicom-print --film-destination spelling (D242). The bit-depth help cited Table C.13-3 for the Bits
 // Stored 8/12 rule; the rule is in the Image Box Pixel Presentation Module, Table C.13-5 (D23's sibling).
 
 #if canImport(SwiftUI)
@@ -1745,12 +1746,13 @@ public struct PrintSettingsView: View {
                             Stepper("", value: filmDestinationBinBinding,
                                     in: 1...FilmDestinationPicker.maximumOfferedBin)
                                 .labelsHidden()
-                            Text(FilmDestination.bin(bin).rawValue)
+                            Text(FilmDestinationPicker.termAndToken(FilmDestination.bin(bin)))
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                         }
                         .help("Film sorter bin number, 1 or more (Film Destination BIN_i, "
-                              + "PS3.3 Table C.13-1).")
+                              + "PS3.3 Table C.13-1). dicom-print --film-destination: "
+                              + FilmDestination.catalogTokenList)
                     }
                 }
                 stackedControl("Session label") {
@@ -2166,9 +2168,19 @@ enum FilmDestinationPicker {
     }
 
     /// BIN_n for a typed number, held to the range the term allows: 1 or more,
-    /// and small enough for the 16-character CS value (PS3.5 Table 6.2-1).
+    /// and small enough for the 16-character CS value (PS3.5 Table 6.2-1). The
+    /// value goes through DICOMPrintKit's `FilmDestination(catalogToken:)` — the
+    /// parser of dicom-print `--film-destination` (D242) — so the field accepts
+    /// exactly the bins the CLI does.
     static func bin(_ number: Int) -> FilmDestination {
-        .bin(min(max(1, number), FilmDestination.maximumBinNumber))
+        let clamped = min(max(1, number), FilmDestination.maximumBinNumber)
+        return FilmDestination(catalogToken: "bin-\(clamped)") ?? binChoice
+    }
+
+    /// The Defined Term and the dicom-print token it is spelt with, e.g.
+    /// `BIN_12 (bin-12)` — DICOMPrintKit's `catalogToken` (D242).
+    static func termAndToken(_ destination: FilmDestination) -> String {
+        "\(destination.rawValue) (\(destination.catalogToken))"
     }
 }
 
