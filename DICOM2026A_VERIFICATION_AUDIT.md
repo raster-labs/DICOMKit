@@ -186,14 +186,14 @@ audit as written before this follow-up; the report Status cells carry the curren
 | D253 | `6adbe40e` | `DICOMDIRFileSetRules` (PS3.10 8.1, 8.2, 8.5, 8.6) |
 | D267 | `36022531` | `CompressionConsole.NativeTargetSyntax` (PS3.6 Table A-1; PS3.5 A.1–A.5) |
 | D268 | `b281e64f` | `DICOMConverter` accepts the 7 Table A-1 keywords for every caller, `FrameMerger` included (PS3.6 Table A-1) |
-| D243 + A6 (D65 engine half) | `15e74ebc` + Studio pass PENDING_SHA | `DICOMFile` convenience renderers go through `GrayscaleDisplayPipeline` (window in modality units); `DICOMImageExporter.determineModalityWindow` added, `determineWindowSettings` deprecated; `diff_renderkit.py` 0 deferred (PS3.3 C.11.2.1.2.1; PS3.4 N.2). The two Studio callers (`FrameRenderer.swift:288`, `ImageViewerViewModel.swift:1508`) move in the Studio pass |
+| D243 + A6 (D65 engine half) | `15e74ebc` + Studio pass `123b81a5` | `DICOMFile` convenience renderers go through `GrayscaleDisplayPipeline` (window in modality units); `DICOMImageExporter.determineModalityWindow` added, `determineWindowSettings` deprecated; `diff_renderkit.py` 0 deferred (PS3.3 C.11.2.1.2.1; PS3.4 N.2). The two Studio callers (`FrameRenderer.swift:288`, `ImageViewerViewModel.swift:1508`) move in the Studio pass |
 | D252 | `be267a71` | `DICOMImageExporter.CineFrameRate` / `BurnedInAnnotation` / `FrameSelection` / `FrameSelectionConflict` / `ApplyWindowDeprecation` (PS3.3 Table C.7-13, C.7-9, Table 10-3) |
 | D251 | `fbf25c1f` | dicom-export bulk exits 1 when any file failed (files without pixel data skipped) |
 | D274 | `46f4a61a` | `ImageConverter.OutputRules` (finalize also covers non-ASCII text in sequence items) (PS3.10 Table 7.1-1; PS3.3 C.12-1, C.12-5) |
 | D273 | `db10d0f3` | dicom-image directory run exits 1 when any image failed (non-images skipped) |
 | D272 | `98e59069` | `EncapsulatedDocumentBuilder.OptionRules`; the extract padding cut follows the engine's Table C.24-2 rule (PS3.3 Table C.24-2, C.12-1) |
 | D271 | `15b06782` | dicom-pdf directory runs exit 1 when any file failed (the Studio pass makes `--extract` skip non-documents) |
-| Studio copies of D248–D275 (and D243 / A6 callers) | PENDING_SHA | DICOMStudio CLI Workshop copies replaced by the engine symbols; D261 failure wording and D271 `--extract` skip completed in CLI and Workshop |
+| Studio copies of D248–D275 (and D243 / A6 callers) | `2bd8e408`…`3060ee3e` (9 commits) | DICOMStudio CLI Workshop copies replaced by the engine symbols; D261 failure wording and D271 `--extract` skip completed in CLI and Workshop |
 
 Left open by owner decision: **D216** (J2KSwift upstream), **D221** (DICOMToolbox), **D256** (`dicom-cloud` product).
 Still void: D244, D246. Every other row D1–D276 is ✅.
@@ -204,7 +204,7 @@ All with `--nema 2026a`: `diff_kit.py` 0 wrong; `diff_network.py` 0; `diff_web.p
 `diff_renderkit.py` 17 ok, 0 failing, 0 deferred; `diff_cli.py` 0 FAIL (42 tools); `diff_cli_web.py` 0 FAIL;
 `check_nema_markers.py` exits 0 on every module (DICOMCore 108/108, DICOMDictionary 5/5, DICOMKit 185/185,
 DICOMNetwork 66/66, DICOMWeb 57/57, DICOMPrintKit 31/31, DICOMRenderKit 10/10, `Sources/dicom-*` 100/100).
-`diff_studio.py` is re-run in the Studio pass: PENDING_SHA. Full `swift test` after the Studio pass: PENDING_TEST.
+`diff_studio.py` is re-run in the Studio pass: `2bd8e408`…`3060ee3e` (9 commits). Full `swift test` after the Studio pass: PENDING_TEST.
 
 ### 8.3 Resolution of A1–A8
 
@@ -214,7 +214,7 @@ DICOMNetwork 66/66, DICOMWeb 57/57, DICOMPrintKit 31/31, DICOMRenderKit 10/10, `
 | A3 | Done `4535d37c` |
 | A4 | Done `986c517b` |
 | A5 | Done `5de7575d`; the PrintService half recorded as new row D276 (DICOMNetwork, Medium); D1 amended in the DICOMCore and DICOMNetwork reports |
-| A6 | Engine half done `15e74ebc` (`determineModalityWindow`, `determineWindowSettings` deprecated, `diff_renderkit` 0 deferred); Studio callers in the Studio pass PENDING_SHA |
+| A6 | Engine half done `15e74ebc` (`determineModalityWindow`, `determineWindowSettings` deprecated, `diff_renderkit` 0 deferred); Studio callers in the Studio pass `123b81a5` |
 | A7 | Done `b34f6ba8`; Progress-log lines added to the DICOMCore and DICOMDictionary reports; the two unregistered HEVC UIDs kept (D20 / P2) |
 | A8 | All 11 shas found (`git log --grep` / `git log -S`) and added to every report's Status cell for the row: D6 `4f29b7b2`, D7 `4f29b7b2`, D8 `a08258f9`, D20 `f5aa6d0a`, D25 `511ac8ab`, D30 `535d6093`, D39 `bbe90b0a` + `37e59463`, D40 `8dada6c0`, D41 `8dada6c0`, D43 `d411e1ed`, D85 `d716de90`. None left unchanged |
 

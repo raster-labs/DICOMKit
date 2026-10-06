@@ -41,7 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - dicom-pdf directory runs (extract and encapsulate) exit 1 after the summary when any file failed (D271; tool contract, P-CONVERT-EXIT).
 - dicom-pdf `--extract` cuts the trailing padding by the engine's rule (D272; PS3.3 2026a Table C.24-2).
 - dicom-print `--film-destination` accepts `BIN_n` for any n (D242; PS3.3 2026a Table C.13-1).
-- DICOMStudio: CLI Workshop copies replaced by the engine symbols (D248–D275) — Studio pass PENDING_SHA
+- DICOMStudio: CLI Workshop copies replaced by the engine symbols (D248–D275) — Studio pass `2bd8e408`…`3060ee3e` (9 commits)
+- dicom-send: the per-file failure line uses the engine's PS3.4 Table B.2-1 wording, `❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)` (was `… status Refused: Out of resources (0xA700) — not stored …`); new `NetworkConsole.sendStoreFailedText(status:)` (D261; `04aa31ea`).
+- dicom-pdf `--extract` over a directory skips files that are not DICOM or carry no Encapsulated Document (0042,0011) (PS3.3 2026a C.24.2), printing `⊘ <file>: not an Encapsulated Document (skipped)` with `--verbose`; only a document that fails to extract, or an unreadable/unwritable file, makes the run exit 1 (D271; `66bd8c42`).
+- DICOMStudio CLI Workshop: directory runs of dicom-export bulk, dicom-image and dicom-pdf exit 1 after the summary when a file failed, as the CLIs do (D251, D271, D273; `726957b5`); dicom-anon's "Option flags apply only to --profile ps315" refusal exits 64 as the CLI does (was 1); dicom-qr reports a failed final response in dicom-retrieve's wording (D262; `e4a73d9a`).
+- DICOMStudio: the viewer and film-cell default window come from `DICOMImageExporter.determineModalityWindow` (modality units; the viewer converts to its stored-unit state with (c−b)/m, w/|m|); no `determineWindowSettings` call remains (A6 / D65; `123b81a5`).
+- DICOMStudio: the print bin-number field parses through `FilmDestination(catalogToken:)` and shows the dicom-print token (D242; `a169450e`).
+- Scripts: `diff_studio.py` checks that the Workshop and the CLI call each lifted engine symbol and that no Workshop-local copy remains, reads standard values from the engine files, and checks the directory-run exit codes (D248–D275; `3060ee3e`).
 
 ### Fixed — deferred-findings follow-up (2026-10-06, DICOM 2026a)
 

@@ -230,7 +230,7 @@ Rows for this module from the earlier reports come first.
 
 | ID | Module | Where | Problem | Standard | Severity | Status |
 |---|---|---|---|---|---|---|
-| D5 | DICOMKit | `ComparisonReport.formatValue` | OV shown as text | PS3.5 Table 6.2-1 | Low | ✅ 2026-09-29: OB/OD/OF/OL/OV/OW/UN are binary (the DICOMStudio half stays open, see D28) |
+| D5 | DICOMKit | `ComparisonReport.formatValue` | OV shown as text | PS3.5 Table 6.2-1 | Low | ✅ 2026-09-29: OB/OD/OF/OL/OV/OW/UN are binary (the DICOMStudio half was D28, closed 2026-10-05 `6372e096`) |
 | D12 | DICOMKit | `CompressionManager.decodePixelDataInPlace` | No XYB → RGB relabel | PS3.3 C.7.6.3.1.2 | Medium | ✅ 2026-09-29, `CompressionManagerXYBTests` |
 | D14 | DICOMKit | `DICOMDIRReader.parseDirectoryRecord` | Unknown record type fatal | PS3.3 Table F.3-3, F.6.1 | High | ✅ 2026-09-29, `DICOMDIRReaderRecordTypeTests` |
 | D15 | DICOMKit (+ dicom-dcmdir, DICOMStudio) | `DICOMDIRReader.parse` | Profile reported as fact | PS3.11 | Low | ✅ DICOMKit half 2026-09-29 (documented assumption; no attribute carries it). The help texts are D29 |
