@@ -220,12 +220,12 @@ extension DICOMCompress {
             guard FileManager.default.fileExists(atPath: input) else {
                 throw ValidationError("Input file not found: \(input)")
             }
-            _ = try NativeTargetSyntax.resolve(syntax)
+            _ = try CompressionConsole.NativeTargetSyntax.resolve(syntax)
         }
 
         mutating func run() throws {
             let manager = CompressionManager()
-            let targetSyntax = try NativeTargetSyntax.resolve(syntax)
+            let targetSyntax = try CompressionConsole.NativeTargetSyntax.resolve(syntax)
 
             if verbose {
                 fprint(CompressionConsole.decompressPreamble(
@@ -374,7 +374,7 @@ extension DICOMCompress {
                 }
             }
             if decompress {
-                _ = try NativeTargetSyntax.resolve(syntax)
+                _ = try CompressionConsole.NativeTargetSyntax.resolve(syntax)
             }
         }
 
@@ -428,7 +428,7 @@ extension DICOMCompress {
 
                 do {
                     if decompress {
-                        let targetSyntax = try NativeTargetSyntax.resolve(syntax)
+                        let targetSyntax = try CompressionConsole.NativeTargetSyntax.resolve(syntax)
                         try manager.decompressFile(
                             inputPath: filePath,
                             outputPath: outputPath,
@@ -472,32 +472,11 @@ extension DICOMCompress {
 /// the retired A.3 Explicit VR Big Endian (accepted again since the engine writer byte-swaps
 /// values per PS3.5 2026a 7.3, D206). Every other name — the compressed codecs included — is
 /// refused with exit 1.
-enum NativeTargetSyntax {
-    static let accepted: [(name: String, syntax: TransferSyntax)] = [
-        ("explicit-le", .explicitVRLittleEndian),
-        ("implicit-le", .implicitVRLittleEndian),
-        ("deflate", .deflatedExplicitVRLittleEndian),
-        ("explicit-be", .explicitVRBigEndian),
-    ]
-
-    /// A refused `--syntax` value. Not a `ValidationError`, so the command exits 1.
-    struct Refused: LocalizedError, CustomStringConvertible {
-        let description: String
-        var errorDescription: String? { description }
-    }
-
-    static func resolve(_ name: String) throws -> TransferSyntax {
-        let lower = name.trimmingCharacters(in: .whitespaces).lowercased()
-        if let hit = accepted.first(where: { $0.name == lower }) { return hit.syntax }
-        let allowed = accepted.map(\.name).joined(separator: ", ")
-        if let codec = CompressionManager.transferSyntax(for: lower) {
-            throw Refused(description: "--syntax \(name) names \(codec.uid), an encapsulated (compressed) "
-                + "Transfer Syntax (PS3.6 2026a Table A-1); decompression writes native Pixel Data "
-                + "(PS3.5 2026a A.1, A.2, A.5). Native targets: \(allowed). To compress, use `compress --codec`.")
-        }
-        throw Refused(description: "Unknown syntax '\(name)'. Native targets: \(allowed)")
-    }
-}
+/// The pre-D267 name of `CompressionConsole.NativeTargetSyntax` (the native `--syntax` targets of
+/// `decompress` / `batch --decompress` and their refusal texts), now shared with the DICOMStudio
+/// CLI Workshop. The tool calls the DICOMKit type; this typealias only forwards.
+@available(*, deprecated, renamed: "CompressionConsole.NativeTargetSyntax")
+typealias NativeTargetSyntax = CompressionConsole.NativeTargetSyntax
 
 // MARK: - Helpers
 

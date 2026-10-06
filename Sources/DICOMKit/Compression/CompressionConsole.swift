@@ -1,4 +1,5 @@
 // NEMA-verified: 2026a, checked 2026-10-01 — transfer syntax names via DICOMCore; ratio lines in the N:1 form of PS3.3 2026a C.7.6.1.1.5.2 and the "Samples per Pixel" label of PS3.6 2026a Table 6-1 (0028,0002) (D183)
+// NEMA-verified: 2026a, checked 2026-10-06 — NativeTargetSyntax (lifted from dicom-compress, D267): the 4 targets are the PS3.6 2026a Table A-1 rows 1.2.840.10008.1.2.1 Explicit VR Little Endian, 1.2.840.10008.1.2 Implicit VR Little Endian, 1.2.840.10008.1.2.1.99 Deflated Explicit VR Little Endian, 1.2.840.10008.1.2.2 Explicit VR Big Endian (Retired) (dumped by script), i.e. the native encodings of PS3.5 2026a A.1, A.2, A.5 and the retired A.3; every other Table A-1 Transfer Syntax the engine names is encapsulated and refused
 // CompressionConsole.swift
 // DICOMKit
 //
@@ -426,5 +427,44 @@ public enum CompressionConsole {
         }
         let data = try JSONSerialization.data(withJSONObject: items, options: [.prettyPrinted])
         return (String(data: data, encoding: .utf8) ?? "") + "\n"
+    }
+
+    // MARK: - Decompress / batch --syntax targets (shared; D267)
+
+    /// The `--syntax` values of `dicom-compress decompress` and `batch --decompress`: only the
+    /// native (non-encapsulated) Transfer Syntaxes, because decompression writes native Pixel
+    /// Data — PS3.5 2026a A.1 Implicit VR Little Endian, A.2 Explicit VR Little Endian, A.5
+    /// Deflated Explicit VR Little Endian, and the retired A.3 Explicit VR Big Endian (UIDs per
+    /// PS3.6 2026a Table A-1). Every encapsulated codec name is refused with the text below
+    /// (P-COMPRESS-SYNTAX); the CLI and the DICOMStudio Workshop share it.
+    public enum NativeTargetSyntax {
+        public static let accepted: [(name: String, syntax: TransferSyntax)] = [
+            ("explicit-le", .explicitVRLittleEndian),
+            ("implicit-le", .implicitVRLittleEndian),
+            ("deflate", .deflatedExplicitVRLittleEndian),
+            ("explicit-be", .explicitVRBigEndian),
+        ]
+
+        /// A refused `--syntax` value. Not an ArgumentParser `ValidationError`, so the command
+        /// exits 1 (not 64).
+        public struct Refused: LocalizedError, CustomStringConvertible {
+            public let description: String
+            public var errorDescription: String? { description }
+            public init(description: String) { self.description = description }
+        }
+
+        /// The Transfer Syntax a `--syntax` value names (case-insensitive), or a ``Refused``
+        /// error: one text for an encapsulated codec name, another for an unknown value.
+        public static func resolve(_ name: String) throws -> TransferSyntax {
+            let lower = name.trimmingCharacters(in: .whitespaces).lowercased()
+            if let hit = accepted.first(where: { $0.name == lower }) { return hit.syntax }
+            let allowed = accepted.map(\.name).joined(separator: ", ")
+            if let codec = CompressionManager.transferSyntax(for: lower) {
+                throw Refused(description: "--syntax \(name) names \(codec.uid), an encapsulated (compressed) "
+                    + "Transfer Syntax (PS3.6 2026a Table A-1); decompression writes native Pixel Data "
+                    + "(PS3.5 2026a A.1, A.2, A.5). Native targets: \(allowed). To compress, use `compress --codec`.")
+            }
+            throw Refused(description: "Unknown syntax '\(name)'. Native targets: \(allowed)")
+        }
     }
 }
