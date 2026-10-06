@@ -8061,7 +8061,7 @@ case "dicom-study":
                 // Procedure Step State (0074,1000), PS3.3 Table C.30.1-1; "IN PROGRESS" and
                 // IN_PROGRESS both accepted. SCHEDULED is refused: PS3.18 2026a 11.7.1.4,
                 // PS3.4 2026a Table CC.1.1-2 (C303H) — P-WADO-UPS-STATE.
-                let newState: String
+                let newState: WebUPSState
                 do {
                     newState = try WorkshopWADOOptionRules.changeStateTarget(stateString)
                 } catch let e as WorkshopWADOOptionRules.Refusal {
@@ -8076,15 +8076,15 @@ case "dicom-study":
                 let userTxUID = paramValue("transaction-uid").trimmingCharacters(in: .whitespacesAndNewlines)
                 let effectiveTxUID: String?
                 switch newState {
-                case "IN PROGRESS":
+                case .inProgress:
                     effectiveTxUID = userTxUID.isEmpty ? generateDICOMUID() : userTxUID
-                case "COMPLETED", "CANCELED":
+                case .completed, .canceled:
                     if !userTxUID.isEmpty {
                         effectiveTxUID = userTxUID
                     } else if let cached = upsTransactionUIDs[uid], !cached.isEmpty {
                         effectiveTxUID = cached
                     } else {
-                        refuse("--transaction-uid is required for \(newState) transition (use the UID returned from IN_PROGRESS)", exitCode: 64)
+                        refuse("--transaction-uid is required for \(newState.rawValue) transition (use the UID returned from IN_PROGRESS)", exitCode: 64)
                         return
                     }
                 default:
@@ -8099,43 +8099,39 @@ case "dicom-study":
 
                 if verbose {
                     appendConsoleOutput(UPSConsole.updateVerboseHeader(
-                        uid: uid, stateRaw: newState,
+                        uid: uid, stateRaw: newState.rawValue,
                         requestingAE: requestingAE, transactionUID: effectiveTxUID))
                 }
 
                 // completeWorkitem() (COMPLETED: Final State attributes, PS3.4 Table CC.2.5-3,
                 // then the Change State) and changeWorkitemState() are the SAME shared
-                // DICOMwebClient helpers the CLI calls.
-                // (`.canceled` / `.inProgress` resolve to DICOMWeb.UPSState through the
-                // `state:` parameter; DICOMStudio shadows that type name.)
+                // DICOMwebClient helpers the CLI calls; `newState` is the DICOMWeb enum
+                // (`WebUPSState`, D259) the `state:` parameter takes.
                 let response: UPSStateChangeResponse
-                if newState == "COMPLETED", let txUID = effectiveTxUID {
+                if newState == .completed, let txUID = effectiveTxUID {
                     if verbose { appendConsoleOutput(UPSConsole.finalStateUpdatingLine()) }
                     response = try await client.completeWorkitem(uid: uid, transactionUID: txUID, requestingAE: requestingAE)
                     if verbose { appendConsoleOutput(UPSConsole.finalStateUpdatedLine()) }
-                } else if newState == "CANCELED" {
-                    response = try await client.changeWorkitemState(
-                        uid: uid, state: .canceled, transactionUID: effectiveTxUID, requestingAE: requestingAE)
                 } else {
                     response = try await client.changeWorkitemState(
-                        uid: uid, state: .inProgress, transactionUID: effectiveTxUID, requestingAE: requestingAE)
+                        uid: uid, state: newState, transactionUID: effectiveTxUID, requestingAE: requestingAE)
                 }
 
                 // Silent bookkeeping: remember the IN PROGRESS Transaction UID for the
                 // in-app COMPLETED / CANCELED follow-up; drop it on a terminal state.
-                if newState == "IN PROGRESS" {
+                if newState == .inProgress {
                     upsTransactionUIDs[uid] = response.transactionUID ?? effectiveTxUID
                 } else {
                     upsTransactionUIDs.removeValue(forKey: uid)
                 }
 
                 appendConsoleOutput(UPSConsole.updateResultText(
-                    uid: uid, stateRaw: newState,
+                    uid: uid, stateRaw: newState.rawValue,
                     transactionUID: response.transactionUID, warnings: response.warnings))
                 consoleStatus = .success
                 service.setConsoleStatus(.success)
                 addToHistory(toolName: "dicom-ups", command: commandPreview, exitCode: 0,
-                             output: "State changed to \(newState)")
+                             output: "State changed to \(newState.rawValue)")
 
             case "subscribe", "unsubscribe":
                 let aeTitle = paramValue("subscribe-aet")
@@ -11985,34 +11981,33 @@ enum WorkshopWADOOptionRules {
 
     /// Procedure Step State (0074,1000), PS3.3 Table C.30.1-1 Enumerated Values. The
     /// standard spelling "IN PROGRESS" and the CLI spellings IN_PROGRESS / INPROGRESS
-    /// are accepted (case-insensitive).
-    /// (DICOMStudio shadows DICOMWeb.UPSState, so the state is carried as its PS3.3 Table
-    /// C.30.1-1 word — the enum's rawValue — and resolved contextually at the client call.)
-    static func upsState(_ raw: String) -> String? {
+    /// are accepted (case-insensitive). The state is held as the DICOMWeb enum through the
+    /// `WebUPSState` alias (D259).
+    static func upsState(_ raw: String) -> WebUPSState? {
         switch raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "_", with: " ") {
-        case "SCHEDULED":                  return "SCHEDULED"
-        case "IN PROGRESS", "INPROGRESS":  return "IN PROGRESS"
-        case "COMPLETED":                  return "COMPLETED"
-        case "CANCELED":                   return "CANCELED"
+        case "SCHEDULED":                  return .scheduled
+        case "IN PROGRESS", "INPROGRESS":  return .inProgress
+        case "COMPLETED":                  return .completed
+        case "CANCELED":                   return .canceled
         default:                           return nil
         }
     }
 
     /// The Procedure Step State values a Change State request may carry
     /// (PS3.18 11.7.1.4: "IN PROGRESS", "COMPLETED", or "CANCELED").
-    static let changeStateTargets: [String] = ["IN PROGRESS", "COMPLETED", "CANCELED"]
+    static let changeStateTargets: [WebUPSState] = [.inProgress, .completed, .canceled]
 
     /// The Procedure Step State a Change Workitem State request (`--change-state`, or the
     /// deprecated `--update`) sends. PS3.18 2026a 11.7.1.4 allows only "IN PROGRESS",
     /// "COMPLETED" or "CANCELED"; PS3.4 2026a Table CC.1.1-2 answers a change to SCHEDULED
     /// with C303H (or C307H). SCHEDULED and unknown values are refused (exit 1).
-    static func changeStateTarget(_ raw: String) throws -> String {
+    static func changeStateTarget(_ raw: String) throws -> WebUPSState {
         guard let state = upsState(raw) else {
             throw Refusal(message: "Invalid state: \(raw). Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, "
                 + "CANCELED (PS3.18 2026a 11.7.1.4)", exitCode: 1)
         }
         guard changeStateTargets.contains(state) else {
-            throw Refusal(message: "\(state) is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+            throw Refusal(message: "\(state.rawValue) is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
                 + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
                 + "to SCHEDULED (C303H)", exitCode: 1)
         }

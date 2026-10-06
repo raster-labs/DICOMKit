@@ -748,12 +748,15 @@ struct CLIWorkshopViewModelTests {
     @Test("dicom-wado ups --state: IN PROGRESS / COMPLETED / CANCELED are Change State targets (PS3.18 11.7.1.4); SCHEDULED is refused with the CLI's text (PS3.4 Table CC.1.1-2, C303H), exit 1")
     func upsChangeStateRefusal() throws {
         typealias Rules = WorkshopWADOOptionRules
-        #expect(try Rules.changeStateTarget("IN PROGRESS") == "IN PROGRESS")
-        #expect(try Rules.changeStateTarget("in_progress") == "IN PROGRESS")
-        #expect(try Rules.changeStateTarget("completed") == "COMPLETED")
-        #expect(try Rules.changeStateTarget("CANCELED") == "CANCELED")
-        #expect(Rules.changeStateTargets == ["IN PROGRESS", "COMPLETED", "CANCELED"])
-        #expect(Rules.upsState("SCHEDULED") == "SCHEDULED")
+        // The rules hold the DICOMWeb enum (WebUPSState, D259), not its word.
+        #expect(try Rules.changeStateTarget("IN PROGRESS") == .inProgress)
+        #expect(try Rules.changeStateTarget("in_progress") == .inProgress)
+        #expect(try Rules.changeStateTarget("completed") == .completed)
+        #expect(try Rules.changeStateTarget("CANCELED") == .canceled)
+        #expect(Rules.changeStateTargets == [.inProgress, .completed, .canceled])
+        #expect(Rules.changeStateTargets.map(\.rawValue) == ["IN PROGRESS", "COMPLETED", "CANCELED"])
+        #expect(Rules.upsState("SCHEDULED") == .scheduled)
+        #expect(Rules.upsState("SCHEDULED")?.rawValue == "SCHEDULED")
         do {
             _ = try Rules.changeStateTarget("SCHEDULED")
             Issue.record("SCHEDULED must be refused")

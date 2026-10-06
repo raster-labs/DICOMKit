@@ -701,15 +701,9 @@ public final class DICOMwebViewModel {
             let client = try DICOMwebClientFactory.makeClient(from: profile)
             let result = try await client.searchWorkitems()
             let items: [UPSWorkitem] = result.workitems.map { workitem in
-                let mappedState: UPSState = {
-                    switch workitem.state?.rawValue {
-                    case "SCHEDULED": return .scheduled
-                    case "IN PROGRESS": return .inProgress
-                    case "COMPLETED": return .completed
-                    case "CANCELED": return .cancelled
-                    default: return .scheduled
-                    }
-                }()
+                // The DICOMWeb state (WebUPSState, D259) mapped to the Studio case by its
+                // PS3.3 Table C.30.1-1 word; a missing state reads as SCHEDULED.
+                let mappedState: UPSState = workitem.state.map(UPSState.init(web:)) ?? .scheduled
                 let mappedPriority: UPSPriority = {
                     switch workitem.priority?.rawValue {
                     case "STAT", "HIGH": return .high
