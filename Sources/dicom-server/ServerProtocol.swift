@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — Maximum Length rules from PS3.8 2026a D.1 (outgoing P-DATA bounded by the peer's value, 0 = no maximum; own value sent in the A-ASSOCIATE-AC); SCP/SCU Role Selection reply per PS3.7 D.3.3.4; AE Title rules of PS3.5 Table 6.2-1 (≤16 chars, no backslash / control characters) via DICOMNetwork.AETitle; Query/Retrieve Level values of PS3.4 Tables C.6.1-1 (4) / C.6.2-1 (3) and the A900 failure of Table C.4-1..C.4-3 when the level is missing; final C-MOVE / C-GET status per C.4.2.3.1 / C.4.3.3.1 and Tables C.4-2 / C.4-3 (0000, B000, A702, FE00); the 3 accepted transfer syntaxes are PS3.6 2026a Table A-1 names
+// NEMA-verified: 2026a, checked 2026-10-06 — (0002,0017) Sending Application Entity Title / (0002,0018) Receiving Application Entity Title named per PS3.6 2026a Table 7-1 (A3); Maximum Length rules from PS3.8 2026a D.1 (outgoing P-DATA bounded by the peer's value, 0 = no maximum; own value sent in the A-ASSOCIATE-AC); SCP/SCU Role Selection reply per PS3.7 D.3.3.4; AE Title rules of PS3.5 Table 6.2-1 (≤16 chars, no backslash / control characters) via DICOMNetwork.AETitle; Query/Retrieve Level values of PS3.4 Tables C.6.1-1 (4) / C.6.2-1 (3) and the A900 failure of Table C.4-1..C.4-3 when the level is missing; final C-MOVE / C-GET status per C.4.2.3.1 / C.4.3.3.1 and Tables C.4-2 / C.4-3 (0000, B000, A702, FE00); the 3 accepted transfer syntaxes are PS3.6 2026a Table A-1 names
 import Foundation
 import DICOMCore
 import DICOMKit
@@ -193,9 +193,9 @@ enum ServerProtocol {
         ).fileMetaInformation
         meta.setString(serverAETitle, for: .sourceApplicationEntityTitle, vr: .AE)
         if let calling = callingAETitle, !calling.isEmpty {
-            meta.setString(calling, for: Tag(group: 0x0002, element: 0x0017), vr: .AE) // Sending AE Title
+            meta.setString(calling, for: Tag(group: 0x0002, element: 0x0017), vr: .AE) // Sending Application Entity Title
         }
-        meta.setString(serverAETitle, for: Tag(group: 0x0002, element: 0x0018), vr: .AE) // Receiving AE Title
+        meta.setString(serverAETitle, for: Tag(group: 0x0002, element: 0x0018), vr: .AE) // Receiving Application Entity Title
         meta.remove(tag: .fileMetaInformationGroupLength) // recomputed by DICOMFile.write()
         return meta
     }
