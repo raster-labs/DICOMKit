@@ -60,7 +60,7 @@ public enum SRDocumentType: String, Sendable, Equatable, Hashable, CaseIterable 
 
 // MARK: - Content Item Value Type
 
-/// All 15 DICOM SR content item value types per PS3.3 Table C.17.3-7.
+/// The 16 DICOM SR content item value types of PS3.3 2026a Table C.17.3-7.
 public enum ContentItemValueType: String, Sendable, Equatable, Hashable, CaseIterable {
     /// Container — groups child items.
     case container = "CONTAINER"
@@ -92,6 +92,9 @@ public enum ContentItemValueType: String, Sendable, Equatable, Hashable, CaseIte
     case image = "IMAGE"
     /// Waveform — reference to a waveform SOP instance.
     case waveform = "WAVEFORM"
+    /// Table — two-dimensional tabulation of text, numeric or datetime values (PS3.3 2026a
+    /// Table C.17.3-7, P-STUDIO-SR-TABLE).
+    case table = "TABLE"
 
     /// Human-readable display name.
     public var displayName: String {
@@ -111,6 +114,7 @@ public enum ContentItemValueType: String, Sendable, Equatable, Hashable, CaseIte
         case .composite: return "Composite"
         case .image: return "Image"
         case .waveform: return "Waveform"
+        case .table: return "Table"
         }
     }
 }

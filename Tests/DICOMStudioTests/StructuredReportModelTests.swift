@@ -60,9 +60,18 @@ struct SRDocumentTypeTests {
 
 @Suite("ContentItemValueType Tests")
 struct ContentItemValueTypeTests {
-    @Test("All 15 value types have raw values")
+    @Test("All 16 value types have raw values")
     func testAllValueTypes() {
-        #expect(ContentItemValueType.allCases.count == 15)
+        #expect(ContentItemValueType.allCases.count == 16)
+        // PS3.3 2026a Table C.17.3-7 Value Type Definitions (16 rows)
+        let table = ["TEXT", "NUM", "CODE", "DATETIME", "DATE", "TIME", "UIDREF", "PNAME", "COMPOSITE",
+                     "IMAGE", "WAVEFORM", "SCOORD", "SCOORD3D", "TCOORD", "CONTAINER", "TABLE"]
+        #expect(Set(ContentItemValueType.allCases.map(\.rawValue)) == Set(table))
+        #expect(ContentItemValueType.table.rawValue == "TABLE")
+        #expect(ContentItemValueType(rawValue: "TABLE") == .table)
+        #expect(ContentItemValueType.table.displayName == "Table")
+        #expect(SRTreeHelpers.sfSymbolForValueType(.table) == "tablecells")
+        #expect(SRTreeHelpers.formatItemValue(SRContentItem(valueType: .table)) == "Table")
         #expect(ContentItemValueType.container.rawValue == "CONTAINER")
         #expect(ContentItemValueType.text.rawValue == "TEXT")
         #expect(ContentItemValueType.code.rawValue == "CODE")
