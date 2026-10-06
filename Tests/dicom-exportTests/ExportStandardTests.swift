@@ -17,8 +17,8 @@ final class ExportStandardTests: XCTestCase {
 
     func testFPSOptionWinsOverTheFile() {
         let ds = dataSet([.string(tag: .recommendedDisplayFrameRate, vr: .IS, value: "30")])
-        XCTAssertEqual(CineFrameRate.resolve(explicit: 15, dataSet: ds),
-                       CineFrameRate(fps: 15, source: .option))
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.resolve(explicit: 15, dataSet: ds),
+                       DICOMImageExporter.CineFrameRate(fps: 15, source: .option))
     }
 
     func testRecommendedDisplayFrameRateComesFirst() {
@@ -27,8 +27,8 @@ final class ExportStandardTests: XCTestCase {
             .string(tag: .cineRate, vr: .IS, value: "25"),
             .string(tag: .frameTime, vr: .DS, value: "100"),
         ])
-        XCTAssertEqual(CineFrameRate.resolve(explicit: nil, dataSet: ds),
-                       CineFrameRate(fps: 30, source: .recommendedDisplayFrameRate))
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds),
+                       DICOMImageExporter.CineFrameRate(fps: 30, source: .recommendedDisplayFrameRate))
     }
 
     func testCineRateBeforeFrameTime() {
@@ -36,14 +36,14 @@ final class ExportStandardTests: XCTestCase {
             .string(tag: .cineRate, vr: .IS, value: "25"),
             .string(tag: .frameTime, vr: .DS, value: "100"),
         ])
-        XCTAssertEqual(CineFrameRate.resolve(explicit: nil, dataSet: ds),
-                       CineFrameRate(fps: 25, source: .cineRate))
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds),
+                       DICOMImageExporter.CineFrameRate(fps: 25, source: .cineRate))
     }
 
     /// Frame Time (0018,1063) is in msec (C.7.6.5.1.1): 40 ms per frame is 25 frames/s.
     func testFrameTimeIsMillisecondsPerFrame() {
         let ds = dataSet([.string(tag: .frameTime, vr: .DS, value: "40")])
-        let rate = CineFrameRate.resolve(explicit: nil, dataSet: ds)
+        let rate = DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds)
         XCTAssertEqual(rate.source, .frameTime)
         XCTAssertEqual(rate.fps, 25, accuracy: 1e-9)
     }
@@ -55,15 +55,15 @@ final class ExportStandardTests: XCTestCase {
             .string(tag: .cineRate, vr: .IS, value: "abc"),
             .string(tag: .frameTime, vr: .DS, value: "0"),
         ])
-        XCTAssertEqual(CineFrameRate.resolve(explicit: nil, dataSet: ds),
-                       CineFrameRate(fps: 10, source: .fallback))
-        XCTAssertEqual(CineFrameRate.resolve(explicit: nil, dataSet: dataSet([])).fps, 10)
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds),
+                       DICOMImageExporter.CineFrameRate(fps: 10, source: .fallback))
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: dataSet([])).fps, 10)
     }
 
     func testSourceLabelsAreTheTable6_1Names() {
-        XCTAssertEqual(CineFrameRate.Source.recommendedDisplayFrameRate.label, "Recommended Display Frame Rate (0008,2144)")
-        XCTAssertEqual(CineFrameRate.Source.cineRate.label, "Cine Rate (0018,0040)")
-        XCTAssertEqual(CineFrameRate.Source.frameTime.label, "Frame Time (0018,1063)")
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.Source.recommendedDisplayFrameRate.label, "Recommended Display Frame Rate (0008,2144)")
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.Source.cineRate.label, "Cine Rate (0018,0040)")
+        XCTAssertEqual(DICOMImageExporter.CineFrameRate.Source.frameTime.label, "Frame Time (0018,1063)")
     }
 
     func testAnimateFPSIsOptionalAndHelpNamesTheAttributes() throws {
@@ -78,11 +78,11 @@ final class ExportStandardTests: XCTestCase {
     // MARK: - Burned In Annotation (0028,0301), Enumerated Values YES / NO
 
     func testBurnedInAnnotation() {
-        XCTAssertTrue(BurnedInAnnotation.isYes(dataSet([.string(tag: .burnedInAnnotation, vr: .CS, value: "YES")])))
-        XCTAssertTrue(BurnedInAnnotation.isYes(dataSet([.string(tag: .burnedInAnnotation, vr: .CS, value: "YES ")])))
-        XCTAssertFalse(BurnedInAnnotation.isYes(dataSet([.string(tag: .burnedInAnnotation, vr: .CS, value: "NO")])))
-        XCTAssertFalse(BurnedInAnnotation.isYes(dataSet([])), "absent: may or may not, no warning")
-        XCTAssertTrue(BurnedInAnnotation.warning(for: "a.dcm").contains("Burned In Annotation (0028,0301) is YES"))
+        XCTAssertTrue(DICOMImageExporter.BurnedInAnnotation.isYes(dataSet([.string(tag: .burnedInAnnotation, vr: .CS, value: "YES")])))
+        XCTAssertTrue(DICOMImageExporter.BurnedInAnnotation.isYes(dataSet([.string(tag: .burnedInAnnotation, vr: .CS, value: "YES ")])))
+        XCTAssertFalse(DICOMImageExporter.BurnedInAnnotation.isYes(dataSet([.string(tag: .burnedInAnnotation, vr: .CS, value: "NO")])))
+        XCTAssertFalse(DICOMImageExporter.BurnedInAnnotation.isYes(dataSet([])), "absent: may or may not, no warning")
+        XCTAssertTrue(DICOMImageExporter.BurnedInAnnotation.warning(for: "a.dcm").contains("Burned In Annotation (0028,0301) is YES"))
     }
 
     // MARK: - Frame numbers from 1 (P-EXPORT-1; PS3.3 Table 10-3); the 0-based options are deprecated

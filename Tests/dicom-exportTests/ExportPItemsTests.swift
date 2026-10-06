@@ -35,9 +35,9 @@ final class ExportPItemsTests: XCTestCase {
     }
 
     func testDeprecationNoteAndOutOfRangeText() {
-        XCTAssertEqual(ExportFrameSelection.deprecationNote(option: "--frame", replacement: "--frame-number"),
+        XCTAssertEqual(DICOMImageExporter.FrameSelection.deprecationNote(option: "--frame", replacement: "--frame-number"),
                        "warning: --frame is deprecated (0-based index); use --frame-number (numbered from 1, PS3.3 Table 10-3: the first Frame is Frame number 1)")
-        XCTAssertEqual(ExportFrameSelection.invalidFrameNumberMessage(requested: 5, total: 3),
+        XCTAssertEqual(DICOMImageExporter.FrameSelection.invalidFrameNumberMessage(requested: 5, total: 3),
                        "Frame number 5 does not exist. The file has 3 frames, numbered 1 to 3.")
     }
 
@@ -100,7 +100,7 @@ final class ExportPItemsTests: XCTestCase {
                       || DICOMExport.ContactSheet.helpMessage(columns: 400).contains("deprecated: no effect"))
         XCTAssertTrue(DICOMExport.Bulk.helpMessage(columns: 400).contains("deprecated: no effect"))
         XCTAssertTrue(try DICOMExport.Bulk.parse(["in", "-o", "out", "--apply-window"]).applyWindow, "still parses")
-        XCTAssertTrue(ExportApplyWindowDeprecation.note(subcommand: "bulk").hasPrefix("warning: bulk --apply-window is deprecated"))
+        XCTAssertTrue(DICOMImageExporter.ApplyWindowDeprecation.note(subcommand: "bulk").hasPrefix("warning: bulk --apply-window is deprecated"))
         // single and animate keep a working --apply-window
         XCTAssertFalse(DICOMExport.Single.helpMessage(columns: 400).contains("deprecated: no effect"))
     }

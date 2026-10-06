@@ -106,10 +106,10 @@ extension DICOMExport {
                 throw ValidationError("--frame is a 0-based frame index and must be 0 or more")
             }
             if let n = frameNumber, n < 1 {
-                throw ValidationError("--frame-number must be 1 or more (\(ExportFrameSelection.reference))")
+                throw ValidationError("--frame-number must be 1 or more (\(DICOMImageExporter.FrameSelection.reference))")
             }
             if frame != nil && frameNumber != nil {
-                throw ExportFrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number")
+                throw DICOMImageExporter.FrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number")
             }
         }
 
@@ -119,7 +119,7 @@ extension DICOMExport {
 
         mutating func run() throws {
             if frame != nil {
-                ExportFrameSelection.printNote(ExportFrameSelection.deprecationNote(option: "--frame", replacement: "--frame-number"))
+                DICOMImageExporter.FrameSelection.printNote(DICOMImageExporter.FrameSelection.deprecationNote(option: "--frame", replacement: "--frame-number"))
             }
             #if canImport(CoreGraphics) && canImport(ImageIO)
             let inputURL = URL(fileURLWithPath: input)
@@ -133,14 +133,14 @@ extension DICOMExport {
             guard let pixelData = dicomFile.pixelData() else {
                 throw ExportError.noPixelData
             }
-            if BurnedInAnnotation.isYes(dicomFile.dataSet) {
-                BurnedInAnnotation.printWarning(BurnedInAnnotation.warning(for: input))
+            if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) {
+                DICOMImageExporter.BurnedInAnnotation.printWarning(DICOMImageExporter.BurnedInAnnotation.warning(for: input))
             }
 
             let totalFrames = pixelData.descriptor.numberOfFrames
             guard frameIndex >= 0 && frameIndex < totalFrames else {
                 if let number = frameNumber {
-                    throw ExportError.invalidInput(ExportFrameSelection.invalidFrameNumberMessage(requested: number, total: totalFrames))
+                    throw ExportError.invalidInput(DICOMImageExporter.FrameSelection.invalidFrameNumberMessage(requested: number, total: totalFrames))
                 }
                 throw ExportError.invalidFrame(frameIndex, totalFrames)
             }
@@ -217,7 +217,7 @@ extension DICOMExport {
 
         mutating func run() throws {
             if applyWindow {
-                ExportFrameSelection.printNote(ExportApplyWindowDeprecation.note(subcommand: "contact-sheet"))
+                DICOMImageExporter.FrameSelection.printNote(DICOMImageExporter.ApplyWindowDeprecation.note(subcommand: "contact-sheet"))
             }
             #if canImport(CoreGraphics) && canImport(ImageIO)
             guard !inputs.isEmpty else {
@@ -269,7 +269,7 @@ extension DICOMExport {
                     let image = try ExportFrames.render(
                         file: dicomFile, frameIndex: 0,
                         applyWindow: false, windowCenter: nil, windowWidth: nil)
-                    if BurnedInAnnotation.isYes(dicomFile.dataSet) { burnedIn += 1 }
+                    if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) { burnedIn += 1 }
 
                     // CGContext origin is bottom-left, flip y
                     let flippedY = layout.totalHeight - pos.y - thumbnailSize
@@ -290,7 +290,7 @@ extension DICOMExport {
             let outputURL = URL(fileURLWithPath: output)
             try DICOMImageExporter.exportCGImage(sheetImage, to: outputURL, format: format, quality: quality, metadata: nil)
             print(ExportConsole.contactSheetLine(path: output, imageCount: inputs.count, columns: columns, rows: layout.rows))
-            if burnedIn > 0 { BurnedInAnnotation.printWarning(BurnedInAnnotation.summaryWarning(count: burnedIn)) }
+            if burnedIn > 0 { DICOMImageExporter.BurnedInAnnotation.printWarning(DICOMImageExporter.BurnedInAnnotation.summaryWarning(count: burnedIn)) }
             #else
             throw ExportError.unsupportedPlatform
             #endif
@@ -346,13 +346,13 @@ extension DICOMExport {
         mutating func validate() throws {
             for (name, value) in [("--start-frame-number", startFrameNumber), ("--end-frame-number", endFrameNumber)] {
                 if let n = value, n < 1 {
-                    throw ValidationError("\(name) must be 1 or more (\(ExportFrameSelection.reference))")
+                    throw ValidationError("\(name) must be 1 or more (\(DICOMImageExporter.FrameSelection.reference))")
                 }
             }
             let zeroBased = [("--start-frame", startFrame), ("--end-frame", endFrame)].filter { $0.1 != nil }.map(\.0)
             let oneBased = [("--start-frame-number", startFrameNumber), ("--end-frame-number", endFrameNumber)].filter { $0.1 != nil }.map(\.0)
             if let z = zeroBased.first, let o = oneBased.first {
-                throw ExportFrameSelectionConflict(zeroBased: z, oneBased: o)
+                throw DICOMImageExporter.FrameSelectionConflict(zeroBased: z, oneBased: o)
             }
         }
 
@@ -367,10 +367,10 @@ extension DICOMExport {
 
         mutating func run() throws {
             if startFrame != nil {
-                ExportFrameSelection.printNote(ExportFrameSelection.deprecationNote(option: "--start-frame", replacement: "--start-frame-number"))
+                DICOMImageExporter.FrameSelection.printNote(DICOMImageExporter.FrameSelection.deprecationNote(option: "--start-frame", replacement: "--start-frame-number"))
             }
             if endFrame != nil {
-                ExportFrameSelection.printNote(ExportFrameSelection.deprecationNote(option: "--end-frame", replacement: "--end-frame-number"))
+                DICOMImageExporter.FrameSelection.printNote(DICOMImageExporter.FrameSelection.deprecationNote(option: "--end-frame", replacement: "--end-frame-number"))
             }
             #if canImport(CoreGraphics) && canImport(ImageIO)
             let inputURL = URL(fileURLWithPath: input)
@@ -392,10 +392,10 @@ extension DICOMExport {
             }
 
             let clampedScale = max(0.1, min(2.0, scale))
-            let rate = CineFrameRate.resolve(explicit: fps, dataSet: dicomFile.dataSet)
+            let rate = DICOMImageExporter.CineFrameRate.resolve(explicit: fps, dataSet: dicomFile.dataSet)
             let delay = DICOMImageExporter.gifFrameDelay(fps: rate.fps)
-            if BurnedInAnnotation.isYes(dicomFile.dataSet) {
-                BurnedInAnnotation.printWarning(BurnedInAnnotation.warning(for: input))
+            if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) {
+                DICOMImageExporter.BurnedInAnnotation.printWarning(DICOMImageExporter.BurnedInAnnotation.warning(for: input))
             }
 
             let outputURL = URL(fileURLWithPath: output)
@@ -512,7 +512,7 @@ extension DICOMExport {
 
         mutating func run() throws {
             if applyWindow {
-                ExportFrameSelection.printNote(ExportApplyWindowDeprecation.note(subcommand: "bulk"))
+                DICOMImageExporter.FrameSelection.printNote(DICOMImageExporter.ApplyWindowDeprecation.note(subcommand: "bulk"))
             }
             #if canImport(CoreGraphics) && canImport(ImageIO)
             let inputURL = URL(fileURLWithPath: input)
@@ -589,7 +589,7 @@ extension DICOMExport {
 
                     try DICOMImageExporter.exportCGImage(image, to: outputURL, format: format, quality: quality, metadata: metadata)
                     successCount += 1
-                    if BurnedInAnnotation.isYes(dicomFile.dataSet) { burnedIn += 1 }
+                    if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) { burnedIn += 1 }
                     if verbose { print(ExportConsole.bulkSuccessLine(path: outputPath)) }
                 } catch {
                     errorCount += 1
@@ -598,7 +598,7 @@ extension DICOMExport {
             }
 
             print(ExportConsole.bulkSummaryLine(success: successCount, total: fileCount, failed: errorCount))
-            if burnedIn > 0 { BurnedInAnnotation.printWarning(BurnedInAnnotation.summaryWarning(count: burnedIn)) }
+            if burnedIn > 0 { DICOMImageExporter.BurnedInAnnotation.printWarning(DICOMImageExporter.BurnedInAnnotation.summaryWarning(count: burnedIn)) }
             #else
             throw ExportError.unsupportedPlatform
             #endif
