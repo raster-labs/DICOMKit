@@ -40,36 +40,12 @@ import re
 PENDING_API_APPROVAL = {
     "subcommand picker offers ['create'], dicom-mwl commands are": 'P-STUDIO-MWL-CREATE',
 }
-# diff_studio.check_workshop_parity keys the CLI options by flag, so a `--format` that several subcommands
-# declare is compared with the LAST one (compare --format = text, bulk --format = png). The Workshop rows it
-# flags mirror their own subcommand's default (summary --format table, single --format jpeg: see
-# `diff_cli.py --list-surface`). Tooling, not a standard finding; the orchestrator owns diff_studio.py.
+# Findings whose cause lives in another module (DEFR). The by-flag collapse (D247, D258 a), the cliMapping flags
+# (D258 b) and the `[""] + Expr` pickers (D266) are now handled by diff_studio.check_workshop_parity itself:
+# options are keyed by (subcommand, flag), cliMapping tokens count as offered, and non-literal pickers resolve.
 DEFERRED = {
-    "Workshop default 'table', dicom-study default 'text'":
-        'diff_studio.py by-flag collapse (summary --format is table on both surfaces; compare --format is text)',
-    "Workshop default 'jpeg', dicom-export default 'png'":
-        'diff_studio.py by-flag collapse (single --format is jpeg on both surfaces; bulk --format is png)',
-    # dicom-wado: `retrieve -f, --format` is the METADATA representation (MetadataFormat json | xml, default json,
-    # PS3.18 Table 8.7.3-3) and the Workshop mirrors it; the by-flag collapse compares it with the LAST --format
-    # declared (ups: OutputFormat table/json/csv/dicom-json). Not a finding (checked by "net web rules").
-    "dicom-wado: --format (CLIWorkshopHelpers.swift": 'diff_studio.py by-flag collapse (retrieve --format is MetadataFormat json | xml on both surfaces; query / ups --format is OutputFormat)',
-    # dicom-video: the --type picker is `[""] + VideoConsole.TypeArgument.allCases.map(\.rawValue)` (the shared
-    # enum; the empty entry omits --type so the engine announces its endoscopic default, as the CLI does without
-    # --type). parse_definition reads that expression as the literal [""], so the generic check reports a picker of
-    # [''] lacking the three values. Pinned by CLIWorkshopVideoTests "pickers offer exactly the shared enums' raw
-    # values" and by "G1 workshop pixel cid3000 audio source" below.
-    "dicom-video: --type (CLIWorkshopHelpers.swift": 'diff_studio.py parse_definition reads `[""] + VideoConsole.TypeArgument.allCases.map(\\.rawValue)` as the literal [""]; the picker offers the shared enum\'s three values after the empty entry that omits --type',
 }
-# Flags the Workshop emits through an internal picker's cliMapping (not a flag-bearing parameter, so the
-# surface parser cannot see them): the operation picker of dicom-ups maps search / create-workitem / subscribe /
-# unsubscribe onto the CLI's bare flags, the Protocol picker of dicom-wado maps wado-uri onto --uri. The mapping
-# is pinned by "net web rules" (every mapped token is a dicom-wado flag).
 EXEMPT = {
-    'ups --search': 'emitted by the dicom-ups operation picker cliMapping ("search": "--search")',
-    'ups --create-workitem': 'emitted by the dicom-ups operation picker cliMapping ("create-workitem": "--create-workitem")',
-    'ups --subscribe': 'emitted by the dicom-ups operation picker cliMapping ("subscribe": "--subscribe")',
-    'ups --unsubscribe': 'emitted by the dicom-ups operation picker cliMapping ("unsubscribe": "--unsubscribe")',
-    'retrieve --uri': 'emitted by the dicom-wado Protocol picker cliMapping ("wado-uri": "--uri")',
 }
 
 HERE = os.path.dirname(os.path.abspath(__file__))

@@ -279,6 +279,7 @@ FILES = {
     'DICOMStudio/Components/PolishReleaseHelpers.swift': ('G3', 'ST'),
     'DICOMStudio/Models/CloudIntegrationModel.swift': ('G3', 'ST'),
     'DICOMStudio/Models/DICOMwebModel.swift': ('G3', 'ST'),
+    'DICOMStudio/Models/WebUPSState.swift': ('G3', 'ST'),
     'DICOMStudio/Models/NetworkingModel.swift': ('G3', 'ST'),
     'DICOMStudio/Models/PerformanceToolsModel.swift': ('G3', 'ST'),
     'DICOMStudio/Models/PolishReleaseModel.swift': ('G3', 'ST'),
@@ -480,8 +481,104 @@ def swift_string_list(expr):
     return [], False           # computed (e.g. DICOMConverter.cliTokens)
 
 
+_SWIFT_SOURCES = None
+
+
+def swift_sources():
+    """Every Swift file under Sources/ (Studio, engines, tools), read once: the places a non-literal picker
+    expression (`Enum.allCases.map(\\.rawValue)`, `Type.staticList`) may resolve."""
+    global _SWIFT_SOURCES
+    if _SWIFT_SOURCES is None:
+        _SWIFT_SOURCES = dw.read_all(SOURCES)
+    return _SWIFT_SOURCES
+
+
+def resolve_value_list(expr):
+    """A non-literal `allowedValues:` expression -> its string values, or None when it cannot be resolved
+    statically. Understood: `[""] + Expr` (D266: the empty entry that omits the flag, then Expr), a literal list,
+    `[Qualified.]Enum.allCases.map(\\.rawValue)` (raw values of a String enum, nested names looked up inside
+    the qualifying type's file first) and `Type.name` / `Type.name.map(\\.rawValue)` for a
+    `static let name: [String] = ["…"]` or a `static let name: [Enum] = [.a, .b]` of a String enum (D258)."""
+    expr = re.sub(r'\.map\s*\{\s*\$0\.rawValue\s*\}', r'.map(\\.rawValue)', expr.strip())
+    if '+' in expr and expr.startswith('['):
+        head, tail = expr.split('+', 1)
+        h, t = resolve_value_list(head), resolve_value_list(tail)
+        return h + t if h is not None and t is not None else None
+    if expr.startswith('['):
+        vals, literal = swift_string_list(expr)
+        return vals if literal and not re.search(r'\[\s*\.', expr) else None
+    srcs = swift_sources()
+    cast = re.fullmatch(r'\(\[([^\]]*)\]\s+as\s+\[(\w+)\]\)\.map\(\\\.rawValue\)', expr)
+    if cast:                                   # `([.a, .b] as [Enum]).map(\.rawValue)`
+        cases = re.findall(r'\.(\w+)', cast.group(1))
+        for src in srcs.values():
+            body = dw.enum_body(src, cast.group(2))
+            raw = {cm.group(1): cm.group(2) if cm.group(2) is not None else cm.group(1)
+                   for cm in re.finditer(r'case\s+`?(\w+)`?\s*(?:=\s*"([^"]*)")?', body)}
+            if body and all(c in raw for c in cases):
+                return [raw[c] for c in cases]
+        return None
+
+    def ordered(qualifier):
+        # files declaring the qualifying type first (so `VideoConsole.TypeArgument` is not some other TypeArgument)
+        if not qualifier:
+            return list(srcs.values())
+        q = qualifier.split('.')[-1]
+        pat = re.compile(r'(?:enum|struct|extension|class)\s+' + re.escape(q) + r'\b')
+        first = [v for v in srcs.values() if pat.search(v)]
+        return first + [v for v in srcs.values() if not pat.search(v)]
+
+    m = re.fullmatch(r'((?:\w+\.)*)(\w+)\.allCases(?:\.map\(\\\.rawValue\))?', expr)
+    if m:
+        for src in ordered(m.group(1).rstrip('.')):
+            vals = enum_raw_values(src, m.group(2))
+            if vals:
+                return vals
+        return None
+    m = re.fullmatch(r'((?:\w+\.)*)(\w+)(\.map\(\\\.rawValue\))?', expr)
+    if m and m.group(1):
+        decl = re.compile(r'static\s+(?:let|var)\s+' + re.escape(m.group(2)) + r'\s*:\s*\[(\w+(?:\.\w+)*)\]\s*=\s*\[')
+        for src in ordered(m.group(1).rstrip('.')):
+            d = decl.search(src)
+            if not d:
+                continue
+            body = src[d.end() - 1:dc.balanced(src, d.end() - 1)]
+            if d.group(1) == 'String' and not m.group(3):
+                vals, literal = swift_string_list(body)
+                return vals if literal else None
+            if m.group(3):
+                cases = re.findall(r'\.(\w+)', body)
+                for esrc in ordered(d.group(1)):
+                    ebody = dw.enum_body(esrc, d.group(1).split('.')[-1])
+                    if not ebody:
+                        continue
+                    raw = {}
+                    for cm in re.finditer(r'case\s+`?(\w+)`?\s*(?:=\s*"([^"]*)")?', ebody):
+                        raw[cm.group(1)] = cm.group(2) if cm.group(2) is not None else cm.group(1)
+                    if all(c in raw for c in cases):
+                        return [raw[c] for c in cases]
+            return None
+    return None
+
+
+def parse_visibility(text):
+    """`CLIParameterVisibilityCondition(parameterId: "x", values: ["a", "b"])` (one, or the list of a
+    `visibleWhenAll:`) -> [(parameterId, [values])]."""
+    out = []
+    for m in re.finditer(r'CLIParameterVisibilityCondition\(\s*parameterId:\s*"([^"]+)"\s*,\s*values:\s*(\[[^\]]*\])', text or ''):
+        out.append((m.group(1), swift_string_list(m.group(2))[0]))
+    return out
+
+
+def parse_cli_mapping(text):
+    """`cliMapping: ["value": "--flag", …]` -> {value: token}."""
+    return dict(re.findall(r'"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"', text or ''))
+
+
 def parse_definition(call):
-    """`CLIParameterDefinition(...)` call text -> dict of its literal arguments."""
+    """`CLIParameterDefinition(...)` call text -> dict of its literal arguments. A non-literal `allowedValues:`
+    is resolved to its values where it can be (`resolve_value_list`), else kept as the expression text;
+    `visibility` and `mapping` carry the parsed `visibleWhen` / `visibleWhenAll` and `cliMapping`."""
     body = call[call.index('(') + 1:-1]
     args, depth, cur, i, n = [], 0, '', 0, len(body)
     while i < n:
@@ -492,6 +589,10 @@ def parse_definition(call):
                 j += 2 if body[j] == '\\' else 1
             cur += body[i:j + 1]
             i = j + 1
+            continue
+        if body.startswith('//', i):            # a comment between arguments (its commas do not split)
+            j = body.find('\n', i)
+            i = n if j < 0 else j
             continue
         if c in '([{':
             depth += 1
@@ -513,8 +614,15 @@ def parse_definition(call):
         k, v = k.strip(), v.strip()
         if k in ('visibleWhen', 'visibleWhenAll', 'cliMapping'):
             d[k] = v
+            if k == 'cliMapping':
+                d['mapping'] = parse_cli_mapping(v)
+            else:
+                d.setdefault('visibility', []).extend(parse_visibility(v))
         elif v.startswith('"'):
             d[k] = STR.match(v).group(1)
+        elif k == 'allowedValues':
+            vals = resolve_value_list(v)
+            d[k] = vals if vals is not None else v
         elif v.startswith('['):
             vals, literal = swift_string_list(v)
             d[k] = vals if literal else v
@@ -613,7 +721,7 @@ def resolve_swift_default(expr, sources):
                 cm = re.search(r'case\s+' + re.escape(m.group(2)) + r'\b\s*(?:=\s*"([^"]*)")?', body)
                 if cm:
                     return cm.group(1) if cm.group(1) is not None else m.group(2)
-    m = re.fullmatch(r'(?:\w+\.)?(\w+)', expr)
+    m = re.fullmatch(r'(?:\w+\.)*(\w+)', expr)
     if m and not expr.islower():
         for src in sources.values():
             mm = re.search(r'static let ' + re.escape(m.group(1)) + r'\s*(?::\s*\w+)?\s*=\s*"([^"]+)"', src)
@@ -634,18 +742,63 @@ def split_pending(items):
     return wrong, pending, deferred
 
 
+def option_commands(tool, files, options):
+    """Tag each CLI option with the (sub)command that declares it (`o['command']`): the ParsableCommand struct
+    enclosing its declaration, by its command name (diff_cli.extract_commands' rule). Options of a shared
+    ParsableArguments group get the command of the struct before it, which the lookup tolerates by falling
+    back to the by-flag table."""
+    for o in options:
+        src = files.get(o['file'], '')
+        pos = sum(len(line) + 1 for line in src.split('\n')[:o['line'] - 1])
+        name = dc.struct_name_for_var(src, pos)
+        o['command'] = None
+        if name:
+            m = re.search(r'struct\s+' + re.escape(name) + r'\s*:\s*(?:Async)?ParsableCommand\s*\{', src)
+            cmds = dc.extract_commands(src[m.start():]) if m else []
+            o['command'] = cmds[0] if cmds else None
+    return options
+
+
+def workshop_subcommands(params, tool_id):
+    """Workshop parameter -> the CLI subcommands it belongs to: the values of its visibility condition on the
+    form's subcommand picker, else the fixed subcommand of a dicom-wado Workshop tool (WADO_SUBCOMMAND)."""
+    pickers = {p.get('id') for p in params if p.get('parameterType') == 'subcommand'}
+    fixed = WADO_SUBCOMMAND.get(tool_id)
+    out = {}
+    for p in params:
+        subs = [v for pid, vals in p.get('visibility', []) if pid in pickers for v in vals]
+        out[id(p)] = subs or ([fixed] if fixed else [])
+    return out
+
+
 def check_workshop_parity(rep, ws, tool_id):
     tool = WORKSHOP_TOOLS[tool_id]
     files, options, outputs, commands = cli_surface(tool)
     params = ws.get(tool_id, [])
-    by_name = {}
+    option_commands(tool, files, options)
+    by_name, by_command = {}, {}
     for o in options:
         for n in o['names']:
             by_name[n] = o
+            by_command[(o['command'], n)] = o      # D247 / D258(a): key by (subcommand, flag)
+    subs_of = workshop_subcommands(params, tool_id)
     matched, wrong, missing, extra = 0, [], [], []
     offered = set()
     for p in params:
         flag = p.get('flag', '')
+        # D258(b): a picker's cliMapping emits CLI tokens itself (the dicom-ups operation picker, the dicom-wado
+        # Protocol picker); every mapped flag must be an option of the tool and counts as offered.
+        for value, token in sorted(p.get('mapping', {}).items()):
+            if not token.startswith('-'):
+                continue
+            o = next((by_command[(sub, token)] for sub in subs_of[id(p)] if (sub, token) in by_command),
+                     by_name.get(token))
+            if o is None:
+                wrong.append(f'{tool_id}: {p.get("id")} cliMapping "{value}" emits {token} '
+                             f'(CLIWorkshopHelpers.swift:{p["line"]}), not a {tool} option')
+            else:
+                offered.add(o['names'][-1])
+                matched += 1
         if p.get('isInternal') == 'true' or p.get('parameterType') == 'subcommand' or not flag.startswith('-'):
             if p.get('parameterType') == 'subcommand':
                 vals = p.get('allowedValues', [])
@@ -664,7 +817,7 @@ def check_workshop_parity(rep, ws, tool_id):
             else:
                 wrong.append(f'{key}: not a {tool} option')
             continue
-        o = by_name[flag]
+        o = next((by_command[(sub, flag)] for sub in subs_of[id(p)] if (sub, flag) in by_command), by_name[flag])
         offered.add(o['names'][-1])
         matched += 1
         neg = p.get('negatedFlag')
@@ -676,6 +829,8 @@ def check_workshop_parity(rep, ws, tool_id):
             cd = dc.raw_value(files, cd[1:])
         elif re.fullmatch(r'[A-Za-z_.]+', cd):            # `AnonCLI.defaultProfile` -> its literal
             cd = resolve_swift_default(cd, files)
+            if re.fullmatch(r'(?:\w+\.)+\w+', cd):          # a default lifted into an engine (`DICOMKit.AnonCLI.…`)
+                cd = resolve_swift_default(cd, {n: v for n, v in swift_sources().items() if not n.startswith('DICOMStudio')})
         if re.fullmatch(r'[A-Za-z_.]+', wd) and not wd.islower():   # `MergeSortCriteria.instanceNumber.rawValue`
             engine = {}
             for mod in ('DICOMKit', 'DICOMNetwork', 'DICOMWeb', 'DICOMCore'):
@@ -693,7 +848,7 @@ def check_workshop_parity(rep, ws, tool_id):
         if isinstance(vals, list) and vals:
             accepted = cli_accepted_values(tool, files, o)
             if accepted:
-                bad = [v for v in vals if v not in accepted]
+                bad = [v for v in vals if v not in accepted and v != '']   # '' = omit the flag ([""] + Expr, D266)
                 lacking = [v for v in accepted if v not in vals]
                 if bad:
                     wrong.append(f'{key}: picker offers {bad}, {tool} accepts {sorted(accepted)}')
