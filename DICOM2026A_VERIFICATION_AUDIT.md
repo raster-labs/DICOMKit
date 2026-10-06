@@ -204,7 +204,7 @@ All with `--nema 2026a`: `diff_kit.py` 0 wrong; `diff_network.py` 0; `diff_web.p
 `diff_renderkit.py` 17 ok, 0 failing, 0 deferred; `diff_cli.py` 0 FAIL (42 tools); `diff_cli_web.py` 0 FAIL;
 `check_nema_markers.py` exits 0 on every module (DICOMCore 108/108, DICOMDictionary 5/5, DICOMKit 185/185,
 DICOMNetwork 66/66, DICOMWeb 57/57, DICOMPrintKit 31/31, DICOMRenderKit 10/10, `Sources/dicom-*` 100/100).
-`diff_studio.py` is re-run in the Studio pass: `2bd8e408`…`3060ee3e` (9 commits). Full `swift test` after the Studio pass: PENDING_TEST.
+`diff_studio.py` is re-run in the Studio pass: `2bd8e408`…`3060ee3e` (9 commits). Full `swift test` after the Studio pass (at `3060ee3e`, after `swift build -c release --product dicom-split --product dicom-merge`): exit 0; XCTest 5,929 run, 5,885 passed, 44 skipped, 0 failed; Swift Testing 49 runs, 9,261 tests, 0 failed. Every diff script ends with 0 wrong / 0 FAIL (`diff_studio.py` 13 PEND, each a P-STUDIO-* item; `diff_renderkit.py` 0 deferred); every marker check exits 0 (DICOMKit 185/185, DICOMWeb 57/57, CLI 100/100, Studio 171 + 164 inventoried). Open deferred rows: D216, D221, D256 only (owner decision).
 
 ### 8.3 Resolution of A1–A8
 
