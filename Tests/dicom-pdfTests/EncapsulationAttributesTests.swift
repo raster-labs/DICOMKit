@@ -23,26 +23,26 @@ final class EncapsulationAttributesTests: XCTestCase {
     // MARK: - Vocabularies
 
     func test_conversionTypes_areTheEightC824DefinedTerms() throws {
-        XCTAssertEqual(PDFEncapsulation.conversionTypes, ["DV", "DI", "DF", "WSD", "SD", "SI", "DRW", "SYN"])
-        XCTAssertEqual(PDFEncapsulation.conversionTypes, EncapsulatedDocumentBuilder.conversionTypeDefinedTerms)
-        XCTAssertEqual(PDFEncapsulation.defaultConversionType, EncapsulatedDocumentBuilder.defaultConversionType)
-        XCTAssertEqual(try PDFEncapsulation.conversionType("sd"), "SD")
-        XCTAssertThrowsError(try PDFEncapsulation.conversionType("SCAN"))
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.conversionTypes, ["DV", "DI", "DF", "WSD", "SD", "SI", "DRW", "SYN"])
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.conversionTypes, EncapsulatedDocumentBuilder.conversionTypeDefinedTerms)
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.defaultConversionType, EncapsulatedDocumentBuilder.defaultConversionType)
+        XCTAssertEqual(try EncapsulatedDocumentBuilder.OptionRules.conversionType("sd"), "SD")
+        XCTAssertThrowsError(try EncapsulatedDocumentBuilder.OptionRules.conversionType("SCAN"))
     }
 
     func test_burnedInAnnotation_isYesOrNo() throws {
-        XCTAssertEqual(PDFEncapsulation.burnedInAnnotationValues, ["YES", "NO"])
-        XCTAssertTrue(try PDFEncapsulation.burnedInAnnotation("YES"))
-        XCTAssertFalse(try PDFEncapsulation.burnedInAnnotation("no"))
-        XCTAssertThrowsError(try PDFEncapsulation.burnedInAnnotation("Y"))
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotationValues, ["YES", "NO"])
+        XCTAssertTrue(try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation("YES"))
+        XCTAssertFalse(try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation("no"))
+        XCTAssertThrowsError(try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation("Y"))
     }
 
     func test_hl7InstanceIdentifier_isClinicalDocumentIdRootCaretExtension() {
-        XCTAssertEqual(PDFEncapsulation.hl7InstanceIdentifier(fromCDA: Self.cda(extension: "X1")),
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(fromCDA: Self.cda(extension: "X1")),
                        "2.16.840.1.113883.19^X1")
-        XCTAssertEqual(PDFEncapsulation.hl7InstanceIdentifier(fromCDA: Self.cda(extension: nil)),
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(fromCDA: Self.cda(extension: nil)),
                        "2.16.840.1.113883.19")
-        XCTAssertNil(PDFEncapsulation.hl7InstanceIdentifier(
+        XCTAssertNil(EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(
             fromCDA: Data(#"<Other><id root="1.2.3"/></Other>"#.utf8)))
     }
 
@@ -51,13 +51,13 @@ final class EncapsulationAttributesTests: XCTestCase {
     func test_documentBytes_cutsToEncapsulatedDocumentLength_onlyWhenPresentAndShorter() {
         let padded = Data([1, 2, 3, 0])
         var dataSet = DataSet()
-        XCTAssertEqual(PDFEncapsulation.documentBytes(padded, in: dataSet), padded, "no (0042,0015): as stored")
-        dataSet[PDFEncapsulation.encapsulatedDocumentLength] = .uint32(
-            tag: PDFEncapsulation.encapsulatedDocumentLength, value: 3)
-        XCTAssertEqual(PDFEncapsulation.documentBytes(padded, in: dataSet), Data([1, 2, 3]))
-        dataSet[PDFEncapsulation.encapsulatedDocumentLength] = .uint32(
-            tag: PDFEncapsulation.encapsulatedDocumentLength, value: 9)
-        XCTAssertEqual(PDFEncapsulation.documentBytes(padded, in: dataSet), padded, "longer than the value: ignored")
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.documentBytes(padded, in: dataSet), padded, "no (0042,0015): as stored")
+        dataSet[EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength] = .uint32(
+            tag: EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength, value: 3)
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.documentBytes(padded, in: dataSet), Data([1, 2, 3]))
+        dataSet[EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength] = .uint32(
+            tag: EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength, value: 9)
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.documentBytes(padded, in: dataSet), padded, "longer than the value: ignored")
     }
 
     // MARK: - Round trip through the CLI
@@ -82,8 +82,8 @@ final class EncapsulationAttributesTests: XCTestCase {
         let dataSet = file.dataSet
         XCTAssertEqual(dataSet.string(for: .sopClassUID), "1.2.840.10008.5.1.4.1.1.104.1")
         XCTAssertEqual(dataSet.string(for: .mimeTypeOfEncapsulatedDocument), "application/pdf")
-        XCTAssertEqual(dataSet[PDFEncapsulation.encapsulatedDocumentLength]?.vr, .UL)
-        XCTAssertEqual(dataSet[PDFEncapsulation.encapsulatedDocumentLength]?.uint32Value, UInt32(pdf.count))
+        XCTAssertEqual(dataSet[EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength]?.vr, .UL)
+        XCTAssertEqual(dataSet[EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength]?.uint32Value, UInt32(pdf.count))
         let value = try XCTUnwrap(dataSet[.encapsulatedDocument]?.valueData)
         XCTAssertEqual(value.count, pdf.count + 1, "OB value padded to even length")
         XCTAssertEqual(dataSet.string(for: .conversionType), "SD")

@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — input/output contract of all 19 option/flag/argument declarations by script: Encapsulated PDF Storage 1.2.840.10008.5.1.4.1.1.104.1 (PS3.6 2026a Table A-1); a round trip of an odd-length PDF diffed against PS3.3 2026a Tables A.45.1-1, C.7-1, C.7-3, C.24-1, C.7-8, C.8-24, C.24-2, C.12-1 (every Type 1/2 attribute present; (0042,0015) and (0008,0005) added here, padding byte stripped on extraction); --modality default DOC / M3D (C.24-1, A.85.x.4.3); --conversion-type 8 Defined Terms (C.8-24); --burned-in-annotation YES/NO and --hl7-instance-identifier (C.24-2); see EncapsulationAttributes.swift
+// NEMA-verified: 2026a, checked 2026-10-01 — input/output contract of all 19 option/flag/argument declarations by script: Encapsulated PDF Storage 1.2.840.10008.5.1.4.1.1.104.1 (PS3.6 2026a Table A-1); a round trip of an odd-length PDF diffed against PS3.3 2026a Tables A.45.1-1, C.7-1, C.7-3, C.24-1, C.7-8, C.8-24, C.24-2, C.12-1 (every Type 1/2 attribute present; (0042,0015) and (0008,0005) completed and the padding byte stripped on extraction by DICOMKit EncapsulatedDocumentBuilder.OptionRules, D272); --modality default DOC / M3D (C.24-1, A.85.x.4.3); --conversion-type 8 Defined Terms (C.8-24); --burned-in-annotation YES/NO and --hl7-instance-identifier (C.24-2); the option vocabularies are EncapsulatedDocumentBuilder.OptionRules (D272)
 
 import Foundation
 import ArgumentParser
@@ -93,7 +93,7 @@ struct DICOMPdf: ParsableCommand {
     @Option(name: .long, help: "Instance Number")
     var instanceNumber: Int?
     
-    @Option(name: .long, help: ArgumentHelp(stringLiteral: "Conversion Type (0008,0064) for PDF and CDA, a PS3.3 Table C.8-24 Defined Term: \(PDFEncapsulation.conversionTypes.joined(separator: ", ")) (default: \(PDFEncapsulation.defaultConversionType))"))
+    @Option(name: .long, help: ArgumentHelp(stringLiteral: "Conversion Type (0008,0064) for PDF and CDA, a PS3.3 Table C.8-24 Defined Term: \(EncapsulatedDocumentBuilder.OptionRules.conversionTypes.joined(separator: ", ")) (default: \(EncapsulatedDocumentBuilder.OptionRules.defaultConversionType))"))
     var conversionType: String?
 
     @Option(name: .long, help: "Burned In Annotation (0028,0301): YES or NO, whether the document identifies the patient and the date (default: YES)")
@@ -175,7 +175,7 @@ struct DICOMPdf: ParsableCommand {
         }
 
         // Write document data, without the trailing padding (0042,0015)
-        let documentBytes = PDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet)
+        let documentBytes = EncapsulatedDocumentBuilder.OptionRules.documentBytes(document.documentData, in: dicomFile.dataSet)
         try documentBytes.write(to: URL(fileURLWithPath: finalOutputPath))
 
         if verbose {
@@ -226,7 +226,7 @@ struct DICOMPdf: ParsableCommand {
                 let outputFileURL = outputDirURL.appendingPathComponent("\(baseName).\(fileExtension)")
                 
                 // Write document data, without the trailing padding (0042,0015)
-                try PDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet)
+                try EncapsulatedDocumentBuilder.OptionRules.documentBytes(document.documentData, in: dicomFile.dataSet)
                     .write(to: outputFileURL)
                 
                 successCount += 1
@@ -470,20 +470,20 @@ struct DICOMPdf: ParsableCommand {
             instanceNumber: instanceNumber
         )
         if let conversionType {
-            builder.setConversionType(try PDFEncapsulation.conversionType(conversionType))
+            builder.setConversionType(try PDFOptionValues.conversionType(conversionType))
         }
         if let burnedInAnnotation {
-            builder.setBurnedInAnnotation(try PDFEncapsulation.burnedInAnnotation(burnedInAnnotation))
+            builder.setBurnedInAnnotation(try PDFOptionValues.burnedInAnnotation(burnedInAnnotation))
         }
         if documentType == .cda {
-            guard let identifier = hl7Override ?? PDFEncapsulation.hl7InstanceIdentifier(fromCDA: documentData) else {
+            guard let identifier = hl7Override ?? EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(fromCDA: documentData) else {
                 throw ValidationError("HL7 Instance Identifier (0040,E001) is required for a CDA document (PS3.3 Table C.24-2) and /ClinicalDocument/id has no root; pass --hl7-instance-identifier")
             }
             builder.setHL7InstanceIdentifier(identifier)
         }
 
         var dataSet = try builder.buildDataSet()
-        PDFEncapsulation.complete(&dataSet, documentByteCount: documentData.count)
+        EncapsulatedDocumentBuilder.OptionRules.complete(&dataSet, documentByteCount: documentData.count)
         return dataSet
     }
     //
