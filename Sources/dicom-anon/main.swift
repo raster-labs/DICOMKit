@@ -53,7 +53,7 @@ struct DICOMAnon: ParsableCommand {
         attribute lists legacy-basic, legacy-clinical-trial, legacy-research (not \
         PS3.15; clinical-trial and research select the last two)
         """)
-    var profile: String = AnonCLI.defaultProfile
+    var profile: String = DICOMKit.AnonCLI.defaultProfile
 
     // PS3.15 Annex E Options (E.3); they act only on --profile ps315.
     @Flag(name: .long, help: """
@@ -197,13 +197,18 @@ struct DICOMAnon: ParsableCommand {
         
         // Parse profile
         let anonProfile = try parseProfile()
-        try AnonCLI.validate(profile: profile, flags: ps315Flags, shiftDates: shiftDates,
-                             regenerateUids: regenerateUids, keep: keep, redactRegions: redactRegion)
-        if let notice = AnonCLI.legacyProfileNotice(profile) {
+        do {
+            try DICOMKit.AnonCLI.validate(profile: profile, flags: ps315Flags, shiftDates: shiftDates,
+                                          regenerateUids: regenerateUids, keep: keep, redactRegions: redactRegion)
+        } catch let error as DICOMKit.AnonCLI.ValidationError {
+            // Rethrown as the CLI's own ValidationError: same message and exit status as before the lift (D275).
+            throw ValidationError(error.message)
+        }
+        if let notice = DICOMKit.AnonCLI.legacyProfileNotice(profile) {
             FileHandle.standardError.write(Data((notice + "\n").utf8))
         }
         if retainDates {
-            FileHandle.standardError.write(Data((AnonCLI.retainDatesNotice(shiftDates: shiftDates) + "\n").utf8))
+            FileHandle.standardError.write(Data((DICOMKit.AnonCLI.retainDatesNotice(shiftDates: shiftDates) + "\n").utf8))
         }
         
         // Parse custom actions
@@ -221,7 +226,7 @@ struct DICOMAnon: ParsableCommand {
         
         // Process files
         var results: [AnonymizationResult] = []
-        var reports: [(path: String, actions: [AnonCLI.AttributeAction])] = []
+        var reports: [(path: String, actions: [DICOMKit.AnonCLI.AttributeAction])] = []
         
         if isDirectory.boolValue {
             guard recursive else {
@@ -254,7 +259,7 @@ struct DICOMAnon: ParsableCommand {
         // Per-attribute actions (PS3.6 name + PS3.15 Table E.1-1a code)
         if dryRun || verbose {
             for report in reports {
-                print(AnonCLI.actionLines(path: report.path, actions: report.actions), terminator: "")
+                print(DICOMKit.AnonCLI.actionLines(path: report.path, actions: report.actions), terminator: "")
             }
         }
 
@@ -266,7 +271,7 @@ struct DICOMAnon: ParsableCommand {
             let auditURL = URL(fileURLWithPath: auditLogPath)
             if isPS315 {
                 // The PS3.15 engine keeps no change log of its own.
-                let text = AnonCLI.auditLogText(
+                let text = DICOMKit.AnonCLI.auditLogText(
                     profileDescription: ps315Options.methodCodes.map(\.meaning)
                         + (cleanRecognizableVisualFeatures
                            ? [ConfidentialityProfile.DeidentificationMethodCode.cleanRecognizableVisualFeaturesOption.meaning]
@@ -287,10 +292,10 @@ struct DICOMAnon: ParsableCommand {
         }
     }
     
-    private var isPS315: Bool { AnonCLI.resolveProfile(profile)?.isPS315 ?? false }
+    private var isPS315: Bool { DICOMKit.AnonCLI.resolveProfile(profile)?.isPS315 ?? false }
 
-    private var ps315Flags: AnonCLI.PS315Flags {
-        AnonCLI.PS315Flags(
+    private var ps315Flags: DICOMKit.AnonCLI.PS315Flags {
+        DICOMKit.AnonCLI.PS315Flags(
             retainDates: retainDates, retainFullDates: retainFullDates,
             retainModifiedDates: retainModifiedDates, retainCharacteristics: retainCharacteristics,
             retainDevice: retainDevice, retainInstitution: retainInstitution,
@@ -301,11 +306,11 @@ struct DICOMAnon: ParsableCommand {
     }
 
     private var ps315Options: ConfidentialityProfile.Options {
-        AnonCLI.options(flags: ps315Flags, shiftDates: shiftDates)
+        DICOMKit.AnonCLI.options(flags: ps315Flags, shiftDates: shiftDates)
     }
 
     private func parseProfile() throws -> AnonymizationProfile {
-        guard let resolved = AnonCLI.resolveProfile(profile) else {
+        guard let resolved = DICOMKit.AnonCLI.resolveProfile(profile) else {
             throw AnonymizationError.invalidProfile
         }
         // The ps315 path bypasses the legacy engine (see anonymizeFile); for it this
@@ -348,7 +353,7 @@ struct DICOMAnon: ParsableCommand {
     }
     
     private func parseTag(_ string: String) throws -> Tag {
-        guard let tag = AnonCLI.parseTag(string) else {
+        guard let tag = DICOMKit.AnonCLI.parseTag(string) else {
             throw ValidationError("Invalid tag format: \(string)")
         }
         return tag
@@ -358,7 +363,7 @@ struct DICOMAnon: ParsableCommand {
         inputURL: URL,
         outputURL: URL,
         anonymizer: Anonymizer
-    ) throws -> ([AnonymizationResult], [(path: String, actions: [AnonCLI.AttributeAction])]) {
+    ) throws -> ([AnonymizationResult], [(path: String, actions: [DICOMKit.AnonCLI.AttributeAction])]) {
         // Create output directory
         try FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
         
@@ -367,7 +372,7 @@ struct DICOMAnon: ParsableCommand {
         }
 
         var results: [AnonymizationResult] = []
-        var reports: [(path: String, actions: [AnonCLI.AttributeAction])] = []
+        var reports: [(path: String, actions: [DICOMKit.AnonCLI.AttributeAction])] = []
 
         for fileURL in fileURLs {
             // Calculate relative path
@@ -416,7 +421,7 @@ struct DICOMAnon: ParsableCommand {
         inputURL: URL,
         outputURL: URL?,
         anonymizer: Anonymizer
-    ) throws -> (AnonymizationResult, [AnonCLI.AttributeAction]) {
+    ) throws -> (AnonymizationResult, [DICOMKit.AnonCLI.AttributeAction]) {
         // Read DICOM file
         var fileData = try Data(contentsOf: inputURL)
         var dicomFile = try DICOMFile.read(from: fileData, force: force)
@@ -451,7 +456,7 @@ struct DICOMAnon: ParsableCommand {
             fileData = redacted
             dicomFile = try DICOMFile.read(from: redacted, force: force)
             if verbose {
-                print(AnonCLI.visualFeaturesLines(outcome: outcome), terminator: "")
+                print(DICOMKit.AnonCLI.visualFeaturesLines(outcome: outcome), terminator: "")
             }
         }
 
@@ -482,7 +487,7 @@ struct DICOMAnon: ParsableCommand {
             }
             // --remove / --replace: the engine takes no custom actions, so apply them here.
             var scrubbed = file.dataSet
-            AnonCLI.applyCustomActions(try parseCustomActions(), source: dicomFile.dataSet, to: &scrubbed)
+            DICOMKit.AnonCLI.applyCustomActions(try parseCustomActions(), source: dicomFile.dataSet, to: &scrubbed)
             anonymizedFile = DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: scrubbed)
             result = AnonymizationResult(
                 filePath: inputURL.path, success: res.success,
@@ -502,11 +507,11 @@ struct DICOMAnon: ParsableCommand {
             // Write anonymized file. PS3.10 7.1 (DICOM File Meta Information), Table 7.1-1: Media Storage SOP Instance UID (0002,0003)
             // equals SOP Instance UID (0008,0018); the engines leave the file meta as read,
             // which would carry the original UID that Table E.1-1 replaces (U).
-            let outputData = try AnonCLI.syncingMediaStorageSOPInstanceUID(anonymizedFile).write()
+            let outputData = try DICOMKit.AnonCLI.syncingMediaStorageSOPInstanceUID(anonymizedFile).write()
             try outputData.write(to: outputURL)
         }
         
-        let actions = AnonCLI.attributeActions(
+        let actions = DICOMKit.AnonCLI.attributeActions(
             before: sourceDataSet, after: anonymizedFile.dataSet,
             options: isPS315 ? ps315Options : nil)
         return (result, actions)

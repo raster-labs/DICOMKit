@@ -614,6 +614,8 @@ let package = Package(
                 "PixelEditorTests.swift",
                 // dicom-pixedit input checks lifted into DICOMKit (D270, 2026-10-06).
                 "PixelEditInputChecksTests.swift",
+                // dicom-anon option / report support lifted into DICOMKit (D275, 2026-10-06).
+                "AnonCLISupportTests.swift",
                 // dicom-image: colour sources must convert (24-bit RGB context bug).
                 "ImageConverterColorTests.swift",
                 "CompressionManagerImplicitVRTests.swift",
