@@ -6,14 +6,17 @@ Every check extracts the values the Swift source carries by regex and diffs them
 
   * NetworkingModel print enums (D22)       vs PS3.3 C.13.1 (Print Priority Enumerated Values, Medium Type Defined
                                                Terms), C.13.3 (Film Size ID; Image Display Format STANDARD\\C,R),
-                                               C.13.8 (Execution Status), and DICOMNetwork's enums (P-STUDIO-PRINT-ENUMS)
+                                               C.13.8 (Execution Status); PrintPriority / PrintMediumType / PrintFilmSize
+                                               are deprecated aliases, so the DICOMNetwork enums are read
+                                               (P-STUDIO-PRINT-ENUMS); pickers iterate DICOMNetwork *.allCases
   * NetworkingModel.MPPSStatus              vs PS3.3 C.4.14 Performed Procedure Step Status Enumerated Values
   * NetworkingModel.NetworkQueryLevel       vs PS3.4 Table C.6.1-1 Query/Retrieve Level values
   * AE Title rules (NetworkingHelpers, ShellServerConfigHelpers)  vs PS3.5 Table 6.2-1 VR AE (16 bytes, no backslash):
                                                both delegate to DICOMNetwork.AETitle, no uppercase-only rule remains
   * ports 104 / 11112 / 2762                vs PS3.8 9.1.1 and PS3.15 B.12/B.13 text (parts 7/8 are loaded from the
                                                --nema directory when present; they are not in diff_studio's parts)
-  * TLSMode                                 PS3.15 Annex B profile names (PEND P-STUDIO-TLS-PROFILES)
+  * TLSMode                                 PS3.15 2026a B.12 / B.13 (the live TLS profiles; B.9-B.11 retired) through
+                                               DICOMNetwork SecureTransportConnectionProfile (P-STUDIO-TLS-PROFILES)
   * PerformanceToolsHelpers                 VR names vs PS3.5 Table 6.2-1; sample tags vs PS3.6 Table 6-1; SOP Class /
                                                UID rows vs PS3.6 Table A-1 (name beside UID, Study Root vs Patient Root)
   * GatewayModel (CR) default target port   vs PS3.8 9.1.1 well-known port
@@ -22,9 +25,9 @@ import os
 import re
 import sys
 
+# No pending rows: P-STUDIO-PRINT-ENUMS (298ef7a7) and P-STUDIO-TLS-PROFILES (586c8f31) are implemented and checked
+# as ok rows below. Keys here are substrings of findings, so a P-item name left here would hide a regression as PEND.
 PENDING_API_APPROVAL = {
-    'P-STUDIO-PRINT-ENUMS': 'P-STUDIO-PRINT-ENUMS',   # the 4 Studio print enums duplicate DICOMNetwork's (D22)
-    'P-STUDIO-TLS-PROFILES': 'P-STUDIO-TLS-PROFILES', # TLSMode names TLS versions, not PS3.15 Annex B profiles
 }
 DEFERRED = {}
 EXEMPT = {}
@@ -112,28 +115,36 @@ def check_print_enums(rep, parts, files, ctx):
         extra = [] if exact else [f'{std_name} "{t}" not offered by {name}' for t in std if t not in ours.values()]
         return len([v for v in ours.values() if v in std]), wrong, missing, extra
 
-    std_name = 'PS3.3 C.13.1 Print Priority (Enumerated Values)'
-    ours = raw_cases(dw, s, 'PrintPriority')
-    m, w, mi, ex = diff('PrintPriority', ours, terms['Print Priority'])
-    rep.check('PS3.3 C.13.1 Table C.13-1: NetworkingModel.PrintPriority raw values are the Print Priority Enumerated Values',
-              m, w, mi, ex)
+    # P-STUDIO-PRINT-ENUMS: the Studio print enums are deprecated typealiases of DICOMNetwork's, so the values offered
+    # are the engine's (MediumType: its `allCases` list, which leaves out the two deprecated MAMMO spellings).
+    def engine_values(name):
+        cases = raw_cases(dw, net, name)
+        lm = re.search(r'public static let allCases: \[' + name + r'\] = \[([^\]]*)\]', dw.enum_body(net, name))
+        return {c: cases[c] for c in re.findall(r'\.(\w+)', lm.group(1))} if lm else cases
 
-    std_name = 'PS3.3 C.13.1 Medium Type (Defined Terms)'
-    ours = raw_cases(dw, s, 'PrintMediumType')
-    m, w, mi, ex = diff('PrintMediumType', ours, terms['Medium Type'], exact=False)
-    rep.check('PS3.3 C.13.1 Table C.13-1: NetworkingModel.PrintMediumType raw values are Medium Type Defined Terms (D22: BLU-RAY)',
-              m, w, mi, ex)
+    def alias_ok(studio, engine):
+        return (not re.search(r'\benum ' + studio + r'\b', s)) and bool(re.search(
+            r'@available\(\*, deprecated, renamed: "' + re.escape(engine) + r'"(?:,\s*message:\s*"[^"]*")?\)\s*public typealias ' + studio + r' = '
+            + re.escape(engine) + r'\b', s))
 
-    std_name = 'PS3.3 C.13.3 Film Size ID (Defined Terms)'
-    ours = raw_cases(dw, s, 'PrintFilmSize')
-    m, w, mi, ex = diff('PrintFilmSize', ours, terms['Film Size ID'])
-    rep.check('PS3.3 C.13.3 Table C.13-3: NetworkingModel.PrintFilmSize raw values are the 12 Film Size ID Defined Terms', m, w, mi, ex)
+    for studio, engine, attr, label in (
+            ('PrintPriority', 'PrintPriority', 'Print Priority', 'PS3.3 2026a C.13.1 Table C.13-1 Print Priority (Enumerated Values)'),
+            ('PrintMediumType', 'MediumType', 'Medium Type', 'PS3.3 2026a C.13.1 Table C.13-1 Medium Type (Defined Terms)'),
+            ('PrintFilmSize', 'FilmSize', 'Film Size ID', 'PS3.3 2026a C.13.3 Table C.13-3 Film Size ID (Defined Terms)')):
+        std_name = label
+        m, w, mi, ex = diff(f'DICOMNetwork.{engine}', engine_values(engine), terms[attr])
+        if not alias_ok(studio, f'DICOMNetwork.{engine}'):
+            w.append(f'NetworkingModel.{studio} must be a deprecated typealias of DICOMNetwork.{engine}, not a Studio enum (P-STUDIO-PRINT-ENUMS)')
+        rep.check(f'{label}: NetworkingModel.{studio} is DICOMNetwork.{engine} (deprecated alias); its values are exactly the terms '
+                  f'(P-STUDIO-PRINT-ENUMS, D22)', m, w, mi, ex)
 
-    std_name = 'PS3.3 C.13.8 Execution Status (Enumerated Values)'
-    ours = raw_cases(dw, s, 'PrintJobStatus')
-    m, w, mi, ex = diff('PrintJobStatus', ours, terms['Execution Status'])
-    rep.check('PS3.3 C.13.8 Table C.13-8: NetworkingModel.PrintJobStatus raw values are the Execution Status Enumerated Values (D22)',
-              m, w, mi, ex)
+    std_name = 'PS3.3 2026a C.13.8 Table C.13-8 Execution Status (Enumerated Values)'
+    ours = raw_cases(dw, s, 'NetworkPrintJobState')
+    m, w, mi, ex = diff('NetworkPrintJobState', ours, terms['Execution Status'])
+    if not re.search(r'@available\(\*, deprecated, renamed: "NetworkPrintJobState"\)\s*public typealias PrintJobStatus = NetworkPrintJobState\b', s):
+        w.append('PrintJobStatus must be a deprecated typealias of NetworkPrintJobState (P-STUDIO-PRINT-ENUMS)')
+    rep.check('PS3.3 2026a C.13.8 Table C.13-8: NetworkingModel.NetworkPrintJobState (formerly PrintJobStatus) raw values are the '
+              'Execution Status Enumerated Values (P-STUDIO-PRINT-ENUMS, D22)', m, w, mi, ex)
 
     # Image Display Format STANDARD\C,R — C columns then R rows, each case's own geometry
     assert terms['Image Display Format'][0].startswith('STANDARD\\C,R')
@@ -161,21 +172,26 @@ def check_print_enums(rep, parts, files, ctx):
     rep.check('PS3.3 C.13.3: NetworkingViewModel passes the chosen Film Layout to DICOMPrintService.printImages(layout:) as Image Display Format',
               1 if ok else 0, [] if ok else ['NetworkingViewModel.submitPrintJob does not pass layout: to printImages'])
 
-    # D22 remainder: the four enums duplicate DICOMNetwork's. Raw values must stay interchangeable; the de-duplication
-    # removes public types and waits for the owner.
-    pairs = [('PrintPriority', 'PrintPriority'), ('PrintMediumType', 'MediumType'), ('PrintFilmSize', 'FilmSize')]
-    matched, wrong, pending = 0, [], []
-    for ours_name, theirs_name in pairs:
-        ours = set(raw_cases(dw, s, ours_name).values())
-        theirs = set(raw_cases(dw, net, theirs_name).values())
-        bad = ours - theirs
-        wrong += [f'{ours_name} "{v}" is not a DICOMNetwork.{theirs_name} raw value' for v in sorted(bad)]
-        matched += len(ours & theirs)
-        pending.append(f'P-STUDIO-PRINT-ENUMS: DICOMStudio.{ours_name} duplicates DICOMNetwork.{theirs_name} '
-                       f'({len(ours)} of {len(theirs)} values offered)')
-    pending.append('P-STUDIO-PRINT-ENUMS: DICOMStudio.PrintJobStatus is the panel\'s own job state (Execution Status terms)')
-    rep.check('D22: the Studio print enums are interchangeable with DICOMNetwork\'s (raw values); replacing them is public API',
-              matched, wrong, pending=pending)
+    # D22 / P-STUDIO-PRINT-ENUMS: no Studio copy of the print enums is left — the New Print Job pickers iterate the
+    # DICOMNetwork enums (so Medium Type offers all five C.13-1 terms, MAMMO CLEAR FILM / MAMMO BLUE FILM included) and
+    # submitPrintJob hands the job's values to PrintOptions unmapped.
+    view = src(files, 'NetworkingView.swift')
+    matched, wrong = 0, []
+    for engine in ('PrintPriority', 'MediumType', 'FilmSize'):
+        if re.search(r'ForEach\(DICOMNetwork\.' + engine + r'\.allCases\b', view):
+            matched += 1
+        else:
+            wrong.append(f'the New Print Job picker must iterate DICOMNetwork.{engine}.allCases')
+    for name, text in ctx['studio_files']().items():
+        for alias in ('PrintPriority', 'PrintMediumType', 'PrintFilmSize'):
+            if re.search(r'ForEach\(' + alias + r'\.allCases\b', text):
+                wrong.append(f'{name} iterates the deprecated Studio alias {alias}.allCases')
+    if re.search(r'PrintOptions\([^)]*priority: job\.priority,\s*filmSize: job\.filmSize,\s*mediumType: job\.mediumType', vm, re.S):
+        matched += 1
+    else:
+        wrong.append('NetworkingViewModel.submitPrintJob must pass job.priority / filmSize / mediumType to PrintOptions unmapped')
+    rep.check('PS3.3 2026a Tables C.13-1 / C.13-3 (D22): the print pickers and PrintOptions use DICOMNetwork PrintPriority / MediumType / '
+              'FilmSize directly, no Studio copy (P-STUDIO-PRINT-ENUMS)', matched, wrong)
 
 
 # --- PS3.3 C.4.14: MPPS status --------------------------------------------------------------------------
@@ -298,7 +314,7 @@ def check_ports(rep, parts, files, ctx):
               matched, wrong, pending=pending)
 
 
-# --- PS3.15 Annex B: TLS profile names (PEND) ----------------------------------------------------------------
+# --- PS3.15 Annex B: TLS profiles (P-STUDIO-TLS-PROFILES) --------------------------------------------------------
 
 def check_tls_mode(rep, parts, files, ctx):
     dw, nd = ctx['dw'], ctx['nd']
@@ -311,11 +327,59 @@ def check_tls_mode(rep, parts, files, ctx):
             t = sec.find(nd.D + 'title')
             txt = section_text(nd, dw, parts[15], xid)
             titles[xid] = (nd.norm(''.join(t.itertext())), 'Retired.' in txt[:400])
-    live = [f'{k[5:]} {v[0]}' for k, v in titles.items() if 'TLS' in v[0] and not v[1]]
-    pending = [f'P-STUDIO-TLS-PROFILES: TLSMode.{c} = "{v}" names a TLS version or mode, not a PS3.15 Annex B profile; live TLS '
-               f'profiles in 2026a: {"; ".join(live)}' for c, v in ours.items() if c != 'none']
-    rep.check('PS3.15 Annex B: NetworkingModel.TLSMode is not a profile selector (B.9-B.11 retired; B.12/B.13 live)',
-              len(ours), [], pending=pending)
+    live = {k[5:]: v[0] for k, v in titles.items() if 'TLS' in v[0] and not v[1]}
+    wrong, matched = [], 0
+    if sorted(live) != ['B.12', 'B.13']:
+        wrong.append(f'PS3.15 2026a live (non-retired) TLS profiles read as {sorted(live)}; expected B.12 and B.13 — re-read')
+    # DICOMNetwork SecureTransportConnectionProfile: title = raw value + suffix, section = the Annex B section
+    net = dw.read(os.path.join(ctx['sources'], 'DICOMNetwork', 'TLSConfiguration.swift'))
+    profiles = raw_cases(dw, net, 'SecureTransportConnectionProfile')
+    body = dw.enum_body(net, 'SecureTransportConnectionProfile')
+    sections = dict(re.findall(r'case \.(\w+):\s*return "(B\.\d+)"', body))
+    if 'public var title: String { rawValue + " Secure Transport Connection Profile" }' not in body:
+        wrong.append('DICOMNetwork SecureTransportConnectionProfile.title must be rawValue + " Secure Transport Connection Profile"')
+    by_section = {sections.get(c): v + ' Secure Transport Connection Profile' for c, v in profiles.items()}
+    for sec_id, title in live.items():
+        if by_section.get(sec_id) != title:
+            wrong.append(f'DICOMNetwork SecureTransportConnectionProfile for {sec_id} titles {by_section.get(sec_id)!r}; PS3.15 2026a: {title!r}')
+        else:
+            matched += 1
+    for c, sec_id in sections.items():
+        if sec_id not in live:
+            wrong.append(f'SecureTransportConnectionProfile.{c} names {sec_id}, not a live 2026a TLS profile (B.9-B.11 retired)')
+    # Studio TLSMode (P-STUDIO-TLS-PROFILES): NONE, the two profiles and mutual-TLS B.12; no case names a TLS version
+    want = {'none': 'NONE', 'bcp195': 'BCP195', 'modifiedBCP195': 'MODIFIED_BCP195', 'mtls': 'MTLS'}
+    if ours != want:
+        wrong.append(f'TLSMode raw values {ours}, expected {want} (PS3.15 2026a B.12 / B.13 profiles; P-STUDIO-TLS-PROFILES)')
+    else:
+        matched += len(want)
+    mbody = dw.enum_body(s, 'TLSMode')
+    pm = re.search(r'public var profile: SecureTransportConnectionProfile\? \{(.*?)\n    \}', mbody, re.S)
+    mapping = {}
+    for cs, target in re.findall(r'case ((?:\.\w+,?\s*)+):\s*return (\.\w+|nil)', pm.group(1) if pm else ''):
+        for c in re.findall(r'\.(\w+)', cs):
+            mapping[c] = target
+    want_map = {'none': 'nil', 'bcp195': '.bcp195', 'mtls': '.bcp195', 'modifiedBCP195': '.modifiedBCP195'}
+    if mapping != want_map:
+        wrong.append(f'TLSMode.profile maps {mapping}, expected {want_map} (B.12 for BCP195 / MTLS, B.13 for MODIFIED_BCP195)')
+    else:
+        matched += 1
+    dm = re.search(r'var displayName: String \{(.*?)\n    \}', mbody, re.S)
+    names = dict(re.findall(r'case \.(\w+):\s*return "([^"]*)"', dm.group(1) if dm else ''))
+    for c, sec_id in (('bcp195', 'B.12'), ('modifiedBCP195', 'B.13'), ('mtls', 'B.12')):
+        if sec_id not in names.get(c, ''):
+            wrong.append(f'TLSMode.{c}.displayName {names.get(c)!r} does not name PS3.15 {sec_id}')
+        else:
+            matched += 1
+    for old, new, raw in (('tls12', 'bcp195', 'TLS_1_2'), ('tls13', 'modifiedBCP195', 'TLS_1_3')):
+        if not re.search(r'@available\(\*, deprecated, renamed: "' + new + r'"(?:,\s*message:\s*"[^"]*")?\)\s*public static var ' + old + r': TLSMode \{ \.' + new + r' \}', mbody) \
+                or not re.search(r'case "[A-Z_0-9]+", "' + raw + r'":\s*self = \.' + new, mbody):
+            wrong.append(f'TLSMode.{old} must be a deprecated alias of .{new} and "{raw}" must still decode to it')
+        else:
+            matched += 1
+    rep.check('PS3.15 2026a Annex B.12 / B.13: NetworkingModel.TLSMode selects the live TLS Secure Transport Connection Profiles '
+              '(B.9-B.11 retired) through DICOMNetwork SecureTransportConnectionProfile; tls12 / tls13 deprecated (P-STUDIO-TLS-PROFILES)',
+              matched, wrong)
 
 
 # --- PerformanceToolsHelpers: PS3.5 Table 6.2-1, PS3.6 Tables 6-1 and A-1 ----------------------------------

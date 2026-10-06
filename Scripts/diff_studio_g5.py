@@ -22,17 +22,11 @@ import os
 import re
 
 # Values known to differ from the standard whose fix changes public API (enum cases, raw values) and waits for the
-# owner's approval; a wrong/missing item containing the key is reported as PEND, not FAIL.
+# owner's approval; a wrong/missing item containing the key is reported as PEND, not FAIL. Empty since 2026-10-06:
+# P-STUDIO-SR-TABLE (7c860399), -SCOORD-POLYGON (36fdb6d6), -RT-ROI-TYPES (0c97d71e), -RT-DOSE-UNITS (a6f2c0dd),
+# -HP-SORTING-DIRECTION (e9bada7f) and -MEASURE-UM (824bcfab) are implemented, so the same term checks now fail
+# (not PEND) on any regression.
 PENDING_API_APPROVAL = {
-    'ContentItemValueType: "TABLE"': 'P-STUDIO-SR-TABLE',
-    'SpatialCoordGraphicType: "POLYGON"': 'P-STUDIO-SCOORD-POLYGON',
-    'RTROIType: "OTHER"': 'P-STUDIO-RT-ROI-TYPES',
-    'RTROIType: "': 'P-STUDIO-RT-ROI-TYPES',
-    'RTDoseUnits: "CGY"': 'P-STUDIO-RT-DOSE-UNITS',
-    'RTDoseUnits: "RELATIVE"': 'P-STUDIO-RT-DOSE-UNITS',
-    'RTDoseUnits: "CODED"': 'P-STUDIO-RT-DOSE-UNITS',
-    'ImageSortDirection: "': 'P-STUDIO-HP-SORTING-DIRECTION',
-    'MeasurementUnit: "in"': 'P-STUDIO-MEASURE-UM',
 }
 DEFERRED = {}
 EXEMPT = {}
@@ -74,6 +68,14 @@ def block(s, start_pat, what):
                 return s[m.end():i]
         i += 1
     raise SystemExit(f'unbalanced {what}')
+
+
+def block_or_empty(s, start_pat, what):
+    """block(), or '' when the construct is absent — for checks that must report a missing symbol as a finding."""
+    try:
+        return block(s, start_pat, what)
+    except SystemExit:
+        return ''
 
 
 def section_by_label(part, label):
@@ -357,10 +359,20 @@ def check_measurement_units(rep, parts, files, ctx):
             matched += 1
         else:
             extra.append(f'MeasurementUnit: "{v}" is not a CID 7460 code (printed as a symbol only)')
-    um = [f'MeasurementUnit: "in"' for v in dk.active_string_cases(mm, 'MeasurementUnit') if v == 'in']
-    _, pending = split_pending(um + ([] if 'um' in dk.active_string_cases(mm, 'MeasurementUnit') else ['MeasurementUnit: "in" present but CID 7460 "um" (micrometer) missing']))
-    rep.check('PS3.16 CID 7460 / 7461 / 7183: UCUM codes used by ROIHelpers, MeasurementPersistenceHelpers and MeasurementUnit',
-              matched, wrong, extra=extra, pending=pending)
+    # P-STUDIO-MEASURE-UM: micrometers = "um" (CID 7460 "micrometer"), area "um2" (CID 7461 "square micrometer")
+    meanings = {cid: {r[1]: r[2] for r in dk.cid_rows(p16, f'CID {cid}')} for cid in (7460, 7461)}
+    if 'um' not in dk.active_string_cases(mm, 'MeasurementUnit') or meanings[7460].get('um', '').lower() != 'micrometer':
+        wrong.append(f'MeasurementUnit must carry "um", the PS3.16 2026a CID 7460 micrometer code (P-STUDIO-MEASURE-UM; '
+                     f'CID 7460 um = {meanings[7460].get("um")!r})')
+    else:
+        matched += 1
+    if not re.search(r'case \.micrometers: return "um2"', roi) or meanings[7461].get('um2', '').lower() != 'square micrometer':
+        wrong.append(f'ROIHelpers.ucumAreaCode(.micrometers) must be "um2", the CID 7461 square micrometer code (P-STUDIO-MEASURE-UM; '
+                     f'CID 7461 um2 = {meanings[7461].get("um2")!r})')
+    else:
+        matched += 1
+    rep.check('PS3.16 2026a CID 7460 / 7461 / 7183: UCUM codes used by ROIHelpers, MeasurementPersistenceHelpers and MeasurementUnit, '
+              'micrometer um / um2 included (P-STUDIO-MEASURE-UM)', matched, wrong, extra=extra)
 
 
 # --- security UI vs the DICOMKit engine and PS3.15 ---------------------------------------------------------
@@ -418,6 +430,60 @@ def check_security(rep, parts, files, ctx):
     rep.check('PS3.15 Annex B: G5 files cite no TLS profile that 2026a retires (B.1, B.2, B.3, B.9, B.10, B.11)', matched, wrong)
 
 
+def check_security_ps315(rep, parts, files, ctx):
+    """P-STUDIO-ANON-PS315: the Security panel's default profile is the PS3.15 2026a E.1 Basic Application Level
+    Confidentiality Profile, run through StudioAnonPS315.deidentify (DICOMKit Anonymizer.deidentify, as dicom-anon
+    --profile ps315); the legacy lists are labelled not PS3.15; the 10 E.3 Option toggles carry the 2026a names."""
+    dw, nd = ctx['dw'], ctx['nd']
+    p15 = parts[15]
+    wrong, matched = [], 0
+    e1 = nd.norm(' '.join(dw.section_by_id(p15, 'sect_E.1').itertext()))
+    model = src(files, 'SecurityModel.swift')
+    support = src(files, 'AnonPS315Support.swift')
+    vm = ctx['studio_files']().get('DICOMStudio/ViewModels/SecurityViewModel.swift', '')
+    body = ctx['dw'].enum_body(model, 'AnonymizationProfile')
+    names = dict(re.findall(r'case \.(\w+):\s*return "([^"]*)"', block(body, r'public var displayName: String \{', 'AnonymizationProfile.displayName')))
+    ps315_name = names.get('ps315', '')
+    if 'case ps315' not in body or not ps315_name.startswith('PS3.15 ') or ps315_name[len('PS3.15 '):] not in e1:
+        wrong.append(f'AnonymizationProfile.ps315.displayName {ps315_name!r} must be "PS3.15 " + the E.1 profile name (Basic Application Level Confidentiality Profile)')
+    else:
+        matched += 1
+    for c, n in names.items():
+        if c != 'ps315' and 'not PS3.15' not in n:
+            wrong.append(f'AnonymizationProfile.{c}.displayName {n!r} must be labelled "not PS3.15"')
+        elif c != 'ps315':
+            matched += 1
+    if not re.search(r'builderProfiles: \[AnonymizationProfile\] = \[\.ps315\b', body):
+        wrong.append('AnonymizationProfile.builderProfiles must list .ps315 first (the default)')
+    else:
+        matched += 1
+    for decl in ('public var selectedProfile: AnonymizationProfile = .ps315', 'public var anonProfile: AnonymizationProfile = .ps315'):
+        if decl in vm:
+            matched += 1
+        else:
+            wrong.append(f'SecurityViewModel must declare `{decl}` (the panel default is the PS3.15 Basic Profile)')
+    if re.search(r'if isPS315 \{\s*\(anonFile, anonResult\) = try StudioAnonPS315\.deidentify\(', vm) \
+            and 'anonymizer.deidentify(file: dicomFile, options: options)' in block_or_empty(support, r'static func deidentify\([^{]*\{', 'StudioAnonPS315.deidentify'):
+        matched += 1
+    else:
+        wrong.append('the Security panel must run .ps315 through StudioAnonPS315.deidentify -> DICOMKit Anonymizer.deidentify(file:options:)')
+    # the 10 E.3 Option toggles: names are the E.3.3-E.3.5, E.3.7-E.3.11 section titles and the two E.3.6 Option names
+    opts = re.findall(r'OptionToggle\(flag: "(--[a-z-]+)", name: "([^"]+)", section: "(E\.3\.\d+)"',
+                      block_or_empty(support, r'static let securityPanelOptions: \[OptionToggle\] = \[', 'securityPanelOptions'))
+    for flag, name, sec_id in opts:
+        title = dw.section_title(p15, f'sect_{sec_id}') or ''
+        text = nd.norm(' '.join(dw.section_by_id(p15, f'sect_{sec_id}').itertext())) if title else ''
+        if name == title or (sec_id == 'E.3.6' and name in text):
+            matched += 1
+        else:
+            wrong.append(f'securityPanelOptions {flag}: "{name}" is not the PS3.15 2026a {sec_id} Option name ({title!r})')
+    if len(opts) != 10:
+        wrong.append(f'securityPanelOptions lists {len(opts)} E.3 Options; expected the 10 of E.3.3-E.3.11')
+    rep.check('PS3.15 2026a E.1 / E.3: Security panel default is the Basic Application Level Confidentiality Profile via '
+              'StudioAnonPS315 -> Anonymizer.deidentify, legacy lists labelled not PS3.15, 10 E.3 Option names (P-STUDIO-ANON-PS315)',
+              matched, wrong)
+
+
 def check_citations(rep, parts, files, ctx):
     ctx['dk'].check_citations(rep, parts, files)
 
@@ -433,5 +499,6 @@ CHECKS = [
     ('G5 calibration tags', check_calibration_tags),
     ('G5 measurement units', check_measurement_units),
     ('G5 security', check_security),
+    ('G5 security ps315', check_security_ps315),
     ('G5 citations', check_citations),
 ]

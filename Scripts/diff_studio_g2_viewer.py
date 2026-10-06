@@ -26,8 +26,8 @@ Each check extracts values from the DICOMStudio Swift sources by regex and diffs
 import os
 import re
 
+# Empty since P-STUDIO-ANNOTATION-UNITS (cb143f1b): TextAnchorType raw values are the C.10.5 units (PIXEL).
 PENDING_API_APPROVAL = {
-    'TextAnchorType "IMAGE"': 'P-STUDIO-ANNOTATION-UNITS',   # raw value IMAGE is not a C.10.5 unit (PIXEL)
 }
 DEFERRED = {
     'renderFrameWithStoredWindow': 'D-new (DICOMKit: header window applied to stored values)',
@@ -136,13 +136,17 @@ def check_annotation_terms(rep, parts, files, ctx):
     rep.check('G2 viewer: GraphicType raw values == Graphic Type (0070,0023) values of PS3.3 C.10.5',
               len(ours & graphic), wrong=sorted(ours - graphic), missing=sorted(graphic - ours))
 
+    # P-STUDIO-ANNOTATION-UNITS (cb143f1b): the raw values are exactly the C.10.5 Annotation Units (PIXEL, DISPLAY,
+    # MATRIX); the legacy app value IMAGE only decodes (init?(rawValue:)) as PIXEL.
     units = list_containing(lists, 'PIXEL', 'DISPLAY', 'MATRIX')
     ours = set(enum_raw_values(annot, 'TextAnchorType').values())
-    p_item = PENDING_API_APPROVAL['TextAnchorType "IMAGE"']
-    pending = [f'TextAnchorType "{v}" is not an Anchor Point Annotation Units value {sorted(units)} ({p_item})'
-               for v in sorted(ours - units)]
-    rep.check('G2 viewer: TextAnchorType raw values ⊆ Bounding Box / Anchor Point Annotation Units of PS3.3 C.10.5',
-              len(ours & units), pending=pending, extra=[f'not offered: {t}' for t in sorted(units - ours)])
+    wrong = [f'TextAnchorType "{v}" is not an Anchor Point Annotation Units value {sorted(units)} (P-STUDIO-ANNOTATION-UNITS)'
+             for v in sorted(ours - units)]
+    if not re.search(r'case "PIXEL", "IMAGE": self = \.imageRelative', annot):
+        wrong.append('TextAnchorType(rawValue: "IMAGE") must still decode as .imageRelative (PIXEL)')
+    rep.check('G2 viewer: TextAnchorType raw values == Bounding Box / Anchor Point Annotation Units of PS3.3 2026a C.10.5 '
+              '(Table C.10-5); legacy IMAGE decodes as PIXEL (P-STUDIO-ANNOTATION-UNITS)',
+              len(ours & units), wrong=wrong, missing=[f'not offered: {t}' for t in sorted(units - ours)])
 
     modes = list_containing(variablelists(nd, dw, parts[3], 'sect_C.10.4'), 'SCALE TO FIT', 'MAGNIFY')
     m = re.search(r'presentationSizeMode:\s*String\s*=\s*"([A-Z ]+)"', model)

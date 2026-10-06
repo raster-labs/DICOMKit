@@ -20,14 +20,17 @@ Every check extracts the values the Swift source carries by regex and diffs them
                                                           CC.2.4-1 (each is an Event Report attribute; bare-name keys reported as extra)
   * HTTP status numbers in the panel                   vs PS3.18 Table 10.5.3-1 (STOW) / Table 8.5-1
   * JPIP text in the View                              vs PS3.6 Table A-1 JPIP rows and Table 6-1 (0028,7FE0) Pixel Data Provider URL
-  * DICOMwebTLSMode                                    PS3.15 Annex B profiles (PEND P-STUDIO-TLS-PROFILES, shared with the DIMSE half)
+  * DICOMwebTLSMode                                    PS3.15 2026a B.12 / B.13 (live TLS profiles) via DICOMWeb
+                                                          DICOMwebConfiguration.TLSProfile (P-STUDIO-TLS-PROFILES)
+Since P-STUDIO-UPS-STATE-RAW, Studio's UPSState is a deprecated alias of DICOMWeb's UPSState (WebUPSState), so the
+UPS checks read the raw values and validTransitions from Sources/DICOMWeb/UPS/Workitem.swift.
 """
 import os
 import re
 
+# No pending rows: P-STUDIO-UPS-STATE-RAW (574f5eb0) and P-STUDIO-TLS-PROFILES (586c8f31) are implemented and checked
+# as ok rows. Keys here are substrings of findings, so a P-item name left here would hide a regression as PEND.
 PENDING_API_APPROVAL = {
-    'P-STUDIO-UPS-STATE-RAW': 'P-STUDIO-UPS-STATE-RAW',   # UPSState raw values IN_PROGRESS / CANCELLED are not the C.30.1 terms
-    'P-STUDIO-TLS-PROFILES': 'P-STUDIO-TLS-PROFILES',     # DICOMwebTLSMode names TLS versions, not PS3.15 Annex B profiles
 }
 DEFERRED = {}
 EXEMPT = {}
@@ -86,20 +89,46 @@ def c30_terms(nd, dw, p3):
     return states, prios
 
 
+def engine_ups(ctx):
+    """DICOMWeb's `enum UPSState` source (Sources/DICOMWeb/UPS/Workitem.swift), which Studio's UPSState now aliases."""
+    return ctx['dw'].read(os.path.join(ctx['sources'], 'DICOMWeb', 'UPS', 'Workitem.swift'))
+
+
+def studio_ups_alias(files):
+    """P-STUDIO-UPS-STATE-RAW: Studio's UPSState is a deprecated typealias of WebUPSState = DICOMWeb::UPSState with no
+    enum of its own; dicomTerm is the raw value, allowedTransitions DICOMWeb's validTransitions. Returns findings."""
+    model, alias = src(files, 'DICOMwebModel.swift'), src(files, 'WebUPSState.swift')
+    out = []
+    if re.search(r'\benum UPSState\b', model) or not re.search(
+            r'@available\(\*, deprecated, renamed: "WebUPSState"(?:,\s*message:\s*"[^"]*")?\)\s*public typealias UPSState = WebUPSState\b', model):
+        out.append('DICOMwebModel.UPSState must be a deprecated typealias of WebUPSState, not a Studio enum (P-STUDIO-UPS-STATE-RAW)')
+    if not re.search(r'public typealias WebUPSState = DICOMWeb::UPSState\b', alias):
+        out.append('WebUPSState must name DICOMWeb::UPSState (P-STUDIO-UPS-STATE-RAW)')
+    if 'public var dicomTerm: String { rawValue }' not in alias:
+        out.append('WebUPSState.dicomTerm must be the raw value (the PS3.3 Table C.30.1-1 term)')
+    if 'public var allowedTransitions: [WebUPSState] { validTransitions }' not in alias:
+        out.append('WebUPSState.allowedTransitions must be DICOMWeb UPSState.validTransitions (PS3.4 Table CC.1.1-2)')
+    return out
+
+
 def check_ups_states(rep, parts, files, ctx):
+    """PS3.3 2026a Table C.30.1-1: Studio's UPSState is DICOMWeb's UPSState (P-STUDIO-UPS-STATE-RAW), whose raw values
+    are the four Procedure Step State (0074,1000) Enumerated Values; the retired Studio values still decode."""
     dw, nd = ctx['dw'], ctx['nd']
     states, prios = c30_terms(nd, dw, parts[3])
     model = src(files, 'DICOMwebModel.swift')
-    body = dw.enum_body(model, 'UPSState')
-    m = re.search(r'var dicomTerm: String \{(.*?)\n    \}', body, re.S)
-    terms = switch_returns(m.group(1)) if m else {}
-    wrong = [f'UPSState.{c}.dicomTerm = "{v}" is not a C.30.1 term' for c, v in terms.items() if v not in states]
-    missing = [f'C.30.1 term "{t}" has no UPSState case' for t in states if t not in terms.values()]
-    raws = raw_cases(dw, model, 'UPSState')
-    pending = [f'UPSState.{c} rawValue "{v}" is not the C.30.1 term (P-STUDIO-UPS-STATE-RAW)'
-               for c, v in raws.items() if v not in states]
-    rep.check('PS3.3 C.30.1: DICOMwebModel.UPSState.dicomTerm values are the Procedure Step State terms (raw values pending)',
-              len([v for v in terms.values() if v in states]), wrong, missing, [], pending)
+    alias = src(files, 'WebUPSState.swift')
+    wrong = studio_ups_alias(files)
+    raws = raw_cases(dw, engine_ups(ctx), 'UPSState')
+    wrong += [f'DICOMWeb UPSState.{c} rawValue "{v}" is not a PS3.3 Table C.30.1-1 term' for c, v in raws.items() if v not in states]
+    missing = [f'C.30.1 term "{t}" has no DICOMWeb UPSState case' for t in states if t not in raws.values()]
+    legacy = dict(re.findall(r'case "([A-Z_ ]+)":\s*self = \.(\w+)', alias))
+    for old, case in (('IN_PROGRESS', 'inProgress'), ('CANCELLED', 'canceled')):
+        if legacy.get(old) != case:
+            wrong.append(f'WebUPSState(legacyRawValue:) must decode the retired Studio value {old} as .{case}')
+    rep.check('PS3.3 2026a Table C.30.1-1: UPSState is DICOMWeb\'s UPSState (deprecated Studio alias); its raw values are the 4 '
+              'Procedure Step State terms; IN_PROGRESS / CANCELLED still decode (P-STUDIO-UPS-STATE-RAW)',
+              len([v for v in raws.values() if v in states]), wrong, missing)
 
     # every quoted state literal in the ViewModel / Helpers / View is a C.30.1 term
     lits = set()
@@ -141,14 +170,18 @@ def cc112_change_state_targets(p4):
 def check_ups_transitions(rep, parts, files, ctx):
     dw = ctx['dw']
     allowed = cc112_change_state_targets(parts[4])
-    model = src(files, 'DICOMwebModel.swift')
-    body = dw.enum_body(model, 'UPSState')
-    terms = switch_returns(re.search(r'var dicomTerm: String \{(.*?)\n    \}', body, re.S).group(1))
-    tb = re.search(r'var allowedTransitions: \[UPSState\] \{(.*?)\n    \}', body, re.S).group(1)
+    # Studio's allowedTransitions is DICOMWeb's validTransitions (P-STUDIO-UPS-STATE-RAW): read the engine's switch
+    body = dw.enum_body(engine_ups(ctx), 'UPSState')
+    terms = raw_cases(dw, engine_ups(ctx), 'UPSState')
+    tb = re.search(r'var validTransitions: \[UPSState\] \{(.*?)\n    \}', body, re.S).group(1)
     ours = {}
-    for c, lst in re.findall(r'case\s+\.(\w+):\s*return\s+\[([^\]]*)\]', tb):
-        ours[terms[c]] = {terms[x.strip().lstrip('.')] for x in lst.split(',') if x.strip()}
+    for cs, lst in re.findall(r'case\s+((?:\.\w+\s*,?\s*)+):\s*return\s+\[([^\]]*)\]', tb):
+        for c in re.findall(r'\.(\w+)', cs):
+            ours[terms[c]] = {terms[x.strip().lstrip('.')] for x in lst.split(',') if x.strip()}
     matched, wrong, missing = 0, [], []
+    alias_findings = [f for f in studio_ups_alias(files) if 'allowedTransitions' in f or 'typealias' in f or 'DICOMWeb::' in f]
+    wrong += alias_findings
+    matched += 0 if alias_findings else 1
     for state, std in allowed.items():
         got = ours.get(state, set())
         for t in sorted(got - std):
@@ -158,7 +191,8 @@ def check_ups_transitions(rep, parts, files, ctx):
         matched += len(got & std)
     if any('SCHEDULED' in v for v in ours.values()):
         wrong.append('SCHEDULED is offered as a Change State target (Table CC.1.1-2 C303H)')
-    rep.check('PS3.4 Table CC.1.1-2: DICOMwebModel.UPSState.allowedTransitions are the Change State targets the table allows',
+    rep.check('PS3.4 2026a Table CC.1.1-2: UPSState.allowedTransitions (DICOMWeb UPSState.validTransitions) are the Change State '
+              'targets the table allows (P-STUDIO-UPS-STATE-RAW)',
               matched, wrong, missing)
 
 
@@ -180,14 +214,15 @@ def check_ups_change_state_refusal(rep, parts, files, ctx):
         wrong.append(f'UPSState.changeStateRefusal does not cite PS3.18 11.7.1.4 / C303H: {engine_msg} (DICOMWeb)')
     else:
         matched += 1
-    hm = re.search(r'static func changeStateRefusal\(from: UPSState, to: UPSState\) -> String\? \{(.*?)\n    \}', helpers, re.S)
+    # since P-STUDIO-UPS-STATE-RAW the parameters are the engine's UPSState itself (WebUPSState), so `to.changeStateRefusal`
+    hm = re.search(r'static func changeStateRefusal\(from: WebUPSState, to: WebUPSState\) -> String\? \{(.*?)\n    \}', helpers, re.S)
     body = hm.group(1) if hm else ''
-    if 'to.web.changeStateRefusal' in body:
+    if re.search(r'if let refusal = to\.changeStateRefusal \{\s*return refusal', body):
         matched += 1
     else:
-        wrong.append('DICOMwebUPSHelpers.changeStateRefusal must return DICOMWeb UPSState.changeStateRefusal for SCHEDULED (D255)')
+        wrong.append('DICOMwebUPSHelpers.changeStateRefusal(from: WebUPSState, to: WebUPSState) must return DICOMWeb UPSState.changeStateRefusal for SCHEDULED (D255)')
     if 'Change Workitem State target' in body:
-        wrong.append('DICOMwebUPSHelpers.changeStateRefusal carries its own copy of the SCHEDULED text; return to.web.changeStateRefusal')
+        wrong.append('DICOMwebUPSHelpers.changeStateRefusal carries its own copy of the SCHEDULED text; return to.changeStateRefusal')
     else:
         matched += 1
     cli = ''.join(dw.read(os.path.join(ctx['sources'], 'dicom-wado', f)) for f in sorted(os.listdir(os.path.join(ctx['sources'], 'dicom-wado'))) if f.endswith('.swift'))
@@ -411,19 +446,60 @@ def check_jpip_text(rep, parts, files, ctx):
               matched, wrong, ['uri panel names no tag'] if not tags else [])
 
 
-# --- PS3.15 Annex B: TLS mode (pending, same P-item as the DIMSE half) ----------------------------------------
+# --- PS3.15 Annex B: TLS profiles (P-STUDIO-TLS-PROFILES, the DICOMweb half) -------------------------------------
 
 def check_tls_mode(rep, parts, files, ctx):
-    dw = ctx['dw']
+    """DICOMwebTLSMode offers NONE, the two live PS3.15 2026a TLS profiles (B.12, B.13; B.9-B.11 retired) and the
+    non-profile DEVELOPMENT mode, and hands the profiles to DICOMWeb DICOMwebConfiguration.TLSProfile, whose raw values
+    are the B.12 / B.13 titles without "Secure Transport Connection Profile"; COMPATIBLE / STRICT deprecated, still decode."""
+    dw, nd = ctx['dw'], ctx['nd']
     model = src(files, 'DICOMwebModel.swift')
     cases = raw_cases(dw, model, 'DICOMwebTLSMode')
-    p15 = parts[15]
-    titles = [dw.section_title(p15, f'sect_B.{n}') or '' for n in range(1, 20)]
-    profiles = [t for t in titles if 'Profile' in t]
-    pending = [f'DICOMwebTLSMode.{c} = "{v}" selects a TLS version, not a PS3.15 Annex B profile (P-STUDIO-TLS-PROFILES)'
-               for c, v in cases.items() if v != 'NONE']
-    rep.check('PS3.15 Annex B: DICOMwebModel.DICOMwebTLSMode is not a profile selector (B.12/B.13 live profiles)',
-              len(profiles), [], [], [], pending)
+    live = {}
+    for n in range(1, 20):
+        sec = dw.section_by_id(parts[15], f'sect_B.{n}')
+        if sec is None:
+            continue
+        title = dw.section_title(parts[15], f'sect_B.{n}') or ''
+        if 'TLS' in title and 'Retired.' not in nd.norm(' '.join(sec.itertext()))[:400]:
+            live[f'B.{n}'] = title
+    wrong, matched = [], 0
+    if sorted(live) != ['B.12', 'B.13']:
+        wrong.append(f'PS3.15 2026a live (non-retired) TLS profiles read as {sorted(live)}; expected B.12 and B.13 — re-read')
+    conf = dw.read(os.path.join(ctx['sources'], 'DICOMWeb', 'DICOMwebConfiguration.swift'))
+    profiles = raw_cases(dw, conf, 'TLSProfile')
+    sections = dict(re.findall(r'case \.(\w+):\s*return "(B\.\d+)"', dw.enum_body(conf, 'TLSProfile')))
+    for sec_id, title in live.items():
+        got = next((v + ' Secure Transport Connection Profile' for c, v in profiles.items() if sections.get(c) == sec_id), None)
+        if got != title:
+            wrong.append(f'DICOMWeb DICOMwebConfiguration.TLSProfile for {sec_id} is {got!r}; PS3.15 2026a title {title!r}')
+        else:
+            matched += 1
+    want = {'none': 'NONE', 'bcp195': 'BCP195', 'modifiedBCP195': 'MODIFIED_BCP195', 'development': 'DEVELOPMENT'}
+    if cases != want:
+        wrong.append(f'DICOMwebTLSMode raw values {cases}, expected {want} (P-STUDIO-TLS-PROFILES)')
+    else:
+        matched += len(want)
+    body = dw.enum_body(model, 'DICOMwebTLSMode')
+    pm = re.search(r'public var webTLSProfile: DICOMwebConfiguration\.TLSProfile\? \{(.*?)\n    \}', body, re.S)
+    mapping = {}
+    for cs, target in re.findall(r'case ((?:\.\w+,?\s*)+):\s*return (\.\w+|nil)', pm.group(1) if pm else ''):
+        for c in re.findall(r'\.(\w+)', cs):
+            mapping[c] = target
+    want_map = {'none': 'nil', 'development': 'nil', 'bcp195': '.bcp195', 'modifiedBCP195': '.modifiedBCP195'}
+    if mapping != want_map:
+        wrong.append(f'DICOMwebTLSMode.webTLSProfile maps {mapping}, expected {want_map}')
+    else:
+        matched += 1
+    for old, new, raw in (('compatible', 'bcp195', 'COMPATIBLE'), ('strict', 'modifiedBCP195', 'STRICT')):
+        if not re.search(r'@available\(\*, deprecated, renamed: "' + new + r'"(?:,\s*message:\s*"[^"]*")?\)\s*public static var '
+                         + old + r': DICOMwebTLSMode \{ \.' + new + r' \}', body) \
+                or not re.search(r'case "[A-Z_0-9]+", "' + raw + r'":\s*self = \.' + new, body):
+            wrong.append(f'DICOMwebTLSMode.{old} must be a deprecated alias of .{new} and "{raw}" must still decode to it')
+        else:
+            matched += 1
+    rep.check('PS3.15 2026a Annex B.12 / B.13: DICOMwebModel.DICOMwebTLSMode selects the live TLS profiles through DICOMWeb '
+              'DICOMwebConfiguration.TLSProfile; COMPATIBLE / STRICT deprecated (P-STUDIO-TLS-PROFILES)', matched, wrong)
 
 
 CHECKS = [
