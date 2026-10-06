@@ -2124,7 +2124,8 @@ private func executeDicomDcmdir() async {
     /// Length (0042,0015) and Specific Character Set (0008,0005) as dicom-pdf writes them and the
     /// padding cut on extraction (D182) through DICOMKit `EncapsulatedDocumentBuilder.OptionRules`, the
     /// calls dicom-pdf makes (D272). Exit codes are the CLI's: 64 for a usage
-    /// error (ArgumentParser ValidationError), 1 for any other failure, 0 for a directory run.
+    /// error (ArgumentParser ValidationError), 1 for any other failure and for a directory run with a
+    /// failed file (D271); a directory `--extract` skips files that are not Encapsulated Documents.
     private func executeDicomPdf() async {
         let inputPath = paramValue("inputPath")
         let outputPath = paramValue("output")
@@ -2331,7 +2332,7 @@ private func executeDicomDcmdir() async {
                 return od.url
             }
 
-            func extractFromDirectory(_ dir: URL) throws {
+            func extractFromDirectory(_ dir: URL) throws -> Int {
                 let outDir = try resolvedOutputDirectory(dir, defaultName: "extracted", subfolder: "PDF/Extracted")
                 if verbose {
                     log += "Extracting documents from: \(dir.path)\n"
@@ -2340,9 +2341,22 @@ private func executeDicomDcmdir() async {
                 var success = 0, failure = 0
                 // Shared, sorted directory walk — the same gatherer the dicom-pdf CLI uses.
                 for f in FileGatherer.regularFiles(under: dir) ?? [] {
+                    // D271: a file that is not an Encapsulated Document (not DICOM, or no
+                    // Encapsulated Document (0042,0011), PS3.3 C.24.2) is skipped, as dicom-pdf does.
+                    let data: Data
                     do {
-                        let data = try Data(contentsOf: f)
-                        let dicomFile = try DICOMFile.read(from: data)
+                        data = try Data(contentsOf: f)
+                    } catch {
+                        failure += 1
+                        if verbose { log += "✗ \(f.lastPathComponent): \(error.localizedDescription)\n" }
+                        continue
+                    }
+                    guard let dicomFile = try? DICOMFile.read(from: data),
+                          dicomFile.dataSet[.encapsulatedDocument] != nil else {
+                        if verbose { log += Self.pdfSkippedLine(fileName: f.lastPathComponent) + "\n" }
+                        continue
+                    }
+                    do {
                         let document = try EncapsulatedDocumentParser.parse(from: dicomFile.dataSet)
                         let outFile = outDir.appendingPathComponent(
                             "\(f.deletingPathExtension().lastPathComponent).\(document.documentType.fileExtension)")
@@ -2358,9 +2372,10 @@ private func executeDicomDcmdir() async {
                 log += "  Successful: \(success)\n"
                 if failure > 0 { log += "  Failed: \(failure)\n" }
                 log += "  Output directory: \(outDir.path)\n"
+                return failure
             }
 
-            func encapsulateFromDirectory(_ dir: URL) throws {
+            func encapsulateFromDirectory(_ dir: URL) throws -> Int {
                 let outDir = try resolvedOutputDirectory(dir, defaultName: "encapsulated", subfolder: "PDF/Encapsulated")
                 if verbose {
                     log += "Encapsulating documents from: \(dir.path)\n"
@@ -2409,13 +2424,16 @@ private func executeDicomDcmdir() async {
                 log += "  Study UID: \(finalStudyUID)\n"
                 log += "  Series UID: \(finalSeriesUID)\n"
                 log += "  Output directory: \(outDir.path)\n"
+                return failure
             }
 
-            // MARK: dispatch (the CLI's run(); a directory run exits 0 whatever its per-file outcomes)
+            // MARK: dispatch (the CLI's run(); a directory run with any failed file exits 1 after
+            // its summary, D271 — ExitCode.failure prints no further line)
 
             do {
                 if workIsDirectory {
-                    if extractMode { try extractFromDirectory(inputURL) } else { try encapsulateFromDirectory(inputURL) }
+                    let failed = extractMode ? try extractFromDirectory(inputURL) : try encapsulateFromDirectory(inputURL)
+                    return (log, failed > 0 ? 1 : 0)
                 } else {
                     let outArg = effectiveOutput.isEmpty ? nil : effectiveOutput
                     if extractMode { try extractFromFile(inputURL, outURLOrPath: outArg) }
@@ -2430,6 +2448,12 @@ private func executeDicomDcmdir() async {
         }.value
 
         finish(preamble + output, exitCode: exitCode)
+    }
+
+    /// dicom-pdf's verbose line for a file a directory `--extract` skips (its CLI-local
+    /// `DICOMPdf.skippedLine`, kept identical; checked by Scripts/diff_studio_g1.py, D271).
+    nonisolated static func pdfSkippedLine(fileName: String) -> String {
+        "⊘ \(fileName): not an Encapsulated Document (skipped)"
     }
 
     // MARK: - dicom-pixedit Execution
@@ -4368,8 +4392,8 @@ private func executeDicomStudy() async {
     /// (PS3.5 2026a Table 6.2-1 / Section 9) and the `finalize` post-processing ((0002,0003)
     /// = (0008,0018), Specific Character Set ISO_IR 192) through DICOMKit `ImageConverter.OutputRules`,
     /// the calls dicom-image makes (D274). Exit codes are the CLI's: 64 for a
-    /// usage error (ArgumentParser ValidationError), 1 for a refused value or a failed single file,
-    /// 0 for a directory / TIFF run whatever its per-file outcomes.
+    /// usage error (ArgumentParser ValidationError), 1 for a refused value, a failed single file or a
+    /// directory run with a failed file (D273), 0 for a TIFF run whatever its per-page outcomes.
     private func executeDicomImage() async {
         let input = paramValue("input")
         let outputRaw = paramValue("output")
@@ -4547,8 +4571,9 @@ private func executeDicomStudy() async {
                 out += ImageConsole.batchSummary(
                     successful: successCount, failed: failureCount,
                     studyUID: finalStudyUID, seriesUID: finalSeriesUID, outputDir: outputDirURL.path)
-                // The CLI's convertDirectory never throws for a failed file: exit 0.
-                return (out, 0)
+                // D273: like dicom-image's convertDirectory, a run with any failed file exits 1
+                // after the summary (ExitCode.failure: no further line).
+                return (out, failureCount > 0 ? 1 : 0)
             }
 
             // ---- convertFile ----
@@ -4642,7 +4667,8 @@ private func executeDicomStudy() async {
     /// the animate rate defaults to the file's Cine Module (PS3.3 Table C.7-13), bulk patient
     /// folders are keyed on Patient ID + Issuer of Patient ID (P-EXPORT-2), `--apply-window` is
     /// deprecated on contact-sheet / bulk (P-EXPORT-3), and Burned In Annotation (0028,0301) YES
-    /// warns. Exit codes: ArgumentParser ValidationError 64, every other error 1.
+    /// warns. Exit codes: ArgumentParser ValidationError 64, every other error 1, and 1 for a bulk run
+    /// with a failed file (D251).
     private func executeDicomExport() async {
         #if canImport(CoreGraphics) && canImport(ImageIO)
         let operation = paramValue("operation").isEmpty ? "single" : paramValue("operation")
@@ -5048,8 +5074,9 @@ private func executeDicomStudy() async {
                     }
                     log += ExportConsole.bulkSummaryLine(success: successCount, total: fileCount, failed: errorCount) + "\n"
                     if burnedIn > 0 { log += DICOMImageExporter.BurnedInAnnotation.summaryWarning(count: burnedIn) + "\n" }
-                    // As the CLI: the summary line carries the failures, the exit status is 0.
-                    return (log, 0)
+                    // D251: as dicom-export bulk, a run with any failed file exits 1 after the
+                    // summary and the Burned In Annotation warning (ExitCode.failure: no further line).
+                    return (log, errorCount > 0 ? 1 : 0)
 
                 default:
                     return ("Error: Unknown operation '\(operation)'\n", 1)
