@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — send option vocabularies text-diffed against PS3.3 2026a Tables C.13-1 (Print Priority 3, Medium Type 5, Film Destination MAGAZINE/PROCESSOR/BIN_i), C.13-3 (Film Size ID 12, Film Orientation 2, Magnification Type 4, Image Display Format 6 forms) and C.11-4 (Presentation LUT Shape 2): every term offered (MAMMO CLEAR FILM / MAMMO BLUE FILM added), BIN_i sent for every i >= 1 without leading zeros (P-BIN, DICOMNetwork.FilmDestination.bin(_:), 2026-10-01); Bits Stored 8/12 per Table C.13-5; Meta SOP Class and Printer SOP Instance UIDs per PS3.6 Table A-1; status/job N-GET attributes per PS3.6 Table 6-1 and PS3.3 Tables C.13-8/C.13-9
+// NEMA-verified: 2026a, checked 2026-10-06 — --film-destination parsed by DICOMPrintKit FilmDestination(catalogToken:) (any BIN_i, PS3.3 Table C.13-1, D242); send option vocabularies text-diffed against PS3.3 2026a Tables C.13-1 (Print Priority 3, Medium Type 5, Film Destination MAGAZINE/PROCESSOR/BIN_i), C.13-3 (Film Size ID 12, Film Orientation 2, Magnification Type 4, Image Display Format 6 forms) and C.11-4 (Presentation LUT Shape 2): every term offered (MAMMO CLEAR FILM / MAMMO BLUE FILM added), BIN_i sent for every i >= 1 without leading zeros (P-BIN, DICOMNetwork.FilmDestination.bin(_:), 2026-10-01); Bits Stored 8/12 per Table C.13-5; Meta SOP Class and Printer SOP Instance UIDs per PS3.6 Table A-1; status/job N-GET attributes per PS3.6 Table 6-1 and PS3.3 Tables C.13-8/C.13-9
 import Foundation
 import ArgumentParser
 import DICOMCore
@@ -1091,26 +1091,14 @@ struct FilmDestinationOption: ExpressibleByArgument, Equatable, CustomStringConv
 
     init(filmDestination: FilmDestination) { self.filmDestination = filmDestination }
 
+    /// The token grammar is DICOMPrintKit's `FilmDestination(catalogToken:)` (D242).
     init?(argument: String) {
-        let upper = argument.trimmingCharacters(in: .whitespaces).uppercased()
-        switch upper {
-        case "MAGAZINE": self = .magazine
-        case "PROCESSOR": self = .processor
-        default:
-            // bin-N (the tool's token) or BIN_N (the Defined Term)
-            let term = upper.hasPrefix("BIN-") ? "BIN_" + upper.dropFirst(4) : upper
-            guard let destination = FilmDestination(rawValue: term), destination.binNumber != nil else {
-                return nil
-            }
-            self.init(filmDestination: destination)
-        }
+        guard let destination = FilmDestination(catalogToken: argument) else { return nil }
+        self.init(filmDestination: destination)
     }
 
     /// The tool's token: magazine, processor or bin-N.
-    var rawValue: String {
-        if let n = filmDestination.binNumber { return "bin-\(n)" }
-        return filmDestination.rawValue.lowercased()
-    }
+    var rawValue: String { filmDestination.catalogToken }
 
     var description: String { rawValue }
 
@@ -1119,9 +1107,7 @@ struct FilmDestinationOption: ExpressibleByArgument, Equatable, CustomStringConv
 
     static var allValueStrings: [String] { [] }
 
-    static var tokenList: String {
-        "magazine = MAGAZINE, processor = PROCESSOR, bin-1 = BIN_1, bin-2 = BIN_2, ... bin-N = BIN_N"
-    }
+    static var tokenList: String { FilmDestination.catalogTokenList }
 }
 
 enum OrientationOption: String, StandardTermOption {

@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-09-29 — Film Size ID, Film Orientation, Print Priority, Medium Type, Film Destination, Magnification Type, Polarity, Trim, Presentation LUT Shape and Border/Empty Image Density values offered text-diffed against PS3.3 2026a Tables C.13-1, C.13-3, C.13-5, C.11-4 via the DICOMNetwork raw values (Scripts/diff_printkit.py: all match); bit depths 8/12 per Table C.13-5 (citation corrected from C.13-3, D23); all five Medium Type terms offered, MAMMO CLEAR FILM / MAMMO BLUE FILM since P-MAMMO
+// NEMA-verified: 2026a, checked 2026-10-06 — FilmDestination(catalogToken:) accepts any BIN_i per PS3.3 2026a Table C.13-1 (numbered from 1, no maximum, no leading zeros; D242); Film Size ID, Film Orientation, Print Priority, Medium Type, Film Destination, Magnification Type, Polarity, Trim, Presentation LUT Shape and Border/Empty Image Density values offered text-diffed against PS3.3 2026a Tables C.13-1, C.13-3, C.13-5, C.11-4 via the DICOMNetwork raw values (Scripts/diff_printkit.py: all match); bit depths 8/12 per Table C.13-5 (citation corrected from C.13-3, D23); all five Medium Type terms offered, MAMMO CLEAR FILM / MAMMO BLUE FILM since P-MAMMO
 // PrintOptionCatalog.swift
 // DICOMPrintKit
 //
@@ -211,9 +211,10 @@ public enum PrintOptionCatalog {
         (.mammoBlueFilm,  "mammo-blue-film",  "Mammography blue film")
     ]
 
-    /// Film destinations: MAGAZINE, PROCESSOR and the first two sorter bins. PS3.3
-    /// Table C.13-1 places no maximum on BIN_i, so a bin beyond these is
-    /// `FilmDestination.bin(n)` (`bin-N` on the command line).
+    /// Film destinations offered by the pickers: MAGAZINE, PROCESSOR and the first two
+    /// sorter bins. PS3.3 2026a Table C.13-1 places no maximum on BIN_i, so these are
+    /// defaults, not the whole vocabulary: any `bin-N` / `BIN_N` is resolved by
+    /// ``FilmDestination/init(catalogToken:)`` (D242).
     public static let filmDestinations: [(value: FilmDestination, cliToken: String, label: String)] = [
         (.magazine,  "magazine",  "Magazine"),
         (.processor, "processor", "Processor"),
@@ -298,4 +299,32 @@ public enum PrintOptionCatalog {
     public static func label(for filmSize: FilmSize) -> String {
         filmSizes.first { $0.value == filmSize }?.label ?? filmSize.rawValue
     }
+}
+
+// MARK: - Film Destination tokens (D242)
+
+extension FilmDestination {
+    /// Resolves a film-destination token, case-insensitively and ignoring surrounding
+    /// spaces: the catalog tokens `magazine` / `processor`, `bin-N` for any sorter bin
+    /// N, or a Defined Term MAGAZINE / PROCESSOR / BIN_N. PS3.3 2026a Table C.13-1:
+    /// BIN_i bins are "numbered sequentially starting from 1 and no maximum is placed
+    /// on the number of BINs", without leading zeros — so `bin-0` and `bin-01` are
+    /// refused (nil), and N is bounded only by the 16-character CS value
+    /// (``maximumBinNumber``). Shared by the dicom-print `--film-destination` option and
+    /// DICOMStudio's print settings.
+    public init?(catalogToken token: String) {
+        let upper = token.trimmingCharacters(in: .whitespaces).uppercased()
+        let term = upper.hasPrefix("BIN-") ? "BIN_" + upper.dropFirst(4) : upper
+        self.init(rawValue: term)
+    }
+
+    /// The catalog token: `magazine`, `processor` or `bin-N`.
+    public var catalogToken: String {
+        if let n = binNumber { return "bin-\(n)" }
+        return rawValue.lowercased()
+    }
+
+    /// The token list for help text: the picker defaults and the open-ended `bin-N`.
+    public static let catalogTokenList =
+        "magazine = MAGAZINE, processor = PROCESSOR, bin-1 = BIN_1, bin-2 = BIN_2, ... bin-N = BIN_N"
 }
