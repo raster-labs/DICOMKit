@@ -164,7 +164,7 @@ extension DICOMArchive {
             // One answer to "is that a modality?" across every dicom-* tool.
             modality = try ModalityOptionValidator.resolve(
                 modality, strict: strictModality)
-            ArchiveQueryKeys.printWarnings([ArchiveQueryKeys.studyDateWarning(studyDate)])
+            ArchiveQueryKeys.printWarnings([ArchiveMatching.studyDateKeyWarning(studyDate)])
 
             try runArchive { try ArchiveStore.query(
                 in: archive, patientName: patientName, patientID: patientID,

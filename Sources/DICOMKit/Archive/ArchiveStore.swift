@@ -1,4 +1,5 @@
 // NEMA-verified: 2026a, checked 2026-10-01 — query/export key matching against PS3.4 2026a C.2.2.2 (Single Value C.2.2.2.1 case-sensitive except PN, List of UID C.2.2.2.2, Universal C.2.2.2.3, Wild Card C.2.2.2.4, DA Range C.2.2.2.5.1); the JSON index (archive_index.json) follows the Patient/Study/Series/Instance hierarchy of PS3.4 Tables C.6-1..C.6-4 with patients keyed on Patient ID + Issuer of Patient ID (0010,0021); study modality is Modalities in Study (0008,0061, C.6-5) from all series; 15 printed labels are PS3.6 2026a Table 6-1 names and SOP Classes are named from PS3.6 Table A-1
+// NEMA-verified: 2026a, checked 2026-10-06 — studyDateKeyWarning (lifted from dicom-archive QueryKeys, D249) warns only for a key that is neither the DA value of PS3.5 2026a Table 6.2-1 nor one of the three DA range forms of PS3.4 2026a C.2.2.2.5.1 ("<date1> - <date2>", "- <date1>", "<date1> -"; clause read by script), the forms dateRange(_:) accepts
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -1097,5 +1098,22 @@ public enum ArchiveStore {
             return json + "\n"
         }
         return ""
+    }
+}
+
+// MARK: - Study Date key warning (shared by dicom-archive query and the Workshop; D249)
+
+extension ArchiveMatching {
+
+    /// The warning for a Study Date (0008,0020) query key that ``matchesDate(_:_:)`` can only
+    /// compare as a literal string: `value` is neither a DA value (PS3.5 2026a Table 6.2-1:
+    /// `YYYYMMDD`) nor a DA range of PS3.4 2026a C.2.2.2.5.1 (`<date1>-<date2>`, `-<date1>`,
+    /// `<date1>-`), as ``dateRange(_:)`` decides. `nil` for an empty key (Universal Matching)
+    /// or a key the archive matches as DICOM. `option` names the key as the caller spells it.
+    public static func studyDateKeyWarning(_ value: String?, option: String = "--study-date") -> String? {
+        guard let value, !value.isEmpty else { return nil }
+        if dateRange(value) != nil { return nil }
+        return "warning: \(option) '\(value)' is neither a DA value (YYYYMMDD) nor a DA range "
+            + "(PS3.4 C.2.2.2.5.1); it matches only a Study Date (0008,0020) equal to the whole string"
     }
 }

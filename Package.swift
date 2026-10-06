@@ -808,6 +808,7 @@ let package = Package(
                 // File-set rules (D253), PS3.5 A.1/A.2/A.3/A.5 native decompress targets (D267),
                 // PS3.6 Table A-1 keywords of the convert catalog (D268).
                 "Validation/IODNameTableTests.swift",
+                "ArchiveStudyDateWarningTests.swift",
                 "CompressionManagerXYBTests.swift",
                 // Lossy output new SOP Instance UID, J2K/JPEG colour labels, File Meta UI padding,
                 // Explicit VR Big Endian values, nested --strip-private, per-frame rescale
