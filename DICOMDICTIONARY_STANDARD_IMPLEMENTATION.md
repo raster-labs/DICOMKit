@@ -217,9 +217,9 @@ and CP 1819 for the (0072,008x) and (0008,04xx) rows.
 
 | ID | Location | Problem | Standard (2026a) | Status |
 |---|---|---|---|---|
-| D6 | `Resources/DataElementDictionary.txt` | VR and VM columns never text-diffed | PS3.6 Table 6-1 | ✅ Done 2026-09-28 (P1): every column diffed; 227 missing rows found and the resource regenerated from the DocBook |
-| D7 | `Tests/DICOMDictionaryTests/DictionaryTests.swift:59` | Test labelled CP 1818 covers CP 1819 rows | Release notes 2019a | ✅ Done 2026-09-28 (P5) |
-| D20 | `UIDDictionary.swift` | Two "Fragmentable HEVC" UIDs not registered in any PS3.6 edition | PS3.6 Table A-1 | ✅ Done 2026-09-28 (P2): kept as `unregisteredEntries` with `registered == false` |
+| D6 | `Resources/DataElementDictionary.txt` | VR and VM columns never text-diffed | PS3.6 Table 6-1 | ✅ Done 2026-09-28 (P1): every column diffed; 227 missing rows found and the resource regenerated from the DocBook; commit `4f29b7b2` (sha added 2026-10-06, audit A8) |
+| D7 | `Tests/DICOMDictionaryTests/DictionaryTests.swift:59` | Test labelled CP 1818 covers CP 1819 rows | Release notes 2019a | ✅ Done 2026-09-28 (P5); commit `4f29b7b2` (sha added 2026-10-06, audit A8) |
+| D20 | `UIDDictionary.swift` | Two "Fragmentable HEVC" UIDs not registered in any PS3.6 edition | PS3.6 Table A-1 | ✅ Done 2026-09-28 (P2): kept as `unregisteredEntries` with `registered == false`; commit `f5aa6d0a` (sha added 2026-10-06, audit A8) |
 
 **New findings for other modules** (recorded, not fixed here):
 

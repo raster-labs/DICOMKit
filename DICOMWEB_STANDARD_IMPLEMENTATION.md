@@ -199,7 +199,7 @@ Full `swift test` after the approvals (2026-09-28, run after commit df9d92b): al
 
 | ID | Module | Location | Problem | Standard (2026a) | Severity | Status |
 |---|---|---|---|---|---|---|
-| D25 | DICOMCore | [DataElement.swift:178](Sources/DICOMCore/DataElement.swift#L178) `stringValues` | Splits on backslash with `split(separator:)`, which omits empty subsequences, so `"MPG\\XR3"` (three values, the second empty) comes back as two values and `"A\B\"` as two: value positions shift for every caller that indexes into a multi-valued attribute. DICOMWeb splits with `components(separatedBy:)` locally (JSON F.2.5, XML Table A.1.5-2) instead. | PS3.5 6.4 (Value Multiplicity; an empty value is a value), Table A.1.5-2 example | Medium: wrong value indices | ✅ Done 2026-09-28: `components(separatedBy:)` keeps empty values in position, an empty or padding-only Value Field returns `[]`; test `DataElementTests.testEmptyValuesPreserved` |
+| D25 | DICOMCore | [DataElement.swift:178](Sources/DICOMCore/DataElement.swift#L178) `stringValues` | Splits on backslash with `split(separator:)`, which omits empty subsequences, so `"MPG\\XR3"` (three values, the second empty) comes back as two values and `"A\B\"` as two: value positions shift for every caller that indexes into a multi-valued attribute. DICOMWeb splits with `components(separatedBy:)` locally (JSON F.2.5, XML Table A.1.5-2) instead. | PS3.5 6.4 (Value Multiplicity; an empty value is a value), Table A.1.5-2 example | Medium: wrong value indices | ✅ Done 2026-09-28: `components(separatedBy:)` keeps empty values in position, an empty or padding-only Value Field returns `[]`; test `DataElementTests.testEmptyValuesPreserved`; commit `511ac8ab` (sha added 2026-10-06, audit A8) |
 
 ---
 
