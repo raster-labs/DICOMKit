@@ -9,8 +9,9 @@ Usage:
 DICOMRenderKit does no value arithmetic of its own. Both backends index byte tables built in
 DICOMCore (`WindowLUT`, `ColorSampleLUT`, `PaletteDisplayLUT`) from DICOMCore's
 `WindowSettings` and `PaletteColorLUT`; the CPU backend delegates to DICOMKit's
-`PixelDataRenderer`, and the window it is handed is prepared by DICOMKit's
-`DICOMImageExporter.determineWindowSettings`. So each check extracts the formula or constant
+`PixelDataRenderer`, and the chain it is handed is prepared by DICOMKit's
+`DICOMImageExporter.determineDisplayPipeline` (a window alone by
+`determineModalityWindow`, in modality units). So each check extracts the formula or constant
 the rendered pixel depends on from the Swift (or Metal) source that defines it, by regex, turns
 it into a Python function where it is a formula, and evaluates it against the formula extracted
 from the DocBook (the pseudo-code of C.11.2.1.2.1 / C.11.2.1.3.2, the MathML of C.11.2.1.3.1,
@@ -54,9 +55,9 @@ PENDING_API_APPROVAL = {
     # P-PIPELINE and P-ICC were approved and implemented on 2026-09-30.
 }
 DEFERRED = {
-    # D63, D64, D66, D67 and D65's DICOMKit half were closed on 2026-09-30. The
-    # stored-unit conversion stays for DICOMStudio's viewer until that module's pass.
-    'toStored': 'D65 (DICOMStudio half)',
+    # D63, D64, D66, D67 and D65's DICOMKit half were closed on 2026-09-30; the stored-unit
+    # conversion (determineWindowSettings) was deprecated on 2026-10-06 (A6) — nothing in
+    # DICOMKit renders with it any more, so no row is deferred.
 }
 
 
@@ -305,28 +306,62 @@ def check_identity_quantisation(rep, p3, core):
 
 def check_modality_before_voi(rep, p3, files, kit):
     """C.11.2.1.2.1: the window applies to stored values "after any Modality LUT or Rescale Slope
-    and Intercept ... have been applied". The request carries the window in stored units, converted
-    by DICOMImageExporter.determineWindowSettings.toStored; evaluate that conversion."""
+    and Intercept ... have been applied". Every DICOMKit render path takes the window in modality
+    units and applies it through GrayscaleDisplayPipeline after the Modality LUT: the exporter's
+    determineModalityWindow / determineDisplayPipeline, DICOMFile.renderFrame(_:window:) (D243)
+    and the request's chain. The deprecated stored-unit determineWindowSettings (the D65 Studio
+    half, A6) is evaluated too, so its inexactness stays on record rather than silently kept."""
     t = section_text(p3, 'sect_C.11.2.1.2.1')
     if 'after any Modality LUT or Rescale Slope and Intercept specified in the IOD have been applied' not in t:
         sys.exit('C.11.2.1.2.1: Modality LUT order sentence not found; re-read')
     exporter = kit['ImageExport/DICOMImageExporter.swift']
+    f = std_pseudocode(p3, 'sect_C.11.2.1.2.1')
+    matched, wrong = 0, []
+    # The exact window: determineModalityWindow hands the explicit or header window on unchanged
+    # (no slope / intercept arithmetic), so the chain applies it where the sentence says.
+    exact = dw.func_body(exporter, r'public static func determineModalityWindow\(')
+    if 'return WindowSettings(center: center, width: width)' in exact and 'return window' in exact \
+            and 'slope' not in exact and 'intercept' not in exact \
+            and 'GrayscaleDisplayPipeline.fullRangeWindow(modalityLUT: modality' in exact:
+        matched += 1
+    else:
+        wrong.append('determineModalityWindow converts the window instead of returning it in modality units')
+    pixel = kit['DICOMFile+PixelData.swift']
+    convenience = dw.func_body(pixel, r'private func renderFrameWithWindow\(')
+    if 'GrayscaleDisplayPipeline.standard(' in convenience and 'modalityLUT: modalityLUT(frameIndex: frameIndex)' in convenience \
+            and 'voiLUT: VOILUT(window)' in convenience and 'renderMonochromeFrame(frameIndex, pipeline: pipeline)' in convenience:
+        matched += 1
+    else:
+        wrong.append('DICOMFile.renderFrame(_:window:) does not apply the window through the chain after the Modality LUT (D243)')
+    modality_lut = dw.func_body(pixel, r'public func modalityLUT\(')
+    if 'dataSet.modalityLUTData()' in modality_lut and '.rescale(slope: slope, intercept: intercept' in modality_lut \
+            and modality_lut.find('modalityLUTData()') < modality_lut.find('.rescale('):
+        matched += 1
+    else:
+        wrong.append('DICOMFile.modalityLUT does not prefer the Modality LUT Sequence over the rescale pair (C.11.1.1.2)')
+    # The deprecated stored-unit conversion: still present, marked deprecated, and inexact for
+    # any slope other than 1 (on record; nothing in DICOMKit renders with it).
     m = need(exporter, r'return WindowSettings\(center: \((center - intercept)\) / slope, width: width / abs\(slope\)\)',
              'toStored conversion')
-    f = std_pseudocode(p3, 'sect_C.11.2.1.2.1')
+    deprecated_at = exporter.rfind('@available(*, deprecated', 0, m.start())
+    if deprecated_at != -1 and 'public static func determineWindowSettings(' in exporter[deprecated_at:m.start()]:
+        matched += 1
+    else:
+        wrong.append('determineWindowSettings (stored-unit window) is not marked deprecated')
     clamp, _ = width_clamp(dict(dw.read_all(os.path.join(ROOT, 'Sources', 'DICOMCore')))['WindowSettings.swift'], 'linear')
-    matched, wrong = 0, []
+    inexact = 0
     for slope, intercept in ((1.0, -1024.0), (2.0, 0.0), (0.5, 0.0), (-1.0, 100.0)):
         for c, w in ((40.0, 400.0), (0.0, 100.0), (1000.0, 10.0)):
             cs, ws = (c - intercept) / slope, clamp(w / abs(slope))
             bad = [s for s in range(-2000, 2000)
                    if int(255 * f(slope * s + intercept, c, w)) != int(255 * f(float(s), cs, ws))]
             if bad:
-                wrong.append(f'toStored (determineWindowSettings, kept for DICOMStudio; m={slope}, b={intercept}, '
-                             f'c={c}, w={w}): {len(bad)} of 4000 stored values render differently from the window '
-                             f'applied after the rescale')
-            else:
-                matched += 1
+                inexact += 1
+    if inexact and 'exact only for Rescale Slope 1' in exporter[deprecated_at:m.start()]:
+        matched += 1
+    else:
+        wrong.append(f'the deprecated stored-unit conversion is inexact for {inexact} of 12 (slope, intercept, window) cases '
+                     'but its deprecation message does not say so')
     request = files['FrameRenderBackend.swift']
     for field in ('modalityLUT: ModalityLUT?', 'voiLUT: VOILUT?', 'presentationLUT: PresentationLUT?'):
         if f'public let {field}' in request:
@@ -347,13 +382,13 @@ def check_modality_before_voi(rep, p3, files, kit):
         wrong.append('VOI LUT output is not normalised by 2^n − 1 (C.11.2.1.1)')
     export = dw.func_body(exporter, r'public static func renderFrameForExport\(')
     resolve = dw.func_body(exporter, r'public static func determineDisplayPipeline\(')
-    if 'determineDisplayPipeline(' in export and '/ slope' not in resolve \
-            and '.rescale(slope: slope, intercept: intercept' in resolve and 'dataSet.voiLUT()' in resolve:
+    if 'determineDisplayPipeline(' in export and 'determineWindowSettings(' not in export and '/ slope' not in resolve \
+            and 'file.modalityLUT(frameIndex: frameIndex)' in resolve and 'dataSet.voiLUT()' in resolve:
         matched += 1
     else:
         wrong.append('export does not render monochrome frames through the chain with the window in modality units')
     rep.check('PS3.3 C.11.2.1.2.1: the VOI window applies after the Modality LUT / rescale', matched, wrong,
-              extra=[f'conversion: {m.group(0)}'])
+              extra=[f'deprecated stored-unit conversion: {m.group(0)}'])
 
 
 def check_full_range_window(rep, p3, kit):

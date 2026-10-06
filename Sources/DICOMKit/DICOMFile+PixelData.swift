@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — the convenience renderers renderFrame(_:window:), tryRenderFrame(_:window:), renderFrameWithStoredWindow and tryRenderFrameWithStoredWindow apply the window through GrayscaleDisplayPipeline, i.e. after the Modality LUT Sequence or Rescale Slope/Intercept ("after any Modality LUT or Rescale Slope and Intercept specified in the IOD have been applied", PS3.3 2026a C.11.2.1.2.1; chain order PS3.4 2026a N.2), then INVERSE for MONOCHROME1 (C.7.6.3.1.2); the first of several Window Center values is the default presentation (C.11.2.1.2) (D243)
 // NEMA-verified: 2026a, checked 2026-09-29 — the non-image SOP Class list diffed by Scripts/diff_kit.py against PS3.6 2026a Table A-1 (two UIDs and two names corrected); JPEG YBR relabel per PS3.5 Table 8.2.1-1
 import Foundation
 import DICOMCore
@@ -308,9 +309,19 @@ extension DICOMFile {
     
     /// Renders the specified frame to a CGImage with custom window settings
     ///
+    /// The window is in the units the Modality LUT puts out (Hounsfield units for a
+    /// CT, the same units as the file's own Window Center (0028,1050) / Window Width
+    /// (0028,1051)): it is applied through ``GrayscaleDisplayPipeline`` after the
+    /// Modality LUT Sequence or this frame's Rescale Slope / Intercept, as PS3.3
+    /// C.11.2.1.2.1 orders it ("after any Modality LUT or Rescale Slope and Intercept
+    /// specified in the IOD have been applied"), then INVERSE for MONOCHROME1
+    /// (C.7.6.3.1.2). Before D243 the window was applied to the stored values, so a
+    /// CT with Rescale Intercept −1024 rendered misplaced by 1024 (washed out).
+    /// Colour and palette frames ignore the window.
+    ///
     /// - Parameters:
     ///   - frameIndex: The frame index to render (default 0)
-    ///   - window: Custom window settings for grayscale mapping
+    ///   - window: Window settings in modality (Modality LUT output) units
     /// - Returns: CGImage if rendering succeeds
     public func renderFrame(_ frameIndex: Int = 0, window: WindowSettings) -> CGImage? {
         guard let pixelData = pixelData() else {
@@ -323,9 +334,12 @@ extension DICOMFile {
     /// Renders the specified frame to a CGImage with custom window settings,
     /// throwing detailed errors on failure
     ///
+    /// The window is in modality (Modality LUT output) units and is applied through
+    /// ``GrayscaleDisplayPipeline`` after the Modality LUT, as ``renderFrame(_:window:)``.
+    ///
     /// - Parameters:
     ///   - frameIndex: The frame index to render (default 0)
-    ///   - window: Custom window settings for grayscale mapping
+    ///   - window: Window settings in modality (Modality LUT output) units
     /// - Returns: CGImage if rendering succeeds
     /// - Throws: `PixelDataError` with detailed information about the failure
     public func tryRenderFrame(_ frameIndex: Int = 0, window: WindowSettings) throws -> CGImage? {
@@ -336,11 +350,15 @@ extension DICOMFile {
     
     /// Renders the specified frame using window settings from the DICOM file
     ///
+    /// The file's Window Center (0028,1050) / Window Width (0028,1051) — this frame's
+    /// Frame VOI LUT functional group on an Enhanced object, else the shared pair; the
+    /// first of several values is the default presentation (PS3.3 C.11.2.1.2) — is
+    /// applied after the Modality LUT through ``GrayscaleDisplayPipeline`` (D243).
     /// Falls back to automatic windowing if no window settings are present.
     /// - Parameter frameIndex: The frame index to render (default 0)
     /// - Returns: CGImage if rendering succeeds
     public func renderFrameWithStoredWindow(_ frameIndex: Int = 0) -> CGImage? {
-        if let window = windowSettings() {
+        if let window = headerWindow(frameIndex: frameIndex) {
             return renderFrame(frameIndex, window: window)
         } else {
             return renderFrame(frameIndex)
@@ -357,7 +375,7 @@ extension DICOMFile {
     /// - Returns: CGImage if rendering succeeds
     /// - Throws: `PixelDataError` with detailed information about the failure
     public func tryRenderFrameWithStoredWindow(_ frameIndex: Int = 0) throws -> CGImage? {
-        if let window = windowSettings() {
+        if let window = headerWindow(frameIndex: frameIndex) {
             return try tryRenderFrame(frameIndex, window: window)
         } else {
             return try tryRenderFrame(frameIndex)
@@ -366,13 +384,27 @@ extension DICOMFile {
     
     // MARK: - Private Rendering Helpers
     
-    /// Internal helper to render a frame with window settings using provided pixel data
+    /// The file's default window for a frame: the first of several Window Center /
+    /// Window Width values (the default presentation, PS3.3 C.11.2.1.2), read from this
+    /// frame's functional group on an Enhanced object, else the shared pair.
+    private func headerWindow(frameIndex: Int) -> WindowSettings? {
+        allWindowSettings(frameIndex: frameIndex).first ?? windowSettings(frameIndex: frameIndex)
+    }
+
+    /// Internal helper to render a frame with window settings using provided pixel data.
+    ///
+    /// A monochrome frame goes through the PS3.4 N.2 chain — this frame's Modality LUT,
+    /// then the window in modality units, then INVERSE for MONOCHROME1 — so the window
+    /// is placed where PS3.3 C.11.2.1.2.1 places it (D243).
     private func renderFrameWithWindow(pixelData: PixelData, frameIndex: Int, window: WindowSettings) -> CGImage? {
         let lut = dataSet.paletteColorLUT()
         let renderer = PixelDataRenderer(pixelData: pixelData, paletteColorLUT: lut)
         
         if pixelData.descriptor.photometricInterpretation.isMonochrome {
-            return renderer.renderMonochromeFrame(frameIndex, window: window)
+            let pipeline = GrayscaleDisplayPipeline.standard(
+                for: pixelData.descriptor.photometricInterpretation,
+                modalityLUT: modalityLUT(frameIndex: frameIndex), voiLUT: VOILUT(window))
+            return renderer.renderMonochromeFrame(frameIndex, pipeline: pipeline)
         } else if pixelData.descriptor.photometricInterpretation.isPaletteColor {
             return renderer.renderPaletteColorFrame(frameIndex)
         } else {
@@ -446,6 +478,22 @@ extension DICOMFile {
     
     // MARK: - Rescale Values
     
+    /// The Modality LUT of a frame (PS3.3 2026a C.11.1): the Modality LUT Sequence
+    /// (0028,3000) when the file has one, else this frame's Rescale Slope (0028,1053) /
+    /// Rescale Intercept (0028,1052) (the Pixel Value Transformation functional group
+    /// on an Enhanced object, else the shared pair); `nil` when that is the identity
+    /// (slope 1, intercept 0). The sequence and the rescale pair are mutually
+    /// exclusive (C.11.1.1.2), so the sequence wins when both are present.
+    public func modalityLUT(frameIndex: Int? = nil) -> ModalityLUT? {
+        if let table = dataSet.modalityLUTData() {
+            return .lut(table)
+        }
+        let slope = rescaleSlope(frameIndex: frameIndex)
+        let intercept = rescaleIntercept(frameIndex: frameIndex)
+        return (slope == 1 && intercept == 0)
+            ? nil : .rescale(slope: slope, intercept: intercept, type: nil)
+    }
+
     /// Returns the rescale intercept value
     public func rescaleIntercept(frameIndex: Int? = nil) -> Double {
         dataSet.rescaleIntercept(frameIndex: frameIndex)

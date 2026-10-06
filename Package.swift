@@ -627,6 +627,9 @@ let package = Package(
                 "CompressedPreviewRenderParityTests.swift",
                 "CompressionConsoleTests.swift",
                 "ExportWindowParityTests.swift",
+                // D243 / A6: the DICOMFile convenience renderers and determineModalityWindow
+                // apply the window after the Modality LUT (PS3.3 C.11.2.1.2.1).
+                "ConvenienceRenderPipelineTests.swift",
                 // GPU_RENDERING_PLAN.md M1: the WindowLUT ⇄ scalar-chain equality
                 // gate. (The benchmark harness lives in DICOMRenderKitTests, which
                 // can reach both backends.)

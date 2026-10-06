@@ -143,8 +143,10 @@ final class ExportStandardTests: XCTestCase {
             file: file, pixelData: pd, frameIndex: 0, applyWindow: false, windowCenter: nil, windowWidth: nil)
         let sheet = try ExportFrames.render(file: file, frameIndex: 0, applyWindow: false, windowCenter: nil, windowWidth: nil)
         XCTAssertEqual(bytes(sheet), bytes(single))
-        let oldPath = try file.tryRenderFrameWithStoredWindow(0)
-        XCTAssertNotEqual(bytes(oldPath), bytes(single), "the stored-window path ignored Rescale Intercept")
+        // D243 (2026-10-06): the DICOMFile stored-window path applies the window after the
+        // rescale too, so it now renders the same raster (it ignored Rescale Intercept before).
+        let storedWindowPath = try file.tryRenderFrameWithStoredWindow(0)
+        XCTAssertEqual(bytes(storedWindowPath), bytes(single), "the stored-window path applies the window after the rescale (D243)")
     }
 
     /// animate with --apply-window and explicit values renders like `single` does.

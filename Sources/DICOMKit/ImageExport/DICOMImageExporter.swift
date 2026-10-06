@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — determineModalityWindow returns the window in the units the Modality LUT puts out, the units PS3.3 2026a C.11.2.1.2.1 applies it in ("after any Modality LUT or Rescale Slope and Intercept specified in the IOD have been applied"), i.e. what GrayscaleDisplayPipeline and DICOMFile.renderFrame(_:window:) apply (PS3.4 2026a N.2); the full-range fallback is C.11.2.1.2.1's x1…x2 window as GrayscaleDisplayPipeline.fullRangeWindow writes it; determineWindowSettings (stored units, exact only for slope 1 and no Modality LUT Sequence) is deprecated (A6 / D65)
 // NEMA-verified: 2026a, checked 2026-09-30 — monochrome export applies the PS3.4 2026a N.2 chain (GrayscaleDisplayPipeline): Modality LUT Sequence or this frame's rescale, then the window in modality units (PS3.3 C.11.2.1.2.1) or the VOI LUT Sequence (C.11.2.1.1), then INVERSE for MONOCHROME1 (C.7.6.3.1.2) (D65); full-range and identity fallbacks per C.11.2.1.2.1 (D66)
 // NEMA-verified: 2026a, checked 2026-09-29 — window and rescale per PS3.3 2026a C.11.2.1.2 and C.11.1.1.2
 // NEMA-verified: 2026a, checked 2026-10-01 — EXIF export: Study Date read as DA and Study Time as TM per PS3.5 2026a Table 6.2-1 and converted to Exif DateTimeOriginal (non-DA values not written); Patient ID / Modality / Series Description into Exif UserComment as PS3.6 keyword=value (D126)
@@ -355,13 +356,17 @@ public enum DICOMImageExporter {
     /// so a multi-echo MR or a per-frame-windowed PET pages through the viewer
     /// and exports with each frame's own window rather than frame 0's.
     ///
-    /// **Stored-value units.** The conversion `(c − b) / m`, `w / |m|` reproduces
-    /// PS3.3 C.11.2.1.2.1 (the window applied after the rescale) only for a slope of 1,
-    /// and a negative slope inverts the ramp; a Modality LUT Sequence is not applied at
-    /// all. Kept for callers that render with a stored-unit window (DICOMStudio's
-    /// viewer, until that module's pass). Export uses
-    /// ``determineDisplayPipeline(from:pixelData:frameIndex:windowCenter:windowWidth:)``,
-    /// which applies the chain as the standard orders it (D65).
+    /// **Stored-value units — deprecated.** The conversion `(c − b) / m`, `w / |m|`
+    /// reproduces PS3.3 C.11.2.1.2.1 (the window applied after the rescale) only for a
+    /// slope of 1, and a negative slope inverts the ramp; a Modality LUT Sequence is not
+    /// applied at all. Nothing in DICOMKit renders with a stored-unit window any more:
+    /// ``DICOMFile/renderFrame(_:window:)`` and ``PixelDataRenderer/renderMonochromeFrame(_:pipeline:pseudoColor:)``
+    /// take the window in modality units (D243). Use
+    /// ``determineModalityWindow(from:pixelData:frameIndex:windowCenter:windowWidth:)``,
+    /// which is exact, or ``determineDisplayPipeline(from:pixelData:frameIndex:windowCenter:windowWidth:)``
+    /// for the whole chain (D65, A6).
+    @available(*, deprecated, renamed: "determineModalityWindow(from:pixelData:frameIndex:windowCenter:windowWidth:)",
+               message: "returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units")
     public static func determineWindowSettings(
         from file: DICOMFile, pixelData: PixelData, frameIndex: Int,
         windowCenter: Double?, windowWidth: Double?
@@ -398,6 +403,55 @@ public enum DICOMImageExporter {
                               width: Double(1 << assumedBitDepth))
     }
 
+    /// The window a frame is rendered with when none is supplied, in the units the
+    /// renderers apply it (A6 / D65): modality units, the output of the Modality LUT
+    /// Sequence or of this frame's Rescale Slope / Intercept, which PS3.3 C.11.2.1.2.1
+    /// applies the window to ("after any Modality LUT or Rescale Slope and Intercept
+    /// specified in the IOD have been applied"). ``DICOMFile/renderFrame(_:window:)``,
+    /// ``GrayscaleDisplayPipeline`` and ``determineDisplayPipeline(from:pixelData:frameIndex:windowCenter:windowWidth:)``
+    /// all take the window in these units, so the result renders exactly, for any slope
+    /// and for a table-form Modality LUT, where the stored-unit conversion of the
+    /// deprecated ``determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)``
+    /// was exact only for a slope of 1.
+    ///
+    /// Resolution, each rung honouring `frameIndex` on an Enhanced object:
+    /// - explicit `windowCenter` / `windowWidth` (LINEAR);
+    /// - else the file's first Window Center (0028,1050) / Window Width (0028,1051) pair
+    ///   for this frame, with its VOI LUT Function (0028,1056) and explanation;
+    /// - else the window over the frame's own modality range — PS3.3 C.11.2.1.2.1's
+    ///   full-range window x1…x2, as ``GrayscaleDisplayPipeline/fullRangeWindow(modalityLUT:storedRange:)``
+    ///   writes it (LINEAR_EXACT, centre (x1+x2)/2, width x2−x1, identical for
+    ///   integral values);
+    /// - else that window over the 16-bit stored range 0…65 535 (the identity window
+    ///   centre 2^15, width 2^16 of C.11.2.1.2.1, through the Modality LUT).
+    ///
+    /// A VOI LUT Sequence (0028,3010) table cannot be expressed as a window; a file
+    /// whose default presentation is a table gets the full-range window here, and the
+    /// table through ``determineDisplayPipeline(from:pixelData:frameIndex:windowCenter:windowWidth:)``.
+    /// A caller that keeps its window state in stored units converts with
+    /// `(center − intercept) / slope`, `width / |slope|` itself (only exact for a
+    /// rescale pair, never for a table).
+    public static func determineModalityWindow(
+        from file: DICOMFile, pixelData: PixelData, frameIndex: Int,
+        windowCenter: Double?, windowWidth: Double?
+    ) -> WindowSettings {
+        if let center = windowCenter, let width = windowWidth {
+            return WindowSettings(center: center, width: width)
+        }
+        if let window = file.allWindowSettings(frameIndex: frameIndex).first
+            ?? file.windowSettings(frameIndex: frameIndex) {
+            return window
+        }
+        let modality = file.modalityLUT(frameIndex: frameIndex)
+        let storedRange = pixelData.pixelRange(forFrame: frameIndex) ?? (min: 0, max: (1 << 16) - 1)
+        guard case .window(let center, let width, let explanation, let function) =
+                GrayscaleDisplayPipeline.fullRangeWindow(modalityLUT: modality, storedRange: storedRange) else {
+            // fullRangeWindow only ever returns a window; the identity of C.11.2.1.2.1.
+            return WindowSettings(center: Double(1 << 15), width: Double(1 << 16))
+        }
+        return WindowSettings(center: center, width: width, explanation: explanation, function: function)
+    }
+
     /// Resolves the PS3.4 N.2 grayscale chain for a frame, the way the standard
     /// orders it (D65, P-PIPELINE):
     ///
@@ -418,15 +472,7 @@ public enum DICOMImageExporter {
         windowCenter: Double?, windowWidth: Double?
     ) -> GrayscaleDisplayPipeline {
         let dataSet = file.dataSet
-        let modality: ModalityLUT?
-        if let table = dataSet.modalityLUTData() {
-            modality = .lut(table)
-        } else {
-            let slope = file.rescaleSlope(frameIndex: frameIndex)
-            let intercept = file.rescaleIntercept(frameIndex: frameIndex)
-            modality = (slope == 1 && intercept == 0)
-                ? nil : .rescale(slope: slope, intercept: intercept, type: nil)
-        }
+        let modality = file.modalityLUT(frameIndex: frameIndex)
 
         let voi: VOILUT
         if let center = windowCenter, let width = windowWidth {
@@ -455,9 +501,9 @@ public enum DICOMImageExporter {
     ///
     /// - When `applyWindow` is false the frame is rendered with the renderer's default
     ///   (no explicit window).
-    /// - When `applyWindow` is true the window is resolved via ``determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)``
-    ///   (explicit center/width → the file's stored window → the frame's pixel range →
-    ///   a 16-bit fallback) and the frame is rendered with it.
+    /// - When `applyWindow` is true the chain is resolved via ``determineDisplayPipeline(from:pixelData:frameIndex:windowCenter:windowWidth:)``
+    ///   (explicit center/width → the file's window → its VOI LUT table → the frame's
+    ///   modality range → a 16-bit fallback) and the frame is rendered with it.
     ///
     /// The caller owns frame-bounds validation, file/console I/O, and encoding (via
     /// ``exportCGImage(_:to:format:quality:metadata:)``).
@@ -487,12 +533,9 @@ public enum DICOMImageExporter {
             }
             return image
         }
-        let window = determineWindowSettings(
-            from: file, pixelData: pixelData, frameIndex: frameIndex,
-            windowCenter: applyWindow ? windowCenter : nil,
-            windowWidth: applyWindow ? windowWidth : nil
-        )
-        guard let image = try file.tryRenderFrame(frameIndex, window: window) else {
+        // Colour and palette frames take no window (D243: the window-taking render
+        // ignores it for them; the plain render is the same raster).
+        guard let image = try file.tryRenderFrame(frameIndex) else {
             throw ExportError.renderFailed
         }
         return image
