@@ -1,42 +1,13 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — --root is checked against PS3.5 2026a 9.1 (numeric components, no leading zero unless the component is "0", "." separators, at most 64 characters) and must leave room for the generated suffix; --uuid builds the UUID derived UID of PS3.5 B.2 ("2.25." + the UUID as a decimal integer, at most 39 digits); lookup --type covers all 12 UID Type values of PS3.6 2026a Table A-1 (465 rows dumped by script; "DICOM UIDs as a Coding Scheme" is folded into coding-scheme by DICOMDictionary.UIDType)
+// NEMA-verified: 2026a, checked 2026-10-06 — --root is checked by DICOMKit UIDManager.RootRule against PS3.5 2026a 9.1 (lifted from this file's UIDRootRule, D250; the typealias below only forwards for the DICOMStudio copy and the tests); --uuid builds the UUID derived UID of PS3.5 B.2 ("2.25." + the UUID as a decimal integer, at most 39 digits); lookup --type covers all 12 UID Type values of PS3.6 2026a Table A-1 (465 rows dumped by script; "DICOM UIDs as a Coding Scheme" is folded into coding-scheme by DICOMDictionary.UIDType)
 import Foundation
 import DICOMCore
 import DICOMDictionary
 import DICOMKit
 
-/// PS3.5 9.1 checks for a `--root` value and the room it leaves for generated UIDs.
-enum UIDRootRule {
-
-    /// The longest suffix `UIDGenerator` appends to the root: `.<µs timestamp>.<random 0-999999>`,
-    /// plus `.<1|2|3>` for a typed (study / series / instance) UID.
-    static func suffixLength(typed: Bool) -> Int {
-        let timestampDigits = String(UInt64(Date().timeIntervalSince1970 * 1_000_000)).count
-        return 1 + timestampDigits + 1 + 6 + (typed ? 2 : 0)
-    }
-
-    /// Problems with `root` as a UID root: the PS3.5 9.1 syntax rules, and the 64-character
-    /// limit of 9.1 for the generated UID. A root too long for the suffix would make the
-    /// generator cut the unique part off and return the same UID every time.
-    static func problems(root: String, typed: Bool) -> [String] {
-        var out: [String] = []
-        let components = root.split(separator: ".", omittingEmptySubsequences: false)
-        if root.isEmpty || components.contains(where: { $0.isEmpty }) {
-            out.append("UID root '\(root)' has an empty component; components are separated by single \".\" characters (PS3.5 9.1)")
-        }
-        for component in components where !component.isEmpty {
-            if !component.allSatisfy({ ("0"..."9").contains($0) }) {
-                out.append("UID root component '\(component)' is not a number; only the digits 0-9 are allowed (PS3.5 9.1)")
-            } else if component.count > 1 && component.hasPrefix("0") {
-                out.append("UID root component '\(component)' has a leading zero; only a single-digit component may start with 0 (PS3.5 9.1)")
-            }
-        }
-        let room = DICOMUniqueIdentifier.maximumLength - suffixLength(typed: typed)
-        if root.count > room {
-            out.append("UID root is \(root.count) characters; generated UIDs add up to \(suffixLength(typed: typed)) more and may not exceed \(DICOMUniqueIdentifier.maximumLength) (PS3.5 9.1), so the root may have at most \(room)")
-        }
-        return out
-    }
-}
+/// The pre-D250 name of `UIDManager.RootRule` (PS3.5 9.1 checks for a `--root` value and the
+/// room it leaves for generated UIDs), now shared with the DICOMStudio CLI Workshop.
+@available(*, deprecated, renamed: "UIDManager.RootRule")
+typealias UIDRootRule = UIDManager.RootRule
 
 /// The UUID derived UID of PS3.5 B.2: the root "2.25." followed by the 128-bit UUID
 /// as an unsigned decimal integer without leading zeros (up to 39 digits).

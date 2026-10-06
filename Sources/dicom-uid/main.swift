@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — help and checks cite PS3.5 2026a 9.1, 9.2.2 and B.2; --root is validated (UIDRootRule) and the default root is UIDGenerator.defaultRoot; lookup prints the PS3.6 2026a Table A-1 names (465 of 465 match, 2 unregistered Fragmentable HEVC entries by decision) and --type filters every Table A-1 UID Type (UIDOptions.swift); regenerate replaces the 57 UI attributes of PS3.15 2026a Table E.1-1 (action U, Annotation Group UID D) at every sequence depth and never a Table A-1 UID (engine UIDManager.regeneratedUIDTags, D135/D138); validate applies only the PS3.5 9.1 rules, --file covers sequence items (D133)
+// NEMA-verified: 2026a, checked 2026-10-01 — help and checks cite PS3.5 2026a 9.1, 9.2.2 and B.2; --root is validated (DICOMKit UIDManager.RootRule, D250) and the default root is UIDGenerator.defaultRoot; lookup prints the PS3.6 2026a Table A-1 names (465 of 465 match, 2 unregistered Fragmentable HEVC entries by decision) and --type filters every Table A-1 UID Type (UIDOptions.swift); regenerate replaces the 57 UI attributes of PS3.15 2026a Table E.1-1 (action U, Annotation Group UID D) at every sequence depth and never a Table A-1 UID (engine UIDManager.regeneratedUIDTags, D135/D138); validate applies only the PS3.5 9.1 rules, --file covers sequence items (D133)
 import Foundation
 import ArgumentParser
 import DICOMCore
@@ -87,7 +87,7 @@ extension DICOMUID {
             }
             if let root {
                 let typed = ["study", "series", "instance", "sop"].contains(type?.lowercased() ?? "")
-                let problems = UIDRootRule.problems(root: root, typed: typed)
+                let problems = UIDManager.RootRule.problems(root: root, typed: typed)
                 if !problems.isEmpty { throw ValidationError(problems.joined(separator: "\n")) }
             }
         }
@@ -335,7 +335,7 @@ extension DICOMUID {
                 throw ValidationError("At least one input file is required")
             }
             if let root {
-                let problems = UIDRootRule.problems(root: root, typed: false)
+                let problems = UIDManager.RootRule.problems(root: root, typed: false)
                 if !problems.isEmpty { throw ValidationError(problems.joined(separator: "\n")) }
             }
         }
