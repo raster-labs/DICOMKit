@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — output diffed against PS3.3 2026a Table A.8-1 (Secondary Capture Image IOD): all Type 1/2 attributes of the 9 M modules present (27 grayscale, 28 colour incl. Planar Configuration 1C; Tables C.7-1, C.7-3, C.7-5a, C.8-24, C.7.10.1-1, C.7-9, C.7-11a/c, C.8-25, C.12-1); 16 options: value options refused (exit 1) when PS3.5 2026a Table 6.2-1 / Section 9 forbids them (P-IMAGE-VR); --modality via ModalityOptionValidator (C.7.3.1.1.1, 97 terms), --conversion-type Table C.8-24 (8 terms), SOP Class name/UID per PS3.4 Table B.5-1 and PS3.6 Table A-1, help names per PS3.6 Table 6-1 (DICOMKit ImageConverter.OutputRules, D274)
+// NEMA-verified: 2026a, checked 2026-10-01 — output diffed against PS3.3 2026a Table A.8-1 (Secondary Capture Image IOD): all Type 1/2 attributes of the 9 M modules present (27 grayscale, 28 colour incl. Planar Configuration 1C; Tables C.7-1, C.7-3, C.7-5a, C.8-24, C.7.10.1-1, C.7-9, C.7-11a/c, C.8-25, C.12-1); 16 options: value options refused (exit 1) when PS3.5 2026a Table 6.2-1 / Section 9 forbids them (P-IMAGE-VR); --modality via ModalityOptionValidator (C.7.3.1.1.1, 97 terms), --conversion-type Table C.8-24 (8 terms), SOP Class name/UID per PS3.4 Table B.5-1 and PS3.6 Table A-1, help names per PS3.6 Table 6-1 (DICOMKit ImageConverter.OutputRules, D274); a directory run exits 1 after the summary when any file failed (D273)
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -237,6 +237,11 @@ struct DICOMImage: ParsableCommand {
             successful: successCount, failed: failureCount,
             studyUID: finalStudyUID, seriesUID: finalSeriesUID, outputDir: outputDirURL.path
         ), terminator: "")
+        // D273: like dicom-convert's directory run (P-CONVERT-EXIT), a run with any failed
+        // file exits 1 after the summary.
+        if failureCount > 0 {
+            throw ExitCode.failure
+        }
     }
 
     // MARK: - File Processing

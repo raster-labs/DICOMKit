@@ -86,6 +86,10 @@ dicom-image photos/ --output dicoms/ --recursive \
 
 All images will be grouped into a single series with auto-incrementing instance numbers.
 
+A directory run exits with status 1 after its summary when any image failed to convert (files
+that are not images are skipped, not failed), like `dicom-convert`'s directory run; until
+2026-10-06 it exited 0 whatever the per-file outcomes (D273).
+
 ### Multi-Page TIFF
 
 Split a multi-page TIFF into separate DICOM files:
