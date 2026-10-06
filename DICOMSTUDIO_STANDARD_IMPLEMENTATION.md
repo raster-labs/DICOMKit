@@ -1,17 +1,26 @@
 # DICOMStudio — DICOM Standard Implementation Report
 
-Generated 2026-10-05. Covers all 334 Swift files in `Sources/DICOMStudio/` (333) and `Sources/DICOMStudioApp/` (1):
+Generated 2026-10-05, last updated 2026-10-06. Covers all 334 Swift files in `Sources/DICOMStudio/` (333) and `Sources/DICOMStudioApp/` (1):
 the macOS SwiftUI application over DICOMKit — the CLI Workshop (forms, executors and command previews for 29 of the
 42 `dicom-*` tools), the image viewer and its PS3.4 N.2 display pipeline, presentation states, DIMSE and DICOMweb
 panels, the print composer and Print SCP, DICOMDIR and media exchange, structured reports, anonymization and the
 derived-object helpers. (The earlier status row said 335 files; `cb5090f2` moved `@main` to the DICOMStudioApp target
 and deleted the old `App/DICOMStudioApp.swift`, so 334 is the closing count.)
 
-**Status: in progress** (started 2026-10-05). Method:
+**Status: complete (pending the owner's decisions).** Verified 2026-10-05 / 06. Every one of the 334 files is in a group and
+a tier: the 170 standard-touching files carry a `NEMA-verified` marker and the 164 not-standard-touching files are
+inventoried (`check_nema_markers.py --inventory` exits 0 on both targets). Every data table, term set and Workshop form
+the module carries was diffed by script against the frozen 2026a DocBook and the CLI contract:
+[Scripts/diff_studio.py](Scripts/diff_studio.py) with its six group modules — **206 checks ok, 0 failing, 13 pending
+the owner** (the P-items below). All 17 inherited rows are closed except the DICOMKit half of D237 (P-VIDEO-CONTAINER);
+D242–D275 were opened for other modules. The CLI Workshop mirrors the 29 tools the UI offers (33 Workshop tool ids)
+option for option, default for default and output line for output line (section 5). Full `swift test` exit 0 on
+2026-10-06: XCTest 5,819 executed / 44 skipped / 0 failures (baseline 5,798 / 44); Swift Testing 9,252
+passed, 0 failures (baseline 9,083). Open for the owner: 15 P-items (public API: new enum cases, raw-value changes,
+deprecations) and the parity-driven behaviour changes listed before the Deferred findings. Method:
 [DICOMCORE_STANDARD_IMPLEMENTATION.md → Verification method](DICOMCORE_STANDARD_IMPLEMENTATION.md#verification-method-reuse-for-every-module),
 used unchanged. Package target: **DICOM 2026a** (`dicomStandardEdition = "2026a"`,
-[DICOMKit.swift](Sources/DICOMKit/DICOMKit.swift)). Diff script: [Scripts/diff_studio.py](Scripts/diff_studio.py)
-(plus one `Scripts/diff_studio_g<N>.py` per group); markers checked with
+[DICOMKit.swift](Sources/DICOMKit/DICOMKit.swift)). Markers checked with
 `python3 Scripts/diff_studio.py --inventory | python3 Scripts/check_nema_markers.py --inventory - Sources/DICOMStudio Sources/DICOMStudioApp`.
 
 **Scope note.** Most of the module is SwiftUI views, caches and view-model plumbing that carry no standard-derived
@@ -44,7 +53,7 @@ the same tool option, wire value and default as the CLI contract.
 | G4 File, media and DICOMDIR | 31 | 8 | 3 | 42 | ✅ 2026-10-05 (markers `b0eca043`, checks `f02ee47a`, fixes `e6c2a11a`…`1793c091`; `diff_studio.py --group G4`: 22 ok, 0 FAIL; two files share hunks with the codec pass) |
 | G5 Derived objects, SR and security | 36 | 0 | 6 | 42 | ✅ 2026-10-05 (`32929df7`…`c87e60dd`; `diff_studio.py --group G5`: 11 checks, 0 FAIL, 6 PEND — seven P-STUDIO-* items) |
 | G6 Print | 11 | 11 | 17 | 39 | ✅ 2026-10-05 (`77d47fd1`; `diff_studio.py --group G6`: 0 FAIL; DICOMPrintKit finding: `PrintOptionCatalog.filmDestinations` stops at BIN_2) |
-| **All** | **169** | **57** | **108** | **334** | ⏳ |
+| **All** | **170** | **56** | **108** | **334** | ✅ 2026-10-06 (`PatientOverlayText` promoted CR → ST; JP3DMPRViewModel promoted and marked within G2's 52) |
 
 Standard text used (fetched 2026-10-05 from `/2026a/`, subtitles confirmed): PS3.3, PS3.4, PS3.5, PS3.6, PS3.10,
 PS3.11, PS3.15, PS3.16, PS3.18.
@@ -181,6 +190,7 @@ Table O-1). Every other generic check is ok.
 | 2026-10-05 | dicom-convert: `--transfer-syntax` picker = DICOMConverter.cliTokens (Reversible names), old spellings canonicalised on entry (WorkshopTransferSyntaxKeywords.canonicalToken), TransferSyntaxKeywords mirror (+7 Table A-1 keywords), `--frame-number` (from 1) with `--frame` deprecated, CLI help; executor: validate() refusals (64), both-frame-spellings exit 1, deprecation and reassigned-keyword notes, invalidFrameNumberMessage, directory run exits 1 on a failure, app-only chrome removed | PS3.6 2026a Table A-1 (7 added keywords + 3 reassigned: 10 matched), PS3.3 Table 10-3 ("The first Frame shall be denoted as Frame number 1" read), C.11.2.1.2.1 | 38a2eea0 | convertTokensAndFrames, testDicomConvertParameterCount (14); g1 "pixel convert tokens" (24) |
 | 2026-10-05 | dicom-compress: decompress / batch `--syntax` picker = NativeTargetSyntax.accepted (explicit-le, implicit-le, deflate, explicit-be), refusals mirrored (exit 1), CLI help texts; executors: validate() texts (64), `Error: \(error)` formatting, "Error scanning directory", info --json via CompressionConsole.infoJSON (already shared) | PS3.6 2026a Table A-1 (4 native UIDs: 4 matched), PS3.5 A.1, A.2, A.3 (retired, D206), A.5 | 38a2eea0 | compressSyntaxPicker; g1 "pixel compress syntax" (15) |
 | 2026-10-05 | Markers on CLIWorkshopHelpers.swift and CLIWorkshopViewModel.swift summarising the three Workshop passes (33 tool ids; G1 parity 0 FAIL, 2 PEND) | — | 5678fa8e | — |
+| 2026-10-06 | Module close | — | `diff_studio.py`: 206 ok, 0 FAIL, 13 PEND; `check_nema_markers.py --inventory`: 170 marked + 164 inventoried, exit 0; DICOMCore status row, CHANGELOG | full `swift test` exit 0: XCTest 5,819 / 44 skipped / 0 failures; Swift Testing 9,252 passed |
 
 ---
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Verified — DICOMStudio against DICOM 2026a (2026-10-05 / 06)
+
+- **DICOMStudio, DICOMStudioApp** (334 files) verified against the frozen 2026a DocBook and the `dicom-*` CLI contract
+  (`Scripts/diff_studio.py`: 206 checks ok, 0 failing, 13 pending the owner's API decisions; 170 standard-touching files
+  carry `NEMA-verified` markers, 164 UI / plumbing files are inventoried). The CLI Workshop now mirrors the 29 tools the UI
+  offers option for option, default for default and output line for output line; the viewer renders through the PS3.4 N.2
+  chain; every inherited deferred row is closed except the DICOMKit half of D237. Per-row entries are listed below.
+
 ### Fixed — DICOMStudio CLI Workshop pixel and codec tools (2026-10-05, DICOM 2026a)
 - dicom-anon Workshop: the 12 PS3.15 2026a Annex E Option flags (`--retain-full-dates`, `--retain-modified-dates`, `--retain-characteristics`, `--retain-device`, `--retain-institution`, `--retain-uids`, `--clean-descriptors`, `--retain-safe-private`, `--clean-graphics`, `--clean-structured-content`, `--clean-recognizable-visual-features`; `--retain-dates` labelled deprecated, P-ANON-RETAIN-DATES), `--clean-pixel-data`, `--redact-region`, `--redact-fill` and `--allow-burned-in-phi` are offered with dicom-anon's help; the executor runs dicom-anon's own loop (shared Anonymizer / PixelRedactor / AnonConsole, the deprecated-profile notice, the PS3.15 Table E.1-1a action report on `--dry-run` / `--verbose`, Media Storage SOP Instance UID (0002,0003) following the replaced SOP Instance UID per PS3.10 7.1) with the CLI's refusals and exit codes; an Option flag on a legacy profile is refused with the CLI's "apply only to --profile ps315" text (ps315 itself stays pending P-STUDIO-ANON-PS315).
 - dicom-image Workshop: `--conversion-type` (PS3.3 2026a Table C.8-24 Defined Terms), `--strict-modality`; values the VR cannot hold are refused before conversion with dicom-image's texts (PS3.5 2026a Table 6.2-1 / 9.1: UID syntax, LO / PN 64 characters and no backslash, IS range; P-IMAGE-VR); the output carries (0002,0003) = (0008,0018) and Specific Character Set ISO_IR 192 for non-ASCII text as the CLI writes it; `--modality` is resolved per file by the shared ModalityOptionValidator; the CLI's order, texts and exit codes.
