@@ -23,7 +23,7 @@ This document is in two parts. **Part 1** (§1–§5) is the current state. **Pa
 | DICOMPrintKit | 31 | 31 | exit 0 | `diff_printkit.py`: 0 wrong, 0 pending | 0 | 0 | ✅ met |
 | DICOMRenderKit | 10 | 10 | exit 0 | `diff_renderkit.py`: 17 ok, 0 failing, 0 pending, 0 deferred | 0 | 0 | ✅ met |
 | `dicom-*` CLI (42 tools) | 100 | 100 | exit 0 for all 42 directories | `diff_cli.py`: 0 FAIL; `diff_cli_web.py`: 0 FAIL; `cli_contracts.py --check` exit 0 | D216, D221 (owner decision) | 0 | ✅ met |
-| DICOMStudio + DICOMStudioApp | 338 | 173 (+165 inventoried as not standard-touching) | exit 0 (`--inventory`) | `diff_studio.py`: PENDING_DIFF_STUDIO | D256 (owner decision) | 0 | ✅ met (all P-items approved and implemented 2026-10-06) |
+| DICOMStudio + DICOMStudioApp | 338 | 173 (+165 inventoried as not standard-touching) | exit 0 (`--inventory`) | `diff_studio.py`: 0 FAIL, 0 PEND (222 checks ok) | D256 (owner decision) | 0 | ✅ met (all P-items approved and implemented 2026-10-06) |
 
 ## 2. Script evidence
 
@@ -38,25 +38,25 @@ This document is in two parts. **Part 1** (§1–§5) is the current state. **Pa
 | `diff_renderkit.py --nema` | `17 ok, 0 failing, 0 pending owner approval, 0 deferred to another module` |
 | `diff_cli.py --nema` (42 tools) | `0 check(s) with wrong or missing values, 0 pending owner approval` |
 | `diff_cli_web.py --nema` | `0 check(s) with wrong or missing values, 0 pending owner approval` |
-| `diff_studio.py --nema` (G1–G6) | PENDING_DIFF_STUDIO |
+| `diff_studio.py --nema` (G1–G6) | `0 check(s) with wrong or missing values, 0 pending owner approval` (222 ok) |
 | `generate_dicomdir_profile_rules.py --check` | `Sources/DICOMKit/DICOMDIRProfileTables.swift: matches` |
 | `generate_dicomdir_record_keys.py --check` | `Sources/DICOMKit/DICOMDIRRecordKeyTables.swift: matches` |
 | `generate_confidentiality_profile.py --check` | `ok: 211 rows of Table E.3.4-1 (244 keys) match …ConfidentialityProfileStructuredContent.swift` |
 | `cli_contracts.py --check` | no output, exit 0 |
 
-The 13 `diff_studio.py` PEND rows are the open P-STUDIO items: ANON-PS315, MWL-CREATE, ANNOTATION-UNITS, PRINT-ENUMS, TLS-PROFILES (twice), UPS-STATE-RAW, SR-TABLE, SCOORD-POLYGON, RT-ROI-TYPES, RT-DOSE-UNITS, HP-SORTING-DIRECTION and MEASURE-UM.
+Every diff script exits 0. The 13 `diff_studio.py` PEND rows that stood for the P-STUDIO items are now real checks of the standard-conformant state; each was shown to FAIL on the code before its fix (`3d5f502a`, `c618e743`).
 
 ## 3. Build and tests
 
-Run at `3060ee3e`, the last code commit; only documentation changed after it.
+Run at `dd36ae8b`, the last code commit; only scripts and documentation changed after it.
 
 | Step | Result |
 |---|---|
 | `swift build -c release --product dicom-split --product dicom-merge` | exit 0 |
 | `swift test` (full) | exit 0 |
-| XCTest | 5,929 run, 5,885 passed, 44 skipped, 0 failed |
-| Swift Testing | 49 runs, 9,261 tests, 0 failed |
-| After the P-item pass (`dd36ae8b`) | PENDING_TEST |
+| XCTest | 5,934 run, 5,890 passed, 44 skipped, 0 failed |
+| Swift Testing | 49 runs, 9,295 tests, 0 failed |
+| After the deferred follow-up (`3060ee3e`), for comparison | XCTest 5,929 run / 44 skipped; Swift Testing 9,261 |
 | At the audit (`fca194a3`), for comparison | XCTest 5,835 run / 44 skipped; Swift Testing 9,252 |
 
 ## 4. Deferred rows D1–D276
