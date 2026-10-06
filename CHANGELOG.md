@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — deferred-findings follow-up: rules lifted from the CLIs into the engines (2026-10-06, DICOM 2026a)
+
+- **DICOMKit** `VideoContainer.mpegPS` / `.mpegPES`: MPEG-2 Program Stream and PES input are reported as such instead of `.elementaryStream` (D237, P-VIDEO-CONTAINER approved 2026-10-06; PS3.5 2026a 8.2.5, 8.2.6).
+- **DICOMWeb** `UPSState.changeStateTargets`, `changeStateRefusal`, `init(optionValue:)`, `changeStateTarget(optionValue:)` and `DICOMwebOptionRefusal` (D255; PS3.18 2026a 11.7.1.4, PS3.4 Table CC.1.1-2).
+- **DICOMWeb** `DICOMwebOptionRules`: WADO-URI contentType / frameNumber / region / annotation / parameter warnings, QIDO paging, the `--update` alias and timeouts (D265; PS3.18 2026a 9.1.2.2.1, 9.4.1.2.2, 9.5.1.2.1, 8.3.4.4, 11.7, Table 8.7.4-1).
+- **DICOMNetwork** `NetworkConsole.CStoreOutcome`, `NetworkConsole.sendPartialFailureText` (D261; PS3.4 2026a Table B.2-1).
+- **DICOMNetwork** `NetworkConsole.retrieveFinalResponse(_:service:)`, one rendering of a non-success C-MOVE / C-GET final response (D262; PS3.4 2026a Tables C.4-2 / C.4-3, PS3.7 Table 9.3-10).
+- **DICOMNetwork** `DICOMMPPSService.parseStatus`, `invalidStatusMessage`, `patientSexEnumeratedValues`, `canonicalPatientSex`, `patientSexErrorMessage`, `isValidBirthDate`, `birthDateErrorMessage`, `describeStatus`, `warningLine` (D263; PS3.3 2026a Tables C.4-14, C.2-3; PS3.5 Table 6.2-1 DA).
+- **DICOMNetwork** `WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms`, `spsStatusWarning` (D264; PS3.3 2026a Table C.4-10).
+- **DICOMPrintKit** `FilmDestination(catalogToken:)`, `catalogToken`, `catalogTokenList`: any `BIN_i` (D242; PS3.3 2026a Table C.13-1).
+- **DICOMKit** `VideoOptionConformance`, `AudioChannelSourceOption` (D269; PS3.16 2026a CID 3000; PS3.3 A.32.5–A.32.7, Table C.7-1).
+- **DICOMKit** `PixelEditInputChecks` next to `PixelEditor` (D270; PS3.3 2026a C.7.6.3.1, C.11.2.1.2).
+- **DICOMKit** `AnonCLI` in Anonymization (`AnonCLI.ValidationError` is `LocalizedError`) (D275; PS3.15 2026a E.3, Table E.1-1a; PS3.10 Table 7.1-1).
+- **DICOMKit** `DICOMValidator.iodNameBySOPClassUID`, `iodName(forIODOption:)`, `sopClassUID(forIODOption:)` (D248; PS3.6 2026a Table A-1, 7/7 UIDs).
+- **DICOMKit** `ArchiveMatching.studyDateKeyWarning(_:option:)` (D249; PS3.4 2026a C.2.2.2.5.1).
+- **DICOMKit** `UIDManager.RootRule` (D250; PS3.5 2026a 9.1).
+- **DICOMKit** `DICOMDIRFileSetRules` (D253; PS3.10 2026a 8.1, 8.2, 8.5, 8.6).
+- **DICOMKit** `CompressionConsole.NativeTargetSyntax` (D267; PS3.6 2026a Table A-1; PS3.5 A.1, A.2, A.3, A.5).
+- **DICOMKit** `DICOMConverter.additionalTableA1Keywords`, `transferSyntaxOptionHelpWithKeywords` (D268; PS3.6 2026a Table A-1).
+- **DICOMKit** `DICOMFile.modalityLUT(frameIndex:)`, `DICOMImageExporter.determineModalityWindow(from:pixelData:frameIndex:windowCenter:windowWidth:)` (window in modality units) (A6 / D65; PS3.3 2026a C.11.2.1.2.1, PS3.4 N.2).
+- **DICOMKit** `DICOMImageExporter.CineFrameRate`, `.BurnedInAnnotation`, `.FrameSelection`, `.FrameSelectionConflict`, `.ApplyWindowDeprecation` (D252; PS3.3 2026a Table C.7-13, Table C.7-9, Table 10-3).
+- **DICOMKit** `ImageConverter.OutputRules`: Conversion Type terms, the P-IMAGE-VR refusals, finalize through `DICOMFile.synchronizingMediaStorageUIDs` and `setUTF8SpecificCharacterSetIfNeeded` (also for non-ASCII text in sequence items) (D274; PS3.10 2026a Table 7.1-1; PS3.3 Table C.12-1, C.12-5, Table C.8-24).
+- **DICOMKit** `EncapsulatedDocumentBuilder.OptionRules`: (0042,0015), ISO_IR 192, Conversion Type / Burned In Annotation vocabularies, HL7 Instance Identifier (D272; PS3.3 2026a Table C.24-2, Table C.12-1, Table C.8-24).
+- **DICOMStudio** `DICOMwebClientFactory.makeConfiguration(from:timeouts:)` (D260).
+
+### Changed — deferred-findings follow-up (2026-10-06, DICOM 2026a)
+
+- dicom-qr: a non-success retrieve final response is worded as dicom-retrieve words it (no "Retrieval failed: " prefix; stderr Failed SOP Instance UID List reformatted) (D262; PS3.4 2026a Tables C.4-2 / C.4-3).
+- `DICOMConverter` target resolution accepts the 7 PS3.6 Table A-1 keywords for every caller, `FrameMerger` included (D268; PS3.6 2026a Table A-1).
+- dicom-export `bulk` exits 1 after the summary when any file failed; files without pixel data are skipped (D251; tool contract, P-CONVERT-EXIT).
+- dicom-image directory runs exit 1 after the summary when any image failed; non-images are skipped (D273; tool contract, P-CONVERT-EXIT).
+- dicom-pdf directory runs (extract and encapsulate) exit 1 after the summary when any file failed (D271; tool contract, P-CONVERT-EXIT).
+- dicom-pdf `--extract` cuts the trailing padding by the engine's rule (D272; PS3.3 2026a Table C.24-2).
+- dicom-print `--film-destination` accepts `BIN_n` for any n (D242; PS3.3 2026a Table C.13-1).
+- DICOMStudio: CLI Workshop copies replaced by the engine symbols (D248–D275) — Studio pass PENDING_SHA
+
+### Fixed — deferred-findings follow-up (2026-10-06, DICOM 2026a)
+
+- **DICOMKit** `DICOMFile.renderFrame`, `tryRenderFrame`, `renderFrameWithStoredWindow`, `tryRenderFrameWithStoredWindow` apply the window after the Modality LUT / rescale through `GrayscaleDisplayPipeline` (D243; PS3.3 2026a C.11.2.1.2.1, PS3.4 N.2). **Behaviour change:** the `window` parameter of `renderFrame(_:window:)` is now in modality units (a CT window of 40 / 400 is passed as is, not shifted by the Rescale Intercept).
+- **DICOMNetwork** `PrintService` data-set walker reads OV, SV and UV with a 4-byte length (`VR.uses32BitLength`); the duplicate `VR.uses4ByteLength` is deleted (D276, D1; PS3.5 2026a 7.1.2, Tables 7.1-1 / 7.1-2).
+- dicom-server: File Meta comments name (0002,0017) / (0002,0018) "Sending / Receiving Application Entity Title" (audit A3; PS3.6 2026a Table 7-1).
+
+### Deprecated — CLI-local copies of the lifted rules (2026-10-06, DICOM 2026a)
+
+- The CLI-local names now forward to the engine symbols above and are deprecated: dicom-video `OptionConformance` / `AudioChannelSourceOption` (D269), dicom-pixedit `DerivedImage` (D270), dicom-anon `AnonCLISupport` (D275), dicom-validate `IODOption` (D248), dicom-archive `QueryKeys` warning (D249), dicom-uid `UIDRootRule` (D250), dicom-dcmdir `FileSetRules` (D253), dicom-compress `NativeTargetSyntax` (D267), dicom-convert `TransferSyntaxKeywords` (D268), dicom-export `ExportStandard` types (D252), dicom-image `SCOutput` (D274), dicom-pdf `PDFEncapsulation` (D272), dicom-wado `WADOOptionRules` (D265), dicom-send `StoreOutcome` (D261), the dicom-mwl copy (D264).
+- **DICOMKit** `DICOMImageExporter.determineWindowSettings` (stored units; use `determineModalityWindow`) (A6 / D65; PS3.3 2026a C.11.2.1.2.1).
+
+### Verified — deferred-findings follow-up: markers, scripts, tooling (2026-10-06, DICOM 2026a)
+
+- `AnonymizationProfile.basic` documented: 14 PS3.15 Table E.1-1 rows removed, 641 untouched, not Annex E (D245; PS3.15 2026a Table E.1-1).
+- `UPSEvent` marker re-checked; P-EVENT no longer named as pending (D254; PS3.4 2026a Table CC.2.4-1).
+- `VideoAudioStreamInfo.swift` / `VideoLevelLimits.swift` (merged from origin/main PR #217, `1416f7e2`) classified B1 and marked; the 8.2.5 audio citation names its section (audit A1, A2; PS3.5 2026a 8.2.5, 8.2.12, 8.2.7–8.2.11).
+- `Tag+Video.swift` / `TransferSyntax.swift` re-checked after the merge; the two unregistered Fragmentable HEVC UIDs are kept with `registered == false` (audit A7, D20 / P2; PS3.6 2026a Tables 6-1, A-1).
+- `Scripts/diff_cli_web.py` reads the `--content-type` values from `WADOURIClient.MediaType` and the Change-State targets from DICOMWeb `UPSState`; the help regex accepts `text/*` (audit A4).
+- `Scripts/diff_studio.py` keys Workshop parity by (subcommand, flag), counts cliMapping tokens as offered and parses `[""] + Expr` / enum-backed pickers; 4 DEFERRED and 5 EXEMPT rows removed (D247, D258, D266).
+- Test: the DIMSE command DICOMStudio generates is checked against each tool's ArgumentParser surface (host positional, no `--host`) (D257).
+- Scripts after the follow-up (all with `--nema 2026a`): diff_kit 0 wrong; diff_network 0; diff_web 0; diff_printkit 0; diff_renderkit 17 ok, 0 failing, 0 deferred; diff_cli 0 FAIL (42 tools); diff_cli_web 0 FAIL; every `check_nema_markers.py` run exits 0. Open rows: D216, D221, D256 (left open by owner decision).
+
 ### Verified — DICOMStudio against DICOM 2026a (2026-10-05 / 06)
 
 - **DICOMStudio, DICOMStudioApp** (334 files) verified against the frozen 2026a DocBook and the `dicom-*` CLI contract
