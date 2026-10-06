@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — AnonymizationProfile.basic documented against PS3.15 2026a Table E.1-1 by script: its 14 tags are all Table E.1-1 rows (Basic Profile actions Z, Z/D, X or X/Z/D as listed in the doc comment) but are removed (X) regardless; the other 641 rows of the table (655 in 2026a) are untouched; not PS3.15 Annex E, no behaviour change (D245)
 // NEMA-verified: 2026a, checked 2026-10-01 — legacy profiles; de-identification method attributes per PS3.3 2026a C.7.1.1; tag specs take any PS3.6 2026a Table 6-1/7-1 keyword exactly (D163); --keep also exempts from the legacy date shift / UID regeneration (D164)
 import Foundation
 import DICOMCore
@@ -9,6 +10,28 @@ import CryptoKit
 
 /// Anonymization profile types
 public enum AnonymizationProfile {
+    /// The legacy "basic" list (dicom-anon `legacy-basic`, DICOMStudio "Basic" /
+    /// "HIPAA Safe Harbor"): **not** PS3.15 Annex E (D245, P-ANON-PROFILE).
+    ///
+    /// It removes exactly 14 attributes, all of them rows of PS3.15 2026a Table E.1-1
+    /// (compared by script, 2026-10-06), but it removes (X) every one of them instead of
+    /// applying the row's Basic Profile action:
+    /// Patient's Name (0010,0010) Z, Patient ID (0010,0020) Z/D, Patient's Birth Date
+    /// (0010,0030) Z, Patient's Birth Time (0010,0032) X, Other Patient IDs (0010,1000) X,
+    /// Other Patient Names (0010,1001) X, Patient Comments (0010,4000) X, Referring
+    /// Physician's Name (0008,0090) Z, Performing Physician's Name (0008,1050) X,
+    /// Operators' Name (0008,1070) X/Z/D, Institution Name (0008,0080) X/Z/D, Institution
+    /// Address (0008,0081) X, Station Name (0008,1010) X/Z/D, Device Serial Number
+    /// (0018,1000) X/Z/D.
+    ///
+    /// It does not touch the other 641 rows of Table E.1-1, among them Other Patient IDs
+    /// Sequence (0010,1002) X, Patient's Address (0010,1040) X, Patient's Telephone Numbers
+    /// (0010,2154) X, Patient's Age (0010,1010) X, Patient's Sex (0010,0040) Z, Ethnic Group
+    /// (0010,2160) X, Accession Number (0008,0050) Z, Study ID (0020,0010) Z, every date and
+    /// time (Study Date (0008,0020) Z, …), every UID (Study Instance UID (0020,000D) U, SOP
+    /// Instance UID (0008,0018) U, …) and Private Attributes X; nor does it record Patient
+    /// Identity Removed (0012,0062). Use ``ConfidentialityProfile`` (dicom-anon `ps315`)
+    /// for the Basic Application Level Confidentiality Profile.
     case basic
     case clinicalTrial
     case research
