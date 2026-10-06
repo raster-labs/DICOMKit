@@ -4684,7 +4684,8 @@ private func executeDicomStudy() async {
             return refuse("Missing expected argument '<\(operation == "contact-sheet" ? "inputs" : "input")>'", exitCode: 64)
         }
         // `single --output` is optional on the CLI (the image goes next to the working directory);
-        // a sandboxed app has no working directory to write to, so the form requires it.
+        // a sandboxed app has no working directory to write to, so the form requires it — a
+        // documented non-mirroring, kept by decision (P-STUDIO-EXPORT-SINGLE-OUTPUT, 2026-10-06).
         guard !outputPath.isEmpty else {
             return refuse("Missing expected argument '--output <output>'", exitCode: 64)
         }

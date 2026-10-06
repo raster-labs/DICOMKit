@@ -4127,6 +4127,14 @@ case "dicom-export":
                     isRequired: true,
                     isRepeatable: true
                 ),
+                // Documented non-mirroring (P-STUDIO-EXPORT-SINGLE-OUTPUT, kept by decision 2026-10-06):
+                // dicom-export `single --output` is optional on the CLI (`var output: String?`; the
+                // image is written to a name derived from the input, relative to the working
+                // directory), but the sandboxed app has no working directory it may write to, so
+                // the Workshop requires --output for every operation, `single` included. The
+                // executor refuses an empty --output with ArgumentParser's missing-option text
+                // (exit 64). No other behaviour differs; contact-sheet / animate / bulk require
+                // --output on the CLI too. Not a DICOM-standard matter.
                 CLIParameterDefinition(
                     id: "output", flag: "--output", displayName: "Output Path",
                     parameterType: .outputPath, placeholder: "Output file or directory path",
