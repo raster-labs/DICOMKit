@@ -274,22 +274,23 @@ final class QueryServiceTests: XCTestCase {
         XCTAssertFalse(VR.OW.isStringVR)
     }
     
-    func testVRUses4ByteLength() {
-        // VRs that use 4-byte length
-        XCTAssertTrue(VR.OB.uses4ByteLength)
-        XCTAssertTrue(VR.OW.uses4ByteLength)
-        XCTAssertTrue(VR.SQ.uses4ByteLength)
-        XCTAssertTrue(VR.UN.uses4ByteLength)
-        XCTAssertTrue(VR.UC.uses4ByteLength)
-        XCTAssertTrue(VR.UR.uses4ByteLength)
-        XCTAssertTrue(VR.UT.uses4ByteLength)
-        
-        // VRs that use 2-byte length
-        XCTAssertFalse(VR.AE.uses4ByteLength)
-        XCTAssertFalse(VR.CS.uses4ByteLength)
-        XCTAssertFalse(VR.DA.uses4ByteLength)
-        XCTAssertFalse(VR.US.uses4ByteLength)
-        XCTAssertFalse(VR.UL.uses4ByteLength)
+    /// D1 / D276: DICOMNetwork no longer carries its own Explicit VR length rule
+    /// (`uses4ByteLength` omitted OV, SV and UV); every data-set walker uses
+    /// DICOMCore's `VR.uses32BitLength`. PS3.5 2026a 7.1.2: AE, AS, AT, CS, DA, DS,
+    /// DT, FL, FD, IS, LO, LT, PN, SH, SL, SS, ST, TM, UI, UL and US have a 16-bit
+    /// Value Length (Table 7.1-2); all other VRs have 2 reserved bytes and a 32-bit
+    /// Value Length (Table 7.1-1).
+    func testVRUses32BitLengthIsDICOMCoreRule() {
+        let sixteenBit: Set<VR> = [.AE, .AS, .AT, .CS, .DA, .DS, .DT, .FL, .FD, .IS, .LO, .LT,
+                                   .PN, .SH, .SL, .SS, .ST, .TM, .UI, .UL, .US]
+        let thirtyTwoBit: Set<VR> = [.OB, .OD, .OF, .OL, .OV, .OW, .SQ, .SV, .UC, .UN, .UR, .UT, .UV]
+        XCTAssertEqual(sixteenBit.count + thirtyTwoBit.count, VR.allCases.count, "PS3.5 Table 6.2-1 lists 34 VRs")
+        for vr in sixteenBit { XCTAssertFalse(vr.uses32BitLength, "\(vr)") }
+        for vr in thirtyTwoBit { XCTAssertTrue(vr.uses32BitLength, "\(vr)") }
+        // The three VRs the deleted duplicate omitted.
+        XCTAssertTrue(VR.OV.uses32BitLength)
+        XCTAssertTrue(VR.SV.uses32BitLength)
+        XCTAssertTrue(VR.UV.uses32BitLength)
     }
     
     // MARK: - Error Type Tests

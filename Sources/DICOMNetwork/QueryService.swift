@@ -1,6 +1,6 @@
 import Foundation
 import DICOMCore
-// NEMA-verified: 2026a, checked 2026-09-28 — default return keys diffed against PS3.4 2026a Tables C.6-1..C.6-5 (all R/U keys present); Explicit VR length rule now DICOMCore's (PS3.5 Table 7.1-1, D1); identifier rules per PS3.4 C.4.1.1.3.1 and C.2.2.2; sequence parsing per PS3.5 §7.5; Scripts/diff_network.py
+// NEMA-verified: 2026a, checked 2026-10-06 — uses4ByteLength duplicate deleted, the 13 32-bit-length VRs are DICOMCore's VR.uses32BitLength (PS3.5 2026a 7.1.2, Tables 7.1-1 / 7.1-2; D276); default return keys diffed against PS3.4 2026a Tables C.6-1..C.6-5 (all R/U keys present); Explicit VR length rule now DICOMCore's (PS3.5 Table 7.1-1, D1); identifier rules per PS3.4 C.4.1.1.3.1 and C.2.2.2; sequence parsing per PS3.5 §7.5; Scripts/diff_network.py
 
 /// Configuration for the DICOM Query Service
 public struct QueryConfiguration: Sendable, Hashable {
@@ -1102,14 +1102,8 @@ extension VR {
             return false
         }
     }
-    
-    /// Whether this VR uses 4-byte length in Explicit VR encoding
-    var uses4ByteLength: Bool {
-        switch self {
-        case .OB, .OD, .OF, .OL, .OW, .SQ, .UC, .UN, .UR, .UT:
-            return true
-        default:
-            return false
-        }
-    }
+    // The Explicit VR length rule is DICOMCore's `VR.uses32BitLength` (PS3.5 2026a
+    // 7.1.2, Tables 7.1-1 / 7.1-2: 13 VRs with a 32-bit length — OB, OD, OF, OL, OV,
+    // OW, SQ, SV, UC, UN, UR, UT, UV). The former `uses4ByteLength` duplicate here
+    // omitted OV, SV and UV (D1, D276).
 }

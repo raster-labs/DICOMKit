@@ -10,7 +10,7 @@ import DICOMCore
 
 #if canImport(CoreGraphics)
 import CoreGraphics
-// NEMA-verified: 2026a, checked 2026-09-28 — the 12 print SOP Class / instance UIDs registered in PS3.6 2026a Table A-1 and 11 defined-term enums text-diffed against PS3.3 2026a C.13.1/C.13.3/C.13.5/C.13.8/C.13.9 (Scripts/diff_network.py; MediumType MAMMO CLEAR FILM / MAMMO BLUE FILM added 2026-09-29, P-MAMMO, old spellings deprecated and written as the terms); N-ACTION-RSP Print Job reference per PS3.4 Tables H.4-3/H.4-8; colour item per Table C.13-5; Text String (2030,0020) written as a legal LO per PS3.5 2026a Table 6.2-1 (D41, checked 2026-09-29); FilmDestination re-checked 2026-10-01 against PS3.3 2026a Table C.13-1 (MAGAZINE, PROCESSOR, BIN_i numbered from 1, no maximum, no leading zeros; P-BIN: .bin(n), .bin1/.bin2 deprecated)
+// NEMA-verified: 2026a, checked 2026-10-06 — extractStringValue length rule routed through DICOMCore's VR.uses32BitLength (PS3.5 2026a 7.1.2: 21 VRs of Table 7.1-2 16-bit, the other 13 32-bit; D276); the 12 print SOP Class / instance UIDs registered in PS3.6 2026a Table A-1 and 11 defined-term enums text-diffed against PS3.3 2026a C.13.1/C.13.3/C.13.5/C.13.8/C.13.9 (Scripts/diff_network.py; MediumType MAMMO CLEAR FILM / MAMMO BLUE FILM added 2026-09-29, P-MAMMO, old spellings deprecated and written as the terms); N-ACTION-RSP Print Job reference per PS3.4 Tables H.4-3/H.4-8; colour item per Table C.13-5; Text String (2030,0020) written as a legal LO per PS3.5 2026a Table 6.2-1 (D41, checked 2026-09-29); FilmDestination re-checked 2026-10-01 against PS3.3 2026a Table C.13-1 (MAGAZINE, PROCESSOR, BIN_i numbered from 1, no maximum, no leading zeros; P-BIN: .bin(n), .bin1/.bin2 deprecated)
 #else
 // Define CGSize for platforms without CoreGraphics
 public struct CGSize: Sendable {
@@ -3819,8 +3819,12 @@ public enum DICOMPrintService {
                     let vrByte1 = buffer.load(fromByteOffset: offset + 5, as: UInt8.self)
                     let vrString = String(UnicodeScalar(vrByte0)) + String(UnicodeScalar(vrByte1))
 
-                    // Determine length field size based on VR
-                    let uses32BitLength = ["OB", "OD", "OF", "OL", "OW", "SQ", "UC", "UN", "UR", "UT"].contains(vrString)
+                    // Length field size by VR — DICOMCore's rule (PS3.5 2026a 7.1.2,
+                    // Tables 7.1-1 / 7.1-2): OB, OD, OF, OL, OV, OW, SQ, SV, UC, UN, UR,
+                    // UT and UV carry 2 reserved bytes + a 32-bit length. The former
+                    // literal list here omitted OV, SV and UV (D276). An unknown VR is
+                    // read with a 16-bit length, as before.
+                    let uses32BitLength = VR(rawValue: vrString)?.uses32BitLength ?? false
 
                     if uses32BitLength {
                         guard offset + 12 <= buffer.count else { break }

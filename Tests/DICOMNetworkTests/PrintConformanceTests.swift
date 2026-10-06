@@ -251,6 +251,53 @@ final class PrintConformanceColorPixelModuleTests: XCTestCase {
     }
 }
 
+// MARK: - SCU data-set walker: Explicit VR length rule (D276)
+
+final class PrintConformanceDataSetWalkerTests: XCTestCase {
+
+    /// D276: the SCU's data-set walker (`extractStringValue`, reached here through
+    /// `parsePrinterStatus`) used a literal 10-VR list for the 32-bit length rule
+    /// that omitted OV, SV and UV, so an element of one of those VRs ahead of the
+    /// wanted tag was read with a 16-bit length and derailed the walk. PS3.5 2026a
+    /// 7.1.2 / Table 7.1-1: all VRs other than the 21 of Table 7.1-2 carry 2
+    /// reserved bytes and a 32-bit Value Length; the walker now uses DICOMCore's
+    /// `VR.uses32BitLength`.
+    func testWalkerSkipsOVSVUVElementsWithThirtyTwoBitLength() {
+        let eightBytes = Data([1, 2, 3, 4, 5, 6, 7, 8])
+        let sixteenBytes = eightBytes + eightBytes
+        for vr in [VR.OV, .SV, .UV] {
+            let elements = [
+                // Any element sorted ahead of (2110,0010): private tag, VR under test.
+                DataElement(tag: Tag(group: 0x0009, element: 0x1001), vr: vr, length: 16, valueData: sixteenBytes),
+                DataElement.string(tag: .manufacturer, vr: .LO, value: "ACME"),
+                DataElement.string(tag: Tag(group: 0x2110, element: 0x0010), vr: .CS, value: "NORMAL"),
+                DataElement.string(tag: Tag(group: 0x2110, element: 0x0030), vr: .LO, value: "LASER1")
+            ]
+            let data = PrintSCPEncoder.serialize(elements, explicitVR: true)
+            let status = DICOMPrintService.parsePrinterStatus(from: data, explicitVR: true)
+            XCTAssertEqual(status.status, "NORMAL", "\(vr)")
+            XCTAssertEqual(status.printerName, "LASER1", "\(vr)")
+            XCTAssertEqual(status.manufacturer, "ACME", "\(vr)")
+        }
+    }
+
+    /// The 16-bit VRs of PS3.5 Table 7.1-2 still walk correctly, and the data set's
+    /// Implicit VR form is unaffected (its length is always 32-bit, 7.1.3).
+    func testWalkerStillReadsSixteenBitAndImplicitVRElements() {
+        let elements = [
+            DataElement.string(tag: Tag(group: 0x0008, element: 0x0016), vr: .UI, value: "1.2.840.10008.5.1.1.16"),
+            DataElement.string(tag: Tag(group: 0x2110, element: 0x0010), vr: .CS, value: "WARNING"),
+            DataElement.string(tag: Tag(group: 0x2110, element: 0x0020), vr: .CS, value: "FILM JAM")
+        ]
+        for explicitVR in [true, false] {
+            let data = PrintSCPEncoder.serialize(elements, explicitVR: explicitVR)
+            let status = DICOMPrintService.parsePrinterStatus(from: data, explicitVR: explicitVR)
+            XCTAssertEqual(status.status, "WARNING")
+            XCTAssertEqual(status.statusInfo, "FILM JAM")
+        }
+    }
+}
+
 // MARK: - SCU parsing of the N-ACTION response
 
 final class PrintConformanceNActionResponseTests: XCTestCase {
