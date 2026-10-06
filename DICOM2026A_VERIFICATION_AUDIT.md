@@ -1,13 +1,13 @@
 # DICOM 2026a verification audit — DICOMKit package
 
 Date 2026-10-06 · branch `feature/dicom-tag-modality-audit` · local commits only, nothing pushed.
-Audit at `fca194a3` (DICOMStudio close) → audit document `5ec7381f` → follow-up `7a3aac80` … `2df71725` (the owner's instruction of 2026-10-06: "complete all deferred items which are open as per the recommendation and leave D216, D221 and D256").
+Audit at `fca194a3` (DICOMStudio close) → audit document `5ec7381f` → follow-up `7a3aac80` … `2df71725` (the owner's instruction of 2026-10-06: "complete all deferred items which are open as per the recommendation and leave D216, D221 and D256") → P-item pass `824bcfab` … `071ad9c0` (the owner's instruction of 2026-10-06: "complete everything as per the recommendation" other than the deferred rows; MWL create kept in the app only).
 
 Method: [DICOMCORE_STANDARD_IMPLEMENTATION.md](DICOMCORE_STANDARD_IMPLEMENTATION.md) "Verification method" and "Definition of done for a module". Evidence is script output against the frozen 2026a DocBook (`Scripts/nema_docbook.py fetch 2026a <part>`, parts 3, 4, 5, 6, 7, 8, 10, 11, 14, 15, 16, 18, 19, in a scratch directory deleted afterwards) and the report tables. Doc comments, READMEs and memory are not evidence. Scope: DICOMCore, DICOMDictionary, DICOMKit, DICOMNetwork, DICOMWeb, DICOMPrintKit, DICOMRenderKit, the 42 `dicom-*` tools, DICOMStudio + DICOMStudioApp. DICOMToolbox is out of scope.
 
-**Current result:** all 9 modules meet the definition of done. Every diff script ends with 0 wrong / 0 FAIL, every marker check exits 0, and the full `swift test` exits 0. Of the 276 deferred rows, 271 are closed, 3 are open by the owner's decision (D216, D221, D256) and 2 are void numbers. Still waiting on the owner: 14 P-STUDIO-* items, 8 Studio parity changes from 2026-10-05, 6 behaviour changes made by the follow-up, and D216 / D221 / D256 (§5).
+**Current result:** all 9 modules meet the definition of done. Every diff script ends with 0 wrong / 0 FAIL, every marker check exits 0, and the full `swift test` exits 0. Of the 276 deferred rows, 271 are closed, 3 are open by the owner's decision (D216, D221, D256) and 2 are void numbers. The 14 P-STUDIO-* items were approved by the owner on 2026-10-06 and implemented (§5.1; Studio open P-items: 0), and the Studio parity changes and the follow-up's behaviour changes are confirmed (§5.2, §5.3). Still waiting on the owner only for D216 / D221 / D256 (§5.4) and the findings of the P-item pass (§5.5).
 
-This document is in two parts. **Part 1** (§1–§5) is the current state. **Part 2** (§H1–§H2) is the history: the audit as found at `fca194a3` with the bookkeeping it fixed, and the follow-up log with every commit.
+This document is in two parts. **Part 1** (§1–§5) is the current state. **Part 2** (§H1–§H3) is the history: the audit as found at `fca194a3` with the bookkeeping it fixed, the follow-up log with every commit, and the P-item pass log.
 
 # Part 1 — Current state
 
@@ -23,7 +23,7 @@ This document is in two parts. **Part 1** (§1–§5) is the current state. **Pa
 | DICOMPrintKit | 31 | 31 | exit 0 | `diff_printkit.py`: 0 wrong, 0 pending | 0 | 0 | ✅ met |
 | DICOMRenderKit | 10 | 10 | exit 0 | `diff_renderkit.py`: 17 ok, 0 failing, 0 pending, 0 deferred | 0 | 0 | ✅ met |
 | `dicom-*` CLI (42 tools) | 100 | 100 | exit 0 for all 42 directories | `diff_cli.py`: 0 FAIL; `diff_cli_web.py`: 0 FAIL; `cli_contracts.py --check` exit 0 | D216, D221 (owner decision) | 0 | ✅ met |
-| DICOMStudio + DICOMStudioApp | 335 | 171 (+164 inventoried as not standard-touching) | exit 0 (`--inventory`) | `diff_studio.py`: 0 FAIL, 13 PEND (each names a P-STUDIO-* item) | D256 (owner decision) | 14 | ✅ met, pending the owner's P-item decisions |
+| DICOMStudio + DICOMStudioApp | 338 | 173 (+165 inventoried as not standard-touching) | exit 0 (`--inventory`) | `diff_studio.py`: PENDING_DIFF_STUDIO | D256 (owner decision) | 0 | ✅ met (all P-items approved and implemented 2026-10-06) |
 
 ## 2. Script evidence
 
@@ -38,7 +38,7 @@ This document is in two parts. **Part 1** (§1–§5) is the current state. **Pa
 | `diff_renderkit.py --nema` | `17 ok, 0 failing, 0 pending owner approval, 0 deferred to another module` |
 | `diff_cli.py --nema` (42 tools) | `0 check(s) with wrong or missing values, 0 pending owner approval` |
 | `diff_cli_web.py --nema` | `0 check(s) with wrong or missing values, 0 pending owner approval` |
-| `diff_studio.py --nema` (G1–G6) | `0 check(s) with wrong or missing values, 13 pending owner approval` |
+| `diff_studio.py --nema` (G1–G6) | PENDING_DIFF_STUDIO |
 | `generate_dicomdir_profile_rules.py --check` | `Sources/DICOMKit/DICOMDIRProfileTables.swift: matches` |
 | `generate_dicomdir_record_keys.py --check` | `Sources/DICOMKit/DICOMDIRRecordKeyTables.swift: matches` |
 | `generate_confidentiality_profile.py --check` | `ok: 211 rows of Table E.3.4-1 (244 keys) match …ConfidentialityProfileStructuredContent.swift` |
@@ -56,6 +56,7 @@ Run at `3060ee3e`, the last code commit; only documentation changed after it.
 | `swift test` (full) | exit 0 |
 | XCTest | 5,929 run, 5,885 passed, 44 skipped, 0 failed |
 | Swift Testing | 49 runs, 9,261 tests, 0 failed |
+| After the P-item pass (`dd36ae8b`) | PENDING_TEST |
 | At the audit (`fca194a3`), for comparison | XCTest 5,835 run / 44 skipped; Swift Testing 9,252 |
 
 ## 4. Deferred rows D1–D276
@@ -68,34 +69,34 @@ Run at `3060ee3e`, the last code commit; only documentation changed after it.
 
 D276 is new: the follow-up found that D1 was only partly fixed, because `PrintService.swift` read OV, SV and UV with a 2-byte length. Every row appears with the same status in every report it is in. The full table is in Appendix A.
 
-## 5. Open items for the owner's decision
+## 5. Owner decisions
 
-Nothing in this section has been implemented.
+§5.1–§5.3 are decided (approved or confirmed by the owner on 2026-10-06). §5.4 and §5.5 are open; nothing in them has been implemented.
 
-### 5.1 P-items still pending (14, DICOMSTUDIO_STANDARD_IMPLEMENTATION.md "Priority action list")
+### 5.1 P-items (14) — approved 2026-10-06 and implemented
 
-P-VIDEO-CONTAINER was approved with D237 and is done (`7a3aac80`). The instruction of 2026-10-06 named deferred rows only, so these 14 items were left alone.
+P-VIDEO-CONTAINER was approved with D237 and is done (`7a3aac80`). The deferred-rows instruction of 2026-10-06 did not cover these 14 items; the owner's second instruction the same day ("complete everything as per the recommendation") approved them, with one decision on MWL-CREATE: keep worklist-item creation only in the app, not in the CLI. Each was implemented as recommended (DICOMSTUDIO_STANDARD_IMPLEMENTATION.md "Priority action list"; log in §H3).
 
-| Item | What | Standard | Recommendation (from the report) |
-|---|---|---|---|
-| P-STUDIO-ANON-PS315 | `AnonymizationProfile` has no PS3.15 Basic Profile case; the Workshop refuses `ps315` / `basic` (the CLI default) | PS3.15 2026a Annex E | Add `.ps315` (display "PS3.15 Basic Application Level Confidentiality Profile"), make it the default, route it to `Anonymizer.deidentify`; keep the legacy cases labelled as not PS3.15 |
-| P-STUDIO-MWL-CREATE | Workshop `dicom-mwl create` (HL7 ORM over MLLP / REST) has no CLI counterpart | — | Either add `dicom-mwl create` to the CLI or move the flow to the Networking panel; unchanged until decided |
-| P-STUDIO-TLS-PROFILES | `TLSMode` / `DICOMwebTLSMode` select TLS versions, not PS3.15 Annex B profiles (B.12 / B.13 live) | PS3.15 2026a Annex B | Re-label as a transport setting (text only), or add `bcp195` / `modifiedBcp195` cases configuring DICOMNetwork per B.12 / B.13 and deprecate `tls12` / `tls13` |
-| P-STUDIO-UPS-STATE-RAW | Studio `UPSState` raw values `IN_PROGRESS` / `CANCELLED` vs (0074,1000) terms `IN PROGRESS` / `CANCELED` | PS3.3 C.30.1 | Typealias to `DICOMWeb.UPSState` (`.cancelled` → `.canceled` with a deprecated alias) or change the raw values |
-| P-STUDIO-EXPORT-SINGLE-OUTPUT | Workshop requires `--output` where the CLI defaults to the working directory | — | Keep it required in-app (documented non-mirroring); no API change |
-| P-STUDIO-ANON-TAGLIST-NAME | `AnonymizationHelpers.hipaaDirectIdentifierTags` now holds the engine's 14-attribute basic list | — | Rename to `basicProfileTags` with `@available(*, deprecated, renamed:)` |
-| P-STUDIO-MEASURE-UM | `MeasurementUnit` lacks micrometre; dicom-measure offers `--unit um` | PS3.16 CID 7460 / 7461 | Add `case micrometers = "um"`; `ROIHelpers.ucumAreaCode` returns "um2" |
-| P-STUDIO-HP-SORTING-DIRECTION | `ImageSortDirection` ASCENDING / DESCENDING vs Sorting Direction INCREASING / DECREASING | PS3.3 Table C.23.3-1 | Change the raw values with a decoding shim for stored state |
-| P-STUDIO-RT-DOSE-UNITS | `RTDoseUnits.cgy = "CGY"` is not a term; RELATIVE, CODED absent | PS3.3 Table C.8-39 | Add `.relative`, `.coded`; keep cGy as a display scale |
-| P-STUDIO-RT-ROI-TYPES | `RTROIType` has 6 of 25 terms plus a non-term `OTHER` | PS3.3 Table C.8-44 | Add the 19 missing cases, map unknown to nil, deprecate `.other` |
-| P-STUDIO-SCOORD-POLYGON | `SpatialCoordGraphicType.polygon` is not a 2D SCOORD type | PS3.3 C.18.6.1.2 | Deprecate `.polygon` (renamed `polyline`); writers emit POLYLINE |
-| P-STUDIO-SR-TABLE | `ContentItemValueType` lacks TABLE | PS3.3 Table C.17.3-7 | Add `case table = "TABLE"`; `SRTreeHelpers` mapping follows |
-| P-STUDIO-ANNOTATION-UNITS | `TextAnchorType.imageRelative` raw value "IMAGE"; units are PIXEL / DISPLAY / MATRIX | PS3.3 C.10.5 | Raw value → "PIXEL" (deprecated spelling if persisted; grep says it is not), add `matrixRelative = "MATRIX"` |
-| P-STUDIO-PRINT-ENUMS | Studio `PrintPriority` / `PrintMediumType` / `PrintFilmSize` / `PrintJobStatus` duplicate the DICOMNetwork types (D22) | PS3.3 C.13.1 | Deprecate the Studio enums with typealiases onto `DICOMNetwork.PrintPriority` / `MediumType` / `FilmSize`; Medium Type gains the two MAMMO terms |
+| Item | What | Standard | Recommendation (from the report) | Status / commit |
+|---|---|---|---|---|
+| P-STUDIO-ANON-PS315 | `AnonymizationProfile` has no PS3.15 Basic Profile case; the Workshop refuses `ps315` / `basic` (the CLI default) | PS3.15 2026a Annex E | Add `.ps315` (display "PS3.15 Basic Application Level Confidentiality Profile"), make it the default, route it to `Anonymizer.deidentify`; keep the legacy cases labelled as not PS3.15 | ✅ `45457ff9` |
+| P-STUDIO-MWL-CREATE | Workshop `dicom-mwl create` (HL7 ORM over MLLP / REST) has no CLI counterpart | — | Either add `dicom-mwl create` to the CLI or move the flow to the Networking panel; unchanged until decided | ✅ `dbcca0fa` — moved to the Networking panel (owner: app only, not the CLI) |
+| P-STUDIO-TLS-PROFILES | `TLSMode` / `DICOMwebTLSMode` select TLS versions, not PS3.15 Annex B profiles (B.12 / B.13 live) | PS3.15 2026a Annex B | Re-label as a transport setting (text only), or add `bcp195` / `modifiedBcp195` cases configuring DICOMNetwork per B.12 / B.13 and deprecate `tls12` / `tls13` | ✅ `586c8f31` — profile cases; limits in §5.5 |
+| P-STUDIO-UPS-STATE-RAW | Studio `UPSState` raw values `IN_PROGRESS` / `CANCELLED` vs (0074,1000) terms `IN PROGRESS` / `CANCELED` | PS3.3 C.30.1 | Typealias to `DICOMWeb.UPSState` (`.cancelled` → `.canceled` with a deprecated alias) or change the raw values | ✅ `574f5eb0` |
+| P-STUDIO-EXPORT-SINGLE-OUTPUT | Workshop requires `--output` where the CLI defaults to the working directory | — | Keep it required in-app (documented non-mirroring); no API change | ✅ `071ad9c0` |
+| P-STUDIO-ANON-TAGLIST-NAME | `AnonymizationHelpers.hipaaDirectIdentifierTags` now holds the engine's 14-attribute basic list | — | Rename to `basicProfileTags` with `@available(*, deprecated, renamed:)` | ✅ `f5aceea1` |
+| P-STUDIO-MEASURE-UM | `MeasurementUnit` lacks micrometre; dicom-measure offers `--unit um` | PS3.16 CID 7460 / 7461 | Add `case micrometers = "um"`; `ROIHelpers.ucumAreaCode` returns "um2" | ✅ `824bcfab` |
+| P-STUDIO-HP-SORTING-DIRECTION | `ImageSortDirection` ASCENDING / DESCENDING vs Sorting Direction INCREASING / DECREASING | PS3.3 Table C.23.3-1 | Change the raw values with a decoding shim for stored state | ✅ `e9bada7f` |
+| P-STUDIO-RT-DOSE-UNITS | `RTDoseUnits.cgy = "CGY"` is not a term; RELATIVE, CODED absent | PS3.3 Table C.8-39 | Add `.relative`, `.coded`; keep cGy as a display scale | ✅ `a6f2c0dd` |
+| P-STUDIO-RT-ROI-TYPES | `RTROIType` has 6 of 25 terms plus a non-term `OTHER` | PS3.3 Table C.8-44 | Add the 19 missing cases, map unknown to nil, deprecate `.other` | ✅ `0c97d71e` |
+| P-STUDIO-SCOORD-POLYGON | `SpatialCoordGraphicType.polygon` is not a 2D SCOORD type | PS3.3 C.18.6.1.2 | Deprecate `.polygon` (renamed `polyline`); writers emit POLYLINE | ✅ `36fdb6d6` |
+| P-STUDIO-SR-TABLE | `ContentItemValueType` lacks TABLE | PS3.3 Table C.17.3-7 | Add `case table = "TABLE"`; `SRTreeHelpers` mapping follows | ✅ `7c860399` |
+| P-STUDIO-ANNOTATION-UNITS | `TextAnchorType.imageRelative` raw value "IMAGE"; units are PIXEL / DISPLAY / MATRIX | PS3.3 C.10.5 | Raw value → "PIXEL" (deprecated spelling if persisted; grep says it is not), add `matrixRelative = "MATRIX"` | ✅ `cb143f1b` |
+| P-STUDIO-PRINT-ENUMS | Studio `PrintPriority` / `PrintMediumType` / `PrintFilmSize` / `PrintJobStatus` duplicate the DICOMNetwork types (D22) | PS3.3 C.13.1 | Deprecate the Studio enums with typealiases onto `DICOMNetwork.PrintPriority` / `MediumType` / `FilmSize`; Medium Type gains the two MAMMO terms | ✅ `298ef7a7` |
 
-### 5.2 Studio parity changes of 2026-10-05, to confirm
+### 5.2 Studio parity changes of 2026-10-05 — confirmed by the owner 2026-10-06
 
-Each removed app-only behaviour where the Workshop differed from the CLI tool it mirrors.
+Each removed app-only behaviour where the Workshop differed from the CLI tool it mirrors. The owner confirmed them on 2026-10-06 (they are the recommendations); the dicom-image / dicom-pdf row stays superseded.
 
 | Tool | What changed | Why | Commit |
 |---|---|---|---|
@@ -106,11 +107,11 @@ Each removed app-only behaviour where the Workshop differed from the CLI tool it
 | dicom-convert (Workshop) | app-only header / banner removed | not CLI output | `38a2eea0` |
 | dicom-image / dicom-pdf (Workshop) | directory runs exit 0 with failed files, as the CLIs did | parity | `38a2eea0` — **superseded**: both now exit 1 when a file fails (D271, D273; `726957b5`) |
 | dicom-pixedit (Workshop) | refuses out-of-range fill values and widths < 1 instead of clamping; output marked Derived | P-PIXEDIT-RANGE; PS3.3 C.7.6.1.1.2 | `38a2eea0` |
-| dicom-anon (Workshop and Security panel) | `--profile` values are the CLI's `legacy-*` names; `ps315` / `basic` refused with exit 1 until P-STUDIO-ANON-PS315 | the old `basic` now means the PS3.15 Basic Profile in the CLI | `61670c42` |
+| dicom-anon (Workshop and Security panel) | `--profile` values are the CLI's `legacy-*` names; `ps315` / `basic` refused with exit 1 until P-STUDIO-ANON-PS315 | the old `basic` now means the PS3.15 Basic Profile in the CLI | `61670c42`; ps315 / basic accepted, ps315 the default since `45457ff9` |
 
-### 5.3 Behaviour changes made by the follow-up, to confirm
+### 5.3 Behaviour changes made by the follow-up — confirmed by the owner 2026-10-06
 
-These follow from the approved recommendations; each changes something a user sees.
+These follow from the approved recommendations; each changes something a user sees. Confirmed by the owner on 2026-10-06.
 
 | Change | Before | Now | Commit |
 |---|---|---|---|
@@ -119,7 +120,7 @@ These follow from the approved recommendations; each changes something a user se
 | dicom-send per-file failure line | `❌ C-STORE response status Refused: Out of resources (0xA700) — not stored (PS3.4 Table B.2-1)` | `❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)` | `04aa31ea` (D261) |
 | dicom-qr failed retrieve (CLI and Workshop) | `Retrieval failed: C-MOVE final response …`; failed-UID list only on failure | dicom-retrieve's wording without the prefix; the (0008,0058) list printed whenever the server sends one, then `Final C-MOVE response: …` | `d7609891`, `e4a73d9a` (D262) |
 | `DICOMFile.renderFrame(_:window:)` and the stored-window variants (public API) | window applied to stored values (wrong for any rescale) | window in modality units, applied after the Modality LUT (PS3.3 C.11.2.1.2.1) | `15e74ebc` (D243) |
-| Workshop dicom-anon "Option flags apply only to --profile ps315" refusal | exit 1 | exit 64, as the CLI | `2bd8e408` (D275) |
+| Workshop dicom-anon "Option flags apply only to --profile ps315" refusal | exit 1 | exit 1, as the CLI (corrected 2026-10-06: the CLI exits 1 on its option-validation refusals, 64 only for ArgumentParser errors; the Workshop briefly exited 64 after `2bd8e408` and is back to 1 since `45457ff9`) | `2bd8e408` (D275), `45457ff9` |
 | `DICOMConverter` target resolution | 7 Table A-1 keywords accepted by dicom-convert only | accepted by every caller, `FrameMerger` included | `b281e64f` (D268) |
 
 ### 5.4 Open deferred rows
@@ -129,6 +130,15 @@ These follow from the approved recommendations; each changes something a user se
 | D216 | J2KSwift upstream issue: wait for the dependency, or carry it as a known limitation |
 | D221 | DICOMToolbox (unmaintained, out of scope): close as won't fix, or remove the module |
 | D256 | `dicom-cloud`: ship the product (uncomment it in `Package.swift`), or drop the sources and Studio's listing |
+
+### 5.5 Findings from the P-item pass (not changed)
+
+| Finding | Where | 2026a ref | Why not changed |
+|---|---|---|---|
+| The Networking panel's C-ECHO never passes TLS settings to `DICOMVerificationService` (pre-existing); the `TLSMode` → `TLSConfiguration` mapping now exists | DICOMStudio NetworkingViewModel / DICOMNetwork `DICOMVerificationService` | PS3.15 Annex B.12, B.13 | wiring it changes the echo operation's signature (API) |
+| DICOMweb `DEVELOPMENT` TLS mode maps to no profile, and accepting self-signed certificates is not implemented (pre-existing) | DICOMStudio `DICOMwebTLSMode`, `DICOMwebClientFactory` | PS3.15 Annex B | not part of the recommendation; needs a decision on whether to keep the mode |
+| B.13 limits on Apple platforms: Security offers 9 of B.13's cipher suites (no CCM / CCM_8 / Camellia / DHE); key-length and certificate rules are not checked; URLSession (DICOMweb) applies only the TLS 1.2 minimum, not the suite list | DICOMNetwork `TLSConfiguration`, DICOMWeb `HTTPClient.applyTLSProfile` | PS3.15 Annex B.12, B.13 | platform API limits |
+| The dicom-anon burned-in-PHI refusal text is still CLI-local; DICOMStudio keeps a test-pinned identical copy | `Sources/dicom-anon`, `Components/AnonPS315Support.swift` | PS3.15 Annex E | follow-up candidate: lift into DICOMKit `AnonCLI` (as D275 did for the other texts) |
 
 # Part 2 — History
 
@@ -308,6 +318,27 @@ DICOMNetwork 66/66, DICOMWeb 57/57, DICOMPrintKit 31/31, DICOMRenderKit 10/10, `
 | A6 | Engine half done `15e74ebc` (`determineModalityWindow`, `determineWindowSettings` deprecated, `diff_renderkit` 0 deferred); Studio callers in the Studio pass `123b81a5` |
 | A7 | Done `b34f6ba8`; Progress-log lines added to the DICOMCore and DICOMDictionary reports; the two unregistered HEVC UIDs kept (D20 / P2) |
 | A8 | All 11 shas found (`git log --grep` / `git log -S`) and added to every report's Status cell for the row: D6 `4f29b7b2`, D7 `4f29b7b2`, D8 `a08258f9`, D20 `f5aa6d0a`, D25 `511ac8ab`, D30 `535d6093`, D39 `bbe90b0a` + `37e59463`, D40 `8dada6c0`, D41 `8dada6c0`, D43 `d411e1ed`, D85 `d716de90`. None left unchanged |
+
+## H3. P-item pass log
+
+Owner instruction 2026-10-06: "complete everything as per the recommendation" other than the deferred rows; mid-task: keep P-STUDIO-MWL create only in the app, not in the CLI. 14 commits `824bcfab` … `071ad9c0` plus `dd36ae8b` (import spacing); every sha checked with `git cat-file -e`. The §5.3 dicom-anon exit-code row was corrected in this pass (the CLI exits 1; `45457ff9`). Findings left unchanged are in §5.5.
+
+| Item | sha | Result | 2026a ref |
+|---|---|---|---|
+| P-STUDIO-ANON-TAGLIST-NAME | `f5aceea1` | `hipaaDirectIdentifierTags` → `basicProfileTags` (old name deprecated); 14/14 tags are Table E.1-1 rows | PS3.15 Table E.1-1 |
+| P-STUDIO-ANON-PS315 | `45457ff9` | `AnonymizationProfile.ps315` default in the Security panel and Workshop; Workshop dicom-anon accepts ps315 / basic and prints dicom-anon's output (byte-identical to the CLI apart from the `$ command` echo); 10 E.3 Option toggles + `--allow-burned-in-phi` in the Security panel; legacy profiles labelled "(not PS3.15)"; option-validation refusals exit 1 like the CLI (built dicom-anon: 1 on "Option flags apply only to --profile ps315", 64 only for ArgumentParser errors) | PS3.15 Annex E (E.1, Table E.1-1, E.3.3–E.3.11 10/10); PS3.10 Table 7.1-1 |
+| P-STUDIO-MWL-CREATE | `dbcca0fa` | owner decision: create stays app-only. Moved from the CLI Workshop to Networking › Modality Worklist › "New Worklist Item" (HL7 ORM^O01 / REST); Workshop dicom-mwl offers only `query`; a saved `create` is refused (exit 64) with a pointer to the panel; no CLI / DICOMNetwork change | PS3.3 Tables C.4-10, C.4-11, C.4-12, C.7-1 (16/16) |
+| P-STUDIO-EXPORT-SINGLE-OUTPUT | `071ad9c0` | kept required in-app, documented as a deliberate non-mirroring (sandbox, no working directory); comments only | — |
+| P-STUDIO-UPS-STATE-RAW | `574f5eb0` | Studio `UPSState` is a deprecated alias of DICOMWeb's (`WebUPSState`, `DICOMWeb::UPSState`); raw values "IN PROGRESS" / "CANCELED"; `.cancelled` deprecated → `.canceled`; `WebUPSState(legacyRawValue:)` loads IN_PROGRESS / CANCELLED | PS3.3 Table C.30.1-1; PS3.4 Table CC.1.1-2 |
+| P-STUDIO-TLS-PROFILES | `586c8f31` | DIMSE `TLSMode` {NONE, BCP195 (B.12), MODIFIED_BCP195 (B.13), MTLS}; `DICOMwebTLSMode` {NONE, BCP195, MODIFIED_BCP195, DEVELOPMENT}; DICOMNetwork `SecureTransportConnectionProfile`, `TLSConfiguration.bcp195` / `.modifiedBCP195` / `profile(...)`, `TLSCipherSuite`; DICOMWeb `DICOMwebConfiguration.TLSProfile` / `tlsProfile`; tls12 / tls13 and COMPATIBLE / STRICT deprecated, old saved values load as the nearest profile. Limits in §5.5. B.9–B.11 are retired (B.10 is the old "Non-Downgrading"); B.13 is "Modified BCP 195 RFC 8996, 9325 TLS" | PS3.15 Annex B.12, B.13 |
+| P-STUDIO-PRINT-ENUMS | `298ef7a7` | Studio PrintPriority / PrintMediumType / PrintFilmSize deprecated typealiases onto DICOMNetwork PrintPriority / MediumType / FilmSize; PrintJobStatus → NetworkPrintJobState (deprecated alias); displayName extensions on the DICOMNetwork types; Medium Type pickers gain MAMMO CLEAR FILM / MAMMO BLUE FILM; old case names (.med, .bluFilm, .size8x10 …) deprecated | PS3.3 Table C.13-1, C.13-3, C.13-8 |
+| P-STUDIO-MEASURE-UM | `824bcfab` | `MeasurementUnit.micrometers` ("um", shown µm), area um2 / µm² | PS3.16 CID 7460, 7461 |
+| P-STUDIO-HP-SORTING-DIRECTION | `e9bada7f` | `ImageSortDirection` INCREASING / DECREASING (ASCENDING / DESCENDING still decode) | PS3.3 Table C.23.3-1 |
+| P-STUDIO-RT-ROI-TYPES | `0c97d71e` | `RTROIType` 25 Defined Terms; OTHER / unknown → nil; `.other` deprecated | PS3.3 C.8.8.8.1 / Table C.8-44 |
+| P-STUDIO-RT-DOSE-UNITS | `a6f2c0dd` | `RTDoseUnits` GY / RELATIVE / CODED; "CGY" decodes as `.gy`; `.cgy` deprecated alias; `RTDoseDisplayScale`, `RTHelpers.formattedDose(gray:scale:)` | PS3.3 Table C.8-39, C.8.8.3 |
+| P-STUDIO-SR-TABLE | `7c860399` | `ContentItemValueType.table`; SRTreeHelpers maps all 16 | PS3.3 Table C.17.3-7 |
+| P-STUDIO-SCOORD-POLYGON | `36fdb6d6` | `SpatialCoordGraphicType.polygon` deprecated (renamed polyline); writers emit a closed POLYLINE; "POLYGON" still reads | PS3.3 C.18.6.1.2 |
+| P-STUDIO-ANNOTATION-UNITS | `cb143f1b` | `TextAnchorType.imageRelative` = "PIXEL" ("IMAGE" still decodes); new `matrixRelative` = "MATRIX" | PS3.3 C.10.5 Table C.10-5 |
 
 ## Appendix A — consolidated deferred-row table (276 rows, current)
 
