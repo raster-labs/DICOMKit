@@ -3,7 +3,7 @@
 //
 // DICOM Studio — Specialized modality data models for RT, Segmentation,
 // Parametric Maps, Waveforms, Video, Encapsulated Documents, Secondary Capture, and WSI
-// NEMA-verified: 2026a, checked 2026-10-05 — enum raw values diffed by script against PS3.3 2026a: RTROIType 7 cases vs RT ROI Interpreted Type (3006,00A4) Defined Terms (Table C.8-44: 6 match, OTHER is not a term, 19 terms absent — P-STUDIO-RT-ROI-TYPES); RTDoseUnits vs Dose Units (3004,0002) (Table C.8-39: GY matches, CGY is not a term and RELATIVE is absent — P-STUDIO-RT-DOSE-UNITS); RTRadiationType 4 vs Radiation Type (300A,00C6) Defined Terms (Table C.8-50: 4/4); SegmentAlgorithmType 3 vs Segment Algorithm Type (0062,0008) (Table C.8.20-4: 3/3); EncapsulatedDocumentType MIME types vs the MIME Type of Encapsulated Document Enumerated Values of A.45.1.4.1, A.45.2.4 and A.85.1-A.85.3 (5: 4 match, CDA corrected to "text/XML"); SecondaryCaptureDisplayType 5 SOP Class UIDs vs PS3.6 2026a Table A-1 (5/5); the rest (colours, colormaps, display state, SUV input, video) carries no standard data
+// NEMA-verified: 2026a, checked 2026-10-06 — enum raw values diffed by script against PS3.3 2026a: RTROIType 25 active cases vs RT ROI Interpreted Type (3006,00A4) Defined Terms (Table C.8-44 / C.8.8.8.1: 25/25, same order; OTHER is a deprecated case outside allCases and init(rawValue:) — P-STUDIO-RT-ROI-TYPES); RTDoseUnits vs Dose Units (3004,0002) Enumerated Values (Table C.8-39: GY, RELATIVE, CODED 3/3; CGY is no longer a raw value, decodes as GY, cGy is RTDoseDisplayScale — P-STUDIO-RT-DOSE-UNITS); RTRadiationType 4 vs Radiation Type (300A,00C6) Defined Terms (Table C.8-50: 4/4); SegmentAlgorithmType 3 vs Segment Algorithm Type (0062,0008) (Table C.8.20-4: 3/3); EncapsulatedDocumentType MIME types vs the MIME Type of Encapsulated Document Enumerated Values of A.45.1.4.1, A.45.2.4 and A.85.1-A.85.3 (5: 4 match, CDA corrected to "text/XML"); SecondaryCaptureDisplayType 5 SOP Class UIDs vs PS3.6 2026a Table A-1 (5/5); the rest (colours, colormaps, display state, SUV input, video) carries no standard data
 
 import Foundation
 
@@ -288,26 +288,61 @@ public struct RTDosePoint: Sendable, Equatable, Hashable {
     }
 }
 
-/// Units for RT dose values.
+/// Dose Units (3004,0002) of the RT Dose Module: the PS3.3 2026a Enumerated Values GY, RELATIVE
+/// and CODED (Table C.8-39, C.8.8.3) (P-STUDIO-RT-DOSE-UNITS).
 ///
-/// PS3.3 2026a Dose Units (3004,0002) are GY, RELATIVE and CODED (Table C.8-39); `cgy` is a display
-/// convenience with no DICOM term and RELATIVE is absent (P-STUDIO-RT-DOSE-UNITS).
+/// Centigray is not a Dose Units value: a dose in GY is shown in cGy through
+/// `RTDoseDisplayScale.centigray`. `init(rawValue:)` maps the legacy app value "CGY" to `.gy`.
 public enum RTDoseUnits: String, Sendable, Equatable, Hashable, CaseIterable {
-    case gy  = "GY"
-    case cgy = "CGY"
+    /// GY — Gray.
+    case gy = "GY"
+    /// RELATIVE — dose relative to implicit reference value.
+    case relative = "RELATIVE"
+    /// CODED — unit described by code (Dose Units Code Sequence (3004,0020)).
+    case coded = "CODED"
 
-    public var displayName: String {
-        switch self {
-        case .gy:  return "Gy"
-        case .cgy: return "cGy"
+    /// Former centigray case; cGy is a display scale, not a Dose Units value.
+    @available(*, deprecated, message: "CGY is not a Dose Units Enumerated Value (PS3.3 2026a Table C.8-39); store the dose in .gy and display it with RTDoseDisplayScale.centigray")
+    public static var cgy: RTDoseUnits { .gy }
+
+    /// Creates units from a Dose Units value; the legacy app value "CGY" decodes as `.gy`.
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "GY", "CGY": self = .gy
+        case "RELATIVE": self = .relative
+        case "CODED": self = .coded
+        default: return nil
         }
     }
 
-    /// Conversion factor to Gy.
-    public var conversionToGy: Double {
+    public var displayName: String {
         switch self {
-        case .gy:  return 1.0
-        case .cgy: return 0.01
+        case .gy:       return "Gy"
+        case .relative: return "relative"
+        case .coded:    return "coded"
+        }
+    }
+
+    /// Conversion factor to Gy: 1 for `.gy`; NaN for RELATIVE and CODED, which are not an
+    /// absolute dose in Gy. For cGy display use `RTDoseDisplayScale`.
+    public var conversionToGy: Double {
+        self == .gy ? 1.0 : .nan
+    }
+}
+
+/// Display scale for a dose stored in GY: Gy or cGy. Not a DICOM value.
+public enum RTDoseDisplayScale: String, Sendable, Equatable, Hashable, CaseIterable {
+    case gray = "Gy"
+    case centigray = "cGy"
+
+    /// Unit symbol.
+    public var symbol: String { rawValue }
+
+    /// Value in this scale of 1 Gy.
+    public var perGray: Double {
+        switch self {
+        case .gray: return 1.0
+        case .centigray: return 100.0
         }
     }
 }

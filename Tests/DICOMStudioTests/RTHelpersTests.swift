@@ -107,10 +107,16 @@ struct RTHelpersTests {
         #expect(s.contains("60"))
     }
 
-    @Test("formattedDose includes cGy unit")
+    @Test("formattedDose(gray:scale:) shows a GY dose in cGy")
     func testFormattedDoseCGy() {
-        let s = RTHelpers.formattedDose(6000.0, units: .cgy)
-        #expect(s.contains("cGy"))
+        #expect(RTHelpers.formattedDose(gray: 60.0, scale: .centigray) == "6000.00 cGy")
+        #expect(RTHelpers.formattedDose(gray: 60.0, scale: .gray) == "60.00 Gy")
+    }
+
+    @Test("formattedDose marks RELATIVE and CODED doses")
+    func testFormattedDoseRelativeCoded() {
+        #expect(RTHelpers.formattedDose(0.95, units: .relative) == "0.95 (relative)")
+        #expect(RTHelpers.formattedDose(1.0, units: .coded) == "1.00 (coded)")
     }
 
     // MARK: - dvhVolumeAtDose

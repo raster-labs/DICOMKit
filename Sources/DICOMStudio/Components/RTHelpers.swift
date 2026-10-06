@@ -3,7 +3,7 @@
 //
 // DICOM Studio — Platform-independent Radiation Therapy visualization helpers
 // Reference: DICOM PS3.3 C.8.8 (Radiotherapy Modules), C.8.8.5 (Structure Set Module), C.8.8.8 (RT ROI Observations Module), C.8.8.3 (RT Dose Module)
-// NEMA-verified: 2026a, checked 2026-10-05 — citations checked against PS3.3 2026a section titles (C.8.8.5 is the Structure Set Module, not RT Plan: corrected); switches over RTROIType / RTDoseUnits are exhaustive over the model enums verified in SpecializedModalityModel.swift (P-STUDIO-RT-ROI-TYPES, P-STUDIO-RT-DOSE-UNITS); isodose percentages, colour washes and DVH interpolation are display conventions with no DICOM-defined values
+// NEMA-verified: 2026a, checked 2026-10-06 — citations checked against PS3.3 2026a section titles (C.8.8.5 is the Structure Set Module, not RT Plan: corrected); switches over RTROIType (25 C.8.8.8.1 Defined Terms) / RTDoseUnits (GY, RELATIVE, CODED, Table C.8-39) are exhaustive over the model enums verified in SpecializedModalityModel.swift (P-STUDIO-RT-ROI-TYPES, P-STUDIO-RT-DOSE-UNITS); cGy is a display scale (RTDoseDisplayScale); isodose percentages, colour washes and DVH interpolation are display conventions with no DICOM-defined values
 
 import Foundation
 
@@ -75,9 +75,21 @@ public enum RTHelpers: Sendable {
         return _rainbowColor(t: t)
     }
 
-    /// Returns a formatted dose string, e.g. `"60.00 Gy"` or `"6000.00 cGy"`.
+    /// Returns a formatted dose string, e.g. `"60.00 Gy"`, `"0.95 (relative)"` or `"1.00 (coded)"`.
+    ///
+    /// The deprecated `RTDoseUnits.cgy` is now `.gy`; to show a GY dose in centigray use
+    /// `formattedDose(_:scale:)`.
     public static func formattedDose(_ dose: Double, units: RTDoseUnits) -> String {
-        String(format: "%.2f \(units.displayName)", dose)
+        switch units {
+        case .gy:                return String(format: "%.2f Gy", dose)
+        case .relative, .coded:  return String(format: "%.2f (\(units.displayName))", dose)
+        }
+    }
+
+    /// Returns a dose given in Gy (Dose Units GY) formatted in a display scale, e.g.
+    /// `"60.00 Gy"` or `"6000.00 cGy"` for 60 Gy.
+    public static func formattedDose(gray dose: Double, scale: RTDoseDisplayScale) -> String {
+        String(format: "%.2f %@", dose * scale.perGray, scale.symbol)
     }
 
     /// Returns the mean dose of a DVH curve, computing it from points if not stored.

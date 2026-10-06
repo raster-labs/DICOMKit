@@ -111,20 +111,30 @@ struct SpecializedModalityModelTests {
 
     // MARK: - RTDoseUnits
 
-    @Test("RTDoseUnits Gy conversion is 1.0")
-    func testRTDoseUnitsGy() {
-        #expect(RTDoseUnits.gy.conversionToGy == 1.0)
+    // PS3.3 2026a Table C.8-39 Dose Units (3004,0002) Enumerated Values: GY, RELATIVE, CODED
+    @Test("RTDoseUnits raw values are the Dose Units Enumerated Values")
+    func testRTDoseUnitsRawValues() {
+        #expect(RTDoseUnits.allCases.map(\.rawValue) == ["GY", "RELATIVE", "CODED"])
+        #expect(RTDoseUnits(rawValue: "RELATIVE") == .relative)
+        #expect(RTDoseUnits(rawValue: "CODED") == .coded)
+        #expect(RTDoseUnits(rawValue: "MGY") == nil)
     }
 
-    @Test("RTDoseUnits cGy conversion is 0.01")
-    func testRTDoseUnitsCGy() {
-        #expect(RTDoseUnits.cgy.conversionToGy == 0.01)
+    @Test("Legacy CGY decodes as GY; cGy is a display scale")
+    func testRTDoseUnitsLegacyCGy() {
+        #expect(RTDoseUnits(rawValue: "CGY") == .gy)
+        #expect(RTDoseUnits.gy.conversionToGy == 1.0)
+        #expect(RTDoseUnits.relative.conversionToGy.isNaN)
+        #expect(RTDoseDisplayScale.centigray.perGray == 100)
+        #expect(RTDoseDisplayScale.gray.perGray == 1)
+        #expect(RTDoseDisplayScale.centigray.symbol == "cGy")
     }
 
     @Test("RTDoseUnits display names are non-empty")
     func testRTDoseUnitsDisplayNames() {
-        #expect(!RTDoseUnits.gy.displayName.isEmpty)
-        #expect(!RTDoseUnits.cgy.displayName.isEmpty)
+        for units in RTDoseUnits.allCases {
+            #expect(!units.displayName.isEmpty)
+        }
     }
 
     // MARK: - DVHCurve
