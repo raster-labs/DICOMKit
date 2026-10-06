@@ -4059,6 +4059,18 @@ case "dicom-pixedit":
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
+                    id: "study-date", flag: "--study-date", displayName: "Study Date",
+                    parameterType: .textField, placeholder: "YYYYMMDD",
+                    helpText: ImageConverter.OutputRules.studyDateHelp,
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
+                    id: "study-time", flag: "--study-time", displayName: "Study Time",
+                    parameterType: .textField, placeholder: "HHMMSS",
+                    helpText: ImageConverter.OutputRules.studyTimeHelp,
+                    isAdvanced: true
+                ),
+                CLIParameterDefinition(
                     id: "series-number", flag: "--series-number", displayName: "Series Number",
                     parameterType: .integerField, placeholder: "1",
                     helpText: "Series Number (0020,0011), IS (written empty if not provided; Type 2)",

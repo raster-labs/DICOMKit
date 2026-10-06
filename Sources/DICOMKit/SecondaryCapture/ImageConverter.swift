@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — SC Image IOD (Table A.8-1) Type 1/2 attributes written: Patient C.7-1, General Study C.7-3, General Series C.7-5a, General Image C.7-9, Image Pixel C.7-11a, SC Equipment C.8-24 (Conversion Type; converter identity in Secondary Capture Device Manufacturer / Model Name / Software Versions (0018,1016/1018/1019) per the C.8.6.1 scenario table, General Equipment (U) not written), SC Image C.8-25 (Nominal Scanned Pixel Spacing); Specific Character Set ISO_IR 192 for non-ASCII text (Table C.12-1 1C, C.12-5); EXIF text in Study Description cut to LO (64 chars, no backslash or control characters, PS3.5 Table 6.2-1); VRs per PS3.6 Table 6-1
+// NEMA-verified: 2026a, checked 2026-10-06 — SC Image IOD (Table A.8-1) Type 1/2 attributes written: Patient C.7-1, General Study C.7-3, General Series C.7-5a, General Image C.7-9, Image Pixel C.7-11a, SC Equipment C.8-24 (Conversion Type; converter identity in Secondary Capture Device Manufacturer / Model Name / Software Versions (0018,1016/1018/1019) per the C.8.6.1 scenario table, General Equipment (U) not written), SC Image C.8-25 (Nominal Scanned Pixel Spacing); Specific Character Set ISO_IR 192 for non-ASCII text (Table C.12-1 1C, C.12-5); EXIF text in Study Description cut to LO (64 chars, no backslash or control characters, PS3.5 Table 6.2-1); Study Date / Time (0008,0020/0030) Type 2 "Date / Time the Study started" (Table C.7-3) from Metadata, empty when nil (PS3.5 7.4.3), the conversion moment as Instance Creation Date / Time (0008,0012/0013, Table C.12-1) and Date / Time of Secondary Capture (0018,1012/1014, Table C.8-25), DA on the Gregorian calendar (PS3.5 Table 6.2-1); VRs per PS3.6 Table 6-1
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -65,6 +65,16 @@ public enum ImageConverter {
         public var studyID: String?
         /// Accession Number (0008,0050), Type 2; written empty when nil.
         public var accessionNumber: String?
+        /// Study Date (0008,0020), Type 2: "Date the Study started" (PS3.3 2026a Table C.7-3);
+        /// written empty when nil. ``OutputRules/studyDateTime(studyDate:studyTime:studyUID:runDate:)``
+        /// gives the value both adapters use.
+        public var studyDate: DICOMDate?
+        /// Study Time (0008,0030), Type 2: "Time the Study started"; written empty when nil.
+        public var studyTime: DICOMTime?
+        /// The moment this instance is converted, written as Date / Time of Secondary Capture
+        /// (0018,1012 / 0018,1014; SC Image Module, Table C.8-25) and Instance Creation Date /
+        /// Time (0008,0012 / 0008,0013; SOP Common Module, Table C.12-1), in local time.
+        public var conversionDate: Date
 
         public init(
             patientName: String, patientID: String,
@@ -74,7 +84,9 @@ public enum ImageConverter {
             conversionType: ConversionType = .workstation,
             patientBirthDate: DICOMDate? = nil, patientSex: String? = nil,
             referringPhysicianName: String? = nil, studyID: String? = nil,
-            accessionNumber: String? = nil
+            accessionNumber: String? = nil,
+            studyDate: DICOMDate? = nil, studyTime: DICOMTime? = nil,
+            conversionDate: Date = Date()
         ) {
             self.patientName = patientName
             self.patientID = patientID
@@ -91,6 +103,9 @@ public enum ImageConverter {
             self.referringPhysicianName = referringPhysicianName
             self.studyID = studyID
             self.accessionNumber = accessionNumber
+            self.studyDate = studyDate
+            self.studyTime = studyTime
+            self.conversionDate = conversionDate
         }
     }
 
@@ -152,6 +167,10 @@ public enum ImageConverter {
         // SOP Common Module
         dataSet.setString("1.2.840.10008.5.1.4.1.1.7", for: .sopClassUID, vr: .UI) // Secondary Capture Image Storage
         dataSet.setString(generateUID(), for: .sopInstanceUID, vr: .UI)
+        let conversionDate = OutputRules.localDate(metadata.conversionDate)
+        let conversionTime = OutputRules.localTime(metadata.conversionDate)
+        dataSet.setString(conversionDate.dicomString, for: .instanceCreationDate, vr: .DA)
+        dataSet.setString(conversionTime.dicomString, for: .instanceCreationTime, vr: .TM)
 
         // Patient Module (Table C.7-1): all four Type 2
         dataSet.setString(metadata.patientName, for: .patientName, vr: .PN)
@@ -166,9 +185,8 @@ public enum ImageConverter {
         } else if let exifDesc = extractEXIFDescription(from: exifMetadata).flatMap(longStringValue) {
             dataSet.setString(exifDesc, for: .studyDescription, vr: .LO)
         }
-        let now = Date()
-        dataSet.setString(formatDate(now), for: .studyDate, vr: .DA)
-        dataSet.setString(formatTime(now), for: .studyTime, vr: .TM)
+        dataSet.setString(metadata.studyDate?.dicomString ?? "", for: .studyDate, vr: .DA)
+        dataSet.setString(metadata.studyTime?.dicomString ?? "", for: .studyTime, vr: .TM)
         dataSet.setString(metadata.referringPhysicianName ?? "", for: .referringPhysicianName, vr: .PN)
         dataSet.setString(metadata.studyID ?? "", for: .studyID, vr: .SH)
         dataSet.setString(metadata.accessionNumber ?? "", for: .accessionNumber, vr: .SH)
@@ -193,6 +211,9 @@ public enum ImageConverter {
                           for: Self.secondaryCaptureDeviceManufacturerModelNameTag, vr: .LO)
         dataSet.setString(DICOMFile.implementationVersionName,
                           for: Self.secondaryCaptureDeviceSoftwareVersionsTag, vr: .LO)
+        // SC Image Module (Table C.8-25): "The date / time the Secondary Capture Image was captured".
+        dataSet.setString(conversionDate.dicomString, for: .dateOfSecondaryCapture, vr: .DA)
+        dataSet.setString(conversionTime.dicomString, for: .timeOfSecondaryCapture, vr: .TM)
 
         // General Image Module (Table C.7-9): Instance Number Type 2, Patient
         // Orientation Type 2C (required: the SC IOD carries no Image Orientation
@@ -401,18 +422,6 @@ public enum ImageConverter {
             let pixelSpacing = String(format: "%.6f\\%.6f", pixelSpacingY, pixelSpacingX)
             dataSet.setString(pixelSpacing, for: .nominalScannedPixelSpacing, vr: .DS)
         }
-    }
-
-    private static func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyyMMdd"
-        return formatter.string(from: date)
-    }
-
-    private static func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HHmmss"
-        return formatter.string(from: date)
     }
     #endif
 }

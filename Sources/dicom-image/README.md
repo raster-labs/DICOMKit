@@ -122,6 +122,14 @@ Each page becomes a separate DICOM instance in the same series.
 - `--series-description <desc>` - Series Description
 - `--study-uid <uid>` - Study Instance UID (auto-generated if not provided)
 - `--series-uid <uid>` - Series Instance UID (auto-generated if not provided)
+- `--study-date <YYYYMMDD>` - Study Date (0008,0020): the date the Study started (DA, Gregorian calendar)
+- `--study-time <HHMMSS[.FFFFFF]>` - Study Time (0008,0030): the time the Study started (TM; HH, HHMM, HHMMSS
+  or HHMMSS with 1-6 fraction digits)
+
+  When neither is given, a new Study (no `--study-uid`) gets the date and time the run started, the
+  same in every file of a batch or TIFF run; with `--study-uid` both are written empty (Type 2,
+  PS3.3 Table C.7-3), since the Study started earlier at a time the tool does not know. When one
+  is given, only that one is written. A fraction is written with six digits (`.5` → `.500000`).
 - `--series-number <num>` - Series Number
 - `--instance-number <num>` - Instance Number (starting value for batch operations)
 - `--modality <modality>` - Modality (0008,0060), a PS3.3 C.7.3.1.1.1 Defined Term (default: OT); unknown codes warn
@@ -131,7 +139,7 @@ Each page becomes a separate DICOM instance in the same series.
 
 Values that the written VR cannot hold (PS3.5 Table 6.2-1 and Section 9: a UID that breaks
 PS3.5 9.1, LO/PN over 64 characters or containing a backslash, an Instance/Series Number outside
-the IS range -2^31..2^31-1) are refused: the tool exits with status 1 and writes nothing. (Until
+the IS range -2^31..2^31-1, a `--study-date` / `--study-time` that is not a DA / TM value) are refused: the tool exits with status 1 and writes nothing. (Until
 2026-10-01 they were written as given with a warning; P-IMAGE-VR.)
 
 ### Processing Options
@@ -168,7 +176,8 @@ Every Type 1 and Type 2 attribute of the mandatory modules of PS3.3 Table A.8-1 
 Capture Image IOD) is written:
 
 1. **Patient** (C.7.1.1, M): Patient's Name, Patient ID, Patient's Birth Date (empty), Patient's Sex (empty)
-2. **General Study** (C.7.2.1, M): Study Instance UID, Study Date/Time (time of conversion),
+2. **General Study** (C.7.2.1, M): Study Instance UID, Study Date/Time (`--study-date` / `--study-time`;
+   default: the run's start for a new Study, empty with `--study-uid`),
    Referring Physician's Name, Study ID, Accession Number (empty), Study Description (optional)
 3. **General Series** (C.7.3.1, M): Series Instance UID, Modality, Series Number (empty unless given),
    Series Description (optional)
@@ -179,9 +188,11 @@ Capture Image IOD) is written:
 8. **Image Pixel** (C.7.6.3, M): Samples per Pixel 1 or 3, Photometric Interpretation MONOCHROME2 or RGB,
    Rows, Columns, Bits Allocated 8, Bits Stored 8, High Bit 7, Pixel Representation 0,
    Planar Configuration 0 (RGB), Pixel Data
-9. **SC Image** (C.8.6.2, M): Nominal Scanned Pixel Spacing from the image DPI (`--use-exif`)
+9. **SC Image** (C.8.6.2, M): Date / Time of Secondary Capture (time of conversion), Nominal Scanned
+   Pixel Spacing from the image DPI (`--use-exif`)
 10. **SOP Common** (C.12.1, M): SOP Class UID, SOP Instance UID (also in Media Storage SOP Instance
-    UID (0002,0003), PS3.10 Table 7.1-1), Specific Character Set "ISO_IR 192" when a text value is not ASCII
+    UID (0002,0003), PS3.10 Table 7.1-1), Instance Creation Date / Time (time of conversion),
+    Specific Character Set "ISO_IR 192" when a text value is not ASCII
 
 Images with more than 8 bits per sample (e.g. 16-bit PNG) are reduced to 8 bits; alpha is composited on white.
 
@@ -284,7 +295,8 @@ When not specified, the following metadata is auto-generated:
 - **Study Instance UID**: Generated using timestamp and random component (format: 2.25.{timestamp}{random})
 - **Series Instance UID**: Generated using timestamp and random component
 - **SOP Instance UID**: Auto-generated for each DICOM instance
-- **Study Date/Time**: Current date and time
+- **Study Date/Time**: The date and time the run started, for a new Study (empty with `--study-uid`)
+- **Instance Creation Date/Time, Date/Time of Secondary Capture**: When each instance is converted
 - **Modality**: "OT" (Other) if not specified
 - **Output filename**: Input filename with .dcm extension
 

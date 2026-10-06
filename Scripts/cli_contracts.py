@@ -811,6 +811,8 @@ CONTRACT['dicom-image'] = {
     '--series-description': ('Series Description (0008,103E)', 'PS3.3 Table C.7-5a (Type 3); LO', 'LO <= 64 chars; warns otherwise', 'match'),
     '--study-uid': ('Study Instance UID (0020,000D)', 'PS3.3 Table C.7-3 (Type 1); PS3.5 9.1', 'UID syntax <= 64 bytes; generated when absent; invalid warns (P-IMAGE-VR)', 'missing -> fixed (was written unchecked; now warns)'),
     '--series-uid': ('Series Instance UID (0020,000E)', 'PS3.3 Table C.7-5a (Type 1); PS3.5 9.1', 'UID syntax; generated when absent; invalid warns', 'missing -> fixed (now warns)'),
+    '--study-date': ('Study Date (0008,0020), "Date the Study started"', 'PS3.3 Table C.7-3 (Type 2); PS3.5 Table 6.2-1 DA (Gregorian), 7.4.3', 'YYYYMMDD; absent: run date for a new Study, empty with --study-uid; other forms refused (exit 1)', 'wrong -> fixed (was always the conversion time per instance; P-IMAGE-STUDY-DATETIME)'),
+    '--study-time': ('Study Time (0008,0030), "Time the Study started"', 'PS3.3 Table C.7-3 (Type 2); PS3.5 Table 6.2-1 TM, 7.4.3', 'HH[MM[SS[.F{1-6}]]]; absent: run time for a new Study, empty with --study-uid; other forms refused (exit 1)', 'wrong -> fixed (was always the conversion time per instance; P-IMAGE-STUDY-DATETIME)'),
     '--series-number': ('Series Number (0020,0011)', 'PS3.3 Table C.7-5a (Type 2); PS3.5 Table 6.2-1 IS', 'IS -2^31..2^31-1; empty when absent; out of range warns', 'match'),
     '--instance-number': ('Instance Number (0020,0013)', 'PS3.3 Table C.7-9 (Type 2); IS', 'IS range; default 1, +1 per file/page', 'match'),
     '--modality': ('Modality (0008,0060)', 'PS3.3 Table C.7-5a (Type 1); C.7.3.1.1.1 (97 Defined Terms)', 'Defined Terms via ModalityOptionValidator; default OT; unknown warns', 'match'),

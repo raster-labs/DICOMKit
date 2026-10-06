@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — P-IMAGE-STUDY-DATETIME (2026-10-06, DICOM 2026a)
+
+- dicom-image `--study-date` / `--study-time`: Study Date / Time (0008,0020/0030), Type 2 "Date / Time the Study started" (PS3.3 2026a Table C.7-3). Absent: the run's start for a new Study, the same in every instance of a batch or TIFF run; empty with `--study-uid` (PS3.5 7.4.3). Values that are not DA (Gregorian YYYYMMDD) / TM are refused with exit 1 and nothing written (PS3.5 Table 6.2-1).
+- **DICOMKit** `ImageConverter.OutputRules.studyDateTime(studyDate:studyTime:studyUID:runDate:)`, `.studyDate(_:)`, `.studyTime(_:)`, `.localDate(_:)`, `.localTime(_:)`, `.studyDateHelp`, `.studyTimeHelp`; `valueViolations` takes `studyDate:` / `studyTime:` (defaults nil). `ImageConverter.Metadata` gains `studyDate`, `studyTime`, `conversionDate`.
+- DICOMStudio CLI Workshop and Parameter Builder offer `--study-date` / `--study-time` and run the same rules.
+
+### Changed — P-IMAGE-STUDY-DATETIME (2026-10-06, DICOM 2026a)
+
+- dicom-image: the conversion moment is written as Instance Creation Date / Time (0008,0012/0013, Table C.12-1) and Date / Time of Secondary Capture (0018,1012/1014, Table C.8-25); before, it was written as Study Date / Time, so each instance of a batch had its own Study Date / Time. DA is formatted on the Gregorian calendar whatever the system calendar.
+
 ### Added — P-STUDIO items (2026-10-06, DICOM 2026a)
 
 All 14 DICOMStudio P-items approved by the owner on 2026-10-06 ("complete everything as per the recommendation").

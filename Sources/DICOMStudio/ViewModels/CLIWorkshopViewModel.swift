@@ -4405,6 +4405,8 @@ private func executeDicomStudy() async {
         let seriesDescription = optional("series-description")
         let studyUIDArg = optional("study-uid")
         let seriesUIDArg = optional("series-uid")
+        let studyDateArg = optional("study-date")
+        let studyTimeArg = optional("study-time")
         let seriesNumber = Int(paramValue("series-number"))
         let instanceNumberArg = Int(paramValue("instance-number"))
         let modalityArg = optional("modality")
@@ -4438,7 +4440,8 @@ private func executeDicomStudy() async {
             patientName: patientNameArg, patientID: patientIDArg,
             studyDescription: studyDescription, seriesDescription: seriesDescription,
             studyUID: studyUIDArg, seriesUID: seriesUIDArg,
-            seriesNumber: seriesNumber, instanceNumber: instanceNumberArg)
+            seriesNumber: seriesNumber, instanceNumber: instanceNumberArg,
+            studyDate: studyDateArg, studyTime: studyTimeArg)
         if !violations.isEmpty {
             finish(violations.map { "Error: " + $0 + "\n" }.joined(), exitCode: 1)
             return
@@ -4481,6 +4484,9 @@ private func executeDicomStudy() async {
         }
 
         let workIsDirectory = isDir.boolValue
+        // One moment per run, as dicom-image's run(): the default Study Date / Time of a new Study.
+        let study = ImageConverter.OutputRules.studyDateTime(
+            studyDate: studyDateArg, studyTime: studyTimeArg, studyUID: studyUIDArg, runDate: Date())
         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
             () -> (String, Int) in
             let fm = FileManager.default
@@ -4499,7 +4505,8 @@ private func executeDicomStudy() async {
                     studyDescription: studyDescription, seriesDescription: seriesDescription,
                     modality: modalityArg == nil ? Modality.ot.rawValue : resolved.value,
                     seriesNumber: seriesNumber,
-                    conversionType: conversionType)
+                    conversionType: conversionType,
+                    studyDate: study.date, studyTime: study.time)
             }
 
             /// Encodes one image (page) and writes it through `OutputAccess.write`: the output
