@@ -509,12 +509,35 @@ struct SRBuilderHelpersTests {
         )
         let item = SRBuilderHelpers.spatialCoordItem(
             conceptName: concept,
-            graphicType: .polygon,
+            graphicType: .polyline,
             graphicData: [0, 0, 100, 0, 100, 100, 0, 100]
         )
         #expect(item.valueType == .spatialCoord)
-        #expect(item.graphicType == .polygon)
+        #expect(item.graphicType == .polyline)
         #expect(item.graphicData?.count == 8)
+    }
+
+    // PS3.3 2026a C.18.6.1.2 has no POLYGON; a closed polygon is a POLYLINE with first point = last point
+    @Test("spatialCoordItem writes a legacy POLYGON as a closed POLYLINE")
+    func testSpatialCoordItemLegacyPolygon() {
+        let concept = CodedConcept(
+            codeValue: "1", codingSchemeDesignator: "DCM", codeMeaning: "Region"
+        )
+        let polygon = SpatialCoordGraphicType(rawValue: "POLYGON")!
+        let item = SRBuilderHelpers.spatialCoordItem(
+            conceptName: concept,
+            graphicType: polygon,
+            graphicData: [0, 0, 100, 0, 100, 100, 0, 100]
+        )
+        #expect(item.graphicType == .polyline)
+        #expect(item.graphicData == [0, 0, 100, 0, 100, 100, 0, 100, 0, 0])
+        let closed = SRBuilderHelpers.spatialCoordItem(
+            conceptName: concept,
+            graphicType: polygon,
+            graphicData: [0, 0, 100, 0, 100, 100, 0, 0]
+        )
+        #expect(closed.graphicType == .polyline)
+        #expect(closed.graphicData == [0, 0, 100, 0, 100, 100, 0, 0])
     }
 
     @Test("spatialCoord3DItem creates SCOORD3D type")

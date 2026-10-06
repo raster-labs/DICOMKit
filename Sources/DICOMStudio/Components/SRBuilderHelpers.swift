@@ -3,7 +3,7 @@
 //
 // DICOM Studio — Platform-independent SR document builder helpers
 // Reference: DICOM PS3.16 (Content Mapping Resources), TID 1500, TID 1501, TID 2000, TID 2010
-// NEMA-verified: 2026a, checked 2026-10-05 — the 13 coded concepts diffed by script against PS3.16 2026a Table D-1 and the CID tables (7003, 7010, 7021, 7181, 7461, 7470, 9000): 7 matched, 6 corrected ((G-C0E3, SRT) -> (363698007, SCT, "Finding Site") per Table O-1 / TID 1501 row 6; 121200 is "Illustration of ROI"; 113000 is "Of Interest"; mm2 "square millimeter" (CID 7461); [hnsf'U] "Hounsfield unit" (CID 83); 1 "no units" (CID 7181)); (ml, UCUM) is in no CID table, its meaning is UCUM's print name (not verifiable from NEMA text); retired (121070, DCM, "Findings") no longer used as a title/heading with an arbitrary meaning — titles come from CID 7000 / 7021 / 7010 / TID 4000 / TID 4100, section headings from CID 7001, with a 99DCMSTUDIO private code (PS3.16 Section 8) for headings the standard has no code for; TID 1500 rows 1, 6 and TID 1501 rows 2, 3, 6 and TID 2010 rows 1, 7, 8 (IMAGE without a concept name) followed
+// NEMA-verified: 2026a, checked 2026-10-06 — the 13 coded concepts diffed by script against PS3.16 2026a Table D-1 and the CID tables (7003, 7010, 7021, 7181, 7461, 7470, 9000): 7 matched, 6 corrected ((G-C0E3, SRT) -> (363698007, SCT, "Finding Site") per Table O-1 / TID 1501 row 6; 121200 is "Illustration of ROI"; 113000 is "Of Interest"; mm2 "square millimeter" (CID 7461); [hnsf'U] "Hounsfield unit" (CID 83); 1 "no units" (CID 7181)); (ml, UCUM) is in no CID table, its meaning is UCUM's print name (not verifiable from NEMA text); retired (121070, DCM, "Findings") no longer used as a title/heading with an arbitrary meaning — titles come from CID 7000 / 7021 / 7010 / TID 4000 / TID 4100, section headings from CID 7001, with a 99DCMSTUDIO private code (PS3.16 Section 8) for headings the standard has no code for; TID 1500 rows 1, 6 and TID 1501 rows 2, 3, 6 and TID 2010 rows 1, 7, 8 (IMAGE without a concept name) followed; spatialCoordItem writes the deprecated POLYGON as a closed POLYLINE (first point = last point), the 2D Graphic Types being POINT, MULTIPOINT, POLYLINE, CIRCLE, ELLIPSE (PS3.3 2026a C.18.6.1.2, P-STUDIO-SCOORD-POLYGON)
 
 import Foundation
 
@@ -291,19 +291,38 @@ public enum SRBuilderHelpers: Sendable {
     }
 
     /// Creates a 2D spatial coordinate content item.
+    ///
+    /// The deprecated `SpatialCoordGraphicType.polygon` is written as POLYLINE with the first
+    /// point repeated at the end when the data is not already closed: PS3.3 2026a C.18.6.1.2 has
+    /// no POLYGON Graphic Type for SCOORD.
     public static func spatialCoordItem(
         conceptName: CodedConcept,
         graphicType: SpatialCoordGraphicType,
         graphicData: [Double],
         relationship: SRRelationshipType = .contains
     ) -> SRContentItem {
-        SRContentItem(
+        var type = graphicType
+        var data = graphicData
+        if graphicType.rawValue == "POLYGON" {   // deprecated `.polygon`
+            type = .polyline
+            data = closedPolyline(graphicData)
+        }
+        return SRContentItem(
             valueType: .spatialCoord,
             conceptName: conceptName,
             relationshipType: relationship,
-            graphicType: graphicType,
-            graphicData: graphicData
+            graphicType: type,
+            graphicData: data
         )
+    }
+
+    /// Returns 2D graphic data (x, y pairs) with the first point appended when the last point
+    /// differs from it, so the POLYLINE is closed (PS3.3 2026a C.18.6.1.2).
+    static func closedPolyline(_ data: [Double]) -> [Double] {
+        guard data.count >= 4, data.count % 2 == 0 else { return data }
+        let n = data.count
+        if data[0] == data[n - 2] && data[1] == data[n - 1] { return data }
+        return data + [data[0], data[1]]
     }
 
     /// Creates a 3D spatial coordinate content item.

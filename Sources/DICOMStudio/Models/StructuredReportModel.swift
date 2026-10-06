@@ -3,8 +3,8 @@
 //
 // DICOM Studio — Structured Reporting models for Milestone 7
 // Reference: DICOM PS3.3 C.17 (SR Document), PS3.16 (Content Mapping Resources)
-// Supports 8 SR document types, 15 of the 16 content item value types, coded terminology
-// NEMA-verified: 2026a, checked 2026-10-05 — 8 SOP Class UIDs diffed against PS3.6 2026a Table A-1 (8 registered, names match; measurementReport reuses Enhanced SR Storage); ContentItemValueType 15 cases against PS3.3 2026a Table C.17.3-7 (16 rows: 15 match, TABLE missing — P-STUDIO-SR-TABLE); SRRelationshipType 7 cases against Table C.17.3-8 (7/7); ContinuityOfContent against Table C.18.8-1 (2/2); SpatialCoordGraphicType against C.18.6.1.2 (5 match, POLYGON is not a 2D SCOORD Graphic Type — P-STUDIO-SCOORD-POLYGON); SpatialCoord3DGraphicType against C.18.9.1.2 (6/6); TemporalRangeType against C.18.7.1.1 (6/6); CodingSchemeDesignator 5 designators against PS3.16 2026a Table 8-1 (5/5, DCM's name corrected to "DICOM Controlled Terminology"); CAD/BI-RADS/tracking enums are UI state
+// Supports 8 SR document types, the 16 content item value types, coded terminology
+// NEMA-verified: 2026a, checked 2026-10-06 — 8 SOP Class UIDs diffed against PS3.6 2026a Table A-1 (8 registered, names match; measurementReport reuses Enhanced SR Storage); ContentItemValueType 16 cases against PS3.3 2026a Table C.17.3-7 (16/16, TABLE added 2026-10-06 — P-STUDIO-SR-TABLE); SRRelationshipType 7 cases against Table C.17.3-8 (7/7); ContinuityOfContent against Table C.18.8-1 (2/2); SpatialCoordGraphicType against C.18.6.1.2 (5/5 active cases; POLYGON is not a 2D SCOORD Graphic Type and is a deprecated case outside allCases, still decoded, written as a closed POLYLINE by SRBuilderHelpers — P-STUDIO-SCOORD-POLYGON); SpatialCoord3DGraphicType against C.18.9.1.2 (6/6); TemporalRangeType against C.18.7.1.1 (6/6); CodingSchemeDesignator 5 designators against PS3.16 2026a Table 8-1 (5/5, DCM's name corrected to "DICOM Controlled Terminology"); CAD/BI-RADS/tracking enums are UI state
 
 import Foundation
 
@@ -234,21 +234,28 @@ public struct CodedConcept: Sendable, Equatable, Hashable, Identifiable {
 
 /// Graphic type for 2D spatial coordinates per PS3.3 C.18.6.
 ///
-/// PS3.3 2026a C.18.6.1.2 enumerates POINT, MULTIPOINT, POLYLINE, CIRCLE and ELLIPSE; `polygon`
-/// is a 3D SCOORD3D term only (C.18.9.1.2) and is kept for source compatibility (P-STUDIO-SCOORD-POLYGON).
+/// PS3.3 2026a C.18.6.1.2 enumerates POINT, MULTIPOINT, POLYLINE, CIRCLE and ELLIPSE; a closed
+/// polygon is a POLYLINE whose first and last points are equal. POLYGON is a SCOORD3D term only
+/// (C.18.9.1.2): `polygon` is deprecated, is not in `allCases`, still decodes from "POLYGON" when
+/// reading, and `SRBuilderHelpers.spatialCoordItem` writes it as a closed POLYLINE
+/// (P-STUDIO-SCOORD-POLYGON).
 public enum SpatialCoordGraphicType: String, Sendable, Equatable, Hashable, CaseIterable {
     /// Single point.
     case point = "POINT"
-    /// Multiple points forming a polyline.
+    /// Multiple points forming a polyline (closed when the first point equals the last).
     case polyline = "POLYLINE"
     /// Circle defined by center and edge point.
     case circle = "CIRCLE"
     /// Ellipse defined by four points.
     case ellipse = "ELLIPSE"
-    /// Closed polygon.
+    /// Closed polygon — not a 2D SCOORD Graphic Type; use a closed `polyline`.
+    @available(*, deprecated, renamed: "polyline", message: "POLYGON is not a PS3.3 2026a C.18.6.1.2 Graphic Type; use a closed POLYLINE (first point = last point)")
     case polygon = "POLYGON"
     /// Multiple individual points.
     case multipoint = "MULTIPOINT"
+
+    /// The five Graphic Types of PS3.3 2026a C.18.6.1.2 (the deprecated `polygon` is not included).
+    public static let allCases: [SpatialCoordGraphicType] = [.point, .multipoint, .polyline, .circle, .ellipse]
 }
 
 // MARK: - 3D Spatial Coordinate Type

@@ -216,15 +216,23 @@ struct CodedConceptTests {
 
 @Suite("SpatialCoordGraphicType Tests")
 struct SpatialCoordGraphicTypeTests {
-    @Test("All 6 graphic types")
+    // PS3.3 2026a C.18.6.1.2: POINT, MULTIPOINT, POLYLINE, CIRCLE, ELLIPSE
+    @Test("allCases are the 5 C.18.6.1.2 graphic types")
     func testAllCases() {
-        #expect(SpatialCoordGraphicType.allCases.count == 6)
+        #expect(SpatialCoordGraphicType.allCases.map(\.rawValue) == ["POINT", "MULTIPOINT", "POLYLINE", "CIRCLE", "ELLIPSE"])
         #expect(SpatialCoordGraphicType.point.rawValue == "POINT")
         #expect(SpatialCoordGraphicType.polyline.rawValue == "POLYLINE")
         #expect(SpatialCoordGraphicType.circle.rawValue == "CIRCLE")
         #expect(SpatialCoordGraphicType.ellipse.rawValue == "ELLIPSE")
-        #expect(SpatialCoordGraphicType.polygon.rawValue == "POLYGON")
         #expect(SpatialCoordGraphicType.multipoint.rawValue == "MULTIPOINT")
+    }
+
+    @Test("Reading POLYGON stays tolerant (deprecated case)")
+    func testLegacyPolygonDecodes() {
+        let legacy = SpatialCoordGraphicType(rawValue: "POLYGON")
+        #expect(legacy != nil)
+        #expect(legacy?.rawValue == "POLYGON")
+        #expect(legacy != .polyline)
     }
 }
 
