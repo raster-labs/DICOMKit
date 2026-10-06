@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (URLSession wrapper; generic HTTP headers and status classes)
+// NEMA-verified: 2026a, checked 2026-10-06 — a URLSession wrapper (generic HTTP headers and status classes, 2026-09-28); the one standard rule is applyTLSProfile: a PS3.15 2026a B.12 / B.13 profile sets TLS 1.2 as the minimum and no maximum (B.12: TLS 1.2 shall, 1.3 attempted; B.13: 1.2 or 1.3, 1.3 attempted)
 /// HTTP client for DICOMweb operations
 ///
 /// Provides a configurable HTTP client layer with retry support,
@@ -137,6 +137,20 @@ public final class HTTPClient: @unchecked Sendable {
     
     // MARK: - Initialization
     
+    /// Applies a PS3.15 2026a Annex B TLS profile to a session configuration: B.12 and B.13
+    /// both make TLS 1.2 the minimum and require a client to attempt TLS 1.3, so the minimum
+    /// is TLS 1.2 and the maximum is left open. Nil leaves the session's defaults. URLSession
+    /// has no cipher-suite setting (see `DICOMwebConfiguration.TLSProfile`).
+    static func applyTLSProfile(
+        _ profile: DICOMwebConfiguration.TLSProfile?,
+        to sessionConfig: URLSessionConfiguration
+    ) {
+        #if canImport(Darwin)
+        guard profile != nil else { return }
+        sessionConfig.tlsMinimumSupportedProtocolVersion = .TLSv12
+        #endif
+    }
+
     /// Creates an HTTP client with the specified configuration
     /// - Parameters:
     ///   - configuration: The DICOMweb configuration
@@ -168,6 +182,8 @@ public final class HTTPClient: @unchecked Sendable {
         // request hits the origin.
         sessionConfig.urlCache = nil
         sessionConfig.requestCachePolicy = .reloadIgnoringLocalCacheData
+
+        Self.applyTLSProfile(configuration.tlsProfile, to: sessionConfig)
         
         #if os(macOS) || os(iOS) || os(visionOS) || os(tvOS) || os(watchOS)
         if #available(macOS 10.13, iOS 11.0, *) {

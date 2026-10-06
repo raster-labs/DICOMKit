@@ -20,6 +20,7 @@
 import Foundation
 
 // MARK: - Navigation Tab
+import DICOMNetwork
 
 /// Navigation tabs for the DICOM Networking Hub.
 public enum NetworkingTab: String, Sendable, Equatable, Hashable, CaseIterable {
@@ -66,21 +67,60 @@ public enum NetworkingTab: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - TLS Mode
 
-/// TLS mode for DICOM connections.
-/// Reference: DICOM PS3.15 Annex B - Secure Transport Connection Profiles
+/// TLS mode for DICOM (DIMSE) connections: no TLS, one of the live PS3.15 2026a Annex B TLS
+/// Secure Transport Connection Profiles, or mutual TLS under B.12.
+///
+/// Reference: DICOM PS3.15 2026a Annex B — B.12 "BCP 195 RFC 8996, 9325 TLS Secure Transport
+/// Connection Profile" and B.13 "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection
+/// Profile" (B.1–B.3 and B.9–B.11 are retired). ``tlsConfiguration(certificateValidation:clientIdentity:)``
+/// gives the DICOMNetwork `TLSConfiguration` per profile; what that configuration cannot enforce
+/// (B.13's CCM / Camellia / DHE suites, key-length and certificate rules) is listed on
+/// `TLSConfiguration.bcp195` / `.modifiedBCP195`.
+///
+/// The former cases `tls12` ("TLS_1_2") and `tls13` ("TLS_1_3") pinned a TLS version, which a
+/// profile forbids (B.12 requires TLS 1.2 and attempts 1.3); they are deprecated aliases of
+/// ``bcp195`` and ``modifiedBCP195`` (B.13 allows a TLS 1.3-only client), and a stored
+/// "TLS_1_2" / "TLS_1_3" decodes to those cases.
 public enum TLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
-    case none  = "NONE"
-    case tls12 = "TLS_1_2"
-    case tls13 = "TLS_1_3"
-    case mtls  = "MTLS"
+    /// No TLS (plain DICOM Upper Layer).
+    case none           = "NONE"
+    /// PS3.15 2026a B.12 BCP 195 RFC 8996, 9325 TLS.
+    case bcp195         = "BCP195"
+    /// PS3.15 2026a B.13 Modified BCP 195 RFC 8996, 9325 TLS.
+    case modifiedBCP195 = "MODIFIED_BCP195"
+    /// B.12 with a client certificate (bi-directional mutual authentication, which B.12 servers
+    /// shall support and clients are encouraged to use).
+    case mtls           = "MTLS"
+
+    /// Pinned TLS 1.2; no PS3.15 profile pins a version.
+    @available(*, deprecated, renamed: "bcp195",
+               message: "PS3.15 2026a B.12 (BCP 195) requires TLS 1.2 and attempts TLS 1.3; no profile pins TLS 1.2")
+    public static var tls12: TLSMode { .bcp195 }
+
+    /// Pinned TLS 1.3; the nearest profile is B.13, which allows a TLS 1.3-only client.
+    @available(*, deprecated, renamed: "modifiedBCP195",
+               message: "PS3.15 2026a B.13 (Modified BCP 195) is the profile that allows a TLS 1.3-only client")
+    public static var tls13: TLSMode { .modifiedBCP195 }
+
+    /// Accepts the current raw values and the retired "TLS_1_2" / "TLS_1_3" (stored profiles
+    /// decode to ``bcp195`` / ``modifiedBCP195``).
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "NONE":                       self = .none
+        case "BCP195", "TLS_1_2":          self = .bcp195
+        case "MODIFIED_BCP195", "TLS_1_3": self = .modifiedBCP195
+        case "MTLS":                       self = .mtls
+        default:                           return nil
+        }
+    }
 
     /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .none:  return "No TLS"
-        case .tls12: return "TLS 1.2"
-        case .tls13: return "TLS 1.3"
-        case .mtls:  return "mTLS (Mutual)"
+        case .none:           return "No TLS"
+        case .bcp195:         return "BCP 195 TLS (PS3.15 B.12)"
+        case .modifiedBCP195: return "Modified BCP 195 TLS (PS3.15 B.13)"
+        case .mtls:           return "mTLS (Mutual, B.12)"
         }
     }
 
@@ -91,6 +131,29 @@ public enum TLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codabl
     public var requiresClientCertificate: Bool { self == .mtls }
 }
 
+
+    /// The PS3.15 2026a Annex B profile this mode applies; nil for ``none``.
+    public var profile: SecureTransportConnectionProfile? {
+        switch self {
+        case .none:           return nil
+        case .bcp195, .mtls:  return .bcp195
+        case .modifiedBCP195: return .modifiedBCP195
+        }
+    }
+
+    /// The DICOMNetwork TLS configuration for this mode (`TLSConfiguration.profile(_:…)` of
+    /// ``profile``); nil for ``none``. The client identity is used for ``mtls``.
+    public func tlsConfiguration(
+        certificateValidation: CertificateValidation = .system,
+        clientIdentity: ClientIdentity? = nil
+    ) -> TLSConfiguration? {
+        guard let profile else { return nil }
+        return TLSConfiguration.profile(
+            profile,
+            certificateValidation: certificateValidation,
+            clientIdentity: self == .mtls ? clientIdentity : nil
+        )
+    }
 // MARK: - Server Connection Status
 
 /// Connection status of a DICOM server.

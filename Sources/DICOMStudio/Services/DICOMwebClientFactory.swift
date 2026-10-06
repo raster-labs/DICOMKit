@@ -1,6 +1,6 @@
 // DICOMwebClientFactory.swift
 // DICOMStudio
-// NEMA-verified: 2026a, checked 2026-10-06 — makeConfiguration(from:timeouts:) is plumbing (PS3.18 names no timeout; D260); buildQIDOQuery keys diffed against PS3.18 2026a Table 10.6.1-5 (study level Modalities in Study (0008,0061), series/instance Modality (0008,0060) — corrected) and Table 8.3.4-1 (fuzzymatching, limit, offset — fuzzymatching now sent); open Study Date ranges against PS3.4 2026a C.2.2.2.5; the tags themselves are DICOMWeb.QIDOQueryAttribute (verified 2026-09-28); authentication and TLS mapping are plumbing (PS3.18 8.11 names no mechanism)
+// NEMA-verified: 2026a, checked 2026-10-06 — makeConfiguration(from:timeouts:) is plumbing (PS3.18 names no timeout; D260); buildQIDOQuery keys diffed against PS3.18 2026a Table 10.6.1-5 (study level Modalities in Study (0008,0061), series/instance Modality (0008,0060) — corrected) and Table 8.3.4-1 (fuzzymatching, limit, offset — fuzzymatching now sent); open Study Date ranges against PS3.4 2026a C.2.2.2.5; the tags themselves are DICOMWeb.QIDOQueryAttribute (verified 2026-09-28); authentication is plumbing (PS3.18 8.11 names no mechanism); the profile TLS mode is passed as DICOMwebConfiguration.tlsProfile (PS3.15 2026a B.12 / B.13, P-STUDIO-TLS-PROFILES, 2026-10-06)
 //
 // DICOM Studio — Factory for creating DICOMwebClient instances from server profiles
 // Reference: DICOM PS3.18 (Web Services)
@@ -40,7 +40,8 @@ public enum DICOMwebClientFactory: Sendable {
             baseURL: baseURL,
             authentication: authentication,
             timeouts: timeouts,
-            maxConcurrentRequests: 4
+            maxConcurrentRequests: 4,
+            tlsProfile: profile.tlsMode.webTLSProfile
         )
     }
 
@@ -92,7 +93,8 @@ public enum DICOMwebClientFactory: Sendable {
         let configuration = DICOMwebConfiguration(
             baseURL: baseURL,
             authentication: authentication,
-            maxConcurrentRequests: 4
+            maxConcurrentRequests: 4,
+            tlsProfile: profile.tlsMode.webTLSProfile
         )
 
         return WADOURIClient(configuration: configuration)

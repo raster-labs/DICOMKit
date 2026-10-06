@@ -114,7 +114,7 @@ struct DICOMwebServerProfileValidationTests {
             name: "Test PACS",
             baseURL: "https://pacs.hospital.com/dicom-web",
             authMethod: .none,
-            tlsMode: .compatible
+            tlsMode: .bcp195
         )
         let errors = vm.validationErrors(for: profile)
         #expect(errors.isEmpty)

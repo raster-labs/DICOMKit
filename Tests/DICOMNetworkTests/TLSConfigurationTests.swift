@@ -392,6 +392,79 @@ final class DICOMConnectionTLSTests: XCTestCase {
         XCTAssertEqual(connection.tlsConfiguration?.minimumVersion, .tlsProtocol13)
         XCTAssertEqual(connection.tlsConfiguration?.maximumVersion, .tlsProtocol13)
     }
+
+    // MARK: - PS3.15 2026a Annex B profiles (P-STUDIO-TLS-PROFILES)
+
+    /// PS3.15 2026a B.12 / B.13 section titles (extracted from part15_2026a.xml by script, 2026-10-06).
+    private static let b12Title = "BCP 195 RFC 8996, 9325 TLS Secure Transport Connection Profile"
+    private static let b13Title = "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection Profile"
+
+    /// PS3.15 2026a B.13 cipher-suite lists: TLS 1.3 (5) and TLS 1.2 required (10).
+    private static let b13TLS13 = ["TLS_AES_256_GCM_SHA384", "TLS_CHACHA20_POLY1305_SHA256", "TLS_AES_128_GCM_SHA256",
+                                   "TLS_AES_128_CCM_SHA256", "TLS_AES_128_CCM_8_SHA256"]
+    private static let b13TLS12Required = [
+        "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_ECDHE_ECDSA_WITH_AES_256_CCM", "TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8",
+        "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256", "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+        "TLS_ECDHE_ECDSA_WITH_AES_128_CCM", "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8"]
+
+    func testSecureTransportConnectionProfileTitles() {
+        XCTAssertEqual(SecureTransportConnectionProfile.allCases, [.bcp195, .modifiedBCP195])
+        XCTAssertEqual(SecureTransportConnectionProfile.bcp195.title, Self.b12Title)
+        XCTAssertEqual(SecureTransportConnectionProfile.modifiedBCP195.title, Self.b13Title)
+        XCTAssertEqual(SecureTransportConnectionProfile.bcp195.section, "B.12")
+        XCTAssertEqual(SecureTransportConnectionProfile.modifiedBCP195.section, "B.13")
+        XCTAssertEqual(SecureTransportConnectionProfile.bcp195.tlsConfiguration, .bcp195)
+        XCTAssertEqual(SecureTransportConnectionProfile.modifiedBCP195.tlsConfiguration, .modifiedBCP195)
+    }
+
+    func testBCP195ConfigurationFollowsB12() throws {
+        let config = TLSConfiguration.bcp195
+        // B.12: TLS 1.2 shall be supported, TLS 1.3 may be and is attempted — no maximum.
+        XCTAssertEqual(config.minimumVersion, .tlsProtocol12)
+        XCTAssertNil(config.maximumVersion)
+        XCTAssertEqual(config.certificateValidation, .system)
+        XCTAssertNil(config.clientIdentity)
+        XCTAssertNil(config.cipherSuites)
+        XCTAssertNoThrow(try config.makeNWProtocolTLSOptions())
+    }
+
+    func testModifiedBCP195ConfigurationFollowsB13() throws {
+        let config = TLSConfiguration.modifiedBCP195
+        XCTAssertEqual(config.minimumVersion, .tlsProtocol12)
+        XCTAssertNil(config.maximumVersion)
+        XCTAssertEqual(config.cipherSuites, TLSCipherSuite.modifiedBCP195)
+        XCTAssertNoThrow(try config.makeNWProtocolTLSOptions())
+    }
+
+    func testCipherSuitesAreB13SuitesSecurityExposes() {
+        let names = TLSCipherSuite.allCases.map(\.ianaName)
+        XCTAssertEqual(names.filter { $0.hasPrefix("TLS_AES") || $0.hasPrefix("TLS_CHACHA") },
+                       Self.b13TLS13.filter { names.contains($0) })
+        XCTAssertEqual(names.filter { Self.b13TLS12Required.contains($0) },
+                       Self.b13TLS12Required.filter { names.contains($0) })
+        XCTAssertEqual(names.count, 9)
+        for suite in TLSCipherSuite.allCases {
+            XCTAssertTrue(Self.b13TLS13.contains(suite.ianaName) || Self.b13TLS12Required.contains(suite.ianaName),
+                          suite.ianaName)
+            XCTAssertEqual(suite.isTLS13, Self.b13TLS13.contains(suite.ianaName), suite.ianaName)
+            XCTAssertNotNil(tls_ciphersuite_t(rawValue: suite.rawValue), suite.ianaName)
+        }
+        XCTAssertEqual(tls_ciphersuite_t(rawValue: TLSCipherSuite.TLS_AES_128_GCM_SHA256.rawValue), .AES_128_GCM_SHA256)
+        XCTAssertEqual(tls_ciphersuite_t(rawValue: TLSCipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256.rawValue),
+                       .ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256)
+    }
+
+    func testProfileFactoryCarriesValidationAndIdentity() {
+        let identity = ClientIdentity(keychainLabel: "scu")
+        let config = TLSConfiguration.profile(.modifiedBCP195, certificateValidation: .disabled, clientIdentity: identity)
+        XCTAssertEqual(config.minimumVersion, .tlsProtocol12)
+        XCTAssertEqual(config.certificateValidation, .disabled)
+        XCTAssertEqual(config.clientIdentity, identity)
+        XCTAssertEqual(config.cipherSuites, TLSCipherSuite.modifiedBCP195)
+        XCTAssertEqual(TLSConfiguration.profile(.bcp195), .bcp195)
+    }
 }
 
 #endif

@@ -162,19 +162,19 @@ struct DICOMwebHelpersTests {
         #expect(DICOMwebTLSHelpers.sfSymbol(for: .none) == "lock.slash")
     }
 
-    @Test("DICOMwebTLSHelpers sfSymbol for strict is lock.shield")
+    @Test("DICOMwebTLSHelpers sfSymbol for modifiedBCP195 is lock.shield")
     func testTLSHelpersSFSymbolStrict() {
-        #expect(DICOMwebTLSHelpers.sfSymbol(for: .strict) == "lock.shield")
+        #expect(DICOMwebTLSHelpers.sfSymbol(for: .modifiedBCP195) == "lock.shield")
     }
 
-    @Test("DICOMwebTLSHelpers isProductionSafe compatible is true")
+    @Test("DICOMwebTLSHelpers isProductionSafe bcp195 is true")
     func testTLSHelpersIsProductionSafeCompatible() {
-        #expect(DICOMwebTLSHelpers.isProductionSafe(.compatible) == true)
+        #expect(DICOMwebTLSHelpers.isProductionSafe(.bcp195) == true)
     }
 
-    @Test("DICOMwebTLSHelpers isProductionSafe strict is true")
+    @Test("DICOMwebTLSHelpers isProductionSafe modifiedBCP195 is true")
     func testTLSHelpersIsProductionSafeStrict() {
-        #expect(DICOMwebTLSHelpers.isProductionSafe(.strict) == true)
+        #expect(DICOMwebTLSHelpers.isProductionSafe(.modifiedBCP195) == true)
     }
 
     @Test("DICOMwebTLSHelpers isProductionSafe none is false")

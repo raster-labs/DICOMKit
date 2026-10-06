@@ -50,9 +50,9 @@ struct DICOMwebModelTests {
         #expect(DICOMwebTLSMode.none.isEnabled == false)
     }
 
-    @Test("DICOMwebTLSMode strict is enabled")
+    @Test("DICOMwebTLSMode modifiedBCP195 is enabled")
     func testDICOMwebTLSModeStrictEnabled() {
-        #expect(DICOMwebTLSMode.strict.isEnabled == true)
+        #expect(DICOMwebTLSMode.modifiedBCP195.isEnabled == true)
     }
 
     @Test("DICOMwebTLSMode development allows self-signed")
@@ -60,14 +60,14 @@ struct DICOMwebModelTests {
         #expect(DICOMwebTLSMode.development.allowsSelfSigned == true)
     }
 
-    @Test("DICOMwebTLSMode compatible does not allow self-signed")
+    @Test("DICOMwebTLSMode bcp195 does not allow self-signed")
     func testDICOMwebTLSModeCompatibleNoSelfSigned() {
-        #expect(DICOMwebTLSMode.compatible.allowsSelfSigned == false)
+        #expect(DICOMwebTLSMode.bcp195.allowsSelfSigned == false)
     }
 
-    @Test("DICOMwebTLSMode strict does not allow self-signed")
+    @Test("DICOMwebTLSMode modifiedBCP195 does not allow self-signed")
     func testDICOMwebTLSModeStrictNoSelfSigned() {
-        #expect(DICOMwebTLSMode.strict.allowsSelfSigned == false)
+        #expect(DICOMwebTLSMode.modifiedBCP195.allowsSelfSigned == false)
     }
 
     @Test("DICOMwebTLSMode none does not allow self-signed")

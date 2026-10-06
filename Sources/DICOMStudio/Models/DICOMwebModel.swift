@@ -1,12 +1,13 @@
 // DICOMwebModel.swift
 // DICOMStudio
-// NEMA-verified: 2026a, checked 2026-10-05 — UPSState.allowedTransitions diffed against PS3.4 2026a Table CC.1.1-2 (Change State rows: SCHEDULED→IN PROGRESS; IN PROGRESS→COMPLETED/CANCELED; SCHEDULED→CANCELED removed, C310H; SCHEDULED is never a target, C303H); UPSState.dicomTerm against PS3.3 2026a C.30.1 (4/4), UPSPriority against C.30.2 (3/3); QIDOQueryLevel resources and WADOProtocol.protocolDescription parameter names against PS3.18 2026a Tables 10.6.1-1 and 9.1.2-1 (3/3, 4/4); the raw values IN_PROGRESS / CANCELLED are Studio-local spellings (P-STUDIO-UPS-STATE-RAW); DICOMwebTLSMode names TLS versions, not PS3.15 Annex B profiles (P-STUDIO-TLS-PROFILES); tabs, auth methods, job statuses, event-channel states and performance statistics carry no DICOM-standard data
+// NEMA-verified: 2026a, checked 2026-10-06 — UPSState is now a deprecated alias of DICOMWeb's UPSState (WebUPSState; P-STUDIO-UPS-STATE-RAW), whose raw values were diffed by script against PS3.3 2026a Table C.30.1-1 (SCHEDULED, IN PROGRESS, CANCELED, COMPLETED 4/4) and whose transitions are PS3.4 2026a Table CC.1.1-2 (verified in DICOMWeb); the retired raw values IN_PROGRESS / CANCELLED decode through WebUPSState(legacyRawValue:); UPSPriority against C.30.2 (3/3); QIDOQueryLevel resources and WADOProtocol.protocolDescription parameter names against PS3.18 2026a Tables 10.6.1-1 and 9.1.2-1 (3/3, 4/4); DICOMwebTLSMode offers the PS3.15 2026a Annex B profiles B.12 / B.13 (titles diffed by script; B.9–B.11 retired) and hands them to DICOMwebConfiguration.tlsProfile (P-STUDIO-TLS-PROFILES; COMPATIBLE / STRICT decode to them); tabs, auth methods, job statuses, event-channel states and performance statistics carry no DICOM-standard data
 //
 // DICOM Studio — Data models for the DICOMweb Integration Hub (Milestone 10)
 // Reference: DICOM PS3.18 (Web Services)
 // Reference: DICOM PS3.19 (Application Hosting)
 
 import Foundation
+import DICOMWeb
 
 // MARK: - Navigation Tab
 
@@ -72,21 +73,59 @@ public enum DICOMwebAuthMethod: String, Sendable, Equatable, Hashable, CaseItera
 
 // MARK: - TLS Mode
 
-/// TLS security mode for DICOMweb HTTPS connections.
-/// Reference: DICOM PS3.15 Annex B – Secure Transport Connection Profiles
+/// TLS security mode for DICOMweb HTTPS connections: no TLS, one of the live PS3.15 2026a
+/// Annex B TLS Secure Transport Connection Profiles, or development (self-signed certificates).
+///
+/// Reference: DICOM PS3.15 2026a Annex B — B.12 "BCP 195 RFC 8996, 9325 TLS Secure Transport
+/// Connection Profile" and B.13 "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection
+/// Profile" (B.9–B.11 are retired). ``webTLSProfile`` is what `DICOMwebClientFactory` hands to
+/// `DICOMwebConfiguration`; URLSession applies it as a TLS 1.2 minimum with no maximum and
+/// cannot restrict cipher suites, so the B.13 suite, key-length and certificate rules are not
+/// enforced (see `DICOMwebConfiguration.TLSProfile`).
+///
+/// The former cases `compatible` ("COMPATIBLE", TLS 1.2+) and `strict` ("STRICT", TLS 1.3 only)
+/// named TLS versions, not profiles; they are deprecated aliases of ``bcp195`` and
+/// ``modifiedBCP195`` (B.13 allows a TLS 1.3-only client), and a stored "COMPATIBLE" /
+/// "STRICT" decodes to those cases.
 public enum DICOMwebTLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
-    case none        = "NONE"
-    case compatible  = "COMPATIBLE"
-    case strict      = "STRICT"
-    case development = "DEVELOPMENT"
+    /// No TLS (plain HTTP).
+    case none           = "NONE"
+    /// PS3.15 2026a B.12 BCP 195 RFC 8996, 9325 TLS.
+    case bcp195         = "BCP195"
+    /// PS3.15 2026a B.13 Modified BCP 195 RFC 8996, 9325 TLS.
+    case modifiedBCP195 = "MODIFIED_BCP195"
+    /// TLS accepting self-signed certificates — development only, no PS3.15 profile.
+    case development    = "DEVELOPMENT"
+
+    /// TLS 1.2 or later; the profile with that version rule is B.12.
+    @available(*, deprecated, renamed: "bcp195",
+               message: "PS3.15 2026a B.12 (BCP 195) is the TLS 1.2+ profile")
+    public static var compatible: DICOMwebTLSMode { .bcp195 }
+
+    /// TLS 1.3 only; the nearest profile is B.13, which allows a TLS 1.3-only client.
+    @available(*, deprecated, renamed: "modifiedBCP195",
+               message: "PS3.15 2026a B.13 (Modified BCP 195) is the profile that allows a TLS 1.3-only client")
+    public static var strict: DICOMwebTLSMode { .modifiedBCP195 }
+
+    /// Accepts the current raw values and the retired "COMPATIBLE" / "STRICT" (stored profiles
+    /// decode to ``bcp195`` / ``modifiedBCP195``).
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "NONE":                      self = .none
+        case "BCP195", "COMPATIBLE":      self = .bcp195
+        case "MODIFIED_BCP195", "STRICT": self = .modifiedBCP195
+        case "DEVELOPMENT":               self = .development
+        default:                          return nil
+        }
+    }
 
     /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .none:        return "No TLS (HTTP)"
-        case .compatible:  return "TLS (Compatible)"
-        case .strict:      return "TLS (Strict)"
-        case .development: return "TLS (Dev / Self-Signed)"
+        case .none:           return "No TLS (HTTP)"
+        case .bcp195:         return "BCP 195 TLS (PS3.15 B.12)"
+        case .modifiedBCP195: return "Modified BCP 195 TLS (PS3.15 B.13)"
+        case .development:    return "TLS (Dev / Self-Signed)"
         }
     }
 
@@ -95,6 +134,16 @@ public enum DICOMwebTLSMode: String, Sendable, Equatable, Hashable, CaseIterable
 
     /// Whether self-signed certificates are accepted.
     public var allowsSelfSigned: Bool { self == .development }
+
+    /// The DICOMWeb TLS profile for this mode; nil for ``none`` and ``development`` (which
+    /// follows no PS3.15 profile).
+    public var webTLSProfile: DICOMwebConfiguration.TLSProfile? {
+        switch self {
+        case .none, .development: return nil
+        case .bcp195:             return .bcp195
+        case .modifiedBCP195:     return .modifiedBCP195
+        }
+    }
 }
 
 // MARK: - Connection Status

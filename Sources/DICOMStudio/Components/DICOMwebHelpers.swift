@@ -1,6 +1,6 @@
 // DICOMwebHelpers.swift
 // DICOMStudio
-// NEMA-verified: 2026a, checked 2026-10-06 — changeStateRefusal's SCHEDULED text is DICOMWeb UPSState.changeStateRefusal (PS3.18 2026a 11.7.1.4, PS3.4 2026a Table CC.1.1-2 C303H; D255), the text dicom-wado prints; UPSEventPayloadParser tags diffed against PS3.6 2026a Table 6-1 (11 tags, all match) and PS3.4 2026a Table CC.2.4-1 (progress attributes read inside Procedure Step Progress Information Sequence (0074,1002); Contact Display Name (0074,100C) top-level and inside (0074,1008); Human Performer Code Sequence (0040,4009) for UPS Assigned; bare-name keys kept as legacy fallbacks); previous-state inference against Table CC.1.1-2; changeStateRefusal text against PS3.18 2026a 11.7.1.4 and Table CC.1.1-2 / CC.2.1-2 status codes (same SCHEDULED message as dicom-wado); endpointSuffix against PS3.18 Table 10.6.1-1 (3/3); "409" against Table 10.5.3-1; URL, auth, TLS, byte and latency formatting are plumbing
+// NEMA-verified: 2026a, checked 2026-10-06 — changeStateRefusal's SCHEDULED text is DICOMWeb UPSState.changeStateRefusal (PS3.18 2026a 11.7.1.4, PS3.4 2026a Table CC.1.1-2 C303H; D255), the text dicom-wado prints; UPSEventPayloadParser tags diffed against PS3.6 2026a Table 6-1 (11 tags, all match) and PS3.4 2026a Table CC.2.4-1 (progress attributes read inside Procedure Step Progress Information Sequence (0074,1002); Contact Display Name (0074,100C) top-level and inside (0074,1008); Human Performer Code Sequence (0040,4009) for UPS Assigned; bare-name keys kept as legacy fallbacks); previous-state inference against Table CC.1.1-2; changeStateRefusal text against PS3.18 2026a 11.7.1.4 and Table CC.1.1-2 / CC.2.1-2 status codes (same SCHEDULED message as dicom-wado); endpointSuffix against PS3.18 Table 10.6.1-1 (3/3); "409" against Table 10.5.3-1; URL, auth, byte and latency formatting are plumbing; the TLS mode texts name the PS3.15 2026a B.12 / B.13 profile titles (P-STUDIO-TLS-PROFILES) and UPS states are DICOMWeb's UPSState with PS3.3 2026a Table C.30.1-1 raw values (P-STUDIO-UPS-STATE-RAW)
 //
 // DICOM Studio — Platform-independent helpers for DICOMweb Integration Hub display
 // Reference: DICOM PS3.18 (Web Services)
@@ -141,26 +141,26 @@ public enum DICOMwebTLSHelpers: Sendable {
     /// Returns a brief security description for a TLS mode.
     public static func securityDescription(for mode: DICOMwebTLSMode) -> String {
         switch mode {
-        case .none:        return "Unencrypted HTTP connection"
-        case .compatible:  return "TLS 1.2+ encryption"
-        case .strict:      return "TLS 1.3 only with strict certificate validation"
-        case .development: return "TLS with self-signed certificate support (development only)"
+        case .none:           return "Unencrypted HTTP connection"
+        case .bcp195:         return "PS3.15 B.12 BCP 195 RFC 8996, 9325 TLS: TLS 1.2 minimum, TLS 1.3 attempted"
+        case .modifiedBCP195: return "PS3.15 B.13 Modified BCP 195 RFC 8996, 9325 TLS: TLS 1.2 minimum, TLS 1.3 attempted (cipher-suite rules left to the system)"
+        case .development:    return "TLS with self-signed certificate support (development only)"
         }
     }
 
     /// Returns the SF Symbol name appropriate for a TLS mode.
     public static func sfSymbol(for mode: DICOMwebTLSMode) -> String {
         switch mode {
-        case .none:        return "lock.slash"
-        case .compatible:  return "lock"
-        case .strict:      return "lock.shield"
-        case .development: return "lock.trianglebadge.exclamationmark"
+        case .none:           return "lock.slash"
+        case .bcp195:         return "lock"
+        case .modifiedBCP195: return "lock.shield"
+        case .development:    return "lock.trianglebadge.exclamationmark"
         }
     }
 
     /// Returns true if the TLS mode is safe for production use.
     public static func isProductionSafe(_ mode: DICOMwebTLSMode) -> Bool {
-        mode == .compatible || mode == .strict
+        mode == .bcp195 || mode == .modifiedBCP195
     }
 }
 

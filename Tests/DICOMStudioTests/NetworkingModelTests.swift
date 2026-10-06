@@ -37,9 +37,9 @@ struct NetworkingModelTests {
         #expect(TLSMode.none.isEnabled == false)
     }
 
-    @Test("TLSMode tls12 is enabled")
+    @Test("TLSMode bcp195 is enabled")
     func testTLSMode12Enabled() {
-        #expect(TLSMode.tls12.isEnabled == true)
+        #expect(TLSMode.bcp195.isEnabled == true)
     }
 
     @Test("TLSMode mtls requires client certificate")
@@ -47,9 +47,9 @@ struct NetworkingModelTests {
         #expect(TLSMode.mtls.requiresClientCertificate == true)
     }
 
-    @Test("TLSMode tls13 does not require client certificate")
+    @Test("TLSMode modifiedBCP195 does not require client certificate")
     func testTLSModeTLS13NoCert() {
-        #expect(TLSMode.tls13.requiresClientCertificate == false)
+        #expect(TLSMode.modifiedBCP195.requiresClientCertificate == false)
     }
 
     @Test("TLSMode all cases have non-empty display names")
