@@ -119,9 +119,13 @@ dicom-pdf documents/ --output dicoms/ --recursive \
 ```
 
 A directory run (extract or encapsulate) exits with status 1 after its summary when any file
-failed — in extract mode that includes a file that is not an Encapsulated Document; files of
-an unsupported type are skipped, not failed, in encapsulate mode — like `dicom-convert`'s
-directory run. Until 2026-10-06 it exited 0 whatever the per-file outcomes (D271).
+failed, like `dicom-convert`'s directory run. Files the run does not apply to are skipped, not
+failed: in extract mode a file that is not an Encapsulated Document (not a DICOM file, or a data
+set without Encapsulated Document (0042,0011), PS3.3 C.24.2; `--verbose` prints
+`⊘ <file>: not an Encapsulated Document (skipped)`), as `dicom-image` skips non-images and
+`dicom-export bulk` files without pixel data; in encapsulate mode a file of an unsupported type.
+Only a document that fails to extract (or a file that cannot be read or written) counts as
+failed. Until 2026-10-06 a directory run exited 0 whatever the per-file outcomes (D271).
 
 ## Options
 

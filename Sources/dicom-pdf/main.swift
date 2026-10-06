@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — input/output contract of all 19 option/flag/argument declarations by script: Encapsulated PDF Storage 1.2.840.10008.5.1.4.1.1.104.1 (PS3.6 2026a Table A-1); a round trip of an odd-length PDF diffed against PS3.3 2026a Tables A.45.1-1, C.7-1, C.7-3, C.24-1, C.7-8, C.8-24, C.24-2, C.12-1 (every Type 1/2 attribute present; (0042,0015) and (0008,0005) completed and the padding byte stripped on extraction by DICOMKit EncapsulatedDocumentBuilder.OptionRules, D272); --modality default DOC / M3D (C.24-1, A.85.x.4.3); --conversion-type 8 Defined Terms (C.8-24); --burned-in-annotation YES/NO and --hl7-instance-identifier (C.24-2); the option vocabularies are EncapsulatedDocumentBuilder.OptionRules (D272)
+// NEMA-verified: 2026a, checked 2026-10-01 — input/output contract of all 19 option/flag/argument declarations by script: Encapsulated PDF Storage 1.2.840.10008.5.1.4.1.1.104.1 (PS3.6 2026a Table A-1); a round trip of an odd-length PDF diffed against PS3.3 2026a Tables A.45.1-1, C.7-1, C.7-3, C.24-1, C.7-8, C.8-24, C.24-2, C.12-1 (every Type 1/2 attribute present; (0042,0015) and (0008,0005) completed and the padding byte stripped on extraction by DICOMKit EncapsulatedDocumentBuilder.OptionRules, D272); --modality default DOC / M3D (C.24-1, A.85.x.4.3); --conversion-type 8 Defined Terms (C.8-24); --burned-in-annotation YES/NO and --hl7-instance-identifier (C.24-2); the option vocabularies are EncapsulatedDocumentBuilder.OptionRules (D272); 2026-10-06: a directory --extract skips a file without Encapsulated Document (0042,0011) (C.24.2) and exits 1 only for a document that failed (D271)
 
 import Foundation
 import ArgumentParser
@@ -186,6 +186,12 @@ struct DICOMPdf: ParsableCommand {
         }
     }
     
+    /// The verbose line for a file a directory `--extract` skips (D271): not a DICOM file, or
+    /// one without Encapsulated Document (0042,0011) (PS3.3 2026a C.24.2).
+    static func skippedLine(fileName: String) -> String {
+        "⊘ \(fileName): not an Encapsulated Document (skipped)"
+    }
+
     private func extractFromDirectory(inputPath: String, outputPath: String?) throws {
         let inputURL = URL(fileURLWithPath: inputPath)
         
@@ -214,10 +220,28 @@ struct DICOMPdf: ParsableCommand {
         let fileURLs = FileGatherer.regularFiles(under: inputURL) ?? []
 
         for fileURL in fileURLs {
-            // Try to extract from this file
+            // D271: a file that is not an Encapsulated Document — not a DICOM file, or a data set
+            // without Encapsulated Document (0042,0011) (PS3.3 2026a C.24.2) — is skipped, as
+            // dicom-image skips non-images and dicom-export files without pixel data; only a
+            // document that fails to extract counts as failed.
+            let inputData: Data
             do {
-                let inputData = try Data(contentsOf: fileURL)
-                let dicomFile = try DICOMFile.read(from: inputData)
+                inputData = try Data(contentsOf: fileURL)
+            } catch {
+                failureCount += 1
+                if verbose {
+                    print("✗ \(fileURL.lastPathComponent): \(error.localizedDescription)")
+                }
+                continue
+            }
+            guard let dicomFile = try? DICOMFile.read(from: inputData),
+                  dicomFile.dataSet[.encapsulatedDocument] != nil else {
+                if verbose {
+                    print(Self.skippedLine(fileName: fileURL.lastPathComponent))
+                }
+                continue
+            }
+            do {
                 let document = try EncapsulatedDocumentParser.parse(from: dicomFile.dataSet)
                 
                 // Generate output filename
@@ -252,7 +276,7 @@ struct DICOMPdf: ParsableCommand {
         }
         print("  Output directory: \(outputDirURL.path)")
         // D271: like dicom-convert's directory run (P-CONVERT-EXIT), a run with any
-        // failed file exits 1 after the summary.
+        // failed document exits 1 after the summary; skipped files do not count.
         if failureCount > 0 {
             throw ExitCode.failure
         }
