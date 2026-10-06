@@ -2,6 +2,7 @@ import Foundation
 import ArgumentParser
 import DICOMWeb
 
+// NEMA-verified: 2026a, checked 2026-10-06 — the UPS Change State target rule moved to DICOMWeb (`UPSState.changeStateTargets` / `changeStateTarget(optionValue:)`, D255; re-read against PS3.18 2026a 11.7.1.4 and PS3.4 2026a Table CC.1.1-2); the deprecated members here forward to it
 // NEMA-verified: 2026a, checked 2026-10-01 — WADO-URI rules read against PS3.18 2026a 9.1.2.2.1, 9.4.1.2.1-9.4.1.2.3, 9.5.1.2.1-9.5.1.2.7 and Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1 / 8.7.4-1 (15 contentType values: application/dicom + 14 Rendered Media Types; all 19 parameters reachable, D108); limit/offset against 8.3.4.4; UPS states against PS3.3 2026a Table C.30.1-1 (4 Enumerated Values) and PS3.18 11.7.1.4 (3 Change State targets)
 
 /// Standard-derived rules for the values `dicom-wado` options accept. Kept apart from the
@@ -108,25 +109,28 @@ enum WADOOptionRules {
 
     /// Procedure Step State (0074,1000), PS3.3 Table C.30.1-1 Enumerated Values. The
     /// standard spelling "IN PROGRESS" and the CLI spellings IN_PROGRESS / INPROGRESS
-    /// are accepted (case-insensitive).
+    /// are accepted (case-insensitive). Forwards to `UPSState.init(optionValue:)` (D255).
+    @available(*, deprecated, message: "use UPSState(optionValue:) from DICOMWeb")
     static func upsState(_ raw: String) -> UPSState? {
-        switch raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "_", with: " ") {
-        case "SCHEDULED":                  return .scheduled
-        case "IN PROGRESS", "INPROGRESS":  return .inProgress
-        case "COMPLETED":                  return .completed
-        case "CANCELED":                   return .canceled
-        default:                           return nil
-        }
+        UPSState(optionValue: raw)
     }
 
     /// The Procedure Step State values a Change State request may carry
-    /// (PS3.18 11.7.1.4: "IN PROGRESS", "COMPLETED", or "CANCELED").
-    static let changeStateTargets: [UPSState] = [.inProgress, .completed, .canceled]
+    /// (PS3.18 11.7.1.4: "IN PROGRESS", "COMPLETED", or "CANCELED"): `UPSState.changeStateTargets`.
+    @available(*, deprecated, message: "use UPSState.changeStateTargets from DICOMWeb")
+    static let changeStateTargets: [UPSState] = UPSState.changeStateTargets
 
     /// The Procedure Step State a Change Workitem State request (`--change-state`, or the
     /// deprecated `--update`) sends. PS3.18 2026a 11.7.1.4 allows only "IN PROGRESS",
     /// "COMPLETED" or "CANCELED"; PS3.4 2026a Table CC.1.1-2 answers a change to SCHEDULED
     /// with C303H (or C307H). SCHEDULED and unknown values are refused (exit 1).
+    ///
+    /// The rule now lives in DICOMWeb (`UPSState.changeStateTarget(optionValue:)`, D255) and
+    /// `dicom-wado` calls that. This body is kept text-identical only because
+    /// `Scripts/diff_studio_g3_web.py` and DICOM Studio's `WorkshopWADOOptionRules` copy anchor
+    /// on it until the Studio pass rewires them; `WADOOptionRulesTests` pins its two messages
+    /// to the engine's so they cannot drift.
+    @available(*, deprecated, message: "use UPSState.changeStateTarget(optionValue:) from DICOMWeb")
     static func changeStateTarget(_ raw: String) throws -> UPSState {
         guard let state = upsState(raw) else {
             throw WADORefusal("Invalid state: \(raw). Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, "
@@ -177,4 +181,19 @@ struct WADORefusal: Error, LocalizedError, CustomStringConvertible, Equatable {
     init(_ message: String) { self.message = message }
     var description: String { message }
     var errorDescription: String? { message }
+}
+
+/// Runs a DICOMWeb option rule and reports its `DICOMwebOptionRefusal` the way this tool
+/// always has: `.usage` as an ArgumentParser `ValidationError` (exit 64, with usage),
+/// `.refused` as a `WADORefusal` (exit 1). Output and exit codes stay byte-identical to the
+/// CLI-local rules the engine replaced (D255, D265).
+func cliRefusal<T>(_ rule: () throws -> T) throws -> T {
+    do {
+        return try rule()
+    } catch let refusal as DICOMwebOptionRefusal {
+        switch refusal.kind {
+        case .usage:   throw ValidationError(refusal.message)
+        case .refused: throw WADORefusal(refusal.message)
+        }
+    }
 }

@@ -194,6 +194,10 @@ public struct Workitem: Sendable, Equatable, Codable {
 /// transitions against PS3.4 Table CC.1.1-2 (an SCU may change SCHEDULED to IN PROGRESS and
 /// IN PROGRESS to COMPLETED or CANCELED; a SCHEDULED UPS is cancelled by the SCP on Request
 /// Cancel, CC.2.2.3, never by a Change State request, which Table CC.1.1-2 refuses with C310H).
+/// NEMA-verified: 2026a, checked 2026-10-06 — `changeStateTargets` / `changeStateTarget(optionValue:)`
+/// (lifted from dicom-wado, D255) against PS3.18 2026a 11.7.1.4 ("IN PROGRESS", "COMPLETED", or
+/// "CANCELED": 3/3) and PS3.4 2026a Table CC.1.1-2 (row "N-ACTION to Change State to SCHEDULED":
+/// C303H from every state, C307H from null — the refusal text names C303H).
 ///
 /// Reference: PS3.4 Annex CC.1.1 - Unified Procedure Step States
 public enum UPSState: String, Sendable, Codable, CaseIterable {
@@ -238,6 +242,59 @@ public enum UPSState: String, Sendable, Codable, CaseIterable {
     /// - Returns: True if the transition is valid
     public func canTransition(to targetState: UPSState) -> Bool {
         validTransitions.contains(targetState)
+    }
+
+    // MARK: Change Workitem State targets (PS3.18 2026a 11.7.1.4; PS3.4 2026a Table CC.1.1-2)
+
+    /// The Procedure Step State values a Change Workitem State request may carry
+    /// (PS3.18 2026a 11.7.1.4: "IN PROGRESS", "COMPLETED", or "CANCELED"). SCHEDULED is not
+    /// one of them: PS3.4 2026a Table CC.1.1-2 answers "N-ACTION to Change State to SCHEDULED"
+    /// with C303H from every state (C307H when the instance does not exist). Shared by
+    /// dicom-wado and DICOM Studio (D255).
+    public static let changeStateTargets: [UPSState] = [.inProgress, .completed, .canceled]
+
+    /// Whether a Change Workitem State request may name this state (PS3.18 2026a 11.7.1.4).
+    public var isChangeStateTarget: Bool { UPSState.changeStateTargets.contains(self) }
+
+    /// The one refusal text both front ends print when a Change Workitem State request names
+    /// this state and PS3.18 2026a 11.7.1.4 does not allow it; nil for a target state.
+    public var changeStateRefusal: String? {
+        guard !isChangeStateTarget else { return nil }
+        return "\(rawValue) is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+            + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+            + "to SCHEDULED (C303H)"
+    }
+
+    /// The refusal text for a value that is not a PS3.3 Table C.30.1-1 state at all.
+    public static func unknownStateRefusal(_ raw: String) -> String {
+        "Invalid state: \(raw). Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, "
+            + "CANCELED (PS3.18 2026a 11.7.1.4)"
+    }
+
+    /// Parses an option or UI value: the PS3.3 Table C.30.1-1 Enumerated Value ("IN PROGRESS")
+    /// or the spellings IN_PROGRESS / INPROGRESS, case-insensitive, surrounding whitespace ignored.
+    public init?(optionValue raw: String) {
+        switch raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "_", with: " ") {
+        case "SCHEDULED":                  self = .scheduled
+        case "IN PROGRESS", "INPROGRESS":  self = .inProgress
+        case "COMPLETED":                  self = .completed
+        case "CANCELED":                   self = .canceled
+        default:                           return nil
+        }
+    }
+
+    /// The target state a Change Workitem State request sends, from an option or UI value.
+    /// PS3.18 2026a 11.7.1.4 allows only "IN PROGRESS", "COMPLETED" or "CANCELED"; PS3.4 2026a
+    /// Table CC.1.1-2 answers a change to SCHEDULED with C303H (or C307H). SCHEDULED and
+    /// unknown values throw a `DICOMwebOptionRefusal` of kind `.refused` (the CLI exits 1).
+    public static func changeStateTarget(optionValue raw: String) throws -> UPSState {
+        guard let state = UPSState(optionValue: raw) else {
+            throw DICOMwebOptionRefusal(.refused, unknownStateRefusal(raw))
+        }
+        if let refusal = state.changeStateRefusal {
+            throw DICOMwebOptionRefusal(.refused, refusal)
+        }
+        return state
     }
 }
 

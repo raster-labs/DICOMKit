@@ -161,6 +161,32 @@ final class WADOOptionRulesTests: XCTestCase {
     func testChangeStateTargetsAreTheThreeOf11_7_1_4() {
         XCTAssertEqual(WADOOptionRules.changeStateTargets.map(\.rawValue), ["IN PROGRESS", "COMPLETED", "CANCELED"])
         XCTAssertFalse(WADOOptionRules.changeStateTargets.contains(.scheduled))
+        XCTAssertEqual(WADOOptionRules.changeStateTargets, UPSState.changeStateTargets)   // D255: one source
+    }
+
+    // MARK: - D255: the CLI prints the engine's refusal; the deprecated local copy cannot drift
+
+    func testChangeStateRefusalIsTheEngineText() {
+        // UPSCommand.validate calls UPSState.changeStateTarget(optionValue:) through cliRefusal.
+        XCTAssertThrowsError(try UPSCommand.parse(["http://h/rs", "--change-state", "1.2.3", "--state", "SCHEDULED"])) { error in
+            XCTAssertEqual(UPSCommand.exitCode(for: error), .failure)
+            XCTAssertEqual(UPSCommand.message(for: error), UPSState.scheduled.changeStateRefusal)
+        }
+        XCTAssertThrowsError(try UPSCommand.parse(["http://h/rs", "--change-state", "1.2.3", "--state", "DONE"])) { error in
+            XCTAssertEqual(UPSCommand.message(for: error), UPSState.unknownStateRefusal("DONE"))
+        }
+        // The deprecated WADOOptionRules.changeStateTarget body is kept text-identical for
+        // Scripts/diff_studio_g3_web.py until the Studio pass; its two messages must equal the engine's.
+        XCTAssertThrowsError(try WADOOptionRules.changeStateTarget("SCHEDULED")) {
+            XCTAssertEqual(($0 as? WADORefusal)?.message, UPSState.scheduled.changeStateRefusal)
+        }
+        XCTAssertThrowsError(try WADOOptionRules.changeStateTarget("DONE")) {
+            XCTAssertEqual(($0 as? WADORefusal)?.message, UPSState.unknownStateRefusal("DONE"))
+        }
+        XCTAssertEqual(WADOOptionRules.upsState("IN_PROGRESS"), UPSState(optionValue: "IN_PROGRESS"))
+        // cliRefusal keeps the two exit paths: .usage -> ValidationError (64), .refused -> WADORefusal (1)
+        XCTAssertThrowsError(try cliRefusal { throw DICOMwebOptionRefusal(.usage, "u") }) { XCTAssertTrue($0 is ValidationError) }
+        XCTAssertThrowsError(try cliRefusal { throw DICOMwebOptionRefusal(.refused, "r") }) { XCTAssertEqual($0 as? WADORefusal, WADORefusal("r")) }
     }
 
     // MARK: - P-WADO-UPS-STATE: SCHEDULED refused (PS3.18 2026a 11.7.1.4; PS3.4 Table CC.1.1-2 C303H)

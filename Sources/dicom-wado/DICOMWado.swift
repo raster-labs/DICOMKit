@@ -1068,7 +1068,7 @@ struct UPSCommand: AsyncParsableCommand {
     func validate() throws {
         // PS3.18 2026a 11.7.1.4 / PS3.4 Table CC.1.1-2: SCHEDULED and unknown states are refused (exit 1).
         if let s = state {
-            _ = try WADOOptionRules.changeStateTarget(s)
+            _ = try cliRefusal { try UPSState.changeStateTarget(optionValue: s) }
         }
         _ = try WADOOptionRules.changeStateWorkitem(changeState: changeState, update: update)
     }
@@ -1310,7 +1310,7 @@ struct UPSCommand: AsyncParsableCommand {
         
         // Procedure Step State (0074,1000), PS3.3 Table C.30.1-1; "IN PROGRESS" and IN_PROGRESS both accepted.
         // SCHEDULED is refused: PS3.18 2026a 11.7.1.4, PS3.4 2026a Table CC.1.1-2 (C303H).
-        let newState = try WADOOptionRules.changeStateTarget(stateString)
+        let newState = try cliRefusal { try UPSState.changeStateTarget(optionValue: stateString) }
         
         // Determine transaction UID:
         // - IN_PROGRESS: auto-generate if not provided (server returns one in response)
