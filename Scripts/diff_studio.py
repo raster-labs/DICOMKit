@@ -2,7 +2,7 @@
 """Diff DICOMStudio (and DICOMStudioApp) against the frozen DICOM DocBook and against the dicom-* CLI contract.
 
 Usage:
-    for p in 3 4 5 6 10 11 15 16 18; do python3 Scripts/nema_docbook.py fetch 2026a $p --out DIR; done
+    for p in 3 4 5 6 7 8 10 11 15 16 18; do python3 Scripts/nema_docbook.py fetch 2026a $p --out DIR; done
     python3 Scripts/diff_studio.py --nema DIR [--group G1] [--only NAME] [--verbose]
     python3 Scripts/diff_studio.py --inventory            # not-standard-touching files (for check_nema_markers.py)
     python3 Scripts/diff_studio.py --list-surface [--tool dicom-anon]   # the Workshop form of each tool
