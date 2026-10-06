@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — input/output contract of all 42 option/flag/argument declarations (4 subcommands) by script: --transfer-syntax accepts the 16 MPEG2/MPEG-4 AVC/HEVC UIDs of PS3.6 2026a Table A-1 while the 2 unregistered Fragmentable HEVC UIDs DICOMCore accepts are refused with exit 1 (OptionConformance.swift, P-VIDEO-TS-REGISTERED); --type selects the 3 Video IODs of PS3.3 A.32.5-A.32.7 (Modality ES/GM/XC, SOP Class names per Table A-1); --modality/--patient-sex/--patient-birth-date values the IOD forbids are refused with exit 1 (A.32.x.4.1, Table C.7-1, DA; P-VIDEO-MODALITY-ENUMERATED, P-VIDEO-SEX-ENUMERATED); help text is VideoConsole.Help (16 names vs PS3.6 Table 6-1); --audio-channel-source per PS3.16 CID 3000 (AudioChannelSourceOption.swift, 6 rows) into Table C.7-13 (003A,0300), repeatable once per audio track (P-AUDIO-SOURCE-PER-TRACK)
+// NEMA-verified: 2026a, checked 2026-10-06 — input/output contract of all 42 option/flag/argument declarations (4 subcommands) by script: --transfer-syntax accepts the 16 MPEG2/MPEG-4 AVC/HEVC UIDs of PS3.6 2026a Table A-1 while the 2 unregistered Fragmentable HEVC UIDs DICOMCore accepts are refused with exit 1 (DICOMKit VideoOptionConformance, lifted D269; P-VIDEO-TS-REGISTERED); --type selects the 3 Video IODs of PS3.3 A.32.5-A.32.7 (Modality ES/GM/XC, SOP Class names per Table A-1); --modality/--patient-sex/--patient-birth-date values the IOD forbids are refused with exit 1 (A.32.x.4.1, Table C.7-1, DA; P-VIDEO-MODALITY-ENUMERATED, P-VIDEO-SEX-ENUMERATED); help text is VideoConsole.Help (16 names vs PS3.6 Table 6-1); --audio-channel-source per PS3.16 CID 3000 (DICOMKit AudioChannelSourceOption, lifted D269; 6 rows) into Table C.7-13 (003A,0300), repeatable once per audio track (P-AUDIO-SOURCE-PER-TRACK)
 
 import Foundation
 import ArgumentParser
@@ -95,10 +95,10 @@ struct MetadataOptions: ParsableArguments {
     @Option(name: .long, help: .init(stringLiteral: VideoConsole.Help.patientID))
     var patientID: String?
 
-    @Option(name: .long, help: .init(stringLiteral: VideoOptionConformance.patientBirthDateHelp))
+    @Option(name: .long, help: .init(stringLiteral: DICOMKit.VideoOptionConformance.patientBirthDateHelp))
     var patientBirthDate: String?
 
-    @Option(name: .long, help: .init(stringLiteral: VideoOptionConformance.patientSexHelp))
+    @Option(name: .long, help: .init(stringLiteral: DICOMKit.VideoOptionConformance.patientSexHelp))
     var patientSex: String?
 
     @Option(name: .long, help: .init(stringLiteral: VideoConsole.Help.studyUID))
@@ -119,7 +119,7 @@ struct MetadataOptions: ParsableArguments {
     @Option(name: .long, help: .init(stringLiteral: VideoConsole.Help.seriesDescription))
     var seriesDescription: String?
 
-    @Option(name: .long, help: .init(stringLiteral: VideoOptionConformance.modalityHelp))
+    @Option(name: .long, help: .init(stringLiteral: DICOMKit.VideoOptionConformance.modalityHelp))
     var modality: String?
 
     @Flag(name: .long, help: "Reject a --modality value that is not a current DICOM Defined Term")
@@ -136,7 +136,7 @@ struct MetadataOptions: ParsableArguments {
     /// (`VideoWorkflow.Metadata.audioChannelSource`); repeated: one per audio
     /// track in container order (`audioChannelSources`, P-AUDIO-SOURCE-PER-TRACK).
     @Option(name: .customLong("audio-channel-source"),
-            help: .init(stringLiteral: AudioChannelSourceOption.help))
+            help: .init(stringLiteral: DICOMKit.AudioChannelSourceOption.help))
     var audioChannelSource: [String] = []
 
     /// The shared metadata value the engine takes, with `--modality` and
@@ -150,7 +150,7 @@ struct MetadataOptions: ParsableArguments {
         if let resolved = try ModalityOptionValidator.resolve(modality, strict: strictModality) {
             metadata.modality = resolved
         }
-        let sources = try audioChannelSource.map(AudioChannelSourceOption.parse)
+        let sources = try audioChannelSource.map(DICOMKit.AudioChannelSourceOption.parse)
         if sources.count == 1 {
             metadata.audioChannelSource = sources[0]
         } else if sources.count > 1 {
@@ -201,7 +201,7 @@ extension DICOMVideo {
         @Option(name: .long, help: .init(stringLiteral: VideoConsole.Help.type))
         var type: VideoConsole.TypeArgument?
 
-        @Option(name: .long, help: .init(stringLiteral: VideoOptionConformance.transferSyntaxHelp))
+        @Option(name: .long, help: .init(stringLiteral: DICOMKit.VideoOptionConformance.transferSyntaxHelp))
         var transferSyntax: String?
 
         @Option(name: .long, help: .init(stringLiteral: VideoConsole.Help.frameRate))
@@ -239,8 +239,8 @@ extension DICOMVideo {
             let resolvedType = type ?? .endoscopic
             let sharedMetadata = try metadata.validatedShared()
             // Values the engine accepts but the IOD does not are refused
-            // (OptionConformance.swift; exit 1, nothing written).
-            let refusals = VideoOptionConformance.violations(
+            // (DICOMKit VideoOptionConformance; exit 1, nothing written).
+            let refusals = DICOMKit.VideoOptionConformance.violations(
                 type: resolvedType, metadata: sharedMetadata, transferSyntax: transferSyntax)
             if !refusals.isEmpty {
                 refusals.forEach(printError)
@@ -458,7 +458,7 @@ extension DICOMVideo {
         @Option(name: .long, help: .init(stringLiteral: VideoConsole.Help.type))
         var type: VideoConsole.TypeArgument?
 
-        @Option(name: .long, help: .init(stringLiteral: VideoOptionConformance.transferSyntaxHelp))
+        @Option(name: .long, help: .init(stringLiteral: DICOMKit.VideoOptionConformance.transferSyntaxHelp))
         var transferSyntax: String?
 
         @Flag(name: .long, help: .init(stringLiteral: VideoConsole.Help.recursive))
@@ -496,7 +496,7 @@ extension DICOMVideo {
             } catch let failure as VideoWorkflow.Failure {
                 throw fail(failure)
             }
-            let refusals = VideoOptionConformance.violations(
+            let refusals = DICOMKit.VideoOptionConformance.violations(
                 type: type ?? .endoscopic, metadata: sharedMetadata,
                 transferSyntax: transferSyntax)
             if !refusals.isEmpty {

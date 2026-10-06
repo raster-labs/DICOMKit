@@ -821,7 +821,9 @@ let package = Package(
                 // Pseudo-colour palettes over RGB / YBR / PALETTE COLOR sources.
                 "ColorSourcePaletteTests.swift",
                 // PS3.5 2026d video conformance suite from origin/main (PR #217).
-                "Video/VideoStandard2026dConformanceTests.swift"
+                "Video/VideoStandard2026dConformanceTests.swift",
+                // dicom-video option conformance and CID 3000 option lifted into DICOMKit (D269, 2026-10-06).
+                "Video/VideoOptionConformanceTests.swift",
             ]
         ),
         .testTarget(
