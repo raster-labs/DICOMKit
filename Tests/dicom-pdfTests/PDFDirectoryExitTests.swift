@@ -1,0 +1,81 @@
+import XCTest
+import ArgumentParser
+import DICOMKit
+import DICOMCore
+@testable import dicom_pdf
+
+/// D271: dicom-pdf directory runs (extract and encapsulate) exit 1 after the summary when
+/// any file failed, like dicom-convert's directory run (P-CONVERT-EXIT). D272: the option
+/// refusals keep ArgumentParser's ValidationError exit code after the lift.
+final class PDFDirectoryExitTests: XCTestCase {
+
+    private func tempDir() throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dicom-pdf-dir-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        return url
+    }
+
+    func testExtractDirectoryWithAFailedFileExitsOne() throws {
+        let input = try tempDir(), output = try tempDir()
+        try Data("not DICOM".utf8).write(to: input.appendingPathComponent("broken.dcm"))
+        var command = try DICOMPdf.parse([input.path, "--output", output.path, "--extract", "--recursive"])
+        XCTAssertThrowsError(try command.run()) { error in
+            XCTAssertEqual(DICOMPdf.exitCode(for: error).rawValue, 1)
+        }
+    }
+
+    func testEncapsulateDirectoryWithAFailedFileExitsOne() throws {
+        let input = try tempDir(), output = try tempDir()
+        let unreadable = input.appendingPathComponent("locked.pdf")
+        try Data("%PDF-1.4\n".utf8).write(to: unreadable)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: unreadable.path)
+        addTeardownBlock { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: unreadable.path) }
+        try XCTSkipIf(FileManager.default.isReadableFile(atPath: unreadable.path), "running with permission to read a 000 file")
+        var command = try DICOMPdf.parse([input.path, "--output", output.path, "--recursive",
+                                          "--patient-name", "DOE^JOHN", "--patient-id", "P1"])
+        XCTAssertThrowsError(try command.run()) { error in
+            XCTAssertEqual(DICOMPdf.exitCode(for: error).rawValue, 1)
+        }
+    }
+
+    func testDirectoryRunsWithNoFailedFileExitZero() throws {
+        let input = try tempDir(), output = try tempDir()
+        var extract = try DICOMPdf.parse([input.path, "--output", output.path, "--extract", "--recursive"])
+        XCTAssertNoThrow(try extract.run())
+        var encapsulate = try DICOMPdf.parse([input.path, "--output", output.path, "--recursive",
+                                              "--patient-name", "DOE^JOHN", "--patient-id", "P1"])
+        XCTAssertNoThrow(try encapsulate.run())
+    }
+
+    func testOptionRefusalsStayValidationErrors() {
+        XCTAssertThrowsError(try PDFOptionValues.conversionType("SCAN")) { error in
+            XCTAssertTrue(error is ArgumentParser.ValidationError)
+            XCTAssertEqual(DICOMPdf.exitCode(for: error), ExitCode.validationFailure)
+            XCTAssertEqual(DICOMPdf.message(for: error),
+                           "--conversion-type SCAN is not a Conversion Type (0008,0064) Defined Term of PS3.3 Table C.8-24: DV, DI, DF, WSD, SD, SI, DRW, SYN")
+        }
+        XCTAssertThrowsError(try PDFOptionValues.burnedInAnnotation("Y")) { error in
+            XCTAssertTrue(error is ArgumentParser.ValidationError)
+        }
+        XCTAssertEqual(try PDFOptionValues.burnedInAnnotation("no"), false)
+    }
+
+    @available(*, deprecated)
+    func testPDFEncapsulationForwardsToTheEngine() {
+        XCTAssertTrue(PDFEncapsulation.self == EncapsulatedDocumentBuilder.OptionRules.self)
+    }
+
+    /// Table C.24-2: the length "shall be equal to the Value Length if even, or one less than
+    /// the Value Length if odd"; the engine cuts only the one padding byte.
+    func testDocumentBytesFollowTheEngineParser() {
+        var dataSet = DataSet()
+        let value = Data([1, 2, 3, 4, 5, 6])
+        dataSet[EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength] = .uint32(
+            tag: EncapsulatedDocumentBuilder.OptionRules.encapsulatedDocumentLength, value: 5)
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.documentBytes(value, in: dataSet), value.prefix(5))
+        XCTAssertEqual(EncapsulatedDocumentBuilder.OptionRules.documentBytes(value, in: dataSet),
+                       EncapsulatedDocumentParser.documentStream(value, in: dataSet))
+    }
+}

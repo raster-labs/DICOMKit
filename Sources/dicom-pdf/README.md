@@ -118,6 +118,11 @@ dicom-pdf documents/ --output dicoms/ --recursive \
 # All files will be grouped into a single series with auto-incrementing instance numbers
 ```
 
+A directory run (extract or encapsulate) exits with status 1 after its summary when any file
+failed — in extract mode that includes a file that is not an Encapsulated Document; files of
+an unsupported type are skipped, not failed, in encapsulate mode — like `dicom-convert`'s
+directory run. Until 2026-10-06 it exited 0 whatever the per-file outcomes (D271).
+
 ## Options
 
 ### Required Arguments

@@ -251,6 +251,11 @@ struct DICOMPdf: ParsableCommand {
             print("  Failed: \(failureCount)")
         }
         print("  Output directory: \(outputDirURL.path)")
+        // D271: like dicom-convert's directory run (P-CONVERT-EXIT), a run with any
+        // failed file exits 1 after the summary.
+        if failureCount > 0 {
+            throw ExitCode.failure
+        }
     }
     
     // MARK: - Encapsulation Mode
@@ -428,6 +433,11 @@ struct DICOMPdf: ParsableCommand {
         print("  Study UID: \(finalStudyUID)")
         print("  Series UID: \(finalSeriesUID)")
         print("  Output directory: \(outputDirURL.path)")
+        // D271: like dicom-convert's directory run (P-CONVERT-EXIT), a run with any
+        // failed file exits 1 after the summary.
+        if failureCount > 0 {
+            throw ExitCode.failure
+        }
     }
     
     // MARK: - Helper Methods
