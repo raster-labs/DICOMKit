@@ -3,7 +3,7 @@
 //
 // DICOM Studio — rendering one frame of a file on disk, arranged.
 //
-// NEMA-verified: 2026a, checked 2026-10-05 — tiles and film cells render through the PS3.4 2026a N.2 chain (D65, D68): `resolvedPipeline` puts a stored-unit window back into modality units (c·m+b, w·|m|) or takes an output-unit one as is, drops a LINEAR width under 1 (PS3.3 C.11.2.1.2.1: w ≥ 1) and asks DICOMKit's `determineDisplayPipeline` for the Modality LUT, VOI (window or VOI LUT Sequence, C.11.2) and Presentation LUT (MONOCHROME1 → INVERSE, C.7.6.3.1.2); `request` carries them with the ICC Profile (0028,2000) (C.11.15.1.1) to the renderer, which was given a stored-unit window; `photometricInterpretation(path:)` reads (0028,0004) for the bridge's Presentation LUT fold (N.2.1.4); the arrangement (crop, rotate, flip, invert) and the overlay burn-in carry no standard data of their own; checked by Scripts/diff_studio_g2_viewer.py
+// NEMA-verified: 2026a, checked 2026-10-06 — `resolvedWindow` (the seed of an unwindowed film cell) is DICOMKit `determineModalityWindow`, in modality units (PS3.3 C.11.2.1.2.1: the window applies after the Modality LUT / Rescale), and is stored with windowSpace .outputUnits so `resolvedPipeline` takes it as is (A6 / D65; the deprecated stored-unit `determineWindowSettings` is no longer called); tiles and film cells render through the PS3.4 2026a N.2 chain (D65, D68): `resolvedPipeline` puts a stored-unit window back into modality units (c·m+b, w·|m|) or takes an output-unit one as is, drops a LINEAR width under 1 (PS3.3 C.11.2.1.2.1: w ≥ 1) and asks DICOMKit's `determineDisplayPipeline` for the Modality LUT, VOI (window or VOI LUT Sequence, C.11.2) and Presentation LUT (MONOCHROME1 → INVERSE, C.7.6.3.1.2); `request` carries them with the ICC Profile (0028,2000) (C.11.15.1.1) to the renderer, which was given a stored-unit window; `photometricInterpretation(path:)` reads (0028,0004) for the bridge's Presentation LUT fold (N.2.1.4); the arrangement (crop, rotate, flip, invert) and the overlay burn-in carry no standard data of their own; checked by Scripts/diff_studio_g2_viewer.py
 //
 // Shared by the film preview and the viewer's unfocused tiles: both need "this
 // frame, windowed and arranged the way the user left it, at a size that suits
@@ -283,9 +283,13 @@ enum FrameRenderer {
     /// is actually showing rather than from zero. Resolved by the same export
     /// policy ``render(path:frameIndex:windowCenter:windowWidth:presentation:maxDimension:)``
     /// falls back to, so seeding changes nothing on screen until the user drags.
+    /// The window is in modality units (``DICOMImageExporter/determineModalityWindow``,
+    /// A6 / D65): a caller stores it with ``windowSpace`` so the renderer takes it as is.
+    static let resolvedWindowSpace: PrintWindowSpace = .outputUnits
+
     static func resolvedWindow(path: String, frameIndex: Int) async -> WindowSettings? {
         guard let source = await FrameSourceCache.shared.source(forPath: path) else { return nil }
-        return DICOMImageExporter.determineWindowSettings(
+        return DICOMImageExporter.determineModalityWindow(
             from: source.file, pixelData: source.pixelData, frameIndex: frameIndex,
             windowCenter: nil, windowWidth: nil)
     }

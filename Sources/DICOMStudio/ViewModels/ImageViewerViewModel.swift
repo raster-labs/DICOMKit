@@ -3,7 +3,7 @@
 //
 // DICOM Studio — Image viewer ViewModel
 //
-// NEMA-verified: 2026a, checked 2026-10-05 — the viewport now renders through the PS3.4 2026a N.2 chain (D65, D68): `displayModalityLUT` is the image's Modality LUT Sequence else its Rescale pair (PS3.3 C.11.1), or the applied presentation state's (N.2.1.1); `displayWindow` hands the renderer the window in modality units (C.11.2.1.2.1 — the viewer keeps stored-pixel units for its tools and converts c·m+b, w·|m|), `displayVOI` the file's VOI LUT Sequence while the window is the untouched default (C.11.2, one or the other), `displayICCProfile` the ICC Profile (0028,2000) of colour frames (C.11.15.1.1); the Presentation LUT is left to the photometric (MONOCHROME1 → INVERSE, C.7.6.3.1.2); `voiLUTFunction` defaults to LINEAR (C.11.2.1.3); the MONOCHROME1/2 and RGB literals are C.7.6.3.1.2 terms; `isWaveformFile` now excludes the .9.100 Waveform Presentation State branch of the PS3.6 Table A-1 .9 arc (the two were classified as waveforms: corrected); the window fallbacks are the C.11.2.1.2.1 full-range window then the header's own; checked by Scripts/diff_studio_g2_viewer.py
+// NEMA-verified: 2026a, checked 2026-10-06 — `applyDefaultWindow` takes the file's default window from DICOMKit `determineModalityWindow` (modality units, PS3.3 C.11.2.1.2.1) and converts it to the viewer's stored-unit state with (c − b) / m, w / |m| (A6 / D65; the deprecated `determineWindowSettings` is no longer called); the viewport now renders through the PS3.4 2026a N.2 chain (D65, D68): `displayModalityLUT` is the image's Modality LUT Sequence else its Rescale pair (PS3.3 C.11.1), or the applied presentation state's (N.2.1.1); `displayWindow` hands the renderer the window in modality units (C.11.2.1.2.1 — the viewer keeps stored-pixel units for its tools and converts c·m+b, w·|m|), `displayVOI` the file's VOI LUT Sequence while the window is the untouched default (C.11.2, one or the other), `displayICCProfile` the ICC Profile (0028,2000) of colour frames (C.11.15.1.1); the Presentation LUT is left to the photometric (MONOCHROME1 → INVERSE, C.7.6.3.1.2); `voiLUTFunction` defaults to LINEAR (C.11.2.1.3); the MONOCHROME1/2 and RGB literals are C.7.6.3.1.2 terms; `isWaveformFile` now excludes the .9.100 Waveform Presentation State branch of the PS3.6 Table A-1 .9 arc (the two were classified as waveforms: corrected); the window fallbacks are the C.11.2.1.2.1 full-range window then the header's own; checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 import Observation
@@ -1472,7 +1472,7 @@ public final class ImageViewerViewModel {
     /// are in modality units) are converted through the rescale pair here and
     /// back again when the frame is rendered — the renderer applies the window
     /// *after* the Modality LUT (PS3.3 C.11.2.1.2.1), see ``displayWindow``.
-    /// The numbers come from ``DICOMImageExporter/determineWindowSettings`` — the
+    /// The numbers come from ``DICOMImageExporter/determineModalityWindow`` — the
     /// one window-resolution policy shared with export, the tile cache and the
     /// film — so a tile and the viewport showing the same image cannot disagree.
     /// A file that windows through a VOI LUT Sequence instead of a centre and
@@ -1505,11 +1505,19 @@ public final class ImageViewerViewModel {
             }
             return
         }
-        let window = DICOMImageExporter.determineWindowSettings(
+        // The shared policy states the window in modality units (A6 / D65); the
+        // viewer's state is in stored units, so it goes back through this frame's
+        // rescale pair, (c − b) / m and w / |m|, as the branch above does.
+        let window = DICOMImageExporter.determineModalityWindow(
             from: file, pixelData: pixData, frameIndex: frame,
             windowCenter: nil, windowWidth: nil)
-        windowCenter = window.center
-        windowWidth = window.width
+        if slope != 0 {
+            windowCenter = (window.center - intercept) / slope
+            windowWidth = window.width / abs(slope)
+        } else {
+            windowCenter = window.center
+            windowWidth = window.width
+        }
     }
 
     /// Lets the window follow the frame on a file that windows per frame.
