@@ -1,6 +1,7 @@
 import Foundation
 
-// NEMA-verified: 2026a, checked 2026-09-28 — event content read against PS3.4 2026a Table CC.2.4-1: the event type strings, the bare-name JSON keys, the top-level progress attributes and the Transaction UID in every payload are not the standard's Event Report; the type is public API, change pending owner approval (audit report P-EVENT)
+// NEMA-verified: 2026a, checked 2026-09-28 — event content read against PS3.4 2026a Table CC.2.4-1 (audit report P-EVENT, approved by the owner 2026-09-28 and applied in df9d92b)
+// NEMA-verified: 2026a, checked 2026-10-06 — re-diffed by script against PS3.4 2026a Table CC.2.4-1 (D254): `eventTypeID` maps the 7 cases onto the table's 5 Event Type IDs (1 UPS State Report incl. `completed`/`canceled`, 2 UPS Cancel Requested, 3 UPS Progress Report, 4 SCP Status Change, 5 UPS Assigned; `init(eventTypeID:)` decodes all 5); every `toDICOMJSON` carries Event Type ID (0000,1002) and only tags of its table row (State Report 4/4 incl. Type 1 (0074,1000) and (0040,4041); Progress Report 6 of 7 nested inside Procedure Step Progress Information Sequence (0074,1002); Cancel Requested 4 of 5, the Type 1 Requesting AE (0074,1236) is added by the origin server; Assigned 2 of 3); the raw-string case names are DICOMKit identifiers, not wire values, and no bare-name keys or Transaction UID are written
 // MARK: - UPSEventType
 
 /// UPS Event Type
