@@ -15,8 +15,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 import DICOMKit
 import DICOMCore
-
 import DICOMNetwork
+
 /// Networking hub view providing C-ECHO, C-FIND, C-MOVE/GET, C-STORE,
 /// MWL, MPPS, Print Management, and connection monitoring.
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
