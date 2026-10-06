@@ -2288,7 +2288,7 @@ public enum ToolCatalogHelpers: Sendable {
             // --transfer-syntax picker is the shared DICOMConverter catalog's CamelCase tokens
             // (DICOMConverter.cliTokens: the CLI's --help listing, incl. the …Reversible names of
             // P-CONVERT-TS-KEYWORDS); every other spelling the CLI accepts (kebab alias, UID, PS3.6
-            // Table A-1 keyword) is canonicalised to its token when typed (WorkshopTransferSyntaxKeywords).
+            // Table A-1 keyword) is canonicalised to its token when typed (WorkshopConvertPicker).
             // Frames are selected by Frame number from 1 (--frame-number, PS3.3 Table 10-3); --frame is
             // the deprecated 0-based index (P-CONVERT-FRAME).
             return [
@@ -2314,7 +2314,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "transfer-syntax", flag: "--transfer-syntax", displayName: "Transfer Syntax",
                     parameterType: .enumPicker, placeholder: "Target transfer syntax",
-                    helpText: WorkshopTransferSyntaxKeywords.optionHelp,
+                    helpText: DICOMConverter.transferSyntaxOptionHelpWithKeywords,
                     allowedValues: [""] + DICOMConverter.cliTokens,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "format", values: ["dicom"])
                 ),
@@ -3956,7 +3956,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "transferSyntax", flag: "--transfer-syntax", displayName: "Transfer Syntax UID",
                     parameterType: .textField, placeholder: "auto-detected",
-                    helpText: WorkshopVideoOptionConformance.transferSyntaxHelp
+                    helpText: VideoOptionConformance.transferSyntaxHelp
                         + ". An explicit UID is still validated: a mislabelled object is worse than a rejected one.",
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(
@@ -4073,7 +4073,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "patientBirthDate", flag: "--patient-birth-date", displayName: "Patient Birth Date",
                     parameterType: .textField, placeholder: "YYYYMMDD",
-                    helpText: WorkshopVideoOptionConformance.patientBirthDateHelp,
+                    helpText: VideoOptionConformance.patientBirthDateHelp,
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(
                         parameterId: "operation", values: ["convert", "batch"])
@@ -4081,7 +4081,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "patientSex", flag: "--patient-sex", displayName: "Patient Sex",
                     parameterType: .enumPicker, placeholder: "",
-                    helpText: WorkshopVideoOptionConformance.patientSexHelp,
+                    helpText: VideoOptionConformance.patientSexHelp,
                     isAdvanced: true,
                     defaultValue: "",
                     allowedValues: ["", "M", "F", "O"],
@@ -4139,7 +4139,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
                     parameterType: .textField, placeholder: "ES / GM / XC",
-                    helpText: WorkshopVideoOptionConformance.modalityHelp,
+                    helpText: VideoOptionConformance.modalityHelp,
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(
                         parameterId: "operation", values: ["convert", "batch"])
@@ -4176,7 +4176,7 @@ case "dicom-pixedit":
                 CLIParameterDefinition(
                     id: "audioChannelSource", flag: "--audio-channel-source", displayName: "Audio Channel Source",
                     parameterType: .textField, placeholder: "voice; operators-narrative",
-                    helpText: WorkshopAudioChannelSourceOption.help + " Separate several sources with “ ; ”.",
+                    helpText: AudioChannelSourceOption.help + " Separate several sources with “ ; ”.",
                     isAdvanced: true,
                     isRepeatable: true,
                     visibleWhen: CLIParameterVisibilityCondition(
@@ -4640,13 +4640,13 @@ case "dicom-compress":
         // ----- syntax (decompress / batch decompress) -----
         // Only the native targets of dicom-compress' NativeTargetSyntax (PS3.5 2026a A.1, A.2, A.5 and
         // the retired A.3 Explicit VR Big Endian, D206): explicit-le, implicit-le, deflate, explicit-be
-        // (P-COMPRESS-SYNTAX; mirrored by WorkshopNativeTargetSyntax, checked by diff_studio_g1).
+        // (P-COMPRESS-SYNTAX; DICOMKit CompressionConsole.NativeTargetSyntax, D267, as dicom-compress).
         CLIParameterDefinition(
             id: "syntax", flag: "--syntax", displayName: "Target Syntax",
             parameterType: .enumPicker, placeholder: "explicit-le",
             helpText: "Native target syntax for decompression: explicit-le (default), implicit-le, deflate, explicit-be (retired)",
             defaultValue: "explicit-le",
-            allowedValues: WorkshopNativeTargetSyntax.accepted.map(\.name),
+            allowedValues: CompressionConsole.NativeTargetSyntax.accepted.map(\.name),
             visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["decompress", "batch"])
         ),
 
@@ -5540,200 +5540,13 @@ public enum EducationalHelpers: Sendable {
     }
 }
 
-// MARK: - dicom-video option conformance and audio channel source (PS3.3 2026a A.32.5-A.32.7, Table C.7-1, Table C.7-13; PS3.6 Table A-1; PS3.16 CID 3000; Sources/dicom-video/OptionConformance.swift + AudioChannelSourceOption.swift, CLI-local)
+// MARK: - dicom-convert --transfer-syntax picker spelling
 
-/// dicom-video's CLI-local `VideoOptionConformance`, mirrored text-identically (equality checked by
-/// Scripts/diff_studio_g1.py "pixel cid3000 audio source"): refusals for `convert` / `batch` option
-/// values that the engine accepts but that yield an object the standard does not allow
-/// (P-VIDEO-MODALITY-ENUMERATED, P-VIDEO-SEX-ENUMERATED, P-VIDEO-TS-REGISTERED; exit 1).
-enum WorkshopVideoOptionConformance {
-
-    /// The Modality (0008,0060) each IOD fixes, with the PS3.3 2026a section
-    /// that says "The Value of Modality (0008,0060) shall be …".
-    static func requiredModality(
-        for type: VideoConsole.TypeArgument
-    ) -> (value: String, section: String) {
-        switch type {
-        case .endoscopic: return ("ES", "A.32.5.4.1")
-        case .microscopic: return ("GM", "A.32.6.4.1")
-        case .photographic: return ("XC", "A.32.7.4.1")
-        }
-    }
-
-    /// PS3.3 2026a Table C.7-1, Patient's Sex (0010,0040): Enumerated Values.
-    static let patientSexValues = ["M", "F", "O"]
-
-    /// CLI help suffixes stating the refusal (the shared `VideoConsole.Help`
-    /// strings are also DICOMStudio's form help, which does not refuse yet).
-    static let modalityHelp = VideoConsole.Help.modality + "; any other value is refused (exit 1)"
-    static let patientSexHelp = VideoConsole.Help.patientSex + "; other values are refused (exit 1, PS3.3 Table C.7-1)"
-    static let patientBirthDateHelp = VideoConsole.Help.patientBirthDate + "; other forms are refused (exit 1, VR DA)"
-    static let transferSyntaxHelp = VideoConsole.Help.transferSyntax + "; a UID not registered there is refused (exit 1)"
-
-    /// Every refusal for one run, in option order.
-    static func violations(
-        type: VideoConsole.TypeArgument,
-        metadata: VideoWorkflow.Metadata,
-        transferSyntax: String?
-    ) -> [String] {
-        var lines: [String] = []
-        if let uid = transferSyntax, let line = transferSyntaxViolation(uid) {
-            lines.append(line)
-        }
-        if let modality = metadata.modality {
-            let required = requiredModality(for: type)
-            if modality != required.value {
-                lines.append(VideoConsole.errorLine("""
-                    --modality \(modality): PS3.3 \(required.section) requires Modality (0008,0060) \
-                    \(required.value) for \(type.sopClassName); refused.
-                    """))
-            }
-        }
-        if let sex = metadata.patientSex, !patientSexValues.contains(sex) {
-            lines.append(VideoConsole.errorLine("""
-                --patient-sex \(sex) is not an Enumerated Value of Patient's Sex (0010,0040) \
-                (M, F or O; PS3.3 Table C.7-1); refused.
-                """))
-        }
-        if let date = metadata.patientBirthDate, DICOMDate.parse(date) == nil {
-            lines.append(VideoConsole.errorLine("""
-                --patient-birth-date \(date) is not a DA value (YYYYMMDD; PS3.5 Table 6.2-1) for \
-                Patient's Birth Date (0010,0030); refused.
-                """))
-        }
-        return lines
-    }
-
-    /// A refusal when `--transfer-syntax` names a UID that DICOMCore treats as
-    /// video but PS3.6 Table A-1 does not register (the two "Fragmentable HEVC"
-    /// UIDs, kept in DICOMCore by decision P2).
-    static func transferSyntaxViolation(_ uid: String) -> String? {
-        guard let entry = UIDDictionary.lookup(uid: uid), !entry.registered else { return nil }
-        return VideoConsole.errorLine("""
-            --transfer-syntax \(uid) is not registered in PS3.6 Table A-1; \
-            HEVC/H.265 has only the non-fragmentable 1.2.840.10008.1.2.4.107 and .108; refused.
-            """)
-    }
-}
-
-/// dicom-video's CLI-local `AudioChannelSourceOption` (D56), mirrored text-identically (equality and
-/// the PS3.16 2026a CID 3000 rows checked by Scripts/diff_studio_g1.py "pixel cid3000 audio source").
-enum WorkshopAudioChannelSourceOption {
-    static let optionName = "--audio-channel-source"
-
-    /// PS3.16 2026a CID 3000 Audio Channel Source, all 6 rows in table
-    /// order; the keyword is the Code Meaning in lower-case hyphenated form.
-    static let keywords: [(keyword: String, source: VideoAudioChannel.Source)] = [
-        ("voice", VideoAudioChannel.Source(dcmCodeValue: "109110", codeMeaning: "Voice")),
-        ("operators-narrative", VideoAudioChannel.Source(dcmCodeValue: "109111", codeMeaning: "Operator's narrative")),
-        ("ambient-room-environment", VideoAudioChannel.Source(dcmCodeValue: "109112", codeMeaning: "Ambient room environment")),
-        ("doppler-audio", VideoAudioChannel.Source(dcmCodeValue: "109113", codeMeaning: "Doppler audio")),
-        ("phonocardiogram", VideoAudioChannel.Source(dcmCodeValue: "109114", codeMeaning: "Phonocardiogram")),
-        ("physiological-audio-signal", VideoAudioChannel.Source(dcmCodeValue: "109115", codeMeaning: "Physiological audio signal")),
-    ]
-
-    static var keywordList: String { keywords.map(\.keyword).joined(separator: ", ") }
-
-    static var help: String {
-        """
-        Source of the multiplexed audio (PS3.16 CID 3000): a keyword or SCHEME:VALUE[:MEANING] \
-        (the CID is Extensible; MEANING is required for a code that is not listed). Given once, it \
-        applies to every audio track; repeated, it gives one source per audio track in container \
-        order, and a count that does not match the tracks exits 1. It is written as the Channel \
-        Source Sequence (003A,0208) of each Multiplexed Audio Channels Description Code Sequence \
-        (003A,0300) Item (PS3.3 Table C.7-13: one Item per channel, each with its own source); \
-        without it that sequence has no Items. Keywords: \(keywordList)
-        """
-    }
-
-    enum ParseError: Error, CustomStringConvertible, Equatable {
-        case unknown(String)
-        case missingMeaning(String)
-
-        var description: String {
-            switch self {
-            case .unknown(let value):
-                return "\(optionName): \"\(value)\" is neither a listed keyword nor SCHEME:VALUE[:MEANING]; keywords: \(keywordList)"
-            case .missingMeaning(let value):
-                return "\(optionName): \"\(value)\" is not a listed code, so its Code Meaning is required (SCHEME:VALUE:MEANING)"
-            }
-        }
-    }
-
-    /// A keyword (case-insensitive), `SCHEME:VALUE` for a listed code, or
-    /// `SCHEME:VALUE:MEANING` for any code.
-    static func parse(_ value: String) throws -> VideoAudioChannel.Source {
-        let trimmed = value.trimmingCharacters(in: .whitespaces)
-        if let match = keywords.first(where: { $0.keyword == trimmed.lowercased() }) {
-            return match.source
-        }
-        let parts = trimmed.split(separator: ":", maxSplits: 2, omittingEmptySubsequences: false)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-        guard parts.count >= 2, !parts[0].isEmpty, !parts[1].isEmpty else {
-            throw ParseError.unknown(value)
-        }
-        let scheme = parts[0], code = parts[1]
-        if parts.count == 3, !parts[2].isEmpty {
-            return VideoAudioChannel.Source(DICOMCore.CodedConcept(
-                codeValue: code, codingSchemeDesignator: scheme, codeMeaning: parts[2]))
-        }
-        guard let listed = keywords.first(where: {
-            $0.source.codeValue == code && $0.source.codingSchemeDesignator == scheme
-        }) else {
-            throw ParseError.missingMeaning(value)
-        }
-        return listed.source
-    }
-}
-
-// MARK: - dicom-convert --transfer-syntax keywords (PS3.6 2026a Table A-1; Sources/dicom-convert/TransferSyntaxKeywords.swift, CLI-local)
-
-/// dicom-convert's CLI-local `TransferSyntaxKeywords`, mirrored text-identically (equality and the
-/// Table A-1 rows checked by Scripts/diff_studio_g1.py "pixel convert tokens"): `--transfer-syntax`
-/// accepts the shared catalog's names (DICOMConverter) and, in addition, these PS3.6 2026a Table A-1
-/// keywords. Every Table A-1 keyword the tool accepts selects its Table A-1 UID: `JPEG2000Lossless`,
-/// `HTJ2KLossless` and `JPEGXLLossless` select .90 / .201 / .110; the reversible encode into the
-/// general UIDs .91 / .203 / .112 is spelled `JPEG2000Reversible`, `HTJ2KReversible`,
-/// `JPEGXLReversible` (P-CONVERT-TS-KEYWORDS).
-enum WorkshopTransferSyntaxKeywords {
-
-    /// Table A-1 keyword → Transfer Syntax UID, for catalog targets whose keyword is missing.
-    static let additional: [String: String] = [
-        "DeflatedExplicitVRLittleEndian": "1.2.840.10008.1.2.1.99",
-        "JPEGBaseline8Bit": "1.2.840.10008.1.2.4.50",
-        "JPEGExtended12Bit": "1.2.840.10008.1.2.4.51",
-        "JPEG2000MCLossless": "1.2.840.10008.1.2.4.92",
-        "JPEG2000MC": "1.2.840.10008.1.2.4.93",
-        "JPEGXLJPEGRecompression": "1.2.840.10008.1.2.4.111",
-        "HTJ2KLosslessRPCL": "1.2.840.10008.1.2.4.202",
-    ]
-
-    /// Resolves a `--transfer-syntax` token: the shared catalog first, then a Table A-1
-    /// keyword from `additional` (through its UID, so the catalog decides the intent).
-    static func resolve(_ token: String) -> SelectableEncoding? {
-        if let encoding = DICOMConverter.resolveTargetEncoding(token) { return encoding }
-        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard let uid = additional.first(where: { $0.key.lowercased() == trimmed })?.value else {
-            return nil
-        }
-        return DICOMConverter.resolveTargetEncoding(uid)
-    }
-
-    /// The stderr note for a keyword whose meaning changed on 2026-10-01, or `nil`.
-    static func meaningChangeNote(for token: String) -> String? {
-        TransferSyntax.reassignedKeywordNote(for: token)
-    }
-
-    /// `--transfer-syntax` help: the catalog names, plus what else is accepted.
-    static var optionHelp: String {
-        DICOMConverter.transferSyntaxOptionHelp
-            + ". Also a Transfer Syntax UID or a PS3.6 Table A-1 keyword ("
-            + (additional.keys + TransferSyntax.reassignedTableA1Keywords.map(\.keyword)).sorted()
-                .joined(separator: ", ")
-            + "); every Table A-1 keyword selects its Table A-1 UID. Changed: JPEG2000Lossless, "
-            + "HTJ2KLossless and JPEGXLLossless now select .90 / .201 / .110; the reversible encode "
-            + "into .91 / .203 / .112 is JPEG2000Reversible, HTJ2KReversible, JPEGXLReversible."
-    }
+/// The Workshop picker's spelling of a dicom-convert `--transfer-syntax` value. Resolution, the
+/// PS3.6 2026a Table A-1 keywords and the option help are DICOMKit's (`DICOMConverter
+/// .resolveTargetEncoding`, `.additionalTableA1Keywords`, `.transferSyntaxOptionHelpWithKeywords`,
+/// D268), the same calls dicom-convert makes; this only maps a typed value onto a picker entry.
+enum WorkshopConvertPicker {
 
     /// The picker's spelling (the catalog's CamelCase cliToken) of any accepted `--transfer-syntax`
     /// token — a kebab alias (`jpeg2000-lossless`), a UID or a Table A-1 keyword — so a value saved
@@ -5747,41 +5560,9 @@ enum WorkshopTransferSyntaxKeywords {
         if TransferSyntax.reassignedTableA1Keywords.contains(where: { $0.keyword.lowercased() == trimmed.lowercased() }) {
             return trimmed
         }
-        guard let encoding = resolve(trimmed),
+        guard let encoding = DICOMConverter.resolveTargetEncoding(trimmed),
               let target = DICOMConverter.targets.first(where: { $0.encoding == encoding }) else { return raw }
         return target.cliToken
     }
 }
 
-// MARK: - dicom-compress native decompress targets (PS3.6 2026a Table A-1; PS3.5 A.1, A.2, A.3, A.5; Sources/dicom-compress/main.swift, CLI-local)
-
-/// dicom-compress' CLI-local `NativeTargetSyntax`, mirrored text-identically (equality and the Table A-1
-/// rows checked by Scripts/diff_studio_g1.py "pixel compress syntax"): `decompress --syntax` /
-/// `batch --syntax` accept only native Transfer Syntaxes (P-COMPRESS-SYNTAX); every other name — the
-/// compressed codecs included — is refused with exit 1.
-enum WorkshopNativeTargetSyntax {
-    static let accepted: [(name: String, syntax: TransferSyntax)] = [
-        ("explicit-le", .explicitVRLittleEndian),
-        ("implicit-le", .implicitVRLittleEndian),
-        ("deflate", .deflatedExplicitVRLittleEndian),
-        ("explicit-be", .explicitVRBigEndian),
-    ]
-
-    /// A refused `--syntax` value. Not a `ValidationError`, so the command exits 1.
-    struct Refused: LocalizedError, CustomStringConvertible {
-        let description: String
-        var errorDescription: String? { description }
-    }
-
-    static func resolve(_ name: String) throws -> TransferSyntax {
-        let lower = name.trimmingCharacters(in: .whitespaces).lowercased()
-        if let hit = accepted.first(where: { $0.name == lower }) { return hit.syntax }
-        let allowed = accepted.map(\.name).joined(separator: ", ")
-        if let codec = CompressionManager.transferSyntax(for: lower) {
-            throw Refused(description: "--syntax \(name) names \(codec.uid), an encapsulated (compressed) "
-                + "Transfer Syntax (PS3.6 2026a Table A-1); decompression writes native Pixel Data "
-                + "(PS3.5 2026a A.1, A.2, A.5). Native targets: \(allowed). To compress, use `compress --codec`.")
-        }
-        throw Refused(description: "Unknown syntax '\(name)'. Native targets: \(allowed)")
-    }
-}

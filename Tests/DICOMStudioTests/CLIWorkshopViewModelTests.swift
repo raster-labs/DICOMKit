@@ -428,68 +428,68 @@ struct CLIWorkshopViewModelTests {
 
     // MARK: - File-tool executor helpers mirror the dicom-* CLIs (DICOM 2026a)
 
-    @Test("WorkshopFileSetRules: File-set ID default and refusal follow PS3.10 8.1 / 8.5 (D132)")
+    @Test("DICOMDIRFileSetRules (the Workshop's dcmdir rules, D253): File-set ID default and refusal follow PS3.10 8.1 / 8.5 (D132)")
     func fileSetRules() {
-        #expect(WorkshopFileSetRules.defaultFileSetID(fromDirectoryName: "my study-01") == "MY_STUDY_01")
-        #expect(WorkshopFileSetRules.defaultFileSetID(fromDirectoryName: "ABCDEFGHIJKLMNOPQRSTUVWXYZ").count == 16)
-        #expect(WorkshopFileSetRules.fileSetIDRefusal("STUDY_01") == nil)
-        #expect(WorkshopFileSetRules.fileSetIDRefusal("") == nil)                       // (0004,1130) is Type 2
-        #expect(WorkshopFileSetRules.fileSetIDRefusal("study-01")?.hasPrefix("Refusing --file-set-id:") == true)
-        #expect(WorkshopFileSetRules.fileSetIDRefusal(String(repeating: "A", count: 17))?.contains("at most 16") == true)
-        #expect(WorkshopFileSetRules.fileIDViolations(["DICOM", "IM000001"]).isEmpty)
-        #expect(!WorkshopFileSetRules.fileIDViolations(["img1.dcm"]).isEmpty)           // '.' is outside PS3.10 8.5
-        #expect(!WorkshopFileSetRules.fileIDViolations(["ABCDEFGHI"]).isEmpty)          // 9 characters (PS3.10 8.2)
+        #expect(DICOMDIRFileSetRules.defaultFileSetID(fromDirectoryName: "my study-01") == "MY_STUDY_01")
+        #expect(DICOMDIRFileSetRules.defaultFileSetID(fromDirectoryName: "ABCDEFGHIJKLMNOPQRSTUVWXYZ").count == 16)
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal("STUDY_01") == nil)
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal("") == nil)                       // (0004,1130) is Type 2
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal("study-01")?.hasPrefix("Refusing --file-set-id:") == true)
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal(String(repeating: "A", count: 17))?.contains("at most 16") == true)
+        #expect(DICOMDIRFileSetRules.fileIDViolations(["DICOM", "IM000001"]).isEmpty)
+        #expect(!DICOMDIRFileSetRules.fileIDViolations(["img1.dcm"]).isEmpty)           // '.' is outside PS3.10 8.5
+        #expect(!DICOMDIRFileSetRules.fileIDViolations(["ABCDEFGHI"]).isEmpty)          // 9 characters (PS3.10 8.2)
     }
 
-    @Test("WorkshopFileSetRules: a deprecated --profile spelling gets the CLI's note; a PS3.11 identifier none (D29)")
+    @Test("DICOMDIRFileSetRules: a deprecated --profile spelling gets the CLI's note; a PS3.11 identifier none (D29)")
     func profileDeprecationNote() throws {
         let resolved = try #require(DICOMDIRProfile(rawValue: "STD-GEN-DVD"))
-        let note = WorkshopFileSetRules.profileDeprecationNote(requested: "STD-GEN-DVD", resolved: resolved)
+        let note = DICOMDIRFileSetRules.profileDeprecationNote(requested: "STD-GEN-DVD", resolved: resolved)
         #expect(note?.contains("--profile STD-GEN-DVD is deprecated") == true)
         #expect(note?.contains("PS3.11 2026a Table H.1-1") == true)
-        #expect(WorkshopFileSetRules.profileDeprecationNote(requested: "STD-GEN-CD", resolved: .standardGeneralCD) == nil)
+        #expect(DICOMDIRFileSetRules.profileDeprecationNote(requested: "STD-GEN-CD", resolved: .standardGeneralCD) == nil)
     }
 
     @Test("dicom-export animate rate: --fps, else Recommended Display Frame Rate, Cine Rate, 1000 / Frame Time, else 10 (PS3.3 Table C.7-13)")
     func exportCineFrameRate() {
         var ds = DataSet()
-        #expect(CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds).fps == 10)
-        #expect(CLIWorkshopViewModel.exportCineFrameRate(explicit: 12, dataSet: ds).source == "--fps")
+        #expect(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds).fps == 10)
+        #expect(DICOMImageExporter.CineFrameRate.resolve(explicit: 12, dataSet: ds).source.label == "--fps")
         ds.setString("40", for: .frameTime, vr: .DS)
-        let fromFrameTime = CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds)
+        let fromFrameTime = DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds)
         #expect(fromFrameTime.fps == 25)
-        #expect(fromFrameTime.source == "Frame Time (0018,1063)")
+        #expect(fromFrameTime.source.label == "Frame Time (0018,1063)")
         ds.setString("30", for: .cineRate, vr: .IS)
-        #expect(CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds).fps == 30)
+        #expect(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds).fps == 30)
         ds.setString("15", for: .recommendedDisplayFrameRate, vr: .IS)
-        let preferred = CLIWorkshopViewModel.exportCineFrameRate(explicit: nil, dataSet: ds)
+        let preferred = DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds)
         #expect(preferred.fps == 15)
-        #expect(preferred.source == "Recommended Display Frame Rate (0008,2144)")
+        #expect(preferred.source.label == "Recommended Display Frame Rate (0008,2144)")
     }
 
-    @Test("dicom-export texts equal the CLI's (P-EXPORT-1, P-EXPORT-3, Burned In Annotation (0028,0301))")
+    @Test("dicom-export texts the Workshop prints are DICOMImageExporter's (D252) (P-EXPORT-1, P-EXPORT-3, Burned In Annotation (0028,0301))")
     func exportTexts() {
-        #expect(CLIWorkshopViewModel.exportFrameDeprecationNote(option: "--frame", replacement: "--frame-number")
+        #expect(DICOMImageExporter.FrameSelection.deprecationNote(option: "--frame", replacement: "--frame-number")
                 == "warning: --frame is deprecated (0-based index); use --frame-number (numbered from 1, PS3.3 Table 10-3: the first Frame is Frame number 1)")
-        #expect(CLIWorkshopViewModel.exportInvalidFrameNumberMessage(requested: 5, total: 3)
+        #expect(DICOMImageExporter.FrameSelection.invalidFrameNumberMessage(requested: 5, total: 3)
                 == "Frame number 5 does not exist. The file has 3 frames, numbered 1 to 3.")
-        #expect(CLIWorkshopViewModel.exportFrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number")
+        #expect(DICOMImageExporter.FrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number").description
                 == "--frame (deprecated, 0-based) and --frame-number (numbered from 1) cannot be used together")
-        #expect(CLIWorkshopViewModel.exportApplyWindowDeprecationNote(subcommand: "bulk").hasPrefix("warning: bulk --apply-window is deprecated"))
+        #expect(DICOMImageExporter.ApplyWindowDeprecation.note(subcommand: "bulk").hasPrefix("warning: bulk --apply-window is deprecated"))
         var ds = DataSet()
-        #expect(!CLIWorkshopViewModel.exportBurnedInAnnotationIsYes(ds))
+        #expect(!DICOMImageExporter.BurnedInAnnotation.isYes(ds))
         ds.setString("YES", for: .burnedInAnnotation, vr: .CS)
-        #expect(CLIWorkshopViewModel.exportBurnedInAnnotationIsYes(ds))
-        #expect(CLIWorkshopViewModel.exportBurnedInWarning(for: "a.dcm").contains("a.dcm: Burned In Annotation (0028,0301) is YES"))
+        #expect(DICOMImageExporter.BurnedInAnnotation.isYes(ds))
+        #expect(DICOMImageExporter.BurnedInAnnotation.warning(for: "a.dcm").contains("a.dcm: Burned In Annotation (0028,0301) is YES"))
     }
 
     @Test("dicom-archive --study-date warning: a DA value or DA range (PS3.4 C.2.2.2.5.1) is silent")
     func archiveStudyDateWarning() {
-        #expect(CLIWorkshopViewModel.archiveStudyDateWarning(nil) == nil)
-        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("20240102") == nil)
-        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("20240101-20240201") == nil)
-        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("-20240201") == nil)
-        #expect(CLIWorkshopViewModel.archiveStudyDateWarning("2024")?.hasPrefix("warning: --study-date '2024'") == true)
+        #expect(ArchiveMatching.studyDateKeyWarning(nil) == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("20240102") == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("20240101-20240201") == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("-20240201") == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("2024")?.hasPrefix("warning: --study-date '2024'") == true)
     }
 
     @Test("dicom-dump tag argument: 0010,0010, (0010,0010), 00100010 or a PS3.6 keyword")
@@ -517,22 +517,22 @@ struct CLIWorkshopViewModelTests {
 
     @Test("dicom-uid --root: PS3.5 9.1 syntax (digits, single dots, no leading zero) and room for the generated suffix")
     func uidRootProblems() {
-        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1.2.826.0.1.3680043", typed: false).isEmpty)
-        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1..2", typed: false).first?.contains("empty component") == true)
-        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1.02", typed: false).first?.contains("leading zero") == true)
-        #expect(CLIWorkshopViewModel.uidRootProblems(root: "1.a", typed: false).first?.contains("not a number") == true)
-        #expect(CLIWorkshopViewModel.uidRootProblems(root: String(repeating: "1.", count: 30) + "1", typed: true)
+        #expect(UIDManager.RootRule.problems(root: "1.2.826.0.1.3680043", typed: false).isEmpty)
+        #expect(UIDManager.RootRule.problems(root: "1..2", typed: false).first?.contains("empty component") == true)
+        #expect(UIDManager.RootRule.problems(root: "1.02", typed: false).first?.contains("leading zero") == true)
+        #expect(UIDManager.RootRule.problems(root: "1.a", typed: false).first?.contains("not a number") == true)
+        #expect(UIDManager.RootRule.problems(root: String(repeating: "1.", count: 30) + "1", typed: true)
                 .contains { $0.contains("may not exceed 64") })
     }
 
     @Test("dicom-validate --iod: PS3.6 Table A-1 keyword or UID resolves to the engine IOD name")
     func validateIODEngineName() {
-        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "CTImageStorage") == "CTImageStorage")
-        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "1.2.840.10008.5.1.4.1.1.4") == "MRImageStorage")
-        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "ComputedRadiographyImageStorage") == "CRImageStorage")
-        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "us") == "USImageStorage")
-        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "BasicTextSRStorage") == "StructuredReport")
-        #expect(CLIWorkshopViewModel.validateIODEngineName(for: "ct") == "ct")        // the engine's own short name passes through
+        #expect(DICOMValidator.iodName(forIODOption: "CTImageStorage") == "CTImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "1.2.840.10008.5.1.4.1.1.4") == "MRImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "ComputedRadiographyImageStorage") == "CRImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "us") == "USImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "BasicTextSRStorage") == "StructuredReport")
+        #expect(DICOMValidator.iodName(forIODOption: "ct") == "ct")        // the engine's own short name passes through
     }
 
     // MARK: - Network tools (workshop-net, DICOM 2026a)
@@ -540,28 +540,31 @@ struct CLIWorkshopViewModelTests {
 
     // MARK: - Pixel / codec executors mirror the dicom-* CLIs (DICOM 2026a)
 
-    @Test("dicom-anon executor rules: the CLI's legacy profile notice, the 'apply only to --profile ps315' refusal, the E.1-1a action report (PS3.15 2026a Annex E)")
+    @Test("dicom-anon executor rules (DICOMKit AnonCLI, D275): the CLI's legacy profile notice, the 'apply only to --profile ps315' refusal, the E.1-1a action report (PS3.15 2026a Annex E)")
     func anonMirrorTexts() {
-        #expect(WorkshopAnonCLI.resolveProfile("legacy-basic") == .legacyBasic)
-        #expect(WorkshopAnonCLI.resolveProfile("clinical-trial") == .legacyClinicalTrial)
-        #expect(WorkshopAnonCLI.resolveProfile("basic") == .ps315)                 // P-ANON-PROFILE: the PS3.15 Basic Profile alias
-        #expect(WorkshopAnonCLI.resolveProfile("nonsense") == nil)
-        #expect(WorkshopAnonCLI.legacyProfileNotice("ps315") == nil)
-        #expect(WorkshopAnonCLI.legacyProfileNotice("legacy-basic")?.hasPrefix("Deprecated: --profile legacy-basic is a legacy attribute list, not a PS3.15 Annex E profile") == true)
-        #expect(WorkshopAnonCLI.legacyProfileNotice("research")?.contains("(now legacy-research)") == true)
-        #expect(WorkshopAnonCLI.optionsOnlyForPS315(["--retain-uids", "--clean-descriptors"]) ==
-                "PS3.15 Annex E Option flags apply only to --profile ps315: --retain-uids, --clean-descriptors")
-        #expect(WorkshopAnonCLI.optionFlagIDs.count == 12)                        // the 12 PS3.15 E.3 Options
-        let lines = WorkshopAnonCLI.actionLines(path: "/f.dcm", actions: [
+        #expect(AnonCLI.resolveProfile("legacy-basic") == .legacyBasic)
+        #expect(AnonCLI.resolveProfile("clinical-trial") == .legacyClinicalTrial)
+        #expect(AnonCLI.resolveProfile("basic") == .ps315)                 // P-ANON-PROFILE: the PS3.15 Basic Profile alias
+        #expect(AnonCLI.resolveProfile("nonsense") == nil)
+        #expect(AnonCLI.legacyProfileNotice("ps315") == nil)
+        #expect(AnonCLI.legacyProfileNotice("legacy-basic")?.hasPrefix("Deprecated: --profile legacy-basic is a legacy attribute list, not a PS3.15 Annex E profile") == true)
+        #expect(AnonCLI.legacyProfileNotice("research")?.contains("(now legacy-research)") == true)
+        #expect(throws: AnonCLI.ValidationError(
+            "PS3.15 Annex E Option flags apply only to --profile ps315: --retain-uids, --clean-descriptors")) {
+            try AnonCLI.validate(profile: "legacy-basic", flags: AnonCLI.PS315Flags(retainUids: true, cleanDescriptors: true),
+                                 shiftDates: nil, regenerateUids: false, keep: [])
+        }
+        #expect(WorkshopAnonError.invalidProfile.hasPrefix("Invalid anonymization profile (use ps315, basic"))
+        let lines = AnonCLI.actionLines(path: "/f.dcm", actions: [
             .init(tag: Tag(group: 0x0010, element: 0x0010), code: "D", name: "Patient's Name")])
         #expect(lines.contains("PS3.15 Table E.1-1a: D dummy, Z zero length, X removed, C cleaned, U new UID"))
         #expect(lines.contains("  D        (0010,0010) Patient's Name"))
-        #expect(WorkshopAnonCLI.name(of: Tag(group: 0x0009, element: 0x0010)) == "Private Data Element")
+        #expect(AnonCLI.name(of: Tag(group: 0x0009, element: 0x0010)) == "Private Data Element")
     }
 
-    @Test("dicom-image / dicom-pdf / dicom-pixedit refusal rules carry the CLI texts (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.8-24 / C.24-2, C.7.6.3.1, C.11.2.1.2)")
+    @Test("dicom-image / dicom-pdf / dicom-pixedit refusal rules are the engines' (D274, D272, D270) (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.8-24 / C.24-2, C.7.6.3.1, C.11.2.1.2)")
     func imagePdfPixeditRules() throws {
-        let v = WorkshopSCOutput.valueViolations(
+        let v = ImageConverter.OutputRules.valueViolations(
             patientName: String(repeating: "A", count: 65), patientID: "a\\b", studyDescription: nil, seriesDescription: nil,
             studyUID: "1.02.3", seriesUID: nil, seriesNumber: Int(Int32.max) + 1, instanceNumber: nil)
         #expect(v.count == 4)
@@ -569,20 +572,20 @@ struct CLIWorkshopViewModelTests {
         #expect(v[1] == "--patient-id contains a backslash, which LO does not allow (PS3.5 Table 6.2-1)")
         #expect(v[2].contains("PN allows at most 64 per component group"))
         #expect(v[3].contains("outside the IS range -2^31...2^31-1"))
-        #expect(WorkshopSCOutput.conversionType(nil) == .workstation)
-        #expect(WorkshopSCOutput.conversionType("sd") == .scannedDocument)
-        #expect(WorkshopSCOutput.conversionType("XYZ") == nil)
-        #expect(try WorkshopPDFEncapsulation.conversionType("drw") == "DRW")
-        #expect(try WorkshopPDFEncapsulation.burnedInAnnotation("no") == false)
-        #expect(throws: WorkshopPDFEncapsulation.ValidationError.self) { try WorkshopPDFEncapsulation.burnedInAnnotation("maybe") }
+        #expect(ImageConverter.OutputRules.conversionType(nil) == .workstation)
+        #expect(ImageConverter.OutputRules.conversionType("sd") == .scannedDocument)
+        #expect(ImageConverter.OutputRules.conversionType("XYZ") == nil)
+        #expect(try EncapsulatedDocumentBuilder.OptionRules.conversionType("drw") == "DRW")
+        #expect(try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation("no") == false)
+        #expect(throws: EncapsulatedDocumentBuilder.OptionRules.ValidationError.self) { try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation("maybe") }
         let cda = Data("<ClinicalDocument xmlns=\"urn:hl7-org:v3\"><id root=\"2.16.840.1.113883.19\" extension=\"X1\"/></ClinicalDocument>".utf8)
-        #expect(WorkshopPDFEncapsulation.hl7InstanceIdentifier(fromCDA: cda) == "2.16.840.1.113883.19^X1")
-        #expect(WorkshopDerivedImage.storedRange(bitsStored: 12, signed: false) == 0...4095)
-        #expect(WorkshopDerivedImage.storedRange(bitsStored: 16, signed: true) == -32768...32767)
-        #expect(WorkshopDerivedImage.fillValueViolation(5000, range: 0...4095)?.contains("outside the stored range 0...4095") == true)
-        #expect(WorkshopDerivedImage.fillValueViolation(7, range: 0...4095) == nil)
-        #expect(WorkshopDerivedImage.windowWidthViolation(0.5)?.contains("shall always be greater than or equal to 1 (PS3.3 C.11.2.1.2)") == true)
-        #expect(WorkshopDerivedImage.windowWidthViolation(1) == nil)
+        #expect(EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(fromCDA: cda) == "2.16.840.1.113883.19^X1")
+        #expect(PixelEditInputChecks.storedRange(bitsStored: 12, signed: false) == 0...4095)
+        #expect(PixelEditInputChecks.storedRange(bitsStored: 16, signed: true) == -32768...32767)
+        #expect(PixelEditInputChecks.fillValueViolation(5000, range: 0...4095)?.contains("outside the stored range 0...4095") == true)
+        #expect(PixelEditInputChecks.fillValueViolation(7, range: 0...4095) == nil)
+        #expect(PixelEditInputChecks.windowWidthViolation(0.5)?.contains("shall always be greater than or equal to 1 (PS3.3 C.11.2.1.2)") == true)
+        #expect(PixelEditInputChecks.windowWidthViolation(1) == nil)
     }
 
     @Test("dicom-query --level: patient/study/series/image → Query/Retrieve Level (0008,0052); 'instance' is the CLI alias of IMAGE (PS3.4 Table C.6.1-1)")

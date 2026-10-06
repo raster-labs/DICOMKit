@@ -1090,28 +1090,28 @@ struct CLIWorkshopHelpersTests {
     func videoConformanceRows() throws {
         let src = try #require(pixelParam("dicom-video", "audioChannelSource"))
         #expect(src.flag == "--audio-channel-source" && src.isRepeatable)
-        #expect(src.helpText.hasPrefix(WorkshopAudioChannelSourceOption.help))
-        #expect(WorkshopAudioChannelSourceOption.keywords.map(\.keyword) ==
+        #expect(src.helpText.hasPrefix(AudioChannelSourceOption.help))
+        #expect(AudioChannelSourceOption.keywords.map(\.keyword) ==
                 ["voice", "operators-narrative", "ambient-room-environment", "doppler-audio", "phonocardiogram", "physiological-audio-signal"])
-        #expect(WorkshopAudioChannelSourceOption.keywords.map(\.source.codeValue) == ["109110", "109111", "109112", "109113", "109114", "109115"])
-        #expect(try WorkshopAudioChannelSourceOption.parse("Voice") == .voice)
-        #expect(try WorkshopAudioChannelSourceOption.parse("DCM:109113") == .dopplerAudio)
-        #expect(throws: WorkshopAudioChannelSourceOption.ParseError.missingMeaning("DCM:1")) { try WorkshopAudioChannelSourceOption.parse("DCM:1") }
+        #expect(AudioChannelSourceOption.keywords.map(\.source.codeValue) == ["109110", "109111", "109112", "109113", "109114", "109115"])
+        #expect(try AudioChannelSourceOption.parse("Voice") == .voice)
+        #expect(try AudioChannelSourceOption.parse("DCM:109113") == .dopplerAudio)
+        #expect(throws: AudioChannelSourceOption.ParseError.missingMeaning("DCM:1")) { try AudioChannelSourceOption.parse("DCM:1") }
         #expect(pixelParam("dicom-video", "strictModality")?.flag == "--strict-modality")
-        #expect(pixelParam("dicom-video", "modality")?.helpText == WorkshopVideoOptionConformance.modalityHelp)
-        #expect(pixelParam("dicom-video", "patientSex")?.helpText == WorkshopVideoOptionConformance.patientSexHelp)
-        #expect(pixelParam("dicom-video", "patientBirthDate")?.helpText == WorkshopVideoOptionConformance.patientBirthDateHelp)
-        #expect(pixelParam("dicom-video", "transferSyntax")?.helpText.hasPrefix(WorkshopVideoOptionConformance.transferSyntaxHelp) == true)
+        #expect(pixelParam("dicom-video", "modality")?.helpText == VideoOptionConformance.modalityHelp)
+        #expect(pixelParam("dicom-video", "patientSex")?.helpText == VideoOptionConformance.patientSexHelp)
+        #expect(pixelParam("dicom-video", "patientBirthDate")?.helpText == VideoOptionConformance.patientBirthDateHelp)
+        #expect(pixelParam("dicom-video", "transferSyntax")?.helpText.hasPrefix(VideoOptionConformance.transferSyntaxHelp) == true)
         // PS3.3 A.32.5.4.1 / A.32.6.4.1 / A.32.7.4.1 and Table C.7-1
         var meta = VideoWorkflow.Metadata(patientBirthDate: "2024-01-01", patientSex: "U", modality: "CT")
-        var lines = WorkshopVideoOptionConformance.violations(type: .endoscopic, metadata: meta, transferSyntax: "1.2.840.10008.1.2.4.107.1")
+        var lines = VideoOptionConformance.violations(type: .endoscopic, metadata: meta, transferSyntax: "1.2.840.10008.1.2.4.107.1")
         #expect(lines.count == 4)
         #expect(lines[0].contains("not registered in PS3.6 Table A-1"))
         #expect(lines[1].contains("PS3.3 A.32.5.4.1 requires Modality (0008,0060) ES"))
         #expect(lines[2].contains("M, F or O; PS3.3 Table C.7-1"))
         #expect(lines[3].contains("is not a DA value"))
         meta = VideoWorkflow.Metadata(patientBirthDate: "20240101", patientSex: "F", modality: "GM")
-        lines = WorkshopVideoOptionConformance.violations(type: .microscopic, metadata: meta, transferSyntax: "1.2.840.10008.1.2.4.108")
+        lines = VideoOptionConformance.violations(type: .microscopic, metadata: meta, transferSyntax: "1.2.840.10008.1.2.4.108")
         #expect(lines.isEmpty)
     }
 
@@ -1120,14 +1120,14 @@ struct CLIWorkshopHelpersTests {
         let ts = try #require(pixelParam("dicom-convert", "transfer-syntax"))
         #expect(ts.allowedValues == [""] + DICOMConverter.cliTokens)
         #expect(ts.allowedValues.contains("JPEG2000Reversible") && ts.allowedValues.contains("ExplicitVRLittleEndian"))
-        #expect(ts.helpText == WorkshopTransferSyntaxKeywords.optionHelp)
-        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("jpeg2000-lossless") == "JPEG2000Reversible")
-        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("1.2.840.10008.1.2.1") == "ExplicitVRLittleEndian")
-        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("JPEG2000Lossless") == "JPEG2000Lossless")   // reassigned: kept, the executor prints the note
-        #expect(WorkshopTransferSyntaxKeywords.canonicalToken("bogus") == "bogus")
-        #expect(WorkshopTransferSyntaxKeywords.resolve("JPEGBaseline8Bit")?.transferSyntax.uid == "1.2.840.10008.1.2.4.50")
-        #expect(WorkshopTransferSyntaxKeywords.resolve("JPEG2000Lossless")?.transferSyntax.uid == "1.2.840.10008.1.2.4.90")
-        #expect(WorkshopTransferSyntaxKeywords.meaningChangeNote(for: "JPEG2000Lossless") == TransferSyntax.reassignedKeywordNote(for: "JPEG2000Lossless"))
+        #expect(ts.helpText == DICOMConverter.transferSyntaxOptionHelpWithKeywords)
+        #expect(WorkshopConvertPicker.canonicalToken("jpeg2000-lossless") == "JPEG2000Reversible")
+        #expect(WorkshopConvertPicker.canonicalToken("1.2.840.10008.1.2.1") == "ExplicitVRLittleEndian")
+        #expect(WorkshopConvertPicker.canonicalToken("JPEG2000Lossless") == "JPEG2000Lossless")   // reassigned: kept, the executor prints the note
+        #expect(WorkshopConvertPicker.canonicalToken("bogus") == "bogus")
+        #expect(DICOMConverter.resolveTargetEncoding("JPEGBaseline8Bit")?.transferSyntax.uid == "1.2.840.10008.1.2.4.50")
+        #expect(DICOMConverter.resolveTargetEncoding("JPEG2000Lossless")?.transferSyntax.uid == "1.2.840.10008.1.2.4.90")
+        #expect(TransferSyntax.reassignedKeywordNote(for: "JPEG2000Lossless") != nil)
         let fn = try #require(pixelParam("dicom-convert", "frame-number"))
         #expect(fn.minValue == 1 && fn.defaultValue.isEmpty && fn.helpText.contains("numbered from 1 (PS3.3 Table 10-3"))
         let fr = try #require(pixelParam("dicom-convert", "frame"))
@@ -1135,22 +1135,22 @@ struct CLIWorkshopHelpersTests {
         #expect(pixelParam("dicom-convert", "window-width")?.helpText == "Window width value (Window Width (0028,1051), at least 1)")
     }
 
-    @Test("dicom-compress --syntax offers only the native targets of dicom-compress' NativeTargetSyntax (P-COMPRESS-SYNTAX); codec names are refused with the CLI's text")
+    @Test("dicom-compress --syntax offers only the native targets of CompressionConsole.NativeTargetSyntax (D267) (P-COMPRESS-SYNTAX); codec names are refused with the CLI's text")
     func compressSyntaxPicker() throws {
         let p = try #require(pixelParam("dicom-compress", "syntax"))
         #expect(p.allowedValues == ["explicit-le", "implicit-le", "deflate", "explicit-be"])
         #expect(p.defaultValue == "explicit-le")
-        #expect(try WorkshopNativeTargetSyntax.resolve("deflate") == .deflatedExplicitVRLittleEndian)
-        #expect(try WorkshopNativeTargetSyntax.resolve("Explicit-BE") == .explicitVRBigEndian)
+        #expect(try CompressionConsole.NativeTargetSyntax.resolve("deflate") == .deflatedExplicitVRLittleEndian)
+        #expect(try CompressionConsole.NativeTargetSyntax.resolve("Explicit-BE") == .explicitVRBigEndian)
         do {
-            _ = try WorkshopNativeTargetSyntax.resolve("jpeg2000")
+            _ = try CompressionConsole.NativeTargetSyntax.resolve("jpeg2000")
             Issue.record("jpeg2000 must be refused as a decompress target")
         } catch {
             #expect("\(error)".contains("an encapsulated (compressed) Transfer Syntax (PS3.6 2026a Table A-1)"))
             #expect("\(error)".contains("Native targets: explicit-le, implicit-le, deflate, explicit-be"))
         }
         do {
-            _ = try WorkshopNativeTargetSyntax.resolve("nope")
+            _ = try CompressionConsole.NativeTargetSyntax.resolve("nope")
             Issue.record("unknown must be refused")
         } catch {
             #expect("\(error)" == "Unknown syntax 'nope'. Native targets: explicit-le, implicit-le, deflate, explicit-be")

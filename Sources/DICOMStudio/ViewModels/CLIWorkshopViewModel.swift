@@ -825,7 +825,7 @@ public final class CLIWorkshopViewModel {
         // (DICOMConverter.cliTokens); a value saved or typed in another spelling the CLI accepts
         // (kebab alias, UID, PS3.6 Table A-1 keyword) is shown as its token (P-CONVERT-TS-KEYWORDS).
         if parameterID == "transfer-syntax", selectedToolID == "dicom-convert" {
-            value = WorkshopTransferSyntaxKeywords.canonicalToken(value)
+            value = WorkshopConvertPicker.canonicalToken(value)
         }
         if let idx = parameterValues.firstIndex(where: { $0.parameterID == parameterID }) {
             parameterValues[idx].stringValue = value
@@ -1435,7 +1435,7 @@ private func executeDicomUIDGenerate() async {
         return refuse("--uuid makes 2.25.<UUID> UIDs (PS3.5 B.2) and cannot be combined with --root or --type")
     }
     if !rootRaw.isEmpty {
-        let problems = Self.uidRootProblems(root: rootRaw, typed: !typeIsGeneric)
+        let problems = UIDManager.RootRule.problems(root: rootRaw, typed: !typeIsGeneric)
         if !problems.isEmpty { return refuse(problems.joined(separator: "\n")) }
     }
     let type: String? = typeIsGeneric ? nil : typeRaw
@@ -1623,7 +1623,7 @@ private func executeDicomUIDRegenerate() async {
     let rootRaw = paramValue("root").trimmingCharacters(in: .whitespacesAndNewlines)
     if !rootRaw.isEmpty {
         // dicom-uid regenerate's validate(): a --root outside PS3.5 9.1 is a usage error (exit 64).
-        let problems = Self.uidRootProblems(root: rootRaw, typed: false)
+        let problems = UIDManager.RootRule.problems(root: rootRaw, typed: false)
         if !problems.isEmpty {
             let message = problems.joined(separator: "\n")
             appendConsoleOutput("Error: \(message)\n")
@@ -1754,32 +1754,6 @@ private func executeDicomUIDRegenerate() async {
     service.setConsoleStatus(exitCode == 0 ? .success : .error)
 }
 
-/// PS3.5 9.1 checks for a dicom-uid `--root` value and the room it leaves for the generated
-/// UID (dicom-uid's `UIDRootRule`, kept text-identical here; the rule is CLI-local until it is
-/// lifted into DICOMKit). The longest suffix `UIDGenerator` appends is `.<µs timestamp>.<random
-/// 0-999999>`, plus `.<1|2|3>` for a typed UID.
-nonisolated static func uidRootProblems(root: String, typed: Bool) -> [String] {
-    let timestampDigits = String(UInt64(Date().timeIntervalSince1970 * 1_000_000)).count
-    let suffixLength = 1 + timestampDigits + 1 + 6 + (typed ? 2 : 0)
-    var out: [String] = []
-    let components = root.split(separator: ".", omittingEmptySubsequences: false)
-    if root.isEmpty || components.contains(where: { $0.isEmpty }) {
-        out.append("UID root '\(root)' has an empty component; components are separated by single \".\" characters (PS3.5 9.1)")
-    }
-    for component in components where !component.isEmpty {
-        if !component.allSatisfy({ ("0"..."9").contains($0) }) {
-            out.append("UID root component '\(component)' is not a number; only the digits 0-9 are allowed (PS3.5 9.1)")
-        } else if component.count > 1 && component.hasPrefix("0") {
-            out.append("UID root component '\(component)' has a leading zero; only a single-digit component may start with 0 (PS3.5 9.1)")
-        }
-    }
-    let room = DICOMUniqueIdentifier.maximumLength - suffixLength
-    if root.count > room {
-        out.append("UID root is \(root.count) characters; generated UIDs add up to \(suffixLength) more and may not exceed \(DICOMUniqueIdentifier.maximumLength) (PS3.5 9.1), so the root may have at most \(room)")
-    }
-    return out
-}
-
 private func executeDicomDcmdir() async {
         let subcommand = paramValue("subcommand").isEmpty ? "create" : paramValue("subcommand")
         switch subcommand {
@@ -1864,12 +1838,12 @@ private func executeDicomDcmdir() async {
             // P-DCMDIR-FSID: a non-conformant --file-set-id is refused (exit 1), not written.
             let fsID: String
             if !fileSetIDArg.isEmpty {
-                if let refusal = WorkshopFileSetRules.fileSetIDRefusal(fileSetIDArg) {
+                if let refusal = DICOMDIRFileSetRules.fileSetIDRefusal(fileSetIDArg) {
                     return ("Error: \(refusal)\n", 1)
                 }
                 fsID = fileSetIDArg
             } else {
-                fsID = WorkshopFileSetRules.defaultFileSetID(fromDirectoryName: inputURL.lastPathComponent)
+                fsID = DICOMDIRFileSetRules.defaultFileSetID(fromDirectoryName: inputURL.lastPathComponent)
             }
 
             // --profile: a PS3.11 identifier (DICOMCore registry), the CLI's error text otherwise.
@@ -1879,7 +1853,7 @@ private func executeDicomDcmdir() async {
             }
             // P-DCMDIR-PROFILE: a pre-2026-09-25 spelling still works, with the CLI's note
             // naming the PS3.11 identifier that is written.
-            if let note = WorkshopFileSetRules.profileDeprecationNote(requested: profileStr, resolved: dicomProfile) {
+            if let note = DICOMDIRFileSetRules.profileDeprecationNote(requested: profileStr, resolved: dicomProfile) {
                 out += note + "\n"
             }
 
@@ -1953,7 +1927,8 @@ private func executeDicomDcmdir() async {
 
     /// Mirrors `dicom-dcmdir validate`: the engine's structural validation, then the File-set
     /// ID / File ID rules of PS3.10 8.1, 8.2, 8.5, 8.6 and PS3.3 Table F.3-3 with the clause each
-    /// failure names (D132), then the shared report; exit 64 for a missing path, 1 for a failure.
+    /// failure names (D132; DICOMKit `DICOMDIRFileSetRules`, D253), then the shared report; exit 64
+    /// for a missing path, 1 for a failure.
     private func executeDicomDcmdirValidate() async {
         let dicomdirPath = paramValue("dicomdirPath")
         guard !dicomdirPath.isEmpty else {
@@ -1987,7 +1962,7 @@ private func executeDicomDcmdir() async {
             do {
                 directory = try DICOMDIRReader.read(from: fileURL)
             } catch {
-                out += "❌ Failed to read DICOMDIR: \(WorkshopFileSetRules.describe(error))\n"
+                out += "❌ Failed to read DICOMDIR: \(DICOMDIRFileSetRules.describe(error))\n"
                 return (out, 1)
             }
 
@@ -1995,12 +1970,12 @@ private func executeDicomDcmdir() async {
             do {
                 try directory.validate(checkFileExistence: checkFiles)
             } catch {
-                out += "❌ Validation failed: \(WorkshopFileSetRules.describe(error))\n"
+                out += "❌ Validation failed: \(DICOMDIRFileSetRules.describe(error))\n"
                 return (out, 1)
             }
 
             // File-set ID and File ID rules (PS3.10 8.1, 8.2, 8.5, 8.6; PS3.3 Table F.3-3)
-            let findings = WorkshopFileSetRules.findings(
+            let findings = DICOMDIRFileSetRules.findings(
                 for: directory, mediaFolder: fileURL.deletingLastPathComponent(), checkFiles: checkFiles)
             if !findings.isEmpty {
                 for finding in findings { out += "❌ \(finding)\n" }
@@ -2054,7 +2029,7 @@ private func executeDicomDcmdir() async {
             do {
                 directory = try DICOMDIRReader.read(from: fileURL)
             } catch {
-                out += "Error reading DICOMDIR: \(WorkshopFileSetRules.describe(error))\n"
+                out += "Error reading DICOMDIR: \(DICOMDIRFileSetRules.describe(error))\n"
                 return (out, 1)
             }
 
@@ -2248,19 +2223,19 @@ private func executeDicomDcmdir() async {
                     instanceNumber: instanceNumber
                 )
                 if let conversionTypeArg {
-                    builder.setConversionType(try WorkshopPDFEncapsulation.conversionType(conversionTypeArg))
+                    builder.setConversionType(try EncapsulatedDocumentBuilder.OptionRules.conversionType(conversionTypeArg))
                 }
                 if let burnedInAnnotationArg {
-                    builder.setBurnedInAnnotation(try WorkshopPDFEncapsulation.burnedInAnnotation(burnedInAnnotationArg))
+                    builder.setBurnedInAnnotation(try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation(burnedInAnnotationArg))
                 }
                 if documentType == .cda {
-                    guard let identifier = hl7Override ?? WorkshopPDFEncapsulation.hl7InstanceIdentifier(fromCDA: documentData) else {
+                    guard let identifier = hl7Override ?? EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(fromCDA: documentData) else {
                         throw Usage(message: "HL7 Instance Identifier (0040,E001) is required for a CDA document (PS3.3 Table C.24-2) and /ClinicalDocument/id has no root; pass --hl7-instance-identifier")
                     }
                     builder.setHL7InstanceIdentifier(identifier)
                 }
                 var dataSet = try builder.buildDataSet()
-                WorkshopPDFEncapsulation.complete(&dataSet, documentByteCount: documentData.count)
+                EncapsulatedDocumentBuilder.OptionRules.complete(&dataSet, documentByteCount: documentData.count)
                 return dataSet
             }
 
@@ -2294,7 +2269,7 @@ private func executeDicomDcmdir() async {
                 if showMeta { log += document.metadataReport() }
                 let finalOutputPath = outputFile(for: srcURL, specified: outURLOrPath, ext: document.documentType.fileExtension)
                 // Document bytes without the trailing padding (0042,0015).
-                let documentBytes = WorkshopPDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet)
+                let documentBytes = EncapsulatedDocumentBuilder.OptionRules.documentBytes(document.documentData, in: dicomFile.dataSet)
                 let writeRes = try OutputAccess.write(documentBytes, toPath: finalOutputPath,
                                                       scopedURL: outputScopedURL, subfolder: "PDF/Extracted")
                 if let note = writeRes.note { log += note + "\n" }
@@ -2371,7 +2346,7 @@ private func executeDicomDcmdir() async {
                         let document = try EncapsulatedDocumentParser.parse(from: dicomFile.dataSet)
                         let outFile = outDir.appendingPathComponent(
                             "\(f.deletingPathExtension().lastPathComponent).\(document.documentType.fileExtension)")
-                        try WorkshopPDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet).write(to: outFile)
+                        try EncapsulatedDocumentBuilder.OptionRules.documentBytes(document.documentData, in: dicomFile.dataSet).write(to: outFile)
                         success += 1
                         if verbose { log += "✓ \(f.lastPathComponent) → \(outFile.lastPathComponent)\n" }
                     } catch {
@@ -2534,7 +2509,7 @@ private func executeDicomDcmdir() async {
             let region: (x: Int, y: Int, width: Int, height: Int)
             do { region = try regionParser.parseRegion(maskRegionStr) } catch { refuse(error.localizedDescription); return }
             let fill = fillValue ?? 0
-            if let refusal = WorkshopDerivedImage.fillValueViolation(fill, range: WorkshopDerivedImage.storedRange(of: source.dataSet)) {
+            if let refusal = PixelEditInputChecks.fillValueViolation(fill, range: PixelEditInputChecks.storedRange(of: source.dataSet)) {
                 refuse(refusal); return
             }
             operations.append(.mask(x: region.x, y: region.y, width: region.width, height: region.height, fillValue: fill))
@@ -2548,7 +2523,7 @@ private func executeDicomDcmdir() async {
             guard let center = windowCenter, let width = windowWidth else {
                 refuse("--apply-window requires both --window-center and --window-width"); return
             }
-            if let refusal = WorkshopDerivedImage.windowWidthViolation(width) { refuse(refusal); return }
+            if let refusal = PixelEditInputChecks.windowWidthViolation(width) { refuse(refusal); return }
             // Modality LUT output units (C.11.2.1.2); the engine applies Rescale / LUT.
             operations.append(.windowLevel(center: center, width: width))
         }
@@ -3096,10 +3071,10 @@ private func executeDicomArchive() async {
                 }
                 modality = outcome.value
             }
-            // dicom-archive's ArchiveQueryKeys.studyDateWarning (CLI-local, same text): a
+            // ArchiveMatching.studyDateKeyWarning, the warning dicom-archive query prints (D249): a
             // Study Date that is neither a DA value (PS3.5 Table 6.2-1) nor a DA range
             // (PS3.4 C.2.2.2.5.1) is compared as a literal string.
-            if let warning = Self.archiveStudyDateWarning(qStudyDate) {
+            if let warning = ArchiveMatching.studyDateKeyWarning(qStudyDate) {
                 log += warning + "\n"
             }
         }
@@ -3161,17 +3136,6 @@ private func executeDicomArchive() async {
     addToHistory(toolName: "dicom-archive", command: commandPreview, exitCode: exitCode, output: output)
     consoleStatus = exitCode == 0 ? .success : .error
     service.setConsoleStatus(exitCode == 0 ? .success : .error)
-}
-
-/// `dicom-archive query`'s warning for a `--study-date` that the shared ArchiveStore cannot match
-/// as DICOM (its `ArchiveQueryKeys.studyDateWarning`, CLI-local, kept text-identical): neither a
-/// DA value (PS3.5 Table 6.2-1: YYYYMMDD) nor a DA range (PS3.4 C.2.2.2.5.1: "<date1>-<date2>",
-/// "-<date1>", "<date1>-").
-nonisolated static func archiveStudyDateWarning(_ value: String?) -> String? {
-    guard let value, !value.isEmpty else { return nil }
-    if ArchiveMatching.dateRange(value) != nil { return nil }
-    return "warning: --study-date '\(value)' is neither a DA value (YYYYMMDD) nor a DA range "
-        + "(PS3.4 C.2.2.2.5.1); it matches only a Study Date (0008,0020) equal to the whole string"
 }
 
 private func executeDicomCompress() async {
@@ -3405,7 +3369,7 @@ private func executeDicomCompressDecompress() async {
         refuse("Error: Input file not found: \(inputURL.path)\n", exitCode: 64); return
     }
     let targetSyntax: TransferSyntax
-    do { targetSyntax = try WorkshopNativeTargetSyntax.resolve(syntax) }
+    do { targetSyntax = try CompressionConsole.NativeTargetSyntax.resolve(syntax) }
     catch { refuse("Error: \(error)\n", exitCode: 1); return }
     let targetName = CompressionManager.transferSyntaxDisplayName(targetSyntax)
 
@@ -3487,7 +3451,7 @@ private func executeDicomCompressBatch() async {
     }
     var decompressTarget: TransferSyntax = .explicitVRLittleEndian
     if decompress {
-        do { decompressTarget = try WorkshopNativeTargetSyntax.resolve(syntax) }
+        do { decompressTarget = try CompressionConsole.NativeTargetSyntax.resolve(syntax) }
         catch { refuse("Error: \(error)\n", exitCode: 1); return }
     }
 
@@ -3924,7 +3888,7 @@ private func executeDicomStudy() async {
         }
         var sources: [VideoAudioChannel.Source] = []
         for spec in CommandBuilderHelpers.splitMultiValue(paramValue("audioChannelSource")) {
-            do { sources.append(try WorkshopAudioChannelSourceOption.parse(spec)) }
+            do { sources.append(try AudioChannelSourceOption.parse(spec)) }
             catch { return (metadata, lines, "Error: \(error)", []) }
         }
         if sources.count == 1 {
@@ -3932,7 +3896,7 @@ private func executeDicomStudy() async {
         } else if sources.count > 1 {
             metadata.audioChannelSources = sources
         }
-        let violations = WorkshopVideoOptionConformance.violations(type: type, metadata: metadata, transferSyntax: transferSyntax)
+        let violations = VideoOptionConformance.violations(type: type, metadata: metadata, transferSyntax: transferSyntax)
         return (metadata, lines, nil, violations)
     }
 
@@ -4441,12 +4405,12 @@ private func executeDicomStudy() async {
 
         #if canImport(CoreGraphics)
         // run(): --conversion-type first (ValidationError, 64), then the P-IMAGE-VR refusals (exit 1).
-        guard let conversionType = WorkshopSCOutput.conversionType(conversionTypeArg) else {
+        guard let conversionType = ImageConverter.OutputRules.conversionType(conversionTypeArg) else {
             finish("Error: --conversion-type '\(conversionTypeArg ?? "")' is not a Defined Term of PS3.3 Table C.8-24 "
                    + "(\(ConversionType.definedTerms.joined(separator: ", ")))\n", exitCode: 64)
             return
         }
-        let violations = WorkshopSCOutput.valueViolations(
+        let violations = ImageConverter.OutputRules.valueViolations(
             patientName: patientNameArg, patientID: patientIDArg,
             studyDescription: studyDescription, seriesDescription: seriesDescription,
             studyUID: studyUIDArg, seriesUID: seriesUIDArg,
@@ -4527,7 +4491,7 @@ private func executeDicomStudy() async {
                 } else {
                     data = try ImageConverter.secondaryCaptureData(imageURL: imageURL, metadata: metadata, useExif: useExif)
                 }
-                let r = try OutputAccess.write(try WorkshopSCOutput.finalize(data), toPath: outputURL.path,
+                let r = try OutputAccess.write(try ImageConverter.OutputRules.finalize(data), toPath: outputURL.path,
                                                scopedURL: outputScopedURL, subfolder: "ImageConversion")
                 if let note = r.note { out += note + "\n" }
                 return r.url
@@ -4740,36 +4704,36 @@ private func executeDicomStudy() async {
                 return refuse("--frame is a 0-based frame index and must be 0 or more", exitCode: 64)
             }
             if let n = frameNumber, n < 1 {
-                return refuse("--frame-number must be 1 or more (\(Self.exportFrameNumberReference))", exitCode: 64)
+                return refuse("--frame-number must be 1 or more (\(DICOMImageExporter.FrameSelection.reference))", exitCode: 64)
             }
             if frame != nil && frameNumber != nil {
-                return refuse(Self.exportFrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number"), exitCode: 1)
+                return refuse(DICOMImageExporter.FrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number").description, exitCode: 1)
             }
             if frame != nil {
-                notes.append(Self.exportFrameDeprecationNote(option: "--frame", replacement: "--frame-number"))
+                notes.append(DICOMImageExporter.FrameSelection.deprecationNote(option: "--frame", replacement: "--frame-number"))
             }
         case "animate":
             for (name, value) in [("--start-frame-number", startFrameNumber), ("--end-frame-number", endFrameNumber)] {
                 if let n = value, n < 1 {
-                    return refuse("\(name) must be 1 or more (\(Self.exportFrameNumberReference))", exitCode: 64)
+                    return refuse("\(name) must be 1 or more (\(DICOMImageExporter.FrameSelection.reference))", exitCode: 64)
                 }
             }
             let zeroBased = [("--start-frame", startFrame), ("--end-frame", endFrame)].filter { $0.1 != nil }.map(\.0)
             let oneBased = [("--start-frame-number", startFrameNumber), ("--end-frame-number", endFrameNumber)].filter { $0.1 != nil }.map(\.0)
             if let z = zeroBased.first, let o = oneBased.first {
-                return refuse(Self.exportFrameSelectionConflict(zeroBased: z, oneBased: o), exitCode: 1)
+                return refuse(DICOMImageExporter.FrameSelectionConflict(zeroBased: z, oneBased: o).description, exitCode: 1)
             }
             if startFrame != nil {
-                notes.append(Self.exportFrameDeprecationNote(option: "--start-frame", replacement: "--start-frame-number"))
+                notes.append(DICOMImageExporter.FrameSelection.deprecationNote(option: "--start-frame", replacement: "--start-frame-number"))
             }
             if endFrame != nil {
-                notes.append(Self.exportFrameDeprecationNote(option: "--end-frame", replacement: "--end-frame-number"))
+                notes.append(DICOMImageExporter.FrameSelection.deprecationNote(option: "--end-frame", replacement: "--end-frame-number"))
             }
         case "contact-sheet", "bulk":
             // P-EXPORT-3: the flag has no effect here; the CLI prints its note and renders with
             // the file's VOI.
             if applyWindowDeprecated {
-                notes.append(Self.exportApplyWindowDeprecationNote(subcommand: operation))
+                notes.append(DICOMImageExporter.ApplyWindowDeprecation.note(subcommand: operation))
             }
         default:
             break
@@ -4843,13 +4807,13 @@ private func executeDicomStudy() async {
                     guard let pixelData = dicomFile.pixelData() else {
                         throw ExportError.noPixelData
                     }
-                    if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) {
-                        log += Self.exportBurnedInWarning(for: inputPath) + "\n"
+                    if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) {
+                        log += DICOMImageExporter.BurnedInAnnotation.warning(for: inputPath) + "\n"
                     }
                     let totalFrames = pixelData.descriptor.numberOfFrames
                     guard frameIndex >= 0 && frameIndex < totalFrames else {
                         if let number = frameNumber {
-                            throw ExportError.invalidInput(Self.exportInvalidFrameNumberMessage(requested: number, total: totalFrames))
+                            throw ExportError.invalidInput(DICOMImageExporter.FrameSelection.invalidFrameNumberMessage(requested: number, total: totalFrames))
                         }
                         throw ExportError.invalidFrame(frameIndex, totalFrames)
                     }
@@ -4937,7 +4901,7 @@ private func executeDicomStudy() async {
                             // modality units); --apply-window has no effect here (P-EXPORT-3).
                             let image = try render(file: dicomFile, frameIndex: 0,
                                                    applyWindow: false, windowCenter: nil, windowWidth: nil)
-                            if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) { burnedIn += 1 }
+                            if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) { burnedIn += 1 }
                             context.draw(image, in: rect)
                         } catch {
                             // Draw placeholder for failed files
@@ -4952,7 +4916,7 @@ private func executeDicomStudy() async {
                                                              withIntermediateDirectories: true)
                     try exportCGImage(sheetImage, to: outputURL, format: formatSel, quality: quality, metadata: nil)
                     log += ExportConsole.contactSheetLine(path: outputURL.path, imageCount: inputs.count, columns: columns, rows: rows) + "\n"
-                    if burnedIn > 0 { log += Self.exportBurnedInSummaryWarning(count: burnedIn) + "\n" }
+                    if burnedIn > 0 { log += DICOMImageExporter.BurnedInAnnotation.summaryWarning(count: burnedIn) + "\n" }
                     return (log, 0)
 
                 // MARK: animate
@@ -4973,10 +4937,10 @@ private func executeDicomStudy() async {
                     }
                     let clampedScale = max(0.1, min(2.0, scale))
                     // The rate: --fps, else the file's Cine Module (PS3.3 Table C.7-13), else 10.
-                    let rate = Self.exportCineFrameRate(explicit: fps, dataSet: dicomFile.dataSet)
+                    let rate = DICOMImageExporter.CineFrameRate.resolve(explicit: fps, dataSet: dicomFile.dataSet)
                     let delay = DICOMImageExporter.gifFrameDelay(fps: rate.fps)
-                    if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) {
-                        log += Self.exportBurnedInWarning(for: inputPath) + "\n"
+                    if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) {
+                        log += DICOMImageExporter.BurnedInAnnotation.warning(for: inputPath) + "\n"
                     }
                     let frameCount = range.end - range.start + 1
 
@@ -5075,7 +5039,7 @@ private func executeDicomStudy() async {
                             if embedMetadata { metadata = DICOMImageExporter.buildEXIFMetadata(from: dicomFile, fields: nil) }
                             try exportCGImage(image, to: outFileURL, format: formatSel, quality: quality, metadata: metadata)
                             successCount += 1
-                            if Self.exportBurnedInAnnotationIsYes(dicomFile.dataSet) { burnedIn += 1 }
+                            if DICOMImageExporter.BurnedInAnnotation.isYes(dicomFile.dataSet) { burnedIn += 1 }
                             if verbose { log += ExportConsole.bulkSuccessLine(path: outFileURL.path) + "\n" }
                         } catch {
                             errorCount += 1
@@ -5083,7 +5047,7 @@ private func executeDicomStudy() async {
                         }
                     }
                     log += ExportConsole.bulkSummaryLine(success: successCount, total: fileCount, failed: errorCount) + "\n"
-                    if burnedIn > 0 { log += Self.exportBurnedInSummaryWarning(count: burnedIn) + "\n" }
+                    if burnedIn > 0 { log += DICOMImageExporter.BurnedInAnnotation.summaryWarning(count: burnedIn) + "\n" }
                     // As the CLI: the summary line carries the failures, the exit status is 0.
                     return (log, 0)
 
@@ -5104,73 +5068,6 @@ private func executeDicomStudy() async {
         consoleStatus = .error; service.setConsoleStatus(.error)
         addToHistory(toolName: "dicom-export", command: commandPreview, exitCode: 1, output: "Unsupported platform")
         #endif
-    }
-
-    // MARK: dicom-export standard texts (Sources/dicom-export/ExportStandard.swift, CLI-local)
-    //
-    // These mirror dicom-export's CLI-local ExportStandard.swift text for text; lifting them into
-    // DICOMKit is the recorded follow-up. The DICOM inputs: PS3.3 2026a Table 10-3 ("The first
-    // Frame shall be denoted as Frame number 1"), Table C.7-13 (Recommended Display Frame Rate
-    // (0008,2144), Cine Rate (0018,0040), Frame Time (0018,1063) msec), Table C.7-9 (Burned In
-    // Annotation (0028,0301), Enumerated Values YES / NO).
-
-    nonisolated static let exportFrameNumberReference = "PS3.3 Table 10-3: the first Frame is Frame number 1"
-
-    nonisolated static func exportFrameDeprecationNote(option: String, replacement: String) -> String {
-        "warning: \(option) is deprecated (0-based index); use \(replacement) (numbered from 1, \(exportFrameNumberReference))"
-    }
-
-    /// Text for a Frame number the file does not have.
-    nonisolated static func exportInvalidFrameNumberMessage(requested: Int, total: Int) -> String {
-        "Frame number \(requested) does not exist. The file has \(total) frame\(total == 1 ? "" : "s"), numbered 1 to \(max(total, 1))."
-    }
-
-    /// A 0-based option and a Frame number option given together (exit 1).
-    nonisolated static func exportFrameSelectionConflict(zeroBased: String, oneBased: String) -> String {
-        "\(zeroBased) (deprecated, 0-based) and \(oneBased) (numbered from 1) cannot be used together"
-    }
-
-    /// `--apply-window` on contact-sheet / bulk (P-EXPORT-3): no effect, deprecated.
-    nonisolated static func exportApplyWindowDeprecationNote(subcommand: String) -> String {
-        "warning: \(subcommand) --apply-window is deprecated and has no effect: the file's VOI (Window Center (0028,1050) / Window Width (0028,1051), else VOI LUT Sequence (0028,3010), else the full pixel range) is always applied"
-    }
-
-    /// Burned In Annotation (0028,0301) == YES (PS3.3 Table C.7-9).
-    nonisolated static func exportBurnedInAnnotationIsYes(_ dataSet: DataSet) -> Bool {
-        dataSet.string(for: .burnedInAnnotation)?.trimmingCharacters(in: .whitespaces).uppercased() == "YES"
-    }
-
-    nonisolated static func exportBurnedInWarning(for path: String) -> String {
-        "warning: \(path): Burned In Annotation (0028,0301) is YES — the exported image "
-            + "contains burned-in text that identifies the patient"
-    }
-
-    nonisolated static func exportBurnedInSummaryWarning(count: Int) -> String {
-        "warning: \(count) exported image(s) have Burned In Annotation (0028,0301) YES — "
-            + "burned-in text that identifies the patient"
-    }
-
-    /// The frame rate of an `animate` export (dicom-export's CineFrameRate): `--fps`, else the
-    /// Cine Module (PS3.3 Table C.7-13) — Recommended Display Frame Rate (0008,2144), then Cine
-    /// Rate (0018,0040), then 1000 / Frame Time (0018,1063) (msec, C.7.6.5.1.1) — else 10.
-    /// `source` is the PS3.6 name and tag of the attribute the rate came from.
-    nonisolated static func exportCineFrameRate(explicit: Double?, dataSet: DataSet) -> (fps: Double, source: String) {
-        func positive(_ raw: String?) -> Double? {
-            guard let raw, let value = Double(raw.trimmingCharacters(in: .whitespaces)),
-                  value.isFinite, value > 0 else { return nil }
-            return value
-        }
-        if let explicit { return (explicit, "--fps") }
-        if let rate = positive(dataSet.string(for: .recommendedDisplayFrameRate)) {
-            return (rate, "Recommended Display Frame Rate (0008,2144)")
-        }
-        if let rate = positive(dataSet.string(for: .cineRate)) {
-            return (rate, "Cine Rate (0018,0040)")
-        }
-        if let msec = positive(dataSet.string(for: .frameTime)) {
-            return (1000.0 / msec, "Frame Time (0018,1063)")
-        }
-        return (10, "default")
     }
 
     // MARK: - dicom-script Execution
@@ -5441,7 +5338,7 @@ case "dicom-study":
         if frame != nil {
             preamble += "warning: --frame is deprecated (0-based index); use --frame-number (numbered from 1, PS3.3 Table 10-3)\n"
         }
-        if !transferSyntax.isEmpty, let note = WorkshopTransferSyntaxKeywords.meaningChangeNote(for: transferSyntax) {
+        if !transferSyntax.isEmpty, let note = TransferSyntax.reassignedKeywordNote(for: transferSyntax) {
             preamble += note + "\n"
         }
 
@@ -5667,7 +5564,7 @@ case "dicom-study":
     /// catalog (UID / CamelCase / kebab / short aliases), then the Table A-1 keywords of the CLI-local
     /// TransferSyntaxKeywords (mirrored), with the CLI's refusal text.
     private func parseTransferSyntax(_ name: String) throws -> SelectableEncoding {
-        guard let encoding = WorkshopTransferSyntaxKeywords.resolve(name) else {
+        guard let encoding = DICOMConverter.resolveTargetEncoding(name) else {
             throw ConvertError.unknownTransferSyntax(name)
         }
         return encoding
@@ -5857,7 +5754,7 @@ case "dicom-study":
         }
         let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
         // --iod takes a PS3.6 Table A-1 keyword or UID as well as the engine's own names.
-        let iod: String? = iodRaw.isEmpty ? nil : Self.validateIODEngineName(for: iodRaw)
+        let iod: String? = iodRaw.isEmpty ? nil : DICOMValidator.iodName(forIODOption: iodRaw)
         let outputFormat: ValidationOutputFormat = format == "json" ? .json : .text
 
         let (output, code) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
@@ -5933,45 +5830,14 @@ case "dicom-study":
         service.setConsoleStatus(code == 0 ? .success : .error)
     }
 
-    /// Engine IOD name per SOP Class UID (PS3.6 Table A-1), as `DICOMValidator` detects it from
-    /// (0008,0016). dicom-validate's `IODOption` maps the same seven classes; DICOMValidator
-    /// does not export the map, so the Workshop carries it until it is lifted into DICOMKit.
-    nonisolated static let validateEngineNameBySOPClassUID: [String: String] = [
-        "1.2.840.10008.5.1.4.1.1.2": "CTImageStorage",                          // CT Image Storage
-        "1.2.840.10008.5.1.4.1.1.4": "MRImageStorage",                          // MR Image Storage
-        "1.2.840.10008.5.1.4.1.1.1": "CRImageStorage",                          // Computed Radiography Image Storage
-        "1.2.840.10008.5.1.4.1.1.6.1": "USImageStorage",                        // Ultrasound Image Storage
-        "1.2.840.10008.5.1.4.1.1.7": "SecondaryCaptureImageStorage",            // Secondary Capture Image Storage
-        "1.2.840.10008.5.1.4.1.1.11.1": "GrayscaleSoftcopyPresentationState",   // Grayscale Softcopy Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.3": "PseudoColorSoftcopyPresentationState", // Pseudo-Color Softcopy Presentation State Storage
-    ]
-
-    /// The engine IOD name for an `--iod` value: a PS3.6 Table A-1 keyword (any case) or SOP
-    /// Class UID of a supported class, else the value itself (the engine's short names, or an
-    /// unsupported IOD the engine reports as "IOD validation not implemented").
-    nonisolated static func validateIODEngineName(for value: String) -> String {
-        if value.lowercased() == "us" { return "USImageStorage" }   // the engine knows "ultrasound" only
-        let uid: String?
-        if let entry = UIDDictionary.lookup(uid: value) { uid = entry.uid }
-        else if let entry = UIDDictionary.lookup(keyword: value) { uid = entry.uid }
-        else {
-            let lower = value.lowercased()
-            uid = UIDDictionary.sopClasses.first { $0.keyword.lowercased() == lower }?.uid
-        }
-        guard let uid else { return value }
-        if let name = validateEngineNameBySOPClassUID[uid] { return name }
-        if DICOMCore.SRDocumentType.isSRDocument(sopClassUID: uid) { return "StructuredReport" }
-        return value
-    }
-
     // MARK: - dicom-anon Execution
 
     /// Anonymizes DICOM files by running dicom-anon's own loop in-process (Sources/dicom-anon/main.swift):
     /// the shared DICOMKit `Anonymizer` for the legacy attribute lists, the shared `PixelRedactor` for
     /// `--clean-pixel-data` / `--redact-region`, `AnonConsole` for every printed line, the per-attribute
     /// PS3.15 Table E.1-1a action report of `--dry-run` / `--verbose`, the (0002,0003) sync of PS3.10 7.1
-    /// and the CLI's refusal texts. The CLI-local `AnonCLI` texts are mirrored by `WorkshopAnonCLI`
-    /// (equality checked by Scripts/diff_studio_g1.py).
+    /// and the CLI's refusal texts: DICOMKit `AnonCLI` (D275) for the profile, Option and action-report
+    /// texts, `WorkshopAnonError` for the two texts of the CLI-local `AnonymizationError`.
     ///
     /// `--profile ps315` (the CLI default) and its alias `basic` are refused until the owner approves the
     /// Studio enum case (P-STUDIO-ANON-PS315, commit 61670c42); the PS3.15 Annex E Option flags therefore
@@ -5994,10 +5860,16 @@ case "dicom-study":
         let auditLogPath = paramValue("audit-log")
         let force = paramValue("force") == "true"
         let verbose = paramValue("verbose") == "true"
-        // The PS3.15 E.3 Option flags, in the CLI's `PS315Flags.setFlags` order.
-        let setOptionFlags = WorkshopAnonCLI.optionFlagIDs
-            .filter { paramValue($0) == "true" }
-            .map { "--" + $0 }
+        // The PS3.15 E.3 Option flags, as dicom-anon's `ps315Flags` (DICOMKit AnonCLI.PS315Flags).
+        func on(_ id: String) -> Bool { paramValue(id) == "true" }
+        let ps315Flags = AnonCLI.PS315Flags(
+            retainDates: on("retain-dates"), retainFullDates: on("retain-full-dates"),
+            retainModifiedDates: on("retain-modified-dates"), retainCharacteristics: on("retain-characteristics"),
+            retainDevice: on("retain-device"), retainInstitution: on("retain-institution"),
+            retainUids: on("retain-uids"), cleanDescriptors: on("clean-descriptors"),
+            retainSafePrivate: on("retain-safe-private"), cleanGraphics: on("clean-graphics"),
+            cleanStructuredContent: on("clean-structured-content"),
+            cleanRecognizableVisualFeatures: on("clean-recognizable-visual-features"))
 
         func refuse(_ message: String, exitCode: Int) {
             appendConsoleOutput("Error: \(message)\n")
@@ -6026,11 +5898,11 @@ case "dicom-study":
         // dicom-anon's run() order: input exists → profile → option validation → notices → tags.
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
-            refuse(WorkshopAnonCLI.fileNotFound, exitCode: 1)
+            refuse(WorkshopAnonError.fileNotFound, exitCode: 1)
             return
         }
-        guard let resolvedProfile = WorkshopAnonCLI.resolveProfile(profileStr) else {
-            refuse(WorkshopAnonCLI.invalidProfile, exitCode: 1)
+        guard let resolvedProfile = AnonCLI.resolveProfile(profileStr) else {
+            refuse(WorkshopAnonError.invalidProfile, exitCode: 1)
             return
         }
         guard let engineProfile = resolvedProfile.legacyProfile else {
@@ -6038,12 +5910,20 @@ case "dicom-study":
             refuse("--profile \(profileStr) is the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1), which the Workshop cannot run yet; use legacy-basic, legacy-clinical-trial or legacy-research, or run dicom-anon in the terminal.", exitCode: 1)
             return
         }
-        if !setOptionFlags.isEmpty {
-            refuse(WorkshopAnonCLI.optionsOnlyForPS315(setOptionFlags), exitCode: 1)
+        // dicom-anon rethrows AnonCLI.ValidationError as ArgumentParser's ValidationError (exit 64);
+        // on a legacy profile the only refusal is "Option flags apply only to --profile ps315".
+        do {
+            try AnonCLI.validate(profile: profileStr, flags: ps315Flags, shiftDates: shiftDays,
+                                 regenerateUids: regenUIDs, keep: keepTags, redactRegions: redactRegions)
+        } catch let error as AnonCLI.ValidationError {
+            refuse(error.message, exitCode: 64)
+            return
+        } catch {
+            refuse(error.localizedDescription, exitCode: 1)
             return
         }
         var output = ""
-        if let notice = WorkshopAnonCLI.legacyProfileNotice(profileStr) {
+        if let notice = AnonCLI.legacyProfileNotice(profileStr) {
             output += notice + "\n"
         }
 
@@ -6103,12 +5983,12 @@ case "dicom-study":
                 preserveTags: preserveTags, customActions: customActions)
             var out = ""
             var results: [AnonymizationResult] = []
-            var reports: [(path: String, actions: [WorkshopAnonCLI.AttributeAction])] = []
+            var reports: [(path: String, actions: [AnonCLI.AttributeAction])] = []
 
             /// dicom-anon's anonymizeFile: pixel cleaning first (the region decision reads
             /// Modality / Manufacturer, which de-identification removes), then the engine,
             /// then the write with (0002,0003) following the replaced SOP Instance UID.
-            func anonymizeFile(_ fileURL: URL, outputURL: URL?) throws -> (AnonymizationResult, [WorkshopAnonCLI.AttributeAction]) {
+            func anonymizeFile(_ fileURL: URL, outputURL: URL?) throws -> (AnonymizationResult, [AnonCLI.AttributeAction]) {
                 var fileData = try Data(contentsOf: fileURL)
                 var dicomFile = try DICOMFile.read(from: fileData, force: force)
                 let sourceDataSet = dicomFile.dataSet
@@ -6132,13 +6012,13 @@ case "dicom-study":
                         let backupURL = outputURL.appendingPathExtension("backup")
                         try? FileManager.default.copyItem(at: fileURL, to: backupURL)
                     }
-                    let outputData = try WorkshopAnonCLI.syncingMediaStorageSOPInstanceUID(anonymizedFile).write()
+                    let outputData = try AnonCLI.syncingMediaStorageSOPInstanceUID(anonymizedFile).write()
                     let written = try OutputAccess.write(outputData, toPath: outputURL.path,
                                                          scopedURL: workIsDirectory ? nil : outputScopedURL,
                                                          subfolder: "Anonymized")
                     if let note = written.note { out += note + "\n" }
                 }
-                let actions = WorkshopAnonCLI.attributeActions(before: sourceDataSet, after: anonymizedFile.dataSet, options: nil)
+                let actions = AnonCLI.attributeActions(before: sourceDataSet, after: anonymizedFile.dataSet, options: nil)
                 return (result, actions)
             }
 
@@ -6187,7 +6067,7 @@ case "dicom-study":
 
             if dryRun || verbose {
                 for report in reports {
-                    out += WorkshopAnonCLI.actionLines(path: report.path, actions: report.actions)
+                    out += AnonCLI.actionLines(path: report.path, actions: report.actions)
                 }
             }
             out += AnonConsole.summary(
@@ -11281,588 +11161,14 @@ enum ConvertError: LocalizedError {
     }
 }
 
-// MARK: - dicom-anon CLI texts (PS3.15 2026a Annex E; Sources/dicom-anon/AnonCLISupport.swift, CLI-local)
+// MARK: - dicom-anon AnonymizationError texts (Sources/dicom-anon/main.swift, CLI-local)
 
-/// The parts of dicom-anon's CLI-local `AnonCLI` / `AnonymizationError` the Workshop executor needs for
-/// the legacy profiles, mirrored text-identically (equality checked by Scripts/diff_studio_g1.py "pixel anon
-/// options"). The PS3.15 Basic Profile path (`--profile ps315`, `Anonymizer.deidentify`) is pending
-/// P-STUDIO-ANON-PS315 and is refused by the executor.
-enum WorkshopAnonCLI {
-
-    /// A `--profile` value resolved to what the run applies (P-ANON-PROFILE), as `AnonCLI.Profile`.
-    enum Profile: String, CaseIterable, Equatable {
-        case ps315
-        case legacyBasic = "legacy-basic"
-        case legacyClinicalTrial = "legacy-clinical-trial"
-        case legacyResearch = "legacy-research"
-
-        var isPS315: Bool { self == .ps315 }
-
-        /// The legacy engine list; nil for `ps315`, which bypasses the legacy engine.
-        var legacyProfile: DICOMKit.AnonymizationProfile? {
-            switch self {
-            case .ps315: return nil
-            case .legacyBasic: return .basic
-            case .legacyClinicalTrial: return .clinicalTrial
-            case .legacyResearch: return .research
-            }
-        }
-    }
-
-    /// The default `--profile`: the PS3.15 Basic Profile.
-    static let defaultProfile = "ps315"
-
-    /// Old spellings and what they now resolve to (`AnonCLI.profileAliases`).
-    static let profileAliases: [String: Profile] = [
-        "ps315": .ps315,
-        "basic": .ps315,
-        "legacy-basic": .legacyBasic,
-        "legacy-clinical-trial": .legacyClinicalTrial,
-        "legacy-research": .legacyResearch,
-        "clinical-trial": .legacyClinicalTrial,
-        "clinicaltrial": .legacyClinicalTrial,
-        "research": .legacyResearch,
-    ]
-
-    static func resolveProfile(_ value: String) -> Profile? {
-        profileAliases[value.trimmingCharacters(in: .whitespaces).lowercased()]
-    }
-
-    /// The PS3.15 E.3 Option flags of the form, by parameter id, in the CLI's `PS315Flags.setFlags` order.
-    static let optionFlagIDs = [
-        "retain-dates", "retain-full-dates", "retain-modified-dates", "retain-characteristics", "retain-device",
-        "retain-institution", "retain-uids", "clean-descriptors", "retain-safe-private", "clean-graphics",
-        "clean-structured-content", "clean-recognizable-visual-features",
-    ]
-
-    /// `AnonCLI.validate`: the PS3.15 E.3 option flags act only on `--profile ps315`.
-    static func optionsOnlyForPS315(_ setFlags: [String]) -> String {
-        "PS3.15 Annex E Option flags apply only to --profile ps315: \(setFlags.joined(separator: ", "))"
-    }
-
-    /// `AnonymizationError.invalidProfile` / `.fileNotFound` texts.
+/// The two texts of dicom-anon's CLI-local `AnonymizationError` the Workshop prints (exit 1),
+/// kept identical (checked by Scripts/diff_studio_g1.py "pixel anon options"). Everything else
+/// the executor prints about profiles and the PS3.15 E.3 Options is DICOMKit `AnonCLI` (D275).
+enum WorkshopAnonError {
     static let invalidProfile = "Invalid anonymization profile (use ps315, basic, legacy-basic, legacy-clinical-trial or legacy-research)"
     static let fileNotFound = "File not found"
-
-    /// Stderr notice for a `--profile` value (`AnonCLI.legacyProfileNotice`). Nil for `ps315`.
-    static func legacyProfileNotice(_ profile: String) -> String? {
-        let key = profile.trimmingCharacters(in: .whitespaces).lowercased()
-        guard let resolved = resolveProfile(key) else { return nil }
-        if key == "basic" {
-            return "Note: --profile basic is the PS3.15 Basic Application Level Confidentiality Profile "
-                + "(same as ps315, PS3.15 Table E.1-1). The former basic attribute list is --profile legacy-basic."
-        }
-        guard !resolved.isPS315 else { return nil }
-        var text = "Deprecated: --profile \(profile) "
-        if key != resolved.rawValue { text += "(now \(resolved.rawValue)) " }
-        return text + "is a legacy attribute list, not a PS3.15 Annex E profile; it records no "
-            + "Patient Identity Removed (0012,0062). Use --profile ps315 (PS3.15 Basic Application Level "
-            + "Confidentiality Profile, Table E.1-1)."
-    }
-
-    /// PS3.10 7.1: the file meta Media Storage SOP Instance UID (0002,0003) is the SOP
-    /// Instance UID (0008,0018) of the data set (`AnonCLI.syncingMediaStorageSOPInstanceUID`).
-    static func syncingMediaStorageSOPInstanceUID(_ file: DICOMFile) -> DICOMFile {
-        guard let uid = file.dataSet.string(for: .sopInstanceUID)?
-                .trimmingCharacters(in: CharacterSet(charactersIn: " \0")), !uid.isEmpty,
-              file.fileMetaInformation[.mediaStorageSOPInstanceUID] != nil else { return file }
-        var meta = file.fileMetaInformation
-        meta.setString(uid, for: .mediaStorageSOPInstanceUID, vr: .UI)
-        return DICOMFile(fileMetaInformation: meta, dataSet: file.dataSet)
-    }
-
-    // MARK: - Per-attribute action report (AnonCLI)
-
-    /// One top-level attribute the run changed, with the PS3.15 Table E.1-1a action code.
-    struct AttributeAction: Equatable {
-        let tag: Tag
-        /// D, Z, X, C or U (Table E.1-1a), or "recorded" for the de-identification
-        /// method / attestation attributes the run writes.
-        let code: String
-        /// PS3.6 Table 6-1 name.
-        let name: String
-    }
-
-    /// The attributes the run writes to record what it did (PS3.15 E.1.1, E.3).
-    static let recordingTags: Set<Tag> = [
-        Tag(group: 0x0012, element: 0x0062), // Patient Identity Removed
-        Tag(group: 0x0012, element: 0x0063), // De-identification Method
-        Tag(group: 0x0012, element: 0x0064), // De-identification Method Code Sequence
-        Tag(group: 0x0028, element: 0x0301), // Burned In Annotation
-        Tag(group: 0x0028, element: 0x0302), // Recognizable Visual Features
-        Tag(group: 0x0028, element: 0x0303), // Longitudinal Temporal Information Modified
-    ]
-
-    /// PS3.6 name of a tag; private and unknown tags are labelled as such.
-    static func name(of tag: Tag) -> String {
-        if tag.isPrivate { return "Private Data Element" }
-        return DataElementDictionary.lookup(tag: tag)?.name ?? "(not in PS3.6)"
-    }
-
-    /// Compares the source and output data sets attribute by attribute (top level;
-    /// Pixel Data and group 0002 excluded) and labels each change with its E.1-1a code.
-    /// `options` is nil for the legacy profiles.
-    static func attributeActions(before: DataSet, after: DataSet,
-                                 options: ConfidentialityProfile.Options?) -> [AttributeAction] {
-        var out: [AttributeAction] = []
-        let tags = Set(before.tags).union(after.tags)
-            .filter { $0 != .pixelData && $0.group != 0x0002 }
-            .sorted { ($0.group, $0.element) < ($1.group, $1.element) }
-        for tag in tags {
-            let old = before[tag], new = after[tag]
-            if let old, let new, fingerprint(old) == fingerprint(new) { continue }
-            let code: String
-            if recordingTags.contains(tag) {
-                code = "recorded"
-            } else if old == nil {
-                code = "added"
-            } else if let new {
-                if isZeroLength(new) {
-                    code = "Z"
-                } else if let options, let applied = ConfidentialityProfile.action(for: tag, options: options),
-                          applied == .clean
-                            || (applied == .zeroOrDummy && options.retainLongitudinalTemporal
-                                && options.dateOffsetDays != nil) {
-                    code = "C"
-                } else {
-                    code = new.vr == .UI ? "U" : "D"
-                }
-            } else {
-                code = "X"
-            }
-            out.append(AttributeAction(tag: tag, code: code, name: name(of: tag)))
-        }
-        return out
-    }
-
-    /// The action lines printed for one file (--dry-run or --verbose).
-    static func actionLines(path: String, actions: [AttributeAction]) -> String {
-        var s = "\nAttribute actions for \(path) (PS3.15 Table E.1-1a: D dummy, Z zero length, "
-            + "X removed, C cleaned, U new UID):\n"
-        if actions.isEmpty { s += "  (none)\n" }
-        for a in actions { s += "  \(a.code.padding(toLength: 8, withPad: " ", startingAt: 0)) \(a.tag) \(a.name)\n" }
-        return s
-    }
-
-    private static func isZeroLength(_ e: DataElement) -> Bool {
-        if let items = e.sequenceItems { return items.isEmpty }
-        return e.valueData.allSatisfy { $0 == 0x20 || $0 == 0x00 }
-    }
-
-    private static func fingerprint(_ e: DataElement) -> String {
-        if let items = e.sequenceItems {
-            return "SQ[" + items.map { item in
-                item.allElements.sorted { ($0.tag.group, $0.tag.element) < ($1.tag.group, $1.tag.element) }
-                    .map(fingerprint).joined(separator: ",")
-            }.joined(separator: "|") + "]"
-        }
-        return "\(e.tag)\(e.vr):\(e.valueData.base64EncodedString())"
-    }
-}
-
-// MARK: - dicom-image output rules (PS3.5 2026a Table 6.2-1 / Section 9; PS3.3 Table C.8-24; Sources/dicom-image/SCOutput.swift, CLI-local)
-
-/// dicom-image's CLI-local `SCOutput`, mirrored text-identically (equality checked by
-/// Scripts/diff_studio_g1.py "pixel image pdf pixedit rules"): the --conversion-type parser, the
-/// P-IMAGE-VR refusals and the output post-processing around the shared `ImageConverter`.
-enum WorkshopSCOutput {
-
-    // MARK: - --conversion-type
-
-    /// Parses `--conversion-type` (case-insensitive) into a PS3.3 2026a Table C.8-24
-    /// Defined Term. Nil means "not one of the eight terms".
-    static func conversionType(_ raw: String?) -> ConversionType? {
-        guard let raw else { return .workstation }
-        let term = raw.trimmingCharacters(in: .whitespaces).uppercased()
-        guard ConversionType.definedTerms.contains(term) else { return nil }
-        return ConversionType(rawValue: term)
-    }
-
-    // MARK: - Value checks (refusals; PS3.5 2026a Table 6.2-1, Section 9)
-
-    /// Refusals for option values that the written VR cannot hold (P-IMAGE-VR, approved
-    /// 2026-10-01). Any line returned stops the run with exit 1 before anything is
-    /// written; until then the values were written with a warning.
-    static func valueViolations(patientName: String?, patientID: String?,
-                              studyDescription: String?, seriesDescription: String?,
-                              studyUID: String?, seriesUID: String?,
-                              seriesNumber: Int?, instanceNumber: Int?) -> [String] {
-        var out: [String] = []
-        for (option, value) in [("--study-uid", studyUID), ("--series-uid", seriesUID)] {
-            if let value, DICOMUniqueIdentifier.parse(value) == nil {
-                out.append("\(option) '\(value)' is not a valid UID (PS3.5 9.1: digits and '.', "
-                           + "no leading zero in a component, at most 64 bytes; VR UI, Table 6.2-1)")
-            }
-        }
-        for (option, value) in [("--patient-id", patientID), ("--study-description", studyDescription),
-                                ("--series-description", seriesDescription)] {
-            guard let value else { continue }
-            if value.count > 64 {
-                out.append("\(option) has \(value.count) characters; LO allows at most 64 (PS3.5 Table 6.2-1)")
-            }
-            if value.contains("\\") {
-                out.append("\(option) contains a backslash, which LO does not allow (PS3.5 Table 6.2-1)")
-            }
-        }
-        if let name = patientName {
-            for group in name.split(separator: "=", omittingEmptySubsequences: false) where group.count > 64 {
-                out.append("--patient-name component group has \(group.count) characters; "
-                           + "PN allows at most 64 per component group (PS3.5 Table 6.2-1)")
-            }
-            if name.contains("\\") {
-                out.append("--patient-name contains a backslash, which PN does not allow (PS3.5 Table 6.2-1)")
-            }
-        }
-        let isRange = Int(Int32.min)...Int(Int32.max)
-        for (option, value) in [("--series-number", seriesNumber), ("--instance-number", instanceNumber)] {
-            if let value, !isRange.contains(value) {
-                out.append("\(option) \(value) is outside the IS range -2^31...2^31-1 (PS3.5 Table 6.2-1)")
-            }
-        }
-        return out
-    }
-
-    // MARK: - Output post-processing
-
-    /// Specific Character Set (0008,0005) Defined Term for UTF-8 (PS3.3 2026a Table C.12-5).
-    static let utf8CharacterSet = "ISO_IR 192"
-
-    /// Fixes the engine's output file:
-    /// - Media Storage SOP Instance UID (0002,0003) set to the data set's SOP Instance
-    ///   UID (0008,0018) — PS3.10 Table 7.1-1 (the engine minted two different UIDs).
-    /// - Specific Character Set (0008,0005) = ISO_IR 192 when a text value is not ASCII:
-    ///   Type 1C "Required if an expanded or replacement character set is used"
-    ///   (Table C.12-1); the engine writes text as UTF-8.
-    static func finalize(_ data: Data) throws -> Data {
-        let file = try DICOMFile.read(from: data)
-        var meta = file.fileMetaInformation
-        var ds = file.dataSet
-        if let sop = ds.string(for: .sopInstanceUID),
-           meta.string(for: .mediaStorageSOPInstanceUID) != sop {
-            meta.setString(sop, for: .mediaStorageSOPInstanceUID, vr: .UI)
-            meta.remove(tag: .fileMetaInformationGroupLength)   // recomputed by write()
-        }
-        if ds[.specificCharacterSet] == nil, usesNonASCIIText(ds) {
-            ds.setString(utf8CharacterSet, for: .specificCharacterSet, vr: .CS)
-        }
-        return try DICOMFile(fileMetaInformation: meta, dataSet: ds).write()
-    }
-
-    /// Whether any top-level text value (PN, LO, SH, ST, LT, UT, UC) holds a non-ASCII byte.
-    static func usesNonASCIIText(_ ds: DataSet) -> Bool {
-        let textVRs: Set<VR> = [.PN, .LO, .SH, .ST, .LT, .UT, .UC]
-        for element in ds where textVRs.contains(element.vr) {
-            if element.valueData.contains(where: { $0 >= 0x80 }) { return true }
-        }
-        return false
-    }
-}
-
-// MARK: - dicom-pdf encapsulation attributes (PS3.3 2026a Tables C.24-2 / C.8-24 / C.12-1; Sources/dicom-pdf/EncapsulationAttributes.swift, CLI-local)
-
-/// dicom-pdf's CLI-local `PDFEncapsulation`, mirrored text-identically (equality checked by
-/// Scripts/diff_studio_g1.py "pixel image pdf pixedit rules"): the attributes the tool adds around the
-/// shared `EncapsulatedDocumentBuilder` / `EncapsulatedDocumentParser` and its option vocabularies.
-enum WorkshopPDFEncapsulation {
-
-    /// Encapsulated Document Length (0042,0015), UL (PS3.3 Table C.24-2, Type 3).
-    static let encapsulatedDocumentLength = Tag(group: 0x0042, element: 0x0015)
-
-    /// PS3.3 2026a Table C.8-24 Conversion Type (0008,0064) Defined Terms, in table order.
-    static let conversionTypes = ["DV", "DI", "DF", "WSD", "SD", "SI", "DRW", "SYN"]
-
-    /// Default Conversion Type: the document was produced on a workstation.
-    static let defaultConversionType = "WSD"
-
-    /// Burned In Annotation (0028,0301) values (PS3.3 Table C.24-2).
-    static let burnedInAnnotationValues = ["YES", "NO"]
-
-    /// Specific Character Set Defined Term for UTF-8 (PS3.3 Table C.12-5).
-    static let utf8CharacterSet = "ISO_IR 192"
-
-    /// The VRs whose values Specific Character Set governs (PS3.5 6.1.2.2).
-    private static let characterSetVRs: Set<VR> = [.SH, .LO, .ST, .LT, .UT, .PN, .UC]
-
-    /// A refused option value: ArgumentParser's ValidationError on the CLI (exit 64).
-    struct ValidationError: Error, LocalizedError {
-        let message: String
-        init(_ message: String) { self.message = message }
-        var errorDescription: String? { message }
-    }
-
-    // MARK: - Option values
-
-    /// Validates `--conversion-type` (case-insensitive) and returns the Defined Term.
-    static func conversionType(_ raw: String) throws -> String {
-        let value = raw.uppercased()
-        guard conversionTypes.contains(value) else {
-            throw ValidationError("--conversion-type \(raw) is not a Conversion Type (0008,0064) Defined Term of PS3.3 Table C.8-24: \(conversionTypes.joined(separator: ", "))")
-        }
-        return value
-    }
-
-    /// Validates `--burned-in-annotation` (case-insensitive): `true` for YES.
-    static func burnedInAnnotation(_ raw: String) throws -> Bool {
-        switch raw.uppercased() {
-        case "YES": return true
-        case "NO": return false
-        default:
-            throw ValidationError("--burned-in-annotation \(raw) is not YES or NO (Burned In Annotation (0028,0301), PS3.3 Table C.24-2)")
-        }
-    }
-
-    /// The HL7 Instance Identifier of a CDA document: `root^extension` (or `root`)
-    /// of the first `<id>` child of `<ClinicalDocument>`, as Table C.24-2 defines it.
-    static func hl7InstanceIdentifier(fromCDA data: Data) -> String? {
-        let finder = WorkshopClinicalDocumentIDFinder()
-        let parser = XMLParser(data: data)
-        parser.shouldProcessNamespaces = true
-        parser.delegate = finder
-        parser.parse()
-        guard let root = finder.root, !root.isEmpty else { return nil }
-        if let ext = finder.extensionValue, !ext.isEmpty { return "\(root)^\(ext)" }
-        return root
-    }
-
-    // MARK: - Dataset completion and extraction
-
-    /// Adds Encapsulated Document Length (0042,0015) with the unpadded byte count,
-    /// and Specific Character Set (0008,0005) `ISO_IR 192` when a string value is
-    /// not plain ASCII (the writer encodes strings as UTF-8).
-    static func complete(_ dataSet: inout DataSet, documentByteCount: Int) {
-        dataSet[encapsulatedDocumentLength] = DataElement.uint32(
-            tag: encapsulatedDocumentLength, value: UInt32(documentByteCount))
-        if dataSet[.specificCharacterSet] == nil, hasNonASCIIText(dataSet) {
-            dataSet.setString(utf8CharacterSet, for: .specificCharacterSet, vr: .CS)
-        }
-    }
-
-    /// Whether any top-level text value carries a byte outside ASCII.
-    static func hasNonASCIIText(_ dataSet: DataSet) -> Bool {
-        dataSet.allElements.contains { element in
-            characterSetVRs.contains(element.vr) && element.valueData.contains { $0 > 0x7F }
-        }
-    }
-
-    /// The document bytes without the trailing padding: the Encapsulated Document
-    /// value cut to Encapsulated Document Length (0042,0015) when that is present
-    /// and not longer than the value (PS3.3 Table C.24-2). Without it the value is
-    /// returned as stored, since nothing says whether a last byte is padding.
-    static func documentBytes(_ value: Data, in dataSet: DataSet) -> Data {
-        guard let length = dataSet[encapsulatedDocumentLength]?.uint32Value,
-              Int(length) <= value.count else { return value }
-        return value.prefix(Int(length))
-    }
-}
-
-/// Finds `/ClinicalDocument/id/@root` and `@extension` (HL7 CDA R2).
-private final class WorkshopClinicalDocumentIDFinder: NSObject, XMLParserDelegate {
-    var root: String?
-    var extensionValue: String?
-    private var depth = 0
-    private var isClinicalDocument = false
-
-    func parser(_ parser: XMLParser, didStartElement elementName: String,
-                namespaceURI: String?, qualifiedName: String?,
-                attributes: [String: String] = [:]) {
-        depth += 1
-        if depth == 1 {
-            isClinicalDocument = elementName == "ClinicalDocument"
-            if !isClinicalDocument { parser.abortParsing() }
-        }
-        if depth == 2, isClinicalDocument, elementName == "id", root == nil {
-            root = attributes["root"]
-            extensionValue = attributes["extension"]
-            parser.abortParsing()
-        }
-    }
-
-    func parser(_ parser: XMLParser, didEndElement elementName: String,
-                namespaceURI: String?, qualifiedName: String?) {
-        depth -= 1
-    }
-}
-
-// MARK: - dicom-pixedit input checks (PS3.3 2026a C.7.6.3.1, C.11.2.1.2; Sources/dicom-pixedit/DerivedImage.swift, CLI-local)
-
-/// dicom-pixedit's CLI-local `DerivedImage`, mirrored text-identically (equality checked by
-/// Scripts/diff_studio_g1.py "pixel image pdf pixedit rules"): the P-PIXEDIT-RANGE refusals applied
-/// before the shared `PixelEditor` engine runs.
-enum WorkshopDerivedImage {
-
-    // MARK: - Input checks done before the engine runs
-
-    /// Range of a stored sample: Bits Stored (0028,0101) and Pixel Representation
-    /// (0028,0103) of the Image Pixel Module (PS3.3 2026a C.7.6.3.1).
-    static func storedRange(bitsStored: Int, signed: Bool) -> ClosedRange<Int> {
-        let bits = max(1, min(bitsStored, 32))
-        return signed ? -(1 << (bits - 1)) ... (1 << (bits - 1)) - 1 : 0 ... (1 << bits) - 1
-    }
-
-    static func storedRange(of dataSet: DataSet) -> ClosedRange<Int> {
-        let allocated = Int(dataSet.uint16(for: .bitsAllocated) ?? 16)
-        let stored = Int(dataSet.uint16(for: .bitsStored) ?? UInt16(allocated))
-        let signed = (dataSet.uint16(for: .pixelRepresentation) ?? 0) == 1
-        return storedRange(bitsStored: stored, signed: signed)
-    }
-
-    /// A refusal when `--fill-value` lies outside the stored range (P-PIXEDIT-RANGE,
-    /// approved 2026-10-01: it was clamped with a warning); nil when it fits.
-    static func fillValueViolation(_ value: Int, range: ClosedRange<Int>) -> String? {
-        guard !range.contains(value) else { return nil }
-        return "--fill-value \(value) is outside the stored range \(range.lowerBound)...\(range.upperBound) "
-            + "given by Bits Stored (0028,0101) and Pixel Representation (0028,0103) (PS3.3 C.7.6.3.1)"
-    }
-
-    /// A refusal when `--window-width` is below 1 (P-PIXEDIT-RANGE): PS3.3 2026a
-    /// C.11.2.1.2 "Window Width (0028,1051) shall always be greater than or equal to 1"
-    /// (it was raised to 1 with a warning, and a width <= 0 went to the engine).
-    static func windowWidthViolation(_ width: Double) -> String? {
-        guard !(width >= 1) else { return nil }
-        return "--window-width \(width) is below 1; Window Width (0028,1051) shall always be greater than "
-            + "or equal to 1 (PS3.3 C.11.2.1.2)"
-    }
-}
-
-// MARK: - dicom-dcmdir File-set rules (PS3.10 8.1, 8.2, 8.5, 8.6; PS3.3 Tables F.3-2, F.3-3, F.4-1)
-
-/// The PS3.10 / PS3.3 rules `dicom-dcmdir` applies on top of `DICOMDirectory.validate`, and the
-/// clause each failure names — `Sources/dicom-dcmdir/FileSetRules.swift`, kept text-identical
-/// here because that type is CLI-local (not in DICOMKit); lifting it into DICOMKit is the
-/// recorded follow-up. Rule values: PS3.10 2026a 8.1 (File-set ID 0-16 characters), 8.2 (a File
-/// ID has 1-8 components of 1-8 characters), 8.5 (A-Z, 0-9, _), 8.6 (no File outside the
-/// File-set); PS3.3 2026a Table F.3-3 (each File referenced by at most one Directory Record).
-enum WorkshopFileSetRules {
-
-    /// PS3.10 8.5: File IDs and File-set IDs use A-Z, 0-9 and underscore only.
-    static let allowedCharacters = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
-    /// PS3.10 8.2: a File ID has one to eight components.
-    static let maxFileIDComponents = 8
-    /// PS3.10 8.2: each component is one to eight characters.
-    static let maxComponentLength = 8
-    /// PS3.10 8.1: a File-set ID is zero to sixteen characters.
-    static let maxFileSetIDLength = 16
-
-    static let fileIDRule = "PS3.10 8.2, 8.5; PS3.3 Table F.3-3 Referenced File ID (0004,1500)"
-    static let fileSetIDRule = "PS3.10 8.1, 8.5; PS3.3 Table F.3-2 File-set ID (0004,1130)"
-
-    /// Violations of PS3.10 8.2 / 8.5 for one Referenced File ID (its components).
-    static func fileIDViolations(_ components: [String]) -> [String] {
-        let shown = components.joined(separator: "\\")
-        var out: [String] = []
-        if components.isEmpty || components.count > maxFileIDComponents {
-            out.append("File ID \(shown) has \(components.count) components; a File ID has 1 to \(maxFileIDComponents) [\(fileIDRule)]")
-        }
-        for component in components {
-            if component.isEmpty || component.count > maxComponentLength {
-                out.append("File ID component '\(component)' of \(shown) has \(component.count) characters; each component has 1 to \(maxComponentLength) [\(fileIDRule)]")
-            }
-            if !component.allSatisfy({ allowedCharacters.contains($0) }) {
-                out.append("File ID component '\(component)' of \(shown) uses characters other than A-Z, 0-9 and _ [\(fileIDRule)]")
-            }
-        }
-        return out
-    }
-
-    /// Violations of PS3.10 8.1 / 8.5 for a File-set ID (an empty ID is allowed: Type 2).
-    static func fileSetIDViolations(_ id: String) -> [String] {
-        var out: [String] = []
-        if id.count > maxFileSetIDLength {
-            out.append("File-set ID '\(id)' has \(id.count) characters; at most \(maxFileSetIDLength) [\(fileSetIDRule)]")
-        }
-        if !id.allSatisfy({ allowedCharacters.contains($0) }) {
-            out.append("File-set ID '\(id)' uses characters other than A-Z, 0-9 and _ [\(fileSetIDRule)]")
-        }
-        return out
-    }
-
-    /// P-DCMDIR-FSID (approved 2026-10-01): `create --file-set-id` refuses an ID that breaks
-    /// PS3.10 8.1 / 8.5. Returns the refusal text, or nil.
-    static func fileSetIDRefusal(_ id: String) -> String? {
-        let problems = fileSetIDViolations(id)
-        guard !problems.isEmpty else { return nil }
-        return "Refusing --file-set-id: " + problems.joined(separator: "; ")
-            + ". A File-set ID is 0 to 16 characters A-Z, 0-9 and _ (PS3.10 2026a 8.1, 8.5; PS3.3 2026a Table F.3-2 File-set ID (0004,1130))"
-    }
-
-    /// The pre-2026-09-25 `--profile` spellings that are not PS3.11 identifiers, with the
-    /// PS3.11 2026a table that defines the identifier `DICOMDIRProfile(rawValue:)` maps them to
-    /// (P-DCMDIR-PROFILE: still accepted, deprecated).
-    static let deprecatedProfileTables: [String: String] = [
-        "STD-GEN-DVD": "PS3.11 2026a Table H.1-1",
-        "STD-GEN-USB": "PS3.11 2026a Table J.1-1",
-        "STD-GEN-SEC": "PS3.11 2026a Table D.1-1",
-        "STD-CTMR-XXXX": "PS3.11 2026a Table E.1-1",
-        "STD-US-XXXX": "PS3.11 2026a Table C.1-1",
-    ]
-
-    /// The one-line note for a deprecated `--profile` spelling, naming the PS3.11 identifier
-    /// actually used; nil for a PS3.11 identifier.
-    static func profileDeprecationNote(requested: String, resolved: DICOMDIRProfile) -> String? {
-        let key = requested.trimmingCharacters(in: .whitespaces).uppercased()
-        guard let table = deprecatedProfileTables[key] else { return nil }
-        return "dicom-dcmdir: warning: --profile \(requested) is deprecated (not a PS3.11 Application Profile identifier); using \(resolved.rawValue) (\(table)). It will be rejected in the next major version."
-    }
-
-    /// The File-set ID `create` derives from the input directory name when `--file-set-id` is
-    /// not given: upper-cased, every character outside the PS3.10 8.5 set replaced by `_`, cut
-    /// to 16 characters (PS3.10 8.1).
-    static func defaultFileSetID(fromDirectoryName name: String) -> String {
-        let mapped = name.uppercased().map { allowedCharacters.contains($0) ? $0 : "_" }
-        return String(String(mapped).prefix(maxFileSetIDLength))
-    }
-
-    /// The clause a `DICOMDirectory.ValidationError` breaks.
-    static func citation(for error: DICOMDirectory.ValidationError) -> String {
-        switch error {
-        case .invalidFileSetID:
-            return fileSetIDRule
-        case .invalidHierarchy, .invalidRecordTypeInHierarchy:
-            return "PS3.3 F.4, Table F.4-1"
-        case .missingReferencedFile:
-            return "PS3.10 8.6; PS3.3 Table F.3-3 Referenced File ID (0004,1500)"
-        case .invalidSOPInstanceUID:
-            return "PS3.5 9.1; PS3.3 Table F.3-3 Referenced SOP Instance UID in File (0004,1511)"
-        case .duplicateSOPInstanceUID:
-            return "PS3.3 Table F.3-3 Referenced SOP Instance UID in File (0004,1511); PS3.5 9"
-        }
-    }
-
-    /// Text for any error thrown while reading or validating: the `description` of a
-    /// `CustomStringConvertible` error (a plain Swift error's `localizedDescription` is
-    /// only "The operation couldn't be completed"), with the clause for validation errors.
-    static func describe(_ error: Error) -> String {
-        if let v = error as? DICOMDirectory.ValidationError {
-            return "\(v.description) [\(citation(for: v))]"
-        }
-        if !(type(of: error) is NSError.Type) {
-            return String(describing: error)
-        }
-        return error.localizedDescription
-    }
-
-    /// Every File ID / File-set ID finding for a directory. With `checkFiles`, each
-    /// Referenced File ID must also name an existing file under `mediaFolder` (PS3.10 8.6).
-    static func findings(for directory: DICOMDirectory, mediaFolder: URL?, checkFiles: Bool) -> [String] {
-        var out = fileSetIDViolations(directory.fileSetID)
-        var seen: [String: Int] = [:]
-        for record in directory.allRecords() {
-            guard let components = record.referencedFileID, !components.isEmpty else { continue }
-            out += fileIDViolations(components)
-            let key = components.joined(separator: "\\")
-            seen[key, default: 0] += 1
-            if seen[key] == 2 {
-                out.append("File ID \(key) is referenced by more than one Directory Record; any File shall be referenced by at most one [PS3.3 Table F.3-3 Referenced File ID (0004,1500)]")
-            }
-            if checkFiles, let mediaFolder {
-                let url = components.reduce(mediaFolder) { $0.appendingPathComponent($1) }
-                if !FileManager.default.fileExists(atPath: url.path) {
-                    out.append("Referenced File ID \(key) does not exist in the File-set [PS3.10 8.6; PS3.3 Table F.3-3 Referenced File ID (0004,1500)]")
-                }
-            }
-        }
-        return out
-    }
 }
 
 // MARK: - dicom-wado option rules (PS3.18 2026a Section 9, 8.3.4.4, 11.7.1.4; PS3.3 Table C.30.1-1)
