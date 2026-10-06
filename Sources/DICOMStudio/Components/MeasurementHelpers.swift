@@ -246,6 +246,8 @@ public enum MeasurementHelpers: Sendable {
             return mm / 10.0
         case .inches:
             return mm / 25.4
+        case .micrometers:
+            return mm * 1000.0
         }
     }
 
@@ -265,7 +267,7 @@ public enum MeasurementHelpers: Sendable {
     ) -> String {
         if let mm = mm {
             let converted = convert(mm: mm, to: unit)
-            return String(format: "%.1f %@", converted, unit.rawValue)
+            return String(format: "%.1f ", converted) + unit.displaySymbol
         }
         return String(format: "%.1f px", pixels)
     }

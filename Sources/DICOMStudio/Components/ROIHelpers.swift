@@ -2,7 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent ROI geometry and statistics helpers
-// NEMA-verified: 2026a, checked 2026-10-05 — geometry and statistics only; area text now prints the PS3.16 2026a CID 7461 UCUM code with the symbol as dicom-measure does ("250.0 mm2 (mm²)", cm2; inches and pixels have no PS3.16 code and print the symbol alone); µm / um2 needs a MeasurementUnit case (P-STUDIO-MEASURE-UM)
+// NEMA-verified: 2026a, checked 2026-10-06 — geometry and statistics only; area text prints the PS3.16 2026a CID 7461 UCUM code with the symbol as dicom-measure does ("250.0 mm2 (mm²)", cm2, um2 (µm²) — um2 "square micrometer" compared with CID 7461, P-STUDIO-MEASURE-UM); inches and pixels have no PS3.16 code and print the symbol alone
 
 import Foundation
 
@@ -319,12 +319,13 @@ public enum ROIHelpers: Sendable {
         }
     }
 
-    /// UCUM code for the area unit of a display unit (PS3.16 CID 7461), or nil when the
-    /// standard has no code (inches).
+    /// UCUM code for the area unit of a display unit (PS3.16 2026a CID 7461: mm2, cm2, um2), or
+    /// nil when the standard has no code (inches).
     static func ucumAreaCode(for unit: MeasurementUnit) -> String? {
         switch unit {
         case .millimeters: return "mm2"
         case .centimeters: return "cm2"
+        case .micrometers: return "um2"
         case .inches: return nil
         }
     }
@@ -337,6 +338,7 @@ public enum ROIHelpers: Sendable {
         case .millimeters: symbol = "mm²"
         case .centimeters: symbol = "cm²"
         case .inches: symbol = "in²"
+        case .micrometers: symbol = "µm²"
         }
         guard let code = ucumAreaCode(for: unit) else { return symbol }
         return "\(code) (\(symbol))"
@@ -362,6 +364,8 @@ public enum ROIHelpers: Sendable {
                 return String(format: "%.2f ", phys / 100.0) + areaUnitText(for: unit)
             case .inches:
                 return String(format: "%.3f ", phys / 645.16) + areaUnitText(for: unit)
+            case .micrometers:
+                return String(format: "%.0f ", phys * 1_000_000.0) + areaUnitText(for: unit)
             }
         }
         return String(format: "%.0f px²", pixelArea)
