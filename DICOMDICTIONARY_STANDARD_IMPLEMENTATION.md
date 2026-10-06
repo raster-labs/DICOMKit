@@ -69,6 +69,7 @@ Full `swift test` (2026-09-28): every test run passes, exit 0.
 | 2026-09-28 | P3 | `Scripts/generate_storage_sop_classes.py` → `StorageSOPClasses.swift` from PS3.4 B.5-1 and B.6-1, names from A-1. Existing 78 keep their order first (negotiation priority), the other 92 follow in table order; `retiredUIDs` new. | 78 → 170 current + 4 retired. D21 recorded for DICOMNetwork. | 30 pass. |
 | 2026-09-28 | P4, P5 | DocC page rewritten against the real API; D7 test label fixed. | Docs and one test name. | 30 pass. |
 | 2026-09-28 | Close | `Scripts/diff_dictionary.py` (3 parts, 0 differences); `check_nema_markers.py`: 5 of 5. CHANGELOG `[Unreleased]` entry. DICOMCore report: status row, D6/D7/D20 closed. | — | Full `swift test`: all 9 test runs pass (5,165 + 1,504 + 674 + 197 + 84 + 30 + 20 tests), exit 0, no pre-existing failures. |
+| 2026-10-06 | Merge `1416f7e2` (A7), D20; A8 | PS3.6 2026a Table A-1 (63/63 registered transfer syntaxes), Table 6-1 | origin/main PR #217 changed DICOMCore `TransferSyntax.swift` / `Tag+Video.swift` and dropped the two unregistered Fragmentable HEVC UIDs; here they stay in `UIDDictionary.unregisteredEntries` with `registered == false` (D20 / P2 stands); markers re-checked `b34f6ba8`. D6, D7, D20 gain their shas (`4f29b7b2`, `f5aa6d0a`; A8) | `check_nema_markers.py Sources/DICOMDictionary`: 5 / 5, exit 0 |
 
 ---
 
