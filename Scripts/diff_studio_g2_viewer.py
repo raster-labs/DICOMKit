@@ -19,6 +19,7 @@ Each check extracts values from the DICOMStudio Swift sources by regex and diffs
   * photometric strings, preset modality codes    vs PS3.3 C.7.6.3.1.2, C.7.3.1.1.1
   * PresentationStatePalette raw values           vs PS3.6 Table B.1-1 (three standard names; the rest documented)
   * the N.2 chain reaches FrameRenderRequest (D65/D68) and the saves carry photometric / Rescale Type (D42)
+  * the default window is determineModalityWindow, in modality units, and determineWindowSettings is gone (A6 / D65)
 
     python3 Scripts/diff_studio.py --nema DIR --group G2 --only viewer
 """
@@ -374,6 +375,44 @@ def check_display_chain(rep, parts, files, ctx):
               matched, wrong)
 
 
+def check_default_window_units(rep, parts, files, ctx):
+    """A6 / D65: the default window of the viewer and of a film cell is DICOMKit determineModalityWindow, in modality
+    units (PS3.3 C.11.2.1.2.1: the window applies after the Modality LUT / Rescale); the film cell stores it with
+    windowSpace .outputUnits, the viewer converts it to its stored-unit state with (c - b) / m, w / |m|; no call of the
+    deprecated stored-unit determineWindowSettings is left in DICOMStudio."""
+    nd, dw = ctx['nd'], ctx['dw']
+    matched, wrong = 0, []
+    sec = dw.section_by_id(parts[3], 'sect_C.11.2.1.2.1')
+    t = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+    if 'after any Modality LUT or Rescale Slope and Intercept' not in t:
+        wrong.append('PS3.3 C.11.2.1.2.1: "after any Modality LUT or Rescale Slope and Intercept" not found; re-read')
+    else:
+        matched += 1
+    renderer = read(ctx, G2 + 'Services/FrameRenderer.swift')
+    viewer = read(ctx, G2 + 'ViewModels/ImageViewerViewModel.swift')
+    cells = read(ctx, G2 + 'ViewModels/PrintViewModel+CellEditing.swift')
+    for label, text, needles in (
+            ('FrameRenderer.resolvedWindow', renderer, ('DICOMImageExporter.determineModalityWindow(', 'static let resolvedWindowSpace: PrintWindowSpace = .outputUnits')),
+            ('ImageViewerViewModel.applyDefaultWindow', viewer, ('DICOMImageExporter.determineModalityWindow(', 'windowCenter = (window.center - intercept) / slope',
+                                                                 'windowWidth = window.width / abs(slope)')),
+            ('PrintViewModel seedWindowIfNeeded', cells, ('windowSpace: FrameRenderer.resolvedWindowSpace',))):
+        for needle in needles:
+            if needle in text:
+                matched += 1
+            else:
+                wrong.append(f'{label} lacks `{needle}` (A6 / D65)')
+    every = {}
+    for module in ('DICOMStudio', 'DICOMStudioApp'):
+        for root, _, names in os.walk(os.path.join(ctx['sources'], module)):
+            every.update({os.path.join(root, n): dw.read(os.path.join(root, n)) for n in names if n.endswith('.swift')})
+    for rel, text in every.items():
+        for m in re.finditer(r'^(?!\s*//).*\bdetermineWindowSettings\(', text, re.M):
+            line = text.count('\n', 0, m.start()) + 1
+            wrong.append(f'{os.path.basename(rel)}:{line}: calls the deprecated stored-unit determineWindowSettings; use determineModalityWindow (A6 / D65)')
+    rep.check('PS3.3 2026a C.11.2.1.2.1 (A6 / D65): the viewer and film-cell default window is determineModalityWindow, in modality units; '
+              'no determineWindowSettings call is left', matched, wrong)
+
+
 CHECKS = [
     ('G2 viewer: shutter shapes', check_shutter_shapes),
     ('G2 viewer: LUT terms', check_lut_terms),
@@ -385,4 +424,5 @@ CHECKS = [
     ('G2 viewer: photometric and modality strings', check_photometric_and_modality_strings),
     ('G2 viewer: palette names', check_palette_names),
     ('G2 viewer: display chain (D42, D65, D68)', check_display_chain),
+    ('G2 viewer: default window units (A6, D65)', check_default_window_units),
 ]

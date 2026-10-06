@@ -5,30 +5,34 @@ dicom-info, dump, tags, diff, json, xml, validate, split, merge, dcmdir, archive
 Loaded by diff_studio.py (``diff_studio_g1*.py`` glob); exports ``CHECKS = [(name, fn(rep, parts, files, ctx))]``.
 The generic ``parity`` check of diff_studio.py already compares flags, defaults and picker values with the
 ArgumentParser surface; the checks here pin what that diff cannot see, each against the frozen 2026a DocBook
-or against the CLI source the Workshop must stay text-identical with:
+or against the engine symbol the Workshop and the CLI both call (the CLI source where a text is still CLI-local):
 
   * dcmdir --profile picker          is DICOMCore.DICOMDIRProfile.allStandard, whose identifiers are exactly the
                                      PS3.11 2026a Tables A.1-1 … N.1-1 fixed identifiers; help names no family heading
-  * dcmdir File-set rules            WorkshopFileSetRules == Sources/dicom-dcmdir/FileSetRules.swift (constants, texts);
-                                     16 / 8 / 8 / A-Z 0-9 _ against PS3.10 2026a 8.1, 8.2, 8.5
+  * dcmdir File-set rules            the Workshop and dicom-dcmdir call DICOMKit DICOMDIRFileSetRules (D253), no Workshop copy;
+                                     its 16 / 8 / 8 / A-Z 0-9 _ against PS3.10 2026a 8.1, 8.2, 8.5
   * export frame numbers / rate      --frame-number, --start/--end-frame-number help "numbered from 1" (PS3.3 Table 10-3),
                                      the 0-based options deprecated; --fps has no fixed default and names the three
                                      Cine Module attributes of PS3.3 Table C.7-13 with their PS3.6 Table 6-1 names;
-                                     the Workshop's copies of ExportStandard.swift texts are identical
+                                     both surfaces call DICOMImageExporter.CineFrameRate / FrameSelection / BurnedInAnnotation (D252)
   * json / xml empty attributes      include-empty default on with --no-include-empty (PS3.18 F.2.5 / PS3.19 Table
                                      A.1.5-2); the deprecation notes equal the CLIs'
   * split frame selection            --frames help says 0-based / deprecated, --frame-numbers "numbered from 1"
                                      (PS3.3 2026a C.7.6.16.1.2 "Frames are implicitly numbered starting from 1")
   * archive query                    --strict-modality offered; --modality help is the shared ModalityOptionValidator
-                                     text; the --study-date warning equals the CLI's
-  * validate --iod                   the Workshop's SOP Class -> engine name map equals dicom-validate's IODOption and
-                                     every UID / name is a PS3.6 Table A-1 row
-  * uid / dump refusal texts         the Workshop's copies of the CLI-local UIDRootRule and dicom-dump texts
+                                     text; the --study-date warning is ArchiveMatching.studyDateKeyWarning in both (D249)
+  * validate --iod                   both surfaces call DICOMValidator.iodName(forIODOption:) (D248); every UID / name of
+                                     DICOMValidator.iodNameBySOPClassUID is a PS3.6 Table A-1 row
+  * uid / dump refusal texts         both surfaces call UIDManager.RootRule (D250); the dicom-dump texts are mirrored
   * ValidationModel (panel)          --iod suggestions are PS3.6 Table A-1 UID Keywords; level texts = dicom-validate --level help
   * pixel / codec tools (anon, image, pdf, pixedit, video, convert, compress): the E.3 Option flags vs PS3.15 Table E.1-1
                                      columns / CID 7050, Conversion Type vs Table C.8-24, CID 3000 keywords, the compress
-                                     native --syntax set, the convert token set (DICOMConverter.cliTokens) and the
-                                     text-identical mirrors of the CLI-local rule files
+                                     native --syntax set, the convert token set (DICOMConverter.cliTokens); since the
+                                     Studio pass (2026-10-06) the former CLI-local rule files are DICOMKit / DICOMNetwork /
+                                     DICOMWeb symbols that the CLI and the Workshop both call (engine_calls), and no
+                                     Workshop copy of their texts remains (no_local_copy)
+  * directory run exits              export bulk / image / pdf directory runs exit 1 after the summary in both
+                                     surfaces; pdf --extract skips non-documents (D251, D271, D273)
 """
 import os
 import re
@@ -94,6 +98,49 @@ def literals(s):
     for lit in re.findall(r'"((?:[^"\\\n]|\\.)*)"', code):
         out.add(re.sub(r'\\\((?:[^()]|\([^()]*\))*\)', '<x>', lit))
     return out
+
+
+def cli_sources(ctx, tool):
+    """Every Swift file of a dicom-* tool, concatenated (the CLI side of an engine-call check)."""
+    d = os.path.join(ctx['sources'], tool)
+    return '\n'.join(ctx['dw'].read(os.path.join(d, f)) for f in sorted(os.listdir(d)) if f.endswith('.swift'))
+
+
+def engine_calls(ws_text, cli_text, calls, label, matched, wrong, cli_calls=None):
+    """Since the Studio pass (2026-10-06) the Workshop and the CLI call one engine symbol instead of carrying
+    text-identical copies: every call in `calls` must be in the Workshop source, and every call in `cli_calls`
+    (default: `calls`) in the CLI's, so the two surfaces provably run the same rule."""
+    for c in calls:
+        if c in ws_text:
+            matched += 1
+        else:
+            wrong.append(f'{label}: the Workshop does not call {c}')
+    for c in (calls if cli_calls is None else cli_calls):
+        if c in cli_text:
+            matched += 1
+        else:
+            wrong.append(f'{label}: the CLI does not call {c}; re-read the CLI')
+    return matched
+
+
+def no_local_copy(ws_text, engine_body, keep, forbidden, label, matched, wrong, minimum=16):
+    """No Workshop-local copy of a lifted rule: none of the `forbidden` declarations is back, and no Workshop
+    string literal equals an engine text literal that contains one of `keep` (the texts stay in the engine)."""
+    for decl in forbidden:
+        if decl in ws_text:
+            wrong.append(f'{label}: the Workshop-local copy `{decl}` is back; call the engine symbol')
+        else:
+            matched += 1
+    ws_lit = literals(ws_text)
+    # sentences only: a bare flag or term ("--audio-channel-source", "ISO_IR 192") is shared vocabulary, not a copy
+    texts = sorted(l for l in literals(engine_body) if len(l) >= minimum and ' ' in l.strip() and any(k in l for k in keep))
+    dup = [l for l in texts if l in ws_lit]
+    wrong += [f'{label}: the Workshop carries its own copy of the engine text "{l[:90]}"' for l in dup]
+    if texts and not dup:
+        matched += 1
+    elif not texts:
+        wrong.append(f'{label}: no engine text with {keep} found; update the extractor')
+    return matched
 
 
 def cli_help(ctx, tool, flag):
@@ -166,8 +213,8 @@ def check_dcmdir_profile_picker(rep, parts, files, ctx):
         if p.get('defaultValue') not in std:
             wrong.append(f'default {p.get("defaultValue")!r} is not a PS3.11 identifier')
         # the help may name the deprecated spellings only as deprecated (the CLI's own list)
-        vm = src(files, 'CLIWorkshopViewModel.swift')
-        dep = set(re.findall(r'"(STD-[A-Z0-9-]+)":\s*"PS3\.11', block(vm, r'deprecatedProfileTables: \[String: String\] = \[', 'deprecatedProfileTables')))
+        rules = read(ctx, 'DICOMKit/DICOMDIRFileSetRules.swift')   # the deprecated spellings, DICOMKit since D253
+        dep = set(re.findall(r'"(STD-[A-Z0-9-]+)":\s*"PS3\.11', block(rules, r'deprecatedProfileTables: \[String: String\] = \[', 'deprecatedProfileTables')))
         help_text = str(p.get('helpText', ''))
         before, _, after = help_text.partition('deprecated:')
         for tok in re.findall(r'STD-[A-Z0-9-]+', before):
@@ -177,7 +224,7 @@ def check_dcmdir_profile_picker(rep, parts, files, ctx):
                 wrong.append(f'help names "{tok}" as an identifier; PS3.11 2026a has none')
         for tok in re.findall(r'STD-[A-Z0-9-]+', after):
             if tok not in dep and tok not in std and tok + 'xxxx' not in {t.replace('xxxx', 'XXXX') for t in templates} and tok not in {t.upper() for t in templates}:
-                wrong.append(f'help lists "{tok}" as deprecated but WorkshopFileSetRules.deprecatedProfileTables does not')
+                wrong.append(f'help lists "{tok}" as deprecated but DICOMDIRFileSetRules.deprecatedProfileTables does not')
     # the registry the picker reads is exactly PS3.11
     core = read(ctx, 'DICOMCore/DICOMDirectory.swift')
     ids = set(re.findall(r'"(STD-[^"]+)"', block(core, r'static let fixedIdentifiers: \[String\] = \[', 'fixedIdentifiers')))
@@ -190,54 +237,43 @@ def check_dcmdir_profile_picker(rep, parts, files, ctx):
 
 def check_dcmdir_fileset_rules(rep, parts, files, ctx):
     dw, nd = ctx['dw'], ctx['nd']
-    cli = read(ctx, 'dicom-dcmdir/FileSetRules.swift')
+    engine = read(ctx, 'DICOMKit/DICOMDIRFileSetRules.swift')
+    eng_body = block(engine, r'enum DICOMDIRFileSetRules \{', 'DICOMDIRFileSetRules')
     vm = src(files, 'CLIWorkshopViewModel.swift')
-    cli_body = block(cli, r'enum FileSetRules \{', 'FileSetRules')
-    ws_body = block(vm, r'enum WorkshopFileSetRules \{', 'WorkshopFileSetRules')
     wrong, matched = [], 0
-    for name, value in re.findall(r'static let (max\w+|allowedCharacters|fileIDRule|fileSetIDRule) = (.+)', cli_body):
-        m = re.search(r'static let ' + name + r' = (.+)', ws_body)
-        if not m:
-            wrong.append(f'WorkshopFileSetRules lacks {name}')
-        elif m.group(1).strip() != value.strip():
-            wrong.append(f'WorkshopFileSetRules.{name} = {m.group(1).strip()}; dicom-dcmdir has {value.strip()}')
-        else:
-            matched += 1
-    cli_lit, ws_lit = literals(cli_body), literals(ws_body)
-    for lit in sorted(cli_lit):
-        if 'PS3' not in lit and 'File' not in lit and 'STD-' not in lit:
-            continue
-        if lit in ws_lit:
-            matched += 1
-        else:
-            wrong.append(f'dicom-dcmdir text not mirrored by WorkshopFileSetRules: "{lit[:90]}"')
-    # PS3.10 2026a clauses behind the constants
+    # Workshop and dicom-dcmdir both call DICOMKit DICOMDIRFileSetRules (D253); no Workshop copy remains
+    calls = ['DICOMDIRFileSetRules.' + f for f in ('fileSetIDRefusal(', 'defaultFileSetID(', 'profileDeprecationNote(', 'describe(', 'findings(')]
+    matched = engine_calls(vm, cli_sources(ctx, 'dicom-dcmdir'), calls, 'dicom-dcmdir File-set rules', matched, wrong)
+    matched = no_local_copy(vm, eng_body, ('PS3', 'File', 'STD-'), ('enum WorkshopFileSetRules', 'enum FileSetRules {'),
+                            'dicom-dcmdir File-set rules', matched, wrong)
+    # PS3.10 2026a clauses behind the engine's constants
     def text(part, sid):
         e = dw.section_by_id(part, sid)
         return nd.norm(' '.join(e.itertext())) if e is not None else ''
     t81, t82, t85 = text(parts[10], 'sect_8.1'), text(parts[10], 'sect_8.2'), text(parts[10], 'sect_8.5')
     if 'zero (0) to sixteen (16) characters' not in t81:
         wrong.append('PS3.10 8.1: "16 characters" for the File-set ID not found; re-read the clause')
-    elif 'maxFileSetIDLength = 16' not in ws_body:
-        wrong.append('maxFileSetIDLength is not 16 (PS3.10 8.1)')
+    elif 'maxFileSetIDLength = 16' not in eng_body:
+        wrong.append('DICOMDIRFileSetRules.maxFileSetIDLength is not 16 (PS3.10 8.1; DICOMKit)')
     else:
         matched += 1
     if 'one to eight components' not in t82 or 'one to eight characters' not in t82:
         wrong.append('PS3.10 8.2: "one to eight components/characters" not found; re-read the clause')
-    elif 'maxFileIDComponents = 8' not in ws_body or 'maxComponentLength = 8' not in ws_body:
-        wrong.append('File ID limits are not 8 / 8 (PS3.10 8.2)')
+    elif 'maxFileIDComponents = 8' not in eng_body or 'maxComponentLength = 8' not in eng_body:
+        wrong.append('DICOMDIRFileSetRules File ID limits are not 8 / 8 (PS3.10 8.2; DICOMKit)')
     else:
         matched += 1
     letters = ''.join(re.findall(r'\b([A-Z])\b', t85.split('(uppercase)')[0].split('subset:')[-1]))
     digits = ''.join(sorted(re.findall(r'\b(\d)\b', t85.split('(uppercase)')[1].split('(underscore)')[0]))) if '(uppercase)' in t85 else ''
-    allowed = re.search(r'allowedCharacters = Set\("([^"]+)"\)', ws_body)
+    allowed = re.search(r'allowedCharacters = Set\("([^"]+)"\)', eng_body)
     if letters != 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' or digits != '0123456789' or '_ (underscore)' not in t85:
         wrong.append('PS3.10 8.5: could not read the A-Z, 0-9, _ repertoire; re-read the clause')
     elif not allowed or set(allowed.group(1)) != set(letters + digits + '_'):
-        wrong.append('allowedCharacters is not the PS3.10 8.5 repertoire A-Z, 0-9, _')
+        wrong.append('DICOMDIRFileSetRules.allowedCharacters is not the PS3.10 8.5 repertoire A-Z, 0-9, _ (DICOMKit)')
     else:
         matched += 1
-    rep.check('PS3.10 2026a 8.1, 8.2, 8.5: WorkshopFileSetRules mirrors dicom-dcmdir FileSetRules (D132)', matched, wrong)
+    rep.check('PS3.10 2026a 8.1, 8.2, 8.5: the dicom-dcmdir Workshop and CLI call DICOMKit DICOMDIRFileSetRules, no Workshop copy (D132, D253)',
+              matched, wrong)
 
 
 # --- dicom-export ------------------------------------------------------------------------------------------
@@ -275,39 +311,46 @@ def check_export_frames_and_rate(rep, parts, files, ctx):
             matched += 1
     # --fps: no fixed default; the Cine Module attributes of PS3.3 Table C.7-13
     p = param(ws, 'dicom-export', 'fps')
+    c713 = {r[1].strip('()').replace(',', '').upper(): r[0].strip() for r in dw.table_rows(parts[3], 'C.7-13') if len(r) > 1 and re.match(r'\(\w{4},\w{4}\)', r[1].strip())}
     if p is None:
         wrong.append('dicom-export form lacks --fps')
     elif p.get('defaultValue'):
         wrong.append(f'--fps carries default {p.get("defaultValue")!r}; the CLI default is the file rate (PS3.3 Table C.7-13)')
     else:
         matched += 1
-        c713 = {r[1].strip('()').replace(',', '').upper(): r[0].strip() for r in dw.table_rows(parts[3], 'C.7-13') if len(r) > 1 and re.match(r'\(\w{4},\w{4}\)', r[1].strip())}
         m, w = named_tags_match(dictionary, str(p.get('helpText', '')))
         matched += m
         wrong += [f'--fps help: {x}' for x in w]
         for name, tag in re.findall(r'([A-Z][A-Za-z ]+?) \((\w{4},\w{4})\)', str(p.get('helpText', ''))):
             if tag.replace(',', '').upper() not in c713:
                 wrong.append(f'--fps help names ({tag}), not a PS3.3 Table C.7-13 attribute')
-    # the Workshop's rate resolution reads the same attributes in the same order as the CLI
-    vm = src(files, 'CLIWorkshopViewModel.swift')
-    cli = read(ctx, 'dicom-export/ExportStandard.swift')
-    cli_order = re.findall(r'dataSet\.string\(for: \.(\w+)\)', block(cli, r'static func resolve\(explicit: Double\?, dataSet: DataSet\) -> CineFrameRate \{', 'CineFrameRate.resolve'))
-    ws_order = re.findall(r'dataSet\.string\(for: \.(\w+)\)', block(vm, r'static func exportCineFrameRate\(explicit: Double\?, dataSet: DataSet\) -> \(fps: Double, source: String\) \{', 'exportCineFrameRate'))
-    if cli_order != ws_order:
-        wrong.append(f'exportCineFrameRate reads {ws_order}; dicom-export CineFrameRate reads {cli_order}')
+    # the one rate resolution (DICOMKit, D252) reads the Cine Module attributes in the documented order and names
+    # each source by its PS3.3 Table C.7-13 / PS3.6 Table 6-1 name and tag
+    engine = read(ctx, 'DICOMKit/ImageExport/DICOMImageExporter+Standard.swift')
+    order = re.findall(r'dataSet\.string\(for: \.(\w+)\)', block(engine, r'static func resolve\(explicit: Double\?, dataSet: DataSet\) -> CineFrameRate \{', 'CineFrameRate.resolve'))
+    if order != ['recommendedDisplayFrameRate', 'cineRate', 'frameTime']:
+        wrong.append(f'DICOMImageExporter.CineFrameRate.resolve reads {order}; expected Recommended Display Frame Rate, Cine Rate, Frame Time (DICOMKit)')
     else:
         matched += 1
-    # the CLI-local texts (deprecation, conflict, Frame number, Burned In Annotation, apply-window) are identical
-    ws_lit = literals(vm[vm.index('// MARK: dicom-export standard texts'):vm.index('// MARK: - dicom-script Execution')])
-    for lit in sorted(literals(cli)):
-        if not any(k in lit for k in ('warning:', 'Frame number', 'cannot be used together', 'Table 10-3')):
-            continue
-        if lit in ws_lit:
-            matched += 1
-        else:
-            wrong.append(f'dicom-export text not mirrored by the Workshop: "{lit[:100]}"')
+    labels = block(engine, r'public var label: String \{', 'CineFrameRate.Source.label')
+    for name, tag in re.findall(r'"([A-Z][A-Za-z ]+?) \((\w{4},\w{4})\)"', labels):
+        if tag.replace(',', '').upper() not in c713:
+            wrong.append(f'CineFrameRate.Source.label names ({tag}), not a PS3.3 Table C.7-13 attribute (DICOMKit)')
+    m, w = named_tags_match(dictionary, labels)
+    matched += m
+    wrong += [f'CineFrameRate.Source.label: {x} (DICOMKit)' for x in w]
+    # Workshop and dicom-export call the same DICOMImageExporter texts (D252); no Workshop copy remains
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    calls = ['DICOMImageExporter.CineFrameRate.resolve(', 'DICOMImageExporter.FrameSelection.reference', 'DICOMImageExporter.FrameSelection.deprecationNote(',
+             'DICOMImageExporter.FrameSelection.invalidFrameNumberMessage(', 'DICOMImageExporter.FrameSelectionConflict(',
+             'DICOMImageExporter.ApplyWindowDeprecation.note(', 'DICOMImageExporter.BurnedInAnnotation.isYes(',
+             'DICOMImageExporter.BurnedInAnnotation.warning(for:', 'DICOMImageExporter.BurnedInAnnotation.summaryWarning(count:']
+    matched = engine_calls(vm, cli_sources(ctx, 'dicom-export'), calls, 'dicom-export standard texts', matched, wrong)
+    matched = no_local_copy(vm, engine, ('warning:', 'Frame number', 'cannot be used together', 'Table 10-3'),
+                            ('static func exportCineFrameRate', 'static func exportFrameDeprecationNote', 'static func exportBurnedInWarning',
+                             'static let exportFrameNumberReference'), 'dicom-export standard texts', matched, wrong)
     rep.check('PS3.3 2026a Table 10-3 / Table C.7-13: dicom-export Workshop frame numbers, deprecated 0-based options, '
-              '--fps default and ExportStandard texts (D127)', matched, wrong)
+              '--fps default; Workshop and CLI call DICOMImageExporter.CineFrameRate / FrameSelection / BurnedInAnnotation (D127, D252)', matched, wrong)
 
 
 # --- dicom-json / dicom-xml ----------------------------------------------------------------------------------
@@ -400,14 +443,17 @@ def check_archive_query_keys(rep, parts, files, ctx):
         wrong.append('executor must validate --modality with ModalityOptionValidator and reject under --strict-modality as the CLI')
     else:
         matched += 1
-    cli = read(ctx, 'dicom-archive/QueryKeys.swift')
-    for lit in literals(cli):
-        if 'study-date' in lit and lit not in literals(vm):
-            wrong.append(f'study-date warning text not mirrored: "{lit[:80]}"')
-        elif 'study-date' in lit:
-            matched += 1
-    rep.check('PS3.3 C.7.3.1.1.1 / PS3.4 C.2.2.2.5.1: dicom-archive Workshop query --strict-modality, modality help and study-date warning',
-              matched, wrong)
+    # the --study-date warning is DICOMKit ArchiveMatching.studyDateKeyWarning in both surfaces (D249)
+    engine = read(ctx, 'DICOMKit/Archive/ArchiveStore.swift')
+    body = block(engine, r'static func studyDateKeyWarning\(_ value: String\?, option: String = "--study-date"\) -> String\? \{', 'studyDateKeyWarning')
+    if 'C.2.2.2.5.1' not in body or 'dateRange(value)' not in body:
+        wrong.append('ArchiveMatching.studyDateKeyWarning no longer cites PS3.4 C.2.2.2.5.1 / uses dateRange; re-read (DICOMKit)')
+    else:
+        matched += 1
+    matched = engine_calls(vm, cli_sources(ctx, 'dicom-archive'), ['ArchiveMatching.studyDateKeyWarning('], 'dicom-archive --study-date', matched, wrong)
+    matched = no_local_copy(vm, body, ('study-date', 'DA range'), ('func archiveStudyDateWarning',), 'dicom-archive --study-date', matched, wrong)
+    rep.check('PS3.3 C.7.3.1.1.1 / PS3.4 C.2.2.2.5.1: dicom-archive Workshop query --strict-modality, modality help and the '
+              'ArchiveMatching.studyDateKeyWarning both surfaces call (D249)', matched, wrong)
 
 
 # --- dicom-validate --------------------------------------------------------------------------------------------
@@ -415,28 +461,30 @@ def check_archive_query_keys(rep, parts, files, ctx):
 def check_validate_iod_map(rep, parts, files, ctx):
     dw = ctx['dw']
     vm = src(files, 'CLIWorkshopViewModel.swift')
-    cli = read(ctx, 'dicom-validate/IODOption.swift')
+    engine = read(ctx, 'DICOMKit/Validation/DICOMValidator.swift')
     registry = dw.uid_registry(parts[6])
-    def entries(s, pat):
-        body = block(s, pat, 'engine name map')
-        return {uid: (name, comment.strip()) for uid, name, comment in re.findall(r'"([\d.]+)":\s*"(\w+)",\s*//\s*([^\n]+)', body)}
-    cli_map = entries(cli, r'engineNameBySOPClassUID: \[String: String\] = \[')
-    ws_map = entries(vm, r'validateEngineNameBySOPClassUID: \[String: String\] = \[')
+    body = block(engine, r'iodNameBySOPClassUID: \[String: String\] = \[', 'iodNameBySOPClassUID')
+    eng_map = {uid: (name, comment.strip()) for uid, name, comment in re.findall(r'"([\d.]+)":\s*"(\w+)",\s*//\s*([^\n]+)', body)}
     wrong, matched = [], 0
-    for uid, (name, comment) in cli_map.items():
-        if ws_map.get(uid, (None,))[0] != name:
-            wrong.append(f'{uid}: Workshop maps to {ws_map.get(uid)}, dicom-validate to {name}')
-            continue
+    if len(eng_map) != 7:
+        wrong.append(f'DICOMValidator.iodNameBySOPClassUID read {len(eng_map)} rows, expected 7; update the extractor')
+    for uid, (name, comment) in eng_map.items():
         row = registry.get(uid)
         if row is None:
-            wrong.append(f'{uid} is not a PS3.6 Table A-1 UID')
+            wrong.append(f'{uid} is not a PS3.6 Table A-1 UID (DICOMKit)')
         elif row[0].strip() != comment:
-            wrong.append(f'{uid}: comment says "{comment}", PS3.6 Table A-1 says "{row[0]}"')
+            wrong.append(f'{uid}: comment says "{comment}", PS3.6 Table A-1 says "{row[0]}" (DICOMKit)')
         else:
             matched += 1
-    for uid in ws_map.keys() - cli_map.keys():
-        wrong.append(f'Workshop maps {uid}, dicom-validate does not')
-    rep.check('PS3.6 Table A-1: dicom-validate Workshop --iod SOP Class map equals dicom-validate IODOption', matched, wrong)
+    # both surfaces resolve --iod through DICOMValidator.iodName(forIODOption:) (D248); no Workshop map remains
+    matched = engine_calls(vm, cli_sources(ctx, 'dicom-validate'), ['DICOMValidator.iodName(forIODOption:'], 'dicom-validate --iod', matched, wrong)
+    for decl in ('validateEngineNameBySOPClassUID', 'func validateIODEngineName'):
+        if decl in vm:
+            wrong.append(f'dicom-validate --iod: the Workshop-local copy `{decl}` is back; call DICOMValidator.iodName(forIODOption:)')
+        else:
+            matched += 1
+    rep.check('PS3.6 Table A-1: dicom-validate --iod SOP Class map (DICOMValidator.iodNameBySOPClassUID) is called by the Workshop and the CLI (D248)',
+              matched, wrong)
 
 
 # --- dicom-uid / dicom-dump texts ------------------------------------------------------------------------------
@@ -446,13 +494,16 @@ def check_uid_and_dump_texts(rep, parts, files, ctx):
     helpers = src(files, 'CLIWorkshopHelpers.swift')
     ws_lit = literals(vm)
     wrong, matched = [], 0
-    for lit in literals(read(ctx, 'dicom-uid/UIDOptions.swift')):
-        if 'PS3.5 9.1' not in lit:
-            continue
-        if lit in ws_lit:
-            matched += 1
-        else:
-            wrong.append(f'dicom-uid --root text not mirrored by uidRootProblems: "{lit[:80]}"')
+    # --root: DICOMKit UIDManager.RootRule in both surfaces (D250); its texts cite PS3.5 9.1
+    engine = read(ctx, 'DICOMKit/UIDManagement/UIDManager.swift')
+    rule = block(engine, r'public enum RootRule \{', 'UIDManager.RootRule')
+    texts = [l for l in literals(rule) if 'PS3.5 9.1' in l]
+    if len(texts) < 4:
+        wrong.append(f'UIDManager.RootRule carries {len(texts)} PS3.5 9.1 texts, expected 4; re-read (DICOMKit)')
+    else:
+        matched += 1
+    matched = engine_calls(vm, cli_sources(ctx, 'dicom-uid'), ['UIDManager.RootRule.problems('], 'dicom-uid --root', matched, wrong)
+    matched = no_local_copy(vm, rule, ('PS3.5 9.1',), ('func uidRootProblems',), 'dicom-uid --root', matched, wrong)
     for lit in literals(read(ctx, 'dicom-dump/main.swift')):
         if lit.startswith('Invalid tag format'):
             if any(lit in w for w in ws_lit):
@@ -469,7 +520,8 @@ def check_uid_and_dump_texts(rep, parts, files, ctx):
         wrong.append('dicom-uid lookup must print UIDManager.tableA1UIDType (PS3.6 Table A-1 UID Type)')
     else:
         matched += 1
-    rep.check('PS3.5 9.1 / PS3.6 Table A-1: dicom-uid and dicom-dump Workshop texts mirror the CLIs', matched, wrong)
+    rep.check('PS3.5 9.1 / PS3.6 Table A-1: dicom-uid --root through UIDManager.RootRule in both surfaces (D250); dicom-dump texts mirror the CLI',
+              matched, wrong)
 
 
 # --- ValidationModel (the dicom-validate panel outside the Workshop) ---------------------------------------------
@@ -575,8 +627,8 @@ def check_priority_and_store_outcomes(rep, parts, files, ctx):
     """Priority (0000,0700) pickers of dicom-send (and, once offered, dicom-retrieve / dicom-qr) are low / medium /
     high, the words of PS3.7 2026a Table 9.3-1 (C-STORE-RQ) / 9.3-9 (C-MOVE-RQ) / 9.3-6 (C-GET-RQ) whose values
     LOW 0002H, MEDIUM 0000H, HIGH 0001H are DICOMNetwork.DIMSEPriority's raw values; the dicom-send executor
-    classes the C-STORE response per PS3.4 2026a Table B.2-1 like the CLI's StoreOutcome, prints the shared
-    sendFileWarningLine / sendSummary(warnings:) and the CLI's SendError texts."""
+    classes the C-STORE response per PS3.4 2026a Table B.2-1 through NetworkConsole.CStoreOutcome as the CLI does,
+    prints the shared sendFileWarningLine / sendSummary(warnings:) and NetworkConsole's failure texts (D261)."""
     dw = ctx['dw']
     ws = ctx['workshop_surface']()
     vm = src(files, 'CLIWorkshopViewModel.swift')
@@ -624,20 +676,38 @@ def check_priority_and_store_outcomes(rep, parts, files, ctx):
         wrong.append(f'PS3.4 Table B.2-1 codes read as {codes}; re-read')
     else:
         matched += 1
-    cli = read(ctx, 'dicom-send/SendExecutor.swift')
-    cli_body = block(cli, r'enum StoreOutcome: Equatable \{', 'StoreOutcome')
-    ws_body = block(vm, r'enum WorkshopStoreOutcome: Equatable \{', 'WorkshopStoreOutcome')
-    norm = lambda b: re.sub(r'\s+', ' ', re.sub(r'//[^\n]*', '', b)).strip()
-    if norm(cli_body) != norm(ws_body):
-        wrong.append('WorkshopStoreOutcome differs from dicom-send StoreOutcome (PS3.4 Table B.2-1 classes)')
+    # the C-STORE outcome classes and the texts are DICOMNetwork NetworkConsole's in both surfaces (D261): the
+    # failure line is the Table B.2-1 C-STORE wording (status.description(for: .cStore)); no copy is left in the
+    # Workshop, and since 2026-10-06 none in dicom-send either
+    engine = read(ctx, 'DICOMNetwork/NetworkConsoleFormatter.swift')
+    outcome = block(engine, r'public enum CStoreOutcome: Equatable, Sendable \{', 'NetworkConsole.CStoreOutcome')
+    if 'status.isSuccess' in outcome and 'status.isWarning' in outcome and 'self = .failed' in outcome:
+        matched += 1
+    else:
+        wrong.append('NetworkConsole.CStoreOutcome no longer classes Success / Warning / Failure (PS3.4 Table B.2-1); re-read (DICOMNetwork)')
+    failed = block(engine, r'public static func sendStoreFailedText\(status: DIMSEStatus\) -> String \{', 'sendStoreFailedText')
+    if 'status.description(for: .cStore)' not in failed or 'not stored (PS3.4 Table B.2-1)' not in failed:
+        wrong.append('NetworkConsole.sendStoreFailedText must word the status per PS3.4 Table B.2-1 (description(for: .cStore)) (DICOMNetwork)')
     else:
         matched += 1
-    for lit in literals(cli):
-        if 'Table B.2-1' in lit or lit.startswith('Send completed with'):
-            if lit in literals(vm):
-                matched += 1
-            else:
-                wrong.append(f'dicom-send text not mirrored by the Workshop: "{lit[:80]}"')
+    result = block(engine, r'public static func sendFileResult\(status: DIMSEStatus, rtt: TimeInterval\) -> String \{', 'sendFileResult')
+    if 'sendStoreFailedText(status: status)' not in result:
+        wrong.append('NetworkConsole.sendFileResult must print sendStoreFailedText for the Failure class (DICOMNetwork)')
+    else:
+        matched += 1
+    cli_send = cli_sources(ctx, 'dicom-send')
+    matched = engine_calls(vm, cli_send, ['NetworkConsole.CStoreOutcome(status:', 'NetworkConsole.sendStoreFailedText(status:', 'NetworkConsole.sendPartialFailureText('],
+                           'dicom-send C-STORE outcome', matched, wrong,
+                           cli_calls=['NetworkConsole.CStoreOutcome(status:', 'NetworkConsole.sendFileResult(status:', 'NetworkConsole.sendStoreFailedText(status:',
+                                      'NetworkConsole.sendPartialFailureText('])
+    matched = no_local_copy(vm, failed + block(engine, r'public static func sendPartialFailureText\(succeeded: Int, failed: Int\) -> String \{', 'sendPartialFailureText'),
+                            ('Table B.2-1', 'Send completed with'), ('enum WorkshopStoreOutcome', 'func sendStoreFailedText', 'func sendPartialFailureText'),
+                            'dicom-send C-STORE outcome', matched, wrong, minimum=12)
+    stale = [l for l in literals(cli_send) if 'not stored (PS3.4 Table B.2-1)' in l]
+    if stale:
+        wrong.append(f'dicom-send keeps a CLI-local failure text "{stale[0][:80]}"; it is NetworkConsole.sendStoreFailedText since D261')
+    else:
+        matched += 1
     send_body = block(vm, r'private func executeDicomSend\(\) async \{', 'executeDicomSend')
     for needle in ('NetworkConsole.sendFileWarningLine(status:', 'warnings: warningCount)',
                    'preferredTransferSyntaxUID: preferredTransferSyntaxUID,', 'transferSyntax: preferredTransferSyntaxUID'):
@@ -646,7 +716,7 @@ def check_priority_and_store_outcomes(rep, parts, files, ctx):
         else:
             wrong.append(f'executeDicomSend must use `{needle}` (shared NetworkConsole / StorageService, as the CLI)')
     rep.check('PS3.7 2026a Tables 9.3-1 / 9.3-9 / 9.3-6 Priority and PS3.4 Table B.2-1: Workshop priority pickers, '
-              'dicom-send outcome classes, warning tally and SendError texts (D75 / P-SEND-SUMMARY Studio half)', matched, wrong)
+              'dicom-send outcome classes, warning tally and the NetworkConsole failure texts both surfaces call (D75 / P-SEND-SUMMARY Studio half, D261)', matched, wrong)
 
 
 def check_retrieve_status_text_source(rep, parts, files, ctx):
@@ -673,16 +743,16 @@ def check_retrieve_status_text_source(rep, parts, files, ctx):
     for name, body, needles in (
         ('executeDicomRetrieve', retrieve, (
             'DIMSEServiceStatusText.describe(result.status, service: .cMove)',
-            'Self.retrieveCheck(result, service: .cMove)', 'Self.retrieveCheck(result, service: .cGet)',
+            'NetworkConsole.retrieveFinalResponse(result, service: .cMove)', 'NetworkConsole.retrieveFinalResponse(result, service: .cGet)',
             'priority: priority == .medium ? nil : priority', 'relationalRetrieval: relationalRetrieve))',
             'RetrieveExtendedNegotiation(relationalRetrieval: true)', 'Self.retrieveUIDRefusal(',
             '"(not sent — relational-retrieve)"')),
         ('executeDicomRetrieveBulk', bulk, (
-            'DIMSEServiceStatusText.describe(result.status, service: .cMove)', 'Self.retrieveCheck(result, service: .cGet)',
-            'RetrieveKeys.forStudy(studyUID)')),
+            'DIMSEServiceStatusText.describe(result.status, service: .cMove)',
+            'NetworkConsole.retrieveFinalResponse(result, service: .cGet)', 'RetrieveKeys.forStudy(studyUID)')),
         ('executeDicomQR', qr, ('priority: priority)', 'DICOMQueryService.buildQueryKeys(', 'Self.resolveModalityOption(',
                                 '"--parallel must be at least 1"', 'Retrieval incomplete: ')),
-        ('qrRetrieveStudy', qr_study, ('Self.qrRetrieveCheck(moveResult, service: .cMove)', 'Self.qrRetrieveCheck(finalResult, service: .cGet)')),
+        ('qrRetrieveStudy', qr_study, ('NetworkConsole.retrieveFinalResponse(moveResult, service: .cMove)', 'NetworkConsole.retrieveFinalResponse(finalResult, service: .cGet)')),
     ):
         for needle in needles:
             if needle in body:
@@ -692,13 +762,18 @@ def check_retrieve_status_text_source(rep, parts, files, ctx):
     for stale in ('status: "\\(result.status)"', 'Resolving Study UID from server', '"INSTANCE"'):
         if stale in retrieve + bulk + qr:
             wrong.append(f'retrieve / qr executors still carry `{stale}` (raw DIMSEStatus or app-only lookup; the CLI words the status per PS3.4 Tables C.4-2 / C.4-3)')
-    helper_body = (block(vm, r'nonisolated static func retrieveCheck\([^{]*\{', 'retrieveCheck')
-                   + block(vm, r'nonisolated static func qrRetrieveCheck\([^{]*\{', 'qrRetrieveCheck'))
+    # the final-response report is NetworkConsole.retrieveFinalResponse in dicom-retrieve, dicom-qr and the Workshop (D262)
+    engine = read(ctx, 'DICOMNetwork/NetworkConsoleFormatter.swift')
+    helper_body = block(engine, r'public static func retrieveFinalResponse\([^{]*\{', 'retrieveFinalResponse')
     for needle in ('DIMSEServiceStatusText.describe(result.status, service: service)', 'DIMSEServiceStatusText.subOperationCounts(result.progress)'):
-        if helper_body.count(needle) >= 2:
+        if needle in helper_body:
             matched += 1
         else:
-            wrong.append(f'retrieveCheck / qrRetrieveCheck must both use `{needle}`')
+            wrong.append(f'NetworkConsole.retrieveFinalResponse must use `{needle}` (DICOMNetwork)')
+    for tool in ('dicom-retrieve', 'dicom-qr'):
+        matched = engine_calls(vm, cli_sources(ctx, tool), ['NetworkConsole.retrieveFinalResponse('], tool + ' final response', matched, wrong)
+    matched = no_local_copy(vm, helper_body, ('final response', 'Failed SOP Instance UID List', 'Final '),
+                            ('func retrieveCheck(', 'func qrRetrieveCheck('), 'C-MOVE / C-GET final response', matched, wrong, minimum=12)
     # CLI-local texts mirrored verbatim (a trailing newline may sit inside the literal on one side and be
     # appended by print() on the other): dicom-retrieve (RetrieveExecutor, DICOMRetrieve) and dicom-qr (DICOMQR)
     def unnl(l):
@@ -706,7 +781,7 @@ def check_retrieve_status_text_source(rep, parts, files, ctx):
     ws_lit = {unnl(l) for l in literals(vm) | literals(src(files, 'CLIWorkshopHelpers.swift'))}
     for rel, keys in (('dicom-retrieve/RetrieveExecutor.swift', ('final response', 'Failed SOP Instance UID List', 'Bulk retrieval', 'Final ')),
                       ('dicom-retrieve/DICOMRetrieve.swift', ('--relational-retrieve', '--uid-list', '--parallel must', '--move-dest parameter')),
-                      ('dicom-qr/DICOMQR.swift', ('Retrieval incomplete', 'Retrieval failed: ', 'Failed SOP Instance UID List', '--parallel must', '--move-dest is required', 'Invalid method'))):
+                      ('dicom-qr/DICOMQR.swift', ('Retrieval incomplete', 'Failed SOP Instance UID List', '--parallel must', '--move-dest is required', 'Invalid method'))):
         for lit in literals(read(ctx, rel)):
             if not any(k in lit for k in keys) or lit.startswith('#'):
                 continue
@@ -715,16 +790,16 @@ def check_retrieve_status_text_source(rep, parts, files, ctx):
             else:
                 wrong.append(f'{rel.split("/")[0]} text not mirrored by the Workshop: "{lit[:90]}"')
     rep.check('PS3.4 2026a Tables C.4-2 / C.4-3, PS3.7 Tables 9.3-10 / 9.3-7 / 9.3-9 / 9.3-6, PS3.4 C.5.2.1: dicom-retrieve / dicom-qr '
-              'Workshop status wording, priority, relational-retrieve and CLI texts (D76 Studio half, P-RETRIEVE-PRIORITY / -EXTNEG, P-QR-PARALLEL)',
+              'Workshop status wording (NetworkConsole.retrieveFinalResponse, D262), priority, relational-retrieve and CLI texts (D76 Studio half, P-RETRIEVE-PRIORITY / -EXTNEG, P-QR-PARALLEL)',
               matched, wrong)
 
 
 def check_mwl_mpps_terms(rep, parts, files, ctx):
     """dicom-mwl --sps-status offers the Scheduled Procedure Step Status (0040,0020) Defined Terms of PS3.3 2026a
-    C.4.10 / Table C.4-10 and the Workshop's copy of the CLI-local spsStatusWarning is text-identical;
+    C.4.10 / Table C.4-10 and both surfaces call WorklistQueryKeys.spsStatusWarning (D264);
     --specific-character-set and --strict-modality are offered and passed through; dicom-mpps create requires
     --modality (PS3.4 Table F.7.2-1 Type 1), every CODE|DCM|MEANING example is a PS3.16 2026a CID 9301 pair
-    (D85), the value rules carry the CLI's texts and the SCP warning is worded by DIMSEServiceStatusText."""
+    (D85), the value rules and the SCP warning are DICOMMPPSService's in both surfaces (D263)."""
     dw, nd = ctx['dw'], ctx['nd']
     ws = ctx['workshop_surface']()
     vm = src(files, 'CLIWorkshopViewModel.swift')
@@ -744,16 +819,20 @@ def check_mwl_mpps_terms(rep, parts, files, ctx):
         wrong.append(f'dicom-mwl --sps-status picker must offer the PS3.3 Table C.4-10 terms {terms} (plus the blank "any")')
     else:
         matched += len(terms)
-    cli = read(ctx, 'dicom-mwl/DICOMMWLCommand.swift')
-    cli_terms = re.findall(r'"(\w+)"', block(cli, r'scheduledProcedureStepStatusDefinedTerms: \[String\] =\s*', 'CLI terms'))
-    ws_terms = re.findall(r'"(\w+)"', block(vm, r'mwlScheduledProcedureStepStatusDefinedTerms: \[String\] =\s*', 'Workshop terms'))
-    if cli_terms != terms or ws_terms != terms:
-        wrong.append(f'SPS Status term lists differ: CLI {cli_terms}, Workshop {ws_terms}, PS3.3 {terms}')
+    # the terms and the warning are DICOMNetwork WorklistQueryKeys' in both surfaces (D264)
+    engine = read(ctx, 'DICOMNetwork/ModalityWorklistService.swift')
+    eng_terms = re.findall(r'"(\w+)"', block(engine, r'scheduledProcedureStepStatusDefinedTerms: \[String\] =\s*', 'engine terms'))
+    if eng_terms != terms:
+        wrong.append(f'WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms {eng_terms} != PS3.3 C.4.10 {terms} (DICOMNetwork)')
     else:
         matched += 1
+    cli = cli_sources(ctx, 'dicom-mwl')
+    matched = engine_calls(vm, cli, ['WorklistQueryKeys.spsStatusWarning('], 'dicom-mwl --sps-status', matched, wrong)
+    matched = no_local_copy(vm, block(engine, r'public static func spsStatusWarning\(_ value: String\?\) -> String\? \{', 'spsStatusWarning'),
+                            ('--sps-status', 'private term', 'PS3.3 Table C.4-10:'),
+                            ('mwlScheduledProcedureStepStatusDefinedTerms', 'func mwlSPSStatusWarning'), 'dicom-mwl --sps-status', matched, wrong, minimum=12)
     helpers = src(files, 'CLIWorkshopHelpers.swift')
-    ws_lit = {l.replace('mwlScheduledProcedureStepStatusDefinedTerms', 'scheduledProcedureStepStatusDefinedTerms')
-              for l in literals(vm) | literals(helpers)}
+    ws_lit = literals(vm) | literals(helpers)
     for lit in literals(cli):
         if '--sps-status' in lit or 'private term' in lit or 'PS3.3 Table C.4-10:' in lit:
             if lit in ws_lit:
@@ -767,7 +846,7 @@ def check_mwl_mpps_terms(rep, parts, files, ctx):
         else:
             matched += 1
     mwl_body = block(vm, r'private func executeDicomMWLQuery\([^{]*\{', 'executeDicomMWLQuery')
-    for needle in ('specificCharacterSet: specificCharacterSet.isEmpty ? nil : specificCharacterSet', 'Self.mwlSPSStatusWarning(spsStatus)', 'Self.resolveModalityOption('):
+    for needle in ('specificCharacterSet: specificCharacterSet.isEmpty ? nil : specificCharacterSet', 'WorklistQueryKeys.spsStatusWarning(spsStatus)', 'Self.resolveModalityOption('):
         if needle in mwl_body:
             matched += 1
         else:
@@ -806,17 +885,30 @@ def check_mwl_mpps_terms(rep, parts, files, ctx):
                 matched += 1
             else:
                 wrong.append(f'dicom-mpps text not mirrored by the Workshop: "{lit[:80]}"')
-    if 'DIMSEServiceStatusText.describe(warning, service: operation == "N-SET" ? .mppsNSet : .dimseN)' in vm:
+    # the value rules, texts and warning wording are DICOMNetwork DICOMMPPSService's in both surfaces (D263)
+    mpps_engine = read(ctx, 'DICOMNetwork/MPPSService.swift')
+    rules = mpps_engine[mpps_engine.index('extension DICOMMPPSService {'):]
+    if 'DIMSEServiceStatusText.describe(status, service: operation == "N-SET" ? .mppsNSet : .dimseN)' in rules:
         matched += 1
     else:
-        wrong.append('mppsWarningLine must word the SCP warning through DIMSEServiceStatusText (PS3.4 Table F.7.2-2 / PS3.7 Annex C), as dicom-mpps does')
+        wrong.append('DICOMMPPSService.describeStatus must word the SCP warning through DIMSEServiceStatusText (PS3.4 Table F.7.2-2 / PS3.7 Annex C) (DICOMNetwork)')
+    if 'patientSexEnumeratedValues: [String] = ["M", "F", "O"]' in rules:
+        matched += 1
+    else:
+        wrong.append('DICOMMPPSService.patientSexEnumeratedValues must be M, F, O (PS3.3 Table C.2-3) (DICOMNetwork)')
+    calls = ['DICOMMPPSService.' + c for c in ('parseStatus(', 'invalidStatusMessage', 'canonicalPatientSex(', 'patientSexErrorMessage(',
+                                               'isValidBirthDate(', 'birthDateErrorMessage(', 'warningLine(')]
+    matched = engine_calls(vm, cli_mpps, calls, 'dicom-mpps value rules', matched, wrong)
+    matched = no_local_copy(vm, rules, ('Invalid status', '--patient-sex', '--patient-birth-date', 'attributes may have been coerced'),
+                            ('func mppsStatusOption', 'func mppsPatientSex', 'func mppsBirthDate', 'func mppsWarningLine'),
+                            'dicom-mpps value rules', matched, wrong, minimum=12)
     rep.check('PS3.3 2026a C.4.10 (0040,0020) Defined Terms, PS3.4 Table F.7.2-1 Type 1, PS3.16 CID 9301: dicom-mwl / dicom-mpps '
-              'Workshop pickers, texts and warning wording (D85)', matched, wrong)
+              'Workshop pickers, texts and the DICOMNetwork rules both surfaces call (D85, D263, D264)', matched, wrong)
 
 
 def check_web_rules(rep, parts, files, ctx):
-    """dicom-wado Workshop (qido / wado / stow / ups): the Workshop's copy of the CLI-local WADOOptionRules is
-    text-identical (PS3.18 2026a 9.1.2.2.1, 9.5.1.2.1, 8.3.4.4, 11.7.1.4); the ups --state picker offers exactly
+    """dicom-wado Workshop (qido / wado / stow / ups): the Workshop and the CLI call DICOMWeb's DICOMwebOptionRules and
+    UPSState.changeStateTarget(optionValue:) (PS3.18 2026a 9.1.2.2.1, 9.5.1.2.1, 8.3.4.4, 11.7.1.4; D255, D265); the ups --state picker offers exactly
     the Change State targets of PS3.18 11.7.1.4 and the executor refuses SCHEDULED (PS3.4 Table CC.1.1-2);
     --filter-state and --state spell the Procedure Step State (0074,1000) as PS3.3 2026a C.30.1 does; --priority
     offers the PS3.3 C.30.2 Enumerated Values; the retrieve --format picker is the CLI's MetadataFormat; every
@@ -867,17 +959,24 @@ def check_web_rules(rep, parts, files, ctx):
         wrong.append('dicom-ups --priority picker must offer HIGH, MEDIUM, LOW (PS3.3 Table C.30.2-1) with default MEDIUM')
     else:
         matched += 3
-    # the Workshop's WADOOptionRules copy is text-identical (literals naming a PS3.18 clause or an option)
-    cli = read(ctx, 'dicom-wado/WADOOptionRules.swift')
-    rules_body = block(vm, r'enum WorkshopWADOOptionRules \{', 'WorkshopWADOOptionRules')
-    ws_lit = literals(rules_body)
-    for lit in literals(cli):
-        if not ('PS3.18' in lit or lit.startswith('--') or 'Change Workitem State' in lit or 'parameter' in lit):
-            continue
-        if lit in ws_lit:
-            matched += 1
-        else:
-            wrong.append(f'dicom-wado WADOOptionRules text not mirrored by WorkshopWADOOptionRules: "{lit[:90]}"')
+    # the option rules are DICOMWeb DICOMwebOptionRules / UPSState in both surfaces (D255, D259, D265); no copy remains
+    engine = read(ctx, 'DICOMWeb/DICOMwebOptionRules+Values.swift')
+    workitem = read(ctx, 'DICOMWeb/UPS/Workitem.swift')
+    states = workitem[workitem.index('// MARK: Change Workitem State targets'):]
+    if 'changeStateTargets: [UPSState] = [.inProgress, .completed, .canceled]' not in states:
+        wrong.append(f'UPSState.changeStateTargets is not {legal} (PS3.18 11.7.1.4; DICOMWeb)')
+    else:
+        matched += 1
+    cli_wado = cli_sources(ctx, 'dicom-wado')
+    ws_calls = ['DICOMwebOptionRules.' + c for c in ('uriContentType(', 'uriFrameNumber(', 'uriRegion(', 'uriAnnotation(', 'uriParameterWarnings(',
+                                                 'pagingProblem(', 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
+        + ['changeStateTarget(optionValue:', 'catch let e as DICOMwebOptionRefusal']
+    cli_calls = ['DICOMwebOptionRules.' + c for c in ('uriContentType(', 'uriFrameNumber(', 'uriRegion(', 'uriAnnotation(', 'uriParameterWarnings(',
+                                                  'validatePaging(', 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
+        + ['changeStateTarget(optionValue:']
+    matched = engine_calls(vm, cli_wado, ws_calls, 'dicom-wado option rules', matched, wrong, cli_calls=cli_calls)
+    matched = no_local_copy(vm, engine + states, ('PS3.18', 'Change Workitem State', 'parameter'), ('enum WorkshopWADOOptionRules', 'func upsState('),
+                            'dicom-wado option rules', matched, wrong)
     for lit in literals(read(ctx, 'dicom-wado/DICOMWado.swift')):
         if any(k in lit for k in ('is required for', '--transaction-uid is required', '--label is required', '--state is required',
                                    'Invalid patient sex', 'Invalid priority', 'Invalid date format', 'Specify an operation',
@@ -887,8 +986,8 @@ def check_web_rules(rep, parts, files, ctx):
             else:
                 wrong.append(f'dicom-wado text not mirrored by the Workshop: "{lit[:90]}"')
     ups_body = block(vm, r'private func executeDicomUPS\(\) async \{', 'executeDicomUPS')
-    for needle in ('WorkshopWADOOptionRules.changeStateTarget(stateString)', 'WorkshopWADOOptionRules.changeStateWorkitem(changeState: changeState, update: update)',
-                   'WorkshopWADOOptionRules.updateDeprecationNote', 'UPSResultFormatter().format(', 'UPSConsole.updateResultText('):
+    for needle in ('WebUPSState.changeStateTarget(optionValue: stateString)', 'DICOMwebOptionRules.changeStateWorkitem(changeState: changeState, update: update)',
+                   'DICOMwebOptionRules.updateDeprecationNote', 'UPSResultFormatter().format(', 'UPSConsole.updateResultText('):
         if needle in ups_body:
             matched += 1
         else:
@@ -936,10 +1035,8 @@ def check_web_rules(rep, parts, files, ctx):
     else:
         matched += 1
     rep.check('PS3.18 2026a 11.7.1.4 / 9.1.2.2.1 / 8.3.4.4, PS3.3 C.30.1 / C.30.2, PS3.4 Table CC.1.1-2: dicom-wado Workshop '
-              '(qido / wado / stow / ups) rules mirror, UPS state refusal, pickers and cliMapping flags (P-WADO-UPS-STATE / -UPDATE, P-QUERY-JSON)',
+              '(qido / wado / stow / ups) DICOMwebOptionRules calls, UPS state refusal, pickers and cliMapping flags (P-WADO-UPS-STATE / -UPDATE, P-QUERY-JSON, D255, D265)',
               matched, wrong)
-
-
 
 
 # --- pixel / codec tools (dicom-anon, dicom-image, dicom-pdf, dicom-pixedit, dicom-video, dicom-convert, dicom-compress) ----
@@ -979,18 +1076,18 @@ def mirror_literals(cli_body, ws_body, keep, label, matched, wrong, limit=100):
 def check_pixel_anon_options(rep, parts, files, ctx):
     """PS3.15 2026a Annex E / Table E.1-1 Option columns / PS3.16 CID 7050: the dicom-anon Workshop form offers every
     E.3 Option flag the CLI declares (help texts the CLI's, each naming its CID 7050 Option), plus the pixel-cleaning
-    options; WorkshopAnonCLI mirrors the CLI-local AnonCLI texts."""
+    options; the profile, Option and action-report rules are DICOMKit AnonCLI in both surfaces (D275)."""
     dk = ctx['dk']
     ws = ctx['workshop_surface']()
     helpers, vm = src(files, 'CLIWorkshopHelpers.swift'), src(files, 'CLIWorkshopViewModel.swift')
-    cli_support = read(ctx, 'dicom-anon/AnonCLISupport.swift')
+    cli_support = read(ctx, 'DICOMKit/Anonymization/AnonCLISupport.swift')   # DICOMKit AnonCLI since D275
     cli_main = read(ctx, 'dicom-anon/main.swift')
     wrong, matched = [], 0
-    # the CLI's PS315Flags.setFlags, in order
+    # AnonCLI.PS315Flags.setFlags, in order; the Workshop builds the same PS315Flags from its form ids
     set_flags = re.findall(r'\("(--[a-z-]+)",\s*\w+\)', block(cli_support, r'var setFlags: \[String\] \{', 'PS315Flags.setFlags'))
-    ws_ids = re.findall(r'"([a-z-]+)"', block(vm, r'static let optionFlagIDs = \[', 'WorkshopAnonCLI.optionFlagIDs'))
+    ws_ids = re.findall(r'on\("([a-z-]+)"\)', block(vm, r'let ps315Flags = AnonCLI\.PS315Flags\(', 'Workshop AnonCLI.PS315Flags'))
     if ['--' + i for i in ws_ids] != set_flags:
-        wrong.append(f'WorkshopAnonCLI.optionFlagIDs {ws_ids} != dicom-anon PS315Flags.setFlags {set_flags}')
+        wrong.append(f'the Workshop builds AnonCLI.PS315Flags from {ws_ids}; AnonCLI.PS315Flags.setFlags is {set_flags}')
     else:
         matched += len(set_flags)
     cid7050 = {m.lower(): v for s_, v, m in dk.cid_rows(parts[16], 'CID 7050') if s_ == 'DCM'}
@@ -1038,44 +1135,37 @@ def check_pixel_anon_options(rep, parts, files, ctx):
             wrong.append(f'PS3.15 E.3 "{title}" is named by no dicom-anon form help')
         else:
             matched += 1
-    # the mirror: every WorkshopAnonCLI text is an AnonCLI text (the mirror carries only what the legacy
-    # path needs; the ps315-only rules stay in the CLI until P-STUDIO-ANON-PS315)
-    ws_body = block(vm, r'enum WorkshopAnonCLI \{', 'WorkshopAnonCLI')
-    cli_lit = literals(cli_support) | literals(cli_main)
-    only_text = 'PS3.15 Annex E Option flags apply only to --profile ps315: '
-    for lit in sorted(literals(ws_body)):
-        if not any(k in lit for k in ('PS3', 'Deprecated', 'Note:', 'profile', 'not in PS3.6', 'Private Data Element', 'Attribute actions')):
-            continue
-        if lit in cli_lit or lit.startswith(only_text):
-            matched += 1
-        else:
-            wrong.append(f'WorkshopAnonCLI text is not a dicom-anon AnonCLI text: "{lit[:100]}"')
-    if only_text not in cli_support:
-        wrong.append(f'dicom-anon AnonCLI.validate no longer says "{only_text}"; update the mirror')
+    # the profile / Option / action-report rules are DICOMKit AnonCLI in both surfaces (D275); no Workshop copy
+    calls = ['AnonCLI.' + c for c in ('validate(', 'resolveProfile(', 'legacyProfileNotice(', 'attributeActions(', 'actionLines(',
+                                      'syncingMediaStorageSOPInstanceUID(', 'PS315Flags(')]
+    matched = engine_calls(vm, cli_main, calls, 'dicom-anon AnonCLI', matched, wrong)
+    matched = no_local_copy(vm, cli_support, ('PS3', 'Deprecated', 'Note:', 'profile', 'not in PS3.6', 'Private Data Element', 'Attribute actions'),
+                            ('enum WorkshopAnonCLI', 'optionFlagIDs', 'func optionsOnlyForPS315'), 'dicom-anon AnonCLI', matched, wrong)
+    if 'PS3.15 Annex E Option flags apply only to --profile ps315: ' not in cli_support:
+        wrong.append('DICOMKit AnonCLI.validate no longer says "PS3.15 Annex E Option flags apply only to --profile ps315: "; re-read')
+    else:
+        matched += 1
+    # the two texts of the CLI-local AnonymizationError stay mirrored (WorkshopAnonError)
+    ws_err = block(vm, r'enum WorkshopAnonError \{', 'WorkshopAnonError')
     for lit in literals(cli_main):
         if lit.startswith('Invalid anonymization profile') or lit == 'File not found':
-            if lit in literals(ws_body):
+            if lit in literals(ws_err):
                 matched += 1
             else:
-                wrong.append(f'dicom-anon text not mirrored: "{lit}"')
-    cli_aliases = re.findall(r'"([a-z0-9-]+)":\s*\.(\w+)', block(cli_support, r'static let profileAliases: \[String: Profile\] = \[', 'profileAliases'))
-    ws_aliases = re.findall(r'"([a-z0-9-]+)":\s*\.(\w+)', block(ws_body, r'static let profileAliases: \[String: Profile\] = \[', 'profileAliases'))
-    if cli_aliases != ws_aliases:
-        wrong.append(f'WorkshopAnonCLI.profileAliases {ws_aliases} != AnonCLI.profileAliases {cli_aliases}')
-    else:
-        matched += len(cli_aliases)
-    if 'WorkshopAnonCLI.optionsOnlyForPS315(setOptionFlags)' not in vm:
-        wrong.append('the dicom-anon executor must refuse set E.3 flags with the CLI\'s "apply only to --profile ps315" text')
+                wrong.append(f'dicom-anon AnonymizationError text not mirrored by WorkshopAnonError: "{lit}"')
+    if 'try AnonCLI.validate(profile: profileStr, flags: ps315Flags' not in vm or 'catch let error as AnonCLI.ValidationError' not in vm:
+        wrong.append('the dicom-anon executor must refuse through AnonCLI.validate and report AnonCLI.ValidationError as the CLI\'s ValidationError (exit 64)')
     else:
         matched += 1
     rep.check(f'PS3.15 2026a Annex E (Table E.1-1 {len(columns)} Option columns, E.3.1-E.3.11), PS3.16 CID 7050: dicom-anon Workshop '
-              f'E.3 option flags, pixel-cleaning options, CLI help and the WorkshopAnonCLI mirror (P-ANON-RETAIN-DATES; ps315 PEND)',
+              f'E.3 option flags, pixel-cleaning options, CLI help and the DICOMKit AnonCLI calls (P-ANON-RETAIN-DATES, D275; ps315 PEND)',
               matched, wrong)
 
 
 def check_pixel_conversion_type(rep, parts, files, ctx):
     """PS3.3 2026a Table C.8-24 Conversion Type (0008,0064) Defined Terms: DICOMKit ConversionType.definedTerms, the
-    CLI lists (dicom-pdf PDFEncapsulation.conversionTypes) and the dicom-image / dicom-pdf Workshop pickers."""
+    engine list of dicom-pdf and the Workshop (EncapsulatedDocumentBuilder.conversionTypeDefinedTerms, D272) and the
+    dicom-image / dicom-pdf Workshop pickers."""
     dw, nd = ctx['dw'], ctx['nd']
     ws = ctx['workshop_surface']()
     wrong, matched = [], 0
@@ -1091,14 +1181,15 @@ def check_pixel_conversion_type(rep, parts, files, ctx):
         wrong.append(f'ConversionType.definedTerms {kit_terms} != PS3.3 Table C.8-24 {std} (DICOMKit)')
     else:
         matched += len(std)
-    pdf_cli = read(ctx, 'dicom-pdf/EncapsulationAttributes.swift')
-    for label, body in (('dicom-pdf PDFEncapsulation.conversionTypes', pdf_cli),
-                        ('WorkshopPDFEncapsulation.conversionTypes', src(files, 'CLIWorkshopViewModel.swift'))):
-        terms = re.findall(r'"(\w+)"', re.search(r'static let conversionTypes = \[([^\]]*)\]', body).group(1))
-        if terms != std:
-            wrong.append(f'{label} {terms} != Table C.8-24 {std}')
-        else:
-            matched += 1
+    builder = read(ctx, 'DICOMKit/EncapsulatedDocument/EncapsulatedDocumentBuilder.swift')
+    pdf_rules = read(ctx, 'DICOMKit/EncapsulatedDocument/EncapsulatedDocumentBuilder+OptionRules.swift')
+    terms = re.findall(r'"(\w+)"', re.search(r'static let conversionTypeDefinedTerms = \[([^\]]*)\]', builder).group(1))
+    if terms != std:
+        wrong.append(f'EncapsulatedDocumentBuilder.conversionTypeDefinedTerms {terms} != Table C.8-24 {std} (DICOMKit)')
+    elif 'conversionTypes = EncapsulatedDocumentBuilder.conversionTypeDefinedTerms' not in pdf_rules:
+        wrong.append('EncapsulatedDocumentBuilder.OptionRules.conversionTypes must be conversionTypeDefinedTerms (DICOMKit)')
+    else:
+        matched += 2
     helpers = src(files, 'CLIWorkshopHelpers.swift')
     if helpers.count('allowedValues: [""] + ConversionType.definedTerms') != 2:
         wrong.append('the dicom-image and dicom-pdf --conversion-type pickers must both be [""] + ConversionType.definedTerms')
@@ -1119,67 +1210,65 @@ def check_pixel_conversion_type(rep, parts, files, ctx):
                 else:
                     matched += 1
     bia = param(ws, 'dicom-pdf', 'burned-in-annotation')
-    pdf_values = re.findall(r'"(\w+)"', re.search(r'static let burnedInAnnotationValues = \[([^\]]*)\]', pdf_cli).group(1))
+    pdf_values = re.findall(r'"(\w+)"', re.search(r'static let burnedInAnnotationValues = \[([^\]]*)\]', pdf_rules).group(1))
     if bia is None or bia.get('allowedValues') != [''] + pdf_values:
         wrong.append(f'dicom-pdf --burned-in-annotation picker must be [""] + {pdf_values} (PS3.3 Table C.24-2)')
     else:
         matched += len(pdf_values)
     rep.check('PS3.3 2026a Table C.8-24 (8 Conversion Type Defined Terms) / Table C.24-2: dicom-image and dicom-pdf Workshop '
-              '--conversion-type / --burned-in-annotation pickers, DICOMKit ConversionType.definedTerms and the CLI lists',
+              '--conversion-type / --burned-in-annotation pickers, DICOMKit ConversionType.definedTerms and EncapsulatedDocumentBuilder.OptionRules (D272)',
               matched, wrong)
 
 
 def check_pixel_cid3000_audio(rep, parts, files, ctx):
-    """PS3.16 2026a CID 3000 Audio Channel Source and PS3.3 A.32.x / Table C.7-1: the dicom-video Workshop mirrors of
-    AudioChannelSourceOption and VideoOptionConformance are text-identical and the CID rows match."""
+    """PS3.16 2026a CID 3000 Audio Channel Source and PS3.3 A.32.x / Table C.7-1: dicom-video and the Workshop call
+    DICOMKit AudioChannelSourceOption and VideoOptionConformance (D269); the CID rows and the refusal rules match."""
     dk = ctx['dk']
     ws = ctx['workshop_surface']()
-    helpers = src(files, 'CLIWorkshopHelpers.swift')
-    cli_audio = read(ctx, 'dicom-video/AudioChannelSourceOption.swift')
-    cli_conf = read(ctx, 'dicom-video/OptionConformance.swift')
+    helpers, vm = src(files, 'CLIWorkshopHelpers.swift'), src(files, 'CLIWorkshopViewModel.swift')
+    audio = read(ctx, 'DICOMKit/Video/AudioChannelSourceOption.swift')
+    conf = read(ctx, 'DICOMKit/Video/VideoOptionConformance.swift')
     wrong, matched = [], 0
     pat = r'\("([a-z-]+)",\s*VideoAudioChannel\.Source\(dcmCodeValue:\s*"(\d+)",\s*codeMeaning:\s*"([^"]+)"\)\)'
-    cli_rows = re.findall(pat, cli_audio)
-    ws_rows = re.findall(pat, block(helpers, r'enum WorkshopAudioChannelSourceOption \{', 'WorkshopAudioChannelSourceOption'))
-    if cli_rows != ws_rows:
-        wrong.append(f'WorkshopAudioChannelSourceOption.keywords differ from the CLI: {ws_rows} vs {cli_rows}')
+    rows = re.findall(pat, audio)
     cid = [(v, m) for s_, v, m in dk.cid_rows(parts[16], 'CID 3000') if s_ == 'DCM']
-    if [(v, m) for _, v, m in ws_rows] != cid:
-        wrong.append(f'Workshop CID 3000 rows {[(v, m) for _, v, m in ws_rows]} != PS3.16 CID 3000 {cid}')
+    if [(v, m) for _, v, m in rows] != cid:
+        wrong.append(f'AudioChannelSourceOption.keywords CID rows {[(v, m) for _, v, m in rows]} != PS3.16 CID 3000 {cid} (DICOMKit)')
     else:
         matched += len(cid)
-    for kw, _, meaning in ws_rows:
+    for kw, _, meaning in rows:
         if kw != re.sub(r"[^a-z0-9]+", '-', meaning.lower().replace("'", '')).strip('-'):
-            wrong.append(f'keyword {kw} is not the hyphenated Code Meaning "{meaning}"')
+            wrong.append(f'keyword {kw} is not the hyphenated Code Meaning "{meaning}" (DICOMKit)')
         else:
             matched += 1
-    ws_body = block(helpers, r'enum WorkshopAudioChannelSourceOption \{', 'WorkshopAudioChannelSourceOption')
-    matched = mirror_literals(cli_audio, ws_body, ('CID 3000', '--audio-channel-source', 'keywords', 'SCHEME'), 'dicom-video AudioChannelSourceOption', matched, wrong)
-    ws_conf = block(helpers, r'enum WorkshopVideoOptionConformance \{', 'WorkshopVideoOptionConformance')
-    matched = mirror_literals(cli_conf, ws_conf, ('refused', 'PS3', 'ES', 'GM', 'XC', 'A.32'), 'dicom-video VideoOptionConformance', matched, wrong)
     for mod, sect in (('ES', 'A.32.5.4.1'), ('GM', 'A.32.6.4.1'), ('XC', 'A.32.7.4.1')):
         s = ctx['dw'].section_by_id(parts[3], 'sect_' + sect)
         t = ctx['nd'].norm(' '.join(s.itertext())) if s is not None else ''
         if f'shall be {mod}' not in t:
             wrong.append(f'PS3.3 {sect}: "shall be {mod}" not found; re-read')
-        elif f'return ("{mod}", "{sect}")' not in ws_conf:
-            wrong.append(f'WorkshopVideoOptionConformance.requiredModality lacks ("{mod}", "{sect}")')
+        elif f'return ("{mod}", "{sect}")' not in conf:
+            wrong.append(f'VideoOptionConformance.requiredModality lacks ("{mod}", "{sect}") (DICOMKit)')
         else:
             matched += 1
     sex = ctx['dw'].section_by_id(parts[3], 'sect_C.7.1.1')
     sex_text = ctx['nd'].norm(' '.join(sex.itertext())) if sex is not None else ''
     sex_values = re.findall(r'\b([MFO]) (?:male|female|other)\b', sex_text.partition("Patient's Sex")[2].partition('See Note')[0])
-    if sex_values[:3] != ['M', 'F', 'O'] or 'static let patientSexValues = ["M", "F", "O"]' not in ws_conf:
-        wrong.append(f'Patient\'s Sex Enumerated Values (PS3.3 C.7.1.1 / Table C.7-1): standard {sex_values[:3]}, Workshop patientSexValues must be ["M", "F", "O"]')
+    if sex_values[:3] != ['M', 'F', 'O'] or 'static let patientSexValues = ["M", "F", "O"]' not in conf:
+        wrong.append(f'Patient\'s Sex Enumerated Values (PS3.3 C.7.1.1 / Table C.7-1): standard {sex_values[:3]}, VideoOptionConformance.patientSexValues must be ["M", "F", "O"] (DICOMKit)')
     else:
         matched += 3
-    for pid, expr in (('modality', 'WorkshopVideoOptionConformance.modalityHelp'), ('patientSex', 'WorkshopVideoOptionConformance.patientSexHelp'),
-                      ('patientBirthDate', 'WorkshopVideoOptionConformance.patientBirthDateHelp'), ('transferSyntax', 'WorkshopVideoOptionConformance.transferSyntaxHelp')):
+    for pid, expr in (('modality', 'VideoOptionConformance.modalityHelp'), ('patientSex', 'VideoOptionConformance.patientSexHelp'),
+                      ('patientBirthDate', 'VideoOptionConformance.patientBirthDateHelp'), ('transferSyntax', 'VideoOptionConformance.transferSyntaxHelp')):
         p = param(ws, 'dicom-video', pid)
         if p is None or not str(p.get('helpText', '')).startswith(expr):
             wrong.append(f'dicom-video {pid} help must be the CLI\'s {expr} (states the refusal)')
         else:
             matched += 1
+    p = param(ws, 'dicom-video', 'audioChannelSource')
+    if p is None or not str(p.get('helpText', '')).startswith('AudioChannelSourceOption.help'):
+        wrong.append('dicom-video --audio-channel-source help must be AudioChannelSourceOption.help (DICOMKit, D56)')
+    else:
+        matched += 1
     for pid, flag in (('strictModality', '--strict-modality'), ('audioChannelSource', '--audio-channel-source')):
         p = param(ws, 'dicom-video', pid)
         if p is None or p.get('flag') != flag:
@@ -1191,33 +1280,36 @@ def check_pixel_cid3000_audio(rep, parts, files, ctx):
         wrong.append('dicom-video --type picker must be [""] + VideoConsole.TypeArgument.allCases (the DEFERRED by-parser row)')
     else:
         matched += 1
-    vm = src(files, 'CLIWorkshopViewModel.swift')
-    for needle in ('WorkshopVideoOptionConformance.violations(', 'WorkshopAudioChannelSourceOption.parse(', 'metadata.audioChannelSources = sources'):
-        if needle in vm:
-            matched += 1
-        else:
-            wrong.append(f'dicom-video executor does not use {needle}')
+    if 'metadata.audioChannelSources = sources' in vm:
+        matched += 1
+    else:
+        wrong.append('dicom-video executor does not set metadata.audioChannelSources')
+    matched = engine_calls(vm + helpers, cli_sources(ctx, 'dicom-video'),
+                           ['VideoOptionConformance.violations(', 'AudioChannelSourceOption.parse', 'AudioChannelSourceOption.help',
+                            'VideoOptionConformance.modalityHelp', 'VideoOptionConformance.transferSyntaxHelp'],
+                           'dicom-video option conformance', matched, wrong)
+    matched = no_local_copy(vm + helpers, audio + conf, ('CID 3000', '--audio-channel-source', 'refused', 'A.32'),
+                            ('enum WorkshopVideoOptionConformance', 'enum WorkshopAudioChannelSourceOption'), 'dicom-video option conformance', matched, wrong)
     rep.check(f'PS3.16 2026a CID 3000 ({len(cid)} rows), PS3.3 A.32.5.4.1 / A.32.6.4.1 / A.32.7.4.1, C.7.1.1 Patient\'s Sex: dicom-video Workshop '
-              '--audio-channel-source (D56) and the P-VIDEO-* refusals mirror the CLI', matched, wrong)
+              '--audio-channel-source (D56) and the P-VIDEO-* refusals are DICOMKit AudioChannelSourceOption / VideoOptionConformance in both surfaces (D269)',
+              matched, wrong)
 
 
 def check_pixel_compress_syntax(rep, parts, files, ctx):
-    """PS3.6 2026a Table A-1 / PS3.5 A.1, A.2, A.3, A.5: dicom-compress decompress / batch --syntax picker is the
-    CLI's NativeTargetSyntax (explicit-le, implicit-le, deflate, explicit-be) and the refusal texts are mirrored."""
+    """PS3.6 2026a Table A-1 / PS3.5 A.1, A.2, A.3, A.5: dicom-compress decompress / batch --syntax picker is DICOMKit
+    CompressionConsole.NativeTargetSyntax (explicit-le, implicit-le, deflate, explicit-be), which the CLI and the
+    Workshop both resolve through (D267)."""
     dw = ctx['dw']
     ws = ctx['workshop_surface']()
-    helpers = src(files, 'CLIWorkshopHelpers.swift')
-    cli = read(ctx, 'dicom-compress/main.swift')
+    helpers, vm = src(files, 'CLIWorkshopHelpers.swift'), src(files, 'CLIWorkshopViewModel.swift')
+    engine = block(read(ctx, 'DICOMKit/Compression/CompressionConsole.swift'), r'public enum NativeTargetSyntax \{', 'NativeTargetSyntax')
     core = read(ctx, 'DICOMCore/TransferSyntax.swift')
     wrong, matched = [], 0
-    pat = r'\("([a-z-]+)",\s*\.(\w+)\)'
-    cli_acc = re.findall(pat, block(cli, r'enum NativeTargetSyntax \{', 'NativeTargetSyntax'))
-    ws_body = block(helpers, r'enum WorkshopNativeTargetSyntax \{', 'WorkshopNativeTargetSyntax')
-    ws_acc = re.findall(pat, ws_body)
-    if cli_acc != ws_acc or not cli_acc:
-        wrong.append(f'WorkshopNativeTargetSyntax.accepted {ws_acc} != dicom-compress NativeTargetSyntax.accepted {cli_acc}')
+    accepted = re.findall(r'\("([a-z-]+)",\s*\.(\w+)\)', engine)
+    if len(accepted) != 4:
+        wrong.append(f'CompressionConsole.NativeTargetSyntax.accepted read {accepted}; update the extractor')
     registry = dw.uid_registry(parts[6])
-    for name, const in cli_acc:
+    for name, const in accepted:
         m = re.search(r'static let ' + const + r' = TransferSyntax\(\s*uid:\s*"([\d.]+)"', core)
         uid = m.group(1) if m else None
         if uid is None or uid not in registry:
@@ -1228,8 +1320,8 @@ def check_pixel_compress_syntax(rep, parts, files, ctx):
             matched += 1
     for sub, pid in (('decompress', 'syntax'), ('batch', 'syntax')):
         p = param(ws, 'dicom-compress', pid)
-        if p is None or p.get('allowedValues') != 'WorkshopNativeTargetSyntax.accepted.map(\\.name)' or p.get('defaultValue') != 'explicit-le':
-            wrong.append(f'dicom-compress --syntax picker must be WorkshopNativeTargetSyntax.accepted.map(\\.name) with default explicit-le')
+        if p is None or p.get('allowedValues') != 'CompressionConsole.NativeTargetSyntax.accepted.map(\\.name)' or p.get('defaultValue') != 'explicit-le':
+            wrong.append('dicom-compress --syntax picker must be CompressionConsole.NativeTargetSyntax.accepted.map(\\.name) with default explicit-le')
         else:
             matched += 1
         cli_h = cli_help(ctx, 'dicom-compress', '--syntax')
@@ -1237,52 +1329,56 @@ def check_pixel_compress_syntax(rep, parts, files, ctx):
             wrong.append(f'dicom-compress --syntax help {p.get("helpText")!r} is neither subcommand\'s CLI help')
         else:
             matched += 1
-    matched = mirror_literals(block(cli, r'enum NativeTargetSyntax \{', 'NativeTargetSyntax'), ws_body, ('syntax', 'PS3', 'Native targets'), 'dicom-compress NativeTargetSyntax', matched, wrong)
-    vm = src(files, 'CLIWorkshopViewModel.swift')
-    if vm.count('WorkshopNativeTargetSyntax.resolve(syntax)') < 2:
-        wrong.append('decompress and batch executors must resolve --syntax through WorkshopNativeTargetSyntax.resolve')
+    if vm.count('CompressionConsole.NativeTargetSyntax.resolve(syntax)') < 2:
+        wrong.append('decompress and batch executors must resolve --syntax through CompressionConsole.NativeTargetSyntax.resolve')
     else:
         matched += 2
+    matched = engine_calls(vm, cli_sources(ctx, 'dicom-compress'), ['NativeTargetSyntax.resolve('], 'dicom-compress --syntax', matched, wrong)
+    matched = no_local_copy(vm + helpers, engine, ('syntax', 'PS3', 'Native targets'), ('enum WorkshopNativeTargetSyntax',),
+                            'dicom-compress --syntax', matched, wrong)
     if 'CompressionConsole.infoJSON(info, filePath: displayPath)' not in vm:
         wrong.append('info --json must render through the shared CompressionConsole.infoJSON (P-COMPRESS-JSON)')
     else:
         matched += 1
     rep.check(f'PS3.6 2026a Table A-1 / PS3.5 A.1, A.2, A.3, A.5: dicom-compress Workshop decompress / batch --syntax picker is the '
-              f'{len(cli_acc)} native targets of NativeTargetSyntax, refusals mirrored (P-COMPRESS-SYNTAX); info --json shared (P-COMPRESS-JSON)',
-              matched, wrong)
+              f'{len(accepted)} native targets of CompressionConsole.NativeTargetSyntax, which both surfaces resolve through '
+              f'(P-COMPRESS-SYNTAX, D267); info --json shared (P-COMPRESS-JSON)', matched, wrong)
 
 
 def check_pixel_convert_tokens(rep, parts, files, ctx):
     """PS3.6 2026a Table A-1 keywords / PS3.3 Table 10-3: the dicom-convert Workshop --transfer-syntax picker is
-    DICOMConverter.cliTokens, the CLI-local TransferSyntaxKeywords are mirrored and their keywords are Table A-1 rows,
-    frames are selected by Frame number from 1 with --frame deprecated."""
+    DICOMConverter.cliTokens, the Table A-1 keywords and the composed help are DICOMConverter's in both surfaces
+    (additionalTableA1Keywords / resolveTargetEncoding / transferSyntaxOptionHelpWithKeywords, D268) and are Table A-1
+    rows, frames are selected by Frame number from 1 with --frame deprecated."""
     dw = ctx['dw']
     ws = ctx['workshop_surface']()
     helpers, vm = src(files, 'CLIWorkshopHelpers.swift'), src(files, 'CLIWorkshopViewModel.swift')
-    cli = read(ctx, 'dicom-convert/TransferSyntaxKeywords.swift')
+    kit = read(ctx, 'DICOMKit/DICOMConverter.swift')
     wrong, matched = [], 0
-    pat = r'"(\w+)":\s*"([\d.]+)"'
-    cli_add = re.findall(pat, block(cli, r'static let additional: \[String: String\] = \[', 'additional'))
-    ws_body = block(helpers, r'enum WorkshopTransferSyntaxKeywords \{', 'WorkshopTransferSyntaxKeywords')
-    ws_add = re.findall(pat, block(ws_body, r'static let additional: \[String: String\] = \[', 'additional'))
-    if cli_add != ws_add or not cli_add:
-        wrong.append(f'WorkshopTransferSyntaxKeywords.additional differs from dicom-convert: {ws_add} vs {cli_add}')
+    added = re.findall(r'"(\w+)":\s*"([\d.]+)"', block(kit, r'static let additionalTableA1Keywords: \[String: String\] = \[', 'additionalTableA1Keywords'))
+    if not added:
+        wrong.append('DICOMConverter.additionalTableA1Keywords not found; update the extractor')
     registry = dw.uid_registry(parts[6])
-    for keyword, uid in ws_add:
+    for keyword, uid in added:
         row = registry.get(uid)
         if row is None or row[1].strip() != keyword:
-            wrong.append(f'{keyword} -> {uid}: PS3.6 Table A-1 keyword of that UID is {row and row[1]!r}')
+            wrong.append(f'{keyword} -> {uid}: PS3.6 Table A-1 keyword of that UID is {row and row[1]!r} (DICOMKit)')
         else:
             matched += 1
-    matched = mirror_literals(cli, ws_body, ('Table A-1', 'Changed', 'Reversible'), 'dicom-convert TransferSyntaxKeywords', matched, wrong)
     p = param(ws, 'dicom-convert', 'transfer-syntax')
-    if p is None or 'allowedValues: [""] + DICOMConverter.cliTokens' not in raw_definition(helpers, 'transfer-syntax', '--transfer-syntax') or p.get('helpText') != 'WorkshopTransferSyntaxKeywords.optionHelp':
-        wrong.append('dicom-convert --transfer-syntax picker must be [""] + DICOMConverter.cliTokens with the CLI\'s TransferSyntaxKeywords.optionHelp')
+    if p is None or 'allowedValues: [""] + DICOMConverter.cliTokens' not in raw_definition(helpers, 'transfer-syntax', '--transfer-syntax') \
+            or p.get('helpText') != 'DICOMConverter.transferSyntaxOptionHelpWithKeywords':
+        wrong.append('dicom-convert --transfer-syntax picker must be [""] + DICOMConverter.cliTokens with DICOMConverter.transferSyntaxOptionHelpWithKeywords')
     else:
         matched += 1
+    help_body = block(kit, r'public static var transferSyntaxOptionHelpWithKeywords: String \{', 'transferSyntaxOptionHelpWithKeywords')
+    matched = engine_calls(vm + helpers, cli_sources(ctx, 'dicom-convert'),
+                           ['DICOMConverter.resolveTargetEncoding(', 'DICOMConverter.transferSyntaxOptionHelpWithKeywords'],
+                           'dicom-convert --transfer-syntax', matched, wrong)
+    matched = no_local_copy(vm + helpers, help_body, ('Table A-1', 'Changed', 'Reversible'), ('enum WorkshopTransferSyntaxKeywords',),
+                            'dicom-convert --transfer-syntax', matched, wrong)
     # the three reassigned keywords are Table A-1 rows of their UIDs, and the Reversible spellings are catalog tokens
     core = read(ctx, 'DICOMCore/TransferSyntax.swift')
-    kit = read(ctx, 'DICOMKit/DICOMConverter.swift')
     for keyword, uid, name, reversible, general in re.findall(r'\("(\w+)",\s*"([\d.]+)",\s*"([^"]+)",\s*"(\w+)",\s*"([\d.]+)"\)', block(core, r'static let reassignedTableA1Keywords[^=]*= \[', 'reassignedTableA1Keywords')):
         row = registry.get(uid)
         if row is None or row[1].strip() != keyword:
@@ -1308,37 +1404,52 @@ def check_pixel_convert_tokens(rep, parts, files, ctx):
         wrong.append('dicom-convert --frame must be deprecated (the CLI\'s help, no default)')
     else:
         matched += 1
-    for needle in ('WorkshopTransferSyntaxKeywords.meaningChangeNote(for: transferSyntax)', 'ConvertError.invalidFrameNumber(number, pixelData.descriptor.numberOfFrames)',
-                   'DICOMConverter.invalidFrameNumberMessage(requested: requested, total: total)', 'cannot be used together', 'WorkshopTransferSyntaxKeywords.canonicalToken(value)'):
+    for needle in ('TransferSyntax.reassignedKeywordNote(for: transferSyntax)', 'ConvertError.invalidFrameNumber(number, pixelData.descriptor.numberOfFrames)',
+                   'DICOMConverter.invalidFrameNumberMessage(requested: requested, total: total)', 'cannot be used together',
+                   'WorkshopConvertPicker.canonicalToken(value)', 'DICOMConverter.resolveTargetEncoding(name)'):
         if needle in vm:
             matched += 1
         else:
             wrong.append(f'dicom-convert executor lacks {needle}')
-    rep.check(f'PS3.6 2026a Table A-1 ({len(ws_add)} added keywords + 3 reassigned), PS3.3 Table 10-3: dicom-convert Workshop --transfer-syntax tokens '
-              '(DICOMConverter.cliTokens, P-CONVERT-TS-KEYWORDS), --frame-number / deprecated --frame (P-CONVERT-FRAME)', matched, wrong)
+    rep.check(f'PS3.6 2026a Table A-1 ({len(added)} added keywords + 3 reassigned), PS3.3 Table 10-3: dicom-convert Workshop --transfer-syntax tokens '
+              '(DICOMConverter.cliTokens, P-CONVERT-TS-KEYWORDS; keywords and help DICOMConverter\'s in both surfaces, D268), '
+              '--frame-number / deprecated --frame (P-CONVERT-FRAME)', matched, wrong)
 
 
 def check_pixel_rules_mirrors(rep, parts, files, ctx):
-    """The dicom-image SCOutput, dicom-pdf PDFEncapsulation and dicom-pixedit DerivedImage CLI-local rules are mirrored
-    text-identically by the Workshop (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.24-2 / C.12-1 / C.7.6.3.1 / C.11.2.1.2)."""
+    """The dicom-image, dicom-pdf and dicom-pixedit rules lifted into DICOMKit (ImageConverter.OutputRules, D274;
+    EncapsulatedDocumentBuilder.OptionRules, D272; PixelEditInputChecks, D270) are called by the CLI and the Workshop,
+    with no Workshop copy left (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.24-2 / C.12-1 / C.7.6.3.1 / C.11.2.1.2)."""
     vm = src(files, 'CLIWorkshopViewModel.swift')
     ws = ctx['workshop_surface']()
     wrong, matched = [], 0
-    for cli_path, cli_pat, ws_pat, keep, label in (
-            ('dicom-image/SCOutput.swift', r'enum SCOutput \{', r'enum WorkshopSCOutput \{', ('PS3', 'ISO_IR'), 'dicom-image SCOutput'),
-            ('dicom-pdf/EncapsulationAttributes.swift', r'enum PDFEncapsulation \{', r'enum WorkshopPDFEncapsulation \{', ('PS3', 'ISO_IR', 'WSD'), 'dicom-pdf PDFEncapsulation'),
-            ('dicom-pixedit/DerivedImage.swift', r'enum DerivedImage \{', r'enum WorkshopDerivedImage \{', ('PS3',), 'dicom-pixedit DerivedImage')):
-        cli_body = block(read(ctx, cli_path), cli_pat, label)
-        ws_body = block(vm, ws_pat, label + ' mirror')
-        matched = mirror_literals(cli_body, ws_body, keep, label, matched, wrong)
-        for name, value in re.findall(r'static let (\w+)(?:: [^=]+)? = (.+)', cli_body):
-            m = re.search(r'static let ' + name + r'(?:: [^=]+)? = (.+)', ws_body)
-            if not m:
-                wrong.append(f'{label} mirror lacks {name}')
-            elif m.group(1).strip() != value.strip():
-                wrong.append(f'{label} mirror {name} = {m.group(1).strip()}; CLI has {value.strip()}')
-            else:
-                matched += 1
+    for tool, engine_path, calls, cli_calls, keep, forbidden, label in (
+            ('dicom-image', 'DICOMKit/SecondaryCapture/ImageConverter+OutputRules.swift',
+             ['ImageConverter.OutputRules.conversionType(', 'ImageConverter.OutputRules.valueViolations(', 'ImageConverter.OutputRules.finalize(data)'],
+             ['ImageConverter.OutputRules.conversionType(', 'ImageConverter.OutputRules.valueViolations(', 'ImageConverter.OutputRules.finalize('],
+             ('PS3', 'ISO_IR'), ('enum WorkshopSCOutput',), 'dicom-image ImageConverter.OutputRules (D274)'),
+            ('dicom-pdf', 'DICOMKit/EncapsulatedDocument/EncapsulatedDocumentBuilder+OptionRules.swift',
+             ['EncapsulatedDocumentBuilder.OptionRules.conversionType(', 'EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation(',
+              'EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(', 'EncapsulatedDocumentBuilder.OptionRules.complete(&dataSet, documentByteCount: documentData.count)',
+              'EncapsulatedDocumentBuilder.OptionRules.documentBytes(document.documentData, in: dicomFile.dataSet)'],
+             ['EncapsulatedDocumentBuilder.OptionRules.conversionType(', 'EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation(',
+              'EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(', 'EncapsulatedDocumentBuilder.OptionRules.complete(',
+              'EncapsulatedDocumentBuilder.OptionRules.documentBytes('],
+             ('PS3', 'ISO_IR', 'WSD'), ('enum WorkshopPDFEncapsulation', 'class WorkshopClinicalDocumentIDFinder'), 'dicom-pdf EncapsulatedDocumentBuilder.OptionRules (D272)'),
+            ('dicom-pixedit', 'DICOMKit/PixelEditing/PixelEditInputChecks.swift',
+             ['PixelEditInputChecks.fillValueViolation(', 'PixelEditInputChecks.storedRange(of:', 'PixelEditInputChecks.windowWidthViolation(width)'],
+             ['PixelEditInputChecks.fillValueViolation(', 'PixelEditInputChecks.storedRange(', 'PixelEditInputChecks.windowWidthViolation('],
+             ('PS3',), ('enum WorkshopDerivedImage',), 'dicom-pixedit PixelEditInputChecks (D270)')):
+        engine = read(ctx, engine_path)
+        matched = engine_calls(vm, cli_sources(ctx, tool), calls, label, matched, wrong, cli_calls=cli_calls)
+        matched = no_local_copy(vm, engine, keep, forbidden, label, matched, wrong)
+    # the engine texts cite the clauses the refusals rest on
+    rules = read(ctx, 'DICOMKit/SecondaryCapture/ImageConverter+OutputRules.swift') + read(ctx, 'DICOMKit/PixelEditing/PixelEditInputChecks.swift')
+    for cite in ('PS3.5 Table 6.2-1', 'PS3.5 9.1', 'PS3.3 C.7.6.3.1', 'PS3.3 C.11.2.1.2'):
+        if cite in rules:
+            matched += 1
+        else:
+            wrong.append(f'the image / pixedit engine rules no longer cite {cite}; re-read (DICOMKit)')
     # PS3.5 2026a Table 6.2-1 limits behind the refusals: LO / PN 64, UI 64; PS3.3 C.11.2.1.2 width >= 1
     rows = {r[0].split('\n')[0].strip(): ' '.join(r) for r in ctx['dw'].table_rows(parts[5], '6.2-1') if r}
     for vr, phrase in (('LO', '64 chars maximum'), ('PN', '64 chars maximum per component group'), ('UI', '64 bytes maximum')):
@@ -1365,15 +1476,71 @@ def check_pixel_rules_mirrors(rep, parts, files, ctx):
         wrong.append('dicom-pixedit --fill-value must carry no default (the CLI\'s is nil; the executor refuses out-of-range values, P-PIXEDIT-RANGE)')
     else:
         matched += 1
-    for needle in ('WorkshopSCOutput.valueViolations(', 'WorkshopSCOutput.finalize(data)', 'WorkshopPDFEncapsulation.complete(&dataSet, documentByteCount: documentData.count)',
-                   'WorkshopPDFEncapsulation.documentBytes(document.documentData, in: dicomFile.dataSet)', 'WorkshopDerivedImage.fillValueViolation(', 'WorkshopDerivedImage.windowWidthViolation(width)',
-                   'PixelEditDerivation(descriptionPrefix: "dicom-pixedit")'):
-        if needle in vm:
+    if 'PixelEditDerivation(descriptionPrefix: "dicom-pixedit")' in vm:
+        matched += 1
+    else:
+        wrong.append('executor lacks PixelEditDerivation(descriptionPrefix: "dicom-pixedit")')
+    rep.check('PS3.5 2026a Table 6.2-1 / 9.1, PS3.3 Tables C.24-2 / C.12-1 / C.7.6.3.1 / C.11.2.1.2: dicom-image, dicom-pdf and dicom-pixedit '
+              'Workshop and CLI call ImageConverter.OutputRules / EncapsulatedDocumentBuilder.OptionRules / PixelEditInputChecks '
+              '(P-IMAGE-VR, P-PIXEDIT-RANGE, D182, D270, D272, D274)', matched, wrong)
+
+
+
+def check_directory_run_exits(rep, parts, files, ctx):
+    """P-CONVERT-EXIT siblings (2026-10-06): dicom-export bulk (D251), dicom-image's directory run (D273) and both
+    dicom-pdf directory runs (D271) exit 1 after the summary when a file failed, and the Workshop returns the same
+    status; dicom-pdf --extract skips a file without Encapsulated Document (0042,0011) (PS3.3 2026a C.24.2) in both
+    surfaces, with the same verbose line."""
+    dw, nd = ctx['dw'], ctx['nd']
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    wrong, matched = [], 0
+    sec = dw.section_by_id(parts[3], 'sect_C.24.2')
+    t = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+    if 'Encapsulated Document (0042,0011)' not in t:
+        wrong.append('PS3.3 C.24.2: Encapsulated Document (0042,0011) not found in the module; re-read')
+    else:
+        matched += 1
+    export_cli = read(ctx, 'dicom-export/main.swift')
+    image_cli = read(ctx, 'dicom-image/main.swift')
+    pdf_cli = read(ctx, 'dicom-pdf/main.swift')
+    for label, cli, cli_needles, ws_body, ws_needles in (
+            ('dicom-export bulk (D251)', export_cli, ['if errorCount > 0 {\n                throw ExitCode.failure'],
+             block(vm, r'private func executeDicomExport\(\) async \{', 'executeDicomExport'), ['return (log, errorCount > 0 ? 1 : 0)']),
+            ('dicom-image directory run (D273)', image_cli, ['if failureCount > 0 {\n            throw ExitCode.failure'],
+             block(vm, r'private func executeDicomImage\(\) async \{', 'executeDicomImage'), ['return (out, failureCount > 0 ? 1 : 0)']),
+            ('dicom-pdf directory runs (D271)', pdf_cli, ['if failureCount > 0 {\n            throw ExitCode.failure'],
+             block(vm, r'private func executeDicomPdf\(\) async \{', 'executeDicomPdf'),
+             ['let failed = extractMode ? try extractFromDirectory(inputURL) : try encapsulateFromDirectory(inputURL)',
+              'return (log, failed > 0 ? 1 : 0)'])):
+        for needle in cli_needles:
+            n = cli.count(needle)
+            want = 2 if label.startswith('dicom-pdf') else 1
+            if n < want:
+                wrong.append(f'{label}: the CLI no longer exits 1 after the summary ({n} of {want}); re-read the CLI')
+            else:
+                matched += 1
+        for needle in ws_needles:
+            if needle in ws_body:
+                matched += 1
+            else:
+                wrong.append(f'{label}: the Workshop does not return the CLI\'s status (`{needle}`)')
+    # dicom-pdf --extract over a directory: the skip rule and its verbose line are the CLI's
+    extract_ws = block(vm, r'func extractFromDirectory\(_ dir: URL\) throws -> Int \{', 'Workshop extractFromDirectory')
+    extract_cli = block(pdf_cli, r'private func extractFromDirectory\(inputPath: String, outputPath: String\?\) throws \{', 'dicom-pdf extractFromDirectory')
+    for label, body in (('the CLI', extract_cli), ('the Workshop', extract_ws)):
+        if 'dicomFile.dataSet[.encapsulatedDocument] != nil' in body and 'continue' in body:
             matched += 1
         else:
-            wrong.append(f'executor lacks {needle}')
-    rep.check('PS3.5 2026a Table 6.2-1 / 9.1, PS3.3 Tables C.24-2 / C.12-1 / C.7.6.3.1 / C.11.2.1.2: dicom-image, dicom-pdf and dicom-pixedit '
-              'Workshop mirrors of SCOutput / PDFEncapsulation / DerivedImage (P-IMAGE-VR, P-PIXEDIT-RANGE, D182)', matched, wrong)
+            wrong.append(f'dicom-pdf --extract (D271): {label} must skip a file without Encapsulated Document (0042,0011)')
+    cli_line = literals(block(pdf_cli, r'static func skippedLine\(fileName: String\) -> String \{', 'DICOMPdf.skippedLine'))
+    ws_line = literals(block(vm, r'nonisolated static func pdfSkippedLine\(fileName: String\) -> String \{', 'pdfSkippedLine'))
+    if not cli_line or cli_line != ws_line:
+        wrong.append(f'dicom-pdf skip line differs: CLI {sorted(cli_line)}, Workshop {sorted(ws_line)}')
+    else:
+        matched += 1
+    rep.check('P-CONVERT-EXIT siblings, PS3.3 2026a C.24.2: the Workshop\'s dicom-export bulk, dicom-image and dicom-pdf directory runs exit 1 '
+              'after the summary as the CLIs do; dicom-pdf --extract skips non-documents in both surfaces (D251, D271, D273)', matched, wrong)
+
 
 CHECKS = [
     ('G1 workshop dcmdir profile picker', check_dcmdir_profile_picker),
@@ -1396,4 +1563,5 @@ CHECKS = [
     ('G1 workshop pixel compress syntax', check_pixel_compress_syntax),
     ('G1 workshop pixel convert tokens', check_pixel_convert_tokens),
     ('G1 workshop pixel image pdf pixedit rules', check_pixel_rules_mirrors),
+    ('G1 workshop directory run exits', check_directory_run_exits),
 ]

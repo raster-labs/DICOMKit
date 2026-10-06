@@ -336,7 +336,8 @@ def check_parameter_builder(rep, parts, files, ctx):
                 if accepted is None and name == '--quality' and quality_words:
                     accepted = quality_words
                 if accepted is None and name == '--profile':
-                    anon = dw.read(os.path.join(ctx['sources'], tool, 'AnonCLISupport.swift'))
+                    # dicom-anon's --profile aliases are DICOMKit AnonCLI.profileAliases since D275
+                    anon = dw.read(os.path.join(ctx['sources'], 'DICOMKit', 'Anonymization', 'AnonCLISupport.swift'))
                     accepted = re.findall(r'^\s*"([\w-]+)":\s*\.', re.search(r'profileAliases[^\[]*\[(.*?)\n    \]', anon, re.S).group(1), re.M)
                 if accepted is None:
                     accepted = help_values(opt['help'])
@@ -360,8 +361,9 @@ def check_parameter_builder(rep, parts, files, ctx):
             doc = opt['documented_default']
             if cli in ('', '—') and doc:
                 cli = re.sub(r'[,;].*', '', doc).strip()
-            if cli == 'AnonCLI.defaultProfile':
-                cli = re.search(r'static let defaultProfile = "([^"]+)"', dw.read(os.path.join(ctx['sources'], tool, 'AnonCLISupport.swift'))).group(1)
+            if cli in ('AnonCLI.defaultProfile', 'DICOMKit.AnonCLI.defaultProfile'):
+                # DICOMKit AnonCLI since D275
+                cli = re.search(r'static let defaultProfile = "([^"]+)"', dw.read(os.path.join(ctx['sources'], 'DICOMKit', 'Anonymization', 'AnonCLISupport.swift'))).group(1)
             if cli in ('cMove',):
                 cli = 'c-move'
             if ours == cli:

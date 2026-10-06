@@ -8,7 +8,7 @@ Every check extracts the values the Swift source carries by regex and diffs them
   * UPSState terms (dicomTerm, string literals)        vs PS3.3 C.30.1 Procedure Step State (0074,1000) enumerated values
   * UPSState.allowedTransitions                        vs PS3.4 Table CC.1.1-2 (N-ACTION Change State rows, "with correct
                                                           Transaction UID": a cell that is not a Failure/Warning status allows it)
-  * SCHEDULED-target refusal text (Helpers, ViewModel)  vs dicom-wado WADOOptionRules.changeStateTarget (same message, PS3.18
+  * SCHEDULED-target refusal text (Helpers, ViewModel)  is DICOMWeb UPSState.changeStateRefusal, as dicom-wado's (D255; PS3.18
                                                           11.7.1.4; PS3.4 Table CC.2.1-2 C303H); the other codes it names vs CC.2.1-2
   * UPSPriority raw values                             vs PS3.3 C.30.2 Scheduled Procedure Step Priority (0074,1200)
   * QIDO: endpointSuffix                               vs PS3.18 Table 10.6.1-1 URI templates
@@ -163,37 +163,49 @@ def check_ups_transitions(rep, parts, files, ctx):
 
 
 def check_ups_change_state_refusal(rep, parts, files, ctx):
-    """The SCHEDULED refusal is the same text as dicom-wado's; every status code it names is in Table CC.2.1-2."""
+    """The SCHEDULED refusal is DICOMWeb's UPSState.changeStateRefusal, which Studio's helper returns and dicom-wado
+    throws through UPSState.changeStateTarget(optionValue:) (D255) — no Studio copy of the text; every status code it
+    and the Studio helper name is in Table CC.2.1-2."""
     dw = ctx['dw']
     helpers = src(files, 'DICOMwebHelpers.swift')
     vm = src(files, 'DICOMwebViewModel.swift')
 
-    def joined_literal(s, anchor):
-        m = re.search(re.escape(anchor) + r'(.*?)\n\s*\}', s, re.S)
-        return ''.join(re.findall(r'"((?:[^"\\]|\\.)*)"', m.group(1))) if m else ''
-
-    cli_path = os.path.join(ctx['sources'], 'dicom-wado', 'WADOOptionRules.swift')
-    cli = dw.read(cli_path) if os.path.exists(cli_path) else ''
-    cli_msg = joined_literal(cli, 'guard changeStateTargets.contains(state) else {')
-    cli_msg = cli_msg.replace('\\(state.rawValue)', 'SCHEDULED')
-    ours = joined_literal(helpers, 'if to == .scheduled {')
-    wrong, missing = [], []
-    if not cli_msg:
-        missing.append('dicom-wado WADOOptionRules.changeStateTarget refusal not found')
-    elif ours != cli_msg:
-        wrong.append(f'Studio SCHEDULED refusal differs from dicom-wado:\n         studio: {ours}\n         cli:    {cli_msg}')
+    workitem = dw.read(os.path.join(ctx['sources'], 'DICOMWeb', 'UPS', 'Workitem.swift'))
+    m = re.search(r'public var changeStateRefusal: String\? \{(.*?)\n    \}', workitem, re.S)
+    engine_msg = ''.join(re.findall(r'"((?:[^"\\]|\\.)*)"', m.group(1))).replace('\\(rawValue)', 'SCHEDULED') if m else ''
+    wrong, missing, matched = [], [], 0
+    if not engine_msg:
+        missing.append('DICOMWeb UPSState.changeStateRefusal not found; update the extractor')
+    elif '11.7.1.4' not in engine_msg or 'C303H' not in engine_msg:
+        wrong.append(f'UPSState.changeStateRefusal does not cite PS3.18 11.7.1.4 / C303H: {engine_msg} (DICOMWeb)')
+    else:
+        matched += 1
+    hm = re.search(r'static func changeStateRefusal\(from: UPSState, to: UPSState\) -> String\? \{(.*?)\n    \}', helpers, re.S)
+    body = hm.group(1) if hm else ''
+    if 'to.web.changeStateRefusal' in body:
+        matched += 1
+    else:
+        wrong.append('DICOMwebUPSHelpers.changeStateRefusal must return DICOMWeb UPSState.changeStateRefusal for SCHEDULED (D255)')
+    if 'Change Workitem State target' in body:
+        wrong.append('DICOMwebUPSHelpers.changeStateRefusal carries its own copy of the SCHEDULED text; return to.web.changeStateRefusal')
+    else:
+        matched += 1
+    cli = ''.join(dw.read(os.path.join(ctx['sources'], 'dicom-wado', f)) for f in sorted(os.listdir(os.path.join(ctx['sources'], 'dicom-wado'))) if f.endswith('.swift'))
+    if 'changeStateTarget(optionValue:' in cli:
+        matched += 1
+    else:
+        wrong.append('dicom-wado no longer resolves --state through UPSState.changeStateTarget(optionValue:); re-read the CLI')
     if 'changeStateRefusal(from:' not in vm:
         wrong.append('DICOMwebViewModel.transitionUPSState does not use DICOMwebUPSHelpers.changeStateRefusal')
-    # status codes named by the refusal helper vs Table CC.2.1-2
+    else:
+        matched += 1
+    # status codes named by the refusal texts vs Table CC.2.1-2
     std_codes = {row[-1].strip() for row in parts[4].rows(parts[4].table('CC.2.1-2')) if re.match(r'^[0-9A-F]{4}$', row[-1].strip())}
-    m = re.search(r'static func changeStateRefusal\(.*?\n    \}', helpers, re.S)
-    codes = set(re.findall(r'\b([BC][0-9A-F]{3})H\b', m.group(0))) if m else set()
+    codes = set(re.findall(r'\b([BC][0-9A-F]{3})H\b', body + ' ' + engine_msg))
     for c in sorted(codes - std_codes):
         wrong.append(f'status code {c}H named by changeStateRefusal is not in Table CC.2.1-2')
-    if '11.7.1.4' not in ours:
-        wrong.append('refusal does not cite PS3.18 11.7.1.4')
-    rep.check('PS3.18 11.7.1.4 / PS3.4 Table CC.2.1-2: Studio refuses a SCHEDULED target with the dicom-wado message; codes named exist',
-              (1 if ours == cli_msg and cli_msg else 0) + len(codes & std_codes), wrong, missing)
+    rep.check('PS3.18 11.7.1.4 / PS3.4 Table CC.2.1-2: Studio refuses a SCHEDULED target with DICOMWeb UPSState.changeStateRefusal, '
+              'the text dicom-wado throws (D255); codes named exist', matched + len(codes & std_codes), wrong, missing)
 
 
 # --- PS3.18 Tables 10.6.1-1, 10.6.1-5, 8.3.4-1: QIDO ----------------------------------------------------------

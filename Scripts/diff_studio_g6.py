@@ -10,7 +10,7 @@ through DICOMPrintKit's PrintOptionCatalog (both verified in their own passes). 
   * PrintViewModel density defaults, FilmPreviewView density literals  vs PS3.3 C.13.3 Border / Empty Image Density terms
   * PrintViewModel custom Image Display Format default   vs PS3.3 C.13.3 (STANDARD\\C,R | ROW\\… | COL\\…)
   * PrintSettingsView FilmDestinationPicker              vs PS3.3 C.13.1 Film Destination (MAGAZINE, PROCESSOR, BIN_i,
-                                                           no maximum) — the catalogue stops at BIN_2
+                                                           no maximum) — the bin field goes through FilmDestination(catalogToken:) (D242)
   * the Execution Status words of the Print SCP help      vs PS3.3 C.13.8 Enumerated Values
   * DICOMPrintKit EmulatedPrinterStatus (shown by the Print SCP pane)   vs PS3.3 C.13.9 Printer Status / Table C.13.9.1-1
   * PrinterStatusPresentation covers DICOMNetwork.PrinterStatusSeverity vs the C.13.9 Enumerated Values
@@ -147,10 +147,25 @@ def check_film_destination_picker(rep, parts, files, ctx):
             matched += 1   # named terms come from the catalogue (MAGAZINE, PROCESSOR)
         else:
             wrong.append('FilmDestinationPicker does not take the named terms from PrintOptionCatalog.filmDestinations')
-        if re.search(r'\.bin\(min\(max\(1, number\), FilmDestination\.maximumBinNumber\)\)', body):
+        if re.search(r'min\(max\(1, number\), FilmDestination\.maximumBinNumber\)', body):
             matched += 1   # BIN_i for any i >= 1, within the CS length
         else:
             wrong.append('FilmDestinationPicker.bin does not hold the number to 1...FilmDestination.maximumBinNumber')
+        # D242: the bin goes through DICOMPrintKit FilmDestination(catalogToken:), the dicom-print --film-destination
+        # parser, and the field shows the catalogToken spelling
+        if 'FilmDestination(catalogToken: "bin-\\(clamped)")' in body and 'destination.catalogToken' in body:
+            matched += 1
+        else:
+            wrong.append('FilmDestinationPicker must resolve the bin through FilmDestination(catalogToken:) and show catalogToken (D242)')
+        if 'FilmDestination.catalogTokenList' in s:
+            matched += 1
+        else:
+            wrong.append('the bin field help must name FilmDestination.catalogTokenList, the dicom-print --film-destination tokens (D242)')
+        print_cli = dw.read(os.path.join(ctx['sources'], 'dicom-print', 'main.swift'))
+        if 'FilmDestination(catalogToken:' in print_cli:
+            matched += 1
+        else:
+            wrong.append('dicom-print no longer parses --film-destination through FilmDestination(catalogToken:); re-read the CLI')
     # DICOMNetwork spells the terms as C.13.1 does; the catalogue stops at BIN_2 (so the picker's open bin number is needed)
     m = re.search(r'public struct FilmDestination\b', net)
     fd = net[m.start():m.start() + 4000] if m else ''
@@ -164,7 +179,7 @@ def check_film_destination_picker(rep, parts, files, ctx):
     else:
         wrong.append('DICOMNetwork.FilmDestination.bin does not write BIN_<number>')
     bins = re.findall(r'\.bin\((\d+)\)', dw.func_body(cat, r'static let filmDestinations') or cat)
-    extra.append(f'PrintOptionCatalog.filmDestinations offers BIN_{"/".join(bins)} only; Studio\'s picker adds a bin-number field')
+    extra.append(f'PrintOptionCatalog.filmDestinations offers BIN_{"/".join(bins)} as picker defaults; any BIN_i is FilmDestination(catalogToken:) (D242), which Studio\'s bin field goes through')
     rep.check('PS3.3 C.13.1 Table C.13-1 Film Destination (MAGAZINE, PROCESSOR, BIN_i with no maximum): PrintSettingsView offers any bin',
               matched, wrong, extra=extra)
 

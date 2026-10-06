@@ -736,9 +736,16 @@ def normalise_default(v):
 
 
 def split_pending(items):
-    pending = [i for i in items if any(k in i for k in PENDING_API_APPROVAL)]
+    def named(i):
+        """A pending finding names its P-item, so every PEND line says which owner decision it waits for."""
+        for k, v in PENDING_API_APPROVAL.items():
+            if k in i and v not in i:
+                return f'{i} [{v}]'
+        return i
+    is_pending = [any(k in i for k in PENDING_API_APPROVAL) for i in items]
+    pending = [named(i) for i, p in zip(items, is_pending) if p]
     deferred = [i for i in items if any(k in i for k in DEFERRED)]
-    wrong = [i for i in items if i not in pending and i not in deferred]
+    wrong = [i for i, p in zip(items, is_pending) if not p and i not in deferred]
     return wrong, pending, deferred
 
 
