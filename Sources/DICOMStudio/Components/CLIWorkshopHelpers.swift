@@ -307,7 +307,7 @@ public enum ToolCatalogHelpers: Sendable {
         case "dicom-validate":
             return "Checks a DICOM file for conformance against the matching IOD and returns a structured report."
         case "dicom-anon":
-            return "Removes or replaces patient-identifying attributes according to PS3.15 anonymization profiles."
+            return "De-identifies DICOM files with the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1) and its E.3 Options, or a deprecated legacy attribute list."
         case "dicom-compress":
             return "Compresses or decompresses DICOM pixel data using standard photometric and codec options."
         case "dicom-query":
@@ -2454,16 +2454,20 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "profile", flag: "--profile", displayName: "Profile",
-                    parameterType: .enumPicker, placeholder: "legacy-basic",
-                    helpText: "Fixed attribute lists, deprecated in dicom-anon and not PS3.15 Annex E: legacy-basic removes or replaces 14 direct identifiers; legacy-clinical-trial also removes dates; legacy-research removes Patient's Name, ID and Birth Date only. The CLI default ps315 (PS3.15 Basic Application Level Confidentiality Profile, Table E.1-1) is not yet offered here",
-                    defaultValue: "legacy-basic",
-                    allowedValues: ["legacy-basic", "legacy-clinical-trial", "legacy-research"]
+                    // P-STUDIO-ANON-PS315: dicom-anon's --profile values and default (DICOMKit
+                    // AnonCLI.defaultProfile = "ps315"): ps315 is the PS3.15 2026a Basic Application
+                    // Level Confidentiality Profile (every row of Table E.1-1), basic its alias; the
+                    // legacy-* lists are deprecated and not PS3.15. Help text = the CLI's.
+                    parameterType: .enumPicker, placeholder: "ps315",
+                    helpText: "Anonymization profile: ps315 (PS3.15 Basic Application Level Confidentiality Profile, Table E.1-1; the default) or its alias basic; deprecated: the legacy attribute lists legacy-basic, legacy-clinical-trial, legacy-research (not PS3.15; clinical-trial and research select the last two)",
+                    defaultValue: "ps315",
+                    allowedValues: ["ps315", "basic", "legacy-basic", "legacy-clinical-trial", "legacy-research"]
                 ),
                 // PS3.15 2026a Annex E Options (E.3; the 12 Option columns of Table E.1-1, codes of
                 // PS3.16 CID 7050) and the pixel-cleaning options, as dicom-anon declares them
                 // (help texts are the CLI's, checked by diff_studio_g1). They act only on
-                // --profile ps315, which the picker does not offer yet (P-STUDIO-ANON-PS315): the
-                // executor refuses a set flag with the CLI's "apply only to --profile ps315" text.
+                // --profile ps315 / basic; on a legacy-* list the executor refuses a set flag with
+                // the CLI's "apply only to --profile ps315" text (DICOMKit AnonCLI.validate).
                 CLIParameterDefinition(
                     id: "retain-dates", flag: "--retain-dates", displayName: "Retain Dates (deprecated)",
                     parameterType: .booleanToggle, placeholder: "",
@@ -5430,12 +5434,18 @@ public enum EducationalHelpers: Sendable {
             ]
         case "dicom-anon":
             return [
-                CLIExamplePreset(toolID: toolID, title: "Legacy Basic Anonymization",
-                                 presetDescription: "Anonymize with the legacy basic attribute list (not the PS3.15 Basic Profile, which is dicom-anon's default ps315)",
-                                 commandString: "dicom-anon --profile legacy-basic --output /output/ scan.dcm"),
+                CLIExamplePreset(toolID: toolID, title: "PS3.15 Basic Profile",
+                                 presetDescription: "De-identify with the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1), dicom-anon's default",
+                                 commandString: "dicom-anon --profile ps315 --output /output/ scan.dcm"),
+                CLIExamplePreset(toolID: toolID, title: "PS3.15 with Retain UIDs and Device Identity",
+                                 presetDescription: "Basic Profile with the Retain UIDs and Retain Device Identity Options (PS3.15 E.3.9, E.3.8)",
+                                 commandString: "dicom-anon --profile ps315 --retain-uids --retain-device --output /output/ scan.dcm"),
                 CLIExamplePreset(toolID: toolID, title: "Dry Run Preview",
-                                 presetDescription: "Preview anonymization changes without writing files",
-                                 commandString: "dicom-anon --profile legacy-basic --dry-run scan.dcm"),
+                                 presetDescription: "Preview the PS3.15 Table E.1-1a action of each attribute without writing files",
+                                 commandString: "dicom-anon --profile ps315 --dry-run scan.dcm"),
+                CLIExamplePreset(toolID: toolID, title: "Legacy Basic list (not PS3.15)",
+                                 presetDescription: "Deprecated: the legacy 14-attribute list, not the PS3.15 Basic Profile",
+                                 commandString: "dicom-anon --profile legacy-basic --output /output/ scan.dcm"),
             ]
         case "dicom-convert":
             return [

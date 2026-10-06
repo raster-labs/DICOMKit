@@ -1025,23 +1025,34 @@ struct CLIWorkshopHelpersTests {
 
     // MARK: - dicom-anon --profile (PS3.15 2026a Annex E; P-ANON-PROFILE)
 
-    @Test("Workshop dicom-anon --profile offers the CLI's legacy lists and defaults to legacy-basic, not the PS3.15 alias basic")
-    func testAnonProfilePickerMirrorsCLILegacyNames() {
+    @Test("Workshop dicom-anon --profile offers ps315 (the CLI default), its alias basic and the legacy lists (P-STUDIO-ANON-PS315)")
+    func testAnonProfilePickerMirrorsCLI() {
         let params = ToolCatalogHelpers.parameterDefinitions(for: "dicom-anon")
         let profile = params.first { $0.flag == "--profile" }
         #expect(profile != nil)
-        #expect(profile?.allowedValues == ["legacy-basic", "legacy-clinical-trial", "legacy-research"])
-        #expect(profile?.defaultValue == "legacy-basic")
-        #expect(profile?.helpText.contains("PS3.15") == true)
+        #expect(profile?.allowedValues == ["ps315", "basic", "legacy-basic", "legacy-clinical-trial", "legacy-research"])
+        #expect(profile?.defaultValue == AnonCLI.defaultProfile)
+        #expect(profile?.defaultValue == "ps315")
+        // every picker value resolves as the CLI resolves it
+        for value in profile?.allowedValues ?? [] {
+            #expect(AnonCLI.resolveProfile(value) != nil, "\(value)")
+        }
+        #expect(AnonCLI.resolveProfile("basic")?.isPS315 == true)
+        // the CLI's help text, which names the PS3.15 2026a Annex E profile and labels the legacy lists
+        #expect(profile?.helpText.contains("PS3.15 Basic Application Level Confidentiality Profile, Table E.1-1; the default") == true)
+        #expect(profile?.helpText.contains("(not PS3.15;") == true)
     }
 
-    @Test("Workshop dicom-anon presets do not send --profile basic (now the PS3.15 Basic Profile)")
-    func testAnonPresetsUseLegacyBasic() {
+    @Test("Workshop dicom-anon presets never send --profile basic and lead with ps315")
+    func testAnonPresetsUsePS315() {
         let presets = EducationalHelpers.examplePresets(for: "dicom-anon")
         #expect(!presets.isEmpty)
+        #expect(presets.first?.commandString.contains("--profile ps315") == true)
         for preset in presets {
             #expect(!preset.commandString.contains("--profile basic"), Comment(rawValue: preset.commandString))
-            #expect(preset.commandString.contains("--profile legacy-basic"), Comment(rawValue: preset.commandString))
+            if preset.commandString.contains("legacy-") {
+                #expect(preset.title.contains("not PS3.15"), Comment(rawValue: preset.title))
+            }
         }
     }
 

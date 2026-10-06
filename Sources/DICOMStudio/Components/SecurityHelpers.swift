@@ -148,8 +148,14 @@ public enum AnonymizationHelpers: Sendable {
 
     /// Returns the default rules for an anonymization profile: the attributes the DICOMKit
     /// `Anonymizer` profile the app runs for it removes (so the preview matches the output).
+    ///
+    /// `.ps315` returns no rules: the PS3.15 Basic Profile is every row of PS3.15 2026a Table E.1-1
+    /// with per-row actions (D, Z, X, U, C) and option columns, which a remove-only tag list cannot
+    /// state; the engine's table (DICOMKit `ConfidentialityProfile.table`) is the reference.
     public static func defaultRules(for profile: AnonymizationProfile) -> [AnonymizationTagRule] {
         switch profile {
+        case .ps315:
+            return []
         case .basic, .hipaaeSafeHarbor:
             return basicProfileTags.map { tagPair in
                 AnonymizationTagRule(

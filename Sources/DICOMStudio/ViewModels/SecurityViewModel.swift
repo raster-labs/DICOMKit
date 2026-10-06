@@ -55,8 +55,8 @@ public final class SecurityViewModel {
 
     // MARK: - 11.2 Anonymization
 
-    /// Currently selected anonymization profile.
-    public var selectedProfile: AnonymizationProfile = .basic
+    /// Currently selected anonymization profile (default: the PS3.15 Basic Profile, P-STUDIO-ANON-PS315).
+    public var selectedProfile: AnonymizationProfile = .ps315
     /// Custom rules (active when profile == .custom).
     public var customRules: [AnonymizationTagRule] = []
     /// Files staged for anonymization.
@@ -82,8 +82,14 @@ public final class SecurityViewModel {
     public var anonInputPath: String = ""
     /// --output path
     public var anonOutputPath: String = ""
-    /// --profile
-    public var anonProfile: AnonymizationProfile = .basic
+    /// --profile (default ps315, the PS3.15 Basic Application Level Confidentiality Profile, as dicom-anon)
+    public var anonProfile: AnonymizationProfile = .ps315
+    /// PS3.15 2026a E.3 Option flags (`--retain-*` / `--clean-*`); dicom-anon accepts them only
+    /// with `--profile ps315`. Clean Recognizable Visual Features (E.3.2) needs operator regions
+    /// and Clean Pixel Data (E.3.1) pixel editing: both are in the CLI Workshop's dicom-anon form.
+    public var anonPS315Flags = AnonCLI.PS315Flags()
+    /// --allow-burned-in-phi (`--profile ps315`): write a file whose pixels may still carry PHI.
+    public var anonAllowBurnedInPHI: Bool = false
     /// --shift-dates N (nil = disabled)
     public var anonShiftDatesEnabled: Bool = false
     public var anonShiftDays: Int = 0
@@ -338,7 +344,9 @@ public final class SecurityViewModel {
             backup: anonBackup,
             auditLogPath: anonAuditLogPath,
             force: anonForce,
-            verbose: anonVerbose
+            verbose: anonVerbose,
+            ps315OptionFlags: anonProfile.isPS315 ? anonPS315Flags.setFlags : [],
+            allowBurnedInPHI: anonProfile.isPS315 && anonAllowBurnedInPHI
         )
     }
 
@@ -406,6 +414,8 @@ public final class SecurityViewModel {
         let auditLog    = anonAuditLogPath
         let force       = anonForce
         let verbose     = anonVerbose
+        let ps315Flags  = anonProfile.isPS315 ? anonPS315Flags : AnonCLI.PS315Flags()
+        let allowPHI    = anonProfile.isPS315 && anonAllowBurnedInPHI
 
         Task {
             let result = await self.executeAnonymization(
@@ -422,7 +432,9 @@ public final class SecurityViewModel {
                 backup: backup,
                 auditLogPath: auditLog,
                 force: force,
-                verbose: verbose
+                verbose: verbose,
+                ps315Flags: ps315Flags,
+                allowBurnedInPHI: allowPHI
             )
             self.anonOutput = result.output
             self.anonLastExitCode = result.exitCode
@@ -450,7 +462,9 @@ public final class SecurityViewModel {
         backup: Bool,
         auditLogPath: String,
         force: Bool,
-        verbose: Bool
+        verbose: Bool,
+        ps315Flags: AnonCLI.PS315Flags = AnonCLI.PS315Flags(),
+        allowBurnedInPHI: Bool = false
     ) async -> (output: String, exitCode: Int) {
         // Start security-scoped resource access so the sandbox allows reading
         // the user-selected input and writing to the chosen output directory.
@@ -509,6 +523,24 @@ public final class SecurityViewModel {
             return (output + "Error: Invalid tag format: \(spec)\n", 1)
         }
 
+        // P-STUDIO-ANON-PS315: the PS3.15 Basic Profile runs dicom-anon's ps315 path — the
+        // option rules of DICOMKit AnonCLI.validate (PS3.15 2026a E.3; --keep and an unpaired
+        // --shift-dates are refused as the CLI refuses them), then Anonymizer.deidentify.
+        let isPS315 = profile.isPS315
+        let ps315Options = AnonCLI.options(flags: ps315Flags, shiftDates: shiftDays)
+        if isPS315 {
+            do {
+                try AnonCLI.validate(profile: profile.cliFlag, flags: ps315Flags, shiftDates: shiftDays,
+                                     regenerateUids: regenerateUIDs, keep: keepTags)
+            } catch {
+                return (output + "Error: \(error.localizedDescription)\n", 1)
+            }
+            if ps315Flags.retainDates {
+                output += AnonCLI.retainDatesNotice(shiftDates: shiftDays) + "\n"
+            }
+        }
+        var reports: [(path: String, actions: [AnonCLI.AttributeAction])] = []
+
         var fileURLs: [URL] = []
         if isDir.boolValue {
             guard recursive else {
@@ -557,7 +589,18 @@ public final class SecurityViewModel {
                 // (PatientName→ANONYMOUS, PatientID→hash), custom --remove/--replace,
                 // --keep, date shifting, UID regeneration, and PHI scanning — is
                 // delegated to the shared DICOMKit engine.
-                let (anonFile, anonResult) = try anonymizer.anonymize(file: dicomFile, filePath: fileURL.path)
+                let anonFile: DICOMFile
+                let anonResult: AnonymizationResult
+                if isPS315 {
+                    (anonFile, anonResult) = try StudioAnonPS315.deidentify(
+                        dicomFile, anonymizer: anonymizer, options: ps315Options,
+                        customActions: Self.engineCustomActions(removeTags: removeTags, replacePairs: replacePairs),
+                        allowBurnedInPHI: allowBurnedInPHI, inputURL: fileURL)
+                    reports.append((fileURL.path, AnonCLI.attributeActions(
+                        before: dicomFile.dataSet, after: anonFile.dataSet, options: ps315Options)))
+                } else {
+                    (anonFile, anonResult) = try anonymizer.anonymize(file: dicomFile, filePath: fileURL.path)
+                }
                 let changed = anonResult.changedTags.map { $0.description }
                 warnings.append(contentsOf: anonResult.warnings)
                 modifiedTagNames.append(contentsOf: changed)
@@ -582,7 +625,9 @@ public final class SecurityViewModel {
                             let backupURL = destURL.appendingPathExtension("backup")
                             try? FileManager.default.copyItem(at: fileURL, to: backupURL)
                         }
-                        let outData = try anonFile.write()
+                        // PS3.10 2026a Table 7.1-1: (0002,0003) follows the (0008,0018) that
+                        // Table E.1-1 replaces (U) — as dicom-anon writes every output file.
+                        let outData = try (isPS315 ? AnonCLI.syncingMediaStorageSOPInstanceUID(anonFile) : anonFile).write()
                         // Sandbox/TCC-resilient write: the earlier resolveWritableOutput uses POSIX
                         // checks that miss TCC, so retry at write time and fall back to ~/Downloads.
                         let wr = try OutputAccess.write(outData, toPath: destURL.path, scopedURL: nil, subfolder: "Anonymized")
@@ -618,7 +663,14 @@ public final class SecurityViewModel {
         // under --dry-run: dry-run auditing is a primary use case.
         var auditNote = ""
         if !auditLogPath.isEmpty {
-            try? anonymizer.writeAuditLog(to: URL(fileURLWithPath: auditLogPath))
+            if isPS315 {
+                // The PS3.15 engine keeps no change log of its own (dicom-anon's ps315 branch).
+                let text = StudioAnonPS315.auditLogText(
+                    options: ps315Options, cleanRecognizableVisualFeatures: false, reports: reports)
+                try? text.write(to: URL(fileURLWithPath: auditLogPath), atomically: true, encoding: .utf8)
+            } else {
+                try? anonymizer.writeAuditLog(to: URL(fileURLWithPath: auditLogPath))
+            }
             if verbose { auditNote = AnonConsole.auditLogLine(path: auditLogPath) + "\n" }
         }
 
@@ -693,9 +745,11 @@ public final class SecurityViewModel {
     /// Maps the app's UI ``AnonymizationProfile`` onto the shared engine profile.
     /// HIPAA Safe Harbor maps to the legacy basic list (the CLI's `legacy-basic`, matching `cliFlag`);
     /// Custom uses the explicitly listed `--remove` tags as its removal set.
+    /// `.ps315` bypasses the legacy engine (`StudioAnonPS315`); like dicom-anon's parseProfile, the
+    /// value only builds the shared Anonymizer instance.
     private static func engineProfile(_ profile: AnonymizationProfile, removeTags: [String]) -> DICOMKit.AnonymizationProfile {
         switch profile {
-        case .basic, .hipaaeSafeHarbor: return .basic
+        case .basic, .hipaaeSafeHarbor, .ps315: return .basic
         case .clinicalTrial:            return .clinicalTrial
         case .research:                 return .research
         case .custom:                   return .custom(removeTags.compactMap { parseTag($0) })

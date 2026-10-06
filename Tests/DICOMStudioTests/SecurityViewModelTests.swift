@@ -4,6 +4,7 @@
 import Testing
 @testable import DICOMStudio
 import Foundation
+import DICOMKit
 
 @Suite("Security ViewModel Tests")
 @MainActor
@@ -128,11 +129,14 @@ struct SecurityViewModelTests {
 
     // MARK: - 11.2 Anonymization
 
-    @Test("default selectedProfile is basic")
+    @Test("default selectedProfile and builder profile are the PS3.15 Basic Profile (P-STUDIO-ANON-PS315)")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testDefaultSelectedProfile() {
         let vm = SecurityViewModel()
-        #expect(vm.selectedProfile == .basic)
+        #expect(vm.selectedProfile == .ps315)
+        #expect(vm.anonProfile == .ps315)
+        #expect(vm.anonPS315Flags == AnonCLI.PS315Flags())
+        #expect(vm.anonAllowBurnedInPHI == false)
     }
 
     @Test("setProfile basic loads the 14 default rules of the engine's basic profile")

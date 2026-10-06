@@ -5860,19 +5860,19 @@ case "dicom-study":
     // MARK: - dicom-anon Execution
 
     /// Anonymizes DICOM files by running dicom-anon's own loop in-process (Sources/dicom-anon/main.swift):
-    /// the shared DICOMKit `Anonymizer` for the legacy attribute lists, the shared `PixelRedactor` for
-    /// `--clean-pixel-data` / `--redact-region`, `AnonConsole` for every printed line, the per-attribute
-    /// PS3.15 Table E.1-1a action report of `--dry-run` / `--verbose`, the (0002,0003) sync of PS3.10 7.1
-    /// and the CLI's refusal texts: DICOMKit `AnonCLI` (D275) for the profile, Option and action-report
-    /// texts, `WorkshopAnonError` for the two texts of the CLI-local `AnonymizationError`.
-    ///
-    /// `--profile ps315` (the CLI default) and its alias `basic` are refused until the owner approves the
-    /// Studio enum case (P-STUDIO-ANON-PS315, commit 61670c42); the PS3.15 Annex E Option flags therefore
-    /// always meet the CLI's "apply only to --profile ps315" refusal here.
+    /// `--profile ps315` (the CLI default) and its alias `basic` run DICOMKit `Anonymizer.deidentify(file:options:)`
+    /// — the PS3.15 2026a Basic Application Level Confidentiality Profile, every row of Table E.1-1, with the
+    /// E.3 Options from `AnonCLI.options(flags:shiftDates:)` — through `StudioAnonPS315` (P-STUDIO-ANON-PS315);
+    /// the deprecated `legacy-*` lists run the shared DICOMKit `Anonymizer`; the shared `PixelRedactor` serves
+    /// `--clean-pixel-data` / `--redact-region` and the E.3.2 `--clean-recognizable-visual-features` pass;
+    /// `AnonConsole` prints every line, with the per-attribute PS3.15 Table E.1-1a action report of
+    /// `--dry-run` / `--verbose`, the (0002,0003) sync of PS3.10 7.1 and the CLI's refusal texts: DICOMKit
+    /// `AnonCLI` (D275) for the profile, Option, notice and action-report texts, `WorkshopAnonError` for the
+    /// CLI-local texts (`AnonymizationError`, the burned-in PHI refusal).
     private func executeDicomAnon() async {
         let inputPath = paramValue("inputPath")
         let outputPath = paramValue("output")
-        let profileStr = paramValue("profile").isEmpty ? "legacy-basic" : paramValue("profile")
+        let profileStr = paramValue("profile").isEmpty ? AnonCLI.defaultProfile : paramValue("profile")
         let shiftDays = Int(paramValue("shift-dates"))
         let regenUIDs = paramValue("regenerate-uids") == "true"
         let removeTags = CommandBuilderHelpers.splitMultiValue(paramValue("remove"))
@@ -5887,6 +5887,7 @@ case "dicom-study":
         let auditLogPath = paramValue("audit-log")
         let force = paramValue("force") == "true"
         let verbose = paramValue("verbose") == "true"
+        let allowBurnedInPHI = paramValue("allow-burned-in-phi") == "true"
         // The PS3.15 E.3 Option flags, as dicom-anon's `ps315Flags` (DICOMKit AnonCLI.PS315Flags).
         func on(_ id: String) -> Bool { paramValue(id) == "true" }
         let ps315Flags = AnonCLI.PS315Flags(
@@ -5932,18 +5933,19 @@ case "dicom-study":
             refuse(WorkshopAnonError.invalidProfile, exitCode: 1)
             return
         }
-        guard let engineProfile = resolvedProfile.legacyProfile else {
-            // P-STUDIO-ANON-PS315: the PS3.15 Basic Profile has no Studio engine path yet.
-            refuse("--profile \(profileStr) is the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1), which the Workshop cannot run yet; use legacy-basic, legacy-clinical-trial or legacy-research, or run dicom-anon in the terminal.", exitCode: 1)
-            return
-        }
-        // dicom-anon rethrows AnonCLI.ValidationError as ArgumentParser's ValidationError (exit 64);
-        // on a legacy profile the only refusal is "Option flags apply only to --profile ps315".
+        // dicom-anon's parseProfile: the ps315 path bypasses the legacy engine; the value only
+        // builds the shared Anonymizer instance.
+        let engineProfile = resolvedProfile.legacyProfile ?? .basic
+        let isPS315 = resolvedProfile.isPS315
+        let ps315Options = AnonCLI.options(flags: ps315Flags, shiftDates: shiftDays)
+        // dicom-anon rethrows AnonCLI.ValidationError as its own CLI-local ValidationError (not
+        // ArgumentParser's), which exits 1 — checked against the built CLI 2026-10-06; on a legacy
+        // profile the only refusal is "Option flags apply only to --profile ps315".
         do {
             try AnonCLI.validate(profile: profileStr, flags: ps315Flags, shiftDates: shiftDays,
                                  regenerateUids: regenUIDs, keep: keepTags, redactRegions: redactRegions)
         } catch let error as AnonCLI.ValidationError {
-            refuse(error.message, exitCode: 64)
+            refuse(error.message, exitCode: 1)
             return
         } catch {
             refuse(error.localizedDescription, exitCode: 1)
@@ -5952,6 +5954,9 @@ case "dicom-study":
         var output = ""
         if let notice = AnonCLI.legacyProfileNotice(profileStr) {
             output += notice + "\n"
+        }
+        if ps315Flags.retainDates {
+            output += AnonCLI.retainDatesNotice(shiftDates: shiftDays) + "\n"
         }
 
         // --remove / --replace / --keep (the CLI's parseCustomActions / parsePreserveTags).
@@ -6004,9 +6009,13 @@ case "dicom-study":
 
         let workIsDirectory = isDirectory.boolValue
         let workOutputBase = outputBase
+        // Value copies handed to the detached run; nothing on the main actor touches them after.
+        nonisolated(unsafe) let workEngineProfile = engineProfile
+        nonisolated(unsafe) let workCustomActions = customActions
         let (text, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
+            let customActions = workCustomActions
             let anonymizer = Anonymizer(
-                profile: engineProfile, shiftDates: shiftDays, regenerateUIDs: regenUIDs,
+                profile: workEngineProfile, shiftDates: shiftDays, regenerateUIDs: regenUIDs,
                 preserveTags: preserveTags, customActions: customActions)
             var out = ""
             var results: [AnonymizationResult] = []
@@ -6024,7 +6033,9 @@ case "dicom-study":
                     let r = try editor.parseRegion(spec)
                     return PixelRedactionPlan.Region(x: r.x, y: r.y, width: r.width, height: r.height)
                 }
-                if cleanPixelData || !redactRegions.isEmpty {
+                // With --clean-recognizable-visual-features the regions are the features to blank
+                // (PS3.15 E.3.2); they claim nothing about burned-in text unless --clean-pixel-data.
+                if cleanPixelData || (!redactRegions.isEmpty && !ps315Flags.cleanRecognizableVisualFeatures) {
                     let plan = PixelRedactionPlan.plan(for: dicomFile.dataSet, explicitRegions: explicit)
                     if let (redacted, outcome) = try PixelRedactor().redact(
                         fileData: fileData, plan: plan, fillValue: redactFill) {
@@ -6033,7 +6044,23 @@ case "dicom-study":
                         if verbose { out += AnonConsole.pixelRedactionLines(outcome: outcome) }
                     }
                 }
-                let (anonymizedFile, result) = try anonymizer.anonymize(file: dicomFile, filePath: fileURL.path)
+                if ps315Flags.cleanRecognizableVisualFeatures {
+                    let (redacted, outcome) = try PixelRedactor().redactRecognizableVisualFeatures(
+                        fileData: fileData, regions: explicit, fillValue: redactFill)
+                    fileData = redacted
+                    dicomFile = try DICOMFile.read(from: redacted, force: force)
+                    if verbose { out += AnonCLI.visualFeaturesLines(outcome: outcome) }
+                }
+                // PS3.15 Annex E engine (ps315 / basic) or the legacy list.
+                let anonymizedFile: DICOMFile
+                let result: AnonymizationResult
+                if isPS315 {
+                    (anonymizedFile, result) = try StudioAnonPS315.deidentify(
+                        dicomFile, anonymizer: anonymizer, options: ps315Options,
+                        customActions: customActions, allowBurnedInPHI: allowBurnedInPHI, inputURL: fileURL)
+                } else {
+                    (anonymizedFile, result) = try anonymizer.anonymize(file: dicomFile, filePath: fileURL.path)
+                }
                 if !dryRun, let outputURL {
                     if backup {
                         let backupURL = outputURL.appendingPathExtension("backup")
@@ -6045,7 +6072,8 @@ case "dicom-study":
                                                          subfolder: "Anonymized")
                     if let note = written.note { out += note + "\n" }
                 }
-                let actions = AnonCLI.attributeActions(before: sourceDataSet, after: anonymizedFile.dataSet, options: nil)
+                let actions = AnonCLI.attributeActions(before: sourceDataSet, after: anonymizedFile.dataSet,
+                                                       options: isPS315 ? ps315Options : nil)
                 return (result, actions)
             }
 
@@ -6107,7 +6135,16 @@ case "dicom-study":
                 verbose: verbose)
             if !auditLogPath.isEmpty {
                 do {
-                    try anonymizer.writeAuditLog(to: URL(fileURLWithPath: auditLogPath))
+                    if isPS315 {
+                        // The PS3.15 engine keeps no change log of its own (dicom-anon's ps315 branch).
+                        let text = StudioAnonPS315.auditLogText(
+                            options: ps315Options,
+                            cleanRecognizableVisualFeatures: ps315Flags.cleanRecognizableVisualFeatures,
+                            reports: reports)
+                        try text.write(to: URL(fileURLWithPath: auditLogPath), atomically: true, encoding: .utf8)
+                    } else {
+                        try anonymizer.writeAuditLog(to: URL(fileURLWithPath: auditLogPath))
+                    }
                 } catch {
                     return (out + "Error: \(error.localizedDescription)\n", 1)
                 }

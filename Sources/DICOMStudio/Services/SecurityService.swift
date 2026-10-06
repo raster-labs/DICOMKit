@@ -27,7 +27,7 @@ public final class SecurityService: @unchecked Sendable {
 
     private var _anonymizationJobs: [AnonymizationJob] = []
     private var _phiDetectionResults: [PHIDetectionResult] = []
-    private var _selectedProfile: AnonymizationProfile = .basic
+    private var _selectedProfile: AnonymizationProfile = .ps315  // PS3.15 Basic Profile (P-STUDIO-ANON-PS315)
     private var _customRules: [AnonymizationTagRule] = []
 
     // MARK: - 11.3 Audit Log State

@@ -193,6 +193,32 @@ struct SecurityHelpersTests {
         #expect(rules.first { $0.tag == "0008,0020" }?.tagName == "Study Date")
     }
 
+    @Test("AnonymizationHelpers defaultRules ps315 is empty: the PS3.15 profile is the whole of Table E.1-1, not a remove list")
+    func testAnonymizationHelpersDefaultRulesPS315Empty() {
+        #expect(AnonymizationHelpers.defaultRules(for: .ps315).isEmpty)
+    }
+
+    /// The E.3 Options the Security panel offers: names as PS3.15 2026a E.3.3–E.3.11 give them
+    /// (compared by script with the DocBook section titles / E.3.6 text), flags as dicom-anon's.
+    @Test("Security panel PS3.15 E.3 Option toggles: 2026a names, dicom-anon flags, AnonCLI fields")
+    func testSecurityPanelOptionNames() {
+        let options = StudioAnonPS315.securityPanelOptions
+        #expect(options.map(\.name) == [
+            "Retain Longitudinal Temporal Information With Full Dates Option",
+            "Retain Longitudinal Temporal Information With Modified Dates Option",
+            "Retain Patient Characteristics Option", "Retain Device Identity Option",
+            "Retain UIDs Option", "Retain Safe Private Option", "Retain Institution Identity Option",
+            "Clean Graphics Option", "Clean Structured Content Option", "Clean Descriptors Option",
+        ])
+        #expect(options.map(\.section) == ["E.3.6", "E.3.6", "E.3.7", "E.3.8", "E.3.9", "E.3.10", "E.3.11", "E.3.3", "E.3.4", "E.3.5"])
+        // each toggle sets exactly the AnonCLI field whose command-line spelling is its flag
+        for option in options {
+            var flags = AnonCLI.PS315Flags()
+            flags[keyPath: option.keyPath] = true
+            #expect(flags.setFlags == [option.flag], "\(option.flag)")
+        }
+    }
+
     @Test("AnonymizationHelpers defaultRules custom returns empty")
     func testAnonymizationHelpersDefaultRulesCustomEmpty() {
         let rules = AnonymizationHelpers.defaultRules(for: .custom)
