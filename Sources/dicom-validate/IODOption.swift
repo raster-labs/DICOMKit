@@ -1,45 +1,25 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — --iod accepts the PS3.6 2026a Table A-1 keyword or UID of the 7 image / presentation-state SOP Classes and every SR SOP Class (DICOMCore.SRDocumentType) that DICOMValidator implements; the 7 UID literals below match Table A-1 (diff_cli.py uid check); the engine's own short names stay accepted
+// NEMA-verified: 2026a, checked 2026-10-06 — no table of its own since D248: the --iod SOP Class → IOD name map (PS3.6 2026a Table A-1 UIDs; PS3.3 2026a Annex A IODs per PS3.4 Table B.5-1) is DICOMValidator.iodNameBySOPClassUID / iodName(forIODOption:), which the tool calls; this file only forwards the pre-D248 names for the DICOMStudio copy and the tests
 import Foundation
 import DICOMCore
 import DICOMDictionary
+import DICOMKit
 
-/// Maps an `--iod` value to the IOD name `DICOMValidator` switches on.
-///
-/// The engine knows its IODs by names of its own (`CRImageStorage`, `USImageStorage`,
-/// `GrayscaleSoftcopyPresentationState`, `KeyObjectSelection`, ...), several of which
-/// are not PS3.6 Table A-1 keywords (`ComputedRadiographyImageStorage`,
-/// `UltrasoundImageStorage`, `GrayscaleSoftcopyPresentationStateStorage`,
-/// `KeyObjectSelectionDocumentStorage`). The tool also accepts the Table A-1 keyword
-/// (any letter case) or the SOP Class UID and passes the engine name on.
+/// The pre-D248 name of the `--iod` value mapping. The table and the resolution now live in
+/// DICOMKit (`DICOMValidator.iodNameBySOPClassUID`, `DICOMValidator.iodName(forIODOption:)`),
+/// shared by `dicom-validate` and the DICOMStudio CLI Workshop; this type only forwards.
+@available(*, deprecated, message: "use DICOMValidator.iodNameBySOPClassUID / DICOMValidator.iodName(forIODOption:) (D248)")
 enum IODOption {
 
     /// Engine IOD name per SOP Class UID (PS3.6 Table A-1), as `DICOMValidator` detects it.
-    static let engineNameBySOPClassUID: [String: String] = [
-        "1.2.840.10008.5.1.4.1.1.2": "CTImageStorage",                         // CT Image Storage
-        "1.2.840.10008.5.1.4.1.1.4": "MRImageStorage",                         // MR Image Storage
-        "1.2.840.10008.5.1.4.1.1.1": "CRImageStorage",                         // Computed Radiography Image Storage
-        "1.2.840.10008.5.1.4.1.1.6.1": "USImageStorage",                       // Ultrasound Image Storage
-        "1.2.840.10008.5.1.4.1.1.7": "SecondaryCaptureImageStorage",           // Secondary Capture Image Storage
-        "1.2.840.10008.5.1.4.1.1.11.1": "GrayscaleSoftcopyPresentationState",  // Grayscale Softcopy Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.3": "PseudoColorSoftcopyPresentationState", // Pseudo-Color Softcopy Presentation State Storage
-    ]
+    static var engineNameBySOPClassUID: [String: String] { DICOMValidator.iodNameBySOPClassUID }
 
     /// The SOP Class UID an `--iod` value names, by Table A-1 keyword (any case) or UID.
     static func sopClassUID(for value: String) -> String? {
-        if let entry = UIDDictionary.lookup(uid: value) { return entry.uid }
-        if let entry = UIDDictionary.lookup(keyword: value) { return entry.uid }
-        let lower = value.lowercased()
-        return UIDDictionary.sopClasses.first { $0.keyword.lowercased() == lower }?.uid
+        DICOMValidator.sopClassUID(forIODOption: value)
     }
 
-    /// The engine IOD name for an `--iod` value; values that name no supported SOP Class
-    /// are passed through unchanged (the engine's short names, or an unsupported IOD,
-    /// which the engine reports as "IOD validation not implemented").
+    /// The engine IOD name for an `--iod` value (see `DICOMValidator.iodName(forIODOption:)`).
     static func engineName(for value: String) -> String {
-        if value.lowercased() == "us" { return "USImageStorage" }   // the engine knows "ultrasound" only
-        guard let uid = sopClassUID(for: value) else { return value }
-        if let name = engineNameBySOPClassUID[uid] { return name }
-        if SRDocumentType.isSRDocument(sopClassUID: uid) { return "StructuredReport" }
-        return value
+        DICOMValidator.iodName(forIODOption: value)
     }
 }

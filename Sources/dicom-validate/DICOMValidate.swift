@@ -1,4 +1,4 @@
-// NEMA-verified: 2026a, checked 2026-10-01 — printed Type / PS3.3 module-table / PS3.5 7.4.1-7.4.4 citations run on 10 fixtures and diffed against PS3.3 2026a (81 distinct messages; the 2 engine mismatches, D140 and D143, fixed in DICOMKit); --iod takes PS3.6 Table A-1 keywords and UIDs (IODOption.swift); --level help states what level 2 checks (PS3.6 Table 6-1 VR and VM; PS3.5 Table 6.2-1 lengths, repertoires and DA/TM/UI/AS/DS/IS forms; PS3.5 6.2.1 PN component groups)
+// NEMA-verified: 2026a, checked 2026-10-01 — printed Type / PS3.3 module-table / PS3.5 7.4.1-7.4.4 citations run on 10 fixtures and diffed against PS3.3 2026a (81 distinct messages; the 2 engine mismatches, D140 and D143, fixed in DICOMKit); --iod takes PS3.6 Table A-1 keywords and UIDs (DICOMValidator.iodName(forIODOption:), D248); --level help states what level 2 checks (PS3.6 Table 6-1 VR and VM; PS3.5 Table 6.2-1 lengths, repertoires and DA/TM/UI/AS/DS/IS forms; PS3.5 6.2.1 PN component groups)
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -143,7 +143,7 @@ struct DICOMValidate: AsyncParsableCommand {
     private func validateFile(url: URL) throws -> ValidationResult {
         let fileData = try Data(contentsOf: url)
         
-        let validator = DICOMValidator(level: level, iod: iod.map(IODOption.engineName(for:)), force: force)
+        let validator = DICOMValidator(level: level, iod: iod.map(DICOMValidator.iodName(forIODOption:)), force: force)
         return try validator.validate(data: fileData, filePath: url.path)
     }
 }

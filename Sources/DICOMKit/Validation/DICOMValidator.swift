@@ -1,4 +1,5 @@
 // NEMA-verified: 2026a, checked 2026-10-01 — PS3.10 2026a Table 7.1-1 Type 1 File Meta elements; PS3.5 Table 6.2-1 maximum lengths and character repertoires of the 16 character-string VRs (AE AS CS DA DS DT IS LO LT PN SH ST TM UC UI UT) and the DA, TM, UI, AS, DS, IS forms, PS3.5 6.2.1 PN component groups, PS3.6 Table 6-1 VM column (level 2, errors); ISO_IR 192; per-IOD Type 1/2 tables from PS3.3 Tables A.2-1, A.3-1, A.4-1, A.6-1, A.8-1, A.33.1-1, A.33.3-1, A.35.1-1..A.35.4-1 and the module tables C.7-1, C.7-3, C.7-5a, C.7-6, C.7-8, C.7-9, C.7-10, C.7-11b/c, C.8-1, C.8-3, C.8-4, C.8-18, C.8-24, C.10-4, C.11.9-1 (PR), C.11.10-1, 10-12 (Content Creator's Name Type 3 via Table 10.9.3-1), C.11.11-1b, C.11.6-1, C.11.15-1, C.12-1, C.17-1 (SR), C.17-2, C.17-5 (root Concept Name Code Sequence 1C), C.18.8-1, C.17.6-1 (KO), C.17.6-2; IOD message prefixes are PS3.6 Table A-1 SOP Class names; Type semantics PS3.5 7.4.1-7.4.4
+// NEMA-verified: 2026a, checked 2026-10-06 — iodNameBySOPClassUID (lifted from dicom-validate IODOption, D248): the 7 UIDs and their comments are PS3.6 2026a Table A-1 rows (dumped by script), the IODs they name are the PS3.3 2026a A.2, A.3, A.4, A.6, A.8, A.33.1, A.33.3 titles that PS3.4 2026a Table B.5-1 assigns to them; iodName(forIODOption:) accepts Table A-1 keywords and UIDs
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -476,28 +477,8 @@ public struct DICOMValidator {
             return nil
         }
         
-        // Map common SOP Class UIDs to IOD names
-        switch sopClassUID {
-        case "1.2.840.10008.5.1.4.1.1.2":
-            return "CTImageStorage"
-        case "1.2.840.10008.5.1.4.1.1.4":
-            return "MRImageStorage"
-        case "1.2.840.10008.5.1.4.1.1.1":
-            return "CRImageStorage"
-        case "1.2.840.10008.5.1.4.1.1.6.1":
-            return "USImageStorage"
-        case "1.2.840.10008.5.1.4.1.1.7":
-            return "SecondaryCaptureImageStorage"
-        case "1.2.840.10008.5.1.4.1.1.11.1":
-            return "GrayscaleSoftcopyPresentationState"
-        case "1.2.840.10008.5.1.4.1.1.11.3":
-            return "PseudoColorSoftcopyPresentationState"
-        case let uid where SRDocumentType.isSRDocument(sopClassUID: uid):
-            // Includes Key Object Selection; the SR validator branches on the SOP Class.
-            return "StructuredReport"
-        default:
-            return nil
-        }
+        // One table for the validator, `dicom-validate --iod` and the Workshop (D248).
+        return Self.iodName(forSOPClassUID: sopClassUID)
     }
     
     private func isValidUID(_ uid: String) -> Bool {
@@ -1626,5 +1607,58 @@ struct StructuredReportValidator: IODValidator {
         checkEnumeratedValue(.valueType, name: "Value Type of the root Content Item", allowed: ["CONTAINER"],
                              module: "C.17.3.1 SR Document Content Tree",
                              dataSet: dataSet, iod: iod, errors: &errors)
+    }
+}
+
+// MARK: - IOD names by SOP Class (shared by the validator, dicom-validate --iod and the Workshop; D248)
+
+extension DICOMValidator {
+
+    /// The IOD name the validator switches on, per SOP Class UID of PS3.6 2026a Table A-1.
+    ///
+    /// The IODs are the ones PS3.4 2026a Table B.5-1 assigns to these SOP Classes: PS3.3 2026a
+    /// A.2 Computed Radiography Image, A.3 CT Image, A.4 MR Image, A.6 Ultrasound Image,
+    /// A.8 Secondary Capture Image, A.33.1 Grayscale Softcopy Presentation State and A.33.3
+    /// Pseudo-Color Softcopy Presentation State. The names are the engine's own (`CRImageStorage`,
+    /// `USImageStorage`, `GrayscaleSoftcopyPresentationState`, …), not all of them Table A-1
+    /// keywords; the SR SOP Classes are not listed here because every one of them (Key Object
+    /// Selection included) validates as `StructuredReport` — see ``iodName(forSOPClassUID:)``.
+    public static let iodNameBySOPClassUID: [String: String] = [
+        "1.2.840.10008.5.1.4.1.1.2": "CTImageStorage",                         // CT Image Storage
+        "1.2.840.10008.5.1.4.1.1.4": "MRImageStorage",                         // MR Image Storage
+        "1.2.840.10008.5.1.4.1.1.1": "CRImageStorage",                         // Computed Radiography Image Storage
+        "1.2.840.10008.5.1.4.1.1.6.1": "USImageStorage",                       // Ultrasound Image Storage
+        "1.2.840.10008.5.1.4.1.1.7": "SecondaryCaptureImageStorage",           // Secondary Capture Image Storage
+        "1.2.840.10008.5.1.4.1.1.11.1": "GrayscaleSoftcopyPresentationState",  // Grayscale Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.3": "PseudoColorSoftcopyPresentationState", // Pseudo-Color Softcopy Presentation State Storage
+    ]
+
+    /// The engine IOD name for a SOP Class UID: ``iodNameBySOPClassUID``, or `StructuredReport`
+    /// for every SR SOP Class of ``DICOMCore/SRDocumentType`` (the SR validator branches on the
+    /// SOP Class itself); `nil` for an IOD the validator does not implement.
+    public static func iodName(forSOPClassUID uid: String) -> String? {
+        if let name = iodNameBySOPClassUID[uid] { return name }
+        if SRDocumentType.isSRDocument(sopClassUID: uid) { return "StructuredReport" }
+        return nil
+    }
+
+    /// The SOP Class UID an `--iod` option value names: a UID, or a PS3.6 Table A-1 keyword in
+    /// any letter case (`UltrasoundImageStorage`, `ultrasoundimagestorage`); `nil` otherwise.
+    public static func sopClassUID(forIODOption value: String) -> String? {
+        if let entry = UIDDictionary.lookup(uid: value) { return entry.uid }
+        if let entry = UIDDictionary.lookup(keyword: value) { return entry.uid }
+        let lower = value.lowercased()
+        return UIDDictionary.sopClasses.first { $0.keyword.lowercased() == lower }?.uid
+    }
+
+    /// The IOD name to pass as `iod` for an `--iod` option value: a Table A-1 keyword or UID is
+    /// mapped through ``iodName(forSOPClassUID:)``; any other value (the engine's short names
+    /// `ct`, `mr`, `cr`, `sc`, `gsps`, `sr`, `kos`, or an unsupported IOD, which the engine reports
+    /// as "IOD validation not implemented") passes through unchanged. `US` / `us` selects the
+    /// Ultrasound Image IOD (the engine's short name for it is `ultrasound`).
+    public static func iodName(forIODOption value: String) -> String {
+        if value.lowercased() == "us" { return "USImageStorage" }
+        guard let uid = sopClassUID(forIODOption: value) else { return value }
+        return iodName(forSOPClassUID: uid) ?? value
     }
 }

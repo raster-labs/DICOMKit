@@ -802,6 +802,12 @@ let package = Package(
                 // PS3.15 Table E.1-1 UID set incl. sequence items, PS3.5 9.1, PS3.6 Table A-1
                 // wording (D133, D135, D136, D138, 2026-10-01).
                 "UIDManagerStandardTests.swift",
+                // CLI-local rules lifted into DICOMKit for the DICOMStudio Workshop (2026-10-06):
+                // PS3.6 Table A-1 / PS3.3 Annex A IOD names (D248), PS3.4 C.2.2.2.5.1 Study Date
+                // key warning (D249), PS3.5 9.1 UID root rule (D250), PS3.10 8.1/8.2/8.5/8.6
+                // File-set rules (D253), PS3.5 A.1/A.2/A.3/A.5 native decompress targets (D267),
+                // PS3.6 Table A-1 keywords of the convert catalog (D268).
+                "Validation/IODNameTableTests.swift",
                 "CompressionManagerXYBTests.swift",
                 // Lossy output new SOP Instance UID, J2K/JPEG colour labels, File Meta UI padding,
                 // Explicit VR Big Endian values, nested --strip-private, per-frame rescale
