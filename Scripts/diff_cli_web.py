@@ -84,14 +84,23 @@ def check_wado(rep, p3, p6, p18):
               f'({len(std)} in 2026a)', len(URI_PARAMS) - len(wrong), wrong, missing, fail_on_missing=False)
     # contentType values
     rendered = {row[1] if len(row) == 4 else row[0] for row in dw.table_rows(p18, '8.7.4-1')}
-    m = re.search(r'static let uriContentTypes = \[([^\]]*)\]', src['WADOOptionRules.swift'])
-    ours = re.findall(r'"([^"]+)"', m.group(1))
+    # dicom-wado's --content-type list is the engine's WADOURIClient.MediaType.allowed (application/dicom +
+    # renderedMediaTypes), consumed through DICOMwebOptionRules.uriContentTypes (D265): read it from the engine.
+    client = dw.read(os.path.join(ROOT, 'Sources', 'DICOMWeb', 'WADOURIClient.swift'))
+    consts = dict(re.findall(r'static let (\w+) = MediaType\(rawValue: "([^"]+)"\)', client))
+    rmt = re.search(r'static let renderedMediaTypes: \[MediaType\] = \[([^\]]*)\]', client)
+    allowed = re.search(r'static let allowed: \[MediaType\] = \[([^\]]*)\] \+ renderedMediaTypes', client)
+    names = (re.findall(r'\.(\w+)', allowed.group(1)) if allowed else []) + (re.findall(r'\.(\w+)', rmt.group(1)) if rmt else [])
+    ours = [consts[n] for n in names if n in consts]
     wrong = [v for v in ours if v != 'application/dicom' and v not in rendered]
+    wrong += [f'.{n}: no MediaType constant' for n in names if n not in consts]
     missing = sorted(rendered - set(ours))
-    rep.check('PS3.18 9.1.2.2.1 / Table 8.7.4-1 --content-type values (WADOOptionRules.uriContentTypes)',
+    if not ours:
+        missing.append('WADOURIClient.MediaType.allowed / renderedMediaTypes not found')
+    rep.check('PS3.18 9.1.2.2.1 / Table 8.7.4-1 --content-type values (WADOURIClient.MediaType.allowed)',
               len(ours) - len(wrong), wrong, missing, fail_on_missing=False)
     help_m = re.search(r'help: "Content type for WADO-URI:([^"]*)"', src['DICOMWado.swift'])
-    listed = re.findall(r'(?:application|image|video)/[\w.+-]+', help_m.group(1)) if help_m else []
+    listed = re.findall(r'(?:application|image|video|text)/[\w.+-]+', help_m.group(1)) if help_m else []
     rep.check('--content-type help lists exactly the accepted values', len(set(listed) & set(ours)),
               [f'help lists {v}, not accepted' for v in set(listed) - set(ours)],
               [f'{v} accepted, not in help' for v in set(ours) - set(listed)])
@@ -130,10 +139,13 @@ def check_wado(rep, p3, p6, p18):
     text = nd.norm(''.join(sec.itertext()))
     m = re.search(r'They are: (.*?)\.', text)
     std = re.findall(r'"([A-Z ]+)"', m.group(1))
-    ours_src = re.search(r'changeStateTargets: \[UPSState\] = \[([^\]]*)\]', src['WADOOptionRules.swift']).group(1)
+    # the rule lives on DICOMWeb's UPSState (D255); dicom-wado calls UPSState.changeStateTarget(optionValue:)
+    workitem = dw.read(os.path.join(ROOT, 'Sources', 'DICOMWeb', 'UPS', 'Workitem.swift'))
+    m = re.search(r'static let changeStateTargets: \[UPSState\] = \[([^\]]*)\]', workitem)
+    ours_src = m.group(1) if m else ''
     raw = {'inProgress': 'IN PROGRESS', 'completed': 'COMPLETED', 'canceled': 'CANCELED', 'scheduled': 'SCHEDULED'}
     ours = [raw[c] for c in re.findall(r'\.(\w+)', ours_src)]
-    rep.check('PS3.18 11.7.1.4 Change State targets (WADOOptionRules.changeStateTargets)', len(set(ours) & set(std)),
+    rep.check('PS3.18 11.7.1.4 Change State targets (DICOMWeb UPSState.changeStateTargets)', len(set(ours) & set(std)),
               [v for v in ours if v not in std], [v for v in std if v not in ours])
     # Enumerated values the ups options name in help
     def enum_values(label, tag):
