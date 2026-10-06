@@ -4,6 +4,7 @@
 import Testing
 @testable import DICOMStudio
 import Foundation
+import DICOMKit
 
 @Suite("Security Helpers Tests")
 struct SecurityHelpersTests {
@@ -148,7 +149,7 @@ struct SecurityHelpersTests {
 
     @Test("AnonymizationHelpers basic list is the 14-attribute DICOMKit basic profile with Table 6-1 names")
     func testAnonymizationHelpersBasicListMatchesEngine() {
-        let list = AnonymizationHelpers.hipaaDirectIdentifierTags
+        let list = AnonymizationHelpers.basicProfileTags   // was hipaaDirectIdentifierTags (P-STUDIO-ANON-TAGLIST-NAME)
         #expect(list.count == 14)
         #expect(list.map { $0.tag } == Self.engineBasicTags.map { $0.0 })
         #expect(list.map { $0.name } == Self.engineBasicTags.map { $0.1 })
@@ -156,6 +157,17 @@ struct SecurityHelpersTests {
         for gone in ["0010,0040", "0010,1010", "0010,1040", "0010,2160", "0010,21B0", "0008,0014", "0008,103E", "0032,1032"] {
             #expect(!list.contains { $0.tag == gone }, "\(gone)")
         }
+    }
+
+    /// P-STUDIO-ANON-TAGLIST-NAME: each legacy basic attribute is a row of PS3.15 2026a Table E.1-1
+    /// (the engine's table is generated from the DocBook), yet the list is far short of the table.
+    @Test("basicProfileTags: 14 rows of PS3.15 2026a Table E.1-1, not the whole table")
+    func testBasicProfileTagsAreTableE11Rows() {
+        for (tag, _) in AnonymizationHelpers.basicProfileTags {
+            let parsed = Anonymizer.parseFlexibleTag(tag)
+            #expect(parsed.map { ConfidentialityProfile.table[$0] != nil } == true, "\(tag)")
+        }
+        #expect(ConfidentialityProfile.table.count > 600)
     }
 
     @Test("AnonymizationHelpers defaultRules basic returns the 14 engine rules")

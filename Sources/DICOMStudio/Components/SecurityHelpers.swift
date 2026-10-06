@@ -4,6 +4,7 @@
 // DICOM Studio — Platform-independent helpers for the Security & Privacy Center display
 // Reference: DICOM PS3.15 (Security and System Management Profiles), B.12 / B.13 (TLS); HIPAA Security Rule §164.312 (law)
 // NEMA-verified: 2026a, checked 2026-10-05 — the anonymization preview lists are diffed by script against the DICOMKit Anonymizer profiles the app runs (basic 14 attributes, clinical trial + 8 date/time attributes, research 3) and their names against PS3.6 2026a Table 6-1 (22/22); the former "18 HIPAA direct identifiers" list named 18 tags of which the engine removed 7 (45 CFR §164.514(b)(2)(i) lists identifier categories, not DICOM attributes, and none of these profiles is PS3.15 Annex E); the 3 cipher suites shown are PS3.15 2026a B.13 TLS 1.3 suites (3/3); the rest is display formatting
+// NEMA-verified: 2026a, checked 2026-10-06 — basicProfileTags (renamed from hipaaDirectIdentifierTags, deprecated; P-STUDIO-ANON-TAGLIST-NAME): its 14 tags compared by script with PS3.15 2026a Table E.1-1 (14/14 are rows of the table; the list is not the table, which --profile ps315 applies whole)
 
 import Foundation
 
@@ -101,7 +102,12 @@ public enum AnonymizationHelpers: Sendable {
     /// Names are the PS3.6 Table 6-1 names. This is the app's fixed list, not a PS3.15 Annex E profile
     /// and not the 18 identifier categories of 45 CFR §164.514(b)(2)(i) (which name kinds of
     /// information, not DICOM attributes).
-    static let basicProfileTags: [(tag: String, name: String)] = [
+    ///
+    /// Public since P-STUDIO-ANON-TAGLIST-NAME (2026-10-06), replacing `hipaaDirectIdentifierTags`.
+    /// Each of the 14 attributes is a row of PS3.15 2026a Table E.1-1 (checked by script against
+    /// the DocBook, 14/14), but the list is not that table: `--profile ps315` (the
+    /// `.ps315` profile) applies every row.
+    public static let basicProfileTags: [(tag: String, name: String)] = [
         ("0010,0010", "Patient's Name"),
         ("0010,0020", "Patient ID"),
         ("0010,0030", "Patient's Birth Date"),
@@ -135,8 +141,9 @@ public enum AnonymizationHelpers: Sendable {
     ///
     /// The name is historical: the list is the engine's basic profile (14 attributes), not the 18
     /// identifier categories of 45 CFR §164.514(b)(2)(i), which the earlier 18-tag list did not
-    /// implement either (the engine removed only 7 of those tags). Kept for source compatibility
-    /// (P-STUDIO-ANON-TAGLIST-NAME).
+    /// implement either (the engine removed only 7 of those tags). Deprecated, renamed
+    /// `basicProfileTags` (P-STUDIO-ANON-TAGLIST-NAME, 2026-10-06); kept for source compatibility.
+    @available(*, deprecated, renamed: "basicProfileTags")
     public static let hipaaDirectIdentifierTags: [(tag: String, name: String)] = basicProfileTags
 
     /// Returns the default rules for an anonymization profile: the attributes the DICOMKit
