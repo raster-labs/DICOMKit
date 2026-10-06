@@ -6,21 +6,23 @@
 // Reference: DICOM PS3.7 (Message Exchange)
 // Reference: DICOM PS3.8 (Network Communication)
 // Reference: DICOM PS3.15 (Security and System Management)
-// NEMA-verified: 2026a, checked 2026-10-05 — the Studio print enums text-diffed against PS3.3 2026a Table C.13-1
-// (Print Priority HIGH/MED/LOW: 3 match; Medium Type: PAPER and CLEAR FILM match, BLU-RAY corrected to BLUE FILM,
-// the two MAMMO terms are not offered), Table C.13-3 (Film Size ID: 12 of 12 match; Image Display Format
-// STANDARD\C,R: the 8 FilmLayout values match, columns first) and Table C.13-8 (PrintJobStatus is the app's
-// job state, re-spelled with the Execution Status terms PENDING/PRINTING/DONE/FAILURE); MPPSStatus against
-// PS3.3 C.4.14 (IN PROGRESS/COMPLETED/DISCONTINUED: IN_PROGRESS corrected); NetworkQueryLevel against PS3.4
-// Table C.6.1-1 (4 of 4); default port 11112 is the PS3.8 9.1.1 registered port. TLSMode names TLS versions,
-// not the PS3.15 Annex B profiles — B.9–B.11 are retired in 2026a, B.12/B.13 are the live BCP 195 profiles
-// (P-STUDIO-TLS-PROFILES); TransferPriority orders the app's queue and is not
-// the DIMSE Priority (0000,0700). The four print enums duplicate DICOMNetwork's (D22, P-STUDIO-PRINT-ENUMS).
+// NEMA-verified: 2026a, checked 2026-10-06 — the print settings are DICOMNetwork's enums (P-STUDIO-PRINT-ENUMS):
+// PrintPriority / PrintMediumType / PrintFilmSize are deprecated aliases of DICOMNetwork.PrintPriority / MediumType /
+// FilmSize, whose raw values were diffed by script against PS3.3 2026a Table C.13-1 (Print Priority HIGH/MED/LOW 3/3;
+// Medium Type PAPER, CLEAR FILM, BLUE FILM, MAMMO CLEAR FILM, MAMMO BLUE FILM 5/5 — the two MAMMO terms are now
+// offered) and Table C.13-3 (Film Size ID 12/12; Image Display Format STANDARD\C,R: the 8 FilmLayout values match,
+// columns first); NetworkPrintJobState (formerly PrintJobStatus) is the app's job state re-spelled with the Table C.13-8
+// Execution Status terms PENDING/PRINTING/DONE/FAILURE; MPPSStatus against PS3.3 C.4.14 (IN PROGRESS/COMPLETED/
+// DISCONTINUED); NetworkQueryLevel against PS3.4 Table C.6.1-1 (4 of 4); default port 11112 is the PS3.8 9.1.1
+// registered port. TLSMode offers the live PS3.15 2026a Annex B profiles B.12 "BCP 195 RFC 8996, 9325 TLS" and B.13
+// "Modified BCP 195 RFC 8996, 9325 TLS" (titles diffed by script; B.1–B.3 and B.9–B.11 retired) and maps them onto
+// DICOMNetwork's TLSConfiguration.bcp195 / .modifiedBCP195 (P-STUDIO-TLS-PROFILES; TLS_1_2 / TLS_1_3 decode to them);
+// TransferPriority orders the app's queue and is not the DIMSE Priority (0000,0700).
 
 import Foundation
+import DICOMNetwork
 
 // MARK: - Navigation Tab
-import DICOMNetwork
 
 /// Navigation tabs for the DICOM Networking Hub.
 public enum NetworkingTab: String, Sendable, Equatable, Hashable, CaseIterable {
@@ -129,8 +131,6 @@ public enum TLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codabl
 
     /// Whether mutual TLS is required.
     public var requiresClientCertificate: Bool { self == .mtls }
-}
-
 
     /// The PS3.15 2026a Annex B profile this mode applies; nil for ``none``.
     public var profile: SecureTransportConnectionProfile? {
@@ -154,6 +154,8 @@ public enum TLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codabl
             clientIdentity: self == .mtls ? clientIdentity : nil
         )
     }
+}
+
 // MARK: - Server Connection Status
 
 /// Connection status of a DICOM server.
@@ -980,46 +982,56 @@ public struct MPPSItem: Sendable, Identifiable, Equatable, Hashable {
 
 // MARK: - Print Priority
 
-/// Print priority for DICOM print operations.
-/// Reference: DICOM PS3.3 C.13.1 – Film Session Module, Print Priority (2000,0020), Table C.13-1
-///
-/// Duplicates `DICOMNetwork.PrintPriority` (D22; see P-STUDIO-PRINT-ENUMS); the raw
-/// values are the C.13.1 Enumerated Values (HIGH, MED, LOW) so the two stay interchangeable.
-public enum PrintPriority: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
-    case high   = "HIGH"
-    case med    = "MED"
-    case low    = "LOW"
+/// Print Priority (2000,0020) — `DICOMNetwork.PrintPriority` (P-STUDIO-PRINT-ENUMS, D22).
+/// Reference: DICOM PS3.3 2026a C.13.1 – Film Session Module, Table C.13-1 (HIGH, MED, LOW).
+/// The Studio enum duplicated DICOMNetwork's with the same raw values, so stored values decode
+/// unchanged; the Studio case `.med` is a deprecated alias of `.medium`.
+@available(*, deprecated, renamed: "DICOMNetwork.PrintPriority",
+           message: "Use DICOMNetwork.PrintPriority (same PS3.3 Table C.13-1 raw values)")
+public typealias PrintPriority = DICOMNetwork.PrintPriority
 
+extension DICOMNetwork.PrintPriority {
+    /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .high: return "High"
-        case .med:  return "Medium"
-        case .low:  return "Low"
+        case .high:   return "High"
+        case .medium: return "Medium"
+        case .low:    return "Low"
         }
     }
+
+    /// The former Studio case name for MED.
+    @available(*, deprecated, renamed: "medium")
+    public static var med: DICOMNetwork.PrintPriority { .medium }
 }
 
 // MARK: - Print Medium Type
 
-/// Film/paper medium type for DICOM print.
-/// Reference: DICOM PS3.3 C.13.1 – Film Session Module, Medium Type (2000,0030), Table C.13-1
-///
-/// The raw values are Table C.13-1 Defined Terms (PAPER, CLEAR FILM, BLUE FILM).
-/// `bluFilm` used to carry `BLU-RAY`, which is not a Medium Type term (D22); the
-/// case name is kept, the value is the term. The two MAMMO terms are not
-/// offered here — the Print screen's `DICOMNetwork.MediumType` has all five.
-public enum PrintMediumType: String, Sendable, Equatable, Hashable, CaseIterable {
-    case paper      = "PAPER"
-    case clearFilm  = "CLEAR FILM"
-    case bluFilm    = "BLUE FILM"
+/// Medium Type (2000,0030) — `DICOMNetwork.MediumType` (P-STUDIO-PRINT-ENUMS, D22).
+/// Reference: DICOM PS3.3 2026a C.13.1 – Film Session Module, Table C.13-1 Defined Terms:
+/// PAPER, CLEAR FILM, BLUE FILM, MAMMO CLEAR FILM, MAMMO BLUE FILM. The Studio enum offered
+/// only the first three; the pickers now list all five (`MediumType.allCases`). Raw values are
+/// unchanged; the Studio case `.bluFilm` is a deprecated alias of `.blueFilm`.
+@available(*, deprecated, renamed: "DICOMNetwork.MediumType",
+           message: "Use DICOMNetwork.MediumType (all five PS3.3 Table C.13-1 Defined Terms)")
+public typealias PrintMediumType = DICOMNetwork.MediumType
 
+extension DICOMNetwork.MediumType {
+    /// Human-readable display name of the Defined Term this case writes (`wireValue`).
     public var displayName: String {
-        switch self {
-        case .paper:     return "Paper"
-        case .clearFilm: return "Clear Film"
-        case .bluFilm:   return "Blue Film"
+        switch wireValue {
+        case "PAPER":            return "Paper"
+        case "CLEAR FILM":       return "Clear Film"
+        case "BLUE FILM":        return "Blue Film"
+        case "MAMMO CLEAR FILM": return "Mammo Clear Film"
+        case "MAMMO BLUE FILM":  return "Mammo Blue Film"
+        default:                 return wireValue
         }
     }
+
+    /// The former Studio case name for BLUE FILM.
+    @available(*, deprecated, renamed: "blueFilm")
+    public static var bluFilm: DICOMNetwork.MediumType { .blueFilm }
 }
 
 // MARK: - Film Layout
@@ -1099,54 +1111,67 @@ public enum FilmLayout: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - Print Film Size
 
-/// Standard film size identifiers for DICOM print.
-/// Reference: DICOM PS3.3 C.13.3 – Film Box Module, Film Size ID (2010,0050), Table C.13-3
-///
-/// The 12 Defined Terms of Table C.13-3. Duplicates `DICOMNetwork.FilmSize`
-/// (D22; see P-STUDIO-PRINT-ENUMS).
-public enum PrintFilmSize: String, Sendable, Equatable, Hashable, CaseIterable {
-    case size8x10    = "8INX10IN"
-    case size8_5x11  = "8_5INX11IN"
-    case size10x12   = "10INX12IN"
-    case size10x14   = "10INX14IN"
-    case size11x14   = "11INX14IN"
-    case size11x17   = "11INX17IN"
-    case size14x14   = "14INX14IN"
-    case size14x17   = "14INX17IN"
-    case size24x24cm = "24CMX24CM"
-    case size24x30cm = "24CMX30CM"
-    case a4          = "A4"
-    case a3          = "A3"
+/// Film Size ID (2010,0050) — `DICOMNetwork.FilmSize` (P-STUDIO-PRINT-ENUMS, D22).
+/// Reference: DICOM PS3.3 2026a C.13.3 – Film Box Module, Table C.13-3 (12 Defined Terms).
+/// The Studio enum had the same 12 raw values; its case names are deprecated aliases below.
+@available(*, deprecated, renamed: "DICOMNetwork.FilmSize",
+           message: "Use DICOMNetwork.FilmSize (same PS3.3 Table C.13-3 raw values)")
+public typealias PrintFilmSize = DICOMNetwork.FilmSize
 
+extension DICOMNetwork.FilmSize {
+    /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .size8x10:   return "8\" × 10\""
-        case .size8_5x11: return "8.5\" × 11\""
-        case .size10x12:  return "10\" × 12\""
-        case .size10x14:  return "10\" × 14\""
-        case .size11x14:  return "11\" × 14\""
-        case .size11x17:  return "11\" × 17\""
-        case .size14x14:  return "14\" × 14\""
-        case .size14x17:  return "14\" × 17\""
-        case .size24x24cm: return "24 × 24 cm"
-        case .size24x30cm: return "24 × 30 cm"
-        case .a4:          return "A4"
-        case .a3:          return "A3"
+        case .size8InX10In:   return "8\" × 10\""
+        case .size8_5InX11In: return "8.5\" × 11\""
+        case .size10InX12In:  return "10\" × 12\""
+        case .size10InX14In:  return "10\" × 14\""
+        case .size11InX14In:  return "11\" × 14\""
+        case .size11InX17In:  return "11\" × 17\""
+        case .size14InX14In:  return "14\" × 14\""
+        case .size14InX17In:  return "14\" × 17\""
+        case .size24CmX24Cm:  return "24 × 24 cm"
+        case .size24CmX30Cm:  return "24 × 30 cm"
+        case .a4:             return "A4"
+        case .a3:             return "A3"
         }
     }
+
+    // The former Studio case names.
+    @available(*, deprecated, renamed: "size8InX10In")
+    public static var size8x10: DICOMNetwork.FilmSize { .size8InX10In }
+    @available(*, deprecated, renamed: "size8_5InX11In")
+    public static var size8_5x11: DICOMNetwork.FilmSize { .size8_5InX11In }
+    @available(*, deprecated, renamed: "size10InX12In")
+    public static var size10x12: DICOMNetwork.FilmSize { .size10InX12In }
+    @available(*, deprecated, renamed: "size10InX14In")
+    public static var size10x14: DICOMNetwork.FilmSize { .size10InX14In }
+    @available(*, deprecated, renamed: "size11InX14In")
+    public static var size11x14: DICOMNetwork.FilmSize { .size11InX14In }
+    @available(*, deprecated, renamed: "size11InX17In")
+    public static var size11x17: DICOMNetwork.FilmSize { .size11InX17In }
+    @available(*, deprecated, renamed: "size14InX14In")
+    public static var size14x14: DICOMNetwork.FilmSize { .size14InX14In }
+    @available(*, deprecated, renamed: "size14InX17In")
+    public static var size14x17: DICOMNetwork.FilmSize { .size14InX17In }
+    @available(*, deprecated, renamed: "size24CmX24Cm")
+    public static var size24x24cm: DICOMNetwork.FilmSize { .size24CmX24Cm }
+    @available(*, deprecated, renamed: "size24CmX30Cm")
+    public static var size24x30cm: DICOMNetwork.FilmSize { .size24CmX30Cm }
 }
 
-// MARK: - Print Job Status
+// MARK: - Network Print Job State
 
-/// Status of a DICOM print job, as the Networking panel tracks it.
+/// State of a print job, as the Networking panel tracks it (formerly `PrintJobStatus`).
 ///
-/// This is the app's own job state — set from the SCU's result, never read off
-/// the wire — but it is shown as its raw value, so the values are the Execution
-/// Status (2100,0020) terms of PS3.3 C.13.8 Table C.13-8: PENDING, PRINTING,
-/// DONE, FAILURE. `completed` carried `COMPLETED` and `failed` carried `FAILED`,
-/// which are not Execution Status terms (D22); the case names are kept.
+/// This is the app's own job state — set from the SCU's result, never read off the wire, and
+/// not the Print Job SOP Class's Execution Status (DICOMNetwork's `PrintJobStatus` carries
+/// that) — but it is shown as its raw value, so the values are the Execution Status
+/// (2100,0020) terms of PS3.3 2026a C.13.8 Table C.13-8: PENDING, PRINTING, DONE, FAILURE.
+/// `completed` carried `COMPLETED` and `failed` carried `FAILED`, which are not Execution
+/// Status terms (D22); the case names are kept.
 /// Reference: DICOM PS3.3 C.13.8 – Print Job Module
-public enum PrintJobStatus: String, Sendable, Equatable, Hashable {
+public enum NetworkPrintJobState: String, Sendable, Equatable, Hashable {
     case pending   = "PENDING"
     case printing  = "PRINTING"
     case completed = "DONE"
@@ -1171,6 +1196,11 @@ public enum PrintJobStatus: String, Sendable, Equatable, Hashable {
     }
 }
 
+/// The former name of ``NetworkPrintJobState`` (P-STUDIO-PRINT-ENUMS): renamed so it does not
+/// read as the Print Job SOP Class's Execution Status (DICOMNetwork's `PrintJobStatus`).
+@available(*, deprecated, renamed: "NetworkPrintJobState")
+public typealias PrintJobStatus = NetworkPrintJobState
+
 // MARK: - Print Job
 
 /// A DICOM print job encompassing a Film Session and Film Boxes.
@@ -1185,13 +1215,13 @@ public struct PrintJob: Sendable, Identifiable, Equatable {
     /// Number of copies.
     public var numberOfCopies: Int
     /// Print priority.
-    public var priority: PrintPriority
+    public var priority: DICOMNetwork.PrintPriority
     /// Medium type.
-    public var mediumType: PrintMediumType
+    public var mediumType: MediumType
     /// Film layout.
     public var filmLayout: FilmLayout
     /// Film size.
-    public var filmSize: PrintFilmSize
+    public var filmSize: FilmSize
     /// SOP Instance UIDs of images placed in the film.
     public var imageSopInstanceUIDs: [String]
     /// File paths of DICOM images selected for printing.
@@ -1199,7 +1229,7 @@ public struct PrintJob: Sendable, Identifiable, Equatable {
     /// Security-scoped bookmark data for each image file (macOS sandbox).
     public var imageBookmarks: [Data]
     /// Job status.
-    public var status: PrintJobStatus
+    public var status: NetworkPrintJobState
     /// Error message if failed.
     public var errorMessage: String?
     /// When the job was created.
@@ -1212,14 +1242,14 @@ public struct PrintJob: Sendable, Identifiable, Equatable {
         label: String,
         printerServerProfileID: UUID,
         numberOfCopies: Int = 1,
-        priority: PrintPriority = .med,
-        mediumType: PrintMediumType = .paper,
+        priority: DICOMNetwork.PrintPriority = .medium,
+        mediumType: MediumType = .paper,
         filmLayout: FilmLayout = .standard2x2,
-        filmSize: PrintFilmSize = .size14x17,
+        filmSize: FilmSize = .size14InX17In,
         imageSopInstanceUIDs: [String] = [],
         imageFilePaths: [String] = [],
         imageBookmarks: [Data] = [],
-        status: PrintJobStatus = .pending,
+        status: NetworkPrintJobState = .pending,
         errorMessage: String? = nil,
         createdDate: Date = Date(),
         completedDate: Date? = nil

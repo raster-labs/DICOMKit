@@ -1,8 +1,9 @@
 // StudioStandardProfileEnumTests.swift
 // DICOMStudioTests
 //
-// P-STUDIO-TLS-PROFILES: the Studio TLS modes offer the live PS3.15 2026a Annex B profiles
-// (B.12, B.13) and map onto DICOMNetwork / DICOMWeb. Old persisted raw values still decode.
+// P-STUDIO-TLS-PROFILES and P-STUDIO-PRINT-ENUMS: the Studio TLS modes offer the live PS3.15 2026a
+// Annex B profiles (B.12, B.13) and map onto DICOMNetwork / DICOMWeb; the Studio print enums are
+// deprecated aliases of DICOMNetwork's. Old persisted raw values still decode.
 
 import Testing
 @testable import DICOMStudio
@@ -93,5 +94,42 @@ struct StudioStandardProfileEnumTests {
     func webTLSModeDeprecatedAliases() {
         #expect(DICOMwebTLSMode.compatible == .bcp195)
         #expect(DICOMwebTLSMode.strict == .modifiedBCP195)
+    }
+
+    // MARK: - Print enums
+
+    /// PS3.3 2026a Table C.13-1 / C.13-3 Defined / Enumerated Terms (extracted from
+    /// part03_2026a.xml by script, 2026-10-06).
+    static let printPriority = ["HIGH", "MED", "LOW"]
+    static let mediumType = ["PAPER", "CLEAR FILM", "BLUE FILM", "MAMMO CLEAR FILM", "MAMMO BLUE FILM"]
+
+    @Test("Print job settings are DICOMNetwork's enums; Medium Type offers all five C.13-1 terms")
+    func printEnumsAreDICOMNetworks() {
+        #expect(DICOMNetwork.PrintPriority.allCases.map(\.rawValue) == Self.printPriority)
+        #expect(DICOMNetwork.MediumType.allCases.map(\.rawValue) == Self.mediumType)
+        let job = PrintJob(label: "J", printerServerProfileID: UUID())
+        #expect(job.priority == DICOMNetwork.PrintPriority.medium)
+        #expect(job.mediumType == DICOMNetwork.MediumType.paper)
+        #expect(job.filmSize == DICOMNetwork.FilmSize.size14InX17In)
+        #expect(job.status == NetworkPrintJobState.pending)
+    }
+
+    @Test("Stored Studio print raw values decode into DICOMNetwork's enums")
+    func printLegacyDecode() throws {
+        #expect(try decode(DICOMNetwork.PrintPriority.self, "MED") == .medium)
+        #expect(try decode(DICOMNetwork.MediumType.self, "BLUE FILM") == .blueFilm)
+        #expect(try decode(DICOMNetwork.FilmSize.self, "14INX17IN") == .size14InX17In)
+    }
+
+    @Test("Deprecated Studio print names alias DICOMNetwork's")
+    @available(*, deprecated)
+    func printDeprecatedAliases() {
+        #expect(PrintPriority.med == DICOMNetwork.PrintPriority.medium)
+        #expect(PrintMediumType.bluFilm == DICOMNetwork.MediumType.blueFilm)
+        #expect(PrintFilmSize.size14x17 == DICOMNetwork.FilmSize.size14InX17In)
+        #expect(PrintFilmSize.size8_5x11 == DICOMNetwork.FilmSize.size8_5InX11In)
+        #expect(PrintMediumType.allCases.count == 5)
+        let state: DICOMStudio.PrintJobStatus = .completed
+        #expect(state == NetworkPrintJobState.completed)
     }
 }

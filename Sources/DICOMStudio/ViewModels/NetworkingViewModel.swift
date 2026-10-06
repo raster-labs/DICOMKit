@@ -3,9 +3,9 @@
 //
 // DICOM Studio — ViewModel for the DICOM Networking Hub (Milestone 9)
 // Reference: DICOM PS3.4, PS3.7, PS3.8, PS3.15
-// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: the print job's
-// Priority, Medium Type and Film Size are mapped case by case onto DICOMNetwork's enums (whose raw values are
-// the PS3.3 2026a Table C.13-1 / C.13-3 terms) and the Film Layout is handed to DICOMPrintService as a
+// NEMA-verified: 2026a, checked 2026-10-06 — carries no DICOM-standard data of its own: the print job's
+// Priority, Medium Type and Film Size are DICOMNetwork's enums (raw values the PS3.3 2026a Table C.13-1 / C.13-3
+// terms; the Studio duplicates and the case-by-case mapping are gone, P-STUDIO-PRINT-ENUMS) and the Film Layout is handed to DICOMPrintService as a
 // PrintLayout (Image Display Format STANDARD\C,R, Table C.13-3), which this panel used to drop; C-ECHO goes
 // through DICOMVerificationService. C-FIND, C-MOVE/C-GET, C-STORE, MWL and MPPS here are display state
 // loaded by the caller — no DIMSE status is produced or worded in this file.
@@ -644,43 +644,13 @@ public final class NetworkingViewModel {
             timeout: profile.timeoutSeconds
         )
 
-        // Map DICOMStudio enums to DICOMNetwork enums
-        let networkPriority: DICOMNetwork.PrintPriority = {
-            switch job.priority {
-            case .high: return .high
-            case .med:  return .medium
-            case .low:  return .low
-            }
-        }()
-        let networkMedium: DICOMNetwork.MediumType = {
-            switch job.mediumType {
-            case .paper:     return .paper
-            case .clearFilm: return .clearFilm
-            case .bluFilm:   return .blueFilm
-            }
-        }()
-        let networkFilmSize: DICOMNetwork.FilmSize = {
-            switch job.filmSize {
-            case .size8x10:   return .size8InX10In
-            case .size8_5x11: return .size8_5InX11In
-            case .size10x12:  return .size10InX12In
-            case .size10x14:  return .size10InX14In
-            case .size11x14:  return .size11InX14In
-            case .size11x17:  return .size11InX17In
-            case .size14x14:  return .size14InX14In
-            case .size14x17:  return .size14InX17In
-            case .size24x24cm: return .size24CmX24Cm
-            case .size24x30cm: return .size24CmX30Cm
-            case .a4:          return .a4
-            case .a3:          return .a3
-            }
-        }()
-
+        // The job carries DICOMNetwork's Print Priority, Medium Type and Film Size
+        // (P-STUDIO-PRINT-ENUMS): the PS3.3 Table C.13-1 / C.13-3 terms go to the wire as chosen.
         let printOptions = PrintOptions(
             numberOfCopies: job.numberOfCopies,
-            priority: networkPriority,
-            filmSize: networkFilmSize,
-            mediumType: networkMedium
+            priority: job.priority,
+            filmSize: job.filmSize,
+            mediumType: job.mediumType
         )
 
         // The layout the sheet showed is the Image Display Format (2010,0010)

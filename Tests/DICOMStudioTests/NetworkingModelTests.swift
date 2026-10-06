@@ -357,43 +357,43 @@ struct NetworkingModelTests {
         #expect(item.numberOfInstances == 0)
     }
 
-    // MARK: - DICOMStudio.PrintPriority
+    // MARK: - Print Priority / Medium Type / Film Size (DICOMNetwork's, P-STUDIO-PRINT-ENUMS)
 
-    @Test("DICOMStudio.PrintPriority all cases have non-empty display names")
+    @Test("DICOMNetwork.PrintPriority all cases have non-empty display names")
     func testPrintPriorityDisplayNames() {
-        for p in DICOMStudio.PrintPriority.allCases { #expect(!p.displayName.isEmpty) }
+        for p in DICOMNetwork.PrintPriority.allCases { #expect(!p.displayName.isEmpty) }
     }
 
-    // MARK: - DICOMStudio.PrintMediumType
-
-    @Test("DICOMStudio.PrintMediumType all cases have non-empty display names")
+    @Test("DICOMNetwork.MediumType all cases have non-empty display names")
     func testPrintMediumTypeDisplayNames() {
-        for m in DICOMStudio.PrintMediumType.allCases { #expect(!m.displayName.isEmpty) }
+        for m in DICOMNetwork.MediumType.allCases { #expect(!m.displayName.isEmpty) }
     }
 
-    @Test("DICOMStudio.PrintMediumType raw values are PS3.3 Table C.13-1 Medium Type Defined Terms (D22: BLU-RAY was not one)")
+    @Test("Medium Type picker values are the 5 PS3.3 2026a Table C.13-1 Defined Terms, MAMMO included (D22)")
     func testPrintMediumTypeTerms() {
-        #expect(DICOMStudio.PrintMediumType.paper.rawValue == "PAPER")
-        #expect(DICOMStudio.PrintMediumType.clearFilm.rawValue == "CLEAR FILM")
-        #expect(DICOMStudio.PrintMediumType.bluFilm.rawValue == "BLUE FILM")
-        #expect(DICOMStudio.PrintMediumType.bluFilm.displayName == "Blue Film")
-        let terms: Set<String> = ["PAPER", "CLEAR FILM", "BLUE FILM", "MAMMO CLEAR FILM", "MAMMO BLUE FILM"]
-        for m in DICOMStudio.PrintMediumType.allCases { #expect(terms.contains(m.rawValue)) }
+        #expect(DICOMNetwork.MediumType.paper.rawValue == "PAPER")
+        #expect(DICOMNetwork.MediumType.clearFilm.rawValue == "CLEAR FILM")
+        #expect(DICOMNetwork.MediumType.blueFilm.rawValue == "BLUE FILM")
+        #expect(DICOMNetwork.MediumType.blueFilm.displayName == "Blue Film")
+        #expect(DICOMNetwork.MediumType.mammoClearFilm.displayName == "Mammo Clear Film")
+        #expect(DICOMNetwork.MediumType.mammoBlueFilm.displayName == "Mammo Blue Film")
+        let terms = ["PAPER", "CLEAR FILM", "BLUE FILM", "MAMMO CLEAR FILM", "MAMMO BLUE FILM"]
+        #expect(DICOMNetwork.MediumType.allCases.map(\.rawValue) == terms)
     }
 
-    @Test("DICOMStudio.PrintPriority raw values are the Table C.13-1 Print Priority terms and map onto DICOMNetwork's")
+    @Test("Print Priority values are the Table C.13-1 Print Priority terms")
     func testPrintPriorityTerms() {
-        #expect(Set(DICOMStudio.PrintPriority.allCases.map(\.rawValue)) == ["HIGH", "MED", "LOW"])
-        for p in DICOMStudio.PrintPriority.allCases {
-            #expect(DICOMNetwork.PrintPriority(rawValue: p.rawValue) != nil)
-        }
+        #expect(DICOMNetwork.PrintPriority.allCases.map(\.rawValue) == ["HIGH", "MED", "LOW"])
+        #expect(DICOMNetwork.PrintPriority.medium.displayName == "Medium")
     }
 
-    @Test("DICOMStudio.PrintFilmSize raw values are the 12 Table C.13-3 Film Size ID terms, the same set as DICOMNetwork.FilmSize")
+    @Test("Film Size values are the 12 Table C.13-3 Film Size ID terms, each with a display name")
     func testPrintFilmSizeTerms() {
-        #expect(Set(DICOMStudio.PrintFilmSize.allCases.map(\.rawValue))
-                == Set(DICOMNetwork.FilmSize.allCases.map(\.rawValue)))
-        #expect(DICOMStudio.PrintFilmSize.allCases.count == 12)
+        #expect(DICOMNetwork.FilmSize.allCases.map(\.rawValue) == [
+            "8INX10IN", "8_5INX11IN", "10INX12IN", "10INX14IN", "11INX14IN", "11INX17IN",
+            "14INX14IN", "14INX17IN", "24CMX24CM", "24CMX30CM", "A4", "A3"])
+        #expect(DICOMNetwork.FilmSize.size14InX17In.displayName == "14\" × 17\"")
+        #expect(Set(DICOMNetwork.FilmSize.allCases.map(\.displayName)).count == 12)
     }
 
     // MARK: - FilmLayout
@@ -432,22 +432,22 @@ struct NetworkingModelTests {
         }
     }
 
-    // MARK: - DICOMStudio.PrintJobStatus
+    // MARK: - NetworkPrintJobState
 
-    @Test("DICOMStudio.PrintJobStatus all cases have non-empty display names and SF symbols")
+    @Test("NetworkPrintJobState all cases have non-empty display names and SF symbols")
     func testPrintJobStatusDisplayNamesAndSymbols() {
-        for status in [DICOMStudio.PrintJobStatus.pending, .printing, .completed, .failed] {
+        for status in [NetworkPrintJobState.pending, .printing, .completed, .failed] {
             #expect(!status.displayName.isEmpty)
             #expect(!status.sfSymbol.isEmpty)
         }
     }
 
-    @Test("DICOMStudio.PrintJobStatus raw values are the PS3.3 Table C.13-8 Execution Status terms (D22)")
+    @Test("NetworkPrintJobState raw values are the PS3.3 Table C.13-8 Execution Status terms (D22)")
     func testPrintJobStatusExecutionStatusTerms() {
-        #expect(DICOMStudio.PrintJobStatus.pending.rawValue == "PENDING")
-        #expect(DICOMStudio.PrintJobStatus.printing.rawValue == "PRINTING")
-        #expect(DICOMStudio.PrintJobStatus.completed.rawValue == "DONE")
-        #expect(DICOMStudio.PrintJobStatus.failed.rawValue == "FAILURE")
+        #expect(NetworkPrintJobState.pending.rawValue == "PENDING")
+        #expect(NetworkPrintJobState.printing.rawValue == "PRINTING")
+        #expect(NetworkPrintJobState.completed.rawValue == "DONE")
+        #expect(NetworkPrintJobState.failed.rawValue == "FAILURE")
     }
 
     @Test("DICOMStudio.MPPSStatus raw values are the PS3.3 C.4.14 Performed Procedure Step Status terms, as DICOMNetwork spells them")

@@ -2,8 +2,10 @@
 // DICOMStudio
 //
 // DICOM Studio — Networking hub view for DICOM network operations
-// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: the pickers enumerate
-// NetworkingModel's enums (Table C.13-1 / C.13-3 terms, verified there) and the MPPS and print rows show those
+// NEMA-verified: 2026a, checked 2026-10-06 — carries no DICOM-standard data of its own: the print pickers enumerate
+// DICOMNetwork's PrintPriority / MediumType / FilmSize (PS3.3 2026a Table C.13-1 / C.13-3 terms, verified in
+// NetworkingModelTests; Medium Type now offers all five terms incl. the two MAMMO ones, P-STUDIO-PRINT-ENUMS),
+// the TLS picker NetworkingModel's TLSMode (PS3.15 2026a B.12 / B.13 profiles), and the MPPS and print rows show those
 // enums' raw values; the form's defaults are port 11112 (PS3.8 2026a 9.1.1 registered port) and the AE title
 // DICOMSTUDIO (PS3.5 Table 6.2-1: 11 of 16 bytes). No DIMSE status is worded here.
 
@@ -13,6 +15,7 @@ import UniformTypeIdentifiers
 import DICOMKit
 import DICOMCore
 
+import DICOMNetwork
 /// Networking hub view providing C-ECHO, C-FIND, C-MOVE/GET, C-STORE,
 /// MWL, MPPS, Print Management, and connection monitoring.
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
@@ -700,7 +703,7 @@ public struct NetworkingView: View {
         return formatter.string(fromByteCount: bytes)
     }
 
-    private func printJobIcon(for status: PrintJobStatus) -> String {
+    private func printJobIcon(for status: NetworkPrintJobState) -> String {
         switch status {
         case .pending:   return "clock"
         case .printing:  return "printer.fill"
@@ -709,7 +712,7 @@ public struct NetworkingView: View {
         }
     }
 
-    private func printJobColor(for status: PrintJobStatus) -> Color {
+    private func printJobColor(for status: NetworkPrintJobState) -> Color {
         switch status {
         case .pending:   return .orange
         case .printing:  return .blue
@@ -985,10 +988,10 @@ struct NewPrintJobSheet: View {
     @State private var label: String = ""
     @State private var selectedServerID: UUID?
     @State private var numberOfCopies: Int = 1
-    @State private var priority: PrintPriority = .med
-    @State private var mediumType: PrintMediumType = .paper
+    @State private var priority: DICOMNetwork.PrintPriority = .medium
+    @State private var mediumType: DICOMNetwork.MediumType = .paper
     @State private var filmLayout: FilmLayout = .standard2x2
-    @State private var filmSize: PrintFilmSize = .size14x17
+    @State private var filmSize: DICOMNetwork.FilmSize = .size14InX17In
     @State private var selectedImageURLs: [URL] = []
     @State private var isFileImporterPresented: Bool = false
     @State private var isPreviewVisible: Bool = false
@@ -1021,13 +1024,13 @@ struct NewPrintJobSheet: View {
                     Stepper("Copies: \(numberOfCopies)", value: $numberOfCopies, in: 1...99)
                         .accessibilityLabel("Number of copies")
                     Picker("Priority", selection: $priority) {
-                        ForEach(PrintPriority.allCases, id: \.self) { p in
+                        ForEach(DICOMNetwork.PrintPriority.allCases, id: \.self) { p in
                             Text(p.displayName).tag(p)
                         }
                     }
                     .accessibilityLabel("Print priority")
                     Picker("Medium", selection: $mediumType) {
-                        ForEach(PrintMediumType.allCases, id: \.self) { m in
+                        ForEach(DICOMNetwork.MediumType.allCases, id: \.self) { m in
                             Text(m.displayName).tag(m)
                         }
                     }
@@ -1039,7 +1042,7 @@ struct NewPrintJobSheet: View {
                     }
                     .accessibilityLabel("Film layout")
                     Picker("Film Size", selection: $filmSize) {
-                        ForEach(PrintFilmSize.allCases, id: \.self) { size in
+                        ForEach(DICOMNetwork.FilmSize.allCases, id: \.self) { size in
                             Text(size.displayName).tag(size)
                         }
                     }
