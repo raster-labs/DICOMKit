@@ -146,6 +146,78 @@ No test or source file changed between `fca194a3` and this run; the XCTest diffe
 | `2ffaa45f` | D9, D10, D11 (Core), D22 (Network), D28, D29, D44, D56 (Kit), D42 (PrintKit), D65 Studio half, D68 (RenderKit) → ✅ with the closing commit; D244, D246 marked void |
 | `1cd0231e` | CLI master table: D85 (had no Status cell), D88, D114, D127, D132, D154 → ✅ (Studio pass) |
 
+## 8. Follow-up 2026-10-06 (owner: complete all open deferred items per recommendation, except D216, D221, D256)
+
+Owner instruction 2026-10-06: "complete all deferred items which are open as per the recommendation and leave D216,
+D221 and D256". P-VIDEO-CONTAINER was approved with it (D237). The 14 P-STUDIO-* items in §6 are **not** covered by the
+instruction (it named deferred rows only) and stay pending. 35 commits, `b34f6ba8` … `15b06782`
+(`git log 5ec7381f..15b06782`); every sha below checked with `git cat-file -e`. Sections 1–7 and Appendix A are the
+audit as written before this follow-up; the report Status cells carry the current state.
+
+### 8.1 Rows and audit findings closed
+
+| Row | Commit | Result |
+|---|---|---|
+| D237 + P-VIDEO-CONTAINER | `7a3aac80` | `VideoContainer.mpegPS` / `.mpegPES` reported for MPEG-2 PS and PES (PS3.5 2026a 8.2.5, 8.2.6) |
+| A1, A2 | `4e5e2a69` | `VideoAudioStreamInfo` / `VideoLevelLimits` classified B1 and NEMA-verified; the 8.2.5 audio citation names its section (PS3.5 8.2.5, 8.2.12, 8.2.7–8.2.11) |
+| A7 | `b34f6ba8` | `Tag+Video.swift` / `TransferSyntax.swift` markers re-checked after merge `1416f7e2`; the two unregistered Fragmentable HEVC UIDs kept (D20 / P2 stands) (PS3.6 Tables 6-1, A-1) |
+| D245 | `005b5ec4` | `AnonymizationProfile.basic` documented: 14 Table E.1-1 rows removed, 641 untouched, not Annex E (PS3.15 Table E.1-1) |
+| D1 remainder + D276 (A5) | `5de7575d` | duplicate `VR.uses4ByteLength` deleted; the PrintService data-set walker uses DICOMCore `VR.uses32BitLength` (OV/SV/UV were read with a 2-byte length) (PS3.5 7.1.2, Tables 7.1-1/7.1-2). D276 added to DICOMNETWORK_STANDARD_IMPLEMENTATION.md |
+| A3 | `4535d37c` | dicom-server comments name (0002,0017) / (0002,0018) per PS3.6 Table 7-1 |
+| D254 | `c9bad73e` | `UPSEvent` marker re-checked; P-EVENT no longer named as pending (PS3.4 Table CC.2.4-1) |
+| D255 | `f4b3bddd` | `UPSState` change-state API + `DICOMwebOptionRefusal` in DICOMWeb (PS3.18 11.7.1.4; PS3.4 Table CC.1.1-2) |
+| D265 | `87bbcbf8` | `DICOMwebOptionRules` (PS3.18 9.1.2.2.1, 9.4.1.2.2, 9.5.1.2.1, 8.3.4.4, 11.7, Table 8.7.4-1) |
+| A4 | `986c517b` | `diff_cli_web.py` reads media types and Change-State targets from DICOMWeb; `text/*` in the help regex; exits 0 |
+| D261 | `cf4667c7` | dicom-send success / warning lines through `NetworkConsole.CStoreOutcome` / `sendFileResult` (failure wording completed in the Studio pass) (PS3.4 Table B.2-1) |
+| D262 | `d7609891` | `NetworkConsole.retrieveFinalResponse` shared by dicom-retrieve and dicom-qr (PS3.4 Tables C.4-2/C.4-3, PS3.7 Table 9.3-10) |
+| D263 | `d2812df4` | `DICOMMPPSService` status / Patient's Sex / birth date / warning line (PS3.3 Tables C.4-14, C.2-3; PS3.5 Table 6.2-1 DA) |
+| D264 | `29496ff0` | `WorklistQueryKeys` SPS Status Defined Terms and warning (PS3.3 Table C.4-10) |
+| D242 | `f1ba662b` | `FilmDestination(catalogToken:)` accepts any BIN_i; dicom-print parses through it (PS3.3 Table C.13-1) |
+| D269 | `cc3c3675` | `VideoOptionConformance`, `AudioChannelSourceOption` in DICOMKit Video (PS3.16 CID 3000; PS3.3 A.32.5–A.32.7, Table C.7-1) |
+| D270 | `4a756536` | `PixelEditInputChecks` next to `PixelEditor` (PS3.3 C.7.6.3.1, C.11.2.1.2) |
+| D275 | `b711104e` | `AnonCLI` in DICOMKit Anonymization (PS3.15 E.3, Table E.1-1a; PS3.10 Table 7.1-1) |
+| D257 | `62b76e1e` | test only: the host is positional since `490e18d3`; generated command checked against 7 DIMSE tool surfaces |
+| D260 | `81349178` | `DICOMwebClientFactory.makeConfiguration(from:timeouts:)` |
+| D259 | `d49d23ac` | `WebUPSState` (internal alias) names `DICOMWeb.UPSState` inside Studio (PS3.3 Table C.30.1-1) |
+| D247, D258, D266 | `4d26acec` | `diff_studio.py` parity keyed by (subcommand, flag), cliMapping tokens counted, `[""] + Expr` pickers parsed; 4 DEFERRED + 5 EXEMPT rows removed |
+| D248 | `923c496e` | `DICOMValidator.iodNameBySOPClassUID` etc. (PS3.6 Table A-1, 7/7) |
+| D249 | `2182f73d` | `ArchiveMatching.studyDateKeyWarning` (PS3.4 C.2.2.2.5.1) |
+| D250 | `aeab8202` | `UIDManager.RootRule` (PS3.5 9.1) |
+| D253 | `6adbe40e` | `DICOMDIRFileSetRules` (PS3.10 8.1, 8.2, 8.5, 8.6) |
+| D267 | `36022531` | `CompressionConsole.NativeTargetSyntax` (PS3.6 Table A-1; PS3.5 A.1–A.5) |
+| D268 | `b281e64f` | `DICOMConverter` accepts the 7 Table A-1 keywords for every caller, `FrameMerger` included (PS3.6 Table A-1) |
+| D243 + A6 (D65 engine half) | `15e74ebc` + Studio pass PENDING_SHA | `DICOMFile` convenience renderers go through `GrayscaleDisplayPipeline` (window in modality units); `DICOMImageExporter.determineModalityWindow` added, `determineWindowSettings` deprecated; `diff_renderkit.py` 0 deferred (PS3.3 C.11.2.1.2.1; PS3.4 N.2). The two Studio callers (`FrameRenderer.swift:288`, `ImageViewerViewModel.swift:1508`) move in the Studio pass |
+| D252 | `be267a71` | `DICOMImageExporter.CineFrameRate` / `BurnedInAnnotation` / `FrameSelection` / `FrameSelectionConflict` / `ApplyWindowDeprecation` (PS3.3 Table C.7-13, C.7-9, Table 10-3) |
+| D251 | `fbf25c1f` | dicom-export bulk exits 1 when any file failed (files without pixel data skipped) |
+| D274 | `46f4a61a` | `ImageConverter.OutputRules` (finalize also covers non-ASCII text in sequence items) (PS3.10 Table 7.1-1; PS3.3 C.12-1, C.12-5) |
+| D273 | `db10d0f3` | dicom-image directory run exits 1 when any image failed (non-images skipped) |
+| D272 | `98e59069` | `EncapsulatedDocumentBuilder.OptionRules`; the extract padding cut follows the engine's Table C.24-2 rule (PS3.3 Table C.24-2, C.12-1) |
+| D271 | `15b06782` | dicom-pdf directory runs exit 1 when any file failed (the Studio pass makes `--extract` skip non-documents) |
+| Studio copies of D248–D275 (and D243 / A6 callers) | PENDING_SHA | DICOMStudio CLI Workshop copies replaced by the engine symbols; D261 failure wording and D271 `--extract` skip completed in CLI and Workshop |
+
+Left open by owner decision: **D216** (J2KSwift upstream), **D221** (DICOMToolbox), **D256** (`dicom-cloud` product).
+Still void: D244, D246. Every other row D1–D276 is ✅.
+
+### 8.2 Script results after phase 1
+
+All with `--nema 2026a`: `diff_kit.py` 0 wrong; `diff_network.py` 0; `diff_web.py` 0; `diff_printkit.py` 0;
+`diff_renderkit.py` 17 ok, 0 failing, 0 deferred; `diff_cli.py` 0 FAIL (42 tools); `diff_cli_web.py` 0 FAIL;
+`check_nema_markers.py` exits 0 on every module (DICOMCore 108/108, DICOMDictionary 5/5, DICOMKit 185/185,
+DICOMNetwork 66/66, DICOMWeb 57/57, DICOMPrintKit 31/31, DICOMRenderKit 10/10, `Sources/dicom-*` 100/100).
+`diff_studio.py` is re-run in the Studio pass: PENDING_SHA. Full `swift test` after the Studio pass: PENDING_TEST.
+
+### 8.3 Resolution of A1–A8
+
+| # | Resolution |
+|---|---|
+| A1, A2 | Done `4e5e2a69` (merge `1416f7e2` now recorded in the DICOMKit report's Progress log) |
+| A3 | Done `4535d37c` |
+| A4 | Done `986c517b` |
+| A5 | Done `5de7575d`; the PrintService half recorded as new row D276 (DICOMNetwork, Medium); D1 amended in the DICOMCore and DICOMNetwork reports |
+| A6 | Engine half done `15e74ebc` (`determineModalityWindow`, `determineWindowSettings` deprecated, `diff_renderkit` 0 deferred); Studio callers in the Studio pass PENDING_SHA |
+| A7 | Done `b34f6ba8`; Progress-log lines added to the DICOMCore and DICOMDictionary reports; the two unregistered HEVC UIDs kept (D20 / P2) |
+| A8 | All 11 shas found (`git log --grep` / `git log -S`) and added to every report's Status cell for the row: D6 `4f29b7b2`, D7 `4f29b7b2`, D8 `a08258f9`, D20 `f5aa6d0a`, D25 `511ac8ab`, D30 `535d6093`, D39 `bbe90b0a` + `37e59463`, D40 `8dada6c0`, D41 `8dada6c0`, D43 `d411e1ed`, D85 `d716de90`. None left unchanged |
+
 ## Appendix A — consolidated deferred-row table (275 rows)
 
 Status is taken from the row in the report whose table has a Status column (the master table of the report that owns the closure). "Reports" lists every report the ID appears in. "Commit" lists every sha named in any status cell for the ID.
