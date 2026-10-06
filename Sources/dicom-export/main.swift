@@ -599,6 +599,11 @@ extension DICOMExport {
 
             print(ExportConsole.bulkSummaryLine(success: successCount, total: fileCount, failed: errorCount))
             if burnedIn > 0 { DICOMImageExporter.BurnedInAnnotation.printWarning(DICOMImageExporter.BurnedInAnnotation.summaryWarning(count: burnedIn)) }
+            // D251: like dicom-convert's directory run (P-CONVERT-EXIT), a run with any
+            // failed file exits 1 after the summary (and the Burned In Annotation warning).
+            if errorCount > 0 {
+                throw ExitCode.failure
+            }
             #else
             throw ExportError.unsupportedPlatform
             #endif

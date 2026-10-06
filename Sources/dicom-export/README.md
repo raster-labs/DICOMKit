@@ -101,6 +101,11 @@ dicom-export bulk input_dir/ --output output_dir/ --organize-by patient --recurs
 dicom-export bulk input_dir/ --output output_dir/ --organize-by series --recursive --embed-metadata --verbose
 ```
 
+`bulk` exits with status 1 after its summary line when any file failed to export (files
+without Pixel Data are skipped, not failed), like `dicom-convert`'s directory run; it exits 0
+only when every file exported or was skipped. Until 2026-10-06 it exited 0 whatever the
+per-file outcomes (D251).
+
 ## Supported EXIF Field Mappings
 
 `--exif-fields` takes these PS3.6 keywords (case-insensitive); any other keyword is reported with a warning and not embedded.
