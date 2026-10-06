@@ -107,13 +107,13 @@ extension DICOMDCMDIR {
             let fsID: String
             if let id = fileSetID {
                 // P-DCMDIR-FSID: refuse (exit 1) instead of writing a non-conformant ID.
-                if let refusal = FileSetRules.fileSetIDRefusal(id) {
+                if let refusal = DICOMDIRFileSetRules.fileSetIDRefusal(id) {
                     FileHandle.standardError.write(Data("Error: \(refusal)\n".utf8))
                     throw ExitCode.failure
                 }
                 fsID = id
             } else {
-                fsID = FileSetRules.defaultFileSetID(fromDirectoryName: inputURL.lastPathComponent)
+                fsID = DICOMDIRFileSetRules.defaultFileSetID(fromDirectoryName: inputURL.lastPathComponent)
             }
             
             // Parse profile
@@ -123,7 +123,7 @@ extension DICOMDCMDIR {
             }
             // P-DCMDIR-PROFILE: a pre-2026-09-25 spelling still works, with a note naming the
             // PS3.11 identifier that is written.
-            if let note = FileSetRules.profileDeprecationNote(requested: profile, resolved: dicomProfile) {
+            if let note = DICOMDIRFileSetRules.profileDeprecationNote(requested: profile, resolved: dicomProfile) {
                 FileHandle.standardError.write(Data((note + "\n").utf8))
             }
             
@@ -217,7 +217,7 @@ extension DICOMDCMDIR {
             do {
                 directory = try DICOMDIRReader.read(from: fileURL)
             } catch {
-                print("❌ Failed to read DICOMDIR: \(FileSetRules.describe(error))")
+                print("❌ Failed to read DICOMDIR: \(DICOMDIRFileSetRules.describe(error))")
                 throw ExitCode(1)
             }
             
@@ -225,12 +225,12 @@ extension DICOMDCMDIR {
             do {
                 try directory.validate(checkFileExistence: checkFiles)
             } catch {
-                print("❌ Validation failed: \(FileSetRules.describe(error))")
+                print("❌ Validation failed: \(DICOMDIRFileSetRules.describe(error))")
                 throw ExitCode(1)
             }
 
             // File-set ID and File ID rules (PS3.10 8.1, 8.2, 8.5, 8.6; PS3.3 Table F.3-3)
-            let findings = FileSetRules.findings(
+            let findings = DICOMDIRFileSetRules.findings(
                 for: directory, mediaFolder: fileURL.deletingLastPathComponent(), checkFiles: checkFiles)
             if !findings.isEmpty {
                 for finding in findings { print("❌ \(finding)") }
@@ -280,7 +280,7 @@ extension DICOMDCMDIR {
             do {
                 directory = try DICOMDIRReader.read(from: fileURL)
             } catch {
-                print("Error reading DICOMDIR: \(FileSetRules.describe(error))")
+                print("Error reading DICOMDIR: \(DICOMDIRFileSetRules.describe(error))")
                 throw ExitCode(1)
             }
             

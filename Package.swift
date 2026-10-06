@@ -810,6 +810,7 @@ let package = Package(
                 "Validation/IODNameTableTests.swift",
                 "ArchiveStudyDateWarningTests.swift",
                 "UIDRootRuleTests.swift",
+                "DICOMDIRFileSetRulesTests.swift",
                 "CompressionManagerXYBTests.swift",
                 // Lossy output new SOP Instance UID, J2K/JPEG colour labels, File Meta UI padding,
                 // Explicit VR Big Endian values, nested --strip-private, per-frame rescale
