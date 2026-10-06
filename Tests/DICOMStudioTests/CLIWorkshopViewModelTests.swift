@@ -634,9 +634,9 @@ struct CLIWorkshopViewModelTests {
         #expect(CLIWorkshopViewModel.resolveModalityOption("", strict: true, verbose: false).error == nil)
     }
 
-    @Test("dicom-send classes a C-STORE response per PS3.4 Table B.2-1: 0000 stored, B000/B006/B007 stored with warning, A7xx/A9xx/Cxxx/0122 not stored")
+    @Test("dicom-send classes a C-STORE response per PS3.4 Table B.2-1 (NetworkConsole.CStoreOutcome, D261): 0000 stored, B000/B006/B007 stored with warning, A7xx/A9xx/Cxxx/0122 not stored")
     func sendStoreOutcomeClasses() {
-        typealias Outcome = CLIWorkshopViewModel.WorkshopStoreOutcome
+        typealias Outcome = NetworkConsole.CStoreOutcome
         #expect(Outcome(status: .from(0x0000)) == .stored)
         for warning: UInt16 in [0xB000, 0xB006, 0xB007] {
             #expect(Outcome(status: .from(warning)) == .storedWithWarning, Comment(rawValue: String(warning, radix: 16)))
@@ -644,10 +644,11 @@ struct CLIWorkshopViewModelTests {
         for failure: UInt16 in [0xA700, 0xA900, 0xC000, 0xC123, 0x0122] {
             #expect(Outcome(status: .from(failure)) == .failed, Comment(rawValue: String(failure, radix: 16)))
         }
-        // The CLI's SendError texts, printed as `Error: …`.
-        #expect(CLIWorkshopViewModel.sendStoreFailedText(.from(0xA700)).hasSuffix(" — not stored (PS3.4 Table B.2-1)"))
-        #expect(CLIWorkshopViewModel.sendStoreFailedText(.from(0xA700)).hasPrefix("C-STORE response status "))
-        #expect(CLIWorkshopViewModel.sendPartialFailureText(succeeded: 2, failed: 1) == "Send completed with 2 succeeded and 1 failed")
+        // The texts dicom-send prints (D261): the ❌ line in the Table B.2-1 C-STORE wording and the
+        // partial-failure error, printed as `Error: …`.
+        #expect(NetworkConsole.sendFileResultSuffix(success: false, rtt: 0, error: NetworkConsole.sendStoreFailedText(status: .from(0xA700)))
+                == " ❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)\n")
+        #expect(NetworkConsole.sendPartialFailureText(succeeded: 2, failed: 1) == "Send completed with 2 succeeded and 1 failed")
     }
 
     @Test("dicom-retrieve / dicom-qr --priority words → Priority (0000,0700) LOW 0002H / MEDIUM 0000H / HIGH 0001H (PS3.7 Tables 9.3-9 / 9.3-6)")
@@ -687,15 +688,15 @@ struct CLIWorkshopViewModelTests {
 
     @Test("C-MOVE / C-GET final response: success only for 0000 with no failed sub-operations (PS3.4 C.4.2.2.1); failures worded by DIMSEServiceStatusText (Tables C.4-2 / C.4-3) with the PS3.7 counters")
     func retrieveCheckTexts() {
-        typealias VM = CLIWorkshopViewModel
+        typealias VM = NetworkConsole
         let ok = RetrieveResult(status: .from(0x0000), progress: RetrieveProgress(completed: 3))
-        #expect(VM.retrieveCheck(ok, service: .cMove).failure == nil)
-        #expect(VM.retrieveCheck(ok, service: .cMove).lines.isEmpty)
-        #expect(VM.qrRetrieveCheck(ok, service: .cGet).failure == nil)
+        #expect(VM.retrieveFinalResponse(ok, service: .cMove).failure == nil)
+        #expect(VM.retrieveFinalResponse(ok, service: .cMove).lines.isEmpty)
+        #expect(VM.retrieveFinalResponse(ok, service: .cGet).failure == nil)
 
         let warning = RetrieveResult(status: .from(0xB000), progress: RetrieveProgress(completed: 2, failed: 1),
                                      failedSOPInstanceUIDs: ["1.2.3"])
-        let check = VM.retrieveCheck(warning, service: .cMove)
+        let check = VM.retrieveFinalResponse(warning, service: .cMove)
         let described = DIMSEServiceStatusText.describe(.from(0xB000), service: .cMove)
         let counts = DIMSEServiceStatusText.subOperationCounts(warning.progress)
         #expect(check.lines == ["Failed SOP Instance UID List (0008,0058), 1 UID(s):", "  1.2.3",
@@ -704,25 +705,27 @@ struct CLIWorkshopViewModelTests {
         #expect(described.hasPrefix("Warning (0xB000): "))
         #expect(counts == "Number of Completed Sub-operations: 2, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 0")
 
-        let qr = VM.qrRetrieveCheck(warning, service: .cGet)
+        let qr = VM.retrieveFinalResponse(warning, service: .cGet)
         let describedGet = DIMSEServiceStatusText.describe(.from(0xB000), service: .cGet)
-        #expect(qr.lines == ["  Failed SOP Instance UID List (0008,0058):", "    1.2.3"])
-        #expect(qr.failure == "Retrieval failed: C-GET final response " + describedGet + " (" + counts + "); Failed SOP Instance UID List (0008,0058): 1.2.3")
+        // dicom-qr reports in dicom-retrieve's wording since D262.
+        #expect(qr.lines == ["Failed SOP Instance UID List (0008,0058), 1 UID(s):", "  1.2.3",
+                             "Final C-GET response: " + describedGet + " — " + counts])
+        #expect(qr.failure == "C-GET final response " + describedGet + " (" + counts + "); Failed SOP Instance UID List (0008,0058): 1.2.3")
 
         // A failed sub-operation makes a 0000 status a failure too (PS3.4 C.4.2.2.1).
         let partial = RetrieveResult(status: .from(0x0000), progress: RetrieveProgress(completed: 1, failed: 1))
-        #expect(VM.retrieveCheck(partial, service: .cGet).failure != nil)
+        #expect(VM.retrieveFinalResponse(partial, service: .cGet).failure != nil)
     }
 
     @Test("dicom-mwl --sps-status: a PS3.3 Table C.4-10 Defined Term is silent; a PPS word (Table C.4-14) gets the CLI's warning")
     func mwlSPSStatusWarning() {
-        #expect(CLIWorkshopViewModel.mwlScheduledProcedureStepStatusDefinedTerms == ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"])
-        for term in CLIWorkshopViewModel.mwlScheduledProcedureStepStatusDefinedTerms {
-            #expect(CLIWorkshopViewModel.mwlSPSStatusWarning(term) == nil, Comment(rawValue: term))
+        #expect(WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms == ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"])
+        for term in WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms {
+            #expect(WorklistQueryKeys.spsStatusWarning(term) == nil, Comment(rawValue: term))
         }
-        #expect(CLIWorkshopViewModel.mwlSPSStatusWarning("") == nil)
-        #expect(CLIWorkshopViewModel.mwlSPSStatusWarning(nil) == nil)
-        let warning = CLIWorkshopViewModel.mwlSPSStatusWarning("COMPLETED")
+        #expect(WorklistQueryKeys.spsStatusWarning("") == nil)
+        #expect(WorklistQueryKeys.spsStatusWarning(nil) == nil)
+        let warning = WorklistQueryKeys.spsStatusWarning("COMPLETED")
         #expect(warning == "warning: --sps-status 'COMPLETED' is not a Scheduled Procedure Step Status Defined Term "
                 + "(PS3.3 Table C.4-10: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED); "
                 + "it is sent as given and will match only an SCP that uses that private term\n")
@@ -730,22 +733,24 @@ struct CLIWorkshopViewModelTests {
 
     @Test("dicom-mpps value rules: status words (PS3.3 Table C.4-14), Patient's Sex M/F/O (Table C.2-3), birth date DA (PS3.5 Table 6.2-1), warning wording via DIMSEServiceStatusText")
     func mppsValueRules() {
-        typealias VM = CLIWorkshopViewModel
-        #expect(VM.mppsStatusOption("IN PROGRESS") == .inProgress)
-        #expect(VM.mppsStatusOption("in_progress") == .inProgress)
-        #expect(VM.mppsStatusOption("completed") == .completed)
-        #expect(VM.mppsStatusOption("DISCONTINUED") == .discontinued)
-        #expect(VM.mppsStatusOption("STARTED") == nil)
-        #expect(VM.mppsPatientSex("f").value == "F")
-        #expect(VM.mppsPatientSex("").value == nil && VM.mppsPatientSex("").error == nil)
-        #expect(VM.mppsPatientSex("U").error == "--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got 'U'")
-        #expect(VM.mppsBirthDate("19800115").value == "19800115")
-        #expect(VM.mppsBirthDate("1980-01-15").error == "--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '1980-01-15'")
-        let line = VM.mppsWarningLine(.from(0x0107), operation: "N-SET")
+        typealias VM = DICOMMPPSService
+        #expect(VM.parseStatus("IN PROGRESS") == .inProgress)
+        #expect(VM.parseStatus("in_progress") == .inProgress)
+        #expect(VM.parseStatus("completed") == .completed)
+        #expect(VM.parseStatus("DISCONTINUED") == .discontinued)
+        #expect(VM.parseStatus("STARTED") == nil)
+        #expect(VM.invalidStatusMessage == "Invalid status. Use 'IN PROGRESS', 'COMPLETED', or 'DISCONTINUED'")
+        #expect(VM.canonicalPatientSex("f") == "F")
+        #expect(VM.canonicalPatientSex("U") == nil)
+        #expect(VM.patientSexErrorMessage("U") == "--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got 'U'")
+        #expect(VM.isValidBirthDate("19800115"))
+        #expect(!VM.isValidBirthDate("1980-01-15"))
+        #expect(VM.birthDateErrorMessage("1980-01-15") == "--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '1980-01-15'")
+        let line = VM.warningLine(.from(0x0107), operation: "N-SET")
         #expect(line == "warning: SCP completed the N-SET with "
                 + DIMSEServiceStatusText.describe(.from(0x0107), service: .mppsNSet)
                 + " — attributes may have been coerced or dropped\n")
-        #expect(VM.mppsWarningLine(.from(0x0107), operation: "N-CREATE").contains(DIMSEServiceStatusText.describe(.from(0x0107), service: .dimseN)))
+        #expect(VM.warningLine(.from(0x0107), operation: "N-CREATE").contains(DIMSEServiceStatusText.describe(.from(0x0107), service: .dimseN)))
     }
 
     @Test("dicom-wado ups --state: IN PROGRESS / COMPLETED / CANCELED are Change State targets (PS3.18 11.7.1.4); SCHEDULED is refused with the CLI's text (PS3.4 Table CC.1.1-2, C303H), exit 1")

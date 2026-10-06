@@ -2122,8 +2122,8 @@ private func executeDicomDcmdir() async {
     /// ModalityOptionValidator (`--strict-modality`), `--conversion-type` (PS3.3 2026a Table C.8-24),
     /// `--burned-in-annotation` and `--hl7-instance-identifier` (Table C.24-2), Encapsulated Document
     /// Length (0042,0015) and Specific Character Set (0008,0005) as dicom-pdf writes them and the
-    /// padding cut on extraction (D182) through the text-identical `WorkshopPDFEncapsulation` mirror
-    /// (equality checked by Scripts/diff_studio_g1.py). Exit codes are the CLI's: 64 for a usage
+    /// padding cut on extraction (D182) through DICOMKit `EncapsulatedDocumentBuilder.OptionRules`, the
+    /// calls dicom-pdf makes (D272). Exit codes are the CLI's: 64 for a usage
     /// error (ArgumentParser ValidationError), 1 for any other failure, 0 for a directory run.
     private func executeDicomPdf() async {
         let inputPath = paramValue("inputPath")
@@ -2437,8 +2437,8 @@ private func executeDicomDcmdir() async {
     /// Edits pixel data in a DICOM file (mask / crop / window-level / invert) by running dicom-pixedit's
     /// own run() in-process (Sources/dicom-pixedit/main.swift): the shared DICOMKit `PixelEditor` with the
     /// `dicom-pixedit` derivation prefix (the output is a Derived Image, PS3.3 C.7.6.1.1.2), the shared
-    /// `PixelEditConsole` lines, and the P-PIXEDIT-RANGE refusals of the CLI-local `DerivedImage`
-    /// (mirrored text-identically by `WorkshopDerivedImage`; equality checked by Scripts/diff_studio_g1.py).
+    /// `PixelEditConsole` lines, and the P-PIXEDIT-RANGE refusals of DICOMKit `PixelEditInputChecks`,
+    /// the checks dicom-pixedit runs (D270).
     /// dicom-pixedit's `ValidationError` is its own type, so every refusal exits 1, as here; a value
     /// ArgumentParser cannot parse is its two-line message (exit 64).
     private func executeDicomPixedit() async {
@@ -4365,9 +4365,9 @@ private func executeDicomStudy() async {
     /// dicom-image's own run() in-process (Sources/dicom-image/main.swift): the shared DICOMKit
     /// `ImageConverter` and `ImageConsole`, `--conversion-type` (PS3.3 2026a Table C.8-24),
     /// `--strict-modality` through the shared `ModalityOptionValidator`, the P-IMAGE-VR refusals
-    /// (PS3.5 2026a Table 6.2-1 / Section 9) and the `SCOutput.finalize` post-processing ((0002,0003)
-    /// = (0008,0018), Specific Character Set ISO_IR 192) through the text-identical `WorkshopSCOutput`
-    /// mirror (equality checked by Scripts/diff_studio_g1.py). Exit codes are the CLI's: 64 for a
+    /// (PS3.5 2026a Table 6.2-1 / Section 9) and the `finalize` post-processing ((0002,0003)
+    /// = (0008,0018), Specific Character Set ISO_IR 192) through DICOMKit `ImageConverter.OutputRules`,
+    /// the calls dicom-image makes (D274). Exit codes are the CLI's: 64 for a
     /// usage error (ArgumentParser ValidationError), 1 for a refused value or a failed single file,
     /// 0 for a directory / TIFF run whatever its per-file outcomes.
     private func executeDicomImage() async {
@@ -5267,8 +5267,8 @@ case "dicom-study":
     /// the shared DICOMKit `DICOMConverter` / `DICOMImageExporter` / `ConvertConsole`, the CLI's
     /// usage refusals (exit 64), Frame numbers from 1 (`--frame-number`, PS3.3 2026a Table 10-3) with
     /// the deprecated 0-based `--frame` and its stderr note (P-CONVERT-FRAME), the reassigned Table A-1
-    /// keyword note (P-CONVERT-TS-KEYWORDS, `TransferSyntax.reassignedKeywordNote`), the CLI-local
-    /// `TransferSyntaxKeywords` through the text-identical `WorkshopTransferSyntaxKeywords` mirror, and
+    /// keyword note (P-CONVERT-TS-KEYWORDS, `TransferSyntax.reassignedKeywordNote`), the Table A-1
+    /// keywords of `DICOMConverter.additionalTableA1Keywords` (D268), and
     /// a directory run that exits 1 when any file failed (P-CONVERT-EXIT). The console carries only
     /// what the CLI prints: the transcode line, the batch lines and `ConvertConsole.failureReport`.
     private func executeDicomConvert() async {
@@ -5561,8 +5561,8 @@ case "dicom-study":
     }
 
     /// Parses a `--transfer-syntax` token exactly as dicom-convert does: the shared DICOMConverter
-    /// catalog (UID / CamelCase / kebab / short aliases), then the Table A-1 keywords of the CLI-local
-    /// TransferSyntaxKeywords (mirrored), with the CLI's refusal text.
+    /// catalog (UID / CamelCase / kebab / short aliases and the Table A-1 keywords of
+    /// `additionalTableA1Keywords`, D268), with the CLI's refusal text.
     private func parseTransferSyntax(_ name: String) throws -> SelectableEncoding {
         guard let encoding = DICOMConverter.resolveTargetEncoding(name) else {
             throw ConvertError.unknownTransferSyntax(name)
@@ -8581,36 +8581,6 @@ case "dicom-study":
 
     // MARK: - C-STORE Execution (dicom-send)
 
-    /// How a C-STORE response status is reported, per PS3.4 2026a Table B.2-1 — the
-    /// same three classes as dicom-send's StoreOutcome: Success (0000) and the Warning
-    /// class (B000 / B006 / B007) mean the SCP stored the SOP Instance; the Failure class
-    /// (A7xx, A9xx, Cxxx, 0122) means it was not stored and counts as a failed transfer.
-    enum WorkshopStoreOutcome: Equatable {
-        case stored
-        case storedWithWarning
-        case failed
-
-        init(status: DIMSEStatus) {
-            if status.isSuccess {
-                self = .stored
-            } else if status.isWarning {
-                self = .storedWithWarning
-            } else {
-                self = .failed
-            }
-        }
-    }
-
-    /// dicom-send's SendError.storeFailed text for a Failure-class C-STORE response.
-    nonisolated static func sendStoreFailedText(_ status: DIMSEStatus) -> String {
-        "C-STORE response status \(status) — not stored (PS3.4 Table B.2-1)"
-    }
-
-    /// dicom-send's SendError.partialFailure text (printed as `Error: …`, exit 1).
-    nonisolated static func sendPartialFailureText(succeeded: Int, failed: Int) -> String {
-        "Send completed with \(succeeded) succeeded and \(failed) failed"
-    }
-
     /// Performs a real C-STORE to send DICOM files to the configured server.
     private func executeDicomSend() async {
         let hostValue = paramValue("host")
@@ -8802,8 +8772,8 @@ case "dicom-study":
                         }
                         // A Failure-class status (PS3.4 Table B.2-1) is not stored: the
                         // CLI throws SendError.storeFailed and retries (sendFileWithRetry).
-                        if WorkshopStoreOutcome(status: result.status) == .failed {
-                            lastError = Self.sendStoreFailedText(result.status)
+                        if NetworkConsole.CStoreOutcome(status: result.status) == .failed {
+                            lastError = NetworkConsole.sendStoreFailedText(status: result.status)
                             continue
                         }
                         stored = result
@@ -8820,7 +8790,7 @@ case "dicom-study":
                     totalBytesTransferred += fileData.count
                     appendConsoleOutput(NetworkConsole.sendFileResultSuffix(
                         success: true, rtt: result.roundTripTime, error: nil))
-                    if WorkshopStoreOutcome(status: result.status) == .storedWithWarning {
+                    if NetworkConsole.CStoreOutcome(status: result.status) == .storedWithWarning {
                         // PS3.4 Table B.2-1 Warning class: stored, but the SCP reports a
                         // deviation (coercion, discarded elements, SOP Class mismatch).
                         warningCount += 1
@@ -8850,7 +8820,7 @@ case "dicom-study":
                          output: "\(successCount)/\(fileEntries.count) files sent")
         } else {
             // SendError.partialFailure → `Error: …`, exit 1 (the CLI's exit rule).
-            refuse(Self.sendPartialFailureText(succeeded: successCount, failed: failureCount), exitCode: 1)
+            refuse(NetworkConsole.sendPartialFailureText(succeeded: successCount, failed: failureCount), exitCode: 1)
         }
     }
 
@@ -8899,51 +8869,6 @@ case "dicom-study":
         if let seriesUID { keys = keys.seriesInstanceUID(seriesUID) }
         if let sopUID { keys = keys.sopInstanceUID(sopUID) }
         return keys
-    }
-
-    /// dicom-retrieve's RetrieveExecutor.checkResult: the Failed SOP Instance UID List
-    /// (0008,0058) lines, then — unless the result is a full success (status 0000 and no
-    /// failed sub-operations, PS3.4 C.4.2.2.1 / C.4.3.2.1) — the "Final … response" line
-    /// worded per PS3.4 2026a Table C.4-2 (C-MOVE) / C.4-3 (C-GET) via
-    /// DIMSEServiceStatusText and the counters per PS3.7 Tables 9.3-10 / 9.3-7, plus the
-    /// RetrieveError.retrievalFailed text the CLI exits 1 with.
-    nonisolated static func retrieveCheck(_ result: RetrieveResult, service: DIMSEStatusService)
-        -> (lines: [String], failure: String?) {
-        var lines: [String] = []
-        if !result.failedSOPInstanceUIDs.isEmpty {
-            lines.append("Failed SOP Instance UID List (0008,0058), \(result.failedSOPInstanceUIDs.count) UID(s):")
-            for uid in result.failedSOPInstanceUIDs { lines.append("  \(uid)") }
-        }
-        if result.isSuccess { return (lines, nil) }
-        let described = DIMSEServiceStatusText.describe(result.status, service: service)
-        let counts = DIMSEServiceStatusText.subOperationCounts(result.progress)
-        lines.append("Final \(service.rawValue) response: " + described + " — " + counts)
-        var text = "\(service.rawValue) final response " + described + " (" + counts + ")"
-        if !result.failedSOPInstanceUIDs.isEmpty {
-            text += "; Failed SOP Instance UID List (0008,0058): " + result.failedSOPInstanceUIDs.joined(separator: ", ")
-        }
-        return (lines, text)
-    }
-
-    /// dicom-qr's RetrieveExecutor.checkRetrieveResult: the stderr Failed SOP Instance UID
-    /// List block and the DICOMQRError.retrievalFailed text ("Retrieval failed: …") for a
-    /// final response that is not a full success.
-    nonisolated static func qrRetrieveCheck(_ result: RetrieveResult, service: DIMSEStatusService)
-        -> (lines: [String], failure: String?) {
-        if result.isSuccess { return ([], nil) }
-        let summary = "\(service.rawValue) final response "
-            + DIMSEServiceStatusText.describe(result.status, service: service)
-            + " (" + DIMSEServiceStatusText.subOperationCounts(result.progress) + ")"
-        var lines: [String] = []
-        if !result.failedSOPInstanceUIDs.isEmpty {
-            lines.append("  Failed SOP Instance UID List (0008,0058):")
-            for uid in result.failedSOPInstanceUIDs { lines.append("    \(uid)") }
-        }
-        var text = "Retrieval failed: \(summary)"
-        if !result.failedSOPInstanceUIDs.isEmpty {
-            text += "; Failed SOP Instance UID List (0008,0058): " + result.failedSOPInstanceUIDs.joined(separator: ", ")
-        }
-        return (lines, text)
     }
 
     /// Performs a C-MOVE or C-GET retrieval from the configured server — the in-app
@@ -9104,7 +9029,7 @@ case "dicom-study":
                     failed: result.progress.failed,
                     warning: result.progress.warning,
                     isSuccess: result.isSuccess))
-                let check = Self.retrieveCheck(result, service: .cMove)
+                let check = NetworkConsole.retrieveFinalResponse(result, service: .cMove)
                 for line in check.lines { appendConsoleOutput(line + "\n") }
                 if let failure = check.failure {
                     refuse(failure, exitCode: 1)
@@ -9153,7 +9078,7 @@ case "dicom-study":
                 appendConsoleOutput(NetworkConsole.cGetSummary(received: receivedCount))
                 // PS3.4 C.4.3.2.1: same success rule as C-MOVE (Table C.4-3 wording).
                 if let result = finalResult {
-                    let check = Self.retrieveCheck(result, service: .cGet)
+                    let check = NetworkConsole.retrieveFinalResponse(result, service: .cGet)
                     for line in check.lines { appendConsoleOutput(line + "\n") }
                     if let failure = check.failure {
                         refuse(failure, exitCode: 1)
@@ -9298,7 +9223,7 @@ case "dicom-study":
                                     failed: result.progress.failed,
                                     warning: result.progress.warning,
                                     isSuccess: result.isSuccess)
-                                let check = Self.retrieveCheck(result, service: .cMove)
+                                let check = NetworkConsole.retrieveFinalResponse(result, service: .cMove)
                                 text += check.lines.map { $0 + "\n" }.joined()
                                 return BulkStudyOutcome(
                                     index: batchStart + offset, consoleText: text,
@@ -9335,7 +9260,7 @@ case "dicom-study":
                                 var text = NetworkConsole.cGetSummary(received: savedPaths.count)
                                 var failure: String?
                                 if let result = finalResult {
-                                    let check = Self.retrieveCheck(result, service: .cGet)
+                                    let check = NetworkConsole.retrieveFinalResponse(result, service: .cGet)
                                     text += check.lines.map { $0 + "\n" }.joined()
                                     failure = check.failure
                                 }
@@ -9744,7 +9669,7 @@ case "dicom-study":
                 let moveResult = try await DICOMRetrieveService.move(
                     host: host, port: port, configuration: configuration,
                     keys: keys, moveDestination: moveDest, onProgress: { _ in })
-                let check = Self.qrRetrieveCheck(moveResult, service: .cMove)
+                let check = NetworkConsole.retrieveFinalResponse(moveResult, service: .cMove)
                 return QRStudyRetrieveOutcome(success: check.failure == nil, missingStudyUID: false,
                                               lines: check.lines, error: check.failure, savedPaths: [])
             }
@@ -9775,7 +9700,7 @@ case "dicom-study":
                 }
             }
             if let finalResult {
-                let check = Self.qrRetrieveCheck(finalResult, service: .cGet)
+                let check = NetworkConsole.retrieveFinalResponse(finalResult, service: .cGet)
                 return QRStudyRetrieveOutcome(success: check.failure == nil, missingStudyUID: false,
                                               lines: check.lines, error: check.failure, savedPaths: savedPaths)
             }
@@ -9898,22 +9823,6 @@ case "dicom-study":
 
     // MARK: - MWL Query (C-FIND)
 
-    /// Scheduled Procedure Step Status (0040,0020) Defined Terms, PS3.3 2026a Table C.4-10 —
-    /// dicom-mwl's scheduledProcedureStepStatusDefinedTerms (CLI-local; text-identical).
-    nonisolated static let mwlScheduledProcedureStepStatusDefinedTerms: [String] =
-        ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"]
-
-    /// dicom-mwl's spsStatusWarning: the warning for a `--sps-status` value outside Table
-    /// C.4-10 (almost always a Performed Procedure Step Status of Table C.4-14 typed by
-    /// mistake, which matches nothing), or nil when the value is a Defined Term (or absent).
-    nonisolated static func mwlSPSStatusWarning(_ value: String?) -> String? {
-        guard let value, !value.isEmpty,
-              !mwlScheduledProcedureStepStatusDefinedTerms.contains(value) else { return nil }
-        return "warning: --sps-status '\(value)' is not a Scheduled Procedure Step Status Defined Term "
-            + "(PS3.3 Table C.4-10: \(mwlScheduledProcedureStepStatusDefinedTerms.joined(separator: ", "))); "
-            + "it is sent as given and will match only an SCP that uses that private term\n"
-    }
-
     private func executeDicomMWLQuery(
         host: String, port: UInt16,
         callingAET: String, calledAET: String,
@@ -9952,7 +9861,7 @@ case "dicom-study":
         }
         modality = resolved.value
         for line in resolved.lines { appendConsoleOutput(line + "\n") }
-        if let warning = Self.mwlSPSStatusWarning(spsStatus) {
+        if let warning = WorklistQueryKeys.spsStatusWarning(spsStatus) {
             appendConsoleOutput(warning)
         }
 
@@ -10319,46 +10228,6 @@ case "dicom-study":
 
     // MARK: - MPPS Execution (dicom-mpps)
 
-    /// dicom-mpps' parseStatus words: IN PROGRESS (space optional or `_`), COMPLETED,
-    /// DISCONTINUED (PS3.3 Table C.4-14 Enumerated Values), case-insensitive; nil otherwise.
-    nonisolated static func mppsStatusOption(_ raw: String) -> DICOMNetwork.MPPSStatus? {
-        switch raw.uppercased().replacingOccurrences(of: " ", with: "") {
-        case "INPROGRESS", "IN_PROGRESS": return .inProgress
-        case "COMPLETED": return .completed
-        case "DISCONTINUED": return .discontinued
-        default: return nil
-        }
-    }
-
-    /// Patient's Sex (0010,0040) Enumerated Values, PS3.3 2026a Table C.2-3: M, F, O
-    /// (dicom-mpps validatePatientSex; case-insensitive input is upper-cased).
-    nonisolated static func mppsPatientSex(_ value: String) -> (value: String?, error: String?) {
-        guard !value.isEmpty else { return (nil, nil) }
-        let upper = value.trimmingCharacters(in: .whitespaces).uppercased()
-        guard ["M", "F", "O"].contains(upper) else {
-            return (nil, "--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got '\(value)'")
-        }
-        return (upper, nil)
-    }
-
-    /// `--patient-birth-date` is a DA value YYYYMMDD (PS3.5 Table 6.2-1: 8 bytes fixed,
-    /// digits only) — dicom-mpps validateBirthDate.
-    nonisolated static func mppsBirthDate(_ value: String) -> (value: String?, error: String?) {
-        guard !value.isEmpty else { return (nil, nil) }
-        guard value.count == 8, value.allSatisfy({ $0.isASCII && $0.isNumber }) else {
-            return (nil, "--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '\(value)'")
-        }
-        return (value, nil)
-    }
-
-    /// dicom-mpps' reportWarning line: the SCP performed the operation but coerced or
-    /// dropped attributes (PS3.7 Annex C); the status worded per PS3.4 Table F.7.2-2 for an
-    /// N-SET, else PS3.7 Annex C (MPPS N-CREATE has no specific codes, PS3.4 F.7.2.1.4).
-    nonisolated static func mppsWarningLine(_ warning: DIMSEStatus, operation: String) -> String {
-        let described = DIMSEServiceStatusText.describe(warning, service: operation == "N-SET" ? .mppsNSet : .dimseN)
-        return "warning: SCP completed the \(operation) with \(described) — attributes may have been coerced or dropped\n"
-    }
-
     /// Performs an MPPS N-CREATE or N-SET operation — the in-app dicom-mpps.
     private func executeDicomMPPS() async {
         let hostValue = paramValue("host")
@@ -10435,15 +10304,24 @@ case "dicom-study":
                 return
             }
         }
-        let patientSex = Self.mppsPatientSex(isCreate ? patientSexRaw : "")
-        if let message = patientSex.error {
-            refuse(message, exitCode: 64)
-            return
+        // dicom-mpps validatePatientSex / validateBirthDate: DICOMMPPSService's rules and texts (D263).
+        let patientSexInput = isCreate ? patientSexRaw : ""
+        var patientSexValue: String?
+        if !patientSexInput.isEmpty {
+            guard let canonical = DICOMMPPSService.canonicalPatientSex(patientSexInput) else {
+                refuse(DICOMMPPSService.patientSexErrorMessage(patientSexInput), exitCode: 64)
+                return
+            }
+            patientSexValue = canonical
         }
-        let patientBirthDate = Self.mppsBirthDate(isCreate ? patientBirthDateRaw : "")
-        if let message = patientBirthDate.error {
-            refuse(message, exitCode: 64)
-            return
+        let patientBirthDateInput = isCreate ? patientBirthDateRaw : ""
+        var patientBirthDateValue: String?
+        if !patientBirthDateInput.isEmpty {
+            guard DICOMMPPSService.isValidBirthDate(patientBirthDateInput) else {
+                refuse(DICOMMPPSService.birthDateErrorMessage(patientBirthDateInput), exitCode: 64)
+                return
+            }
+            patientBirthDateValue = patientBirthDateInput
         }
 
         guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
@@ -10469,8 +10347,8 @@ case "dicom-study":
         // Performed Procedure Step Status (0040,0252), PS3.3 Table C.4-14; the N-CREATE
         // starts the step IN PROGRESS (PS3.4 F.7.2.1.2), the N-SET ends it COMPLETED or
         // DISCONTINUED (F.7.2.2.2) — dicom-mpps' parseStatus and status guards (exit 64).
-        guard let mppsStatus = Self.mppsStatusOption(statusStr.isEmpty ? (isCreate ? "IN PROGRESS" : "") : statusStr) else {
-            refuse("Invalid status. Use 'IN PROGRESS', 'COMPLETED', or 'DISCONTINUED'", exitCode: 64)
+        guard let mppsStatus = DICOMMPPSService.parseStatus(statusStr.isEmpty ? (isCreate ? "IN PROGRESS" : "") : statusStr) else {
+            refuse(DICOMMPPSService.invalidStatusMessage, exitCode: 64)
             return
         }
         if isCreate, mppsStatus != .inProgress {
@@ -10561,8 +10439,8 @@ case "dicom-study":
                     performedStationName: optional(stationName),
                     accessionNumber: optional(accessionNumber),
                     scheduledProcedureStepID: optional(spsID),
-                    patientBirthDate: patientBirthDate.value,
-                    patientSex: patientSex.value,
+                    patientBirthDate: patientBirthDateValue,
+                    patientSex: patientSexValue,
                     studyID: optional(studyID),
                     performedLocation: optional(performedLocation),
                     requestedProcedureID: optional(requestedProcedureID),
@@ -10573,7 +10451,7 @@ case "dicom-study":
                 )
                 let createdUID = result.sopInstanceUID
                 if let warning = result.warning {
-                    appendConsoleOutput(Self.mppsWarningLine(warning, operation: "N-CREATE"))
+                    appendConsoleOutput(DICOMMPPSService.warningLine(warning, operation: "N-CREATE"))
                 }
                 if result.sopInstanceUIDWasReassigned {
                     appendConsoleOutput(
@@ -10629,7 +10507,7 @@ case "dicom-study":
                     specificCharacterSet: optional(specificCharacterSet)
                 )
                 if let warning = result.warning {
-                    appendConsoleOutput(Self.mppsWarningLine(warning, operation: "N-SET"))
+                    appendConsoleOutput(DICOMMPPSService.warningLine(warning, operation: "N-SET"))
                 }
                 // Result via the SHARED formatter (preserves the "New Status:" /
                 // "Referenced Images:" markers).
