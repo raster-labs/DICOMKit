@@ -58,12 +58,13 @@ public struct VideoProbeResult: Sendable {
     public let frameRate: Double?
 
     /// The MPEG-2 Program Stream / PES wrapping the elementary stream was read from
-    /// (PS3.5 2026a 8.2.5 / 8.2.6), when ``container`` is ``VideoContainer/elementaryStream``
-    /// because of one; nil otherwise.
+    /// (PS3.5 2026a 8.2.5 / 8.2.6), when ``container`` is ``VideoContainer/mpegPS`` or
+    /// ``VideoContainer/mpegPES``; nil otherwise.
     public let mpeg2SystemsLayer: MPEG2SystemsLayer?
 
-    /// The container as it should be named: the MPEG-2 systems layer when there is one,
-    /// else ``VideoContainer/displayName``.
+    /// The container as it should be named: ``VideoContainer/displayName`` (which names
+    /// the MPEG-2 systems layers by their PS3.5 8.2.5 wording, D237), or the systems
+    /// layer's name for a result built with ``VideoContainer/elementaryStream`` and a layer.
     public var containerDisplayName: String {
         mpeg2SystemsLayer?.displayName ?? container.displayName
     }
@@ -242,25 +243,25 @@ public enum VideoProbe {
             if let result = probeTransportStream(data) { return result }
             guard trustInput else { throw VideoProbeError.transportStreamNotValidatable }
             return try probeTrustedTransportStream(data)
-        case .elementaryStream:
+        case .mpegPS, .mpegPES:
             // MPEG-PS / MPEG-PES (PS3.5 2026a 8.2.5, 8.2.6): probe the video PES payloads;
             // the payload encapsulated is still the systems stream as given.
-            if let layer = MP4ContainerParser.mpeg2SystemsLayer(data) {
-                guard let elementary = MP4ContainerParser.mpeg2VideoElementaryStream(data) else {
-                    throw VideoProbeError.noVideoTrack
-                }
-                let inner = try probeElementaryStream(elementary)
-                let audio = MP4ContainerParser.mpeg2AudioStreamIDs(data)
-                return VideoProbeResult(
-                    container: .elementaryStream,
-                    stream: inner.stream,
-                    frameCount: inner.frameCount,
-                    frameCountSource: inner.frameCountSource,
-                    audioTracks: Array(repeating: .unidentified, count: audio.count),
-                    suggestedTransferSyntax: inner.suggestedTransferSyntax,
-                    frameRate: inner.frameRate,
-                    mpeg2SystemsLayer: layer)
+            guard let layer = MP4ContainerParser.mpeg2SystemsLayer(data),
+                  let elementary = MP4ContainerParser.mpeg2VideoElementaryStream(data) else {
+                throw VideoProbeError.noVideoTrack
             }
+            let inner = try probeElementaryStream(elementary)
+            let audio = MP4ContainerParser.mpeg2AudioStreamIDs(data)
+            return VideoProbeResult(
+                container: container,
+                stream: inner.stream,
+                frameCount: inner.frameCount,
+                frameCountSource: inner.frameCountSource,
+                audioTracks: Array(repeating: .unidentified, count: audio.count),
+                suggestedTransferSyntax: inner.suggestedTransferSyntax,
+                frameRate: inner.frameRate,
+                mpeg2SystemsLayer: layer)
+        case .elementaryStream:
             return try probeElementaryStream(data)
         case .unknown:
             throw VideoProbeError.unrecognizedFormat

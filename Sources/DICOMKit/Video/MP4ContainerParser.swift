@@ -1,4 +1,5 @@
 // NEMA-verified: 2026a, checked 2026-09-30 — MP3 sample headers walked via stsz/stsc/stco for "CBR MPEG-1 LAYER III" (PS3.5 2026a 8.2.5, 8.2.12, verified by script); compressed audio's template samplesize (ISO/IEC 14496-12) no longer read as bits per sample (D58)
+// NEMA-verified: 2026a, checked 2026-10-06 — VideoContainer.mpegPS / .mpegPES added and named by the PS3.5 2026a 8.2.5 / 8.2.6 container list ("MPEG-2 Program Stream (MPEG-PS)", "MPEG-2 Packetized Elementary Stream (MPEG-PES)"); both permitted for MPEG-2 only, refused for H.264/HEVC per 8.2.7-8.2.11 (D237, P-VIDEO-CONTAINER)
 // NEMA-verified: 2026a, checked 2026-10-01 — container rule per codec: MPEG-TS or MP4 for H.264/HEVC (PS3.5 2026a 8.2.7-8.2.11), unconstrained for MPEG-2 (8.2.5, 8.2.6: "The container format for the video bit stream is not constrained") (D177); container syntax is ISO/IEC 14496-12/-14 (out of scope); audio tracks are permitted in the MP4 container per PS3.5 2026a 8.2.7-8.2.11 and Table 8.2.12-1 and are now read (format, sampling frequency, channels, bits per sample, bit rate) for the PS3.5 8.2.5/8.2.12 check, described via PS3.3 Table C.7-13 (003A,0300) (P-VIDEO, D46)
 //
 // MP4ContainerParser.swift
@@ -25,9 +26,18 @@ public enum VideoContainer: Sendable, Hashable {
     case quickTime
     /// MPEG-2 Transport Stream.
     case mpegTS
-    /// A raw Annex B / MPEG-2 elementary stream with no container at all. An MPEG-2
-    /// Program Stream or Packetized Elementary Stream (PS3.5 2026a 8.2.5 / 8.2.6) is also
-    /// reported as this case; ``MP4ContainerParser/mpeg2SystemsLayer(_:)`` tells them apart.
+    /// MPEG-2 Program Stream (MPEG-PS): pack headers and PES packets (ISO/IEC 13818-1),
+    /// one of the containers PS3.5 2026a 8.2.5 / 8.2.6 name for an MPEG-2 bit stream.
+    /// Not permitted for H.264 / HEVC (8.2.7-8.2.11: MPEG-TS or MP4 only).
+    case mpegPS
+    /// MPEG-2 Packetized Elementary Stream (MPEG-PES): PES packets without packs
+    /// (ISO/IEC 13818-1), likewise named by PS3.5 2026a 8.2.5 / 8.2.6.
+    case mpegPES
+    /// A raw Annex B / MPEG-2 elementary stream with no container at all.
+    ///
+    /// Before DICOMKit reported ``mpegPS`` / ``mpegPES``, a Program Stream or PES
+    /// stream was reported as this case and ``MP4ContainerParser/mpeg2SystemsLayer(_:)``
+    /// told them apart (D237).
     case elementaryStream
     /// Something this toolkit does not recognize.
     case unknown
@@ -49,7 +59,7 @@ public enum VideoContainer: Sendable, Hashable {
         case (_, .unknown): return false
         case (.mpeg2, _): return true
         case (_, .mp4), (_, .mpegTS): return true
-        case (_, .quickTime), (_, .elementaryStream): return false
+        case (_, .quickTime), (_, .mpegPS), (_, .mpegPES), (_, .elementaryStream): return false
         }
     }
 
@@ -59,6 +69,9 @@ public enum VideoContainer: Sendable, Hashable {
         case .mp4: return "MP4"
         case .quickTime: return "QuickTime (MOV)"
         case .mpegTS: return "MPEG-2 Transport Stream"
+        // PS3.5 2026a 8.2.5 / 8.2.6 wording
+        case .mpegPS: return "MPEG-2 Program Stream (MPEG-PS)"
+        case .mpegPES: return "MPEG-2 Packetized Elementary Stream (MPEG-PES)"
         case .elementaryStream: return "raw elementary stream"
         case .unknown: return "unrecognized container"
         }
@@ -188,7 +201,12 @@ public enum MP4ContainerParser {
         }
 
         // MPEG-2 Program Stream / PES (PS3.5 2026a 8.2.5, 8.2.6), then a bare elementary stream.
-        if mpeg2SystemsLayer(data) != nil || NALUnit.hasAnnexBStartCode(data) || hasMPEG2StartCode(data) {
+        switch mpeg2SystemsLayer(data) {
+        case .programStream?: return .mpegPS
+        case .packetizedElementaryStream?: return .mpegPES
+        case nil: break
+        }
+        if NALUnit.hasAnnexBStartCode(data) || hasMPEG2StartCode(data) {
             return .elementaryStream
         }
 

@@ -134,13 +134,18 @@ final class MPEG2HighLevelAndSystemsStreamTests: XCTestCase {
     func testProgramStreamIsRecognisedAndItsVideoRead() throws {
         let ps = Self.programStream
         XCTAssertEqual(MP4ContainerParser.mpeg2SystemsLayer(ps), .programStream)
-        XCTAssertEqual(MP4ContainerParser.detectContainer(ps), .elementaryStream)
+        XCTAssertEqual(MP4ContainerParser.detectContainer(ps), .mpegPS, "D237: its own VideoContainer case")
         XCTAssertEqual(MP4ContainerParser.mpeg2VideoElementaryStream(ps), Data(Self.elementary))
         XCTAssertEqual(MP4ContainerParser.mpeg2AudioStreamIDs(ps), [0xC0])
 
         let probe = try VideoProbe.probe(ps)
         XCTAssertEqual(probe.mpeg2SystemsLayer, .programStream)
+        XCTAssertEqual(probe.container, .mpegPS)
         XCTAssertEqual(probe.containerDisplayName, "MPEG-2 Program Stream (MPEG-PS)")
+        XCTAssertEqual(VideoContainer.mpegPS.displayName, MPEG2SystemsLayer.programStream.displayName)
+        XCTAssertFalse(probe.container.isPermittedByDICOM(for: .h265), "PS3.5 8.2.9: MPEG-TS or MP4 only")
+        XCTAssertTrue(VideoConsole.describe(probe, transferSyntax: nil)
+            .contains("Container:        MPEG-2 Program Stream (MPEG-PS)"))
         XCTAssertEqual(probe.stream.codec, .mpeg2)
         XCTAssertEqual(probe.stream.width, 1920)
         XCTAssertEqual(probe.frameCount, 3)
@@ -154,9 +159,14 @@ final class MPEG2HighLevelAndSystemsStreamTests: XCTestCase {
         let es = Self.elementary
         let pesStream = Data(Self.pes(0xE0, Array(es[..<10])) + Self.pes(0xE0, Array(es[10...])))
         XCTAssertEqual(MP4ContainerParser.mpeg2SystemsLayer(pesStream), .packetizedElementaryStream)
-        XCTAssertEqual(MP4ContainerParser.detectContainer(pesStream), .elementaryStream, "was .unknown")
+        XCTAssertEqual(MP4ContainerParser.detectContainer(pesStream), .mpegPES, "D237: its own VideoContainer case")
         let probe = try VideoProbe.probe(pesStream)
         XCTAssertEqual(probe.mpeg2SystemsLayer, .packetizedElementaryStream)
+        XCTAssertEqual(probe.container, .mpegPES)
+        XCTAssertEqual(probe.containerDisplayName, "MPEG-2 Packetized Elementary Stream (MPEG-PES)")
+        XCTAssertFalse(probe.container.isPermittedByDICOM(for: .h264), "PS3.5 8.2.7: MPEG-TS or MP4 only")
+        XCTAssertTrue(VideoConsole.describe(probe, transferSyntax: nil)
+            .contains("Container:        MPEG-2 Packetized Elementary Stream (MPEG-PES)"))
         XCTAssertEqual(probe.frameCount, 3)
         XCTAssertEqual(probe.stream.height, 1080)
     }

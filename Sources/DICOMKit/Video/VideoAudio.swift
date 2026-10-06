@@ -518,7 +518,7 @@ extension VideoConformanceValidator {
                     message: "\(name) is permitted only in an MPEG-2 TS container, "
                         + "not \(container.displayName) (PS3.5 Table 8.2.12-1)"))
             }
-        case .elementaryStream, .unknown:
+        case .mpegPS, .mpegPES, .elementaryStream, .unknown:
             notChecked.append(.container)
         }
 

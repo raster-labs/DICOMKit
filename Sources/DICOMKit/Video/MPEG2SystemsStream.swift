@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — MPEG2SystemsLayer maps onto VideoContainer.mpegPS / .mpegPES and takes its display name from there (PS3.5 2026a 8.2.5 / 8.2.6 container list) (D237)
 // NEMA-verified: 2026a, checked 2026-10-01 — PS3.5 2026a 8.2.5 / 8.2.6: "The container format for the video bit stream is not constrained. For example, it may MPEG-2 Transport Stream (MPEG-TS), MPEG-2 Program Stream (MPEG-PS), MPEG-2 Elementary Stream (MPEG-ES), MPEG-2 Packetized Elementary Stream (MPEG-PES) … or MPEG-4 (MP4) container"; PS / PES are recognised and their video PES payloads read for probing (D227); the packet syntax itself is ISO/IEC 13818-1 (out of scope)
 //
 // MPEG2SystemsStream.swift
@@ -12,19 +13,23 @@ import Foundation
 /// Stream, which PS3.5 2026a 8.2.5 / 8.2.6 list among the permitted containers of
 /// an MPEG-2 video bit stream.
 ///
-/// ``VideoContainer`` reports both as ``VideoContainer/elementaryStream`` (it has
-/// no case of its own for them); this type tells them apart.
+/// ``VideoContainer`` reports them as ``VideoContainer/mpegPS`` and
+/// ``VideoContainer/mpegPES`` (D237); this type is what the byte-level reader
+/// identifies and what ``VideoProbeResult/mpeg2SystemsLayer`` carries.
 public enum MPEG2SystemsLayer: String, Sendable, Hashable, CaseIterable {
     /// MPEG-2 Program Stream (MPEG-PS): pack headers (00 00 01 BA) and PES packets.
     case programStream
     /// MPEG-2 Packetized Elementary Stream (MPEG-PES): PES packets without packs.
     case packetizedElementaryStream
 
-    /// The PS3.5 8.2.5 name.
-    public var displayName: String {
+    /// The PS3.5 8.2.5 name; identical to ``VideoContainer/displayName`` of ``container``.
+    public var displayName: String { container.displayName }
+
+    /// The ``VideoContainer`` case that reports this systems layer (D237).
+    public var container: VideoContainer {
         switch self {
-        case .programStream: return "MPEG-2 Program Stream (MPEG-PS)"
-        case .packetizedElementaryStream: return "MPEG-2 Packetized Elementary Stream (MPEG-PES)"
+        case .programStream: return .mpegPS
+        case .packetizedElementaryStream: return .mpegPES
         }
     }
 }
