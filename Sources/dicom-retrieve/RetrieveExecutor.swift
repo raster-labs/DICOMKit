@@ -1,7 +1,7 @@
 import Foundation
 import DICOMCore
 import DICOMNetwork
-// NEMA-verified: 2026a, checked 2026-10-01 — final-status handling checked against PS3.4 2026a Tables C.4-2 / C.4-3 (status wording via DICOMNetwork.DIMSEServiceStatusText, 17 rows, success = 0000 with no failed sub-operations per C.4.2.2.1 / C.4.3.2.1), the four counters against PS3.7 2026a Tables 9.3-7 / 9.3-10, Failed SOP Instance UID List (0008,0058) against C.4.2.1.4.2; the Part 10 wrapper writes the 6 Type 1 rows of PS3.10 2026a Table 7.1-1 (group length, (0002,0001), (0002,0002), (0002,0003), (0002,0010), (0002,0012)) and no Type 3 row; requests built as RetrieveKeys at the level of the most specific UID with the requested Priority (PS3.7 Tables 9.3-9 / 9.3-6) and optional relational-retrieval (PS3.4 Table C.5-3)
+// NEMA-verified: 2026a, checked 2026-10-06 — final-response lines and error text are NetworkConsole.retrieveFinalResponse (D262; Tables C.4-2 / C.4-3, PS3.7 Table 9.3-10, PS3.6 (0008,0058) re-read); final-status handling checked against PS3.4 2026a Tables C.4-2 / C.4-3 (status wording via DICOMNetwork.DIMSEServiceStatusText, 17 rows, success = 0000 with no failed sub-operations per C.4.2.2.1 / C.4.3.2.1), the four counters against PS3.7 2026a Tables 9.3-7 / 9.3-10, Failed SOP Instance UID List (0008,0058) against C.4.2.1.4.2; the Part 10 wrapper writes the 6 Type 1 rows of PS3.10 2026a Table 7.1-1 (group length, (0002,0001), (0002,0002), (0002,0003), (0002,0010), (0002,0012)) and no Type 3 row; requests built as RetrieveKeys at the level of the most specific UID with the requested Priority (PS3.7 Tables 9.3-9 / 9.3-6) and optional relational-retrieval (PS3.4 Table C.5-3)
 
 #if canImport(Network)
 
@@ -155,15 +155,12 @@ struct RetrieveExecutor {
     /// Prints failed/warning details to stderr and throws unless `result.isSuccess`.
     /// The status is worded per PS3.4 2026a Table C.4-2 (C-MOVE) or C.4-3 (C-GET)
     /// and the counters per PS3.7 Tables 9.3-10 / 9.3-7.
+    /// The lines and the error text are DICOMNetwork's shared
+    /// `NetworkConsole.retrieveFinalResponse(_:service:)`, also used by dicom-qr (D262).
     static func checkResult(_ result: RetrieveResult, service: DIMSEStatusService) throws {
-        if !result.failedSOPInstanceUIDs.isEmpty {
-            fprintln("Failed SOP Instance UID List (0008,0058), \(result.failedSOPInstanceUIDs.count) UID(s):")
-            for uid in result.failedSOPInstanceUIDs { fprintln("  \(uid)") }
-        }
-        if result.isSuccess { return }
-        fprintln("Final \(service.rawValue) response: "
-            + DIMSEServiceStatusText.describe(result.status, service: service)
-            + " — " + DIMSEServiceStatusText.subOperationCounts(result.progress))
+        let report = NetworkConsole.retrieveFinalResponse(result, service: service)
+        for line in report.lines { fprintln(line) }
+        if report.failure == nil { return }
         throw RetrieveError.retrievalFailed(service: service,
                                             status: result.status,
                                             progress: result.progress,
@@ -386,13 +383,9 @@ enum RetrieveError: Error, CustomStringConvertible, LocalizedError {
         case .missingMoveDestination:
             return "C-MOVE requires a move destination AE title"
         case .retrievalFailed(let service, let status, let progress, let uids):
-            var text = "\(service.rawValue) final response "
-                + DIMSEServiceStatusText.describe(status, service: service)
-                + " (" + DIMSEServiceStatusText.subOperationCounts(progress) + ")"
-            if !uids.isEmpty {
-                text += "; Failed SOP Instance UID List (0008,0058): " + uids.joined(separator: ", ")
-            }
-            return text
+            return NetworkConsole.retrieveFinalResponse(
+                RetrieveResult(status: status, progress: progress, failedSOPInstanceUIDs: uids),
+                service: service).failure ?? ""
         case .partialFailure(let succeeded, let failed):
             return "Bulk retrieval partially failed: \(succeeded) succeeded, \(failed) failed"
         }

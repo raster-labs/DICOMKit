@@ -3,7 +3,7 @@ import ArgumentParser
 import DICOMKit
 import DICOMCore
 import DICOMNetwork
-// NEMA-verified: 2026a, checked 2026-10-01 — the 7 match keys compared with PS3.4 2026a Table C.6-5 (Study Root, Study level: 4 R keys, 1 U key, 2 O keys — Modalities in Study (0008,0061) carries --modality), wildcard / range matching with C.2.2.2.4 / C.2.2.2.5, Query/Retrieve Level STUDY with Table C.6.1-1, methods with Table C.6.2.3-1 (Study Root MOVE/GET), Move Destination (0000,0600) with PS3.7 Table 9.3-9, final-status handling with Tables C.4-2 / C.4-3 via DICOMNetwork.DIMSEServiceStatusText, --priority with PS3.7 Tables 9.3-9 / 9.3-6 (LOW 0002H / MEDIUM 0000H / HIGH 0001H, 3 of 3), state key ModalitiesInStudy with PS3.6 Table 6-1 (0008,0061), ports 104 / 11112 with PS3.8 9.1.2; the Part 10 wrapper writes the 6 Type 1 rows of PS3.10 2026a Table 7.1-1; modes, state file, --output, --timeout, --parallel (concurrent batches, one association per study), --validate, --verbose are plumbing
+// NEMA-verified: 2026a, checked 2026-10-06 — a non-success C-MOVE / C-GET final response is reported by DICOMNetwork NetworkConsole.retrieveFinalResponse in dicom-retrieve wording (D262; PS3.4 Tables C.4-2 / C.4-3, PS3.7 Table 9.3-10, PS3.6 (0008,0058) re-read); the 7 match keys compared with PS3.4 2026a Table C.6-5 (Study Root, Study level: 4 R keys, 1 U key, 2 O keys — Modalities in Study (0008,0061) carries --modality), wildcard / range matching with C.2.2.2.4 / C.2.2.2.5, Query/Retrieve Level STUDY with Table C.6.1-1, methods with Table C.6.2.3-1 (Study Root MOVE/GET), Move Destination (0000,0600) with PS3.7 Table 9.3-9, final-status handling with Tables C.4-2 / C.4-3 via DICOMNetwork.DIMSEServiceStatusText, --priority with PS3.7 Tables 9.3-9 / 9.3-6 (LOW 0002H / MEDIUM 0000H / HIGH 0001H, 3 of 3), state key ModalitiesInStudy with PS3.6 Table 6-1 (0008,0061), ports 104 / 11112 with PS3.8 9.1.2; the Part 10 wrapper writes the 6 Type 1 rows of PS3.10 2026a Table 7.1-1; modes, state file, --output, --timeout, --parallel (concurrent batches, one association per study), --validate, --verbose are plumbing
 
 @main
 struct DICOMQR: AsyncParsableCommand {
@@ -713,7 +713,8 @@ enum QRPriorityOption: String, ExpressibleByArgument, CaseIterable {
 
 enum DICOMQRError: Error, CustomStringConvertible, LocalizedError {
     case missingMoveDestination
-    /// The SCP's final response was not a full success (PS3.4 C.4.2.2.1 / C.4.3.2.1)
+    /// The SCP's final response was not a full success (PS3.4 C.4.2.2.1 / C.4.3.2.1);
+    /// `summary` is the shared dicom-retrieve wording (D262).
     case retrievalFailed(summary: String, failedSOPInstanceUIDs: [String])
     /// One or more studies of the run failed; reported after the summary so the
     /// process exits non-zero.
@@ -723,12 +724,10 @@ enum DICOMQRError: Error, CustomStringConvertible, LocalizedError {
         switch self {
         case .missingMoveDestination:
             return "Move destination AE title is required for C-MOVE retrieval"
-        case .retrievalFailed(let summary, let failed):
-            var text = "Retrieval failed: \(summary)"
-            if !failed.isEmpty {
-                text += "; Failed SOP Instance UID List (0008,0058): " + failed.joined(separator: ", ")
-            }
-            return text
+        case .retrievalFailed(let summary, _):
+            // `summary` is NetworkConsole.retrieveFinalResponse's failure text (D262),
+            // which already carries the Failed SOP Instance UID List (0008,0058).
+            return summary
         case .retrievalIncomplete(let succeeded, let failed):
             return "Retrieval incomplete: \(succeeded) study(ies) succeeded, \(failed) failed"
         }
@@ -859,17 +858,17 @@ struct RetrieveExecutor {
     /// A warning status (0xB000) is therefore a failure for the exit code. The
     /// status is worded per PS3.4 2026a Table C.4-2 (C-MOVE) / C.4-3 (C-GET) and
     /// the counters per PS3.7 Tables 9.3-10 / 9.3-7; the Failed SOP Instance UID
-    /// List (0008,0058) is printed to stderr first.
+    /// List (0008,0058) and the `Final … response:` line go to stderr first. Lines and
+    /// error text are the shared `NetworkConsole.retrieveFinalResponse(_:service:)`,
+    /// in dicom-retrieve's wording (D262).
     static func checkRetrieveResult(_ result: RetrieveResult, service: DIMSEStatusService) throws {
-        if result.isSuccess { return }
-        let summary = "\(service.rawValue) final response "
-            + DIMSEServiceStatusText.describe(result.status, service: service)
-            + " (" + DIMSEServiceStatusText.subOperationCounts(result.progress) + ")"
-        if !result.failedSOPInstanceUIDs.isEmpty {
-            FileHandle.standardError.write(("  Failed SOP Instance UID List (0008,0058):\n"
-                + result.failedSOPInstanceUIDs.map { "    \($0)\n" }.joined()).data(using: .utf8) ?? Data())
+        let report = NetworkConsole.retrieveFinalResponse(result, service: service)
+        if !report.lines.isEmpty {
+            FileHandle.standardError.write(report.lines.map { $0 + "\n" }.joined().data(using: .utf8) ?? Data())
         }
-        throw DICOMQRError.retrievalFailed(summary: summary, failedSOPInstanceUIDs: result.failedSOPInstanceUIDs)
+        if let failure = report.failure {
+            throw DICOMQRError.retrievalFailed(summary: failure, failedSOPInstanceUIDs: result.failedSOPInstanceUIDs)
+        }
     }
     
     // MARK: - File Management

@@ -1,6 +1,6 @@
 import Foundation
 import DICOMCore
-// NEMA-verified: 2026a, checked 2026-10-06 — CStoreOutcome classes (Success 0000; Warning B000/B006/B007; Failure A7xx/A9xx/Cxxx) re-read from PS3.4 2026a Table B.2-1 (D261); A-ASSOCIATE-RJ reason texts taken from AssociateRejectPDU (PS3.8 2026a Table 9-21); C-STORE warning lines, sendFileResult(status:) for the three classes and the summary Warnings count per PS3.4 2026a Table B.2-1 via DIMSEServiceStatusText (P-SEND-SUMMARY, D75); Query/Retrieve Level values PATIENT / STUDY / SERIES / IMAGE per PS3.4 Table C.6.1-1 (D74), C-MOVE counters under the PS3.7 Table 9.3-10 names and Modalities in Study (0008,0061) labelled per PS3.6 (D77); retrieve header Priority per PS3.7 Tables 9.3-9 / 9.3-6 and relational-retrieval per PS3.4 Table C.5-3; MWL JSON PS3.6 keyword keys (P-MWL-JSON-KEYS); other text is display labels
+// NEMA-verified: 2026a, checked 2026-10-06 — CStoreOutcome classes (Success 0000; Warning B000/B006/B007; Failure A7xx/A9xx/Cxxx) re-read from PS3.4 2026a Table B.2-1 (D261); retrieveFinalResponse — the non-success C-MOVE / C-GET final response of dicom-retrieve and dicom-qr — worded per PS3.4 2026a Tables C.4-2 / C.4-3 via DIMSEServiceStatusText, counters per PS3.7 Table 9.3-10, Failed SOP Instance UID List (0008,0058) per PS3.6 / C.4.2.1.4.2 (D262); A-ASSOCIATE-RJ reason texts taken from AssociateRejectPDU (PS3.8 2026a Table 9-21); C-STORE warning lines, sendFileResult(status:) for the three classes and the summary Warnings count per PS3.4 2026a Table B.2-1 via DIMSEServiceStatusText (P-SEND-SUMMARY, D75); Query/Retrieve Level values PATIENT / STUDY / SERIES / IMAGE per PS3.4 Table C.6.1-1 (D74), C-MOVE counters under the PS3.7 Table 9.3-10 names and Modalities in Study (0008,0061) labelled per PS3.6 (D77); retrieve header Priority per PS3.7 Tables 9.3-9 / 9.3-6 and relational-retrieval per PS3.4 Table C.5-3; MWL JSON PS3.6 keyword keys (P-MWL-JSON-KEYS); other text is display labels
 
 /// Shared console rendering for the network CLIs (`dicom-query`, `dicom-send`,
 /// `dicom-retrieve`, `dicom-qr`) AND the DICOMStudio CLI Workshop in-process
@@ -329,6 +329,37 @@ public enum NetworkConsole {
         out += field("Number of Warning Sub-operations:", " \(warning)")
         out += isSuccess ? "\n✅ Retrieval successful\n" : "\n❌ Retrieval returned non-success status\n"
         return out
+    }
+
+    /// The report of a C-MOVE / C-GET final response, shared by dicom-retrieve and
+    /// dicom-qr (D262; dicom-retrieve's wording is canonical):
+    ///  - `lines` (stderr): the Failed SOP Instance UID List (0008,0058) (PS3.4 2026a
+    ///    C.4.2.1.4.2 / C.4.3.1.4.2) as `Failed SOP Instance UID List (0008,0058), N UID(s):`
+    ///    plus one `  <uid>` line each, whenever the SCP sent one; then, unless the result
+    ///    is a full success (status 0000 and no failed sub-operations, C.4.2.2.1 /
+    ///    C.4.3.2.1), `Final C-MOVE response: <status> — <counts>`;
+    ///  - `failure`: `nil` for a full success, else
+    ///    `C-MOVE final response <status> (<counts>)[; Failed SOP Instance UID List (0008,0058): a, b]`,
+    ///    the error the CLI exits 1 with.
+    /// The status (with its Further Meaning) is worded per PS3.4 2026a Table C.4-2
+    /// (C-MOVE) / C.4-3 (C-GET) via ``DIMSEServiceStatusText``, the counters under
+    /// their PS3.7 2026a Table 9.3-10 / 9.3-7 names.
+    public static func retrieveFinalResponse(_ result: RetrieveResult, service: DIMSEStatusService)
+        -> (lines: [String], failure: String?) {
+        var lines: [String] = []
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            lines.append("Failed SOP Instance UID List (0008,0058), \(result.failedSOPInstanceUIDs.count) UID(s):")
+            for uid in result.failedSOPInstanceUIDs { lines.append("  \(uid)") }
+        }
+        if result.isSuccess { return (lines, nil) }
+        let described = DIMSEServiceStatusText.describe(result.status, service: service)
+        let counts = DIMSEServiceStatusText.subOperationCounts(result.progress)
+        lines.append("Final \(service.rawValue) response: " + described + " — " + counts)
+        var text = "\(service.rawValue) final response " + described + " (" + counts + ")"
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            text += "; Failed SOP Instance UID List (0008,0058): " + result.failedSOPInstanceUIDs.joined(separator: ", ")
+        }
+        return (lines, text)
     }
 
     /// C-GET completion summary.

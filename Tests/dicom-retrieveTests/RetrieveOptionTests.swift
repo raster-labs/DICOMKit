@@ -87,4 +87,28 @@ final class RetrieveOptionTests: XCTestCase {
         XCTAssertTrue(header(.high, false).contains("Priority:          HIGH (0001H)"), header(.high, false))
         XCTAssertTrue(header(nil, true).contains("relational-retrieval (PS3.4 C.5.2.1)"))
     }
+
+    // D262: the non-success final response is DICOMNetwork's shared report, in this
+    // tool's (canonical) wording — PS3.4 2026a Tables C.4-2 / C.4-3 status text, PS3.7
+    // Table 9.3-10 counter names, Failed SOP Instance UID List (0008,0058).
+    #if canImport(Network)
+    func testFinalResponseWordingIsTheSharedReport() throws {
+        let progress = RetrieveProgress(completed: 2, failed: 1, warning: 0)
+        let result = RetrieveResult(status: .from(0xB000), progress: progress, failedSOPInstanceUIDs: ["1.2.3"])
+        let report = NetworkConsole.retrieveFinalResponse(result, service: .cMove)
+        let described = DIMSEServiceStatusText.describe(.from(0xB000), service: .cMove)
+        let counts = "Number of Completed Sub-operations: 2, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 0"
+        XCTAssertEqual(report.lines, ["Failed SOP Instance UID List (0008,0058), 1 UID(s):", "  1.2.3",
+                                      "Final C-MOVE response: " + described + " — " + counts])
+        let expected = "C-MOVE final response " + described + " (" + counts + "); Failed SOP Instance UID List (0008,0058): 1.2.3"
+        XCTAssertEqual(report.failure, expected)
+        XCTAssertEqual(RetrieveError.retrievalFailed(service: .cMove, status: .from(0xB000), progress: progress,
+                                                     failedSOPInstanceUIDs: ["1.2.3"]).description, expected)
+        XCTAssertThrowsError(try RetrieveExecutor.checkResult(result, service: .cMove))
+        let ok = RetrieveResult(status: .success, progress: RetrieveProgress(completed: 3))
+        XCTAssertNil(NetworkConsole.retrieveFinalResponse(ok, service: .cGet).failure)
+        XCTAssertEqual(NetworkConsole.retrieveFinalResponse(ok, service: .cGet).lines, [])
+        XCTAssertNoThrow(try RetrieveExecutor.checkResult(ok, service: .cGet))
+    }
+    #endif
 }

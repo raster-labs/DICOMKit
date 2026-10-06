@@ -65,4 +65,23 @@ final class QROptionTests: XCTestCase {
         XCTAssertEqual(decoded.studies.first?.modality, "CT")
         XCTAssertNil(decoded.studies.first?.modalitiesInStudy)
     }
+
+    // D262: dicom-qr reports a non-success C-MOVE / C-GET final response with the
+    // shared NetworkConsole.retrieveFinalResponse, in dicom-retrieve's wording
+    // (formerly "Retrieval failed: …" and an indented UID block).
+    #if canImport(Network)
+    func testRetrievalFailureUsesTheSharedWording() {
+        let result = RetrieveResult(status: .from(0xA702), progress: RetrieveProgress(completed: 0, failed: 2),
+                                    failedSOPInstanceUIDs: ["1.2.3", "1.2.4"])
+        let shared = NetworkConsole.retrieveFinalResponse(result, service: .cGet).failure
+        XCTAssertNotNil(shared)
+        XCTAssertTrue(shared?.hasPrefix("C-GET final response ") ?? false, shared ?? "")
+        XCTAssertThrowsError(try RetrieveExecutor.checkRetrieveResult(result, service: .cGet)) { error in
+            XCTAssertEqual(error.localizedDescription, shared)
+            XCTAssertFalse(error.localizedDescription.hasPrefix("Retrieval failed: "))
+        }
+        XCTAssertNoThrow(try RetrieveExecutor.checkRetrieveResult(
+            RetrieveResult(status: .success, progress: RetrieveProgress(completed: 1)), service: .cMove))
+    }
+    #endif
 }
