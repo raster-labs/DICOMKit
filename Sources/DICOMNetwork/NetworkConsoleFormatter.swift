@@ -192,10 +192,18 @@ public enum NetworkConsole {
         case .storedWithWarning:
             return sendFileResultSuffix(success: true, rtt: rtt, error: nil) + sendFileWarningLine(status: status)
         case .failed:
-            return sendFileResultSuffix(
-                success: false, rtt: rtt,
-                error: "C-STORE response status \(status.description(for: .cStore)) — not stored (PS3.4 Table B.2-1)")
+            return sendFileResultSuffix(success: false, rtt: rtt, error: sendStoreFailedText(status: status))
         }
+    }
+
+    /// The text of a C-STORE response in the Failure class of PS3.4 2026a Table B.2-1
+    /// (A7xx Refused: Out of resources, A9xx Error: Data Set does not match SOP Class, Cxxx
+    /// Error: Cannot understand, 0122 Refused: SOP Class not supported): the instance was not
+    /// stored. Worded via ``DIMSEServiceStatusText`` for the C-STORE service; the `❌` part of
+    /// ``sendFileResult(status:rtt:)`` and the error dicom-send (and the DICOMStudio CLI
+    /// Workshop) report after the retries (D261).
+    public static func sendStoreFailedText(status: DIMSEStatus) -> String {
+        "C-STORE response status \(status.description(for: .cStore)) — not stored (PS3.4 Table B.2-1)"
     }
 
     /// dicom-send's end-of-run error when at least one file was not stored

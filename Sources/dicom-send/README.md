@@ -205,7 +205,9 @@ Each C-STORE response is classified by PS3.4 Table B.2-1 (2026a):
   the DICOMStudio Workshop prints).
 - **Failure** (`A7xx` Refused: Out of resources, `A9xx` Error: Data Set does not match SOP Class,
   `Cxxx` Error: Cannot understand, `0122` Refused: SOP Class not supported): not stored. The
-  file counts as failed, `--retry` applies, and the status is printed on the file line.
+  file counts as failed, `--retry` applies, and the status is printed on the file line in the
+  Table B.2-1 wording
+  (`❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)`).
 
 ## Exit Codes
 

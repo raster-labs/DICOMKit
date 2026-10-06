@@ -32,7 +32,7 @@ final class StoreOutcomeTests: XCTestCase {
     }
 
     // D261: the classes, the per-file ✅ / warning line and the partial-failure text
-    // are the shared NetworkConsole ones; the CLI's ❌ text is unchanged (byte-identical).
+    // are the shared NetworkConsole ones, and so is the ❌ text (PS3.4 Table B.2-1 wording).
     func testSharedOutcomeAndTexts() {
         XCTAssertEqual(NetworkConsole.CStoreOutcome(status: .from(0x0000)), .stored)
         XCTAssertEqual(NetworkConsole.CStoreOutcome(status: .from(0xB000)), .storedWithWarning)
@@ -43,7 +43,13 @@ final class StoreOutcomeTests: XCTestCase {
                        NetworkConsole.sendFileResultSuffix(success: true, rtt: 0.012, error: nil)
                        + NetworkConsole.sendFileWarningLine(status: .from(0xB007)))
         XCTAssertEqual(SendError.storeFailed(.from(0xA700)).errorDescription,
-                       "C-STORE response status Refused: Out of resources (0xA700) — not stored (PS3.4 Table B.2-1)")
+                       NetworkConsole.sendStoreFailedText(status: .from(0xA700)))
+        // D261 completion: the per-file ❌ line is the engine's PS3.4 Table B.2-1 wording.
+        XCTAssertEqual(NetworkConsole.sendFileResultSuffix(
+                           success: false, rtt: 0, error: SendError.storeFailed(.from(0xA700)).errorDescription),
+                       " ❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)\n")
+        XCTAssertEqual(NetworkConsole.sendFileResult(status: .from(0xA700), rtt: 0.012),
+                       " ❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)\n")
         XCTAssertEqual(SendError.partialFailure(succeeded: 2, failed: 1).errorDescription,
                        NetworkConsole.sendPartialFailureText(succeeded: 2, failed: 1))
         XCTAssertEqual(NetworkConsole.sendPartialFailureText(succeeded: 2, failed: 1),

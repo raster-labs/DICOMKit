@@ -1,7 +1,7 @@
 import Foundation
 import DICOMCore
 import DICOMNetwork
-// NEMA-verified: 2026a, checked 2026-10-06 — the three response classes, the per-file ✅ / warning line and the partial-failure text are DICOMNetwork's NetworkConsole.CStoreOutcome / sendFileResult(status:rtt:) / sendPartialFailureText (D261); C-STORE response handling diffed against PS3.4 2026a Table B.2-1 (7 rows: Success 0000 stored; Warning B000/B006/B007 stored and reported; Failure A7xx/A9xx/Cxxx not stored, counted as failed) and PS3.7 9.1.1.1.9 (0122 Refused: SOP Class not supported); status text comes from DICOMNetwork.DIMSEStatus; the per-file warning line and the summary Warnings count are rendered by the shared NetworkConsole (Table B.2-1 wording via DIMSEServiceStatusText, P-SEND-SUMMARY)
+// NEMA-verified: 2026a, checked 2026-10-06 — the three response classes, the per-file ✅ / warning / ❌ lines and the partial-failure text are DICOMNetwork's NetworkConsole.CStoreOutcome / sendFileResult(status:rtt:) / sendStoreFailedText(status:) / sendPartialFailureText (D261; the ❌ line now carries the PS3.4 Table B.2-1 C-STORE wording, e.g. "Failure (0xA700): Refused: Out of resources"); C-STORE response handling diffed against PS3.4 2026a Table B.2-1 (7 rows: Success 0000 stored; Warning B000/B006/B007 stored and reported; Failure A7xx/A9xx/Cxxx not stored, counted as failed) and PS3.7 9.1.1.1.9 (0122 Refused: SOP Class not supported); status text comes from DICOMNetwork.DIMSEStatus; the per-file warning line and the summary Warnings count are rendered by the shared NetworkConsole (Table B.2-1 wording via DIMSEServiceStatusText, P-SEND-SUMMARY)
 
 /// The three PS3.4 Table B.2-1 classes of a C-STORE response are the engine's
 /// `NetworkConsole.CStoreOutcome` (D261); this name stays for the DICOMStudio CLI
@@ -171,11 +171,9 @@ enum SendError: LocalizedError {
         case .partialFailure(let succeeded, let failed):
             return NetworkConsole.sendPartialFailureText(succeeded: succeeded, failed: failed)
         case .storeFailed(let status):
-            // Kept CLI-local so the per-file ` ❌ ` line stays byte-identical
-            // (DIMSEStatus.description wording); NetworkConsole.sendFileResult words a
-            // Failure per Table B.2-1 via DIMSEServiceStatusText — adopting it changes
-            // this line, which is the owner's call (D261 note).
-            return "C-STORE response status \(status) — not stored (PS3.4 Table B.2-1)"
+            // The engine's PS3.4 Table B.2-1 wording (D261), the same text
+            // NetworkConsole.sendFileResult(status:rtt:) prints after ` ❌ `.
+            return NetworkConsole.sendStoreFailedText(status: status)
         }
     }
 }
