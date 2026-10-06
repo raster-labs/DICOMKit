@@ -1,6 +1,6 @@
 // DICOMwebClientFactory.swift
 // DICOMStudio
-// NEMA-verified: 2026a, checked 2026-10-05 — buildQIDOQuery keys diffed against PS3.18 2026a Table 10.6.1-5 (study level Modalities in Study (0008,0061), series/instance Modality (0008,0060) — corrected) and Table 8.3.4-1 (fuzzymatching, limit, offset — fuzzymatching now sent); open Study Date ranges against PS3.4 2026a C.2.2.2.5; the tags themselves are DICOMWeb.QIDOQueryAttribute (verified 2026-09-28); authentication and TLS mapping are plumbing (PS3.18 8.11 names no mechanism)
+// NEMA-verified: 2026a, checked 2026-10-06 — makeConfiguration(from:timeouts:) is plumbing (PS3.18 names no timeout; D260); buildQIDOQuery keys diffed against PS3.18 2026a Table 10.6.1-5 (study level Modalities in Study (0008,0061), series/instance Modality (0008,0060) — corrected) and Table 8.3.4-1 (fuzzymatching, limit, offset — fuzzymatching now sent); open Study Date ranges against PS3.4 2026a C.2.2.2.5; the tags themselves are DICOMWeb.QIDOQueryAttribute (verified 2026-09-28); authentication and TLS mapping are plumbing (PS3.18 8.11 names no mechanism)
 //
 // DICOM Studio — Factory for creating DICOMwebClient instances from server profiles
 // Reference: DICOM PS3.18 (Web Services)
@@ -19,10 +19,17 @@ public enum DICOMwebClientFactory: Sendable {
     /// Use this when you need the raw configuration (e.g. for `UPSEventChannelManager`)
     /// rather than a full `DICOMwebClient`.
     ///
-    /// - Parameter profile: The DICOMweb server profile containing URL, auth, and TLS settings.
+    /// - Parameters:
+    ///   - profile: The DICOMweb server profile containing URL, auth, and TLS settings.
+    ///   - timeouts: The request timeouts (default `.default`); the CLI Workshop passes the
+    ///     `retrieve --timeout` mapping (`WorkshopWADOOptionRules.timeouts(seconds:)`) so the
+    ///     configuration is built once instead of rebuilt around the profile's URL and auth (D260).
     /// - Throws: `DICOMwebError.invalidURL` if the profile's base URL is malformed.
     /// - Returns: A configured `DICOMwebConfiguration`.
-    public static func makeConfiguration(from profile: DICOMwebServerProfile) throws -> DICOMwebConfiguration {
+    public static func makeConfiguration(
+        from profile: DICOMwebServerProfile,
+        timeouts: DICOMwebConfiguration.TimeoutConfiguration = .default
+    ) throws -> DICOMwebConfiguration {
         guard let baseURL = URL(string: profile.baseURL) else {
             throw DICOMwebError.invalidURL(url: profile.baseURL)
         }
@@ -32,6 +39,7 @@ public enum DICOMwebClientFactory: Sendable {
         return DICOMwebConfiguration(
             baseURL: baseURL,
             authentication: authentication,
+            timeouts: timeouts,
             maxConcurrentRequests: 4
         )
     }

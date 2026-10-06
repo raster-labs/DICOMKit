@@ -280,4 +280,24 @@ struct DICOMwebClientFactoryTests {
         let items = DICOMwebClientFactory.mapInstanceResults(results)
         #expect(items.first?.queryLevel == .instance)
     }
+
+    // MARK: - makeConfiguration(from:timeouts:) (D260)
+
+    @Test("makeConfiguration: timeouts default to .default; a passed TimeoutConfiguration is carried with the profile's URL and auth (D260)")
+    func testMakeConfigurationTimeouts() throws {
+        let profile = DICOMwebServerProfile(
+            name: "Test PACS", baseURL: "https://pacs.example.com/dicom-web",
+            authMethod: .bearer, bearerToken: "tok")
+        let plain = try DICOMwebClientFactory.makeConfiguration(from: profile)
+        #expect(plain.timeouts.connectTimeout == DICOMwebConfiguration.TimeoutConfiguration.default.connectTimeout)
+        #expect(plain.timeouts.readTimeout == DICOMwebConfiguration.TimeoutConfiguration.default.readTimeout)
+
+        let custom = WorkshopWADOOptionRules.timeouts(seconds: 7)
+        let config = try DICOMwebClientFactory.makeConfiguration(from: profile, timeouts: custom)
+        #expect(config.timeouts.connectTimeout == 7)
+        #expect(config.timeouts.readTimeout == 7)
+        #expect(config.baseURL == plain.baseURL)
+        #expect(config.maxConcurrentRequests == plain.maxConcurrentRequests)
+        #expect(String(describing: config.authentication) == String(describing: plain.authentication))
+    }
 }

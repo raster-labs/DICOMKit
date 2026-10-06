@@ -7028,13 +7028,9 @@ case "dicom-study":
     /// The DICOMwebConfiguration the Workshop runs with: the profile's URL / auth and, for
     /// `retrieve`, the CLI's `--timeout` mapping (WorkshopWADOOptionRules.timeouts).
     private func dicomwebConfiguration(from profile: DICOMwebServerProfile, timeoutSeconds: Int? = nil) throws -> DICOMwebConfiguration {
-        let base = try DICOMwebClientFactory.makeConfiguration(from: profile)
-        guard let timeoutSeconds else { return base }
-        return DICOMwebConfiguration(
-            baseURL: base.baseURL,
-            authentication: base.authentication,
-            timeouts: WorkshopWADOOptionRules.timeouts(seconds: timeoutSeconds),
-            maxConcurrentRequests: base.maxConcurrentRequests)
+        guard let timeoutSeconds else { return try DICOMwebClientFactory.makeConfiguration(from: profile) }
+        return try DICOMwebClientFactory.makeConfiguration(
+            from: profile, timeouts: WorkshopWADOOptionRules.timeouts(seconds: timeoutSeconds))
     }
 
     /// Creates a `DICOMwebServerProfile` from the current parameter values.
