@@ -308,6 +308,14 @@ extension TransferSyntax {
     // "UID Name" of all 63 Transfer Syntax rows verbatim (dumped by script; 48 had differed, old
     // abbreviations kept as `shortName`, D176); `isJPIP` covers the 4 JPIP rows .94/.95/.204/.205
     // (PS3.5 2026a A.6, A.7, A.11, A.12; D109).
+    // NEMA-verified: 2026a, checked 2026-10-06 — re-diffed by script after merge 1416f7e2 (PR #217,
+    // DICOM 2026d video conformance; ±55 lines here: HEVC doc comments, `allowsMultipleFragments`):
+    // the 67 `uid:` literals of this file against PS3.6 2026a Table A-1 — all 63 "Transfer Syntax"
+    // rows are present (63/63, none missing) and `displayName` returns their "UID Name" verbatim
+    // (63/63); the 4 literals outside Table A-1 are the private JP3D pair and the two HEVC
+    // "Fragmentable" UIDs .4.107.1/.4.108.1, which PR #217 removed upstream (origin/main) and
+    // this branch keeps by decision D20/P2 (audit finding A7): they stay unregistered, are not
+    // in Table A-1, and dicom-video refuses them as `--transfer-syntax` (checked 2026-10-01).
     // UIDs .4.110/.111/.112 match PS3.6 Table A-1 (name, keyword, type "Transfer Syntax").
     // PS3.5 §10.19 and §A.4.12 are present. Explicit VR, Little Endian and encapsulated
     // agree with PS3.5 §A.4. `.112` may be lossy or lossless (§A.4.12), and (0028,2114)
@@ -558,6 +566,10 @@ extension TransferSyntax {
     
 
     /// Fragmentable HEVC/H.265 Main Profile / Level 5.1 (1.2.840.10008.1.2.4.107.1)
+    ///
+    /// Not registered: PS3.6 2026a Table A-1 has no ".1" row for HEVC (the registered
+    /// 1.2.840.10008.1.2.4.107 is itself fragmentable, PS3.5 8.2.10). Kept by decision D20/P2
+    /// (audit finding A7, re-checked 2026-10-06) although PR #217 removed it upstream.
     public static let hevcH265MainProfileFragmentable = TransferSyntax(
         uid: "1.2.840.10008.1.2.4.107.1",
         isExplicitVR: true,
@@ -566,6 +578,10 @@ extension TransferSyntax {
     )
 
     /// Fragmentable HEVC/H.265 Main 10 Profile / Level 5.1 (1.2.840.10008.1.2.4.108.1)
+    ///
+    /// Not registered: PS3.6 2026a Table A-1 has no ".1" row for HEVC (the registered
+    /// 1.2.840.10008.1.2.4.108 is itself fragmentable, PS3.5 8.2.11). Kept by decision D20/P2
+    /// (audit finding A7, re-checked 2026-10-06) although PR #217 removed it upstream.
     public static let hevcH265Main10ProfileFragmentable = TransferSyntax(
         uid: "1.2.840.10008.1.2.4.108.1",
         isExplicitVR: true,
