@@ -1386,7 +1386,7 @@ struct CLIWorkshopHelpersTests {
         #expect(netParam("dicom-mwl", "strict-modality")?.visibleWhen?.values == ["query"])
         #expect(netParam("dicom-mwl", "modality")?.helpText == ModalityOptionValidator.helpText("filter"))
         let op = try #require(netParam("dicom-mwl", "operation"))
-        #expect(op.allowedValues == ["query", "create"])        // create is Studio-only (P-STUDIO-MWL-CREATE)
+        #expect(op.allowedValues == ["query"])                  // the CLI's only subcommand; create moved to the Networking panel (P-STUDIO-MWL-CREATE)
     }
 
     @Test("dicom-mpps create requires --modality (PS3.4 Table F.7.2-1 Type 1); the discontinuation reason examples are PS3.16 CID 9301 pairs (D85)")

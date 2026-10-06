@@ -2,7 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — ViewModel for CLI Tools Workshop (Milestone 16)
-// NEMA-verified: 2026a, checked 2026-10-06 — the 33 CLI Workshop executors read against Sources/dicom-*: every executor runs the shared DICOMKit / DICOMNetwork / DICOMWeb engine and console the CLI runs (FrameSplitter, DICOMDIRWorkflow, DICOMValidator, DICOMConverter, CompressionManager / CompressionConsole, ImageConverter / ImageConsole, EncapsulatedDocumentBuilder, PixelEditor, VideoWorkflow / VideoConsole, Anonymizer / PixelRedactor / AnonConsole, DICOMQueryService, DICOMRetrieveService, DICOMStorageService, WADO / QIDO / STOW / UPS clients), prints the CLI's lines, refusal texts and exit codes (64 usage / 1 / 2) in the CLI's order; the rules lifted out of the CLIs are called, not copied (Studio pass 2026-10-06): DICOMDIRFileSetRules (D253), DICOMValidator.iodName(forIODOption:) (D248), ArchiveMatching.studyDateKeyWarning (D249), UIDManager.RootRule (D250), DICOMImageExporter.CineFrameRate / FrameSelection / BurnedInAnnotation (D252), CompressionConsole.NativeTargetSyntax (D267), DICOMConverter.resolveTargetEncoding (D268), VideoOptionConformance / AudioChannelSourceOption (D269), PixelEditInputChecks (D270), EncapsulatedDocumentBuilder.OptionRules (D272), ImageConverter.OutputRules (D274), AnonCLI (D275), NetworkConsole.CStoreOutcome / sendStoreFailedText / retrieveFinalResponse (D261, D262), DICOMMPPSService / WorklistQueryKeys rules (D263, D264), DICOMwebOptionRules / UPSState.changeStateTarget(optionValue:) (D255, D265); directory runs exit as the CLIs (D251, D271, D273); only CLI-local texts stay mirrored (WorkshopAnonError, pdfSkippedLine, the dump / retrieve / qr / mpps refusals); script-checked by Scripts/diff_studio_g1.py (engine_calls / no_local_copy); parity pinned by SplitMergeWorkshopCLIParityTests / NetworkToolWorkshopCLIParityTests / WorkshopDirectoryRunExitTests and Scripts/diff_studio.py --group G1 (0 FAIL, 2 PEND: P-STUDIO-ANON-PS315, P-STUDIO-MWL-CREATE); standard values are the engines' — this file carries no table of its own
+// NEMA-verified: 2026a, checked 2026-10-06 — the 33 CLI Workshop executors read against Sources/dicom-*: every executor runs the shared DICOMKit / DICOMNetwork / DICOMWeb engine and console the CLI runs (FrameSplitter, DICOMDIRWorkflow, DICOMValidator, DICOMConverter, CompressionManager / CompressionConsole, ImageConverter / ImageConsole, EncapsulatedDocumentBuilder, PixelEditor, VideoWorkflow / VideoConsole, Anonymizer / PixelRedactor / AnonConsole, DICOMQueryService, DICOMRetrieveService, DICOMStorageService, WADO / QIDO / STOW / UPS clients), prints the CLI's lines, refusal texts and exit codes (64 usage / 1 / 2) in the CLI's order; the rules lifted out of the CLIs are called, not copied (Studio pass 2026-10-06): DICOMDIRFileSetRules (D253), DICOMValidator.iodName(forIODOption:) (D248), ArchiveMatching.studyDateKeyWarning (D249), UIDManager.RootRule (D250), DICOMImageExporter.CineFrameRate / FrameSelection / BurnedInAnnotation (D252), CompressionConsole.NativeTargetSyntax (D267), DICOMConverter.resolveTargetEncoding (D268), VideoOptionConformance / AudioChannelSourceOption (D269), PixelEditInputChecks (D270), EncapsulatedDocumentBuilder.OptionRules (D272), ImageConverter.OutputRules (D274), AnonCLI (D275), NetworkConsole.CStoreOutcome / sendStoreFailedText / retrieveFinalResponse (D261, D262), DICOMMPPSService / WorklistQueryKeys rules (D263, D264), DICOMwebOptionRules / UPSState.changeStateTarget(optionValue:) (D255, D265); directory runs exit as the CLIs (D251, D271, D273); only CLI-local texts stay mirrored (WorkshopAnonError, pdfSkippedLine, the dump / retrieve / qr / mpps refusals); script-checked by Scripts/diff_studio_g1.py (engine_calls / no_local_copy); parity pinned by SplitMergeWorkshopCLIParityTests / NetworkToolWorkshopCLIParityTests / WorkshopDirectoryRunExitTests and Scripts/diff_studio.py --group G1 (0 FAIL; the 2 former PEND rows P-STUDIO-ANON-PS315 and P-STUDIO-MWL-CREATE implemented 2026-10-06: dicom-anon runs ps315 / basic through Anonymizer.deidentify, dicom-mwl offers only query); standard values are the engines' — this file carries no table of its own
 
 import Foundation
 import Observation
@@ -1155,11 +1155,11 @@ public final class CLIWorkshopViewModel {
             parameterValues: values,
             parameterDefinitions: parameterDefinitions
         )
-        // dicom-mwl `create` is an IN-APP-ONLY operation (N-CREATE via the shared
-        // DICOMKit API): the real dicom-mwl CLI registers only the query
-        // subcommand, so a `dicom-mwl create …` line must never present as a
-        // paste-runnable command. Render the preview fully commented out behind
-        // an explicit banner — pasting it into a terminal is a no-op.
+        // dicom-mwl registers only the query subcommand, and since P-STUDIO-MWL-CREATE
+        // (2026-10-06) the form offers only that; worklist items are created in the
+        // Networking panel (WorklistCreateView). A `create` value restored from an older
+        // session must still never present as a paste-runnable command, so it renders
+        // fully commented out; the executor refuses it.
         if tool.name == "dicom-mwl" {
             let rawOp = values.first(where: { $0.parameterID == "operation" })?.stringValue ?? ""
             let effectiveOp = rawOp.isEmpty
@@ -9849,7 +9849,12 @@ case "dicom-study":
 
     // MARK: - MWL Execution (dicom-mwl)
 
-    /// Performs a Modality Worklist C-FIND query.
+    /// Performs a Modality Worklist C-FIND query — dicom-mwl's only subcommand.
+    ///
+    /// The former Studio-only `create` operation (HL7 ORM^O01 / REST) moved to the Networking
+    /// panel's worklist area (WorklistCreateViewModel, P-STUDIO-MWL-CREATE; owner decision: it
+    /// stays in the app, the CLI gets no create subcommand); an `operation` other than `query`
+    /// left in saved state is refused here.
     private func executeDicomMWL() async {
         let operation = paramValue("operation").isEmpty ? "query" : paramValue("operation")
         let hostValue = paramValue("host")
@@ -9857,6 +9862,15 @@ case "dicom-study":
         let callingAET = paramValue("aet").isEmpty ? "DICOMSTUDIO" : paramValue("aet")
         let calledAET = paramValue("called-aet").isEmpty ? "ANY-SCP" : paramValue("called-aet")
         let timeoutStr = paramValue("timeout")
+
+        guard operation == "query" else {
+            let message = Self.mwlCreateMovedMessage(operation: operation)
+            appendConsoleOutput("Error: \(message)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 64, output: message)
+            return
+        }
 
         guard let server = resolveHostPort(hostValue, explicitPort: portValue) else {
             appendConsoleOutput("Error: A valid host is required (e.g. hostname or hostname:11112).\n")
@@ -9870,19 +9884,17 @@ case "dicom-study":
         let port = server.port
         let timeout = TimeInterval(timeoutStr) ?? 60
 
-        if operation == "create" {
-            await executeDicomMWLCreate(
-                host: host, port: port,
-                callingAET: callingAET, calledAET: calledAET,
-                timeout: timeout
-            )
-        } else {
-            await executeDicomMWLQuery(
-                host: host, port: port,
-                callingAET: callingAET, calledAET: calledAET,
-                timeout: timeout
-            )
-        }
+        await executeDicomMWLQuery(
+            host: host, port: port,
+            callingAET: callingAET, calledAET: calledAET,
+            timeout: timeout
+        )
+    }
+
+    /// Refusal for a dicom-mwl operation other than `query` (e.g. `create` from saved state):
+    /// dicom-mwl has no such subcommand; worklist items are created in the Networking panel.
+    static func mwlCreateMovedMessage(operation: String) -> String {
+        "dicom-mwl has no '\(operation)' subcommand (its only subcommand is query). Create worklist items in Networking › Modality Worklist › New Worklist Item."
     }
 
     // MARK: - MWL Query (C-FIND)
@@ -10016,277 +10028,6 @@ case "dicom-study":
         } catch {
             // ArgumentParser prints a thrown DICOMNetworkError as `Error: <description>`, exit 1.
             refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
-        }
-    }
-
-    // MARK: - MWL Create (REST API)
-
-    private func executeDicomMWLCreate(
-        host: String, port: UInt16,
-        callingAET: String, calledAET: String,
-        timeout: TimeInterval
-    ) async {
-        let createMethod = paramValue("create-method").isEmpty ? "hl7" : paramValue("create-method")
-        let patientName = paramValue("create-patient-name")
-        let patientID = paramValue("create-patient-id")
-        let patientDOB = paramValue("patient-dob")
-        let patientSex = paramValue("patient-sex")
-        let accessionNumber = paramValue("accession-number")
-        let referringPhysician = paramValue("referring-physician")
-        let procedureID = paramValue("procedure-id")
-        let procedureDesc = paramValue("procedure-desc")
-        let modality = paramValue("create-modality").isEmpty ? "CT" : paramValue("create-modality")
-        let scheduledStation = paramValue("scheduled-station")
-        let stationName = paramValue("station-name")
-        let scheduledDate = paramValue("scheduled-date")
-        let scheduledTime = paramValue("scheduled-time")
-        let spsID = paramValue("sps-id")
-        let spsDesc = paramValue("sps-desc")
-        let performingPhysician = paramValue("performing-physician")
-
-        guard !patientName.isEmpty else {
-            appendConsoleOutput("Error: Patient Name is required for worklist creation.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 1,
-                         output: "Patient Name is required")
-            return
-        }
-        guard !patientID.isEmpty else {
-            appendConsoleOutput("Error: Patient ID is required for worklist creation.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 1,
-                         output: "Patient ID is required")
-            return
-        }
-
-        // Resolve scheduled date
-        let resolvedDate: String
-        if scheduledDate.isEmpty {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyyMMdd"
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            resolvedDate = formatter.string(from: Date())
-        } else {
-            resolvedDate = resolvedWorklistDate(scheduledDate)
-        }
-
-        if createMethod == "hl7" {
-            await executeDicomMWLCreateHL7(
-                host: host, timeout: timeout,
-                patientName: patientName, patientID: patientID,
-                patientDOB: patientDOB, patientSex: patientSex,
-                accessionNumber: accessionNumber,
-                referringPhysician: referringPhysician,
-                procedureID: procedureID, procedureDesc: procedureDesc,
-                modality: modality, scheduledStation: scheduledStation,
-                stationName: stationName, resolvedDate: resolvedDate,
-                scheduledTime: scheduledTime, spsID: spsID,
-                spsDesc: spsDesc, performingPhysician: performingPhysician
-            )
-        } else {
-            await executeDicomMWLCreateREST(
-                host: host, port: port,
-                callingAET: callingAET, calledAET: calledAET,
-                timeout: timeout,
-                patientName: patientName, patientID: patientID,
-                patientDOB: patientDOB, patientSex: patientSex,
-                accessionNumber: accessionNumber,
-                referringPhysician: referringPhysician,
-                procedureID: procedureID, procedureDesc: procedureDesc,
-                modality: modality, scheduledStation: scheduledStation,
-                stationName: stationName, resolvedDate: resolvedDate,
-                scheduledTime: scheduledTime, spsID: spsID,
-                spsDesc: spsDesc, performingPhysician: performingPhysician
-            )
-        }
-    }
-
-    // MARK: - MWL Create via HL7 ORM^O01 (MLLP)
-
-    private func executeDicomMWLCreateHL7(
-        host: String, timeout: TimeInterval,
-        patientName: String, patientID: String,
-        patientDOB: String, patientSex: String,
-        accessionNumber: String, referringPhysician: String,
-        procedureID: String, procedureDesc: String,
-        modality: String, scheduledStation: String,
-        stationName: String, resolvedDate: String,
-        scheduledTime: String, spsID: String,
-        spsDesc: String, performingPhysician: String
-    ) async {
-        let hl7PortStr = paramValue("hl7-port")
-        let hl7Port = UInt16(hl7PortStr) ?? 2575
-        let sendingApp = paramValue("sending-application").isEmpty ? "DICOMSTUDIO" : paramValue("sending-application")
-        let sendingFacility = paramValue("sending-facility").isEmpty ? "IMAGING" : paramValue("sending-facility")
-        let receivingApp = paramValue("receiving-application").isEmpty ? "DCM4CHEE" : paramValue("receiving-application")
-        let receivingFacility = paramValue("receiving-facility").isEmpty ? "HOSPITAL" : paramValue("receiving-facility")
-
-        appendConsoleOutput("DICOM Modality Worklist (HL7 ORM^O01 via MLLP)\n")
-        appendConsoleOutput("================================================\n")
-        appendConsoleOutput("  HL7 Server:       \(host):\(hl7Port)\n")
-        appendConsoleOutput("  Sending App:      \(sendingApp) | \(sendingFacility)\n")
-        appendConsoleOutput("  Receiving App:    \(receivingApp) | \(receivingFacility)\n")
-        appendConsoleOutput("  Timeout:          \(Int(timeout))s\n")
-        // Scheduled-item details via the shared NetworkConsole builder (also used
-        // by the REST branch, so the two flows cannot drift).
-        appendConsoleOutput(NetworkConsole.mwlCreateDetailBlock(
-            patientName: patientName, patientID: patientID,
-            patientDOB: patientDOB, patientSex: patientSex,
-            accessionNumber: accessionNumber, referringPhysician: referringPhysician,
-            modality: modality, scheduledDate: resolvedDate, scheduledTime: scheduledTime,
-            stationAET: scheduledStation, stationName: stationName,
-            spsID: spsID, spsDescription: spsDesc,
-            procedureID: procedureID, procedureDescription: procedureDesc,
-            performingPhysician: performingPhysician))
-        appendConsoleOutput("\nSending HL7 ORM^O01 order message via MLLP...\n\n")
-
-        do {
-            let messageControlID = try await DICOMModalityWorklistService.createViaHL7(
-                host: host,
-                hl7Port: hl7Port,
-                sendingApplication: sendingApp,
-                sendingFacility: sendingFacility,
-                receivingApplication: receivingApp,
-                receivingFacility: receivingFacility,
-                patientName: patientName,
-                patientID: patientID,
-                patientBirthDate: patientDOB.isEmpty ? nil : patientDOB,
-                patientSex: patientSex.isEmpty ? nil : patientSex,
-                accessionNumber: accessionNumber.isEmpty ? nil : accessionNumber,
-                referringPhysicianName: referringPhysician.isEmpty ? nil : referringPhysician,
-                requestedProcedureID: procedureID.isEmpty ? nil : procedureID,
-                requestedProcedureDescription: procedureDesc.isEmpty ? nil : procedureDesc,
-                modality: modality.isEmpty ? nil : modality,
-                scheduledStationAETitle: scheduledStation.isEmpty ? nil : scheduledStation,
-                scheduledStationName: stationName.isEmpty ? nil : stationName,
-                scheduledStartDate: resolvedDate,
-                scheduledStartTime: scheduledTime.isEmpty ? nil : scheduledTime,
-                scheduledProcedureStepID: spsID.isEmpty ? nil : spsID,
-                scheduledProcedureStepDescription: spsDesc.isEmpty ? nil : spsDesc,
-                scheduledPerformingPhysicianName: performingPhysician.isEmpty ? nil : performingPhysician,
-                timeout: timeout
-            )
-
-            appendConsoleOutput("✅ HL7 ORM^O01 accepted by server (ACK: AA)\n")
-            appendConsoleOutput("  Message Control ID: \(messageControlID)\n")
-            appendConsoleOutput("  Patient and worklist item created automatically.\n")
-            consoleStatus = .success
-            service.setConsoleStatus(.success)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 0,
-                         output: "HL7 ORM sent: \(messageControlID)")
-        } catch {
-            let errorDesc = (error as? DICOMNetworkError)?.description ?? error.localizedDescription
-            appendConsoleOutput("❌ HL7 ORM^O01 failed: \(errorDesc)\n")
-            appendConsoleOutput("  💡 Hints:\n")
-            appendConsoleOutput("     • Ensure the HL7 MLLP listener is running on \(host):\(hl7Port)\n")
-            appendConsoleOutput("     • dcm4chee-arc default HL7 port is 2575 (check hl7-connection in UI config)\n")
-            appendConsoleOutput("     • Verify Sending/Receiving Application names match the server config\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 1,
-                         output: errorDesc)
-        }
-    }
-
-    // MARK: - MWL Create via REST API
-
-    private func executeDicomMWLCreateREST(
-        host: String, port: UInt16,
-        callingAET: String, calledAET: String,
-        timeout: TimeInterval,
-        patientName: String, patientID: String,
-        patientDOB: String, patientSex: String,
-        accessionNumber: String, referringPhysician: String,
-        procedureID: String, procedureDesc: String,
-        modality: String, scheduledStation: String,
-        stationName: String, resolvedDate: String,
-        scheduledTime: String, spsID: String,
-        spsDesc: String, performingPhysician: String
-    ) async {
-        let restBaseURLRaw = paramValue("rest-base-url")
-
-        // Construct REST base URL (default: dcm4chee-arc pattern)
-        let restBaseURL: String? = restBaseURLRaw.isEmpty ? nil : restBaseURLRaw
-        let displayURL = restBaseURL ?? "http://\(host):8080/dcm4chee-arc"
-
-        appendConsoleOutput("DICOM Modality Worklist (REST API)\n")
-        appendConsoleOutput("===================================\n")
-        appendConsoleOutput("  REST Endpoint:    \(displayURL)/aets/\(calledAET)/rs/mwlitems\n")
-        appendConsoleOutput("  Timeout:          \(Int(timeout))s\n")
-        // Scheduled-item details via the shared NetworkConsole builder (also used
-        // by the HL7 branch, so the two flows cannot drift).
-        appendConsoleOutput(NetworkConsole.mwlCreateDetailBlock(
-            patientName: patientName, patientID: patientID,
-            patientDOB: patientDOB, patientSex: patientSex,
-            accessionNumber: accessionNumber, referringPhysician: referringPhysician,
-            modality: modality, scheduledDate: resolvedDate, scheduledTime: scheduledTime,
-            stationAET: scheduledStation, stationName: stationName,
-            spsID: spsID, spsDescription: spsDesc,
-            procedureID: procedureID, procedureDescription: procedureDesc,
-            performingPhysician: performingPhysician))
-        appendConsoleOutput("\nCreating Modality Worklist item via REST...\n\n")
-
-        do {
-            let sopInstanceUID = try await DICOMModalityWorklistService.create(
-                host: host,
-                port: port,
-                callingAE: callingAET,
-                calledAE: calledAET,
-                patientName: patientName,
-                patientID: patientID,
-                patientBirthDate: patientDOB.isEmpty ? nil : patientDOB,
-                patientSex: patientSex.isEmpty ? nil : patientSex,
-                accessionNumber: accessionNumber.isEmpty ? nil : accessionNumber,
-                referringPhysicianName: referringPhysician.isEmpty ? nil : referringPhysician,
-                requestedProcedureID: procedureID.isEmpty ? nil : procedureID,
-                requestedProcedureDescription: procedureDesc.isEmpty ? nil : procedureDesc,
-                modality: modality.isEmpty ? nil : modality,
-                scheduledStationAETitle: scheduledStation.isEmpty ? nil : scheduledStation,
-                scheduledStationName: stationName.isEmpty ? nil : stationName,
-                scheduledStartDate: resolvedDate,
-                scheduledStartTime: scheduledTime.isEmpty ? nil : scheduledTime,
-                scheduledProcedureStepID: spsID.isEmpty ? nil : spsID,
-                scheduledProcedureStepDescription: spsDesc.isEmpty ? nil : spsDesc,
-                scheduledPerformingPhysicianName: performingPhysician.isEmpty ? nil : performingPhysician,
-                restBaseURL: restBaseURL,
-                timeout: timeout
-            )
-
-            appendConsoleOutput("✅ Worklist item created successfully\n")
-            appendConsoleOutput("  SOP Instance UID: \(sopInstanceUID)\n")
-            consoleStatus = .success
-            service.setConsoleStatus(.success)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 0,
-                         output: "Worklist item created: \(sopInstanceUID)")
-        } catch {
-            let errorDesc = (error as? DICOMNetworkError)?.description ?? error.localizedDescription
-            appendConsoleOutput("❌ Worklist create failed: \(errorDesc)\n")
-            appendConsoleOutput("  💡 Hint: REST requires the patient to exist first on the server.\n")
-            appendConsoleOutput("     Consider using \"HL7\" create method instead — it auto-creates patient + worklist.\n")
-            appendConsoleOutput("     Default endpoint: http://<host>:8080/dcm4chee-arc/aets/<AET>/rs/mwlitems\n")
-            appendConsoleOutput("     Set \"REST Base URL\" if your server uses a different URL.\n")
-            consoleStatus = .error
-            service.setConsoleStatus(.error)
-            addToHistory(toolName: "dicom-mwl", command: commandPreview, exitCode: 1,
-                         output: errorDesc)
-        }
-    }
-
-    /// Resolves a date filter string for MWL queries.
-    /// Accepts "today", "tomorrow", or YYYYMMDD format.
-    private func resolvedWorklistDate(_ filter: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyyMMdd"
-        switch filter.lowercased() {
-        case "today":
-            return formatter.string(from: Date())
-        case "tomorrow":
-            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-            return formatter.string(from: tomorrow)
-        default:
-            return filter
         }
     }
 

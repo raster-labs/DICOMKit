@@ -187,8 +187,10 @@ struct NetworkToolWorkshopCLIParityTests {
         #expect(modality.helpText.contains("0008,0060"))
         let status = try #require(parameter(flag: "--sps-status", in: "dicom-mwl"))
         #expect(status.helpText.contains("0040,0020"))
-        let desc = try #require(defs("dicom-mwl").first { $0.id == "procedure-desc" })
-        #expect(desc.helpText.contains("0032,1060"))
+        // Requested Procedure Description (0032,1060) was a create-form field; the create flow
+        // moved to the Networking panel (WorklistCreateViewModel.procedureDescription,
+        // P-STUDIO-MWL-CREATE), so the Workshop's dicom-mwl form no longer has it.
+        #expect(defs("dicom-mwl").first { $0.id == "procedure-desc" } == nil)
     }
 
     // MARK: - dicom-query (audit #P15)

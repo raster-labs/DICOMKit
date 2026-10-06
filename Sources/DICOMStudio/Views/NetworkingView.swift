@@ -8,6 +8,7 @@
 // the TLS picker NetworkingModel's TLSMode (PS3.15 2026a B.12 / B.13 profiles), and the MPPS and print rows show those
 // enums' raw values; the form's defaults are port 11112 (PS3.8 2026a 9.1.1 registered port) and the AE title
 // DICOMSTUDIO (PS3.5 Table 6.2-1: 11 of 16 bytes). No DIMSE status is worded here.
+// NEMA-verified: 2026a, checked 2026-10-06 — the worklist area gains the "New Worklist Item" sheet (WorklistCreateView, moved from the CLI Workshop, P-STUDIO-MWL-CREATE; its attributes are verified in WorklistCreateViewModel.swift); no DICOM-standard data added here
 
 #if canImport(SwiftUI)
 import SwiftUI
@@ -21,6 +22,8 @@ import DICOMNetwork
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
 public struct NetworkingView: View {
     @Bindable var viewModel: NetworkingViewModel
+    /// "New Worklist Item" sheet (P-STUDIO-MWL-CREATE: moved here from the CLI Workshop).
+    @State private var worklistCreateViewModel: WorklistCreateViewModel?
 
     public init(viewModel: NetworkingViewModel) {
         self.viewModel = viewModel
@@ -390,8 +393,17 @@ public struct NetworkingView: View {
                 Text("\(viewModel.filteredMWLItems.count) items")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Button {
+                    worklistCreateViewModel = WorklistCreateViewModel()
+                } label: {
+                    Label("New Worklist Item", systemImage: "plus")
+                }
+                .accessibilityLabel("Create a worklist item (HL7 ORM or REST)")
             }
             .padding()
+            .sheet(item: $worklistCreateViewModel) { vm in
+                WorklistCreateView(viewModel: vm)
+            }
 
             Divider()
 

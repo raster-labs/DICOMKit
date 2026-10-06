@@ -1,13 +1,16 @@
 // CLIWorkshopTransitiveVisibilityTests.swift
 // DICOMStudioTests
 //
-// Visibility conditions chain: dicom-mwl's HL7 fields are gated on `create-method`,
-// which is itself gated on `operation == create`. The original bug: `satisfies` falls
-// back to a referenced parameter's `defaultValue` when unset, so under `operation ==
-// query` the hidden `create-method` still read as its default "hl7" and dragged the
-// HL7 Port and MSH-3…MSH-6 fields into the query form — which speaks DIMSE C-FIND and
-// has no HL7/MLLP leg at all. These tests assert visibility is transitive: a condition
-// on a hidden controller cannot hold.
+// Visibility conditions chain: a field gated on a controller (`method`) that is itself
+// gated on `operation == create`. The original bug (found on dicom-mwl's former create
+// form): `satisfies` falls back to a referenced parameter's `defaultValue` when unset, so
+// under `operation == query` the hidden `create-method` still read as its default "hl7" and
+// dragged the HL7 Port and MSH-3…MSH-6 fields into the query form. These tests assert
+// visibility is transitive: a condition on a hidden controller cannot hold.
+//
+// Since 2026-10-06 (P-STUDIO-MWL-CREATE) dicom-mwl's create flow lives in the Networking
+// panel (WorklistCreateView), so the chain is reproduced here with the same shape on a
+// synthetic form, and the dicom-mwl form is pinned to the CLI's only subcommand (query).
 
 import Testing
 @testable import DICOMStudio
@@ -19,26 +22,43 @@ import Foundation
 @MainActor
 struct CLIWorkshopTransitiveVisibilityTests {
 
-    /// The dicom-mwl parameter definitions, as the Workshop builds them.
-    private var defs: [CLIParameterDefinition] {
-        ToolCatalogHelpers.parameterDefinitions(for: "dicom-mwl")
-    }
-
-    /// Every parameter that travels only on the HL7 ORM^O01 create path.
-    private static let hl7OnlyIDs = [
-        "hl7-port",
-        "sending-application",
-        "sending-facility",
-        "receiving-application",
-        "receiving-facility"
+    /// The former dicom-mwl create chain: operation → create-method → HL7 / REST fields.
+    private static let chainDefs: [CLIParameterDefinition] = [
+        CLIParameterDefinition(
+            id: "operation", flag: "", displayName: "Operation",
+            parameterType: .subcommand, placeholder: "query", helpText: "",
+            isRequired: true, defaultValue: "query", allowedValues: ["query", "create"]),
+        CLIParameterDefinition(
+            id: "patient", flag: "--patient", displayName: "Patient",
+            parameterType: .textField, placeholder: "", helpText: "",
+            visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])),
+        CLIParameterDefinition(
+            id: "create-method", flag: "", displayName: "Create Method",
+            parameterType: .enumPicker, placeholder: "hl7", helpText: "",
+            isInternal: true, defaultValue: "hl7", allowedValues: ["hl7", "rest"],
+            visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])),
+        CLIParameterDefinition(
+            id: "hl7-port", flag: "--hl7-port", displayName: "HL7 Port",
+            parameterType: .integerField, placeholder: "2575", helpText: "",
+            isInternal: true, defaultValue: "2575",
+            visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["hl7"])),
+        CLIParameterDefinition(
+            id: "sending-application", flag: "--sending-app", displayName: "Sending Application",
+            parameterType: .textField, placeholder: "", helpText: "",
+            isAdvanced: true, isInternal: true, defaultValue: "DICOMSTUDIO",
+            visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["hl7"])),
+        CLIParameterDefinition(
+            id: "rest-base-url", flag: "--rest-url", displayName: "REST Base URL",
+            parameterType: .textField, placeholder: "", helpText: "",
+            isAdvanced: true, isInternal: true,
+            visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["rest"])),
     ]
 
-    /// A view model on the dicom-mwl spec, in Advanced mode so that `visibleParameters()`
-    /// returns advanced parameters too (the four MSH fields are `isAdvanced`) and one
-    /// membership check covers the whole form.
+    private static let hl7OnlyIDs = ["hl7-port", "sending-application"]
+
     private func viewModel(operation: String, createMethod: String? = nil) -> CLIWorkshopViewModel {
         let vm = CLIWorkshopViewModel()
-        vm.setParameterDefinitions(defs)
+        vm.setParameterDefinitions(Self.chainDefs)
         vm.experienceMode = .advanced
         vm.updateParameterValue(parameterID: "operation", value: operation)
         if let createMethod {
@@ -51,111 +71,49 @@ struct CLIWorkshopTransitiveVisibilityTests {
         vm.visibleParameters().contains { $0.id == id }
     }
 
-    // MARK: - Spec shape
-
-    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("create-method is gated on the create operation and defaults to hl7")
-    func testCreateMethodIsItselfConditional() throws {
-        let def = try #require(defs.first { $0.id == "create-method" })
-        let condition = try #require(def.visibleWhen)
-        #expect(condition.parameterId == "operation")
-        #expect(condition.values == ["create"])
-        // The default is what leaked: it makes a hidden controller still report "hl7".
-        #expect(def.defaultValue == "hl7")
-    }
-
-    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("every HL7-only parameter is gated on create-method == hl7")
-    func testHL7ParametersAreGatedOnCreateMethod() throws {
-        for id in Self.hl7OnlyIDs {
-            let def = try #require(defs.first { $0.id == id }, "missing \(id)")
-            let condition = try #require(def.visibleWhen, "\(id) has no visibleWhen")
-            #expect(condition.parameterId == "create-method", "\(id)")
-            #expect(condition.values == ["hl7"], "\(id)")
-        }
-    }
-
     // MARK: - The regression
 
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("HL7 fields stay hidden in the query form")
-    func testHL7FieldsHiddenForQuery() {
+    @Test("fields gated on a hidden controller stay hidden")
+    func testChainedFieldsHiddenForQuery() {
         let vm = viewModel(operation: "query")
         #expect(isVisible("create-method", in: vm) == false)
         for id in Self.hl7OnlyIDs {
             #expect(isVisible(id, in: vm) == false, "\(id) leaked into the query form")
         }
+        #expect(isVisible("patient", in: vm) == true)
+        // A value set while on the other branch does not resurrect its dependents.
+        let rest = viewModel(operation: "query", createMethod: "rest")
+        #expect(isVisible("rest-base-url", in: rest) == false)
     }
 
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("the REST-only field also stays hidden in the query form")
-    func testRESTFieldHiddenForQuery() {
-        // rest-base-url is gated on create-method == "rest"; it must not reappear
-        // under query after the user has visited the create form and chosen REST.
-        let vm = viewModel(operation: "query", createMethod: "rest")
-        #expect(isVisible("rest-base-url", in: vm) == false)
-    }
-
-    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("query-only filters remain visible in the query form")
-    func testQueryFiltersStillVisible() {
-        // Guards against over-hiding: the fix must not suppress ordinary
-        // single-condition parameters gated directly on `operation`.
-        let vm = viewModel(operation: "query")
-        for id in ["date-from", "time-from", "station", "patient", "patient-id",
-                   "modality", "sps-status", "query-accession-number"] {
-            #expect(isVisible(id, in: vm) == true, "\(id) should be visible for query")
-        }
-    }
-
-    // MARK: - The create form still works
-
-    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("HL7 fields appear for an HL7 create")
-    func testHL7FieldsVisibleForHL7Create() {
-        let vm = viewModel(operation: "create", createMethod: "hl7")
-        #expect(isVisible("create-method", in: vm) == true)
+    @Test("chained fields follow a visible controller, including its default")
+    func testChainedFieldsVisibleWhenControllerVisible() {
+        let defaulted = viewModel(operation: "create")
         for id in Self.hl7OnlyIDs {
-            #expect(isVisible(id, in: vm) == true, "\(id) should be visible for an HL7 create")
+            #expect(isVisible(id, in: defaulted) == true, "\(id) should follow the hl7 default")
         }
-        #expect(isVisible("rest-base-url", in: vm) == false)
-    }
-
-    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("HL7 fields appear for a create that leaves create-method at its default")
-    func testHL7FieldsVisibleForDefaultedCreate() {
-        // The defaultValue fallback is legitimate here: create-method is visible,
-        // so its unset default of "hl7" should drive the HL7 fields on.
-        let vm = viewModel(operation: "create")
+        let rest = viewModel(operation: "create", createMethod: "rest")
+        #expect(isVisible("rest-base-url", in: rest) == true)
         for id in Self.hl7OnlyIDs {
-            #expect(isVisible(id, in: vm) == true, "\(id) should follow the hl7 default")
+            #expect(isVisible(id, in: rest) == false, "\(id) should be hidden for REST")
         }
     }
 
-    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("choosing REST swaps the HL7 fields for the REST base URL")
-    func testRESTCreateHidesHL7Fields() {
-        let vm = viewModel(operation: "create", createMethod: "rest")
-        #expect(isVisible("rest-base-url", in: vm) == true)
-        for id in Self.hl7OnlyIDs {
-            #expect(isVisible(id, in: vm) == false, "\(id) should be hidden for a REST create")
-        }
-    }
-
-    // MARK: - Command preview
+    // MARK: - dicom-mwl mirrors the CLI (P-STUDIO-MWL-CREATE)
 
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    @Test("no HL7 flag reaches the query command preview")
-    func testQueryPreviewCarriesNoHL7Flags() {
-        let vm = viewModel(operation: "query")
-        vm.updateParameterValue(parameterID: "host", value: "172.17.1.200")
-        vm.rebuildCommandPreview()
-        let preview = vm.commandPreview
-        // These parameters are `isInternal`, so they were already excluded from the
-        // preview; assert it explicitly so a future un-internalling cannot regress it.
-        for flag in ["--hl7-port", "--sending-app", "--sending-facility",
-                     "--receiving-app", "--receiving-facility"] {
-            #expect(preview.contains(flag) == false, "preview leaked \(flag)")
+    @Test("dicom-mwl offers only the CLI's query subcommand and no create field")
+    func testDicomMWLHasNoCreateForm() throws {
+        let defs = ToolCatalogHelpers.parameterDefinitions(for: "dicom-mwl")
+        let op = try #require(defs.first { $0.id == "operation" })
+        #expect(op.allowedValues == ["query"])
+        #expect(op.defaultValue == "query")
+        for gone in ["create-method", "hl7-port", "create-patient-name", "create-patient-id",
+                     "rest-base-url", "sending-application", "receiving-facility", "create-modality"] {
+            #expect(!defs.contains { $0.id == gone }, "\(gone)")
         }
+        #expect(!defs.contains { $0.isInternal })
     }
 }

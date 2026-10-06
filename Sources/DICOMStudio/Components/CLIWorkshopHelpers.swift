@@ -2,7 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent helpers for CLI Tools Workshop (Milestone 16)
-// NEMA-verified: 2026a, checked 2026-10-06 — the 33 CLI Workshop forms diffed by script against the dicom-* ArgumentParser surfaces (Scripts/diff_studio.py --group G1 parity: flags, defaults, picker values and the cli_contracts.py standard rows; 0 FAIL, 2 PEND: P-STUDIO-ANON-PS315 --profile default, P-STUDIO-MWL-CREATE; DEFR rows are diff_studio.py parser limits) in three passes — file tools (14 ids: PS3.11 Tables A.1-1..N.1-1 profile identifiers, PS3.10 8.1/8.2/8.5 File-set rules, PS3.3 Table 10-3 / C.7.6.16.1.2 Frame numbers from 1, PS3.18 F.2.5 / PS3.19 Table A.1.5-2 empty attributes, PS3.6 Table A-1 keywords), network tools (11 ids: PS3.4 Tables C.6.1-1 / B.2-1 / C.4-2 / C.4-3 / K.6-1a / F.7.2-1, PS3.7 Tables 9.3-1 / 9.3-9 / 9.3-6, PS3.3 C.4.10 / C.30.1 / C.30.2, PS3.16 CID 9301, PS3.18 Tables 9.1.2-2 / 8.7.4-1 / 11.7.1.4), pixel and codec tools (8 ids: PS3.15 Annex E Table E.1-1 Option columns and E.3 / PS3.16 CID 7050, PS3.3 Table C.8-24 Conversion Type terms, Table C.24-2, PS3.16 CID 3000 and PS3.3 A.32.5-A.32.7 / Table C.7-1 for video, PS3.6 Table A-1 convert tokens = DICOMConverter.cliTokens and the compress native --syntax set, PS3.5 Table 6.2-1 / 9.1 refusals); pickers come from the shared engine enums / catalogs or the DocBook terms, help texts are the CLIs' (Scripts/diff_studio_g1.py, 20 checks); the help texts and pickers of the rules lifted out of the CLIs are the engine symbols the CLIs use (DICOMConverter.transferSyntaxOptionHelpWithKeywords D268, VideoOptionConformance / AudioChannelSourceOption D269, CompressionConsole.NativeTargetSyntax D267); no Workshop copy of a CLI rule is left here (WorkshopConvertPicker only maps a typed --transfer-syntax value onto its picker entry), script-checked by Scripts/diff_studio_g1.py
+// NEMA-verified: 2026a, checked 2026-10-06 — the 33 CLI Workshop forms diffed by script against the dicom-* ArgumentParser surfaces (Scripts/diff_studio.py --group G1 parity: flags, defaults, picker values and the cli_contracts.py standard rows; 0 FAIL; the former PEND rows implemented 2026-10-06: P-STUDIO-ANON-PS315 --profile default ps315 with picker ps315 / basic / legacy-*, P-STUDIO-MWL-CREATE dicom-mwl offers only query; DEFR rows are diff_studio.py parser limits) in three passes — file tools (14 ids: PS3.11 Tables A.1-1..N.1-1 profile identifiers, PS3.10 8.1/8.2/8.5 File-set rules, PS3.3 Table 10-3 / C.7.6.16.1.2 Frame numbers from 1, PS3.18 F.2.5 / PS3.19 Table A.1.5-2 empty attributes, PS3.6 Table A-1 keywords), network tools (11 ids: PS3.4 Tables C.6.1-1 / B.2-1 / C.4-2 / C.4-3 / K.6-1a / F.7.2-1, PS3.7 Tables 9.3-1 / 9.3-9 / 9.3-6, PS3.3 C.4.10 / C.30.1 / C.30.2, PS3.16 CID 9301, PS3.18 Tables 9.1.2-2 / 8.7.4-1 / 11.7.1.4), pixel and codec tools (8 ids: PS3.15 Annex E Table E.1-1 Option columns and E.3 / PS3.16 CID 7050, PS3.3 Table C.8-24 Conversion Type terms, Table C.24-2, PS3.16 CID 3000 and PS3.3 A.32.5-A.32.7 / Table C.7-1 for video, PS3.6 Table A-1 convert tokens = DICOMConverter.cliTokens and the compress native --syntax set, PS3.5 Table 6.2-1 / 9.1 refusals); pickers come from the shared engine enums / catalogs or the DocBook terms, help texts are the CLIs' (Scripts/diff_studio_g1.py, 20 checks); the help texts and pickers of the rules lifted out of the CLIs are the engine symbols the CLIs use (DICOMConverter.transferSyntaxOptionHelpWithKeywords D268, VideoOptionConformance / AudioChannelSourceOption D269, CompressionConsole.NativeTargetSyntax D267); no Workshop copy of a CLI rule is left here (WorkshopConvertPicker only maps a typed --transfer-syntax value onto its picker entry), script-checked by Scripts/diff_studio_g1.py
 
 import Foundation
 import DICOMCore
@@ -923,17 +923,18 @@ public enum ToolCatalogHelpers: Sendable {
             ]
         case "dicom-mwl":
             return [
-                // `query` is the dicom-mwl CLI's only subcommand (PS3.4 Annex K, C-FIND).
-                // `create` is a Studio-only operation (HL7 ORM^O01 over MLLP or the archive's
-                // REST API — no DIMSE service creates a worklist item); its fields are
-                // isInternal and the preview is rendered commented out (P-STUDIO-MWL-CREATE).
+                // `query` is the dicom-mwl CLI's only subcommand (PS3.4 Annex K, C-FIND), and the
+                // only one offered here (P-STUDIO-MWL-CREATE, 2026-10-06). Creating a worklist item
+                // (HL7 ORM^O01 over MLLP or the archive's REST API — no DIMSE service creates one)
+                // moved to the Networking panel's worklist area (WorklistCreateView); owner
+                // decision: it stays in the app, dicom-mwl gets no create subcommand.
                 CLIParameterDefinition(
                     id: "operation", flag: "", displayName: "Operation",
                     parameterType: .subcommand, placeholder: "query",
-                    helpText: "Modality Worklist operation: query scheduled procedures (C-FIND, the dicom-mwl CLI) or create a new worklist item (in-app only: HL7 ORM^O01 or REST — dicom-mwl has no create subcommand)",
+                    helpText: "Modality Worklist operation: query scheduled procedures (C-FIND), dicom-mwl's only subcommand",
                     isRequired: true,
                     defaultValue: "query",
-                    allowedValues: ["query", "create"]
+                    allowedValues: ["query"]
                 ),
                 CLIParameterDefinition(
                     id: "host", flag: "--host", displayName: "Host",
@@ -1040,189 +1041,6 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "Force the Specific Character Set (0008,0005) of the query, e.g. ISO_IR 100 or ISO_IR 192. By default the narrowest set that represents every text key is chosen (none for pure ASCII)",
                     isAdvanced: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["query"])
-                ),
-                // ----- Create parameters (DICOMStudio-internal, no CLI equivalent) -----
-                // Note: `dicom-mwl` CLI only supports the `query` subcommand.
-                // MWL item creation is performed by DICOMStudio via HL7 ORM^O01
-                // or REST API — these parameters drive the internal execution
-                // but are excluded from the command preview (`isInternal: true`).
-                CLIParameterDefinition(
-                    id: "create-method", flag: "", displayName: "Create Method",
-                    parameterType: .enumPicker, placeholder: "hl7",
-                    helpText: "How to create the worklist item. HL7 (recommended): sends an ORM^O01 order message via MLLP — automatically creates the patient and worklist. REST: posts DICOM JSON to the server's REST API (requires the patient to exist first).",
-                    isInternal: true,
-                    defaultValue: "hl7",
-                    allowedValues: ["hl7", "rest"],
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "hl7-port", flag: "--hl7-port", displayName: "HL7 Port",
-                    parameterType: .integerField, placeholder: "2575",
-                    helpText: "HL7 MLLP listener port on the server (default: 2575 for dcm4chee-arc)",
-                    isInternal: true,
-                    defaultValue: "2575", minValue: 1, maxValue: 65535,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["hl7"])
-                ),
-                CLIParameterDefinition(
-                    id: "create-patient-name", flag: "--patient-name", displayName: "Patient Name",
-                    parameterType: .textField, placeholder: "e.g. DOE^JOHN",
-                    helpText: "Patient's Name (0010,0010) — required for worklist creation",
-                    isRequired: true,
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "create-patient-id", flag: "--patient-id", displayName: "Patient ID",
-                    parameterType: .textField, placeholder: "e.g. PAT001",
-                    helpText: "Patient ID (0010,0020) — required for worklist creation",
-                    isRequired: true,
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "patient-dob", flag: "--patient-dob", displayName: "Patient Birth Date",
-                    parameterType: .textField, placeholder: "YYYYMMDD",
-                    helpText: "Patient's Birth Date (0010,0030) in YYYYMMDD format",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "patient-sex", flag: "--patient-sex", displayName: "Patient Sex",
-                    parameterType: .enumPicker, placeholder: "Unknown",
-                    helpText: "Patient's Sex (0010,0040)",
-                    isInternal: true,
-                    allowedValues: ["", "M", "F", "O"],
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "accession-number", flag: "--accession-number", displayName: "Accession Number",
-                    parameterType: .textField, placeholder: "e.g. ACC12345",
-                    helpText: "Accession Number (0008,0050) — links worklist item to the imaging order",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "referring-physician", flag: "--referring-physician", displayName: "Referring Physician",
-                    parameterType: .textField, placeholder: "e.g. SMITH^JANE",
-                    helpText: "Referring Physician's Name (0008,0090)",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "procedure-id", flag: "--procedure-id", displayName: "Requested Procedure ID",
-                    parameterType: .textField, placeholder: "e.g. PROC001",
-                    helpText: "Requested Procedure ID (0040,1001)",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "procedure-desc", flag: "--procedure-desc", displayName: "Procedure Description",
-                    parameterType: .textField, placeholder: "e.g. CT Head Without Contrast",
-                    helpText: "Requested Procedure Description (0032,1060)",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "create-modality", flag: "--modality", displayName: "Modality",
-                    parameterType: .enumPicker, placeholder: "CT",
-                    helpText: "Scheduled modality for the procedure step (0008,0060)",
-                    isInternal: true,
-                    defaultValue: "CT",
-                    allowedValues: modalityAllowedValues,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "scheduled-station", flag: "--scheduled-station", displayName: "Scheduled Station AET",
-                    parameterType: .textField, placeholder: "e.g. CT1",
-                    helpText: "Scheduled Station AE Title (0040,0001) — the modality that will perform the procedure",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "station-name", flag: "--station-name", displayName: "Station Name",
-                    parameterType: .textField, placeholder: "e.g. CT_SCANNER_1",
-                    helpText: "Scheduled Station Name (0040,0010)",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "scheduled-date", flag: "--scheduled-date", displayName: "Scheduled Date",
-                    parameterType: .textField, placeholder: "YYYYMMDD or today",
-                    helpText: "Scheduled Procedure Step Start Date (0040,0002) — defaults to today",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "scheduled-time", flag: "--scheduled-time", displayName: "Scheduled Time",
-                    parameterType: .textField, placeholder: "HHMMSS e.g. 143000",
-                    helpText: "Scheduled Procedure Step Start Time (0040,0003)",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "sps-id", flag: "--sps-id", displayName: "Procedure Step ID",
-                    parameterType: .textField, placeholder: "e.g. SPS001",
-                    helpText: "Scheduled Procedure Step ID (0040,0009) — defaults to SPS001",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "sps-desc", flag: "--sps-desc", displayName: "Step Description",
-                    parameterType: .textField, placeholder: "e.g. CT Head Scan",
-                    helpText: "Scheduled Procedure Step Description (0040,0007)",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "performing-physician", flag: "--physician", displayName: "Performing Physician",
-                    parameterType: .textField, placeholder: "e.g. JONES^ALICE",
-                    helpText: "Scheduled Performing Physician's Name (0040,0006)",
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["create"])
-                ),
-                CLIParameterDefinition(
-                    id: "rest-base-url", flag: "--rest-url", displayName: "REST Base URL",
-                    parameterType: .textField, placeholder: "e.g. http://host:8080/dcm4chee-arc",
-                    helpText: "REST base URL for MWL item creation. MWL creation uses the server's REST API (not DIMSE). Default: http://<host>:8080/dcm4chee-arc",
-                    isAdvanced: true,
-                    isInternal: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["rest"])
-                ),
-                CLIParameterDefinition(
-                    id: "sending-application", flag: "--sending-app", displayName: "Sending Application",
-                    parameterType: .textField, placeholder: "DICOMSTUDIO",
-                    helpText: "HL7 MSH-3 Sending Application name (default: DICOMSTUDIO)",
-                    isAdvanced: true,
-                    isInternal: true,
-                    defaultValue: "DICOMSTUDIO",
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["hl7"])
-                ),
-                CLIParameterDefinition(
-                    id: "sending-facility", flag: "--sending-facility", displayName: "Sending Facility",
-                    parameterType: .textField, placeholder: "IMAGING",
-                    helpText: "HL7 MSH-4 Sending Facility name (default: IMAGING)",
-                    isAdvanced: true,
-                    isInternal: true,
-                    defaultValue: "IMAGING",
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["hl7"])
-                ),
-                CLIParameterDefinition(
-                    id: "receiving-application", flag: "--receiving-app", displayName: "Receiving Application",
-                    parameterType: .textField, placeholder: "DCM4CHEE",
-                    helpText: "HL7 MSH-5 Receiving Application name (default: DCM4CHEE)",
-                    isAdvanced: true,
-                    isInternal: true,
-                    defaultValue: "DCM4CHEE",
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["hl7"])
-                ),
-                CLIParameterDefinition(
-                    id: "receiving-facility", flag: "--receiving-facility", displayName: "Receiving Facility",
-                    parameterType: .textField, placeholder: "HOSPITAL",
-                    helpText: "HL7 MSH-6 Receiving Facility name (default: HOSPITAL)",
-                    isAdvanced: true,
-                    isInternal: true,
-                    defaultValue: "HOSPITAL",
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "create-method", values: ["hl7"])
                 ),
                 // ----- Common parameters -----
                 CLIParameterDefinition(
