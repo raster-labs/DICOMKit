@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Printer Status NORMAL/WARNING/FAILURE per PS3.3 2026a Table C.13-9 and default Printer Status Info per C.13.9.1 Defined Terms (NO SUPPLY corrected to SUPPLY EMPTY); Medium Type / Film Size tokens via PrintOptionCatalog
 //
 // PrintSCPSettings.swift
 // DICOMPrintKit
@@ -57,12 +58,13 @@ public enum EmulatedPrinterStatus: String, Codable, Sendable, CaseIterable, Iden
         }
     }
 
-    /// Default Printer Status Info (2110,0020) for the state.
+    /// Default Printer Status Info (2110,0020) for the state — NORMAL, SUPPLY
+    /// LOW and SUPPLY EMPTY, each a Defined Term of PS3.3 C.13.9.1.
     public var defaultStatusInfo: String {
         switch self {
         case .normal:  return "NORMAL"
         case .warning: return "SUPPLY LOW"
-        case .failure: return "NO SUPPLY"
+        case .failure: return "SUPPLY EMPTY"
         }
     }
 }
@@ -188,7 +190,7 @@ public struct PrintSCPSettings: Codable, Sendable, Equatable {
     /// footer, header, side, or drawn over the images).
     public var annotationEdge: FilmAnnotationEdge
 
-    /// Whether crop marks are drawn when Trim (2010,0140) is YES.
+    /// Whether a trim box is printed around each image when Trim (2010,0140) is YES (PS3.3 Table C.13-3).
     public var drawTrimMarks: Bool
 
     /// A pseudo-colour palette laid over received films when they are rendered.
@@ -585,7 +587,8 @@ extension PrintOptionCatalog {
     /// Density interpretations offered by the emulator, in `--density` order.
     public static let densityMappings: [(value: DensityMapping, cliToken: String, label: String)] = [
         (.paperDirect,   "paper", "Paper (direct)"),
-        (.filmEmulation, "film",  "Film emulation")
+        (.filmEmulation, "film",  "Film emulation"),
+        (.gsdf,          "gsdf",  "Calibrated (PS3.14 GSDF)")
     ]
 
     /// Resolves a CLI density token ("film") to its `DensityMapping`.

@@ -252,7 +252,7 @@ struct DataExchangeModelTests {
         )
         #expect(job.intent == .notApplicable)
         // A lossless-only UID reads with its canonical name, no appended suffix.
-        #expect(job.targetDisplayName == "JPEG 2000 Lossless Only")
+        #expect(job.targetDisplayName == "JPEG 2000 Image Compression (Lossless Only)")  // PS3.6 Table A-1 (D176)
     }
 
     @Test("TransferSyntaxConversionJob carries lossless/lossy intent for a both-capable UID")
@@ -270,8 +270,8 @@ struct DataExchangeModelTests {
             intent: .lossy
         )
         #expect(lossless.intent == .lossless)
-        #expect(lossless.targetDisplayName == "JPEG 2000 Part 2 Multi-component Lossless")
-        #expect(lossy.targetDisplayName == "JPEG 2000 Part 2 Multi-component Lossy")
+        #expect(lossless.targetDisplayName == "JPEG 2000 Part 2 Multi-component Image Compression (lossless)")
+        #expect(lossy.targetDisplayName == "JPEG 2000 Part 2 Multi-component Image Compression (lossy)")
         #expect(lossless.targetTransferSyntaxUID == lossy.targetTransferSyntaxUID)
     }
 

@@ -2,6 +2,11 @@
 // DICOMStudio
 //
 // DICOM Studio — Data exchange, conversion, and developer tools view
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — UI layout; the only standard-derived data is
+// `CompressionAlgorithmHelpers.algorithms`/`isLossy` (transfer-syntax labels and lossy flags), which the codec pass
+// verifies against PS3.6 2026a Table A-1 / PS3.5 Annex A and which is not claimed here; the Secondary Capture
+// modality field is `ModalityPicker` (verified with G2).
 
 #if canImport(SwiftUI)
 import SwiftUI
@@ -651,9 +656,8 @@ public struct DataExchangeView: View {
                         GridRow {
                             Text("Modality")
                                 .gridColumnAlignment(.trailing)
-                            TextField("SC", text: $viewModel.secondaryCaptureModality)
-                                .textFieldStyle(.roundedBorder)
-                                .accessibilityLabel("Modality")
+                            ModalityPicker("Modality",
+                                           selection: $viewModel.secondaryCaptureModality)
                         }
                     }
                 }
@@ -1060,30 +1064,33 @@ struct AddBatchJobSheet: View {
 
 /// Platform-independent compression algorithm mapping for DataExchangeView.
 public enum CompressionAlgorithmHelpers: Sendable {
+    /// The compression targets offered, as (label, dicom-compress `--codec` token).
+    ///
+    /// Every row resolves its token through the shared catalog
+    /// (``TransferSyntax/parseEncoding(_:)``), so the label carries the PS3.6
+    /// Table A-1 name and the UID the token really produces, with the lossless /
+    /// lossy intent for the `both`-capable UIDs (.91, .203, .112). Nothing here
+    /// is spelled by hand: `jpeg-lossless` is .57 (not .70), `j2k-lossless` is a
+    /// reversible codestream in the general .91 (not .90), `htj2k-lossless` is a
+    /// reversible .203 (not .201) — the catalog says so and the label follows.
     public static let algorithms: [(label: String, cli: String)] = {
-        // J2K/HTJ2K CLI targets resolve their UID + display name through the shared
-        // catalog so the keys stay mapped to the canonical UIDs. This corrects the
-        // prior mistake where "htj2k" pointed at .202 — it is .203; .202 is "htj2k-rpcl".
-        // `parseEncoding` resolves the lossy/lossless intent so the `both`-capable
-        // general UIDs (.91/.203) read as "JPEG 2000 Lossy" / "HTJ2K Lossy" instead of
-        // the ambiguous bare name — the user sees exactly which encoding is selected.
-        func j2k(_ cli: String) -> (label: String, cli: String) {
+        func row(_ cli: String) -> (label: String, cli: String) {
             guard let enc = TransferSyntax.parseEncoding(cli) else { return (cli, cli) }
             return ("\(enc.displayName) (\(enc.uid))", cli)
         }
         return [
-            ("RLE Lossless (1.2.840.10008.1.2.5)", "rle"),
-            ("JPEG Baseline (1.2.840.10008.1.2.4.50)", "jpeg-baseline"),
-            ("JPEG Lossless (1.2.840.10008.1.2.4.70)", "jpeg-lossless"),
-            ("JPEG-LS Lossless (1.2.840.10008.1.2.4.80)", "jpeg-ls-lossless"),
-            ("JPEG-LS Near-Lossless (1.2.840.10008.1.2.4.81)", "jpeg-ls"),
-            j2k("j2k-lossless"),   // .90
-            j2k("j2k"),            // .91
-            j2k("htj2k-lossless"), // .201
-            j2k("htj2k-rpcl"),     // .202
-            j2k("htj2k"),          // .203
-            j2k("jpeg-xl-lossless-only"), // .110
-            j2k("jpeg-xl"),               // .112
+            row("rle"),                   // .5    RLE Lossless
+            row("jpeg-baseline"),         // .4.50 JPEG Baseline (Process 1)
+            row("jpeg-lossless"),         // .4.57 JPEG Lossless, Non-Hierarchical (Process 14)
+            row("jpeg-ls-lossless"),      // .4.80 JPEG-LS Lossless Image Compression
+            row("jpeg-ls"),               // .4.81 JPEG-LS Lossy (Near-Lossless) Image Compression
+            row("j2k-lossless"),          // .4.91 JPEG 2000 Image Compression, reversible codestream
+            row("j2k"),                   // .4.91 JPEG 2000 Image Compression, irreversible
+            row("htj2k-lossless"),        // .4.203 High-Throughput JPEG 2000 Image Compression, reversible
+            row("htj2k-rpcl"),            // .4.202 High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)
+            row("htj2k"),                 // .4.203 High-Throughput JPEG 2000 Image Compression, irreversible
+            row("jpeg-xl-lossless-only"), // .4.110 JPEG XL Lossless
+            row("jpeg-xl"),               // .4.112 JPEG XL, irreversible
         ]
     }()
 

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — workflow over the builder and parser; MIME types via EncapsulatedDocument
 //
 // EncapsulatedDocumentWorkflow.swift
 // DICOMKit
@@ -53,8 +54,8 @@ public extension EncapsulatedDocumentType {
     /// (STL/OBJ/MTL), `"DOC"` for everything else.
     var defaultModality: String {
         switch self {
-        case .stl, .obj, .mtl: return "M3D"
-        default:               return "DOC"
+        case .stl, .obj, .mtl: return Modality.m3d.rawValue
+        default:               return Modality.doc.rawValue
         }
     }
 }

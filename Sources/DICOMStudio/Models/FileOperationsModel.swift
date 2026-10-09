@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for File Operations & Drag-and-Drop (Milestone 22)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (drop-zone, output-path and scan state;
+// the "DICM" doc comment refers to PS3.10 7.1).
 
 import Foundation
 

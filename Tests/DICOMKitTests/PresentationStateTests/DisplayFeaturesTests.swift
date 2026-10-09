@@ -149,7 +149,7 @@ final class DisplayFeaturesTests: XCTestCase {
     }
     
     func test_opticalPathColor_fluorescence() {
-        let illuminationColor = RGBColor(red: 0, green: 255, blue: 0)
+        let illuminationColor = DICOMKit.RGBColor(red: 0, green: 255, blue: 0)
         
         let opticalPath = OpticalPathColor(
             opticalPathIdentifier: "2",
@@ -201,7 +201,7 @@ final class DisplayFeaturesTests: XCTestCase {
     // MARK: - RGB Color Tests
     
     func test_rgbColor_initialization() {
-        let color = RGBColor(red: 255, green: 128, blue: 0)
+        let color = DICOMKit.RGBColor(red: 255, green: 128, blue: 0)
         
         XCTAssertEqual(color.red, 255)
         XCTAssertEqual(color.green, 128)
@@ -209,7 +209,7 @@ final class DisplayFeaturesTests: XCTestCase {
     }
     
     func test_rgbColor_normalizedInit() {
-        let color = RGBColor(normalizedRed: 1.0, normalizedGreen: 0.5, normalizedBlue: 0.0)
+        let color = DICOMKit.RGBColor(normalizedRed: 1.0, normalizedGreen: 0.5, normalizedBlue: 0.0)
         
         XCTAssertEqual(color.red, 255)
         XCTAssertEqual(color.green, 127) // 0.5 * 255 = 127.5 -> 127
@@ -217,7 +217,7 @@ final class DisplayFeaturesTests: XCTestCase {
     }
     
     func test_rgbColor_normalizedInit_clamping() {
-        let color = RGBColor(normalizedRed: 1.5, normalizedGreen: -0.5, normalizedBlue: 0.5)
+        let color = DICOMKit.RGBColor(normalizedRed: 1.5, normalizedGreen: -0.5, normalizedBlue: 0.5)
         
         XCTAssertEqual(color.red, 255) // Clamped from 382.5 to 255
         XCTAssertEqual(color.green, 0) // Clamped from -127.5 to 0
@@ -225,7 +225,7 @@ final class DisplayFeaturesTests: XCTestCase {
     }
     
     func test_rgbColor_normalized() {
-        let color = RGBColor(red: 255, green: 128, blue: 0)
+        let color = DICOMKit.RGBColor(red: 255, green: 128, blue: 0)
         let normalized = color.normalized
         
         XCTAssertEqual(normalized.red, 1.0, accuracy: 0.01)
@@ -234,18 +234,18 @@ final class DisplayFeaturesTests: XCTestCase {
     }
     
     func test_rgbColor_hashable() {
-        let color1 = RGBColor(red: 255, green: 128, blue: 0)
-        let color2 = RGBColor(red: 255, green: 128, blue: 0)
-        let color3 = RGBColor(red: 0, green: 128, blue: 255)
+        let color1 = DICOMKit.RGBColor(red: 255, green: 128, blue: 0)
+        let color2 = DICOMKit.RGBColor(red: 255, green: 128, blue: 0)
+        let color3 = DICOMKit.RGBColor(red: 0, green: 128, blue: 255)
         
         XCTAssertEqual(color1, color2)
         XCTAssertNotEqual(color1, color3)
     }
     
     func test_rgbColor_roundTrip() {
-        let original = RGBColor(red: 200, green: 100, blue: 50)
+        let original = DICOMKit.RGBColor(red: 200, green: 100, blue: 50)
         let normalized = original.normalized
-        let roundTrip = RGBColor(
+        let roundTrip = DICOMKit.RGBColor(
             normalizedRed: normalized.red,
             normalizedGreen: normalized.green,
             normalizedBlue: normalized.blue

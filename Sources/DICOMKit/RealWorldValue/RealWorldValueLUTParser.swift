@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Real World Value Mapping reads per PS3.3 2026a C.7.6.16.2.11
 //
 // RealWorldValueLUTParser.swift
 // DICOMKit
@@ -91,8 +92,9 @@ public struct RealWorldValueLUTParser {
         // LUT Label (0040,9210)
         let label = item.string(for: Tag(group: 0x0040, element: 0x9210))
         
-        // LUT Explanation (0040,9211)
-        let explanation = item.string(for: Tag(group: 0x0040, element: 0x9211))
+        // LUT Explanation (0028,3003). Not (0040,9211), which is Real World
+        // Value Last Value Mapped (US/SS) and belongs to the LUT branch below.
+        let explanation = item.string(for: .lutExplanation)
         
         // Measurement Units Code Sequence (0040,08EA)
         guard let unitsSequence = item[Tag(group: 0x0040, element: 0x08EA)]?.sequenceItems,
@@ -128,10 +130,15 @@ public struct RealWorldValueLUTParser {
            let intercept = item[Tag(group: 0x0040, element: 0x9224)]?.float64Value {
             transformation = .linear(slope: slope, intercept: intercept)
         }
-        // Try LUT Data
-        else if let firstValueMapped = item[Tag(group: 0x0040, element: 0x9212)]?.float64Value,
-                let lastValueMapped = item[Tag(group: 0x0040, element: 0x9213)]?.float64Value,
-                let lutData = item[Tag(group: 0x0040, element: 0x9216)]?.float64Values {
+        // Try LUT Data (0040,9212). The mapped range is either the US/SS pair
+        // Real World Value First/Last Value Mapped (0040,9216)/(0040,9211) or,
+        // for float pixel data, the FD pair Double Float Real World Value
+        // First/Last Value Mapped (0040,9214)/(0040,9213).
+        else if let lutData = item[.realWorldValueLUTData]?.float64Values,
+                let firstValueMapped = item[.realWorldValueFirstValueMapped]?.uint16Value.map(Double.init)
+                    ?? item[.doubleFloatRealWorldValueFirstValueMapped]?.float64Value,
+                let lastValueMapped = item[.realWorldValueLastValueMapped]?.uint16Value.map(Double.init)
+                    ?? item[.doubleFloatRealWorldValueLastValueMapped]?.float64Value {
             let descriptor = RealWorldValueLUT.LUTDescriptor(
                 firstValueMapped: firstValueMapped,
                 lastValueMapped: lastValueMapped

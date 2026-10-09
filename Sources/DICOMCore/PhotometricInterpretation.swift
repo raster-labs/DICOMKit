@@ -2,6 +2,11 @@
 ///
 /// Specifies the intended interpretation of the pixel data.
 /// Reference: DICOM PS3.3 C.7.6.3.1.2 - Photometric Interpretation
+///
+/// NEMA-verified: 2026a, checked 2026-09-24 — text-diffed against PS3.3 2026a C.7.6.3.1.2.
+/// All 10 current Defined Terms are present, including XYB. Of the retired terms, only
+/// YBR_PARTIAL_422 is kept (HSV, ARGB and CMYK are not). XYB's constraints (JPEG XL only,
+/// Samples per Pixel 3) match PS3.5 2026a Table 8.2.15-1. Provenance for XYB: Sup 232 (2024d).
 public enum PhotometricInterpretation: String, Sendable, Equatable, Hashable {
     /// Pixel data represent a single monochrome image plane where minimum sample value
     /// is intended to be displayed as white after any VOI gray scale transformations.
@@ -45,6 +50,13 @@ public enum PhotometricInterpretation: String, Sendable, Equatable, Hashable {
     /// Pixel data represent a color image with YBR_RCT color model (JPEG 2000 lossless).
     /// Reference: PS3.3 C.7.6.3.1.2
     case ybrRCT = "YBR_RCT"
+
+    /// Pixel data represent a color image in XYB, the LMS-based color model of JPEG XL
+    /// (ISO/IEC 18181). Valid only with the JPEG XL transfer syntaxes, with Samples per
+    /// Pixel 3 and Planar Configuration 0. Images in XYB transcoded to other transfer
+    /// syntaxes use RGB.
+    /// Reference: PS3.3 C.7.6.3.1.2; PS3.5 Table 8.2.15-1 (Supplement 232)
+    case xyb = "XYB"
     
     /// Whether this photometric interpretation represents a monochrome image
     public var isMonochrome: Bool {
@@ -82,7 +94,7 @@ public enum PhotometricInterpretation: String, Sendable, Equatable, Hashable {
         case .monochrome1, .monochrome2, .paletteColor:
             // PALETTE COLOR has 1 sample per pixel (the index value)
             return 1
-        case .rgb, .ybrFull, .ybrFull422, .ybrPartial422, .ybrPartial420, .ybrICT, .ybrRCT:
+        case .rgb, .ybrFull, .ybrFull422, .ybrPartial422, .ybrPartial420, .ybrICT, .ybrRCT, .xyb:
             return 3
         }
     }

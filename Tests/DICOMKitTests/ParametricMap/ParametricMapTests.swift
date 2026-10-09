@@ -128,8 +128,8 @@ final class ParametricMapTests: XCTestCase {
         XCTAssertEqual(mapping.label, "T1 Mapping")
         XCTAssertEqual(mapping.explanation, "T1 relaxation time in milliseconds")
         XCTAssertEqual(mapping.measurementUnits.codeValue, "ms")
-        XCTAssertEqual(mapping.quantityDefinition?.codeValue, "113054")
-        
+        XCTAssertEqual(mapping.quantityDefinition?.codeValue, "113063")   // (113063, DCM, "T1"), PS3.16 Table D-1
+
         if case .linear(let slope, let intercept) = mapping.mapping {
             XCTAssertEqual(slope, 1.5)
             XCTAssertEqual(intercept, 100.0)
@@ -186,12 +186,12 @@ final class ParametricMapTests: XCTestCase {
         XCTAssertEqual(QuantityDefinition.adc.codingSchemeDesignator, "DCM")
         XCTAssertEqual(QuantityDefinition.adc.codeMeaning, "Apparent Diffusion Coefficient")
         
-        XCTAssertEqual(QuantityDefinition.t1.codeValue, "113054")
-        XCTAssertEqual(QuantityDefinition.t2.codeValue, "113055")
-        
+        XCTAssertEqual(QuantityDefinition.t1.codeValue, "113063")
+        XCTAssertEqual(QuantityDefinition.t2.codeValue, "113065")
+
         XCTAssertEqual(QuantityDefinition.ktrans.codeValue, "126312")
-        XCTAssertEqual(QuantityDefinition.ve.codeValue, "126313")
-        XCTAssertEqual(QuantityDefinition.vp.codeValue, "126314")
+        XCTAssertEqual(QuantityDefinition.ve.codeValue, "126314")
+        XCTAssertEqual(QuantityDefinition.vp.codeValue, "126331")
         
         XCTAssertEqual(QuantityDefinition.suv.codeValue, "126400")
         XCTAssertEqual(QuantityDefinition.suvbw.codeValue, "126401")

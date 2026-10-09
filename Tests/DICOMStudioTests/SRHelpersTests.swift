@@ -319,14 +319,84 @@ struct SRTreeHelpersTests {
 @Suite("SRBuilderHelpers Tests")
 struct SRBuilderHelpersTests {
 
-    @Test("UCUM unit concepts are defined")
+    @Test("UCUM unit concepts carry the PS3.16 2026a CID 7460 / 7461 / 7181 / 83 code and meaning")
     func testUCUMConcepts() {
         #expect(SRBuilderHelpers.ucumMillimeter.codeValue == "mm")
         #expect(SRBuilderHelpers.ucumCentimeter.codeValue == "cm")
         #expect(SRBuilderHelpers.ucumSquareMillimeter.codeValue == "mm2")
+        #expect(SRBuilderHelpers.ucumSquareMillimeter.codeMeaning == "square millimeter")   // CID 7461
         #expect(SRBuilderHelpers.ucumMilliliter.codeValue == "ml")
-        #expect(SRBuilderHelpers.ucumHounsfieldUnit.codeMeaning == "HU")
+        #expect(SRBuilderHelpers.ucumMilliliter.codeMeaning == "milliliter")
+        #expect(SRBuilderHelpers.ucumHounsfieldUnit.codeValue == "[hnsf'U]")
+        #expect(SRBuilderHelpers.ucumHounsfieldUnit.codeMeaning == "Hounsfield unit")       // CID 83
         #expect(SRBuilderHelpers.ucumNoUnits.codingSchemeDesignator == "UCUM")
+        #expect(SRBuilderHelpers.ucumNoUnits.codeValue == "1")
+        #expect(SRBuilderHelpers.ucumNoUnits.codeMeaning == "no units")                     // CID 7181
+    }
+
+    @Test("Coded concepts match PS3.16 2026a Table D-1 / Table O-1 (SCT, not SRT)")
+    func testConceptsMatchTableD1() {
+        #expect(SRBuilderHelpers.findingSiteConcept.codingSchemeDesignator == "SCT")
+        #expect(SRBuilderHelpers.findingSiteConcept.codeValue == "363698007")
+        #expect(SRBuilderHelpers.findingSiteConcept.codeMeaning == "Finding Site")
+        #expect(SRBuilderHelpers.imageReferenceConcept.codeValue == "121200")
+        #expect(SRBuilderHelpers.imageReferenceConcept.codeMeaning == "Illustration of ROI")
+        #expect(SRBuilderHelpers.keyObjectSelectionTitle.codeValue == "113000")
+        #expect(SRBuilderHelpers.keyObjectSelectionTitle.codeMeaning == "Of Interest")
+        #expect(SRBuilderHelpers.imagingMeasurementsConcept.codeValue == "126010")
+        #expect(SRBuilderHelpers.imagingMeasurementsConcept.codeMeaning == "Imaging Measurements")
+    }
+
+    @Test("Document titles come from CID 7000 / 7021 / 7010 and TID 4000 / 4100, never retired 121070")
+    func testDocumentTitles() {
+        let radiology = SRBuilderHelpers.documentTitle(for: .basicText, template: .radiologyReport)
+        #expect(radiology.codingSchemeDesignator == "LN")
+        #expect(radiology.codeValue == "11528-7")
+        #expect(radiology.codeMeaning == "Radiology Report")
+        let generic = SRBuilderHelpers.documentTitle(for: .comprehensive)
+        #expect(generic.codeValue == "18748-4")
+        #expect(generic.codeMeaning == "Diagnostic Imaging Report")
+        let measurement = SRBuilderHelpers.documentTitle(for: .measurementReport)
+        #expect(measurement.codeValue == "126000" && measurement.codingSchemeDesignator == "DCM")
+        #expect(SRBuilderHelpers.documentTitle(for: .keyObjectSelection).codeValue == "113000")
+        #expect(SRBuilderHelpers.documentTitle(for: .mammographyCAD).codeValue == "111036")
+        #expect(SRBuilderHelpers.documentTitle(for: .mammographyCAD).codeMeaning == "Mammography CAD Report")
+        #expect(SRBuilderHelpers.documentTitle(for: .chestCAD).codeValue == "112000")
+        #expect(SRBuilderHelpers.documentTitle(for: .chestCAD).codeMeaning == "Chest CAD Report")
+        // Templates without a CID 7000 title use the private scheme (PS3.16 Section 8).
+        let pathology = SRBuilderHelpers.documentTitle(for: .pathologyReport)
+        #expect(pathology.codingSchemeDesignator == "99DCMSTUDIO")
+        #expect(pathology.codeMeaning == "Pathology Report")
+        for template in SRTemplate.allCases {
+            #expect(SRBuilderHelpers.documentTitle(for: template).codeValue != "121070")
+        }
+    }
+
+    @Test("Section headings use CID 7001 codes and meanings where the standard has them")
+    func testSectionHeadings() {
+        let findings = SRBuilderHelpers.sectionHeading(for: "Findings")
+        #expect(findings.codingSchemeDesignator == "LN" && findings.codeValue == "59776-5")
+        let impression = SRBuilderHelpers.sectionHeading(for: "Impression")
+        #expect(impression.codeValue == "19005-8")
+        #expect(impression.codeMeaning == "Impressions")
+        #expect(SRBuilderHelpers.sectionHeading(for: "Recommendations").codeValue == "18783-1")
+        #expect(SRBuilderHelpers.sectionHeading(for: "History").codeValue == "11329-0")
+        let indication = SRBuilderHelpers.sectionHeading(for: "Indication")
+        #expect(indication.codeValue == "18785-6" && indication.codeMeaning == "Indications for Procedure")
+        let gross = SRBuilderHelpers.sectionHeading(for: "Gross Description")
+        #expect(gross.codingSchemeDesignator == "99DCMSTUDIO")
+        #expect(gross.codeValue == "GROSS_DESCRIPTION" && gross.codeMeaning == "Gross Description")
+    }
+
+    @Test("Key Object Selection titles are CID 7010 codes")
+    func testKeyObjectTitles() {
+        #expect(SRBuilderHelpers.keyObjectTitle(for: .teaching).codeValue == "113004")
+        #expect(SRBuilderHelpers.keyObjectTitle(for: .teaching).codeMeaning == "For Teaching")
+        #expect(SRBuilderHelpers.keyObjectTitle(for: .conference).codeValue == "113005")
+        #expect(SRBuilderHelpers.keyObjectTitle(for: .research).codeValue == "113009")
+        #expect(SRBuilderHelpers.keyObjectTitle(for: .referral).codeValue == "113002")
+        #expect(SRBuilderHelpers.keyObjectTitle(for: .qualityControl).codeValue == "113010")
+        #expect(SRBuilderHelpers.keyObjectTitle(for: .documentation).codeValue == "113000")
     }
 
     @Test("Common coded concepts are defined")
@@ -334,7 +404,7 @@ struct SRBuilderHelpersTests {
         #expect(SRBuilderHelpers.measurementGroupConcept.codeValue == "125007")
         #expect(SRBuilderHelpers.trackingIdentifierConcept.codeMeaning == "Tracking Identifier")
         #expect(SRBuilderHelpers.findingConcept.codeMeaning == "Finding")
-        #expect(SRBuilderHelpers.keyObjectSelectionTitle.codeMeaning == "Key Object Selection")
+        #expect(SRBuilderHelpers.keyObjectSelectionTitle.codeMeaning == "Of Interest")   // PS3.16 2026a Table D-1 (113000, DCM)
     }
 
     @Test("containerItem creates CONTAINER type")
@@ -439,12 +509,35 @@ struct SRBuilderHelpersTests {
         )
         let item = SRBuilderHelpers.spatialCoordItem(
             conceptName: concept,
-            graphicType: .polygon,
+            graphicType: .polyline,
             graphicData: [0, 0, 100, 0, 100, 100, 0, 100]
         )
         #expect(item.valueType == .spatialCoord)
-        #expect(item.graphicType == .polygon)
+        #expect(item.graphicType == .polyline)
         #expect(item.graphicData?.count == 8)
+    }
+
+    // PS3.3 2026a C.18.6.1.2 has no POLYGON; a closed polygon is a POLYLINE with first point = last point
+    @Test("spatialCoordItem writes a legacy POLYGON as a closed POLYLINE")
+    func testSpatialCoordItemLegacyPolygon() {
+        let concept = CodedConcept(
+            codeValue: "1", codingSchemeDesignator: "DCM", codeMeaning: "Region"
+        )
+        let polygon = SpatialCoordGraphicType(rawValue: "POLYGON")!
+        let item = SRBuilderHelpers.spatialCoordItem(
+            conceptName: concept,
+            graphicType: polygon,
+            graphicData: [0, 0, 100, 0, 100, 100, 0, 100]
+        )
+        #expect(item.graphicType == .polyline)
+        #expect(item.graphicData == [0, 0, 100, 0, 100, 100, 0, 100, 0, 0])
+        let closed = SRBuilderHelpers.spatialCoordItem(
+            conceptName: concept,
+            graphicType: polygon,
+            graphicData: [0, 0, 100, 0, 100, 100, 0, 0]
+        )
+        #expect(closed.graphicType == .polyline)
+        #expect(closed.graphicData == [0, 0, 100, 0, 100, 100, 0, 0])
     }
 
     @Test("spatialCoord3DItem creates SCOORD3D type")
@@ -468,6 +561,9 @@ struct SRBuilderHelpersTests {
         let root = SRBuilderHelpers.buildBasicTextSR(template: .radiologyReport)
         #expect(root.valueType == .container)
         #expect(root.children.count == 3)
+        // TID 2000: title from CID 7000, section headings from CID 7001.
+        #expect(root.conceptName?.codeValue == "11528-7")
+        #expect(root.children.map { $0.conceptName?.codeValue } == ["59776-5", "19005-8", "18783-1"])
     }
 
     @Test("buildBasicTextSR with section texts")
@@ -492,6 +588,12 @@ struct SRBuilderHelpersTests {
         )
         #expect(root.valueType == .container)
         #expect(root.children.count == 2) // description + 1 image
+        // TID 2010: row 1 title from CID 7010 for the purpose, row 7 description, row 8 IMAGE without a concept name.
+        #expect(root.conceptName?.codeValue == "113004")
+        #expect(root.children[0].conceptName?.codeValue == "113012")
+        #expect(root.children[1].valueType == .image)
+        #expect(root.children[1].conceptName == nil)
+        #expect(root.children[1].referencedSOPInstanceUID == "4.5.6")
     }
 
     @Test("buildMeasurementReport creates empty report")
@@ -509,7 +611,12 @@ struct SRBuilderHelpersTests {
             TrackedMeasurement(trackingIdentifier: "L2", value: 22.0, unit: unit),
         ]
         let root = SRBuilderHelpers.buildMeasurementReport(measurements: measurements)
-        #expect(root.children.count == 2)
+        // TID 1500 row 1 title (CID 7021) over the row 6 "Imaging Measurements" CONTAINER holding the groups.
+        #expect(root.conceptName?.codeValue == "126000")
+        #expect(root.children.count == 1)
+        #expect(root.children[0].conceptName?.codeValue == "126010")
+        #expect(root.children[0].children.count == 2)
+        #expect(root.children[0].children.allSatisfy { $0.conceptName?.codeValue == "125007" })
     }
 
     @Test("buildMeasurementGroup creates group with tracking")
@@ -526,6 +633,13 @@ struct SRBuilderHelpersTests {
         let group = SRBuilderHelpers.buildMeasurementGroup(for: m)
         #expect(group.valueType == .container)
         #expect(group.children.count == 4) // tracking ID + tracking UID + measurement + site
+        // TID 1501 rows 2, 3 (HAS OBS CONTEXT), CID 7470 Length NUM, row 6 Finding Site (HAS CONCEPT MOD, SCT).
+        #expect(group.children[0].relationshipType == .hasObsContext)
+        #expect(group.children[1].valueType == .uidRef && group.children[1].conceptName?.codeValue == "112040")
+        #expect(group.children[2].conceptName?.codeValue == "410668003")
+        #expect(group.children[3].relationshipType == .hasConceptMod)
+        #expect(group.children[3].conceptName?.codingSchemeDesignator == "SCT")
+        #expect(group.children[3].conceptName?.codeValue == "363698007")
     }
 
     // MARK: - Validation
@@ -632,6 +746,38 @@ struct TerminologyHelpersTests {
         #expect(TerminologyHelpers.ucumUnits.count >= 15)
     }
 
+    @Test("Codes PS3.16 2026a lists carry the CID code value and meaning")
+    func testCodesMatchPS316() {
+        func entry(_ scheme: String, _ code: String) -> TerminologyEntry? {
+            TerminologyHelpers.entriesForScope(.all).first {
+                $0.concept.codingSchemeDesignator == scheme && $0.concept.codeValue == code
+            }
+        }
+        // SCT body parts and findings (CID 4, 644, 6104): 816092008 is "Pelvis", 129748003 is not in PS3.16.
+        #expect(entry("SCT", "10200004")?.concept.codeMeaning == "Liver")
+        #expect(entry("SCT", "816092008") == nil)
+        #expect(entry("SCT", "816094009")?.concept.codeMeaning == "Chest")
+        #expect(entry("SCT", "27925004")?.concept.codeMeaning == "Nodule")
+        #expect(entry("SCT", "129748003") == nil)
+        // LOINC report titles and headings (CID 7000 / 7001).
+        #expect(entry("LN", "59776-5")?.concept.codeMeaning == "Findings")
+        #expect(entry("LN", "19005-8")?.concept.codeMeaning == "Impressions")
+        #expect(entry("LN", "18834-2")?.concept.codeMeaning == "Previous Findings")
+        #expect(entry("LN", "18748-4")?.concept.codeMeaning == "Diagnostic Imaging Report")
+        #expect(entry("LN", "11528-7")?.concept.codeMeaning == "Radiology Report")
+        #expect(entry("LN", "44136-0")?.concept.codeMeaning == "PET Scan Report")
+        #expect(entry("LN", "55115-0")?.concept.codeMeaning == "Request")
+        #expect(entry("LN", "18785-6")?.concept.codeMeaning == "Indications for Procedure")
+        #expect(entry("LN", "11525-3")?.concept.codeMeaning == "Ultrasound Obstetric and Gyn Report")
+        // UCUM (CID 7460-7462, 7063, 7181, 7183, 83).
+        #expect(entry("UCUM", "m")?.concept.codeMeaning == "m")
+        #expect(entry("UCUM", "mm2")?.concept.codeMeaning == "Square Millimeter")
+        #expect(entry("UCUM", "1")?.concept.codeMeaning == "No Units")
+        // The cross-terminology mapping follows the corrected Nodule id.
+        let nodule = CodedConcept(codeValue: "RID3875", codingSchemeDesignator: "RADLEX", codeMeaning: "Nodule")
+        #expect(TerminologyHelpers.crossTerminologyMappings(for: nodule).first?.codeValue == "27925004")
+    }
+
     @Test("Search finds matching entries")
     func testSearchFindsMatch() {
         let results = TerminologyHelpers.search(query: "Lung")
@@ -691,6 +837,9 @@ struct TerminologyHelpersTests {
         #expect(TerminologyHelpers.schemeDisplayName(for: "LN") == "LOINC")
         #expect(TerminologyHelpers.schemeDisplayName(for: "RADLEX") == "RadLex")
         #expect(TerminologyHelpers.schemeDisplayName(for: "UCUM") == "UCUM")
+        // PS3.16 2026a Table 8-1 Coding Scheme Name column.
+        #expect(TerminologyHelpers.schemeDisplayName(for: "DCM") == "DICOM Controlled Terminology")
+        #expect(TerminologyHelpers.schemeDisplayName(for: "SRT") == "SNOMED CT")
         #expect(TerminologyHelpers.schemeDisplayName(for: "XYZ") == "XYZ")
     }
 

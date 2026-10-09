@@ -417,6 +417,19 @@ struct DICOMFileWritingTests {
         #expect(file.dataSet.string(for: .patientName) == "Doe^John")
     }
     
+    /// PS3.10 2026a Table 7.1-1: Implementation Class UID (0002,0012) is Type 1; PS3.5 §9.2.2
+    /// requires it under a root the organisation owns. It is arc .3 of the library root, not
+    /// DCMTK 3.6.5's UID under the OFFIS root as before 2026-09-29.
+    @Test("Implementation Class UID is under the library's own root (PS3.5 9.2.2, PS3.10 Table 7.1-1)")
+    func testImplementationClassUIDRoot() {
+        #expect(DICOMFile.implementationClassUID == "1.2.826.0.1.3680043.10.511.3.0.5.0")
+        #expect(!DICOMFile.implementationClassUID.hasPrefix("1.2.276.0.7230010"))
+        #expect(DICOMUniqueIdentifier.parse(DICOMFile.implementationClassUID) != nil)
+        let file = DICOMFile.create(dataSet: DataSet())
+        #expect(file.fileMetaInformation.string(for: .implementationClassUID) == DICOMFile.implementationClassUID)
+        #expect(file.fileMetaInformation.string(for: .implementationVersionName) == DICOMFile.implementationVersionName)
+    }
+
     @Test("Create DICOM file with custom SOP Class UID")
     func testCreateDICOMFileWithCustomSOPClass() {
         let dataSet = DataSet()

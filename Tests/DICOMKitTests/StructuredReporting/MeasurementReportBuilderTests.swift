@@ -156,13 +156,13 @@ struct MeasurementReportBuilderTests {
     
     @Test("Set document title with coded concept")
     func testSetDocumentTitleCoded() throws {
-        let title = MeasurementReportDocumentTitle.lesionMeasurementReport
+        let title = MeasurementReportDocumentTitle.dynamicContrastMRMeasurementReport
         let document = try MeasurementReportBuilder()
             .withDocumentTitle(title)
             .build()
-        
+
         #expect(document.documentTitle?.codeValue == "126002")
-        #expect(document.documentTitle?.codeMeaning == "Lesion Measurement Report")
+        #expect(document.documentTitle?.codeMeaning == "Dynamic Contrast MR Measurement Report")
     }
     
     @Test("Set imaging measurement report title convenience")
@@ -635,30 +635,323 @@ struct MeasurementReportBuilderTests {
 
 @Suite("MeasurementReportDocumentTitle Tests")
 struct MeasurementReportDocumentTitleTests {
-    
-    @Test("Imaging Measurement Report title")
+
+    // PS3.16 2026a Table CID 7021 Measurement Report Document Title, all four rows.
+
+    @Test("CID 7021 row: (126000, DCM, Imaging Measurement Report)")
     func testImagingMeasurementReportTitle() {
         let title = MeasurementReportDocumentTitle.imagingMeasurementReport
         #expect(title.codeValue == "126000")
         #expect(title.codingSchemeDesignator == "DCM")
+        #expect(title.codeMeaning == "Imaging Measurement Report")
     }
-    
-    @Test("Lesion Measurement Report title")
-    func testLesionMeasurementReportTitle() {
-        let title = MeasurementReportDocumentTitle.lesionMeasurementReport
+
+    @Test("CID 7021 row: (126001, DCM, Oncology Measurement Report)")
+    func testOncologyMeasurementReportTitle() {
+        let title = MeasurementReportDocumentTitle.oncologyMeasurementReport
+        #expect(title.codeValue == "126001")
+        #expect(title.codingSchemeDesignator == "DCM")
+        #expect(title.codeMeaning == "Oncology Measurement Report")
+    }
+
+    @Test("CID 7021 row: (126002, DCM, Dynamic Contrast MR Measurement Report)")
+    func testDynamicContrastMRMeasurementReportTitle() {
+        let title = MeasurementReportDocumentTitle.dynamicContrastMRMeasurementReport
         #expect(title.codeValue == "126002")
+        #expect(title.codingSchemeDesignator == "DCM")
+        #expect(title.codeMeaning == "Dynamic Contrast MR Measurement Report")
     }
-    
-    @Test("CT Perfusion Report title")
-    func testCTPerfusionReportTitle() {
-        let title = MeasurementReportDocumentTitle.ctPerfusionReport
-        #expect(title.codeValue == "126003")
-    }
-    
-    @Test("PET Measurement Report title")
+
+    @Test("CID 7021 row: (126003, DCM, PET Measurement Report)")
     func testPETMeasurementReportTitle() {
         let title = MeasurementReportDocumentTitle.petMeasurementReport
-        #expect(title.codeValue == "126010")
+        #expect(title.codeValue == "126003")
+        #expect(title.codingSchemeDesignator == "DCM")
+        #expect(title.codeMeaning == "PET Measurement Report")
+    }
+
+    @Test("Deprecated misnamed titles resolve to the CID 7021 concepts")
+    @available(*, deprecated)
+    func testDeprecatedTitlesCarryStandardValues() {
+        #expect(MeasurementReportDocumentTitle.lesionMeasurementReport
+                == MeasurementReportDocumentTitle.dynamicContrastMRMeasurementReport)
+        #expect(MeasurementReportDocumentTitle.ctPerfusionReport
+                == MeasurementReportDocumentTitle.petMeasurementReport)
+    }
+}
+
+// MARK: - TID 1500 Structure Tests
+
+/// Pins the rows of PS3.16 2026a Tables TID 1500, TID 1204, TID 1600/1601/1602, TID 1501
+/// and TID 1502 that the builder can express: relationship type, value type, concept name
+/// and nesting.
+@Suite("TID 1500 Structure Tests")
+struct MeasurementReportTID1500StructureTests {
+
+    private func code(_ v: String, _ s: String, _ m: String) -> CodedConcept {
+        CodedConcept(codeValue: v, codingSchemeDesignator: s, codeMeaning: m)
+    }
+
+    private func buildFullReport() throws -> SRDocument {
+        try MeasurementReportBuilder()
+            .withLanguage(code("en", "RFC5646", "English"), country: code("US", "ISO3166_1", "United States"))
+            .addProcedureReported(code("77477000", "SCT", "CT of abdomen"))
+            .addImageLibraryEntry(
+                sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3.1",
+                modality: code("CT", "DCM", "Computed Tomography"))
+            .addImageLibraryEntry(
+                sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3.2",
+                modality: code("CT", "DCM", "Computed Tomography"))
+            .addImageLibraryEntry(
+                sopClassUID: "1.2.840.10008.5.1.4.1.1.4", sopInstanceUID: "1.2.3.3",
+                modality: code("MR", "DCM", "Magnetic Resonance"),
+                laterality: code("24028007", "SCT", "Right"))
+            .addMeasurementGroup(MeasurementGroupData(
+                trackingIdentifier: "Lesion 1",
+                trackingUID: "1.2.3.4.5",
+                activitySession: "1",
+                timePoint: "Baseline",
+                finding: nil,
+                findingSite: code("10200004", "SCT", "Liver"),
+                laterality: code("7771000", "SCT", "Left"),
+                contents: [
+                    MeasurementGroupContentHelper.longAxisMM(value: 25.5),
+                    MeasurementGroupContentHelper.imageReference(
+                        sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3.1"),
+                    .qualitativeEvaluation(conceptName: code("C0034375", "UMLS", "Qualitative Evaluations"),
+                                           value: code("2", "99TEST", "Stable")),
+                ]))
+            .addQualitativeEvaluation(conceptName: code("121071", "DCM", "Finding"),
+                                      value: code("260415000", "SCT", "Not detected"))
+            .build()
+    }
+
+    @Test("TID 1500 row 1: root CONTAINER titled from CID 7021, SEPARATE")
+    func testRoot() throws {
+        let document = try buildFullReport()
+        #expect(document.rootContent.conceptName == MeasurementReportDocumentTitle.imagingMeasurementReport)
+        #expect(document.rootContent.continuityOfContent == .separate)
+        #expect(document.sopClassUID == SRDocumentType.comprehensiveSR.sopClassUID)
+        #expect(document.modality == "SR")
+    }
+
+    @Test("TID 1500 row 2 / TID 1204 row 1: HAS CONCEPT MOD CODE (121049, DCM)")
+    func testLanguageRows() throws {
+        let items = try buildFullReport().rootContent.contentItems
+        let language = try #require(items.first { $0.conceptName?.codeValue == "121049" })
+        #expect(language.valueType == .code)
+        #expect(language.relationshipType == .hasConceptMod)
+        #expect(language.conceptName?.codeMeaning == "Language of Content Item and Descendants")
+        #expect(language.asCode?.conceptCode.codeValue == "en")
+
+        // TID 1204 row 2 (">"): HAS CONCEPT MOD CODE (121046, DCM), nested in the language
+        // item's Content Sequence (PS3.3 Table C.17-6), not a root-level sibling
+        #expect(!items.contains { $0.conceptName?.codeValue == "121046" })
+        #expect(language.contentItems.count == 1)
+        let country = try #require(language.contentItems.first)
+        #expect(country.conceptName?.codeValue == "121046")
+        #expect(country.conceptName?.codeMeaning == "Country of Language")
+        #expect(country.valueType == .code)
+        #expect(country.relationshipType == .hasConceptMod)
+    }
+
+    @Test("TID 1500 row 4: HAS CONCEPT MOD CODE (121058, DCM, Procedure reported)")
+    func testProcedureReportedRow() throws {
+        let items = try buildFullReport().rootContent.contentItems
+        let procedure = try #require(items.first { $0.conceptName?.codeValue == "121058" })
+        #expect(procedure.valueType == .code)
+        #expect(procedure.relationshipType == .hasConceptMod)
+        #expect(procedure.conceptName?.codingSchemeDesignator == "DCM")
+        #expect(procedure.conceptName?.codeMeaning == "Procedure reported")
+    }
+
+    @Test("TID 1500 row 5 / TID 1600 rows 1-4 / TID 1601 row 1 / TID 1602 rows 1, 3")
+    func testImageLibraryRows() throws {
+        let items = try buildFullReport().rootContent.contentItems
+        let library = try #require(items.first { $0.conceptName?.codeValue == "111028" })
+        #expect(library.valueType == .container)
+        #expect(library.relationshipType == .contains)
+        #expect(library.conceptName?.codeMeaning == "Image Library")
+
+        // TID 1600 row 2: every child is an Image Library Group container, CONTAINS
+        let groups = try #require(library.asContainer?.contentItems)
+        #expect(groups.count == 2)
+        for group in groups {
+            #expect(group.valueType == .container)
+            #expect(group.relationshipType == .contains)
+            #expect(group.conceptName == CodedConcept(codeValue: "126200", codingSchemeDesignator: "DCM", codeMeaning: "Image Library Group"))
+        }
+
+        // Group 1: two CT images share one Modality descriptor
+        let ctGroup = try #require(groups[0].asContainer)
+        let ctDescriptors = ctGroup.contentItems.filter { $0.valueType == .code }
+        let ctImages = ctGroup.contentItems.filter { $0.valueType == .image }
+        #expect(ctDescriptors.count == 1)
+        #expect(ctImages.count == 2)
+        // TID 1600 row 3 → TID 1602 row 1: HAS ACQ CONTEXT CODE (121139, DCM, "Modality")
+        #expect(ctDescriptors[0].relationshipType == .hasAcqContext)
+        #expect(ctDescriptors[0].conceptName == CodedConcept(codeValue: "121139", codingSchemeDesignator: "DCM", codeMeaning: "Modality"))
+        #expect(ctDescriptors[0].asCode?.conceptCode.codeValue == "CT")
+        // TID 1600 row 4 → TID 1601 row 1: CONTAINS IMAGE, no concept name
+        for image in ctImages {
+            #expect(image.relationshipType == .contains)
+            #expect(image.conceptName == nil)
+        }
+        #expect(ctImages.map { $0.asImage?.imageReference.sopReference.sopInstanceUID } == ["1.2.3.1", "1.2.3.2"])
+
+        // Group 2: MR image with Modality and Image Laterality (TID 1602 rows 1 and 3)
+        let mrGroup = try #require(groups[1].asContainer)
+        let mrDescriptorNames = mrGroup.contentItems.compactMap { $0.asCode }.map { $0.conceptName?.codeValue }
+        #expect(mrDescriptorNames == ["121139", "111027"])
+        #expect(mrGroup.contentItems.compactMap { $0.asCode }.allSatisfy { $0.relationshipType == .hasAcqContext })
+        #expect(mrGroup.contentItems.filter { $0.valueType == .image }.count == 1)
+    }
+
+    @Test("TID 1500 rows 6, 9 / TID 1501 rows 1, 1b, 2, 3, 4, 6, 10, 10b, 11")
+    func testMeasurementGroupRows() throws {
+        let items = try buildFullReport().rootContent.contentItems
+        let measurements = try #require(items.first { $0.conceptName?.codeValue == "126010" })
+        #expect(measurements.valueType == .container)
+        #expect(measurements.relationshipType == .contains)
+        #expect(measurements.conceptName?.codeMeaning == "Imaging Measurements")
+
+        let group = try #require(measurements.asContainer?.contentItems.first)
+        #expect(group.valueType == .container)
+        #expect(group.relationshipType == .contains)
+        #expect(group.conceptName == CodedConcept(codeValue: "125007", codingSchemeDesignator: "DCM", codeMeaning: "Measurement Group"))
+
+        let rows = try #require(group.asContainer?.contentItems)
+        // (relationship, value type, concept name code value) in template order
+        let observed = rows.map { ($0.relationshipType, $0.valueType, $0.conceptName?.codeValue) }
+        let expected: [(RelationshipType?, ContentItemValueType, String?)] = [
+            (.hasObsContext, .text, "C67447"),        // 1b Activity Session
+            (.hasObsContext, .text, "112039"),        // 2  Tracking Identifier
+            (.hasObsContext, .uidref, "112040"),      // 3  Tracking Unique Identifier
+            (.hasObsContext, .text, "C2348792"),      // 4  → TID 1502 row 3 Time Point
+            (.hasConceptMod, .code, "363698007"),     // 6  Finding Site (row 7 nested in it)
+            (.contains, .num, "103339001"),           // 10 → TID 300 row 1 NUM
+            (.contains, .image, nil),                 // 10b IMAGE
+            (.contains, .code, "C0034375"),           // 11 CODE $QualType
+        ]
+        #expect(observed.count == expected.count)
+        for (o, e) in zip(observed, expected) {
+            #expect(o.0 == e.0)
+            #expect(o.1 == e.1)
+            #expect(o.2 == e.2)
+        }
+
+        // Finding Site is written without a Finding (TID 1501 row 6 does not depend on row 3b)
+        #expect(rows.contains { $0.conceptName?.codeValue == "363698007" })
+        #expect(!rows.contains { $0.conceptName?.codeValue == "121071" })
+
+        // Concept names carry the Table D-1 / SNOMED meanings the template prints
+        #expect(rows[1].conceptName?.codeMeaning == "Tracking Identifier")
+        #expect(rows[2].conceptName?.codeMeaning == "Tracking Unique Identifier")
+        #expect(rows[4].conceptName == CodedConcept(codeValue: "363698007", codingSchemeDesignator: "SCT", codeMeaning: "Finding Site"))
+        // Row 7 (">>"): HAS CONCEPT MOD CODE (272741003, SCT, "Laterality"), nested in the
+        // Finding Site CODE's Content Sequence (PS3.3 Table C.17-6)
+        #expect(!rows.contains { $0.conceptName?.codeValue == "272741003" })
+        let laterality = try #require(rows[4].contentItems.first)
+        #expect(rows[4].contentItems.count == 1)
+        #expect(laterality.relationshipType == .hasConceptMod)
+        #expect(laterality.valueType == .code)
+        #expect(laterality.conceptName == CodedConcept(codeValue: "272741003", codingSchemeDesignator: "SCT", codeMeaning: "Laterality"))
+        #expect(laterality.asCode?.conceptCode.codeValue == "7771000")
+    }
+
+    @Test("TID 1501 row 3b: CONTAINS CODE (121071, DCM, Finding)")
+    func testFindingRow() throws {
+        let document = try MeasurementReportBuilder()
+            .addMeasurementGroup(trackingIdentifier: "L", trackingUID: "1.2.3",
+                                 finding: code("4147007", "SCT", "Mass")) {
+                MeasurementGroupContentHelper.lengthMM(value: 1)
+            }
+            .build()
+        let group = try #require(document.rootContent.contentItems
+            .first { $0.conceptName?.codeValue == "126010" }?.asContainer?.contentItems.first?.asContainer)
+        let finding = try #require(group.contentItems.first { $0.conceptName?.codeValue == "121071" })
+        #expect(finding.valueType == .code)
+        #expect(finding.relationshipType == .contains)
+        #expect(finding.conceptName?.codeMeaning == "Finding")
+    }
+
+    @Test("TID 1500 rows 12-13: CONTAINS CONTAINER (C0034375, UMLS) with CONTAINS CODE children")
+    func testQualitativeEvaluationsRows() throws {
+        let items = try buildFullReport().rootContent.contentItems
+        let evaluations = try #require(items.first { $0.conceptName?.codeValue == "C0034375" })
+        #expect(evaluations.valueType == .container)
+        #expect(evaluations.relationshipType == .contains)
+        #expect(evaluations.conceptName?.codingSchemeDesignator == "UMLS")
+        let children = try #require(evaluations.asContainer?.contentItems)
+        #expect(children.count == 1)
+        #expect(children[0].valueType == .code)
+        #expect(children[0].relationshipType == .contains)
+    }
+
+    @Test("Root row order follows TID 1500: 2, 4, 5, 6, 12")
+    func testRootRowOrder() throws {
+        let items = try buildFullReport().rootContent.contentItems
+        let order = items.map { $0.conceptName?.codeValue }
+        #expect(order == ["121049", "121058", "111028", "126010", "C0034375"])
+    }
+
+    @Test("Round trip through the serializer and parser keeps the TID 1500 structure and reads back the extractor fields")
+    func testRoundTripAndExtraction() throws {
+        let original = try buildFullReport()
+        let dataSet = try SRDocumentSerializer().serialize(document: original)
+        let parsed = try SRDocumentParser().parse(dataSet: dataSet)
+        #expect(parsed.rootContent == original.rootContent)
+
+        let report = try MeasurementReport.extract(from: parsed)
+        #expect(report.languageOfContent?.codeValue == "en")
+        #expect(report.countryOfLanguage?.codeValue == "US")
+        #expect(report.proceduresReported.map(\.codeValue) == ["77477000"])
+        #expect(report.imageLibraryEntries.map(\.sopReference.sopInstanceUID) == ["1.2.3.1", "1.2.3.2", "1.2.3.3"])
+        #expect(report.measurementGroups.count == 1)
+        let group = try #require(report.measurementGroups.first)
+        #expect(group.findingSite?.codeValue == "10200004")
+        #expect(group.findingType == nil)
+        #expect(group.measurements.map(\.value) == [25.5])
+        // Laterality (HAS CONCEPT MOD) is not an evaluation; the CONTAINS CODE is
+        #expect(group.qualitativeEvaluations.map(\.codeValue) == ["2"])
+        #expect(report.qualitativeEvaluations.map(\.codeValue) == ["260415000"])
+    }
+
+    @Test("Extractor tolerates the pre-2026-09-29 flat Image Library")
+    func testExtractorReadsFlatImageLibrary() throws {
+        let flatLibrary = ContainerContentItem(
+            conceptName: code("111028", "DCM", "Image Library"),
+            continuityOfContent: .separate,
+            contentItems: [
+                AnyContentItem(ImageContentItem(sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "9.9.9", relationshipType: .contains)),
+                AnyContentItem(CodeContentItem(conceptName: code("121139", "DCM", "Modality"), conceptCode: code("CT", "DCM", "Computed Tomography"), relationshipType: .hasAcqContext)),
+            ],
+            relationshipType: .contains)
+        let root = ContainerContentItem(
+            conceptName: MeasurementReportDocumentTitle.imagingMeasurementReport,
+            continuityOfContent: .separate,
+            contentItems: [AnyContentItem(flatLibrary)])
+        let document = SRDocument(sopClassUID: SRDocumentType.comprehensiveSR.sopClassUID, sopInstanceUID: "1.2.3", rootContent: root)
+        let report = try MeasurementReport.extract(from: document)
+        #expect(report.imageLibraryEntries.map(\.sopReference.sopInstanceUID) == ["9.9.9"])
+    }
+
+    @Test("Extractor tolerates the pre-D31 Country of Language written beside the language item")
+    func testExtractorReadsSiblingCountryOfLanguage() throws {
+        // Before 2026-09-29 (D31) TID 1204 row 2 was written as the root-level sibling after row 1
+        let root = ContainerContentItem(
+            conceptName: MeasurementReportDocumentTitle.imagingMeasurementReport,
+            continuityOfContent: .separate,
+            contentItems: [
+                AnyContentItem(CodeContentItem(conceptName: .languageOfContentItemAndDescendants,
+                                               conceptCode: code("en", "RFC5646", "English"), relationshipType: .hasConceptMod)),
+                AnyContentItem(CodeContentItem(conceptName: .countryOfLanguage,
+                                               conceptCode: code("US", "ISO3166_1", "United States"), relationshipType: .hasConceptMod)),
+            ])
+        let document = SRDocument(sopClassUID: SRDocumentType.comprehensiveSR.sopClassUID, sopInstanceUID: "1.2.3", rootContent: root)
+        let report = try MeasurementReport.extract(from: document)
+        #expect(report.languageOfContent?.codeValue == "en")
+        #expect(report.countryOfLanguage?.codeValue == "US")
     }
 }
 
@@ -789,7 +1082,7 @@ struct TIDTemplateDefinitionTests {
     @Test("TID 1501 identifier")
     func testTID1501Identifier() {
         #expect(TID1501MeasurementGroup.identifier.templateID == "1501")
-        #expect(TID1501MeasurementGroup.displayName == "Measurement Group")
+        #expect(TID1501MeasurementGroup.displayName == "Measurement and Qualitative Evaluation Group")
     }
     
     @Test("TID 1600 identifier")

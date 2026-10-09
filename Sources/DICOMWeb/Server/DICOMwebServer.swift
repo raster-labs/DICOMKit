@@ -7,6 +7,17 @@ import DICOMKit
 /// This server implements WADO-RS (Retrieve), QIDO-RS (Search), and STOW-RS (Store)
 /// services per the DICOM PS3.18 web services specification.
 ///
+/// NEMA-verified: 2026a, checked 2026-09-28 — status codes per transaction diffed against
+/// PS3.18 2026a Tables 8.5-1, 10.4.3-1, 10.5.3-1, 10.6.3-1, 11.4.3-1, 11.6.3-1, 11.7.3-1,
+/// 11.8.3-1, 11.10.3-1, 11.11.3-1, 11.12.3-1; Warning header texts per 8.3.4.4.1, 11.4.3.2,
+/// 11.6.3.2, 11.7.3.2, 11.8.3.2, 11.10.3.2; media types per Tables 10.4.4-1, 10.5.4-1,
+/// 10.6.4-1; multipart part headers per Table 8.6.1-1; Store Instances Response Module per
+/// Tables I.1-1, I.2-2; QIDO return attributes per Tables 10.6.3-3..5; UPS behaviour per
+/// PS3.4 CC.1.1-2, CC.2.1.3, CC.2.2.3, CC.2.5.3, CC.2.6.3, CC.2.7.3. Not implemented and
+/// answered 501: frames, rendered, thumbnail and bulk data retrieval; application/dicom+xml
+/// metadata; the 8.9 Capabilities Description (a JSON document is served instead).
+/// Not in PS3.18: DELETE on studies/series/instances, the X-Total-Count header.
+///
 /// Reference: PS3.18 - Web Services
 ///
 /// - Note: This implementation provides the request handling logic. It can be integrated
@@ -136,7 +147,7 @@ public actor DICOMwebServer {
         }
         
         // Match route
-        guard let match = router.match(path: request.path, method: request.method) else {
+        guard let match = router.match(path: request.path, method: request.method, queryParameters: request.queryParameters) else {
             return .notFound(message: "No route matched for \(request.method.rawValue) \(request.path)")
         }
         
@@ -266,6 +277,51 @@ public actor DICOMwebServer {
         }
     }
     
+    // MARK: - Content negotiation (PS3.18 8.7.5, 8.7.7)
+    
+    /// Whether the Acceptable Media Types allow one of `supported`. A request without an
+    /// Accept header is treated as `*/*` (8.7.5 would answer 406; this server is lenient
+    /// because browsers and simple clients omit it). Wildcards and the multipart `type`
+    /// parameter are honoured; other parameters are ignored (8.7.7).
+    private func accepts(_ request: DICOMwebRequest, _ supported: [DICOMMediaType]) -> Bool {
+        let acceptable = request.acceptTypes
+        guard !acceptable.isEmpty else { return true }
+        for accepted in acceptable {
+            for candidate in supported {
+                if accepted.type == "*" { return true }
+                if accepted.type == candidate.type && (accepted.subtype == "*" || accepted.subtype == candidate.subtype) {
+                    if candidate.type == "multipart", let want = accepted.parameters["type"], let have = candidate.parameters["type"] {
+                        if want.lowercased() == have.lowercased() || want.hasSuffix("/*") { return true }
+                        continue
+                    }
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
+    private static let instanceMediaTypes = [
+        DICOMMediaType.multipartRelated.withParameter("type", value: "application/dicom"), DICOMMediaType.dicom]
+    private static let metadataMediaTypes = [DICOMMediaType.dicomJSON, DICOMMediaType.json]
+    
+    /// `Warning: 299 <service>: text` (RFC 7234 5.5; PS3.18 8.3.4.4.1, 11.x.3.2)
+    private func warning(_ text: String) -> String {
+        "299 \(configuration.baseURL.absoluteString): \(text)"
+    }
+    
+    private func response(_ statusCode: Int, warning text: String? = nil, body: Data? = nil) -> DICOMwebResponse {
+        var headers: [String: String] = [:]
+        if let text = text {
+            headers["Warning"] = warning(text)
+        }
+        if let body = body {
+            headers["Content-Type"] = DICOMMediaType.dicomJSON.description
+            headers["Content-Length"] = "\(body.count)"
+        }
+        return DICOMwebResponse(statusCode: statusCode, headers: headers, body: body)
+    }
+    
     // MARK: - WADO-RS Handlers
     
     private func handleRetrieveStudy(parameters: [String: String], request: DICOMwebRequest) async throws -> DICOMwebResponse {
@@ -273,6 +329,9 @@ public actor DICOMwebServer {
             return .badRequest(message: "Missing studyUID")
         }
         
+        guard accepts(request, Self.instanceMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.instanceMediaTypes)
+        }
         let instances = try await storage.getStudyInstances(studyUID: studyUID)
         
         if instances.isEmpty {
@@ -290,6 +349,9 @@ public actor DICOMwebServer {
             return .badRequest(message: "Missing studyUID or seriesUID")
         }
         
+        guard accepts(request, Self.instanceMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.instanceMediaTypes)
+        }
         let instances = try await storage.getSeriesInstances(studyUID: studyUID, seriesUID: seriesUID)
         
         if instances.isEmpty {
@@ -308,8 +370,21 @@ public actor DICOMwebServer {
             return .badRequest(message: "Missing studyUID, seriesUID, or instanceUID")
         }
         
+        guard accepts(request, Self.instanceMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.instanceMediaTypes)
+        }
         guard let data = try await storage.getInstance(studyUID: studyUID, seriesUID: seriesUID, instanceUID: instanceUID) else {
             return .notFound(message: "Instance not found: \(instanceUID)")
+        }
+        
+        // Table 10.4.4-1: application/dicom (single part) is optional for an Instance resource;
+        // the default is multipart/related; type="application/dicom"
+        let wantsSinglePart = request.acceptTypes.contains { $0.type == "application" && $0.subtype == "dicom" }
+            && !request.acceptTypes.contains { $0.type == "multipart" }
+        if wantsSinglePart {
+            let headers = ["Content-Type": DICOMMediaType.dicom.description, "Content-Length": "\(data.count)",
+                           "Content-Location": instanceURL(studyUID: studyUID, seriesUID: seriesUID, instanceUID: instanceUID)]
+            return DICOMwebResponse(statusCode: 200, headers: headers, body: data)
         }
         
         // Return single instance as multipart (per WADO-RS spec)
@@ -329,6 +404,9 @@ public actor DICOMwebServer {
             return .badRequest(message: "Missing studyUID")
         }
         
+        guard accepts(request, Self.metadataMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
+        }
         let datasets = try await storage.getStudyMetadata(studyUID: studyUID)
         
         if datasets.isEmpty {
@@ -345,6 +423,9 @@ public actor DICOMwebServer {
             return .badRequest(message: "Missing studyUID or seriesUID")
         }
         
+        guard accepts(request, Self.metadataMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
+        }
         let datasets = try await storage.getSeriesMetadata(studyUID: studyUID, seriesUID: seriesUID)
         
         if datasets.isEmpty {
@@ -362,6 +443,9 @@ public actor DICOMwebServer {
             return .badRequest(message: "Missing studyUID, seriesUID, or instanceUID")
         }
         
+        guard accepts(request, Self.metadataMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
+        }
         guard let dataset = try await storage.getInstanceMetadata(studyUID: studyUID, seriesUID: seriesUID, instanceUID: instanceUID) else {
             return .notFound(message: "Instance not found: \(instanceUID)")
         }
@@ -370,29 +454,30 @@ public actor DICOMwebServer {
         return .ok(json: json)
     }
     
+    // PS3.18 Table 8.5-1: 501 (Not Implemented) when the server does not support the
+    // functionality required to fulfil the request
     private func handleRetrieveFrames(parameters: [String: String], request: DICOMwebRequest) async throws -> DICOMwebResponse {
-        // Frame retrieval requires pixel data extraction - return not implemented for now
-        return .internalError(message: "Frame retrieval not yet implemented")
+        return .notImplemented(message: "Frame retrieval not yet implemented")
     }
     
     private func handleRetrieveRendered(parameters: [String: String], request: DICOMwebRequest) async throws -> DICOMwebResponse {
-        // Rendered retrieval requires image processing - return not implemented for now
-        return .internalError(message: "Rendered image retrieval not yet implemented")
+        return .notImplemented(message: "Rendered image retrieval not yet implemented")
     }
     
     private func handleRetrieveThumbnail(parameters: [String: String], request: DICOMwebRequest) async throws -> DICOMwebResponse {
-        // Thumbnail requires image processing - return not implemented for now
-        return .internalError(message: "Thumbnail retrieval not yet implemented")
+        return .notImplemented(message: "Thumbnail retrieval not yet implemented")
     }
     
     private func handleRetrieveBulkData(parameters: [String: String], request: DICOMwebRequest) async throws -> DICOMwebResponse {
-        // Bulk data retrieval - return not implemented for now
-        return .internalError(message: "Bulk data retrieval not yet implemented")
+        return .notImplemented(message: "Bulk data retrieval not yet implemented")
     }
     
     // MARK: - QIDO-RS Handlers
     
     private func handleSearchStudies(request: DICOMwebRequest) async throws -> DICOMwebResponse {
+        guard accepts(request, Self.metadataMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
+        }
         let query = parseQIDOQuery(from: request.queryParameters)
         
         let studies = try await storage.searchStudies(query: query)
@@ -402,11 +487,19 @@ public actor DICOMwebServer {
         
         var headers: [String: String] = [:]
         headers["X-Total-Count"] = "\(totalCount)"
+        // PS3.18 8.3.4.4.1: remaining = total - (offset + results)
+        let remaining = totalCount - (query.offset + studies.count)
+        if remaining > 0 {
+            headers["Warning"] = warning("There are \(remaining) additional results that can be requested")
+        }
         
         return .ok(json: json, headers: headers)
     }
     
     private func handleSearchSeries(studyUID: String?, request: DICOMwebRequest) async throws -> DICOMwebResponse {
+        guard accepts(request, Self.metadataMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
+        }
         let query = parseQIDOQuery(from: request.queryParameters)
         
         let series = try await storage.searchSeries(studyUID: studyUID, query: query)
@@ -420,6 +513,9 @@ public actor DICOMwebServer {
     }
     
     private func handleSearchInstances(studyUID: String?, seriesUID: String?, request: DICOMwebRequest) async throws -> DICOMwebResponse {
+        guard accepts(request, Self.metadataMediaTypes) else {
+            return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
+        }
         let query = parseQIDOQuery(from: request.queryParameters)
         
         let instances = try await storage.searchInstances(studyUID: studyUID, seriesUID: seriesUID, query: query)
@@ -551,16 +647,19 @@ public actor DICOMwebServer {
         let failureReason: STOWFailureReason
     }
     
-    /// STOW-RS failure reason codes per PS3.18
+    /// Failure Reason (0008,1197) values per PS3.18 Table I.2-2: 0110 Processing failure,
+    /// 0122 Referenced SOP Class not supported, A9xx Data Set does not match SOP Class,
+    /// Cxxx Cannot understand. 0111 (Duplicate SOP Instance, PS3.7 C.5.9) is not in the
+    /// table; I.2.2 allows additional codes, documented in the Conformance Statement.
     private enum STOWFailureReason: UInt16 {
-        case processingFailure = 0x0110  // A700 - Processing failure
-        case duplicateSOPInstance = 0x0111  // Duplicate rejected
-        case invalidDICOMData = 0x0112
-        case missingRequiredAttribute = 0x0120
-        case invalidAttributeValue = 0x0121
+        case processingFailure = 0x0110
+        case duplicateSOPInstance = 0x0111
+        case invalidDICOMData = 0xC000
+        case missingRequiredAttribute = 0xA900
+        case invalidAttributeValue = 0xA901
         case sopClassNotSupported = 0x0122
-        case studyUIDMismatch = 0x0123
-        case invalidUIDFormat = 0x0124
+        case studyUIDMismatch = 0xC001
+        case invalidUIDFormat = 0xA902
         
         var description: String {
             switch self {
@@ -732,24 +831,20 @@ public actor DICOMwebServer {
         failed: [STOWFailedInstance],
         hasWarnings: Bool
     ) -> DICOMwebResponse {
-        // Determine HTTP status code per PS3.18
+        // PS3.18 Table 10.5.3-1: 200 all stored; 202 some stored, warnings or failures for
+        // others; 409 none stored because of a conflict in the request (unsupported SOP Class,
+        // Study Instance UID mismatch, or a mixture of reasons); 400 is for bad syntax, which
+        // the multipart parser reports before this point
         let statusCode: Int
         if failed.isEmpty && !hasWarnings {
-            // All instances stored successfully
             statusCode = 200
         } else if !stored.isEmpty && !failed.isEmpty {
-            // Partial success - some stored, some failed
             statusCode = 202
         } else if stored.isEmpty && !failed.isEmpty {
-            // All failed
-            if failed.allSatisfy({ $0.failureReason == .duplicateSOPInstance }) {
-                statusCode = 409  // Conflict - all duplicates
-            } else {
-                statusCode = 400  // Bad request
-            }
+            statusCode = 409
         } else {
-            // All stored with warnings (e.g., duplicates replaced)
-            statusCode = 200
+            // All stored, with warnings (e.g., duplicates replaced)
+            statusCode = 202
         }
         
         // Build response JSON
@@ -760,9 +855,12 @@ public actor DICOMwebServer {
             "Content-Length": "\(responseJSON.count)"
         ]
         
-        // Add warning header if there were any issues
+        // Table 10.5.3-2: Location of the created resource, when all instances went to one Study
+        if let studyUID = Set(stored.map { $0.studyUID }).first, stored.count > 0, Set(stored.map { $0.studyUID }).count == 1 {
+            headers["Location"] = "\(configuration.baseURL.absoluteString)/studies/\(studyUID)"
+        }
         if hasWarnings || !failed.isEmpty {
-            headers["Warning"] = "299 - \"Some instances may have had issues during storage\""
+            headers["Warning"] = warning("Some instances were not stored as sent; see the Failed SOP Sequence")
         }
         
         return DICOMwebResponse(statusCode: statusCode, headers: headers, body: responseJSON)
@@ -807,7 +905,9 @@ public actor DICOMwebServer {
             response["00081198"] = ["vr": "SQ", "Value": failedSOPSequence]
         }
         
-        if let data = try? JSONSerialization.data(withJSONObject: [response]) {
+        // Store Instances Response Module: one Data Set (PS3.18 10.5.3, Annex I), written in
+        // PS3.18 F.2.2 order
+        if let data = try? DICOMJSONWriter().data(with: response) {
             return data
         }
         return Data()
@@ -888,15 +988,19 @@ public actor DICOMwebServer {
         // Convert workitems to DICOM JSON array
         let jsonArray = workitems.map { workitemToDICOMJSON($0) }
         
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray) else {
+        guard let jsonData = try? DICOMJSONWriter().data(with: jsonArray) else {
             return .internalError(message: "Failed to serialize workitem results")
         }
         
-        let headers: [String: String] = [
+        var headers: [String: String] = [
             "Content-Type": DICOMMediaType.dicomJSON.description,
             "Content-Length": "\(jsonData.count)",
             "X-Total-Count": "\(totalCount)"
         ]
+        let remaining = totalCount - (query.offset + workitems.count)
+        if remaining > 0 {
+            headers["Warning"] = warning("There are \(remaining) additional results that can be requested")
+        }
         
         return DICOMwebResponse(statusCode: 200, headers: headers, body: jsonData)
     }
@@ -919,7 +1023,7 @@ public actor DICOMwebServer {
         // Convert to DICOM JSON
         let json = workitemToDICOMJSON(workitem)
         
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json) else {
+        guard let jsonData = try? DICOMJSONWriter().data(with: json) else {
             return .internalError(message: "Failed to serialize workitem")
         }
         
@@ -942,7 +1046,9 @@ public actor DICOMwebServer {
             return .badRequest(message: "Invalid JSON body")
         }
         
-        // Get workitem UID from path parameter or generate one
+        // Workitem UID from the workitem query parameter (Table 11.4.1-1), else from the
+        // payload (11.4.1.1: the Data Set shall contain it when the Worklist is the target),
+        // else generated
         let workitemUID: String
         if let pathUID = parameters["workitemUID"] {
             workitemUID = pathUID
@@ -952,39 +1058,26 @@ public actor DICOMwebServer {
             workitemUID = generateUID()
         }
         
-        // Check for existing workitem
+        // PS3.4 CC.2.5.3: creation is accepted only with Procedure Step State SCHEDULED (C309H)
+        if let state = extractString(from: json, tag: UPSTag.procedureStepState), state != UPSState.scheduled.rawValue {
+            return .badRequest(message: "Procedure Step State (0074,1000) must be SCHEDULED for a Create Workitem request")
+        }
+        
+        // Table 11.4.3-1: 409 when the Target Workitem already exists
         if let _ = try await upsStorage.getWorkitem(workitemUID: workitemUID) {
             return .conflict(message: "Workitem already exists: \(workitemUID)")
         }
         
-        // Parse workitem from JSON
-        let workitem = parseWorkitemFromJSON(json, workitemUID: workitemUID)
+        // 11.4.2: the new Workitem is in the SCHEDULED state
+        var workitem = parseWorkitemFromJSON(json, workitemUID: workitemUID)
+        workitem.state = .scheduled
+        workitem.transactionUID = nil
         
-        // Create the workitem
         try await upsStorage.createWorkitem(workitem)
         
-        // Build response with Location header
+        // 11.4.3: 201, Location of the created Workitem, no payload
         let locationURL = "\(configuration.baseURL.absoluteString)/workitems/\(workitemUID)"
-        
-        let responseJSON: [String: Any] = [
-            UPSTag.sopInstanceUID: [
-                "vr": "UI",
-                "Value": [workitemUID]
-            ]
-        ]
-        
-        guard let responseData = try? JSONSerialization.data(withJSONObject: responseJSON) else {
-            return .internalError(message: "Failed to serialize response")
-        }
-        
-        return DICOMwebResponse(
-            statusCode: 201,
-            headers: [
-                "Content-Type": DICOMMediaType.dicomJSON.description,
-                "Location": locationURL
-            ],
-            body: responseData
-        )
+        return DICOMwebResponse(statusCode: 201, headers: ["Location": locationURL])
     }
     
     /// Handles PUT /workitems/{workitemUID} - Update workitem
@@ -1011,9 +1104,20 @@ public actor DICOMwebServer {
             return .notFound(message: "Workitem not found: \(workitemUID)")
         }
         
-        // Cannot update final state workitems
+        // 11.6.2: a COMPLETED or CANCELED Workitem gives 400 (PS3.4 CC.2.6.3)
         if workitem.state.isFinal {
-            return .conflict(message: "Cannot update workitem in final state: \(workitem.state.rawValue)")
+            return response(400, warning: "The submitted request is inconsistent with the current state of the Workitem.")
+        }
+        
+        // 11.6.1: the Transaction UID of a claimed (IN PROGRESS) Workitem comes as the query
+        // parameter (00081195 / TransactionUID) or in the Data Set; PS3.4 CC.2.6.3: the set
+        // request is refused when it does not carry the recorded value
+        if workitem.state == .inProgress {
+            let fromBody = extractString(from: json, tag: UPSTag.transactionUID)
+            let provided = request.queryParameters["00081195"] ?? request.queryParameters["TransactionUID"] ?? fromBody
+            guard let provided = provided, provided == workitem.transactionUID else {
+                return response(400, warning: "The Target URI did not reference a claimed Workitem.")
+            }
         }
         
         // Apply updates from JSON
@@ -1022,7 +1126,8 @@ public actor DICOMwebServer {
         // Save the updated workitem
         try await upsStorage.updateWorkitem(workitem)
         
-        return .noContent()
+        // Table 11.6.3-1: 200; 11.6.3.3: no payload
+        return DICOMwebResponse(statusCode: 200)
     }
     
     /// Handles PUT /workitems/{workitemUID}/state - Change workitem state
@@ -1050,17 +1155,31 @@ public actor DICOMwebServer {
             return .badRequest(message: "Missing or invalid Procedure Step State")
         }
         
-        // Extract transaction UID if provided
-        let transactionUID = extractString(from: json, tag: UPSTag.transactionUID)
-        
         // Get existing workitem
         guard let workitem = try await upsStorage.getWorkitem(workitemUID: workitemUID) else {
             return .notFound(message: "Workitem not found: \(workitemUID)")
         }
         
-        // Validate state transition
+        // 11.7.1.4: the payload shall include the Transaction UID (Table 11.7.3-1: 400 when missing)
+        guard let transactionUID = extractString(from: json, tag: UPSTag.transactionUID), !transactionUID.isEmpty else {
+            return response(400, warning: "The Transaction UID is missing.")
+        }
+        
+        // PS3.4 Table CC.1.1-2 / PS3.18 11.7.3.2: already in the requested final state is a warning
+        if workitem.state == targetState && targetState.isFinal {
+            return response(200, warning: "The UPS is already in the requested state of \(targetState.rawValue).")
+        }
+        
+        // Table CC.1.1-2: a change of an IN PROGRESS UPS needs the recorded Transaction UID
+        // (C301H; Table 11.7.3-1: 400 incorrect)
+        if workitem.state == .inProgress, workitem.transactionUID != transactionUID {
+            return response(400, warning: "The Transaction UID is incorrect.")
+        }
+        
+        // Table CC.1.1-2: every other transition the table refuses (SCHEDULED to COMPLETED or
+        // CANCELED, IN PROGRESS to IN PROGRESS, out of a final state) is a 409
         guard workitem.state.canTransition(to: targetState) else {
-            return .conflict(message: "Invalid state transition from \(workitem.state.rawValue) to \(targetState.rawValue)")
+            return response(409, warning: "The submitted request is inconsistent with the state of the UPS Instance.")
         }
         
         do {
@@ -1072,38 +1191,16 @@ public actor DICOMwebServer {
         } catch let error as UPSError {
             switch error {
             case .transactionUIDRequired:
-                return .conflict(message: "Transaction UID required for this state transition")
+                return response(400, warning: "The Transaction UID is missing.")
             case .transactionUIDMismatch:
-                return .conflict(message: "Transaction UID mismatch")
+                return response(400, warning: "The Transaction UID is incorrect.")
             default:
-                return .conflict(message: error.description)
+                return response(409, warning: "The submitted request is inconsistent with the state of the UPS Instance.")
             }
         }
         
-        // Build response - include transaction UID if transitioning to IN PROGRESS
-        var responseJSON: [String: Any] = [
-            UPSTag.procedureStepState: [
-                "vr": "CS",
-                "Value": [targetState.rawValue]
-            ]
-        ]
-        
-        if targetState == .inProgress {
-            // Return the transaction UID (either provided or generated)
-            let updatedWorkitem = try await upsStorage.getWorkitem(workitemUID: workitemUID)
-            if let txUID = updatedWorkitem?.transactionUID {
-                responseJSON[UPSTag.transactionUID] = [
-                    "vr": "UI",
-                    "Value": [txUID]
-                ]
-            }
-        }
-        
-        guard let responseData = try? JSONSerialization.data(withJSONObject: responseJSON) else {
-            return .internalError(message: "Failed to serialize response")
-        }
-        
-        return .ok(json: responseData)
+        // 11.7.3.3: a success response shall have no payload
+        return DICOMwebResponse(statusCode: 200)
     }
     
     /// Handles PUT /workitems/{workitemUID}/cancelrequest - Request workitem cancellation
@@ -1122,20 +1219,25 @@ public actor DICOMwebServer {
             return .notFound(message: "Workitem not found: \(workitemUID)")
         }
         
-        // Check if workitem can be canceled
-        guard workitem.state.canTransition(to: .canceled) else {
-            return .conflict(message: "Workitem cannot be canceled from state: \(workitem.state.rawValue)")
+        // 11.8.3.2 / Table CC.1.1-2: already CANCELED is a warning (B304H), COMPLETED a failure (C311H)
+        switch workitem.state {
+        case .canceled:
+            return response(202, warning: "The UPS is already in the requested state of CANCELED.")
+        case .completed:
+            return response(409, warning: "The UPS is already COMPLETED.")
+        case .scheduled, .inProgress:
+            break
         }
         
-        // Parse cancellation request body if present
+        // Parse cancellation request body if present (PS3.4 Table CC.2.2-1)
         var reason: String? = nil
         if let body = request.body, !body.isEmpty,
            let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] {
             reason = extractString(from: json, tag: UPSTag.reasonForCancellation)
         }
         
-        // For workitems in SCHEDULED state, we can directly cancel
-        // For IN PROGRESS, this is just a request (the performer must complete the cancellation)
+        // PS3.4 CC.2.2.3: a SCHEDULED UPS is changed by the SCP to IN PROGRESS and then to
+        // CANCELED; for an IN PROGRESS UPS the request is only reported to the performer
         if workitem.state == .scheduled {
             try await upsStorage.changeWorkitemState(
                 workitemUID: workitemUID,
@@ -1149,9 +1251,8 @@ public actor DICOMwebServer {
                 try await upsStorage.updateWorkitem(updated)
             }
         }
-        // For IN PROGRESS, the cancellation is just recorded as a request
-        // The performer must explicitly cancel with transaction UID
         
+        // Table 11.8.3-1: 202 (Accepted)
         return DICOMwebResponse(statusCode: 202, headers: [:], body: nil)
     }
     
@@ -1174,9 +1275,16 @@ public actor DICOMwebServer {
             return .notFound(message: "Workitem not found: \(workitemUID)")
         }
         
-        // Subscription management is not fully implemented yet
-        // Return 200 to indicate subscription accepted
-        return DICOMwebResponse(statusCode: 200, headers: [:], body: nil)
+        // Table 11.10.3-1: 201 (Created). Subscriptions and deletion locks are not tracked by
+        // this server, so a requested lock is answered with the 11.10.3.2 warning
+        return subscriptionCreatedResponse(request)
+    }
+    
+    private func subscriptionCreatedResponse(_ request: DICOMwebRequest) -> DICOMwebResponse {
+        if request.queryParameters["deletionlock"]?.lowercased() == "true" {
+            return response(201, warning: "Deletion Lock not granted.")
+        }
+        return DICOMwebResponse(statusCode: 201)
     }
     
     /// Handles DELETE /workitems/{workitemUID}/subscribers/{aeTitle} - Unsubscribe from workitem
@@ -1197,8 +1305,11 @@ public actor DICOMwebServer {
                         body: "{\"error\": \"UPS-RS not configured\"}".data(using: .utf8))
         }
         
-        // Global subscription management is not fully implemented yet
-        return DICOMwebResponse(statusCode: 200, headers: [:], body: nil)
+        // Table 11.10.1-2: a filter is required for the Filtered Worklist; 11.10.3.2: 403 when unsupported
+        if parameters["workitemUID"] == DICOMwebURLBuilder.filteredGlobalSubscriptionUID {
+            return DICOMwebResponse(statusCode: 403, headers: ["Warning": warning("Filtered Worklist Subscriptions are not supported.")])
+        }
+        return subscriptionCreatedResponse(request)
     }
     
     /// Handles DELETE /workitems/1.2.840.10008.5.1.4.34.5/subscribers/{aeTitle} - Global unsubscription
@@ -1295,7 +1406,7 @@ public actor DICOMwebServer {
         // Priority
         json[UPSTag.scheduledProcedureStepPriority] = [
             "vr": "CS",
-            "Value": [workitem.priority.rawValue]
+            "Value": [workitem.priority.dicomValue]
         ]
         
         // Patient info
@@ -1353,20 +1464,15 @@ public actor DICOMwebServer {
             ]
         }
         
-        // Transaction UID
-        if let transactionUID = workitem.transactionUID {
-            json[UPSTag.transactionUID] = [
-                "vr": "UI",
-                "Value": [transactionUID]
-            ]
-        }
+        // PS3.18 11.5.2 / PS3.4 CC.2.7.3: the returned Workitem shall not contain the Transaction
+        // UID (0008,1195), which is the access lock
         
-        // Progress info
+        // Progress info (Procedure Step Progress (0074,1004) is DS, PS3.6 Table 6-1)
         if let progress = workitem.progressInformation {
             if let percentage = progress.progressPercentage {
                 json[UPSTag.procedureStepProgress] = [
-                    "vr": "US",
-                    "Value": [percentage]
+                    "vr": "DS",
+                    "Value": [String(percentage)]
                 ]
             }
             if let description = progress.progressDescription {
@@ -1379,7 +1485,7 @@ public actor DICOMwebServer {
         
         // Comments
         if let comments = workitem.comments {
-            json[UPSTag.commentsOnScheduledProcedureStep] = [
+            json[UPSTag.commentsOnTheScheduledProcedureStep] = [
                 "vr": "LT",
                 "Value": [comments]
             ]
@@ -1422,7 +1528,7 @@ public actor DICOMwebServer {
         workitem.accessionNumber = extractString(from: json, tag: UPSTag.accessionNumber)
         
         // Parse comments
-        workitem.comments = extractString(from: json, tag: UPSTag.commentsOnScheduledProcedureStep)
+        workitem.comments = extractString(from: json, tag: UPSTag.commentsOnTheScheduledProcedureStep)
         
         return workitem
     }
@@ -1457,7 +1563,7 @@ public actor DICOMwebServer {
         }
         
         // Update comments if provided
-        if let comments = extractString(from: json, tag: UPSTag.commentsOnScheduledProcedureStep) {
+        if let comments = extractString(from: json, tag: UPSTag.commentsOnTheScheduledProcedureStep) {
             workitem.comments = comments
         }
         
@@ -1518,6 +1624,9 @@ public actor DICOMwebServer {
     
     // MARK: - Capabilities
     
+    /// Serves DICOMKit's JSON capabilities document at GET / and GET /capabilities. This is
+    /// not the PS3.18 8.9 Retrieve Capabilities Transaction (OPTIONS / returning a WADL
+    /// Capabilities Description, Annex H), which is not implemented.
     private func handleCapabilities() -> DICOMwebResponse {
         // Build capabilities based on server configuration
         let capabilities = DICOMwebCapabilities(
@@ -1540,7 +1649,7 @@ public actor DICOMwebServer {
                 "1.2.840.10008.1.2",       // Implicit VR Little Endian
                 "1.2.840.10008.1.2.2",     // Explicit VR Big Endian
                 "1.2.840.10008.1.2.4.50",  // JPEG Baseline
-                "1.2.840.10008.1.2.4.70",  // JPEG Lossless SV1
+                "1.2.840.10008.1.2.4.70",  // JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])
                 "1.2.840.10008.1.2.4.90",  // JPEG 2000 Lossless
                 "1.2.840.10008.1.2.4.91",  // JPEG 2000
                 "1.2.840.10008.1.2.5"      // RLE Lossless
@@ -1614,20 +1723,71 @@ public actor DICOMwebServer {
     
     // MARK: - Helper Methods
     
+    /// Maps QIDO-RS query parameters to a `StorageQuery`.
+    ///
+    /// PS3.18 8.3.4.1: `{attributeID}` may be the keyword *or* the 8-hex tag
+    /// (`PatientName=` and `00100010=` are equivalent), so both are accepted for
+    /// every key. Covers every required matching attribute of PS3.18 Table
+    /// 10.6.1-5 plus the common optional ones.
     private func parseQIDOQuery(from parameters: [String: String]) -> StorageQuery {
         var query = StorageQuery()
-        
-        query.patientName = parameters["PatientName"]
-        query.patientID = parameters["PatientID"]
-        query.accessionNumber = parameters["AccessionNumber"]
-        query.studyInstanceUID = parameters["StudyInstanceUID"]
-        query.seriesInstanceUID = parameters["SeriesInstanceUID"]
-        query.sopInstanceUID = parameters["SOPInstanceUID"]
-        query.modality = parameters["Modality"]
-        query.studyDescription = parameters["StudyDescription"]
-        query.seriesDescription = parameters["SeriesDescription"]
-        query.referringPhysicianName = parameters["ReferringPhysicianName"]
-        
+        func value(_ keyword: String, _ tag: String) -> String? {
+            let v = parameters[keyword] ?? parameters[tag]
+            return (v?.isEmpty ?? true) ? nil : v
+        }
+
+        // Study level
+        query.patientName = value("PatientName", "00100010")
+        query.patientID = value("PatientID", "00100020")
+        query.accessionNumber = value("AccessionNumber", "00080050")
+        query.studyInstanceUID = value("StudyInstanceUID", "0020000D")
+        query.studyID = value("StudyID", "00200010")
+        query.studyDescription = value("StudyDescription", "00081030")
+        query.referringPhysicianName = value("ReferringPhysicianName", "00080090")
+        if let date = value("StudyDate", "00080020") {
+            query.studyDate = StorageQuery.DateRange(dicomValue: date)
+        }
+        if let time = value("StudyTime", "00080030") {
+            query.studyTime = StorageQuery.DateRange(dicomValue: time, format: "HHmmss")
+        }
+        if let modalities = value("ModalitiesInStudy", "00080061") {
+            query.modalitiesInStudy = modalities
+                .split(whereSeparator: { $0 == "\\" || $0 == "," })
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+        }
+
+        // Series level
+        query.seriesInstanceUID = value("SeriesInstanceUID", "0020000E")
+        query.modality = value("Modality", "00080060")
+        query.seriesDescription = value("SeriesDescription", "0008103E")
+        query.bodyPartExamined = value("BodyPartExamined", "00180015")
+        if let number = value("SeriesNumber", "00200011").flatMap({ Int($0) }) {
+            query.seriesNumber = number
+        }
+
+        // Instance level
+        query.sopInstanceUID = value("SOPInstanceUID", "00080018")
+        query.sopClassUID = value("SOPClassUID", "00080016")
+        if let number = value("InstanceNumber", "00200013").flatMap({ Int($0) }) {
+            query.instanceNumber = number
+        }
+
+        // Anything else (e.g. PerformedProcedureStepStartDate) is kept for
+        // providers that can match on it.
+        let handled: Set<String> = [
+            "PatientName", "00100010", "PatientID", "00100020", "AccessionNumber", "00080050",
+            "StudyInstanceUID", "0020000D", "StudyID", "00200010", "StudyDescription", "00081030",
+            "ReferringPhysicianName", "00080090", "StudyDate", "00080020", "StudyTime", "00080030",
+            "ModalitiesInStudy", "00080061", "SeriesInstanceUID", "0020000E", "Modality", "00080060",
+            "SeriesDescription", "0008103E", "BodyPartExamined", "00180015", "SeriesNumber", "00200011",
+            "SOPInstanceUID", "00080018", "SOPClassUID", "00080016", "InstanceNumber", "00200013",
+            "offset", "limit", "fuzzymatching", "includefield",
+        ]
+        for (k, v) in parameters where !handled.contains(k) {
+            query.customParameters[k] = v
+        }
+
         if let offset = parameters["offset"], let value = Int(offset) {
             query.offset = value
         }
@@ -1648,6 +1808,9 @@ public actor DICOMwebServer {
         for instance in instances {
             body.append("--\(boundary)\r\n".data(using: .utf8)!)
             body.append("Content-Type: application/dicom\r\n".data(using: .utf8)!)
+            // PS3.18 Table 8.6.1-1: each part that is a representation of a resource carries its URL
+            let location = instanceURL(studyUID: instance.studyUID, seriesUID: instance.seriesUID, instanceUID: instance.instanceUID)
+            body.append("Content-Location: \(location)\r\n".data(using: .utf8)!)
             body.append("\r\n".data(using: .utf8)!)
             body.append(instance.data)
             body.append("\r\n".data(using: .utf8)!)
@@ -1656,6 +1819,10 @@ public actor DICOMwebServer {
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         
         return (body, boundary)
+    }
+    
+    private func instanceURL(studyUID: String, seriesUID: String, instanceUID: String) -> String {
+        "\(configuration.baseURL.absoluteString)/studies/\(studyUID)/series/\(seriesUID)/instances/\(instanceUID)"
     }
     
     private func encodeMetadataAsJSON(datasets: [DataSet]) throws -> Data {
@@ -1695,6 +1862,22 @@ public actor DICOMwebServer {
             if !study.modalitiesInStudy.isEmpty {
                 dict["00080061"] = createDICOMJSONValue(vr: "CS", values: study.modalitiesInStudy)
             }
+            // Remaining required return attributes (PS3.18 Table 10.6.1-5)
+            if let referring = study.referringPhysicianName {
+                dict["00080090"] = createDICOMJSONValue(vr: "PN", value: referring)
+            }
+            if let birthDate = study.patientBirthDate {
+                dict["00100030"] = createDICOMJSONValue(vr: "DA", value: birthDate)
+            }
+            if let sex = study.patientSex {
+                dict["00100040"] = createDICOMJSONValue(vr: "CS", value: sex)
+            }
+            if let studyID = study.studyID {
+                dict["00200010"] = createDICOMJSONValue(vr: "SH", value: studyID)
+            }
+            dict["00080056"] = createDICOMJSONValue(vr: "CS", value: "ONLINE")   // Instance Availability
+            dict["00081190"] = createDICOMJSONValue(vr: "UR",                   // Retrieve URL
+                value: "\(configuration.baseURL.absoluteString)/studies/\(study.studyInstanceUID)")
             
             dict["00201206"] = createDICOMJSONValue(vr: "IS", value: "\(study.numberOfStudyRelatedSeries)")
             dict["00201208"] = createDICOMJSONValue(vr: "IS", value: "\(study.numberOfStudyRelatedInstances)")
@@ -1702,7 +1885,7 @@ public actor DICOMwebServer {
             results.append(dict)
         }
         
-        return try JSONSerialization.data(withJSONObject: results)
+        return try DICOMJSONWriter().data(with: results)
     }
     
     private func encodeSeriesResultsAsJSON(series: [SeriesRecord]) throws -> Data {
@@ -1723,13 +1906,18 @@ public actor DICOMwebServer {
             if let desc = s.seriesDescription {
                 dict["0008103E"] = createDICOMJSONValue(vr: "LO", value: desc)
             }
+            if let bodyPart = s.bodyPartExamined {
+                dict["00180015"] = createDICOMJSONValue(vr: "CS", value: bodyPart)
+            }
+            dict["00081190"] = createDICOMJSONValue(vr: "UR",                   // Retrieve URL
+                value: "\(configuration.baseURL.absoluteString)/studies/\(s.studyInstanceUID)/series/\(s.seriesInstanceUID)")
             
             dict["00201209"] = createDICOMJSONValue(vr: "IS", value: "\(s.numberOfSeriesRelatedInstances)")
             
             results.append(dict)
         }
         
-        return try JSONSerialization.data(withJSONObject: results)
+        return try DICOMJSONWriter().data(with: results)
     }
     
     private func encodeInstanceResultsAsJSON(instances: [InstanceRecord]) throws -> Data {
@@ -1748,11 +1936,25 @@ public actor DICOMwebServer {
             if let num = instance.instanceNumber {
                 dict["00200013"] = createDICOMJSONValue(vr: "IS", value: "\(num)")
             }
+            if let frames = instance.numberOfFrames {
+                dict["00280008"] = createDICOMJSONValue(vr: "IS", value: "\(frames)")
+            }
+            if let rows = instance.rows {
+                dict["00280010"] = ["vr": "US", "Value": [rows]]
+            }
+            if let columns = instance.columns {
+                dict["00280011"] = ["vr": "US", "Value": [columns]]
+            }
+            if let bits = instance.bitsAllocated {
+                dict["00280100"] = ["vr": "US", "Value": [bits]]
+            }
+            dict["00081190"] = createDICOMJSONValue(vr: "UR",                   // Retrieve URL
+                value: "\(configuration.baseURL.absoluteString)/studies/\(instance.studyInstanceUID)/series/\(instance.seriesInstanceUID)/instances/\(instance.sopInstanceUID)")
             
             results.append(dict)
         }
         
-        return try JSONSerialization.data(withJSONObject: results)
+        return try DICOMJSONWriter().data(with: results)
     }
     
     private func createDICOMJSONValue(vr: String, value: String) -> [String: Any] {

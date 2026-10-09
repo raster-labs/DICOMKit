@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — every Type 1/2 attribute of the SC IODs (Tables A.8-1…A.8-5) written: Patient C.7-1, General Study C.7-3, General Series C.7-5a, General Image C.7-9, Image Pixel C.7-11a and A.8.x.4 constraints, Multi-frame C.7-14, SC Equipment C.8-24, SC Multi-frame Image C.8-25b, SC Multi-frame Vector C.8-25c; VRs per PS3.6 Table 6-1
 //
 // SecondaryCaptureBuilder.swift
 // DICOMKit
@@ -65,12 +66,31 @@ public final class SecondaryCaptureBuilder {
     private var instanceNumber: Int?
     private var patientName: String?
     private var patientID: String?
+    private var patientBirthDate: DICOMDate?
+    private var patientSex: String?
+    private var studyDate: DICOMDate?
+    private var studyTime: DICOMTime?
+    private var referringPhysicianName: String?
+    private var studyID: String?
+    private var accessionNumber: String?
+    private var studyDescription: String?
     private var modality: String?
     private var seriesDescription: String?
     private var seriesNumber: Int?
-    private var conversionType: ConversionType = .digitizedFilm
+    /// Default WSD (Workstation): DF would make Nominal Scanned Pixel Spacing
+    /// Type 1C in the multi-frame IODs (Table C.8-25b).
+    private var conversionType: ConversionType = .workstation
     private var dateOfSecondaryCapture: DICOMDate?
     private var timeOfSecondaryCapture: DICOMTime?
+    private var nominalScannedPixelSpacing: [Double]?
+    private var patientOrientation: [String]?
+    private var frameTime: Double?
+    private var frameTimeVector: [Double]?
+    private var pageNumberVector: [Int]?
+    private var frameLabelVector: [String]?
+    private var rescaleIntercept: Double?
+    private var rescaleSlope: Double?
+    private var rescaleType: String?
     private var numberOfFrames: Int = 1
     private var samplesPerPixel: Int?
     private var photometricInterpretation: String?
@@ -137,6 +157,111 @@ public final class SecondaryCaptureBuilder {
     @discardableResult
     public func setPatientID(_ id: String) -> Self {
         self.patientID = id
+        return self
+    }
+
+    /// Sets Patient's Birth Date (0010,0030), Type 2 (written empty when unset)
+    @discardableResult
+    public func setPatientBirthDate(_ date: DICOMDate) -> Self {
+        self.patientBirthDate = date
+        return self
+    }
+
+    /// Sets Patient's Sex (0010,0040), Type 2; Enumerated Values M, F, O (Table C.7-1)
+    @discardableResult
+    public func setPatientSex(_ sex: String) -> Self {
+        self.patientSex = sex
+        return self
+    }
+
+    /// Sets Study Date (0008,0020) and Study Time (0008,0030), Type 2
+    @discardableResult
+    public func setStudyDateTime(date: DICOMDate, time: DICOMTime) -> Self {
+        self.studyDate = date
+        self.studyTime = time
+        return self
+    }
+
+    /// Sets Referring Physician's Name (0008,0090), Type 2
+    @discardableResult
+    public func setReferringPhysicianName(_ name: String) -> Self {
+        self.referringPhysicianName = name
+        return self
+    }
+
+    /// Sets Study ID (0020,0010), Type 2
+    @discardableResult
+    public func setStudyID(_ id: String) -> Self {
+        self.studyID = id
+        return self
+    }
+
+    /// Sets Accession Number (0008,0050), Type 2
+    @discardableResult
+    public func setAccessionNumber(_ number: String) -> Self {
+        self.accessionNumber = number
+        return self
+    }
+
+    /// Sets Study Description (0008,1030), Type 3
+    @discardableResult
+    public func setStudyDescription(_ description: String) -> Self {
+        self.studyDescription = description
+        return self
+    }
+
+    /// Sets Patient Orientation (0020,0020): row direction, column direction
+    /// (e.g. "L", "P"); Type 2C, written empty when unset.
+    @discardableResult
+    public func setPatientOrientation(row: String, column: String) -> Self {
+        self.patientOrientation = [row, column]
+        return self
+    }
+
+    /// Sets Nominal Scanned Pixel Spacing (0018,2010) in mm: row spacing, column spacing.
+    /// Required for the multi-frame IODs when Conversion Type is DF (Table C.8-25b).
+    @discardableResult
+    public func setNominalScannedPixelSpacing(row: Double, column: Double) -> Self {
+        self.nominalScannedPixelSpacing = [row, column]
+        return self
+    }
+
+    /// Sets Frame Time (0018,1063) in ms; Frame Increment Pointer then points to it (Cine Module).
+    @discardableResult
+    public func setFrameTime(_ milliseconds: Double) -> Self {
+        self.frameTime = milliseconds
+        return self
+    }
+
+    /// Sets Frame Time Vector (0018,1065) in ms, one value per frame.
+    @discardableResult
+    public func setFrameTimeVector(_ milliseconds: [Double]) -> Self {
+        self.frameTimeVector = milliseconds
+        return self
+    }
+
+    /// Sets Page Number Vector (0018,2001), one value per frame.
+    @discardableResult
+    public func setPageNumberVector(_ pages: [Int]) -> Self {
+        self.pageNumberVector = pages
+        return self
+    }
+
+    /// Sets Frame Label Vector (0018,2002), one value per frame.
+    @discardableResult
+    public func setFrameLabelVector(_ labels: [String]) -> Self {
+        self.frameLabelVector = labels
+        return self
+    }
+
+    /// Sets the Modality LUT rescale of the SC Multi-frame Image Module (Type 1C for
+    /// MONOCHROME2 with Bits Stored > 1). The Grayscale Byte IOD fixes 0 / 1 / "US"
+    /// (A.8.3.4); the Grayscale Word IOD leaves slope and intercept free (A.8.4.4).
+    @discardableResult
+    public func setRescale(intercept: Double, slope: Double, type: String = "US") -> Self {
+        self.rescaleIntercept = intercept
+        self.rescaleSlope = slope
+        self.rescaleType = type
         return self
     }
 
@@ -300,6 +425,27 @@ public final class SecondaryCaptureBuilder {
             throw DICOMError.parsingFailed("Number of frames must be at least 1 for multi-frame types")
         }
 
+        if let burnedInAnnotation, !["YES", "NO"].contains(burnedInAnnotation) {
+            throw DICOMError.parsingFailed("Burned In Annotation must be YES or NO (PS3.3 Table C.8-25b)")
+        }
+        if let patientSex, !["M", "F", "O"].contains(patientSex) {
+            throw DICOMError.parsingFailed("Patient's Sex must be M, F or O (PS3.3 Table C.7-1)")
+        }
+        if secondaryCaptureType != .singleFrame {
+            if conversionType == .digitizedFilm, nominalScannedPixelSpacing == nil {
+                throw DICOMError.parsingFailed("Nominal Scanned Pixel Spacing is required when Conversion Type is DF (PS3.3 Table C.8-25b)")
+            }
+            if let frameTimeVector, frameTimeVector.count != numberOfFrames {
+                throw DICOMError.parsingFailed("Frame Time Vector must have one value per frame")
+            }
+            if let pageNumberVector, pageNumberVector.count != numberOfFrames {
+                throw DICOMError.parsingFailed("Page Number Vector must have one value per frame")
+            }
+            if let frameLabelVector, frameLabelVector.count != numberOfFrames {
+                throw DICOMError.parsingFailed("Frame Label Vector must have one value per frame")
+            }
+        }
+
         let defaults = secondaryCaptureType.defaultPixelCharacteristics
         let effectiveSamplesPerPixel = samplesPerPixel ?? defaults.samplesPerPixel
         let effectiveBitsAllocated = bitsAllocated ?? defaults.bitsAllocated
@@ -342,7 +488,24 @@ public final class SecondaryCaptureBuilder {
             burnedInAnnotation: burnedInAnnotation,
             contentDate: contentDate,
             contentTime: contentTime,
-            pixelData: pixelData
+            pixelData: pixelData,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            studyDate: studyDate,
+            studyTime: studyTime,
+            referringPhysicianName: referringPhysicianName,
+            studyID: studyID,
+            accessionNumber: accessionNumber,
+            studyDescription: studyDescription,
+            nominalScannedPixelSpacing: nominalScannedPixelSpacing,
+            patientOrientation: patientOrientation,
+            frameTime: frameTime,
+            frameTimeVector: frameTimeVector,
+            pageNumberVector: pageNumberVector,
+            frameLabelVector: frameLabelVector,
+            rescaleIntercept: rescaleIntercept,
+            rescaleSlope: rescaleSlope,
+            rescaleType: rescaleType
         )
     }
 
@@ -362,68 +525,101 @@ extension SecondaryCaptureImage {
 
     /// Converts the SecondaryCaptureImage to a DICOM DataSet
     ///
-    /// Creates a DataSet with all required and optional attributes for the SC IOD.
+    /// Writes every Type 1 attribute and every Type 2 attribute (empty when unknown)
+    /// of the mandatory modules of the SC IOD being written (PS3.3 2026a Tables
+    /// A.8-1 … A.8-5), plus the Type 1C attributes whose condition holds:
+    ///
+    /// - Patient (Table C.7-1): Patient's Name, Patient ID, Patient's Birth Date, Patient's Sex.
+    /// - General Study (Table C.7-3): Study Instance UID; Study Date, Study Time,
+    ///   Referring Physician's Name, Study ID, Accession Number.
+    /// - General Series (Table C.7-5a): Modality, Series Instance UID; Series Number.
+    /// - SC Equipment (Table C.8-24): Conversion Type.
+    /// - General Image (Table C.7-9): Instance Number; Patient Orientation (2C, always
+    ///   required here because the SC IODs carry no Image Orientation (Patient)).
+    /// - Image Pixel (Table C.7-11a): Samples per Pixel, Photometric Interpretation,
+    ///   Rows, Columns, Bits Allocated/Stored, High Bit, Pixel Representation, Pixel
+    ///   Data; Planar Configuration only when Samples per Pixel > 1 (A.8.x.4 forbid it
+    ///   for the grayscale multi-frame IODs).
+    /// - Multi-frame IODs: Number of Frames (Table C.7-14); Frame Increment Pointer and
+    ///   its target vector when Number of Frames > 1 (Tables C.8-25b, C.8-25c: Frame
+    ///   Time, Frame Time Vector, Page Number Vector or Frame Label Vector — Page
+    ///   Number Vector 1…N when none was given); Burned In Annotation (Type 1, "NO"
+    ///   when unset); Presentation LUT Shape IDENTITY and Rescale Intercept/Slope/Type
+    ///   when Photometric Interpretation is MONOCHROME2 and Bits Stored > 1 (0 / 1 /
+    ///   "US" unless set; A.8.3.4 fixes those values for the Grayscale Byte IOD).
     ///
     /// - Returns: A DataSet representation of this Secondary Capture image
     public func toDataSet() -> DataSet {
         var dataSet = DataSet()
+        let multiFrame = isMultiFrame
 
-        // SOP Common Module
+        // SOP Common Module (Table C.12-1)
         dataSet.setString(sopClassUID, for: .sopClassUID, vr: .UI)
         dataSet.setString(sopInstanceUID, for: .sopInstanceUID, vr: .UI)
 
-        // Patient Module
-        if let patientName = patientName {
-            dataSet.setString(patientName, for: .patientName, vr: .PN)
-        }
-        if let patientID = patientID {
-            dataSet.setString(patientID, for: .patientID, vr: .LO)
-        }
+        // Patient Module (Table C.7-1): all Type 2
+        dataSet.setString(patientName ?? "", for: .patientName, vr: .PN)
+        dataSet.setString(patientID ?? "", for: .patientID, vr: .LO)
+        dataSet.setString(patientBirthDate?.dicomString ?? "", for: .patientBirthDate, vr: .DA)
+        dataSet.setString(patientSex ?? "", for: .patientSex, vr: .CS)
 
-        // General Study Module
+        // General Study Module (Table C.7-3)
         dataSet.setString(studyInstanceUID, for: .studyInstanceUID, vr: .UI)
-
-        // General Series Module
-        dataSet.setString(seriesInstanceUID, for: .seriesInstanceUID, vr: .UI)
-
-        if let modality = modality {
-            dataSet.setString(modality, for: .modality, vr: .CS)
+        dataSet.setString(studyDate?.dicomString ?? "", for: .studyDate, vr: .DA)
+        dataSet.setString(studyTime?.dicomString ?? "", for: .studyTime, vr: .TM)
+        dataSet.setString(referringPhysicianName ?? "", for: .referringPhysicianName, vr: .PN)
+        dataSet.setString(studyID ?? "", for: .studyID, vr: .SH)
+        dataSet.setString(accessionNumber ?? "", for: .accessionNumber, vr: .SH)
+        if let studyDescription {
+            dataSet.setString(studyDescription, for: .studyDescription, vr: .LO)
         }
-        if let seriesDescription = seriesDescription {
+
+        // General Series Module (Table C.7-5a)
+        dataSet.setString(modality ?? secondaryCaptureType.defaultModality, for: .modality, vr: .CS)
+        dataSet.setString(seriesInstanceUID, for: .seriesInstanceUID, vr: .UI)
+        dataSet.setString(seriesNumber.map(String.init) ?? "", for: .seriesNumber, vr: .IS)
+        if let seriesDescription {
             dataSet.setString(seriesDescription, for: .seriesDescription, vr: .LO)
         }
-        if let seriesNumber = seriesNumber {
-            dataSet.setString(String(seriesNumber), for: .seriesNumber, vr: .IS)
-        }
 
-        // Instance Number
-        if let instanceNumber = instanceNumber {
-            dataSet.setString(String(instanceNumber), for: .instanceNumber, vr: .IS)
-        }
+        // SC Equipment Module (Table C.8-24): Conversion Type Type 1
+        dataSet.setString(conversionType.standardTerm, for: .conversionType, vr: .CS)
 
-        // SC Equipment Module
-        dataSet.setString(conversionType.rawValue, for: .conversionType, vr: .CS)
-
-        // SC Image Module
-        if let dateOfSecondaryCapture = dateOfSecondaryCapture {
+        // SC Image Module (Table C.8-25; Nominal Scanned Pixel Spacing is 1C for DF in C.8-25b)
+        if let dateOfSecondaryCapture {
             dataSet.setString(dateOfSecondaryCapture.dicomString, for: .dateOfSecondaryCapture, vr: .DA)
         }
-        if let timeOfSecondaryCapture = timeOfSecondaryCapture {
+        if let timeOfSecondaryCapture {
             dataSet.setString(timeOfSecondaryCapture.dicomString, for: .timeOfSecondaryCapture, vr: .TM)
         }
-
-        // General Image Module
-        if let imageType = imageType, !imageType.isEmpty {
-            dataSet.setString(imageType.joined(separator: "\\"), for: .imageType, vr: .CS)
+        if let nominalScannedPixelSpacing, nominalScannedPixelSpacing.count == 2 {
+            dataSet.setStrings(nominalScannedPixelSpacing.map(DataSet.defaultDecimalString),
+                               for: .nominalScannedPixelSpacing, vr: .DS)
         }
-        if let derivationDescription = derivationDescription {
+
+        // General Image Module (Table C.7-9)
+        dataSet.setString(instanceNumber.map(String.init) ?? "", for: .instanceNumber, vr: .IS)
+        dataSet.setStrings(patientOrientation ?? [], for: .patientOrientation, vr: .CS)
+        if let imageType, !imageType.isEmpty {
+            dataSet.setStrings(imageType, for: .imageType, vr: .CS)
+        }
+        if let derivationDescription {
             dataSet.setString(derivationDescription, for: .derivationDescription, vr: .ST)
         }
-        if let burnedInAnnotation = burnedInAnnotation {
+        if let burnedInAnnotation {
             dataSet.setString(burnedInAnnotation, for: .burnedInAnnotation, vr: .CS)
+        } else if multiFrame {
+            // Type 1 in the SC Multi-frame Image Module (Table C.8-25b).
+            dataSet.setString("NO", for: .burnedInAnnotation, vr: .CS)
+        }
+        if let contentDate {
+            dataSet.setString(contentDate.dicomString, for: .contentDate, vr: .DA)
+        }
+        if let contentTime {
+            dataSet.setString(contentTime.dicomString, for: .contentTime, vr: .TM)
         }
 
-        // Image Pixel Module
+        // Image Pixel Module (Table C.7-11a)
         dataSet[.rows] = DataElement.uint16(tag: .rows, value: UInt16(rows))
         dataSet[.columns] = DataElement.uint16(tag: .columns, value: UInt16(columns))
         dataSet[.samplesPerPixel] = DataElement.uint16(tag: .samplesPerPixel, value: UInt16(samplesPerPixel))
@@ -432,26 +628,54 @@ extension SecondaryCaptureImage {
         dataSet[.bitsStored] = DataElement.uint16(tag: .bitsStored, value: UInt16(bitsStored))
         dataSet[.highBit] = DataElement.uint16(tag: .highBit, value: UInt16(highBit))
         dataSet[.pixelRepresentation] = DataElement.uint16(tag: .pixelRepresentation, value: UInt16(pixelRepresentation))
-
-        if let planarConfiguration = planarConfiguration {
-            dataSet[.planarConfiguration] = DataElement.uint16(tag: .planarConfiguration, value: UInt16(planarConfiguration))
+        if samplesPerPixel > 1 {
+            // Type 1C: required if Samples per Pixel > 1; A.8.5.4: 0 for RGB.
+            dataSet[.planarConfiguration] = DataElement.uint16(tag: .planarConfiguration,
+                                                               value: UInt16(planarConfiguration ?? 0))
         }
 
-        // Number of Frames (for multi-frame)
-        if numberOfFrames > 1 || secondaryCaptureType != .singleFrame {
+        if multiFrame {
+            // Multi-frame Module (Table C.7-14)
+            dataSet.setString(String(numberOfFrames), for: .numberOfFrames, vr: .IS)
+
+            // Frame Increment Pointer (Table C.8-25b: required if Number of Frames > 1)
+            // and its SC Multi-frame Vector / Cine target (Tables C.8-25c, C.7-13).
+            let writer = DICOMWriter()
+            var pointerTarget: Tag?
+            if let frameTime {
+                dataSet.setString(DataSet.defaultDecimalString(frameTime), for: .frameTime, vr: .DS)
+                pointerTarget = .frameTime
+            } else if let frameTimeVector, frameTimeVector.count == numberOfFrames {
+                dataSet.setStrings(frameTimeVector.map(DataSet.defaultDecimalString), for: .frameTimeVector, vr: .DS)
+                pointerTarget = .frameTimeVector
+            } else if let frameLabelVector, frameLabelVector.count == numberOfFrames {
+                dataSet.setStrings(frameLabelVector, for: .frameLabelVector, vr: .SH)
+                pointerTarget = .frameLabelVector
+            } else if let pageNumberVector, pageNumberVector.count == numberOfFrames {
+                dataSet.setStrings(pageNumberVector.map(String.init), for: .pageNumberVector, vr: .IS)
+                pointerTarget = .pageNumberVector
+            } else if numberOfFrames > 1 {
+                dataSet.setStrings((1...numberOfFrames).map(String.init), for: .pageNumberVector, vr: .IS)
+                pointerTarget = .pageNumberVector
+            }
+            if let pointerTarget {
+                dataSet[.frameIncrementPointer] = DataElement(tag: .frameIncrementPointer, vr: .AT, length: 4,
+                                                              valueData: writer.serializeTag(pointerTarget))
+            }
+
+            // SC Multi-frame Image Module (Table C.8-25b), Type 1C: MONOCHROME2 and Bits Stored > 1.
+            if photometricInterpretation == "MONOCHROME2", bitsStored > 1 {
+                dataSet.setString("IDENTITY", for: .presentationLUTShape, vr: .CS)
+                dataSet.setString(DataSet.defaultDecimalString(rescaleIntercept ?? 0), for: .rescaleIntercept, vr: .DS)
+                dataSet.setString(DataSet.defaultDecimalString(rescaleSlope ?? 1), for: .rescaleSlope, vr: .DS)
+                dataSet.setString(rescaleType ?? "US", for: .rescaleType, vr: .LO)
+            }
+        } else if numberOfFrames > 1 {
             dataSet.setString(String(numberOfFrames), for: .numberOfFrames, vr: .IS)
         }
 
-        // Content Date/Time
-        if let contentDate = contentDate {
-            dataSet.setString(contentDate.dicomString, for: .contentDate, vr: .DA)
-        }
-        if let contentTime = contentTime {
-            dataSet.setString(contentTime.dicomString, for: .contentTime, vr: .TM)
-        }
-
         // Pixel Data
-        if let pixelData = pixelData {
+        if let pixelData {
             dataSet[.pixelData] = DataElement.data(
                 tag: .pixelData,
                 vr: .OW,

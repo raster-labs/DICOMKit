@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — the convenience renderers renderFrame(_:window:), tryRenderFrame(_:window:), renderFrameWithStoredWindow and tryRenderFrameWithStoredWindow apply the window through GrayscaleDisplayPipeline, i.e. after the Modality LUT Sequence or Rescale Slope/Intercept ("after any Modality LUT or Rescale Slope and Intercept specified in the IOD have been applied", PS3.3 2026a C.11.2.1.2.1; chain order PS3.4 2026a N.2), then INVERSE for MONOCHROME1 (C.7.6.3.1.2); the first of several Window Center values is the default presentation (C.11.2.1.2) (D243)
+// NEMA-verified: 2026a, checked 2026-09-29 — the non-image SOP Class list diffed by Scripts/diff_kit.py against PS3.6 2026a Table A-1 (two UIDs and two names corrected); JPEG YBR relabel per PS3.5 Table 8.2.1-1
 import Foundation
 import DICOMCore
 
@@ -307,9 +309,19 @@ extension DICOMFile {
     
     /// Renders the specified frame to a CGImage with custom window settings
     ///
+    /// The window is in the units the Modality LUT puts out (Hounsfield units for a
+    /// CT, the same units as the file's own Window Center (0028,1050) / Window Width
+    /// (0028,1051)): it is applied through ``GrayscaleDisplayPipeline`` after the
+    /// Modality LUT Sequence or this frame's Rescale Slope / Intercept, as PS3.3
+    /// C.11.2.1.2.1 orders it ("after any Modality LUT or Rescale Slope and Intercept
+    /// specified in the IOD have been applied"), then INVERSE for MONOCHROME1
+    /// (C.7.6.3.1.2). Before D243 the window was applied to the stored values, so a
+    /// CT with Rescale Intercept −1024 rendered misplaced by 1024 (washed out).
+    /// Colour and palette frames ignore the window.
+    ///
     /// - Parameters:
     ///   - frameIndex: The frame index to render (default 0)
-    ///   - window: Custom window settings for grayscale mapping
+    ///   - window: Window settings in modality (Modality LUT output) units
     /// - Returns: CGImage if rendering succeeds
     public func renderFrame(_ frameIndex: Int = 0, window: WindowSettings) -> CGImage? {
         guard let pixelData = pixelData() else {
@@ -322,9 +334,12 @@ extension DICOMFile {
     /// Renders the specified frame to a CGImage with custom window settings,
     /// throwing detailed errors on failure
     ///
+    /// The window is in modality (Modality LUT output) units and is applied through
+    /// ``GrayscaleDisplayPipeline`` after the Modality LUT, as ``renderFrame(_:window:)``.
+    ///
     /// - Parameters:
     ///   - frameIndex: The frame index to render (default 0)
-    ///   - window: Custom window settings for grayscale mapping
+    ///   - window: Window settings in modality (Modality LUT output) units
     /// - Returns: CGImage if rendering succeeds
     /// - Throws: `PixelDataError` with detailed information about the failure
     public func tryRenderFrame(_ frameIndex: Int = 0, window: WindowSettings) throws -> CGImage? {
@@ -335,11 +350,15 @@ extension DICOMFile {
     
     /// Renders the specified frame using window settings from the DICOM file
     ///
+    /// The file's Window Center (0028,1050) / Window Width (0028,1051) — this frame's
+    /// Frame VOI LUT functional group on an Enhanced object, else the shared pair; the
+    /// first of several values is the default presentation (PS3.3 C.11.2.1.2) — is
+    /// applied after the Modality LUT through ``GrayscaleDisplayPipeline`` (D243).
     /// Falls back to automatic windowing if no window settings are present.
     /// - Parameter frameIndex: The frame index to render (default 0)
     /// - Returns: CGImage if rendering succeeds
     public func renderFrameWithStoredWindow(_ frameIndex: Int = 0) -> CGImage? {
-        if let window = windowSettings() {
+        if let window = headerWindow(frameIndex: frameIndex) {
             return renderFrame(frameIndex, window: window)
         } else {
             return renderFrame(frameIndex)
@@ -356,7 +375,7 @@ extension DICOMFile {
     /// - Returns: CGImage if rendering succeeds
     /// - Throws: `PixelDataError` with detailed information about the failure
     public func tryRenderFrameWithStoredWindow(_ frameIndex: Int = 0) throws -> CGImage? {
-        if let window = windowSettings() {
+        if let window = headerWindow(frameIndex: frameIndex) {
             return try tryRenderFrame(frameIndex, window: window)
         } else {
             return try tryRenderFrame(frameIndex)
@@ -365,13 +384,27 @@ extension DICOMFile {
     
     // MARK: - Private Rendering Helpers
     
-    /// Internal helper to render a frame with window settings using provided pixel data
+    /// The file's default window for a frame: the first of several Window Center /
+    /// Window Width values (the default presentation, PS3.3 C.11.2.1.2), read from this
+    /// frame's functional group on an Enhanced object, else the shared pair.
+    private func headerWindow(frameIndex: Int) -> WindowSettings? {
+        allWindowSettings(frameIndex: frameIndex).first ?? windowSettings(frameIndex: frameIndex)
+    }
+
+    /// Internal helper to render a frame with window settings using provided pixel data.
+    ///
+    /// A monochrome frame goes through the PS3.4 N.2 chain — this frame's Modality LUT,
+    /// then the window in modality units, then INVERSE for MONOCHROME1 — so the window
+    /// is placed where PS3.3 C.11.2.1.2.1 places it (D243).
     private func renderFrameWithWindow(pixelData: PixelData, frameIndex: Int, window: WindowSettings) -> CGImage? {
         let lut = dataSet.paletteColorLUT()
         let renderer = PixelDataRenderer(pixelData: pixelData, paletteColorLUT: lut)
         
         if pixelData.descriptor.photometricInterpretation.isMonochrome {
-            return renderer.renderMonochromeFrame(frameIndex, window: window)
+            let pipeline = GrayscaleDisplayPipeline.standard(
+                for: pixelData.descriptor.photometricInterpretation,
+                modalityLUT: modalityLUT(frameIndex: frameIndex), voiLUT: VOILUT(window))
+            return renderer.renderMonochromeFrame(frameIndex, pipeline: pipeline)
         } else if pixelData.descriptor.photometricInterpretation.isPaletteColor {
             return renderer.renderPaletteColorFrame(frameIndex)
         } else {
@@ -445,6 +478,22 @@ extension DICOMFile {
     
     // MARK: - Rescale Values
     
+    /// The Modality LUT of a frame (PS3.3 2026a C.11.1): the Modality LUT Sequence
+    /// (0028,3000) when the file has one, else this frame's Rescale Slope (0028,1053) /
+    /// Rescale Intercept (0028,1052) (the Pixel Value Transformation functional group
+    /// on an Enhanced object, else the shared pair); `nil` when that is the identity
+    /// (slope 1, intercept 0). The sequence and the rescale pair are mutually
+    /// exclusive (C.11.1.1.2), so the sequence wins when both are present.
+    public func modalityLUT(frameIndex: Int? = nil) -> ModalityLUT? {
+        if let table = dataSet.modalityLUTData() {
+            return .lut(table)
+        }
+        let slope = rescaleSlope(frameIndex: frameIndex)
+        let intercept = rescaleIntercept(frameIndex: frameIndex)
+        return (slope == 1 && intercept == 0)
+            ? nil : .rescale(slope: slope, intercept: intercept, type: nil)
+    }
+
     /// Returns the rescale intercept value
     public func rescaleIntercept(frameIndex: Int? = nil) -> Double {
         dataSet.rescaleIntercept(frameIndex: frameIndex)
@@ -464,110 +513,137 @@ extension DICOMFile {
     public func rescale(_ storedValue: Double) -> Double {
         dataSet.rescale(storedValue)
     }
+
+    /// Applies the modality transformation of frame `frameIndex` (0-based), using that frame's
+    /// Pixel Value Transformation functional group (PS3.3 2026a C.7.6.16.2.9; D197).
+    public func rescale(_ storedValue: Double, frameIndex: Int?) -> Double {
+        dataSet.rescale(storedValue, frameIndex: frameIndex)
+    }
     
     // MARK: - SOP Class Helpers
     
-    /// Known non-image SOP Class UIDs that do not contain pixel data
+    /// The SOP Classes whose IOD carries no pixel data: every SOP Class PS3.4 2026a
+    /// Table B.5-1 (Storage) or Table GG.3-1 (Non-Patient Object Storage) links to an
+    /// IOD whose module table names none of the Image Pixel (C.7.6.3), Floating Point
+    /// Image Pixel (C.7.6.24) or Double Floating Point Image Pixel (C.7.6.25) Modules.
     ///
-    /// These SOP classes represent document-based DICOM objects such as
-    /// Structured Reports, Presentation States, and other non-image data.
+    /// NEMA-verified: 2026a, checked 2026-09-30 — generated by `Scripts/diff_kit.py
+    /// --emit-non-image-swift` from PS3.4 2026a Tables B.5-1 / GG.3-1 and the PS3.3 2026a
+    /// IOD module tables; 113 of 179 SOP Classes (was 82, 31 missing). Do not hand-edit.
     private static let nonImageSOPClasses: Set<String> = [
-        // Structured Report SOP Classes
-        "1.2.840.10008.5.1.4.1.1.88.11",    // Basic Text SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.22",    // Enhanced SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.33",    // Comprehensive SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.34",    // Comprehensive 3D SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.35",    // Extensible SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.40",    // Procedure Log Storage
-        "1.2.840.10008.5.1.4.1.1.88.50",    // Mammography CAD SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.59",    // Key Object Selection Document Storage
-        "1.2.840.10008.5.1.4.1.1.88.65",    // Chest CAD SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.67",    // X-Ray Radiation Dose SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.68",    // Radiopharmaceutical Radiation Dose SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.69",    // Colon CAD SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.70",    // Implantation Plan SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.71",    // Acquisition Context SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.72",    // Simplified Adult Echo SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.73",    // Patient Radiation Dose SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.74",    // Planned Imaging Agent Administration SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.75",    // Performed Imaging Agent Administration SR Storage
-        "1.2.840.10008.5.1.4.1.1.88.76",    // Enhanced X-Ray Radiation Dose SR Storage
-        
-        // Presentation State SOP Classes
-        "1.2.840.10008.5.1.4.1.1.11.1",     // Grayscale Softcopy Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.2",     // Color Softcopy Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.3",     // Pseudo-Color Softcopy Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.4",     // Blending Softcopy Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.5",     // XA/XRF Grayscale Softcopy Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.6",     // Grayscale Planar MPR Volumetric Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.7",     // Compositing Planar MPR Volumetric Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.8",     // Advanced Blending Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.9",     // Volume Rendering Volumetric Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.10",    // Segmented Volume Rendering Volumetric Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.11",    // Multiple Volume Rendering Volumetric Presentation State Storage
-        "1.2.840.10008.5.1.4.1.1.11.12",    // Variable Modality LUT Softcopy Presentation State Storage
-        
-        // RT Structure and Plan SOP Classes (non-image, no pixel data)
-        // Note: RT Dose Storage (481.2) and RT Image Storage (481.1) are NOT included
-        // as they contain pixel data
-        "1.2.840.10008.5.1.4.1.1.481.3",    // RT Structure Set Storage
-        "1.2.840.10008.5.1.4.1.1.481.4",    // RT Beams Treatment Record Storage
-        "1.2.840.10008.5.1.4.1.1.481.5",    // RT Plan Storage
-        "1.2.840.10008.5.1.4.1.1.481.6",    // RT Brachy Treatment Record Storage
-        "1.2.840.10008.5.1.4.1.1.481.7",    // RT Treatment Summary Record Storage
-        "1.2.840.10008.5.1.4.1.1.481.8",    // RT Ion Plan Storage
-        "1.2.840.10008.5.1.4.1.1.481.9",    // RT Ion Beams Treatment Record Storage
-        
-        // Waveform SOP Classes
-        "1.2.840.10008.5.1.4.1.1.9.1.1",    // 12-lead ECG Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.1.2",    // General ECG Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.1.3",    // Ambulatory ECG Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.2.1",    // Hemodynamic Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.3.1",    // Cardiac Electrophysiology Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.4.1",    // Basic Voice Audio Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.4.2",    // General Audio Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.5.1",    // Arterial Pulse Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.6.1",    // Respiratory Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.6.2",    // Multichannel Respiratory Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.7.1",    // Routine Scalp Electroencephalogram Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.7.2",    // Electromyogram Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.7.3",    // Electrooculogram Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.7.4",    // Sleep Electroencephalogram Waveform Storage
-        "1.2.840.10008.5.1.4.1.1.9.8.1",    // Body Position Waveform Storage
-        
-        // Encapsulated Document SOP Classes
-        "1.2.840.10008.5.1.4.1.1.104.1",    // Encapsulated PDF Storage
-        "1.2.840.10008.5.1.4.1.1.104.2",    // Encapsulated CDA Storage
-        "1.2.840.10008.5.1.4.1.1.104.3",    // Encapsulated STL Storage
-        "1.2.840.10008.5.1.4.1.1.104.4",    // Encapsulated OBJ Storage
-        "1.2.840.10008.5.1.4.1.1.104.5",    // Encapsulated MTL Storage
-        
-        // Measurement SOP Classes
-        "1.2.840.10008.5.1.4.1.1.78.1",     // Lensometry Measurements Storage
-        "1.2.840.10008.5.1.4.1.1.78.2",     // Autorefraction Measurements Storage
-        "1.2.840.10008.5.1.4.1.1.78.3",     // Keratometry Measurements Storage
-        "1.2.840.10008.5.1.4.1.1.78.4",     // Subjective Refraction Measurements Storage
-        "1.2.840.10008.5.1.4.1.1.78.5",     // Visual Acuity Measurements Storage
-        "1.2.840.10008.5.1.4.1.1.78.6",     // Spectacle Prescription Report Storage
-        "1.2.840.10008.5.1.4.1.1.78.7",     // Ophthalmic Axial Measurements Storage
-        "1.2.840.10008.5.1.4.1.1.78.8",     // Intraocular Lens Calculations Storage
-        
-        // Other non-image SOP Classes
-        "1.2.840.10008.5.1.4.1.1.66",       // Raw Data Storage
-        "1.2.840.10008.5.1.4.1.1.66.1",     // Spatial Registration Storage
-        "1.2.840.10008.5.1.4.1.1.66.2",     // Spatial Fiducials Storage
-        "1.2.840.10008.5.1.4.1.1.66.3",     // Deformable Spatial Registration Storage
-        // Note: Segmentation Storage (66.4) contains pixel data for binary/fractional masks
-        "1.2.840.10008.5.1.4.1.1.66.5",     // Surface Segmentation Storage
-        "1.2.840.10008.5.1.4.1.1.66.6",     // Tractography Results Storage
-        "1.2.840.10008.5.1.4.1.1.67",       // Real World Value Mapping Storage
-        "1.2.840.10008.5.1.4.1.1.68.1",     // Surface Scan Mesh Storage
-        "1.2.840.10008.5.1.4.1.1.68.2",     // Surface Scan Point Cloud Storage
-        "1.2.840.10008.5.1.4.1.1.91.1",     // Content Assessment Results Storage
-        "1.2.840.10008.5.1.4.1.1.200.1",    // CT Defined Procedure Protocol Storage
-        "1.2.840.10008.5.1.4.1.1.200.2",    // CT Performed Procedure Protocol Storage
-        "1.2.840.10008.5.1.4.1.1.200.8",    // XA Defined Procedure Protocol Storage
-        "1.2.840.10008.5.1.4.1.1.200.9",    // XA Performed Procedure Protocol Storage
+        "1.2.840.10008.5.1.4.1.1.4.2",         // MR Spectroscopy Storage
+        "1.2.840.10008.5.1.4.1.1.9.1.1",       // 12-lead ECG Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.1.2",       // General ECG Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.1.3",       // Ambulatory ECG Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.1.4",       // General 32-bit ECG Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.2.1",       // Hemodynamic Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.3.1",       // Cardiac Electrophysiology Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.4.1",       // Basic Voice Audio Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.4.2",       // General Audio Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.5.1",       // Arterial Pulse Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.6.1",       // Respiratory Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.6.2",       // Multi-channel Respiratory Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.7.1",       // Routine Scalp Electroencephalogram Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.7.2",       // Electromyogram Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.7.3",       // Electrooculogram Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.7.4",       // Sleep Electroencephalogram Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.8.1",       // Body Position Waveform Storage
+        "1.2.840.10008.5.1.4.1.1.9.100.1",     // Waveform Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.9.100.2",     // Waveform Acquisition Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.1",        // Grayscale Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.2",        // Color Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.3",        // Pseudo-Color Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.4",        // Blending Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.5",        // XA/XRF Grayscale Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.6",        // Grayscale Planar MPR Volumetric Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.7",        // Compositing Planar MPR Volumetric Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.8",        // Advanced Blending Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.9",        // Volume Rendering Volumetric Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.10",       // Segmented Volume Rendering Volumetric Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.11",       // Multiple Volume Rendering Volumetric Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.11.12",       // Variable Modality LUT Softcopy Presentation State Storage
+        "1.2.840.10008.5.1.4.1.1.66",          // Raw Data Storage
+        "1.2.840.10008.5.1.4.1.1.66.1",        // Spatial Registration Storage
+        "1.2.840.10008.5.1.4.1.1.66.2",        // Spatial Fiducials Storage
+        "1.2.840.10008.5.1.4.1.1.66.3",        // Deformable Spatial Registration Storage
+        "1.2.840.10008.5.1.4.1.1.66.5",        // Surface Segmentation Storage
+        "1.2.840.10008.5.1.4.1.1.66.6",        // Tractography Results Storage
+        "1.2.840.10008.5.1.4.1.1.67",          // Real World Value Mapping Storage
+        "1.2.840.10008.5.1.4.1.1.68.1",        // Surface Scan Mesh Storage
+        "1.2.840.10008.5.1.4.1.1.68.2",        // Surface Scan Point Cloud Storage
+        "1.2.840.10008.5.1.4.1.1.77.1.5.3",    // Stereometric Relationship Storage
+        "1.2.840.10008.5.1.4.1.1.78.1",        // Lensometry Measurements Storage
+        "1.2.840.10008.5.1.4.1.1.78.2",        // Autorefraction Measurements Storage
+        "1.2.840.10008.5.1.4.1.1.78.3",        // Keratometry Measurements Storage
+        "1.2.840.10008.5.1.4.1.1.78.4",        // Subjective Refraction Measurements Storage
+        "1.2.840.10008.5.1.4.1.1.78.5",        // Visual Acuity Measurements Storage
+        "1.2.840.10008.5.1.4.1.1.78.6",        // Spectacle Prescription Report Storage
+        "1.2.840.10008.5.1.4.1.1.78.7",        // Ophthalmic Axial Measurements Storage
+        "1.2.840.10008.5.1.4.1.1.78.8",        // Intraocular Lens Calculations Storage
+        "1.2.840.10008.5.1.4.1.1.79.1",        // Macular Grid Thickness and Volume Report
+        "1.2.840.10008.5.1.4.1.1.80.1",        // Ophthalmic Visual Field Static Perimetry Measurements Storage
+        "1.2.840.10008.5.1.4.1.1.88.11",       // Basic Text SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.22",       // Enhanced SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.33",       // Comprehensive SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.34",       // Comprehensive 3D SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.35",       // Extensible SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.40",       // Procedure Log Storage
+        "1.2.840.10008.5.1.4.1.1.88.50",       // Mammography CAD SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.59",       // Key Object Selection Document Storage
+        "1.2.840.10008.5.1.4.1.1.88.65",       // Chest CAD SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.67",       // X-Ray Radiation Dose SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.68",       // Radiopharmaceutical Radiation Dose SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.69",       // Colon CAD SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.70",       // Implantation Plan SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.71",       // Acquisition Context SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.72",       // Simplified Adult Echo SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.73",       // Patient Radiation Dose SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.74",       // Planned Imaging Agent Administration SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.75",       // Performed Imaging Agent Administration SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.76",       // Enhanced X-Ray Radiation Dose SR Storage
+        "1.2.840.10008.5.1.4.1.1.88.77",       // Waveform Annotation SR Storage
+        "1.2.840.10008.5.1.4.1.1.90.1",        // Content Assessment Results Storage
+        "1.2.840.10008.5.1.4.1.1.91.1",        // Microscopy Bulk Simple Annotations Storage
+        "1.2.840.10008.5.1.4.1.1.104.1",       // Encapsulated PDF Storage
+        "1.2.840.10008.5.1.4.1.1.104.2",       // Encapsulated CDA Storage
+        "1.2.840.10008.5.1.4.1.1.104.3",       // Encapsulated STL Storage
+        "1.2.840.10008.5.1.4.1.1.104.4",       // Encapsulated OBJ Storage
+        "1.2.840.10008.5.1.4.1.1.104.5",       // Encapsulated MTL Storage
+        "1.2.840.10008.5.1.4.1.1.131",         // Basic Structured Display Storage
+        "1.2.840.10008.5.1.4.1.1.200.1",       // CT Defined Procedure Protocol Storage
+        "1.2.840.10008.5.1.4.1.1.200.2",       // CT Performed Procedure Protocol Storage
+        "1.2.840.10008.5.1.4.1.1.200.3",       // Protocol Approval Storage
+        "1.2.840.10008.5.1.4.1.1.200.7",       // XA Defined Procedure Protocol Storage
+        "1.2.840.10008.5.1.4.1.1.200.8",       // XA Performed Procedure Protocol Storage
+        "1.2.840.10008.5.1.4.1.1.201.1",       // Inventory Storage
+        "1.2.840.10008.5.1.4.1.1.481.3",       // RT Structure Set Storage
+        "1.2.840.10008.5.1.4.1.1.481.4",       // RT Beams Treatment Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.5",       // RT Plan Storage
+        "1.2.840.10008.5.1.4.1.1.481.6",       // RT Brachy Treatment Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.7",       // RT Treatment Summary Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.8",       // RT Ion Plan Storage
+        "1.2.840.10008.5.1.4.1.1.481.9",       // RT Ion Beams Treatment Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.10",      // RT Physician Intent Storage
+        "1.2.840.10008.5.1.4.1.1.481.11",      // RT Segment Annotation Storage
+        "1.2.840.10008.5.1.4.1.1.481.12",      // RT Radiation Set Storage
+        "1.2.840.10008.5.1.4.1.1.481.13",      // C-Arm Photon-Electron Radiation Storage
+        "1.2.840.10008.5.1.4.1.1.481.14",      // Tomotherapeutic Radiation Storage
+        "1.2.840.10008.5.1.4.1.1.481.15",      // Robotic-Arm Radiation Storage
+        "1.2.840.10008.5.1.4.1.1.481.16",      // RT Radiation Record Set Storage
+        "1.2.840.10008.5.1.4.1.1.481.17",      // RT Radiation Salvage Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.18",      // Tomotherapeutic Radiation Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.19",      // C-Arm Photon-Electron Radiation Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.20",      // Robotic Radiation Record Storage
+        "1.2.840.10008.5.1.4.1.1.481.21",      // RT Radiation Set Delivery Instruction Storage
+        "1.2.840.10008.5.1.4.1.1.481.22",      // RT Treatment Preparation Storage
+        "1.2.840.10008.5.1.4.1.1.481.25",      // RT Patient Position Acquisition Instruction Storage
+        "1.2.840.10008.5.1.4.34.7",            // RT Beams Delivery Instruction Storage
+        "1.2.840.10008.5.1.4.34.10",           // RT Brachy Application Setup Delivery Instruction Storage
+        "1.2.840.10008.5.1.4.38.1",            // Hanging Protocol Storage
+        "1.2.840.10008.5.1.4.39.1",            // Color Palette Storage
+        "1.2.840.10008.5.1.4.43.1",            // Generic Implant Template Storage
+        "1.2.840.10008.5.1.4.44.1",            // Implant Assembly Template Storage
+        "1.2.840.10008.5.1.4.45.1",            // Implant Template Group Storage
     ]
     
     /// Checks if a SOP Class UID represents a non-image DICOM object

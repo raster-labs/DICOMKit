@@ -337,5 +337,6 @@
 
 // MARK: - PDU Types
 @_exported import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data beyond doc examples whose UIDs (Verification, Secondary Capture, Study Root FIND, Explicit VR LE) are registered in PS3.6 2026a Table A-1
 
 // Re-export all public types

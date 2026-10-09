@@ -1,5 +1,6 @@
 // DICOMwebService.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (locked display state for profiles, jobs, workitems and statistics; the UPS state it stores is validated by DICOMwebViewModel against PS3.4 2026a Table CC.1.1-2)
 //
 // DICOM Studio — Thread-safe service for DICOMweb Integration Hub display state management
 // Reference: DICOM PS3.18 (Web Services)
@@ -264,7 +265,7 @@ public final class DICOMwebService: @unchecked Sendable {
     }
 
     /// Updates the state of the UPS-RS workitem with the given ID.
-    public func updateUPSWorkitemState(_ state: UPSState, for id: UUID) {
+    public func updateUPSWorkitemState(_ state: WebUPSState, for id: UUID) {
         lock.withLock {
             guard let idx = _upsWorkitems.firstIndex(where: { $0.id == id }) else { return }
             _upsWorkitems[idx].state = state

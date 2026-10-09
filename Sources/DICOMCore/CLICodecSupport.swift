@@ -3,6 +3,7 @@
 //
 // Shared helpers for codec adapters that shell out to locally-installed
 // CLI binaries (Kakadu, Grok). macOS-only.
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data beyond the Planar Configuration 0/1 sample order, which matches PS3.3 2026a C.7.6.3.1.3 (0 = colour-by-pixel, 1 = colour-by-plane). C1 classification confirmed.
 
 #if os(macOS)
 import Foundation

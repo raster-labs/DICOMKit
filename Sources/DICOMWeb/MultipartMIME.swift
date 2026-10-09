@@ -1,11 +1,12 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — payload syntax read against PS3.18 2026a 8.6.1.2.1 (boundary line, per-part Content-Type, CRLF framing, closing delimiter) and RFC 2046 §5.1.1; no table data
 /// Parser and generator for multipart MIME messages
 ///
 /// Handles the multipart/related format used in DICOMweb for
 /// transferring multiple DICOM objects or parts.
 ///
-/// Reference: PS3.18 Section 8 - Multipart MIME
+/// Reference: PS3.18 Section 8.6.1.2 - Multipart Payload; 8.7.1 - Multipart Media Types
 public struct MultipartMIME: Sendable {
     
     // MARK: - Types

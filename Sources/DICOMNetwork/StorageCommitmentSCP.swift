@@ -35,24 +35,42 @@ public struct StorageCommitmentSCPConfiguration: Sendable, Hashable {
     /// Calling AE Title blacklist
     /// Takes precedence over whitelist
     public let callingAEBlacklist: Set<String>?
-    
+
+    /// Resolver for the N-EVENT-REPORT destination of a requesting AE
+    ///
+    /// When the requestor did not negotiate the SCP role for the Storage
+    /// Commitment Push Model SOP Class, the result must be delivered on a new
+    /// association opened by this SCP to the requestor's AE (PS3.4 J.3.3).
+    /// The closure maps a calling AE title to the host and port to connect to;
+    /// returning nil means the destination is unknown and the result is dropped
+    /// (an `.error` event is emitted).
+    ///
+    /// Not part of the configuration's equality or hash.
+    public let eventReportDestination: (@Sendable (String) -> (host: String, port: UInt16)?)?
+
+    /// Connection timeout in seconds for the reverse association (default: 30)
+    public let reverseAssociationTimeout: TimeInterval
+
     /// Default Implementation Class UID for DICOMKit Storage Commitment SCP
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.3"
-    
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
+
     /// Default Implementation Version Name for DICOMKit Storage Commitment SCP
     public static let defaultImplementationVersionName = "DICOMKIT_SCSCP"
-    
+
     /// Creates a Storage Commitment SCP configuration
     ///
     /// - Parameters:
     ///   - aeTitle: The local AE title
     ///   - port: The port to listen on (default: 11112)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - maxConcurrentAssociations: Maximum concurrent associations (default: 10)
     ///   - callingAEWhitelist: Whitelist of calling AE titles
     ///   - callingAEBlacklist: Blacklist of calling AE titles
+    ///   - eventReportDestination: Maps a calling AE title to the host/port for
+    ///     reverse-association N-EVENT-REPORT delivery (default: nil)
+    ///   - reverseAssociationTimeout: Connection timeout for the reverse association (default: 30)
     public init(
         aeTitle: AETitle,
         port: UInt16 = dicomAlternativePort,
@@ -61,7 +79,9 @@ public struct StorageCommitmentSCPConfiguration: Sendable, Hashable {
         implementationVersionName: String? = defaultImplementationVersionName,
         maxConcurrentAssociations: Int = 10,
         callingAEWhitelist: Set<String>? = nil,
-        callingAEBlacklist: Set<String>? = nil
+        callingAEBlacklist: Set<String>? = nil,
+        eventReportDestination: (@Sendable (String) -> (host: String, port: UInt16)?)? = nil,
+        reverseAssociationTimeout: TimeInterval = 30
     ) {
         self.aeTitle = aeTitle
         self.port = port
@@ -71,6 +91,34 @@ public struct StorageCommitmentSCPConfiguration: Sendable, Hashable {
         self.maxConcurrentAssociations = max(1, maxConcurrentAssociations)
         self.callingAEWhitelist = callingAEWhitelist
         self.callingAEBlacklist = callingAEBlacklist
+        self.eventReportDestination = eventReportDestination
+        self.reverseAssociationTimeout = reverseAssociationTimeout
+    }
+
+    // Hashable/Equatable over the value fields only (the resolver closure is excluded)
+
+    public static func == (lhs: StorageCommitmentSCPConfiguration, rhs: StorageCommitmentSCPConfiguration) -> Bool {
+        lhs.aeTitle == rhs.aeTitle &&
+        lhs.port == rhs.port &&
+        lhs.maxPDUSize == rhs.maxPDUSize &&
+        lhs.implementationClassUID == rhs.implementationClassUID &&
+        lhs.implementationVersionName == rhs.implementationVersionName &&
+        lhs.maxConcurrentAssociations == rhs.maxConcurrentAssociations &&
+        lhs.callingAEWhitelist == rhs.callingAEWhitelist &&
+        lhs.callingAEBlacklist == rhs.callingAEBlacklist &&
+        lhs.reverseAssociationTimeout == rhs.reverseAssociationTimeout
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(aeTitle)
+        hasher.combine(port)
+        hasher.combine(maxPDUSize)
+        hasher.combine(implementationClassUID)
+        hasher.combine(implementationVersionName)
+        hasher.combine(maxConcurrentAssociations)
+        hasher.combine(callingAEWhitelist)
+        hasher.combine(callingAEBlacklist)
+        hasher.combine(reverseAssociationTimeout)
     }
     
     /// Checks if a calling AE title is allowed
@@ -215,6 +263,7 @@ public actor DefaultCommitmentHandler: StorageCommitmentDelegate {
 
 #if canImport(Network)
 import Network
+// NEMA-verified: 2026a, checked 2026-09-28 — N-ACTION handling per PS3.4 2026a J.3.2 and PS3.7 §10.1.4.1.10 (0118H, 0123H); N-EVENT-REPORT per J.3.3 and Table J.3-2; PDU length per PS3.8 §9.3.1 (D13); reject reasons per Table 9-21
 
 // MARK: - Storage Commitment Server
 
@@ -280,7 +329,14 @@ public actor StorageCommitmentServer {
     
     /// Whether the server is running
     public private(set) var isRunning: Bool = false
-    
+
+    /// Recently seen Transaction UIDs, oldest first, used to reject duplicates
+    private var recentTransactionUIDs: [String] = []
+    private var recentTransactionUIDSet: Set<String> = []
+
+    /// Maximum number of Transaction UIDs remembered for duplicate detection
+    static let maxRememberedTransactionUIDs = 1000
+
     /// Creates a Storage Commitment SCP server
     ///
     /// - Parameters:
@@ -370,12 +426,28 @@ public actor StorageCommitmentServer {
         activeAssociations.count
     }
     
+    /// Registers a Transaction UID; returns false if it was seen recently
+    ///
+    /// Reference: PS3.4 J.3.1 - the Transaction UID uniquely identifies a request
+    func registerTransactionUID(_ transactionUID: String) -> Bool {
+        guard !recentTransactionUIDSet.contains(transactionUID) else {
+            return false
+        }
+        recentTransactionUIDSet.insert(transactionUID)
+        recentTransactionUIDs.append(transactionUID)
+        if recentTransactionUIDs.count > StorageCommitmentServer.maxRememberedTransactionUIDs {
+            let evicted = recentTransactionUIDs.removeFirst()
+            recentTransactionUIDSet.remove(evicted)
+        }
+        return true
+    }
+
     // MARK: - Private Methods
-    
+
     private func handleStreamTermination() {
         eventContinuation = nil
     }
-    
+
     private func handleListenerState(_ state: NWListener.State) {
         switch state {
         case .failed(let error):
@@ -386,14 +458,14 @@ public actor StorageCommitmentServer {
             break
         }
     }
-    
+
     private func handleNewConnection(_ connection: NWConnection) async {
         // Check if we've reached the maximum number of associations
         guard activeAssociations.count < configuration.maxConcurrentAssociations else {
             connection.cancel()
             return
         }
-        
+
         // Create a new SCP association handler
         let association = CommitmentSCPAssociation(
             connection: connection,
@@ -401,6 +473,9 @@ public actor StorageCommitmentServer {
             delegate: delegate,
             eventHandler: { [weak self] event in
                 await self?.handleAssociationEvent(event)
+            },
+            transactionRegistrar: { [weak self] transactionUID in
+                await self?.registerTransactionUID(transactionUID) ?? true
             },
             completionHandler: { [weak self] completedAssociation in
                 await self?.removeAssociationAsync(completedAssociation)
@@ -432,35 +507,58 @@ public actor StorageCommitmentServer {
 
 // MARK: - Commitment SCP Association
 
+/// A thread-safe one-shot guard so a continuation backed by an `NWConnection`
+/// state-update handler is resumed exactly once even if the handler fires for
+/// several terminal transitions.
+private final class LockedFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var isSet = false
+
+    /// Returns `true` the first time it's called, `false` on every call after.
+    func trySet() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if isSet { return false }
+        isSet = true
+        return true
+    }
+}
+
 /// Handles a single association for the Storage Commitment SCP
 actor CommitmentSCPAssociation {
     private let connection: NWConnection
     private let configuration: StorageCommitmentSCPConfiguration
     private let delegate: any StorageCommitmentDelegate
     private let eventHandler: @Sendable (StorageCommitmentServerEvent) async -> Void
+    private let transactionRegistrar: @Sendable (String) async -> Bool
     private let completionHandler: @Sendable (CommitmentSCPAssociation) async -> Void
-    
+
     private var callingAETitle: String = ""
     private var calledAETitle: String = ""
     private var remoteHost: String = ""
     private var remotePort: UInt16 = 0
     private var maxPDUSize: UInt32 = defaultMaxPDUSize
     private var acceptedContexts: [UInt8: String] = [:] // Context ID -> Transfer Syntax
+    /// Whether the requestor proposed and was granted the SCP role for the
+    /// Storage Commitment Push Model SOP Class (same-association N-EVENT-REPORT)
+    private var requestorIsSCPForCommitment = false
     private var messageAssembler = MessageAssembler()
     private var isReleasing = false
     private var currentMessageID: UInt16 = 1
-    
+
     init(
         connection: NWConnection,
         configuration: StorageCommitmentSCPConfiguration,
         delegate: any StorageCommitmentDelegate,
         eventHandler: @escaping @Sendable (StorageCommitmentServerEvent) async -> Void,
+        transactionRegistrar: @escaping @Sendable (String) async -> Bool = { _ in true },
         completionHandler: @escaping @Sendable (CommitmentSCPAssociation) async -> Void
     ) {
         self.connection = connection
         self.configuration = configuration
         self.delegate = delegate
         self.eventHandler = eventHandler
+        self.transactionRegistrar = transactionRegistrar
         self.completionHandler = completionHandler
         
         // Extract remote address info
@@ -472,13 +570,36 @@ actor CommitmentSCPAssociation {
     
     func start() async {
         connection.start(queue: .global(qos: .userInitiated))
-        
+
+        // Wait for the accepted connection to be ready before any I/O; writes
+        // issued earlier are not delivered. Guard the resume so a terminal
+        // transition right after .ready cannot resume the continuation twice.
+        let resumed = LockedFlag()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready, .failed, .cancelled:
+                    guard resumed.trySet() else { return }
+                    continuation.resume()
+                default:
+                    break
+                }
+            }
+        }
+        connection.stateUpdateHandler = nil
+
+        guard connection.state == .ready else {
+            connection.cancel()
+            await completionHandler(self)
+            return
+        }
+
         do {
             try await handleAssociation()
         } catch {
             await eventHandler(.error(error))
         }
-        
+
         connection.cancel()
         await completionHandler(self)
     }
@@ -502,6 +623,18 @@ actor CommitmentSCPAssociation {
         // Extract association info
         callingAETitle = associateRequest.callingAETitle.value
         calledAETitle = associateRequest.calledAETitle.value
+        
+        // PS3.8 Table 9-11: only bit 0 of Protocol-version is tested; reject
+        // with source 2 (ACSE), reason 2 (protocol-version-not-supported)
+        guard associateRequest.isProtocolVersionSupported else {
+            await eventHandler(.associationRejected(callingAE: callingAETitle, reason: "Protocol version not supported"))
+            try await sendAssociateReject(
+                result: .rejectedPermanent,
+                source: .serviceProviderACSE,
+                reason: 2 // Protocol version not supported
+            )
+            throw DICOMNetworkError.associationRejected(result: .rejectedPermanent, source: .serviceProviderACSE, reason: 2)
+        }
         
         // Check calling AE is allowed
         guard configuration.isCallingAEAllowed(callingAETitle) else {
@@ -556,9 +689,12 @@ actor CommitmentSCPAssociation {
         // Check if at least one context was accepted
         guard !acceptedContextList.isEmpty else {
             await eventHandler(.associationRejected(callingAE: callingAETitle, reason: "No presentation contexts accepted"))
+            // PS3.8 Table 9-21: "no presentation context acceptable" is not a
+            // UL-provider condition, so reject as service-user, reason 1
+            // (no-reason-given).
             try await sendAssociateReject(
-                result: .rejectedTransient,
-                source: .serviceProviderACSE,
+                result: .rejectedPermanent,
+                source: .serviceUser,
                 reason: 1 // No reason given
             )
             throw DICOMNetworkError.noPresentationContextAccepted
@@ -569,15 +705,32 @@ actor CommitmentSCPAssociation {
             acceptedContexts[context.id] = context.transferSyntax
         }
         
-        // Set max PDU size from request
-        maxPDUSize = min(associateRequest.maxPDUSize, configuration.maxPDUSize)
+        // Set max PDU size from request (PS3.8 Annex D.1: 0 = unlimited)
+        maxPDUSize = negotiatedMaxPDUSize(local: configuration.maxPDUSize, remote: associateRequest.maxPDUSize)
         
+        // Answer the proposed SCP/SCU Role Selections (PS3.7 D.3.3.4.2): for the
+        // commitment class we can act as SCP (N-ACTION) and as SCU (sending the
+        // N-EVENT-REPORT to a requestor that takes the SCP role).
+        let acceptedSOPClasses = Set(associateRequest.presentationContexts
+            .filter { proposed in acceptedContextList.contains { $0.id == proposed.id } }
+            .map { $0.abstractSyntax })
+        let roleSelections = associateRequest.roleSelections.acceptorResponse(
+            acceptSCURoleFor: { acceptedSOPClasses.contains($0) },
+            acceptSCPRoleFor: { acceptedSOPClasses.contains($0) }
+        )
+        requestorIsSCPForCommitment = NegotiatedRoles.resolve(
+            proposed: associateRequest.roleSelections,
+            accepted: roleSelections,
+            sopClassUID: storageCommitmentPushModelSOPClassUID
+        ).requestorIsSCP
+
         // Build and send A-ASSOCIATE-AC
         let acceptPDU = try buildAssociateAccept(
             calledAE: calledAETitle,
             callingAE: callingAETitle,
             acceptedContexts: acceptedContextList,
-            applicationContext: associateRequest.applicationContextName
+            applicationContext: associateRequest.applicationContextName,
+            roleSelections: roleSelections
         )
         
         try await send(pdu: acceptPDU)
@@ -672,62 +825,65 @@ actor CommitmentSCPAssociation {
         let commandSet = message.commandSet
         let request = NActionRequest(commandSet: commandSet, presentationContextID: message.presentationContextID)
         
+        func fail(_ status: DIMSEStatus) async throws {
+            let response = NActionResponse(
+                messageIDBeingRespondedTo: request.messageID,
+                affectedSOPClassUID: request.requestedSOPClassUID,
+                affectedSOPInstanceUID: request.requestedSOPInstanceUID,
+                actionTypeID: request.actionTypeID,
+                status: status,
+                presentationContextID: message.presentationContextID
+            )
+            try await sendDIMSEResponse(response)
+        }
+        
         // Validate it's a Storage Commitment request
+        // PS3.7 §10.1.4.1.10: No such SOP Class (0118H)
         guard request.requestedSOPClassUID == storageCommitmentPushModelSOPClassUID else {
-            let response = NActionResponse(
-                messageIDBeingRespondedTo: request.messageID,
-                affectedSOPClassUID: request.requestedSOPClassUID,
-                affectedSOPInstanceUID: request.requestedSOPInstanceUID,
-                actionTypeID: request.actionTypeID,
-                status: .refusedSOPClassNotSupported,
-                presentationContextID: message.presentationContextID
-            )
-            try await sendDIMSEResponse(response)
+            try await fail(.failedNoSuchSOPClass)
             return
         }
         
+        // The Push Model has exactly one well-known SOP Instance (PS3.4 J.3.5)
+        guard request.requestedSOPInstanceUID == storageCommitmentPushModelSOPInstanceUID else {
+            try await fail(.failedNoSuchSOPInstance)
+            return
+        }
+        
+        // PS3.7 §10.1.4.1.10: No such Action (0123H) - "the Action Type
+        // specified was not supported"
         guard request.actionTypeID == storageCommitmentRequestActionTypeID else {
-            let response = NActionResponse(
-                messageIDBeingRespondedTo: request.messageID,
-                affectedSOPClassUID: request.requestedSOPClassUID,
-                affectedSOPInstanceUID: request.requestedSOPInstanceUID,
-                actionTypeID: request.actionTypeID,
-                status: .failedUnableToProcess,
-                presentationContextID: message.presentationContextID
-            )
-            try await sendDIMSEResponse(response)
+            try await fail(DIMSEStatus.from(0x0123))
             return
         }
         
-        // Parse the data set to extract Transaction UID and Referenced SOP Sequence
+        // Parse the data set to extract Transaction UID and Referenced SOP Sequence,
+        // in the transfer syntax negotiated for this presentation context
         guard let dataSetData = message.dataSet else {
-            let response = NActionResponse(
-                messageIDBeingRespondedTo: request.messageID,
-                affectedSOPClassUID: request.requestedSOPClassUID,
-                affectedSOPInstanceUID: request.requestedSOPInstanceUID,
-                actionTypeID: request.actionTypeID,
-                status: .failedUnableToProcess,
-                presentationContextID: message.presentationContextID
-            )
-            try await sendDIMSEResponse(response)
+            try await fail(.failedUnableToProcess)
             return
         }
+        
+        let transferSyntaxUID = acceptedContexts[message.presentationContextID]
+            ?? explicitVRLittleEndianTransferSyntaxUID
+        let explicit = StorageCommitmentDataSetCodec.isExplicitVR(transferSyntaxUID: transferSyntaxUID)
         
         // Extract transaction UID and references
-        guard let transactionUID = extractUIValue(from: dataSetData, tag: Tag(group: 0x0008, element: 0x1195)) else {
-            let response = NActionResponse(
-                messageIDBeingRespondedTo: request.messageID,
-                affectedSOPClassUID: request.requestedSOPClassUID,
-                affectedSOPInstanceUID: request.requestedSOPInstanceUID,
-                actionTypeID: request.actionTypeID,
-                status: .failedUnableToProcess,
-                presentationContextID: message.presentationContextID
-            )
-            try await sendDIMSEResponse(response)
+        guard let transactionUID = StorageCommitmentDataSetCodec.extractUIValue(
+            from: dataSetData, tag: Tag(group: 0x0008, element: 0x1195), explicit: explicit) else {
+            try await fail(.failedUnableToProcess)
             return
         }
         
-        let references = extractSOPReferences(from: dataSetData)
+        // A Transaction UID must be unique per request (PS3.4 J.3.1)
+        guard await transactionRegistrar(transactionUID) else {
+            await eventHandler(.error(DICOMNetworkError.decodingFailed(
+                "Duplicate Storage Commitment Transaction UID \(transactionUID) from \(callingAETitle)")))
+            try await fail(.failedUnableToProcess)
+            return
+        }
+        
+        let references = extractSOPReferences(from: dataSetData, explicit: explicit)
         
         // Create commitment request info
         let requestInfo = CommitmentRequestInfo(
@@ -750,25 +906,76 @@ actor CommitmentSCPAssociation {
         try await sendDIMSEResponse(actionResponse)
         
         // Process the commitment request via delegate
+        let result: CommitmentResult
         do {
-            let result = try await delegate.processCommitmentRequest(requestInfo)
-            
-            // Send N-EVENT-REPORT with the result
-            try await sendCommitmentResult(result, presentationContextID: message.presentationContextID)
-            
-            await eventHandler(.commitmentResultSent(transactionUID: transactionUID, success: result.isSuccess))
+            result = try await delegate.processCommitmentRequest(requestInfo)
         } catch {
             await eventHandler(.error(error))
+            return
+        }
+        
+        if requestorIsSCPForCommitment {
+            // The requestor proposed and was granted the SCP role for the
+            // commitment class: deliver the N-EVENT-REPORT on this association
+            // (PS3.4 J.3.3).
+            do {
+                try await sendCommitmentResult(
+                    result,
+                    presentationContextID: message.presentationContextID,
+                    transferSyntaxUID: transferSyntaxUID
+                )
+                await eventHandler(.commitmentResultSent(transactionUID: transactionUID, success: result.isSuccess))
+            } catch {
+                await eventHandler(.error(error))
+            }
+        } else {
+            // Default roles: the requestor cannot receive N-EVENT-REPORT here.
+            // Deliver it on a new association to the requestor's AE while this
+            // association completes normally (A-RELEASE-RQ -> A-RELEASE-RP).
+            guard let destination = configuration.eventReportDestination?(callingAETitle) else {
+                await eventHandler(.error(DICOMNetworkError.connectionFailed(
+                    "No N-EVENT-REPORT destination known for AE \(callingAETitle); commitment result for \(transactionUID) dropped")))
+                return
+            }
+            
+            let calledAETitle = callingAETitle
+            let eventHandler = self.eventHandler
+            let configuration = self.configuration
+            Task.detached {
+                do {
+                    try await CommitmentSCPAssociation.sendCommitmentResultOnReverseAssociation(
+                        result,
+                        to: calledAETitle,
+                        host: destination.host,
+                        port: destination.port,
+                        configuration: configuration
+                    )
+                    await eventHandler(.commitmentResultSent(transactionUID: transactionUID, success: result.isSuccess))
+                } catch {
+                    await eventHandler(.error(error))
+                }
+            }
         }
     }
     
-    private func sendCommitmentResult(_ result: CommitmentResult, presentationContextID: UInt8) async throws {
+    /// Sends the N-EVENT-REPORT on the association the N-ACTION arrived on and
+    /// waits for the N-EVENT-REPORT-RSP.
+    ///
+    /// The requestor may release the association at any point after the
+    /// N-ACTION-RSP; an A-RELEASE-RQ received here is answered with A-RELEASE-RP
+    /// and ends the association instead of being treated as an error.
+    private func sendCommitmentResult(
+        _ result: CommitmentResult,
+        presentationContextID: UInt8,
+        transferSyntaxUID: String
+    ) async throws {
         // Determine event type based on result
-        let eventTypeID: UInt16 = result.failedReferences.isEmpty ? 
+        let eventTypeID: UInt16 = result.failedReferences.isEmpty ?
             storageCommitmentSuccessEventTypeID : storageCommitmentFailureEventTypeID
         
-        // Build the N-EVENT-REPORT data set
-        let dataSetData = buildCommitmentResultDataSet(result)
+        // Build the N-EVENT-REPORT data set in the negotiated transfer syntax
+        let dataSetData = StorageCommitmentService.buildCommitmentResultDataSet(
+            result, transferSyntaxUID: transferSyntaxUID)
         
         // Create N-EVENT-REPORT request
         let eventReport = NEventReportRequest(
@@ -784,228 +991,163 @@ actor CommitmentSCPAssociation {
         // Send the event report with data set
         try await sendDIMSERequest(eventReport, dataSetData: dataSetData)
         
-        // Wait for and process the N-EVENT-REPORT response
-        let responsePDU = try await receivePDU()
-        guard let dataPDU = responsePDU as? DataTransferPDU else {
-            throw DICOMNetworkError.decodingFailed("Expected P-DATA-TF for N-EVENT-REPORT response")
-        }
-        
-        // Process the response
-        for pdv in dataPDU.presentationDataValues {
-            if let message = try messageAssembler.addPDV(pdv) {
-                let responseCommandSet = message.commandSet
-                let response = NEventReportResponse(commandSet: responseCommandSet, presentationContextID: message.presentationContextID)
+        // Wait for the N-EVENT-REPORT-RSP, tolerating a release in the meantime
+        while true {
+            let pdu = try await receivePDU()
+            
+            switch pdu {
+            case let dataPDU as DataTransferPDU:
+                for pdv in dataPDU.presentationDataValues {
+                    guard let message = try messageAssembler.addPDV(pdv) else { continue }
+                    guard message.command == .nEventReportResponse else {
+                        throw DICOMNetworkError.decodingFailed(
+                            "Expected N-EVENT-REPORT-RSP, got \(message.command?.description ?? "unknown")")
+                    }
+                    let response = NEventReportResponse(
+                        commandSet: message.commandSet,
+                        presentationContextID: message.presentationContextID)
+                    if !response.status.isSuccess {
+                        throw DICOMNetworkError.storeFailed(response.status)
+                    }
+                    return
+                }
                 
-                if !response.status.isSuccess {
-                    throw DICOMNetworkError.storeFailed(response.status)
+            case _ as ReleaseRequestPDU:
+                // The requestor released without answering: complete the release
+                isReleasing = true
+                try await send(pdu: ReleaseResponsePDU())
+                throw DICOMNetworkError.connectionClosed
+                
+            case let abortPDU as AbortPDU:
+                isReleasing = true
+                throw DICOMNetworkError.associationAborted(source: .serviceUser, reason: abortPDU.reason)
+                
+            default:
+                throw DICOMNetworkError.decodingFailed("Unexpected PDU type: \(type(of: pdu))")
+            }
+        }
+    }
+    
+    /// Delivers a commitment result by opening a new association to the
+    /// requestor's AE (the "reverse" association of PS3.4 J.3.3).
+    ///
+    /// The Storage Commitment Push Model SOP Class is proposed with role
+    /// selection scuRole=false / scpRole=true, since this side acts as SCP
+    /// sending the N-EVENT-REPORT; the peer must grant the SCP role.
+    static func sendCommitmentResultOnReverseAssociation(
+        _ result: CommitmentResult,
+        to calledAETitle: String,
+        host: String,
+        port: UInt16,
+        configuration: StorageCommitmentSCPConfiguration
+    ) async throws {
+        let associationConfig = AssociationConfiguration(
+            callingAETitle: configuration.aeTitle,
+            calledAETitle: try AETitle(calledAETitle),
+            host: host,
+            port: port,
+            maxPDUSize: configuration.maxPDUSize,
+            implementationClassUID: configuration.implementationClassUID,
+            implementationVersionName: configuration.implementationVersionName,
+            timeout: configuration.reverseAssociationTimeout
+        )
+        let association = Association(configuration: associationConfig)
+        
+        let presentationContext = try PresentationContext(
+            id: 1,
+            abstractSyntax: storageCommitmentPushModelSOPClassUID,
+            transferSyntaxes: [
+                explicitVRLittleEndianTransferSyntaxUID,
+                implicitVRLittleEndianTransferSyntaxUID
+            ]
+        )
+        
+        do {
+            let negotiated = try await association.request(
+                presentationContexts: [presentationContext],
+                roleSelections: [.scpOnly(storageCommitmentPushModelSOPClassUID)]
+            )
+            
+            guard negotiated.isContextAccepted(1) else {
+                try await association.abort()
+                throw DICOMNetworkError.sopClassNotSupported(storageCommitmentPushModelSOPClassUID)
+            }
+            
+            // An explicit refusal of the SCP role means the peer will not accept
+            // N-EVENT-REPORT; a missing answer is tolerated for lenient peers.
+            if let answer = negotiated.acceptPDU.roleSelection(for: storageCommitmentPushModelSOPClassUID),
+               !answer.scpRole {
+                try await association.abort()
+                throw DICOMNetworkError.decodingFailed(
+                    "Peer \(calledAETitle) refused the SCP role for Storage Commitment N-EVENT-REPORT")
+            }
+            
+            let transferSyntaxUID = negotiated.acceptedTransferSyntax(forContextID: 1)
+                ?? explicitVRLittleEndianTransferSyntaxUID
+            let eventTypeID: UInt16 = result.failedReferences.isEmpty ?
+                storageCommitmentSuccessEventTypeID : storageCommitmentFailureEventTypeID
+            let dataSetData = StorageCommitmentService.buildCommitmentResultDataSet(
+                result, transferSyntaxUID: transferSyntaxUID)
+            
+            let eventReport = NEventReportRequest(
+                messageID: 1,
+                affectedSOPClassUID: storageCommitmentPushModelSOPClassUID,
+                affectedSOPInstanceUID: storageCommitmentPushModelSOPInstanceUID,
+                eventTypeID: eventTypeID,
+                hasDataSet: true,
+                presentationContextID: 1
+            )
+            
+            let fragmenter = MessageFragmenter(maxPDUSize: negotiated.maxPDUSize)
+            let pdus = fragmenter.fragmentMessage(
+                commandSet: eventReport.commandSet,
+                dataSet: dataSetData,
+                presentationContextID: 1
+            )
+            for pdu in pdus {
+                for pdv in pdu.presentationDataValues {
+                    try await association.send(pdv: pdv)
                 }
             }
-        }
-    }
-    
-    private func buildCommitmentResultDataSet(_ result: CommitmentResult) -> Data {
-        var data = Data()
-        
-        // Transaction UID (0008,1195)
-        data.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1195), value: result.transactionUID))
-        
-        // Referenced SOP Sequence (0008,1199) - committed references
-        if !result.committedReferences.isEmpty {
-            var sequenceContent = Data()
-            for ref in result.committedReferences {
-                var itemData = Data()
-                // Referenced SOP Class UID (0008,1150)
-                itemData.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1150), value: ref.sopClassUID))
-                // Referenced SOP Instance UID (0008,1155)
-                itemData.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1155), value: ref.sopInstanceUID))
-                sequenceContent.append(encodeSequenceItem(itemData))
+            
+            // Wait for N-EVENT-REPORT-RSP
+            let assembler = MessageAssembler()
+            responseLoop: while true {
+                let responsePDU = try await association.receive()
+                guard let message = try assembler.addPDVs(from: responsePDU) else { continue }
+                guard message.command == .nEventReportResponse else {
+                    throw DICOMNetworkError.decodingFailed(
+                        "Expected N-EVENT-REPORT-RSP, got \(message.command?.description ?? "unknown")")
+                }
+                let response = NEventReportResponse(commandSet: message.commandSet, presentationContextID: 1)
+                guard response.status.isSuccess else {
+                    throw DICOMNetworkError.storeFailed(response.status)
+                }
+                break responseLoop
             }
-            sequenceContent.append(encodeSequenceDelimiter())
-            data.append(encodeSequenceElement(tag: Tag(group: 0x0008, element: 0x1199), content: sequenceContent))
+            
+            try await association.release()
+        } catch {
+            try? await association.abort()
+            throw error
         }
-        
-        // Failed SOP Sequence (0008,1198) - failed references
-        if !result.failedReferences.isEmpty {
-            var sequenceContent = Data()
-            for failedRef in result.failedReferences {
-                var itemData = Data()
-                // Referenced SOP Class UID (0008,1150)
-                itemData.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1150), value: failedRef.reference.sopClassUID))
-                // Referenced SOP Instance UID (0008,1155)
-                itemData.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1155), value: failedRef.reference.sopInstanceUID))
-                // Failure Reason (0008,1197)
-                itemData.append(encodeUSElement(tag: Tag(group: 0x0008, element: 0x1197), value: failedRef.failureReason))
-                sequenceContent.append(encodeSequenceItem(itemData))
-            }
-            sequenceContent.append(encodeSequenceDelimiter())
-            data.append(encodeSequenceElement(tag: Tag(group: 0x0008, element: 0x1198), content: sequenceContent))
-        }
-        
-        return data
-    }
-    
-    // MARK: - Helper Methods for Data Encoding
-    
-    private func encodeUIElement(tag: Tag, value: String) -> Data {
-        var data = Data()
-        
-        // Tag (group, element)
-        data.append(contentsOf: withUnsafeBytes(of: tag.group.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: tag.element.littleEndian) { Array($0) })
-        
-        // VR "UI"
-        data.append(contentsOf: [0x55, 0x49]) // "UI"
-        
-        // Pad value to even length
-        var paddedValue = value
-        if paddedValue.count % 2 != 0 {
-            paddedValue.append("\0")
-        }
-        
-        // Length (2 bytes for short VRs)
-        let length = UInt16(paddedValue.count)
-        data.append(contentsOf: withUnsafeBytes(of: length.littleEndian) { Array($0) })
-        
-        // Value
-        data.append(Data(paddedValue.utf8))
-        
-        return data
-    }
-    
-    private func encodeUSElement(tag: Tag, value: UInt16) -> Data {
-        var data = Data()
-        
-        // Tag (group, element)
-        data.append(contentsOf: withUnsafeBytes(of: tag.group.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: tag.element.littleEndian) { Array($0) })
-        
-        // VR "US"
-        data.append(contentsOf: [0x55, 0x53]) // "US"
-        
-        // Length (2 bytes)
-        let length: UInt16 = 2
-        data.append(contentsOf: withUnsafeBytes(of: length.littleEndian) { Array($0) })
-        
-        // Value
-        data.append(contentsOf: withUnsafeBytes(of: value.littleEndian) { Array($0) })
-        
-        return data
-    }
-    
-    private func encodeSequenceItem(_ itemData: Data) -> Data {
-        var data = Data()
-        
-        // Item tag (FFFE,E000)
-        data.append(contentsOf: [0xFE, 0xFF, 0x00, 0xE0])
-        
-        // Item length (4 bytes, little endian)
-        let length = UInt32(itemData.count)
-        data.append(contentsOf: withUnsafeBytes(of: length.littleEndian) { Array($0) })
-        
-        // Item data
-        data.append(itemData)
-        
-        return data
-    }
-    
-    private func encodeSequenceDelimiter() -> Data {
-        var data = Data()
-        
-        // Sequence Delimitation Item tag (FFFE,E0DD)
-        data.append(contentsOf: [0xFE, 0xFF, 0xDD, 0xE0])
-        
-        // Length (always 0)
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
-        
-        return data
-    }
-    
-    private func encodeSequenceElement(tag: Tag, content: Data) -> Data {
-        var data = Data()
-        
-        // Tag (group, element)
-        data.append(contentsOf: withUnsafeBytes(of: tag.group.littleEndian) { Array($0) })
-        data.append(contentsOf: withUnsafeBytes(of: tag.element.littleEndian) { Array($0) })
-        
-        // VR "SQ"
-        data.append(contentsOf: [0x53, 0x51]) // "SQ"
-        
-        // Reserved (2 bytes)
-        data.append(contentsOf: [0x00, 0x00])
-        
-        // Length (4 bytes, undefined length = FFFFFFFF)
-        data.append(contentsOf: [0xFF, 0xFF, 0xFF, 0xFF])
-        
-        // Content
-        data.append(content)
-        
-        return data
     }
     
     // MARK: - Helper Methods for Data Extraction
     
-    private func extractUIValue(from data: Data, tag: Tag) -> String? {
-        var offset = 0
-        
-        while offset + 8 <= data.count {
-            let group = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-            let element = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-            offset += 4
-            
-            let byte0 = data[offset]
-            let byte1 = data[offset + 1]
-            let possibleVR = String(bytes: [byte0, byte1], encoding: .ascii) ?? ""
-            
-            let length: Int
-            if possibleVR == "UI" || possibleVR == "SH" || possibleVR == "LO" || possibleVR == "CS" {
-                // Short VR - 2 byte length
-                length = Int(UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8))
-                offset += 4
-            } else if possibleVR == "SQ" || possibleVR == "OB" || possibleVR == "OW" || possibleVR == "UN" {
-                // Long VR - 2 reserved + 4 byte length
-                offset += 2
-                length = Int(UInt32(data[offset]) |
-                            (UInt32(data[offset + 1]) << 8) |
-                            (UInt32(data[offset + 2]) << 16) |
-                            (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            } else {
-                // Implicit VR - 4 byte length
-                length = Int(UInt32(data[offset]) |
-                            (UInt32(data[offset + 1]) << 8) |
-                            (UInt32(data[offset + 2]) << 16) |
-                            (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            }
-            
-            if group == tag.group && element == tag.element {
-                if length > 0 && offset + length <= data.count {
-                    let valueData = data.subdata(in: offset..<(offset + length))
-                    return String(data: valueData, encoding: .ascii)?
-                        .trimmingCharacters(in: CharacterSet(charactersIn: " \0"))
-                }
-                return nil
-            }
-            
-            if length > 0 && length != 0xFFFFFFFF {
-                offset += length
-            }
-        }
-        
-        return nil
-    }
-    
-    private func extractSOPReferences(from data: Data) -> [SOPReference] {
+    private func extractSOPReferences(from data: Data, explicit: Bool) -> [SOPReference] {
+        typealias Codec = StorageCommitmentDataSetCodec
         var references: [SOPReference] = []
         
         // Find Referenced SOP Sequence (0008,1199)
-        guard let sequenceItems = extractSequenceItems(from: data, tag: Tag(group: 0x0008, element: 0x1199)) else {
+        guard let sequenceItems = Codec.extractSequenceItems(
+            from: data, tag: Tag(group: 0x0008, element: 0x1199), explicit: explicit) else {
             return references
         }
         
         for itemData in sequenceItems {
-            guard let sopClassUID = extractUIValue(from: itemData, tag: Tag(group: 0x0008, element: 0x1150)),
-                  let sopInstanceUID = extractUIValue(from: itemData, tag: Tag(group: 0x0008, element: 0x1155)) else {
+            guard let sopClassUID = Codec.extractUIValue(from: itemData, tag: Tag(group: 0x0008, element: 0x1150), explicit: explicit),
+                  let sopInstanceUID = Codec.extractUIValue(from: itemData, tag: Tag(group: 0x0008, element: 0x1155), explicit: explicit) else {
                 continue
             }
             
@@ -1013,84 +1155,6 @@ actor CommitmentSCPAssociation {
         }
         
         return references
-    }
-    
-    private func extractSequenceItems(from data: Data, tag: Tag) -> [Data]? {
-        var offset = 0
-        
-        while offset + 8 <= data.count {
-            let group = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-            let element = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-            offset += 4
-            
-            let byte0 = data[offset]
-            let byte1 = data[offset + 1]
-            let possibleVR = String(bytes: [byte0, byte1], encoding: .ascii) ?? ""
-            
-            var sequenceLength: Int = 0
-            if possibleVR == "SQ" {
-                offset += 2 // Skip VR
-                offset += 2 // Skip reserved
-                sequenceLength = Int(UInt32(data[offset]) |
-                                    (UInt32(data[offset + 1]) << 8) |
-                                    (UInt32(data[offset + 2]) << 16) |
-                                    (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            } else {
-                sequenceLength = Int(UInt32(data[offset]) |
-                                    (UInt32(data[offset + 1]) << 8) |
-                                    (UInt32(data[offset + 2]) << 16) |
-                                    (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            }
-            
-            if group == tag.group && element == tag.element {
-                var items: [Data] = []
-                let sequenceEnd = sequenceLength == 0xFFFFFFFF ? data.count : offset + sequenceLength
-                
-                while offset < sequenceEnd && offset + 8 <= data.count {
-                    let itemGroup = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-                    let itemElement = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-                    
-                    if itemGroup == 0xFFFE && itemElement == 0xE000 {
-                        let itemLength = Int(UInt32(data[offset + 4]) |
-                                            (UInt32(data[offset + 5]) << 8) |
-                                            (UInt32(data[offset + 6]) << 16) |
-                                            (UInt32(data[offset + 7]) << 24))
-                        offset += 8
-                        
-                        if itemLength == 0xFFFFFFFF {
-                            let itemStart = offset
-                            while offset + 8 <= data.count {
-                                let delimGroup = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-                                let delimElement = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-                                if delimGroup == 0xFFFE && delimElement == 0xE00D {
-                                    items.append(data.subdata(in: itemStart..<offset))
-                                    offset += 8
-                                    break
-                                }
-                                offset += 1
-                            }
-                        } else if offset + itemLength <= data.count {
-                            items.append(data.subdata(in: offset..<(offset + itemLength)))
-                            offset += itemLength
-                        }
-                    } else if itemGroup == 0xFFFE && itemElement == 0xE0DD {
-                        break
-                    } else {
-                        break
-                    }
-                }
-                
-                return items.isEmpty ? nil : items
-            }
-            
-            if sequenceLength > 0 && sequenceLength != 0xFFFFFFFF {
-                offset += sequenceLength
-            }
-        }
-        
-        return nil
     }
     
     // MARK: - PDU Communication
@@ -1109,31 +1173,16 @@ actor CommitmentSCPAssociation {
     }
     
     private func sendDIMSERequest(_ request: DIMSERequest, dataSetData: Data?) async throws {
-        var pdvs: [PresentationDataValue] = []
-        
-        // Command PDV
-        let commandData = request.commandSet.encode()
-        let commandPDV = PresentationDataValue(
-            presentationContextID: request.presentationContextID,
-            isCommand: true,
-            isLastFragment: dataSetData == nil,
-            data: commandData
+        // Fragment by the negotiated maximum PDU size
+        let fragmenter = MessageFragmenter(maxPDUSize: maxPDUSize)
+        let pdus = fragmenter.fragmentMessage(
+            commandSet: request.commandSet,
+            dataSet: dataSetData,
+            presentationContextID: request.presentationContextID
         )
-        pdvs.append(commandPDV)
-        
-        // Data PDV (if present)
-        if let data = dataSetData {
-            let dataPDV = PresentationDataValue(
-                presentationContextID: request.presentationContextID,
-                isCommand: false,
-                isLastFragment: true,
-                data: data
-            )
-            pdvs.append(dataPDV)
+        for pdu in pdus {
+            try await send(pdu: pdu)
         }
-        
-        let dataPDU = DataTransferPDU(presentationDataValues: pdvs)
-        try await send(pdu: dataPDU)
     }
     
     private func sendAssociateReject(result: AssociateRejectResult, source: AssociateRejectSource, reason: UInt8) async throws {
@@ -1168,11 +1217,14 @@ actor CommitmentSCPAssociation {
             throw DICOMNetworkError.connectionClosed
         }
         
-        // Parse header to get PDU length
-        let pduLength = Int(UInt32(headerData[2]) |
-                          (UInt32(headerData[3]) << 8) |
-                          (UInt32(headerData[4]) << 16) |
-                          (UInt32(headerData[5]) << 24))
+        // PDU-length is a big-endian unsigned 32-bit number (PS3.8 §9.3.1, Table 9-11
+        // bytes 3-6). This used to be read little-endian, so a 259-byte A-ASSOCIATE-RQ
+        // was taken for a 50 MB PDU and the read only returned when the peer gave up
+        // (the two "ARTIM" failures of D13 in the DICOMCore report).
+        let (pduType, declaredLength) = try PDUDecoder.readHeader(from: headerData)
+        // PS3.8 Annex D.1: the negotiated limit applies to P-DATA-TF only
+        try checkPDULength(type: pduType, length: declaredLength, maxPDUSize: configuration.maxPDUSize)
+        let pduLength = Int(declaredLength)
         
         // Read the PDU body
         var fullData = headerData
@@ -1205,7 +1257,8 @@ actor CommitmentSCPAssociation {
         calledAE: String,
         callingAE: String,
         acceptedContexts: [AcceptedPresentationContext],
-        applicationContext: String
+        applicationContext: String,
+        roleSelections: [SCPSCURoleSelection] = []
     ) throws -> AssociateAcceptPDU {
         return AssociateAcceptPDU(
             calledAETitle: try AETitle(calledAE),
@@ -1214,7 +1267,8 @@ actor CommitmentSCPAssociation {
             presentationContexts: acceptedContexts,
             maxPDUSize: maxPDUSize,
             implementationClassUID: configuration.implementationClassUID,
-            implementationVersionName: configuration.implementationVersionName
+            implementationVersionName: configuration.implementationVersionName,
+            roleSelections: roleSelections
         )
     }
 }

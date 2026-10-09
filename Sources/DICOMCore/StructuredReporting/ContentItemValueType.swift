@@ -2,7 +2,9 @@
 ///
 /// Defines the value types for content items in DICOM Structured Reporting.
 ///
-/// Reference: PS3.3 Table C.17.3-1 - Value Type Definitions
+/// Reference: PS3.3 Table C.17.3-7 - Value Type Definitions
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — all 16 Value Types of PS3.3 2026a Table C.17.3-7 are present (TABLE added 2026-09-25, P8). The citation said Table C.17.3-1; corrected.
 
 /// Value types for DICOM Structured Reporting content items
 ///
@@ -53,6 +55,9 @@ public enum ContentItemValueType: String, Sendable, Equatable, Hashable, CaseIte
     
     /// CONTAINER - Groups other content items
     case container = "CONTAINER"
+
+    /// TABLE - Two-dimensional tabulation of data (PS3.3 C.18.10)
+    case table = "TABLE"
     
     /// Returns a human-readable display name
     public var displayName: String {
@@ -72,6 +77,7 @@ public enum ContentItemValueType: String, Sendable, Equatable, Hashable, CaseIte
         case .scoord3D: return "Spatial Coordinates (3D)"
         case .tcoord: return "Temporal Coordinates"
         case .container: return "Container"
+        case .table: return "Table"
         }
     }
     
@@ -108,6 +114,8 @@ public enum ContentItemValueType: String, Sendable, Equatable, Hashable, CaseIte
             return "Temporal coordinates (time points or ranges)"
         case .container:
             return "Container grouping other content items"
+        case .table:
+            return "Two-dimensional tabulation of text, numeric, coded or date-time values"
         }
     }
     

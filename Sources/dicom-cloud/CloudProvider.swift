@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (S3/GCS/Azure REST plumbing; objects are sent as application/octet-stream, not the PS3.18 application/dicom media type); Scripts/diff_cli.py: 0 UID, tag or code literals
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking

@@ -2,14 +2,16 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent Radiation Therapy visualization helpers
-// Reference: DICOM PS3.3 C.8.8 (RT Structure Set), C.8.8.5 (RT Plan), C.8.8.3 (RT Dose)
+// Reference: DICOM PS3.3 C.8.8 (Radiotherapy Modules), C.8.8.5 (Structure Set Module), C.8.8.8 (RT ROI Observations Module), C.8.8.3 (RT Dose Module)
+// NEMA-verified: 2026a, checked 2026-10-06 — citations checked against PS3.3 2026a section titles (C.8.8.5 is the Structure Set Module, not RT Plan: corrected); switches over RTROIType (25 C.8.8.8.1 Defined Terms) / RTDoseUnits (GY, RELATIVE, CODED, Table C.8-39) are exhaustive over the model enums verified in SpecializedModalityModel.swift (P-STUDIO-RT-ROI-TYPES, P-STUDIO-RT-DOSE-UNITS); cGy is a display scale (RTDoseDisplayScale); isodose percentages, colour washes and DVH interpolation are display conventions with no DICOM-defined values
 
 import Foundation
 
 /// Platform-independent helpers for RT dose and structure-set visualization.
 public enum RTHelpers: Sendable {
 
-    /// Returns the conventional color for a given RT ROI type.
+    /// Returns the conventional color for a given RT ROI type (a display convention; every
+    /// Defined Term gets a distinct colour).
     public static func colorForROIType(_ roiType: RTROIType) -> RTColor {
         switch roiType {
         case .ptv:      return .red
@@ -18,7 +20,26 @@ public enum RTHelpers: Sendable {
         case .oar:      return .yellow
         case .external: return .cyan
         case .support:  return .orange
-        case .other:    return .purple
+        case .treatedVolume:          return RTColor(red: 0.8, green: 0.2, blue: 0.2)
+        case .irradiatedVolume:       return RTColor(red: 0.6, green: 0.1, blue: 0.1)
+        case .bolus:                  return RTColor(red: 0.5, green: 0.8, blue: 1.0)
+        case .avoidance:              return RTColor(red: 0.9, green: 0.9, blue: 0.5)
+        case .organ:                  return .pink
+        case .marker:                 return RTColor(red: 1.0, green: 0.0, blue: 1.0)
+        case .registration:           return RTColor(red: 0.5, green: 0.5, blue: 1.0)
+        case .isocenter:              return .white
+        case .contrastAgent:          return RTColor(red: 0.0, green: 0.6, blue: 0.6)
+        case .cavity:                 return RTColor(red: 0.4, green: 0.4, blue: 0.4)
+        case .brachyChannel:          return RTColor(red: 0.6, green: 0.4, blue: 0.2)
+        case .brachyAccessory:        return RTColor(red: 0.8, green: 0.6, blue: 0.4)
+        case .brachySourceApplicator: return RTColor(red: 0.7, green: 0.5, blue: 0.0)
+        case .brachyChannelShield:    return RTColor(red: 0.3, green: 0.2, blue: 0.1)
+        case .fixation:               return RTColor(red: 0.6, green: 0.6, blue: 0.8)
+        case .doseRegion:             return RTColor(red: 0.0, green: 0.5, blue: 0.0)
+        case .control:                return RTColor(red: 0.5, green: 1.0, blue: 0.5)
+        case .doseMeasurement:        return RTColor(red: 0.0, green: 0.3, blue: 0.7)
+        case .device:                 return RTColor(red: 0.7, green: 0.7, blue: 0.7)
+        default:                      return .purple   // deprecated `other`
         }
     }
 
@@ -54,9 +75,21 @@ public enum RTHelpers: Sendable {
         return _rainbowColor(t: t)
     }
 
-    /// Returns a formatted dose string, e.g. `"60.00 Gy"` or `"6000.00 cGy"`.
+    /// Returns a formatted dose string, e.g. `"60.00 Gy"`, `"0.95 (relative)"` or `"1.00 (coded)"`.
+    ///
+    /// The deprecated `RTDoseUnits.cgy` is now `.gy`; to show a GY dose in centigray use
+    /// `formattedDose(_:scale:)`.
     public static func formattedDose(_ dose: Double, units: RTDoseUnits) -> String {
-        String(format: "%.2f \(units.displayName)", dose)
+        switch units {
+        case .gy:                return String(format: "%.2f Gy", dose)
+        case .relative, .coded:  return String(format: "%.2f (\(units.displayName))", dose)
+        }
+    }
+
+    /// Returns a dose given in Gy (Dose Units GY) formatted in a display scale, e.g.
+    /// `"60.00 Gy"` or `"6000.00 cGy"` for 60 Gy.
+    public static func formattedDose(gray dose: Double, scale: RTDoseDisplayScale) -> String {
+        String(format: "%.2f %@", dose * scale.perGray, scale.symbol)
     }
 
     /// Returns the mean dose of a DVH curve, computing it from points if not stored.

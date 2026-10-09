@@ -29,9 +29,9 @@ struct QIDOResultFormatterTests {
         // Header + one data row between three 120-wide "=" borders (the format the
         // CLIParityWADOComparator.count(in:format:) parser depends on).
         #expect(lines[0] == String(repeating: "=", count: 120))
-        #expect(lines[1].hasPrefix("Study UID"))
-        #expect(lines[1].contains("Patient Name"))
-        #expect(lines[1].contains("# Series"))
+        #expect(lines[1].hasPrefix("Study Instance UID"))
+        #expect(lines[1].contains("Patient's Name"))
+        #expect(lines[1].contains("Number of Study Related Series"))
         #expect(lines[2] == String(repeating: "=", count: 120))
         #expect(lines[3].hasPrefix("1.2.3"))
         #expect(lines[3].contains("DOE^JOHN"))
@@ -71,5 +71,56 @@ struct QIDOResultFormatterTests {
         // DIMSE formatter which prints "No results found.".
         #expect(lines.count == 4)
         #expect(!out.contains("No results"))
+    }
+
+    // MARK: - D105: column labels are the PS3.6 2026a Table 6-1 Attribute Names
+
+    @Test("D105: study table labels are PS3.6 Table 6-1 names (Modalities in Study, Number of Study Related Series)")
+    func studyLabelsArePS36Names() {
+        let header = QIDOResultFormatter().formatStudies([study()], format: .table)
+            .split(separator: "\n").map(String.init)[1]
+        for name in ["Study Instance UID", "Patient's Name", "Study Date",
+                     "Modalities in Study", "Number of Study Related Series"] {
+            #expect(header.contains(name), "missing \(name)")
+        }
+        #expect(!header.contains("# Series"))
+        #expect(!header.contains(" Modality "))
+    }
+
+    @Test("D105: series table says Number of Series Related Instances (0020,1209), not # Images")
+    func seriesLabelsArePS36Names() {
+        let series = QIDOSeriesResult(attributes: [
+            "0020000E": ["vr": "UI", "Value": ["1.2.3.4"]],
+            "00080060": ["vr": "CS", "Value": ["MR"]],
+            "0008103E": ["vr": "LO", "Value": ["AX T1"]],
+            "00201209": ["vr": "IS", "Value": [7]],
+        ])
+        let lines = QIDOResultFormatter().formatSeries([series], format: .table)
+            .split(separator: "\n").map(String.init)
+        for name in ["Series Instance UID", "Modality", "Series Description",
+                     "Number of Series Related Instances"] {
+            #expect(lines[1].contains(name), "missing \(name)")
+        }
+        #expect(!lines[1].contains("# Images"))
+        #expect(lines[3].contains("MR"))
+        #expect(lines[3].contains("7"))
+    }
+
+    @Test("D105: instance table prints the whole SOP Class UID under PS3.6 names")
+    func instanceSOPClassUIDNotTruncated() {
+        let uid = "1.2.840.10008.5.1.4.1.1.88.33" // Comprehensive SR Storage, 29 chars
+        let instance = QIDOInstanceResult(attributes: [
+            "00080018": ["vr": "UI", "Value": ["9.8.7"]],
+            "00080016": ["vr": "UI", "Value": [uid]],
+            "00280008": ["vr": "IS", "Value": [3]],
+        ])
+        let lines = QIDOResultFormatter().formatInstances([instance], format: .table)
+            .split(separator: "\n").map(String.init)
+        #expect(lines[1].contains("SOP Instance UID"))
+        #expect(lines[1].contains("SOP Class UID"))
+        #expect(lines[1].contains("Number of Frames"))
+        #expect(!lines[1].contains("# Frames"))
+        #expect(lines[3].contains(uid))
+        #expect(!lines[3].contains("..."))
     }
 }

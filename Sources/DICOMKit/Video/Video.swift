@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — Channel Source (003A,0208) keeps any code: PS3.3 2026a Table C.7-13 includes Table 8.8-1 with "DCID 3000" and PS3.16 2026a CID 3000 Audio Channel Source is "Type: Extensible" (DCM 109110-109115 verified by script) (D57)
+// NEMA-verified: 2026a, checked 2026-09-30 — video transfer syntax UIDs match PS3.6 2026a Table A-1; Lossy Image Compression Method terms ISO_13818_2/ISO_14496_10/ISO_23008_2 per PS3.3 C.7.6.1.1.5.1; Cine Module fields and audio statements per PS3.3 Table C.7-13 ((003A,0300) Type 2C, "Zero or more Items"; items (003A,0301) IS 1, (003A,0302) CS 1 MONO/STEREO, (003A,0208) SQ 1 one Item, DCID 3000; VRs per PS3.6 Table 6-1), C.7.6.5.1.2-3 and PS3.5 8.2.5/8.2.12; CID 3000 codes per PS3.16 (P-VIDEO, D34, D46)
 //
 // Video.swift
 // DICOMKit
@@ -14,6 +16,21 @@ import DICOMCore
 /// Video objects store multi-frame image sequences captured from endoscopic, microscopic,
 /// or photographic equipment. Each video contains encapsulated pixel data compressed
 /// using MPEG2, H.264/AVC, or H.265/HEVC video codecs.
+///
+/// ## Audio
+///
+/// DICOM video **may** carry audio inside the encapsulated bit stream. PS3.5 8.2.5
+/// (MPEG2 MP@ML, applied to MP@HL by 8.2.6): "Any audio components present within
+/// the MPEG bit stream shall comply with the following restrictions: CBR MPEG-1
+/// LAYER III (MP3) Audio Standard, up to 24 bits, 32 kHz, 44.1 kHz or 48 kHz for
+/// the main channel …, one main mono or stereo channel, and optionally one or more
+/// complementary channel(s)". PS3.5 8.2.7–8.2.11 (H.264, HEVC): "Any audio
+/// components included in the data container shall follow the constraints detailed
+/// in 8.2.12", whose Table 8.2.12-1 allows LPCM, AC-3, AAC, MP3 and MPEG-1 Layer II
+/// in an MPEG-2 TS container and AAC, MP3 and MPEG-1 Layer II in an MP4 container.
+/// The Cine Module then describes the channels in Multiplexed Audio Channels
+/// Description Code Sequence (003A,0300) (PS3.3 Table C.7-13, C.7.6.5.1.3), see
+/// ``multiplexedAudioChannels``.
 ///
 /// Supported SOP Classes:
 /// - Video Endoscopic Image Storage (1.2.840.10008.5.1.4.1.1.77.1.1.1)
@@ -140,6 +157,55 @@ public struct Video: Sendable {
 
     /// Stop Trim frame number
     public let stopTrim: Int?
+
+    /// Frame Time Vector (0018,1065), Type 1C — "the real time increments (in msec)
+    /// between Frames"; "The first Frame always has a time increment of 0"
+    /// (PS3.3 C.7.6.5.1.2). When set, Frame Increment Pointer (0028,0009) points at
+    /// it instead of Frame Time.
+    public let frameTimeVector: [Double]?
+
+    /// Preferred Playback Sequencing (0018,1244), Type 3. Enumerated Values
+    /// (PS3.3 Table C.7-13): 0 = Looping (1,2…n,1,2,…n,…), 1 = Sweeping (1,2,…n,n-1,…2,1,…).
+    public let preferredPlaybackSequencing: Int?
+
+    /// Image Trigger Delay (0018,1067), Type 3 — "Delay time in milliseconds from
+    /// trigger (e.g., X-Ray on pulse) to the first Frame".
+    public let imageTriggerDelay: Double?
+
+    /// Effective Duration (0018,0072), Type 3 — "Total time in seconds that data was
+    /// actually taken for the entire Multi-frame Image".
+    public let effectiveDuration: Double?
+
+    /// Multiplexed Audio Channels Description Code Sequence (003A,0300), Type 2C —
+    /// "Required if the Transfer Syntax used to encode the Multi-frame Image contains
+    /// multiplexed (interleaved) audio channels" (PS3.3 Table C.7-13). Empty when
+    /// the bit stream carries no audio, or when it carries audio whose channels
+    /// have not been described (see ``VideoWorkflow``).
+    public let multiplexedAudioChannels: [VideoAudioChannel]
+
+    /// True when the encapsulated bit stream is known to carry audio even though
+    /// ``multiplexedAudioChannels`` describes none of it.
+    ///
+    /// Multiplexed Audio Channels Description Code Sequence (003A,0300) is Type 2C
+    /// and takes "Zero or more Items" (PS3.3 Table C.7-13), so once the condition
+    /// "the Transfer Syntax … contains multiplexed (interleaved) audio channels"
+    /// holds, the sequence is written even with no Items. ``VideoWorkflow`` sets
+    /// this when an MP4 input has a `soun` track: the bit stream is encapsulated
+    /// unchanged, audio included, but DICOMKit does not yet identify the channel
+    /// numbering, mode or source that an Item would need. ``VideoParser`` sets it
+    /// when a parsed object carries the sequence, so the sequence survives a
+    /// round trip even when it has no Items.
+    var containsUndescribedMultiplexedAudio = false
+
+    /// Whether the object declares multiplexed audio: Multiplexed Audio Channels
+    /// Description Code Sequence (003A,0300) is present, with or without Items.
+    ///
+    /// PS3.3 C.7.6.5.1.3 Note: "If no audio was recorded, the Multiplexed Audio
+    /// Channels Description Code Sequence (003A,0300) will be present and contain
+    /// no Items", so presence alone does not prove there is audio.
+    public var declaresMultiplexedAudio: Bool {
+        containsUndescribedMultiplexedAudio || !multiplexedAudioChannels.isEmpty
+    }
 
     // MARK: - Content Date/Time
 
@@ -270,6 +336,11 @@ public struct Video: Sendable {
         actualFrameDuration: Int? = nil,
         startTrim: Int? = nil,
         stopTrim: Int? = nil,
+        frameTimeVector: [Double]? = nil,
+        preferredPlaybackSequencing: Int? = nil,
+        imageTriggerDelay: Double? = nil,
+        effectiveDuration: Double? = nil,
+        multiplexedAudioChannels: [VideoAudioChannel] = [],
         contentDate: DICOMDate? = nil,
         contentTime: DICOMTime? = nil,
         lossyImageCompression: String? = nil,
@@ -324,6 +395,11 @@ public struct Video: Sendable {
         self.actualFrameDuration = actualFrameDuration
         self.startTrim = startTrim
         self.stopTrim = stopTrim
+        self.frameTimeVector = frameTimeVector
+        self.preferredPlaybackSequencing = preferredPlaybackSequencing
+        self.imageTriggerDelay = imageTriggerDelay
+        self.effectiveDuration = effectiveDuration
+        self.multiplexedAudioChannels = multiplexedAudioChannels
         self.contentDate = contentDate
         self.contentTime = contentTime
         self.lossyImageCompression = lossyImageCompression
@@ -439,10 +515,10 @@ public enum VideoType: String, Sendable {
     /// The default modality for this video type
     public var defaultModality: String {
         switch self {
-        case .endoscopic: return "ES"
-        case .microscopic: return "GM"
-        case .photographic: return "XC"
-        case .unknown: return "OT"
+        case .endoscopic: return Modality.es.rawValue
+        case .microscopic: return Modality.gm.rawValue
+        case .photographic: return Modality.xc.rawValue
+        case .unknown: return Modality.ot.rawValue
         }
     }
 
@@ -493,7 +569,11 @@ public enum VideoCodec: String, Sendable {
         }
     }
 
-    /// The DICOM Lossy Image Compression Method identifier
+    /// The Lossy Image Compression Method (0028,2114) Defined Term for this codec.
+    ///
+    /// PS3.3 C.7.6.1.1.5.1 Defined Terms: `ISO_13818_2` (MPEG2 Video), `ISO_14496_10`
+    /// (MPEG-4 AVC/H.264), `ISO_23008_2` (HEVC/H.265). An unknown codec has no term
+    /// and yields an empty string; ``Video/toDataSet()`` never writes that.
     public var compressionMethod: String {
         switch self {
         case .mpeg2: return "ISO_13818_2"
@@ -501,6 +581,13 @@ public enum VideoCodec: String, Sendable {
         case .h265: return "ISO_23008_2"
         case .unknown: return ""
         }
+    }
+
+    /// The Lossy Image Compression Method term for a transfer syntax UID, or nil
+    /// when the UID is not one of the video transfer syntaxes of PS3.6 Table A-1.
+    public static func compressionMethod(forTransferSyntaxUID uid: String) -> String? {
+        let codec = VideoCodec(transferSyntaxUID: uid)
+        return codec == .unknown ? nil : codec.compressionMethod
     }
 
     /// Human-readable display name
@@ -512,6 +599,120 @@ public enum VideoCodec: String, Sendable {
         case .unknown: return "Unknown"
         }
     }
+}
+
+// MARK: - Multiplexed Audio
+
+/// One Item of Multiplexed Audio Channels Description Code Sequence (003A,0300),
+/// PS3.3 Table C.7-13.
+public struct VideoAudioChannel: Sendable, Equatable {
+    /// Channel Mode (003A,0302), Type 1. Enumerated Values: MONO ("1 signal"),
+    /// STEREO ("2 simultaneously acquired (left and right) signals").
+    public enum Mode: String, Sendable {
+        case mono = "MONO"
+        case stereo = "STEREO"
+    }
+
+    /// The one Item of Channel Source Sequence (003A,0208), Type 1: any coded
+    /// concept (PS3.3 Table 8.8-1 Code Sequence Macro).
+    ///
+    /// PS3.3 2026a Table C.7-13 includes the macro with "DCID 3000", and PS3.16
+    /// 2026a CID 3000 Audio Channel Source is "Type: Extensible" (Version
+    /// 20040326), so a file may carry a code outside its six members. `Source`
+    /// therefore wraps any ``CodedConcept``; the CID 3000 members are static
+    /// constants, and ``isCID3000Member`` tells them apart (D57).
+    ///
+    /// Two sources are equal when Coding Scheme Designator and Code Value (or
+    /// Long Code Value / URN Code Value) match; Code Meaning and Coding Scheme
+    /// Version do not take part.
+    public struct Source: Sendable, Hashable, CustomStringConvertible {
+        /// The code as read from, or to be written to, the Item.
+        public let code: CodedConcept
+
+        public init(_ code: CodedConcept) {
+            self.code = code
+        }
+
+        /// A DCM code, for example one of CID 3000's.
+        public init(dcmCodeValue codeValue: String, codeMeaning: String) {
+            self.code = CodedConcept(codeValue: codeValue, codingSchemeDesignator: "DCM",
+                                     codeMeaning: codeMeaning)
+        }
+
+        /// Code Value (0008,0100), or the Long / URN Code Value when that is how
+        /// the code was given.
+        public var codeValue: String { code.codeValue }
+        /// Coding Scheme Designator (0008,0102).
+        public var codingSchemeDesignator: String { code.codingSchemeDesignator }
+        /// Code Meaning (0008,0104).
+        public var codeMeaning: String { code.codeMeaning }
+        public var description: String { "(\(codeValue), \(codingSchemeDesignator), \"\(codeMeaning)\")" }
+
+        // PS3.16 2026a CID 3000 Audio Channel Source, all DCM, Code Meaning as listed.
+        /// (109110, DCM, "Voice")
+        public static let voice = Source(dcmCodeValue: "109110", codeMeaning: "Voice")
+        /// (109111, DCM, "Operator's narrative")
+        public static let operatorsNarrative = Source(dcmCodeValue: "109111", codeMeaning: "Operator's narrative")
+        /// (109112, DCM, "Ambient room environment")
+        public static let ambientRoomEnvironment = Source(dcmCodeValue: "109112", codeMeaning: "Ambient room environment")
+        /// (109113, DCM, "Doppler audio")
+        public static let dopplerAudio = Source(dcmCodeValue: "109113", codeMeaning: "Doppler audio")
+        /// (109114, DCM, "Phonocardiogram")
+        public static let phonocardiogram = Source(dcmCodeValue: "109114", codeMeaning: "Phonocardiogram")
+        /// (109115, DCM, "Physiological audio signal")
+        public static let physiologicalAudioSignal = Source(dcmCodeValue: "109115", codeMeaning: "Physiological audio signal")
+
+        /// The six members of PS3.16 2026a CID 3000, in table order.
+        public static let cid3000: [Source] = [
+            .voice, .operatorsNarrative, .ambientRoomEnvironment,
+            .dopplerAudio, .phonocardiogram, .physiologicalAudioSignal,
+        ]
+
+        /// Whether the code is one of CID 3000's (DCM 109110–109115). A code
+        /// outside it is still valid: the CID is Extensible.
+        public var isCID3000Member: Bool { Self.cid3000.contains(self) }
+
+        /// The CID 3000 constant with this code's identity, so a parsed code
+        /// can be matched against the known members regardless of its meaning.
+        public var cid3000Member: Source? { Self.cid3000.first { $0 == self } }
+
+        public static func == (lhs: Source, rhs: Source) -> Bool {
+            lhs.identity == rhs.identity
+        }
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(identity.designator)
+            hasher.combine(identity.value)
+        }
+
+        private var identity: (designator: String, value: String) {
+            let value = code.urnCodeValue ?? code.longCodeValue ?? code.codeValue
+            return (code.codingSchemeDesignator.trimmingCharacters(in: .whitespaces),
+                    value.trimmingCharacters(in: .whitespaces))
+        }
+    }
+
+    /// Channel Identification Code (003A,0301), Type 1 — "1 for the main channel, 2
+    /// for the second channel and 3 to 9 to the complementary channels".
+    public let channelIdentificationCode: Int
+    /// Channel Mode (003A,0302), Type 1.
+    public let mode: Mode
+    /// Channel Source Sequence (003A,0208), Type 1, "Only a single Item": any
+    /// code, CID 3000 being Extensible.
+    public let source: Source
+
+    public init(channelIdentificationCode: Int, mode: Mode, source: Source) {
+        self.channelIdentificationCode = channelIdentificationCode
+        self.mode = mode
+        self.source = source
+    }
+
+    /// Multiplexed Audio Channels Description Code Sequence (003A,0300).
+    static let multiplexedAudioChannelsDescriptionCodeSequence = Tag(group: 0x003A, element: 0x0300)
+    /// Channel Identification Code (003A,0301), VR IS.
+    static let channelIdentificationCodeTag = Tag(group: 0x003A, element: 0x0301)
+    /// Channel Mode (003A,0302), VR CS.
+    static let channelModeTag = Tag(group: 0x003A, element: 0x0302)
 }
 
 // MARK: - Bit Depth

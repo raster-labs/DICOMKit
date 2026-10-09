@@ -3,6 +3,8 @@
 //
 // DICOM Studio — 3D Visualization and MPR models for Milestone 6
 // Reference: DICOM PS3.3 C.7.6.2 (Image Plane Module), PS3.3 C.18.9 (3D Spatial Coordinates)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (3D visualisation state: plane, interpolation, projection, preset and shading enums with app-private raw values); the PS3.3 C.7.6.2 and C.18.9 citations name the right 2026a clauses; InterpolationQuality.bicubic and ObliquePlaneConfiguration are stored settings only — no resampling kernel or oblique extraction exists in DICOMStudio
 
 import Foundation
 

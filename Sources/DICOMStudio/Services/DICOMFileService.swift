@@ -2,6 +2,13 @@
 // DICOMStudio
 //
 // DICOM Studio — File I/O operations via DICOMKit
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — Transfer Syntax UID read from File Meta Information (0002,0010) with
+// Data Set fallback (PS3.10 2026a Table 7.1-1); Media Storage Directory Storage 1.2.840.10008.1.3.10 (PS3.6 2026a
+// Table A-1) refused as a non-instance; Tag literals (0008,0061) Modalities in Study, (0008,0021) Series Date,
+// (0008,0022) Acquisition Date and the DICOMCore constants used match PS3.6 2026a Table 6-1; Instance Number /
+// Series Number read as IS (Table 6-1); DA parsed per PS3.5 Table 6.2-1 YYYYMMDD with tolerance for legacy
+// separators; default Modality "OT" is a PS3.3 2026a C.7.3.1.1.1 Defined Term.
 
 import Foundation
 import DICOMKit

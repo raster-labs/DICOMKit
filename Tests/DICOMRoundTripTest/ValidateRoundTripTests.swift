@@ -115,10 +115,12 @@ final class ValidateRoundTripTests: XCTestCase {
 
     // Oracle (oracleHints): with --strict and warnings-but-no-errors, exitCode() is 2; without --strict it is 0.
     func testStrictExitCodeForWarningsOnly() throws {
-        // Force a warning-only result with no errors: a lowercase CS value triggers a
-        // "Code String should be uppercase" warning; everything else stays conformant.
+        // Force a warning-only result with no errors: Image Type encoded with VR LO instead
+        // of the PS3.6 VR CS triggers an "Unexpected VR" warning; everything else stays
+        // conformant. (A lowercase CS value is an error since D142: lowercase letters are
+        // outside the CS repertoire of PS3.5 Table 6.2-1.)
         let file = mutating(makeGrayscale8(rows: 4, cols: 4)) {
-            $0.setString("ax", for: .imageType, vr: .CS)
+            $0.setString("AX", for: .imageType, vr: .LO)
         }
         let result = try validate(file, level: 2)
 

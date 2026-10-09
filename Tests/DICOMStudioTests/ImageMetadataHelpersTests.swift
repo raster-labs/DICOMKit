@@ -5,6 +5,7 @@
 
 import Testing
 @testable import DICOMStudio
+import DICOMCore
 import Foundation
 
 @Suite("ImageMetadataHelpers Tests")
@@ -125,6 +126,28 @@ struct ImageMetadataHelpersTests {
         #expect(ImageMetadataHelpers.photometricLabel(for: "YBR_RCT") == "YBR RCT (JPEG 2000 Lossless)")
     }
 
+    @Test("XYB label (D11)")
+    func testPhotometricXYB() {
+        #expect(ImageMetadataHelpers.photometricLabel(for: "XYB") == "XYB (JPEG XL)")
+    }
+
+    @Test("Every DICOMCore photometric interpretation has a label of its own")
+    func testEveryPhotometricTermHasALabel() {
+        // The PS3.3 2026a C.7.6.3.1.2 Defined Terms DICOMCore carries (all but the
+        // 2001-retired HSV, ARGB, CMYK); each label must differ from the raw term.
+        let terms: [PhotometricInterpretation] = [
+            .monochrome1, .monochrome2, .paletteColor, .rgb, .ybrFull, .ybrFull422,
+            .ybrPartial422, .ybrPartial420, .ybrICT, .ybrRCT, .xyb,
+        ]
+        #expect(terms.count == 11)
+        for term in terms {
+            #expect(ImageMetadataHelpers.photometricLabel(for: term.rawValue) != term.rawValue, "\(term.rawValue)")
+        }
+        for retired in ["HSV", "ARGB", "CMYK"] {
+            #expect(ImageMetadataHelpers.photometricLabel(for: retired) == retired)
+        }
+    }
+
     @Test("Unknown interpretation returns as-is")
     func testPhotometricUnknown() {
         #expect(ImageMetadataHelpers.photometricLabel(for: "CUSTOM") == "CUSTOM")
@@ -164,6 +187,44 @@ struct ImageMetadataHelpersTests {
     @Test("Frame text multi-frame")
     func testFrameTextMulti() {
         #expect(ImageMetadataHelpers.frameText(current: 45, total: 120) == "Frame 45 / 120")
+    }
+
+    // MARK: - transferSyntaxLabel (D9: names follow DICOMCore, PS3.6 2026a Table A-1)
+
+    @Test("Short labels come from DICOMCore's shortName, never a hand-spelled name")
+    func testTransferSyntaxLabelIsCoreShortName() {
+        for ts in TransferSyntax.allKnown {
+            #expect(ImageMetadataHelpers.transferSyntaxLabel(for: ts.uid) == ts.shortName, "\(ts.uid)")
+            #expect(ImageMetadataHelpers.transferSyntaxLabel(for: ts.uid) != ts.uid,
+                    "every registered syntax has a label, not a bare UID")
+        }
+        #expect(ImageMetadataHelpers.transferSyntaxLabel(for: "1.2.840.10008.1.2.4.91") == "JPEG 2000")
+        #expect(ImageMetadataHelpers.transferSyntaxLabel(for: "1.2.840.10008.1.2.4.110") == "JPEG XL Lossless")
+    }
+
+    @Test("Unknown or empty UIDs are shown as they are")
+    func testTransferSyntaxLabelUnknown() {
+        #expect(ImageMetadataHelpers.transferSyntaxLabel(for: "1.2.3.4") == "1.2.3.4")
+        #expect(ImageMetadataHelpers.transferSyntaxLabel(for: "") == "Unknown")
+        #expect(ImageMetadataHelpers.transferSyntaxStandardName(for: "1.2.3.4") == "1.2.3.4")
+        #expect(ImageMetadataHelpers.transferSyntaxStandardName(for: "") == "Unknown")
+    }
+
+    @Test("The standard name is the PS3.6 2026a Table A-1 name")
+    func testTransferSyntaxStandardName() {
+        // PS3.6 2026a Table A-1, rows 1.2.840.10008.1.2.4.110 / .90 / .201 / .70.
+        #expect(ImageMetadataHelpers.transferSyntaxStandardName(for: "1.2.840.10008.1.2.4.110")
+                == "JPEG XL Lossless")
+        #expect(ImageMetadataHelpers.transferSyntaxStandardName(for: "1.2.840.10008.1.2.4.90")
+                == "JPEG 2000 Image Compression (Lossless Only)")
+        #expect(ImageMetadataHelpers.transferSyntaxStandardName(for: "1.2.840.10008.1.2.4.201")
+                == "High-Throughput JPEG 2000 Image Compression (Lossless Only)")
+        #expect(ImageMetadataHelpers.transferSyntaxStandardName(for: "1.2.840.10008.1.2.4.70")
+                == "JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1]): "
+                   + "Default Transfer Syntax for Lossless JPEG Image Compression")
+        for ts in TransferSyntax.allKnown {
+            #expect(ImageMetadataHelpers.transferSyntaxStandardName(for: ts.uid) == ts.displayName, "\(ts.uid)")
+        }
     }
 
     // MARK: - memorySizeText

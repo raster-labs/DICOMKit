@@ -8,6 +8,11 @@
 // storage. The dicom-print CLI keeps its own `~/.config/dicomkit/printers.json`
 // registry — a sandboxed app cannot read that path, so the two lists are
 // independent by design.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — default port 11112 is the PS3.8 2026a 9.1.1 registered DICOM port;
+// the default AE title DICOMSTUDIO is a valid PS3.5 Table 6.2-1 AE value (11 of 16 bytes); the colour mode maps
+// onto DICOMNetwork's PrintColorMode (Basic Grayscale / Basic Color Print Management, PS3.4 Annex H). No
+// other standard data.
 
 import Foundation
 import DICOMNetwork

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — SOP Class names match PS3.6 2026a Table A-1
 import Foundation
 
 /// Console lines and input parsing for `dicom-split` — the single source of truth
@@ -56,6 +57,27 @@ public enum SplitConsole {
         return indices
     }
 
+    /// Parses a `--frame-numbers` selection such as `1,3,5-10` — Frame numbers, numbered from 1
+    /// (PS3.3 2026a C.7.6.16.1.2 "Frames are implicitly numbered starting from 1"; Table 10-3) —
+    /// into 0-based frame indices (P-SPLIT-1). Same grammar as ``parseFrameSelection(_:)``; a
+    /// Frame number below 1 is an error.
+    public static func parseFrameNumberSelection(_ spec: String) throws -> Set<Int> {
+        let numbers = try parseFrameSelection(spec)
+        if let bad = numbers.filter({ $0 < 1 }).min() {
+            throw FrameSelectionError("Invalid frame number: \(bad) (Frame numbers start at 1, PS3.3 C.7.6.16.1.2)")
+        }
+        return Set(numbers.map { $0 - 1 })
+    }
+
+    /// One-line stderr note when the deprecated 0-based `--frames` is used (P-SPLIT-1). The
+    /// Workshop prints it too when its `frames` parameter is used.
+    public static let framesDeprecatedLine =
+        "warning: --frames is deprecated (0-based index); use --frame-numbers (numbered from 1, PS3.3 C.7.6.16.1.2)"
+
+    /// `--frames` and `--frame-numbers` given together (exit 1).
+    public static let framesAndFrameNumbersConflictMessage =
+        "--frames (deprecated, 0-based) and --frame-numbers (numbered from 1) cannot be used together"
+
     // MARK: - Option help + ArgumentParser-shaped value errors
 
     /// Help text of the numeric options. Single-sourced here because the CLI's
@@ -106,7 +128,8 @@ public enum SplitConsole {
         applyWindow: Bool,
         windowCenter: Double?,
         windowWidth: Double?,
-        options: SplitOptions = SplitOptions()
+        options: SplitOptions = SplitOptions(),
+        frameNumbers: String? = nil
     ) -> [String] {
         var lines = [
             "DICOM Split Tool v\(toolVersion)",
@@ -117,6 +140,9 @@ public enum SplitConsole {
         ]
         if let frames, !frames.isEmpty {
             lines.append("Frames: \(frames)")
+        }
+        if let frameNumbers, !frameNumbers.isEmpty {
+            lines.append("Frame numbers: \(frameNumbers)")
         }
         if applyWindow {
             lines.append("Window Center: \(windowCenter ?? 0)")
@@ -170,9 +196,9 @@ public enum SplitConsole {
         "  Concatenation: \(parts) part(s) of up to \(framesPerInstance) frame(s)"
     }
 
-    /// `--frames` has no meaning when writing concatenation parts.
+    /// `--frames` / `--frame-numbers` have no meaning when writing concatenation parts.
     public static let frameSelectionIgnoredForConcatenationLine =
-        "Warning: --frames is ignored when --frames-per writes concatenation parts"
+        "Warning: --frames / --frame-numbers is ignored when --frames-per writes concatenation parts"
 
     static func classicName(_ uid: String) -> String {
         typealias U = MultiframeSOPClassMap.UID

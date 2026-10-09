@@ -246,4 +246,13 @@ struct ExtendedTagTests {
         #expect(Tag.waveformSequence.description == "(5400,0100)")
         #expect(Tag.clinicalTrialProtocolID.description == "(0012,0020)")
     }
+
+    // MARK: - D35: RT tags the parsers used as literals (PS3.6 2026a Table 6-1)
+
+    @Test("DVH Volume Units, High-Dose Technique Type and Treatment Delivery Type match PS3.6 2026a")
+    func testD35RadiationTherapyTags() {
+        #expect(Tag.dvhVolumeUnits == Tag(group: 0x3004, element: 0x0054))
+        #expect(Tag.highDoseTechniqueType == Tag(group: 0x300A, element: 0x00C7))
+        #expect(Tag.treatmentDeliveryType == Tag(group: 0x300A, element: 0x00CE))
+    }
 }

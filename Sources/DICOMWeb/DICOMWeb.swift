@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-28 — documentation only; the section citations checked against the PS3.18 2026a table of contents
 /// DICOMWeb module
 ///
 /// Provides DICOMweb functionality including DICOM JSON encoding/decoding,
@@ -58,10 +59,10 @@
 ///
 /// - DICOM PS3.18 - Web Services
 /// - DICOM PS3.18 Annex F - DICOM JSON Model
-/// - DICOM PS3.18 Section 8 - Multipart MIME
-/// - DICOM PS3.18 Section 10.4 - WADO-RS
-/// - DICOM PS3.18 Section 10.5 - STOW-RS
-/// - DICOM PS3.18 Section 10.6 - QIDO-RS
+/// - DICOM PS3.18 Section 8.6.1.2 and 8.7.1 - Multipart payloads and media types
+/// - DICOM PS3.18 Section 10.4 - Retrieve Transaction (WADO-RS)
+/// - DICOM PS3.18 Section 10.5 - Store Transaction (STOW-RS)
+/// - DICOM PS3.18 Section 10.6 - Search Transaction (QIDO-RS)
 ///
 public enum DICOMWeb {
     /// The version of the DICOMWeb module

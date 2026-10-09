@@ -178,3 +178,29 @@ struct SNOMEDCodeTests {
         #expect(set.count == 1)
     }
 }
+
+// MARK: - Measurement concepts (P9, PS3.16 2026a)
+
+@Suite("SNOMEDCode measurement concepts vs PS3.16 2026a")
+struct SNOMEDMeasurementConceptTests {
+    @Test("Concept IDs and names match the PS3.16 2026a context groups", arguments: [
+        (SNOMEDCode.diameter, "81827009", "Diameter"),
+        (SNOMEDCode.longAxis, "103339001", "Long Axis"),
+        (SNOMEDCode.shortAxis, "103340004", "Short Axis"),
+        (SNOMEDCode.perpendicularAxis, "131189007", "Perpendicular Axis"),
+        (SNOMEDCode.length, "410668003", "Length"),
+        (SNOMEDCode.width, "103355008", "Width"),
+        (SNOMEDCode.area, "42798000", "Area"),
+        (SNOMEDCode.volume, "118565006", "Volume"),
+        (SNOMEDCode.circumference, "74551000", "Circumference"),
+        (SNOMEDCode.perimeter, "131191004", "Perimeter"),
+        (SNOMEDCode.mode, "373100007", "Mode"),
+        (SNOMEDCode.unchanged, "260388006", "Unchanged"),
+    ])
+    func testConcept(entry: (SNOMEDCode, String, String)) {
+        let (code, id, name) = entry
+        #expect(code.conceptId == id)
+        #expect(code.displayName == name)
+        #expect(code.concept.codingSchemeDesignator == "SCT")
+    }
+}

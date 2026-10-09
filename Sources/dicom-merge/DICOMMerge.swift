@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — --format: 10 SOP Classes match PS3.6 2026a Table A-1 (UID and name); --sort-by: 3 values are PS3.6 Table 6-1 keywords; help pairs 7 attribute names with their Table 6-1 tags; it names the PS3.3 2026a Multi-frame Functional Groups / Frame Content / Multi-frame Dimension modules and A.70-A.72 Legacy Converted IODs; Basic Offset Table per PS3.5 A.4
 import Foundation
 import ArgumentParser
 import DICOMCore
@@ -10,23 +11,35 @@ struct DICOMMerge: AsyncParsableCommand {
         commandName: "dicom-merge",
         abstract: "Combine single-frame DICOM images into multi-frame files",
         discussion: """
-            Combines single-frame DICOM images into multi-frame DICOM files. Enhanced and Legacy
-            Converted targets (CT/MR/PET/XA/XRF) receive Shared and Per-frame Functional Groups
-            factored by attribute equality, Frame Content stack bookkeeping and a Multi-frame
-            Dimension module; US and Secondary Capture sources can become US Multi-frame /
-            Multi-frame SC objects. Compressed inputs keep their transfer syntax (one fragment per
-            frame with a Basic Offset Table) or are decoded with --pixel-handling decode.
+            Combines single-frame DICOM images into multi-frame DICOM files. Enhanced
+            and Legacy Converted targets (CT/MR/PET/XA/XRF) receive the Shared and
+            Per-Frame Functional Groups Sequences factored by attribute equality, a
+            Frame Content Macro (Stack ID, In-Stack Position Number) and a Multi-frame
+            Dimension Module; Ultrasound Image Storage and Secondary Capture Image
+            Storage sources can become Ultrasound Multi-frame Image Storage /
+            Multi-frame Secondary Capture objects. Encapsulated (compressed) inputs
+            keep their transfer syntax (one fragment per frame with a Basic Offset
+            Table) or are decoded with --pixel-handling decode.
+
+            --format values and their PS3.6 SOP Classes: enhanced-ct, enhanced-mr,
+            enhanced-pet, enhanced-xa, enhanced-xrf = Enhanced CT / MR / PET / XA / XRF
+            Image Storage; legacy-converted-ct, -mr, -pet = Legacy Converted Enhanced CT
+            / MR / PET Image Storage; us-multiframe = Ultrasound Multi-frame Image
+            Storage; sc-multiframe = Multi-frame Single Bit / Grayscale Byte / Grayscale
+            Word / True Color Secondary Capture Image Storage (by Bits Allocated and
+            Samples per Pixel); auto = chosen from the source SOP Class; standard = the
+            source SOP Class kept.
 
             Examples:
-              # Combine single frames into multi-frame (SOP class chosen from the source)
+              # Combine single frames into multi-frame (SOP Class chosen from the source)
               dicom-merge frame_*.dcm --output multiframe.dcm --format auto
 
-              # Create enhanced multi-frame CT with stacks detected by orientation
+              # Enhanced CT Image Storage, one Stack ID per Image Orientation (Patient)
               dicom-merge ct_slices/*.dcm \\
                 --output enhanced_ct.dcm \\
                 --format enhanced-ct --make-stacks
 
-              # Legacy Converted Enhanced MR (Sup 157) from a classic MR series
+              # Legacy Converted Enhanced MR Image Storage (PS3.3 A.71) from an MR series
               dicom-merge mr_series/ --output legacy_mr.dcm --format legacy-converted-mr
 
               # Combine series into single study
@@ -52,31 +65,31 @@ struct DICOMMerge: AsyncParsableCommand {
     @Option(name: .long, help: "Output format: standard, auto, enhanced-ct, enhanced-mr, enhanced-pet, enhanced-xa, enhanced-xrf, legacy-converted-ct, legacy-converted-mr, legacy-converted-pet, sc-multiframe, us-multiframe (default: standard)")
     var format: MergeFormat = .standard
 
-    @Option(name: .long, help: "Compressed inputs: preserve the transfer syntax (one fragment per frame), or decode to native (default: preserve)")
+    @Option(name: .long, help: "Encapsulated (compressed) inputs: preserve the transfer syntax (one fragment per frame), or decode to Explicit VR Little Endian (default: preserve)")
     var pixelHandling: MultiframePixelHandling = .preserve
 
-    @Flag(name: .long, help: "Group frames into stacks by Image Orientation (Patient)")
+    @Flag(name: .long, help: "Assign Stack ID (0020,9056) per Image Orientation (Patient) (0020,0037)")
     var makeStacks: Bool = false
 
-    @Flag(name: .long, help: "Derive Temporal Position Index from Trigger Time / Acquisition Time")
+    @Flag(name: .long, help: "Derive Temporal Position Index (0020,9128) from Trigger Time (0018,1060), Temporal Position Identifier (0020,0100) or Acquisition Time (0008,0032)")
     var temporalPosition: Bool = false
 
-    @Flag(name: .long, help: "Mint a new Series Instance UID for the merged object")
+    @Flag(name: .long, help: "Mint a new Series Instance UID (0020,000E) for the merged object")
     var newSeries: Bool = false
 
-    @Flag(name: .long, help: "Skip the source SOP class check for enhanced targets")
+    @Flag(name: .long, help: "Skip the source SOP Class check for Enhanced / Legacy Converted targets")
     var allowAnySource: Bool = false
     
-    @Option(name: .long, help: "Merge level: file, series, study (default: file)")
+    @Option(name: .long, help: "Merge level: file (all inputs into one object), series (one per Series Instance UID), study (per Study Instance UID, then series) (default: file)")
     var level: MergeLevel = .file
     
-    @Option(name: .long, help: "Sort frames by: InstanceNumber, ImagePositionPatient, AcquisitionTime, none (default: InstanceNumber)")
+    @Option(name: .long, help: "Sort frames by a PS3.6 keyword: InstanceNumber (0020,0013), ImagePositionPatient (0020,0032; distance along the slice normal), AcquisitionTime (0008,0032), or none (default: InstanceNumber)")
     var sortBy: MergeSortCriteria = .instanceNumber
     
     @Option(name: .long, help: "Sort order: ascending, descending (default: ascending)")
     var order: MergeSortOrder = .ascending
     
-    @Flag(name: .long, help: "Validate consistency of input files")
+    @Flag(name: .long, help: "Also require equal Study / Series Instance UID, Modality and Frame of Reference UID across inputs")
     var validate: Bool = false
     
     @Flag(name: .shortAndLong, help: "Process directories recursively")

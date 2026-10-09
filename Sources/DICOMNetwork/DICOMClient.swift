@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (facade over the services; defaults only)
 
 #if canImport(Network)
 
@@ -239,7 +240,7 @@ public struct DICOMClientConfiguration: Sendable, Hashable {
     public let userIdentity: UserIdentity?
     
     /// Default Implementation Class UID for DICOMKit
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.1"
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
     
     /// Default Implementation Version Name for DICOMKit
     public static let defaultImplementationVersionName = "DICOMKIT_001"
@@ -252,7 +253,7 @@ public struct DICOMClientConfiguration: Sendable, Hashable {
     ///   - callingAE: The local AE title string
     ///   - calledAE: The remote AE title string
     ///   - timeout: Connection timeout in seconds (default: 30)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB, `defaultMaxPDUSize`)
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - tlsEnabled: Use TLS encryption with default configuration (default: false)
@@ -296,7 +297,7 @@ public struct DICOMClientConfiguration: Sendable, Hashable {
     ///   - callingAE: The local AE title string
     ///   - calledAE: The remote AE title string
     ///   - timeout: Connection timeout in seconds (default: 30)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB, `defaultMaxPDUSize`)
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - tlsConfiguration: TLS configuration for secure connections (nil for plain TCP)
@@ -340,7 +341,7 @@ public struct DICOMClientConfiguration: Sendable, Hashable {
     ///   - callingAETitle: The local AE title
     ///   - calledAETitle: The remote AE title
     ///   - timeout: Connection timeout in seconds (default: 30)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB, `defaultMaxPDUSize`)
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - tlsEnabled: Use TLS encryption with default configuration (default: false)
@@ -383,7 +384,7 @@ public struct DICOMClientConfiguration: Sendable, Hashable {
     ///   - callingAETitle: The local AE title
     ///   - calledAETitle: The remote AE title
     ///   - timeout: Connection timeout in seconds (default: 30)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB, `defaultMaxPDUSize`)
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - tlsConfiguration: TLS configuration for secure connections (nil for plain TCP)
@@ -1060,7 +1061,7 @@ public final class DICOMClient: Sendable {
              .encodingFailed, .decodingFailed, .limitExceeded, .pduTooLarge,
              .associationAborted, .queryFailed, .retrieveFailed,
              .circuitBreakerOpen, .storeFailed, .partialFailure,
-             .printOperationFailed, .unexpectedResponse:
+             .printOperationFailed, .mppsOperationFailed, .unexpectedResponse:
             // Client-side or protocol errors shouldn't affect circuit breaker
             return false
         }
@@ -1092,7 +1093,7 @@ public final class DICOMClient: Sendable {
             // Protocol/configuration errors - don't retry
             return false
         case .associationAborted, .queryFailed, .retrieveFailed, .storeFailed,
-             .printOperationFailed:
+             .printOperationFailed, .mppsOperationFailed:
             // Application-level failures - don't retry
             return false
         case .circuitBreakerOpen:

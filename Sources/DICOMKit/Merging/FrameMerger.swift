@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — Image Type, Pixel Presentation and Acquisition Contrast literals checked against the PS3.3 2026a module tables; SC multi-frame targets complete per Tables A.8-2…A.8-5 (C.7-1, C.7-3, C.7-5a, C.7-9 Type 2; C.7-14, C.8-24, C.8-25b, C.8-25c Type 1/1C; A.8.x.4 constraints); MONOCHROME1 sources converted losslessly to MONOCHROME2 for the MONOCHROME2-only targets per A.70.3.1, A.71.3.1, A.8.2.4/A.8.3.4/A.8.4.4, C.8.15.2, C.8.22.3, A.36.2.3.1 (D37c, see Monochrome1Conversion.swift)
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -428,7 +429,7 @@ public struct FrameMerger {
 
         let template = firstFile.1.dataSet
         let sources = frameSources(from: files)
-        let dataSets = sources.map { $0.dataSet }
+        var dataSets = sources.map { $0.dataSet }
 
         // Core consistency (always on): the Image Pixel module must agree.
         try validateImagePixelModule(sources)
@@ -467,6 +468,26 @@ public struct FrameMerger {
                 throw MergeError.pixelAssembly(error.description)
             }
         }
+
+        // MONOCHROME1 sources for a MONOCHROME2-only target: lossless inversion of the
+        // pixel data and updating of the related attributes (PS3.3 2026a A.70.3.1,
+        // A.71.3.1; A.8.2.4 / A.8.3.4 / A.8.4.4, C.8.15.2, C.8.22.3, A.36.2.3.1).
+        let convertMonochrome1 = targetUID.map(Monochrome1Conversion.requiresMonochrome2) == true
+            && payloads.first?.descriptor.photometricInterpretation == .monochrome1
+        if convertMonochrome1 {
+            do {
+                payloads = try payloads.map(Monochrome1Conversion.invert)
+                let converted = payloads[0].descriptor
+                for index in dataSets.indices {
+                    try Monochrome1Conversion.convertAttributes(
+                        &dataSets[index], bitsStored: converted.bitsStored, isSigned: converted.isSigned)
+                }
+            } catch let failure as Monochrome1Conversion.Failure {
+                throw MergeError.pixelAssembly(failure.description)
+            }
+            if verbose { log(MergeConsole.monochrome1ConvertedLine(frames: payloads.count)) }
+        }
+
         let assembled: (element: DataElement, transferSyntaxUID: String)
         do {
             assembled = try MultiframePixelAssembler.assemble(payloads)
@@ -484,6 +505,15 @@ public struct FrameMerger {
         // Use first file as template
         var mergedDataSet = template
         var fileMetaInformation = firstFile.1.fileMetaInformation
+        if convertMonochrome1 {
+            let converted = payloads[0].descriptor
+            do {
+                try Monochrome1Conversion.convertAttributes(
+                    &mergedDataSet, bitsStored: converted.bitsStored, isSigned: converted.isSigned)
+            } catch let failure as Monochrome1Conversion.Failure {
+                throw MergeError.pixelAssembly(failure.description)
+            }
+        }
 
         let numberOfFrames = sources.count
         mergedDataSet.setString("\(numberOfFrames)", for: .numberOfFrames, vr: .IS)
@@ -539,7 +569,8 @@ public struct FrameMerger {
     /// Multi-frame Functional Groups + Dimension + Enhanced image/series modules.
     private func buildEnhancedModules(into ds: inout DataSet, frames: [DataSet], targetUID: String) throws {
         let modality = MultiframeSOPClassMap.modality(forTarget: targetUID)
-            ?? ds.string(for: .modality)?.trimmingCharacters(in: .whitespaces) ?? ""
+            ?? ds.string(for: .modality).flatMap { Modality.normalized($0) }
+            ?? Modality(unchecked: ds.string(for: .modality) ?? "")
         let legacy = format.isLegacyConverted
         let builderOptions = FunctionalGroupBuilder.Options(
             targetSOPClassUID: targetUID, modality: modality, legacyConverted: legacy,
@@ -572,12 +603,12 @@ public struct FrameMerger {
         }
 
         // Enhanced image module attributes (top level).
-        ds.setString(modality, for: .modality, vr: .CS)
+        ds.setString(modality.rawValue, for: .modality, vr: .CS)
         var imageType = (ds.strings(for: .imageType) ?? []).map { $0.trimmingCharacters(in: .whitespaces) }
         if imageType.isEmpty { imageType = ["ORIGINAL", "PRIMARY"] }
         while imageType.count < 4 { imageType.append(imageType.count == 2 ? "VOLUME" : "NONE") }
         ds.setStrings(Array(imageType.prefix(4)), for: .imageType, vr: .CS)
-        if ["CT", "MR", "PT"].contains(modality) {
+        if modality.usesEnhancedFrameTypeDescriptors {
             let samples = ds.uint16(for: .samplesPerPixel) ?? 1
             ds.setString(samples > 1 ? "COLOR" : "MONOCHROME", for: .pixelPresentation, vr: .CS)
             ds.setString("VOLUME", for: .volumetricProperties, vr: .CS)
@@ -586,7 +617,7 @@ public struct FrameMerger {
                 ds.setString("IDENTITY", for: .presentationLUTShape, vr: .CS)
             }
         }
-        if modality == "MR" {
+        if modality == .mr {
             ds.setString("MAGNITUDE", for: .complexImageComponent, vr: .CS)
             ds.setString("UNKNOWN", for: .acquisitionContrast, vr: .CS)
         }
@@ -667,8 +698,7 @@ public struct FrameMerger {
         }
         ds[.frameTimeVector] = nil
         if targetUID.hasPrefix(MultiframeSOPClassMap.UID.secondaryCapture) {
-            if ds[.conversionType] == nil { ds.setString("WSD", for: .conversionType, vr: .CS) }
-            if ds[.burnedInAnnotation] == nil { ds.setString("NO", for: .burnedInAnnotation, vr: .CS) }
+            completeSecondaryCaptureMultiframe(&ds, frames: frames, writer: writer)
         }
         if ds[.burnedInAnnotation] == nil { ds.setString("NO", for: .burnedInAnnotation, vr: .CS) }
         // Per-frame identity attributes that no longer describe the whole object.
@@ -678,6 +708,62 @@ public struct FrameMerger {
         }
         if verbose {
             log(MergeConsole.legacyMultiframeLine(target: sopClassName(targetUID), frameTime: ds.string(for: .frameTime)))
+        }
+    }
+
+    /// Makes a Multi-frame SC target (PS3.3 2026a Tables A.8-2 … A.8-5) complete:
+    /// - SC Equipment (Table C.8-24): Conversion Type Type 1, WSD (Workstation)
+    ///   when the sources carry none or an empty value.
+    /// - SC Multi-frame Image (Table C.8-25b): Burned In Annotation Type 1 ("NO"
+    ///   when absent); Presentation LUT Shape IDENTITY and Rescale Intercept /
+    ///   Slope / Type when Photometric Interpretation is MONOCHROME2 and Bits
+    ///   Stored > 1 — fixed to 0 / 1 / US for the Grayscale Byte IOD (A.8.3.4),
+    ///   the source values kept for the Grayscale Word IOD (A.8.4.4).
+    /// - Frame Increment Pointer (Type 1C, Number of Frames > 1) with a Page
+    ///   Number Vector 1…N (Table C.8-25c) when no Frame Time could be derived.
+    /// - Image Pixel constraints (A.8.2.4 / A.8.3.4 / A.8.4.4 / A.8.5.4): Planar
+    ///   Configuration absent for one sample per pixel, 0 for RGB.
+    /// - Type 2 attributes of the Patient, General Study, General Series and
+    ///   General Image Modules (Tables C.7-1, C.7-3, C.7-5a, C.7-9) present, empty
+    ///   when the sources lack them.
+    private func completeSecondaryCaptureMultiframe(_ ds: inout DataSet, frames: [DataSet], writer: DICOMWriter) {
+        typealias U = MultiframeSOPClassMap.UID
+        let targetUID = ds.string(for: .sopClassUID).map(MultiframeSOPClassMap.normalize) ?? ""
+
+        if ConversionType(definedTerm: ds.string(for: .conversionType) ?? "") == nil {
+            ds.setString(ConversionType.workstation.rawValue, for: .conversionType, vr: .CS)
+        }
+        if ds[.burnedInAnnotation] == nil { ds.setString("NO", for: .burnedInAnnotation, vr: .CS) }
+
+        let samples = Int(ds.uint16(for: .samplesPerPixel) ?? 1)
+        let bitsStored = Int(ds.uint16(for: .bitsStored) ?? 8)
+        let photometric = ds.string(for: .photometricInterpretation)?.trimmingCharacters(in: .whitespaces) ?? ""
+        if samples == 1 {
+            ds[.planarConfiguration] = nil
+        } else if photometric == "RGB" {
+            ds.setUInt16(0, for: .planarConfiguration)
+        }
+        if photometric == "MONOCHROME2", bitsStored > 1 {
+            ds.setString("IDENTITY", for: .presentationLUTShape, vr: .CS)
+            let byte = targetUID == U.multiframeGrayscaleByteSC
+            if byte || ds[.rescaleIntercept] == nil { ds.setString("0", for: .rescaleIntercept, vr: .DS) }
+            if byte || ds[.rescaleSlope] == nil { ds.setString("1", for: .rescaleSlope, vr: .DS) }
+            if byte || ds[.rescaleType] == nil { ds.setString("US", for: .rescaleType, vr: .LO) }
+        }
+
+        if frames.count > 1, ds[.frameIncrementPointer] == nil {
+            ds.setStrings((1...frames.count).map(String.init), for: .pageNumberVector, vr: .IS)
+            ds[.frameIncrementPointer] = DataElement(tag: .frameIncrementPointer, vr: .AT, length: 4,
+                                                     valueData: writer.serializeTag(.pageNumberVector))
+        }
+
+        let type2: [(Tag, VR)] = [
+            (.patientName, .PN), (.patientID, .LO), (.patientBirthDate, .DA), (.patientSex, .CS),
+            (.studyDate, .DA), (.studyTime, .TM), (.referringPhysicianName, .PN), (.studyID, .SH),
+            (.accessionNumber, .SH), (.seriesNumber, .IS), (.instanceNumber, .IS), (.patientOrientation, .CS),
+        ]
+        for (tag, vr) in type2 where ds[tag] == nil {
+            ds.setString("", for: tag, vr: vr)
         }
     }
 

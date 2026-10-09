@@ -872,4 +872,37 @@ final class DICOMValidatorTests: XCTestCase {
         XCTAssertFalse(validator.isValidUID("1.2.3.04"))  // Leading zero
         XCTAssertFalse(validator.isValidUID("abc.def.ghi"))
     }
+
+    // MARK: - Known transfer syntaxes come from DICOMCore's registry (PS3.6 Table A-1)
+
+    private func transferSyntaxWarning(_ uid: String) -> Bool {
+        let (getString, getData) = createDataProvider(strings: [
+            .sopClassUID: "1.2.840.10008.5.1.4.1.1.2",
+            .sopInstanceUID: "1.2.3.4.5.6.7.8.9.10",
+            .transferSyntaxUID: uid
+        ])
+        let config = ValidationConfiguration(level: .minimal, validateTransferSyntax: true, treatWarningsAsErrors: false)
+        let result = validator.validate(getString: getString, getData: getData, configuration: config)
+        return result.warnings.contains { if case .unknownTransferSyntax = $0 { return true } else { return false } }
+    }
+
+    func testTransferSyntaxValidation_RegisteredSyntaxesAreKnown() {
+        XCTAssertFalse(transferSyntaxWarning("1.2.840.10008.1.2.4.110"), "JPEG XL Lossless (PS3.6 Table A-1)")
+        XCTAssertFalse(transferSyntaxWarning("1.2.840.10008.1.2.8.1"), "Deflated Image Frame Compression")
+        XCTAssertFalse(transferSyntaxWarning("1.2.840.10008.1.2.1.98"), "Encapsulated Uncompressed Explicit VR LE")
+        XCTAssertFalse(transferSyntaxWarning("1.2.840.10008.1.2.4.100.1"), "Fragmentable MPEG2 (PS3.5 Annex A.4)")
+        XCTAssertFalse(transferSyntaxWarning("1.2.840.10008.1.2.4.52"), "retired JPEG Extended (Process 3 & 5) is still a registered UID")
+        XCTAssertFalse(transferSyntaxWarning("1.2.840.10008.1.20"), "Papyrus 3 (retired)")
+        XCTAssertFalse(transferSyntaxWarning("1.2.840.10008.1.2.1"))
+        // The validator and DICOMCore agree by construction.
+        for syntax in TransferSyntax.allKnown {
+            XCTAssertFalse(transferSyntaxWarning(syntax.uid), syntax.uid)
+        }
+    }
+
+    func testTransferSyntaxValidation_UnregisteredSyntaxIsUnknown() {
+        XCTAssertTrue(transferSyntaxWarning("1.2.3.4"))
+        XCTAssertTrue(transferSyntaxWarning("1.2.840.10008.1.2.4.999"))
+    }
+
 }

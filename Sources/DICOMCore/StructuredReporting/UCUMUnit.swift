@@ -5,6 +5,8 @@
 ///
 /// Reference: PS3.16 - Content Mapping Resource
 /// Reference: UCUM.org - https://ucum.org/
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — UCUM is outside NEMA's scope; the check was against every UCUM code used in PS3.16 2026a. Of 50 constants, 31 appear in PS3.16 (24 with the same meaning, 7 where PS3.16 uses the symbol itself as the meaning); 19 do not appear and were not verified. `beatsPerMinute` and `breathsPerMinute` both carry the bare code "/min"; the annotated forms {beats}/min and {breaths}/min would distinguish them.
 
 import Foundation
 

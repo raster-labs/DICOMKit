@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — 22 options (20 + new --voi-lut-function, --frame-number): window per PS3.3 2026a C.11.2.1.2.1 (LINEAR width >= 1; LINEAR_EXACT / SIGMOID width > 0, C.11.2.1.3.1/.2), VOI LUT Function values = the 3 Defined Terms of Table C.11-2b, frame numbering (--frame-number is 1-based, "The first Frame shall be denoted as Frame number 1", Table 10-3; --frame 0-based index deprecated with a stderr note, both given = exit 1, labels "Frame number N"; P-VIEWER-FRAME), --show-overlay draws 60xx overlay planes (C.9.2); display modes, sizes, ROI, JPIP are plumbing
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -40,14 +41,20 @@ struct DICOMViewer: ParsableCommand {
     @Option(name: .long, help: "ANSI color depth: 256, 24bit (default: 24bit)")
     var color: ANSIColorDepth = .truecolor
 
-    @Option(name: .long, help: "Window center (level) for display")
+    @Option(name: .long, help: "Window Center (level) for display, in Modality LUT output units (e.g. HU)")
     var windowCenter: Double?
 
-    @Option(name: .long, help: "Window width for display")
+    @Option(name: .long, help: "Window Width for display (>= 1 for LINEAR, > 0 for LINEAR_EXACT and SIGMOID; PS3.3 C.11.2.1.2.1)")
     var windowWidth: Double?
 
-    @Option(name: .long, help: "Frame number to display (0-based, default: 0)")
-    var frame: Int = 0
+    @Option(name: .long, help: "VOI LUT Function (0028,1056) to apply the window with: LINEAR, LINEAR_EXACT, SIGMOID (default: the file's value, else LINEAR)")
+    var voiLutFunction: String?
+
+    @Option(name: .long, help: "Deprecated: 0-based index; use --frame-number (index 0 is Frame number 1)")
+    var frame: Int?
+
+    @Option(name: .long, help: "Frame number to display, 1-based (PS3.3 Table 10-3: the first Frame is Frame number 1); default 1")
+    var frameNumber: Int?
 
     @Option(name: .long, help: "Output width in characters")
     var width: Int?
@@ -61,7 +68,7 @@ struct DICOMViewer: ParsableCommand {
     @Flag(name: .long, help: "Show patient and study information overlay")
     var showInfo: Bool = false
 
-    @Flag(name: .long, help: "Show overlays and annotations")
+    @Flag(name: .long, help: "Draw overlay planes (60xx, PS3.3 C.9.2) and show a frame/size status line")
     var showOverlay: Bool = false
 
     @Flag(name: .long, help: "Display as thumbnail grid (for multiple files or frames)")
@@ -114,8 +121,27 @@ struct DICOMViewer: ParsableCommand {
             throw ValidationError("--window-center must be provided when --window-width is set")
         }
 
-        if frame < 0 {
-            throw ValidationError("Frame number must be non-negative")
+        if let frame, frame < 0 {
+            throw ValidationError("--frame (deprecated 0-based index) must be non-negative")
+        }
+
+        if let number = frameNumber, number < 1 {
+            throw ValidationError("--frame-number must be >= 1 (the first Frame is Frame number 1)")
+        }
+
+        let function = try parsedVOIFunction()
+        if let width = windowWidth {
+            // PS3.3 C.11.2.1.2.1 (LINEAR): "shall always be greater than or equal to 1";
+            // C.11.2.1.3.1 (SIGMOID) / C.11.2.1.3.2 (LINEAR_EXACT): "greater than 0".
+            if (function ?? .linear) == .linear {
+                guard width >= 1 else {
+                    throw ValidationError("--window-width must be >= 1 for LINEAR (PS3.3 C.11.2.1.2.1)")
+                }
+            } else {
+                guard width > 0 else {
+                    throw ValidationError("--window-width must be > 0 for \(function!.rawValue) (PS3.3 C.11.2.1.3)")
+                }
+            }
         }
 
         if let w = width, w < 1 {
@@ -149,7 +175,33 @@ struct DICOMViewer: ParsableCommand {
         }
     }
 
+    /// --voi-lut-function as a PS3.3 Table C.11-2b Defined Term (case-insensitive).
+    func parsedVOIFunction() throws -> VOILUTFunction? {
+        guard let text = voiLutFunction else { return nil }
+        let normalized = text.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "-", with: "_")
+        guard let function = VOILUTFunction(rawValue: normalized) else {
+            throw ValidationError("--voi-lut-function must be LINEAR, LINEAR_EXACT or SIGMOID (PS3.3 C.11.2.1.3)")
+        }
+        return function
+    }
+
+    /// 0-based frame index selected by --frame-number (1-based) or the deprecated --frame (0-based).
+    var frameIndex: Int { frameNumber.map { $0 - 1 } ?? frame ?? 0 }
+
+    /// Stderr note when the deprecated --frame is used.
+    var frameDeprecationNote: String? {
+        frame.map { "Note: --frame is deprecated (0-based index); use --frame-number \($0 + 1)" }
+    }
+
     mutating func run() throws {
+        if frame != nil && frameNumber != nil {
+            FileHandle.standardError.write(Data(
+                "Error: --frame (deprecated 0-based index) and --frame-number both given; use --frame-number only\n".utf8))
+            throw ExitCode.failure
+        }
+        if let note = frameDeprecationNote {
+            FileHandle.standardError.write(Data((note + "\n").utf8))
+        }
         // JPIP remote mode: no local file required
         if let jpipURLStr = jpip {
             try renderJPIP(urlString: jpipURLStr)
@@ -188,11 +240,17 @@ struct DICOMViewer: ParsableCommand {
         }
 
         // Extract and render
+        let totalFrames = renderer.frameCount()
+        guard frameIndex < totalFrames else {
+            throw ValidationError("Frame number \(frameIndex + 1) does not exist; Number of Frames is \(totalFrames)")
+        }
         var image = try renderer.extractPixels(
-            frame: frame,
+            frame: frameIndex,
             windowCenter: windowCenter,
             windowWidth: windowWidth,
-            invert: invert
+            invert: invert,
+            voiFunction: try parsedVOIFunction(),
+            showOverlays: showOverlay
         )
 
         // Apply resolution reduce (post-decode downscale by 2^n)
@@ -256,9 +314,8 @@ struct DICOMViewer: ParsableCommand {
 
         // Show overlay info at bottom
         if showOverlay {
-            let totalFrames = renderer.frameCount()
             print("\u{1B}[0m") // Reset colors
-            print("[\(path)] Frame \(frame + 1)/\(totalFrames) | \(image.originalColumns)x\(image.originalRows)")
+            print("[\(path)] Frame number \(frameIndex + 1) of \(totalFrames) | \(image.originalColumns)x\(image.originalRows)")
         }
     }
 
@@ -284,7 +341,12 @@ struct DICOMViewer: ParsableCommand {
             mode: mode,
             terminalSize: termSize,
             quality: quality,
-            colorDepth: color
+            colorDepth: color,
+            windowCenter: windowCenter,
+            windowWidth: windowWidth,
+            invert: invert,
+            voiFunction: try parsedVOIFunction(),
+            showOverlays: showOverlay
         )
 
         print(output, terminator: "")
@@ -312,7 +374,9 @@ struct DICOMViewer: ParsableCommand {
                 let image = try renderer.extractPixels(
                     windowCenter: windowCenter,
                     windowWidth: windowWidth,
-                    invert: invert
+                    invert: invert,
+                    voiFunction: try parsedVOIFunction(),
+                    showOverlays: showOverlay
                 )
                 let scaled = TerminalRenderer.scaleImage(image, toWidth: thumbWidth, toHeight: thumbHeight)
                 let filename = URL(fileURLWithPath: path).lastPathComponent
@@ -405,7 +469,12 @@ struct DICOMViewer: ParsableCommand {
             mode: mode,
             terminalSize: termSize,
             quality: quality,
-            colorDepth: color
+            colorDepth: color,
+            windowCenter: windowCenter,
+            windowWidth: windowWidth,
+            invert: invert,
+            voiFunction: try parsedVOIFunction(),
+            showOverlays: showOverlay
         )
         print(output, terminator: "")
     }

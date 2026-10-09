@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — CID 42 qualifier meanings match PS3.16 2026a; closed POLYLINE handled per PS3.3 C.18.6.1.2; DerivationMethod is library-local; SCOORD image from its nested SELECTED FROM IMAGE and ROIs from a NUM's nested INFERRED FROM SCOORD per PS3.3 Table C.17-6 and PS3.16 2026a TID 320 rows 3-4 (D31)
 /// Measurement and Coordinate Extraction for DICOM Structured Reporting
 ///
 /// Provides types and APIs for extracting quantitative measurements and
@@ -170,16 +171,31 @@ public enum MeasurementQualifier: String, Sendable, Equatable, Hashable, CaseIte
     
     /// Value overflows the representable range
     case overflow = "OVERFLOW"
+
+    /// Division by zero
+    case divideByZero = "DIVIDE BY ZERO"
+
+    /// The measurement failed
+    case measurementFailure = "MEASUREMENT FAILURE"
+
+    /// The measurement was not attempted
+    case measurementNotAttempted = "MEASUREMENT NOT ATTEMPTED"
+
+    /// The calculation failed
+    case calculationFailure = "CALCULATION FAILURE"
+
+    /// The value is out of range
+    case valueOutOfRange = "VALUE OUT OF RANGE"
+
+    /// The value is unknown
+    case valueUnknown = "VALUE UNKNOWN"
+
+    /// The value is indeterminate
+    case valueIndeterminate = "VALUE INDETERMINATE"
     
-    /// Creates from a NumericValueQualifier
+    /// Creates from a NumericValueQualifier (same raw values, PS3.16 CID 42)
     init(from nvq: NumericValueQualifier) {
-        switch nvq {
-        case .notANumber: self = .notANumber
-        case .negativeInfinity: self = .negativeInfinity
-        case .positiveInfinity: self = .positiveInfinity
-        case .underflow: self = .underflow
-        case .overflow: self = .overflow
-        }
+        self = MeasurementQualifier(rawValue: nvq.rawValue) ?? .valueIndeterminate
     }
 }
 
@@ -357,40 +373,56 @@ public struct SpatialCoordinates: Sendable, Equatable, Hashable {
         return (column: sumColumn / count, row: sumRow / count)
     }
     
+    /// Whether the shape is closed: a POLYLINE whose first and last vertices are the same
+    /// (PS3.3 C.18.6.1.2), or the deprecated 2D POLYGON.
+    public var isClosed: Bool {
+        if graphicType == .polyline, points.count >= 4,
+           let first = points.first, let last = points.last {
+            return first.column == last.column && first.row == last.row
+        }
+        return graphicType == .polygon && points.count >= 3
+    }
+
+    /// The vertices of a closed shape, without the repeated closing vertex.
+    private var closedVertices: [(column: Float, row: Float)] {
+        graphicType == .polyline ? Array(points.dropLast()) : points
+    }
+
     /// Computes the perimeter/length of the shape
     /// - Returns: The perimeter for closed shapes, length for open shapes
     public var perimeter: Float {
         guard points.count >= 2 else { return 0 }
-        
+
         var total: Float = 0
         for i in 0..<(points.count - 1) {
             let dx = points[i + 1].column - points[i].column
             let dy = points[i + 1].row - points[i].row
             total += sqrt(dx * dx + dy * dy)
         }
-        
-        // Close the polygon if it's a polygon type
+
+        // A closed POLYLINE already carries its closing segment; POLYGON does not
         if graphicType == .polygon && points.count >= 3 {
             let dx = points[0].column - points[points.count - 1].column
             let dy = points[0].row - points[points.count - 1].row
             total += sqrt(dx * dx + dy * dy)
         }
-        
+
         return total
     }
-    
-    /// Computes the area of a closed polygon using the Shoelace formula
-    /// - Returns: The area, or nil if not a closed polygon
+
+    /// Computes the area of a closed shape using the Shoelace formula
+    /// - Returns: The area, or nil if the shape is not closed
     public var area: Float? {
-        guard graphicType == .polygon && points.count >= 3 else { return nil }
-        
+        guard isClosed else { return nil }
+        let vertices = closedVertices
+
         var sum: Float = 0
-        for i in 0..<points.count {
-            let j = (i + 1) % points.count
-            sum += points[i].column * points[j].row
-            sum -= points[j].column * points[i].row
+        for i in 0..<vertices.count {
+            let j = (i + 1) % vertices.count
+            sum += vertices[i].column * vertices[j].row
+            sum -= vertices[j].column * vertices[i].row
         }
-        
+
         return abs(sum) / 2
     }
     
@@ -824,7 +856,7 @@ public struct MeasurementExtractor: Sendable {
             
             // Create ROIs from 2D coordinates
             for item in scoordItems {
-                let imageRef = imageItems.first?.imageReference
+                let imageRef = selectedFromImage(of: item) ?? imageItems.first?.imageReference
                 let measurements = numericItems.map { Measurement(from: $0) }
                 let roi = ROI(
                     conceptName: container.conceptName ?? item.conceptName,
@@ -847,6 +879,22 @@ public struct MeasurementExtractor: Sendable {
             }
         }
         
+        // A NUM INFERRED FROM a SCOORD in its Content Sequence (PS3.16 TID 300 row 1b →
+        // TID 301 row 13 → TID 320 row 3): the SCOORD is the region the value was measured on
+        for numeric in document.findNumericItems() {
+            for child in numeric.contentItems where child.relationshipType == .inferredFrom {
+                guard let scoord = child.asSpatialCoordinates,
+                      !rois.contains(where: { $0.spatialCoordinates?.contentItem == scoord }) else { continue }
+                let imageRef = selectedFromImage(of: scoord)
+                rois.append(ROI(
+                    conceptName: numeric.conceptName ?? scoord.conceptName,
+                    spatialCoordinates: SpatialCoordinates(contentItem: scoord, imageReference: imageRef),
+                    measurements: [Measurement(from: numeric)],
+                    imageReference: imageRef
+                ))
+            }
+        }
+
         // Also check for standalone SCOORD items that might be ROIs
         let standaloneScoords = document.findSpatialCoordinateItems()
         for item in standaloneScoords {
@@ -919,10 +967,20 @@ public struct MeasurementExtractor: Sendable {
     
     /// Tries to find an image reference associated with a spatial coordinate item
     private func findImageReference(near item: SpatialCoordinatesContentItem, in document: SRDocument) -> ImageReference? {
-        // Look for IMAGE items in the same parent container or as siblings
-        // This is a simplified implementation - full implementation would traverse parent chain
+        // The IMAGE the SCOORD is SELECTED FROM, when nested under it; otherwise the first
+        // IMAGE of the document (a simplified fallback that does not traverse the parent chain)
+        if let selected = selectedFromImage(of: item) { return selected }
         let imageItems = document.findImageItems()
         return imageItems.first?.imageReference
+    }
+
+    /// The IMAGE a SCOORD is SELECTED FROM: a child in its Content Sequence (PS3.3 Table
+    /// C.17-6; PS3.16 TID 320 row 4, TID 1501 row 10d, TID 4021/4107 row 2)
+    private func selectedFromImage(of item: SpatialCoordinatesContentItem) -> ImageReference? {
+        item.contentItems.lazy
+            .filter { $0.relationshipType == .selectedFrom }
+            .compactMap { $0.asImage?.imageReference }
+            .first
     }
 }
 

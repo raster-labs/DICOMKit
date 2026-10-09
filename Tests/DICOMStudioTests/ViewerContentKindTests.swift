@@ -49,6 +49,35 @@ struct ViewerContentKindTests {
                 == .presentationState)
         #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.9.1.1")
                 == .waveform)
+        // PS3.4 2026a Table B.5-1: the arc runs to Variable Modality LUT Softcopy
+        // Presentation State (…11.12) and Body Position Waveform (…9.8.1).
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.11.12")
+                == .presentationState)
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.9.8.1")
+                == .waveform)
+    }
+
+    @Test("Families are OID arcs, not string prefixes")
+    func testFamiliesAreOIDArcs() {
+        // PS3.6 2026a Table A-1: Content Assessment Results Storage (…1.1.90.1) and
+        // Microscopy Bulk Simple Annotations Storage (…1.1.91.1) share the characters
+        // "…1.1.9" with the waveform arc and are not waveforms.
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.90.1") != .waveform)
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.91.1") != .waveform)
+        // The retired Standalone Curve (…1.1.9) and Standalone VOI LUT (…1.1.11) are
+        // not members of the arcs that start below them.
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.9") != .waveform)
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.11") != .presentationState)
+    }
+
+    @Test("Waveform presentation states are presentation states (PS3.3 A.92)")
+    func testWaveformPresentationStates() {
+        // PS3.4 2026a Table B.5-1: …9.100.1 Waveform Presentation State Storage,
+        // …9.100.2 Waveform Acquisition Presentation State Storage.
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.9.100.1")
+                == .presentationState)
+        #expect(ViewerContentKind.kind(forSOPClassUID: "1.2.840.10008.5.1.4.1.1.9.100.2")
+                == .presentationState)
     }
 
     @Test("Raw Data is named as something the viewer cannot show")
@@ -168,3 +197,20 @@ struct ViewerContentKindTests {
         #expect(content.title == ViewerContentKind.presentationState.displayName)
     }
 }
+
+#if canImport(SwiftUI)
+import DICOMCore
+
+@Suite("Structured Report Narrative Values")
+struct StructuredReportNarrativeValueTests {
+    @Test("Every PS3.3 Table C.17.3-7 value type reads as something, TABLE included")
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    func testTableValueType() {
+        // PS3.3 2026a Table C.17.3-7 lists 16 Value Types; TABLE (CP-2174) had no branch.
+        let table = TableContentItem(rows: 2, columns: 3, cells: [])
+        #expect(StructuredReportNarrativeView.value(of: AnyContentItem(table)) == "(table, 2 × 3)")
+        let text = TextContentItem(conceptName: nil, textValue: "Normal study")
+        #expect(StructuredReportNarrativeView.value(of: AnyContentItem(text)) == "Normal study")
+    }
+}
+#endif

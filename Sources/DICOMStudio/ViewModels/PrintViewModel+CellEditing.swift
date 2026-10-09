@@ -9,6 +9,12 @@
 // ``PrintService/prepare(items:request:useViewerWindow:applyViewerPresentation:onProgress:)``
 // reads — so the preview cannot drift away from the film. Nothing here renders,
 // and nothing here is print-only state.
+//
+// NEMA-verified: 2026a, checked 2026-10-06 — a seeded (and reset-to-seed) cell window is DICOMKit determineModalityWindow's, in modality units, and carries windowSpace .outputUnits (PS3.3 C.11.2.1.2.1; A6 / D65);
+// the colour test reads Samples per Pixel (0028,0002) first and falls back
+// to Photometric Interpretation, treating MONOCHROME1 and MONOCHROME2 (PS3.3 2026a C.7.6.3.1.2 terms) as
+// grey — the rule PS3.3 Table C.13-5 fixes for the Basic Color Image Box (RGB, 3 samples). Polarity REVERSE
+// (2020,0020) and the Presentation LUT inverse compose as FilmComposer composes them; no other literal.
 
 import Foundation
 import DICOMCore
@@ -319,8 +325,11 @@ extension PrintViewModel {
               current.windowCenter == nil || current.windowWidth == nil else { return }
         // Seeding is not an edit: the values are the ones already on screen, so
         // the mark is not flagged as hand-adjusted by having been picked up.
+        // The resolved window is in modality units (A6 / D65), so the mark carries
+        // that space and the renderer applies it without a rescale round trip.
         selection.update(current.with(
-            windowCenter: .some(resolved.center), windowWidth: .some(resolved.width)),
+            windowCenter: .some(resolved.center), windowWidth: .some(resolved.width),
+            windowSpace: FrameRenderer.resolvedWindowSpace),
                          force: true)
         // Remembered so ``isCellEdited(_:)`` does not mistake the seed for an
         // edit — see ``seededWindows``.
@@ -734,8 +743,10 @@ extension PrintViewModel {
         }
         // Back on the film default, so the film-wide picker reaches it again.
         selfPalettedItemIDs.remove(itemID)
+        // A seed is in modality units (FrameRenderer.resolvedWindowSpace, A6 / D65).
         selection.update(item.with(
             windowCenter: .some(seed?.center), windowWidth: .some(seed?.width),
+            windowSpace: seed == nil ? item.windowSpace : .outputUnits,
             presentation: .some(restored)),
                          force: true)
         // The untouched frame is not a hand-made arrangement worth defending

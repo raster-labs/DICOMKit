@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — Priority scheduling order checked against PS3.7 2026a Table E.1-1 (LOW 0002H, MEDIUM 0000H, HIGH 0001H are codes, not ranks)
 
 // MARK: - Queue Item Status
 
@@ -1120,10 +1121,24 @@ public actor StoreAndForwardQueue {
         
         // Sort by priority if enabled
         if configuration.priorityOrdering {
-            return pending.sorted { $0.priority.rawValue > $1.priority.rawValue }.first
+            return Self.prioritySorted(pending).first
         } else {
             // FIFO order
             return pending.first
+        }
+    }
+
+    /// Orders pending items HIGH, MEDIUM, LOW, FIFO within a priority.
+    ///
+    /// The raw Priority (0000,0700) values do not order by urgency — PS3.7
+    /// Table E.1-1 defines LOW = 0002H, MEDIUM = 0000H, HIGH = 0001H — so the
+    /// sort uses `DIMSEPriority.schedulingRank`, never `rawValue`.
+    static func prioritySorted(_ items: [QueuedStoreItem]) -> [QueuedStoreItem] {
+        items.sorted {
+            if $0.priority.schedulingRank != $1.priority.schedulingRank {
+                return $0.priority.schedulingRank < $1.priority.schedulingRank
+            }
+            return $0.queuedAt < $1.queuedAt
         }
     }
     
@@ -1290,3 +1305,19 @@ public actor StoreAndForwardQueue {
 }
 
 #endif
+
+// MARK: - DIMSEPriority Scheduling
+
+extension DIMSEPriority {
+    /// Rank for scheduling: 0 for HIGH, 1 for MEDIUM, 2 for LOW (lower runs
+    /// first). PS3.7 Table E.1-1 encodes Priority (0000,0700) as LOW = 0002H,
+    /// MEDIUM = 0000H, HIGH = 0001H, so `rawValue` must not be used to order
+    /// transfers.
+    var schedulingRank: Int {
+        switch self {
+        case .high: return 0
+        case .medium: return 1
+        case .low: return 2
+        }
+    }
+}

@@ -131,8 +131,8 @@ final class MergeFormatMatrixTests: XCTestCase {
                        "file meta SOP Class", file: file, line: line)
         XCTAssertEqual(ds.numberOfFrames, frames, "NumberOfFrames", file: file, line: line)
         if let modality = MultiframeSOPClassMap.modality(forTarget: expectTarget) {
-            XCTAssertEqual(ds.string(for: .modality)?.trimmingCharacters(in: .whitespaces), modality,
-                           "Modality", file: file, line: line)
+            XCTAssertEqual(ds.string(for: .modality)?.trimmingCharacters(in: .whitespaces),
+                           modality.rawValue, "Modality", file: file, line: line)
         }
         let entry = MultiframeSOPClassMap.entry(for: expectTarget)
         if entry?.hasFunctionalGroups == true {
@@ -203,6 +203,90 @@ final class MergeFormatMatrixTests: XCTestCase {
     func testUSMultiframeFromClassicUS() async throws {
         try await runCase(format: .usMultiframe, sourceClass: U.usImage, sourceModality: "US",
                           shape: .gray8, expectTarget: U.usMultiframe)
+    }
+
+    // MARK: - SC multi-frame IOD completeness (PS3.3 2026a Tables A.8-2 … A.8-5)
+
+    private func frameIncrementTarget(_ ds: DataSet) -> Tag? {
+        guard let e = ds[.frameIncrementPointer], e.vr == .AT, e.valueData.count == 4 else { return nil }
+        let b = [UInt8](e.valueData)
+        return Tag(group: UInt16(b[0]) | UInt16(b[1]) << 8, element: UInt16(b[2]) | UInt16(b[3]) << 8)
+    }
+
+    private func assertSCMultiframeComplete(_ ds: DataSet, grayscaleWithLUT: Bool,
+                                            file: StaticString = #filePath, line: UInt = #line) {
+        // Type 1: SOP Common C.12-1, General Study C.7-3, General Series C.7-5a, SC
+        // Equipment C.8-24, Image Pixel C.7-11a, Multi-frame C.7-14, SC Multi-frame Image C.8-25b.
+        var type1: [Tag] = [.sopClassUID, .sopInstanceUID, .studyInstanceUID, .modality, .seriesInstanceUID,
+                            .conversionType, .samplesPerPixel, .photometricInterpretation, .rows, .columns,
+                            .bitsAllocated, .bitsStored, .highBit, .pixelRepresentation, .pixelData,
+                            .numberOfFrames, .burnedInAnnotation, .frameIncrementPointer]
+        if grayscaleWithLUT { type1 += [.presentationLUTShape, .rescaleIntercept, .rescaleSlope, .rescaleType] }
+        for tag in type1 {
+            guard let e = ds[tag] else { XCTFail("Type 1 \(tag) missing", file: file, line: line); continue }
+            XCTAssertFalse(e.valueData.isEmpty, "Type 1 \(tag) empty", file: file, line: line)
+        }
+        // Type 2: Patient C.7-1, General Study C.7-3, General Series C.7-5a, General Image C.7-9.
+        for tag in [Tag.patientName, .patientID, .patientBirthDate, .patientSex, .studyDate, .studyTime,
+                    .referringPhysicianName, .studyID, .accessionNumber, .seriesNumber, .instanceNumber, .patientOrientation] {
+            XCTAssertNotNil(ds[tag], "Type 2 \(tag) missing", file: file, line: line)
+        }
+        XCTAssertEqual(ds.string(for: .conversionType), "WSD", file: file, line: line)
+        XCTAssertEqual(ds.string(for: .burnedInAnnotation), "NO", file: file, line: line)
+        let target = frameIncrementTarget(ds)
+        XCTAssertNotNil(target, "Frame Increment Pointer", file: file, line: line)
+        if let target {
+            XCTAssertNotNil(ds[target], "Frame Increment Pointer target \(target) must be present", file: file, line: line)
+        }
+        if grayscaleWithLUT {
+            XCTAssertEqual(ds.string(for: .presentationLUTShape), "IDENTITY", file: file, line: line)
+        } else {
+            XCTAssertNil(ds[.presentationLUTShape], file: file, line: line)
+        }
+    }
+
+    func testSCMultiframeByteIsComplete() async throws {
+        let merged = try await merge(slices(sopClass: U.secondaryCapture, modality: "OT", shape: .gray8), format: .scMultiframe)
+        let ds = merged.dataSet
+        assertSCMultiframeComplete(ds, grayscaleWithLUT: true)
+        // A.8.3.4: Rescale Intercept 0, Rescale Slope 1, Rescale Type US; no Planar Configuration.
+        XCTAssertEqual(ds.string(for: .rescaleIntercept), "0")
+        XCTAssertEqual(ds.string(for: .rescaleSlope), "1")
+        XCTAssertEqual(ds.string(for: .rescaleType), "US")
+        XCTAssertNil(ds[.planarConfiguration])
+        XCTAssertEqual(frameIncrementTarget(ds), .pageNumberVector)
+        XCTAssertEqual(ds.strings(for: .pageNumberVector), ["1", "2", "3"])
+    }
+
+    func testSCMultiframeWordKeepsSourceRescale() async throws {
+        var inputs = slices(sopClass: U.secondaryCapture, modality: "OT", shape: .gray16)
+        inputs = inputs.map { file in
+            var ds = file.dataSet
+            ds.setString("-10", for: .rescaleIntercept, vr: .DS)
+            ds.setString("2", for: .rescaleSlope, vr: .DS)
+            ds.setString("HU", for: .rescaleType, vr: .LO)
+            return DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: ds)
+        }
+        let ds = try await merge(inputs, format: .scMultiframe).dataSet
+        assertSCMultiframeComplete(ds, grayscaleWithLUT: true)
+        // A.8.4.4: slope/intercept are not constrained for the Grayscale Word IOD.
+        XCTAssertEqual(ds.string(for: .rescaleIntercept), "-10")
+        XCTAssertEqual(ds.string(for: .rescaleSlope), "2")
+        XCTAssertEqual(ds.string(for: .rescaleType), "HU")
+    }
+
+    func testSCMultiframeTrueColorIsComplete() async throws {
+        let ds = try await merge(slices(sopClass: U.secondaryCapture, modality: "OT", shape: .rgb), format: .scMultiframe).dataSet
+        assertSCMultiframeComplete(ds, grayscaleWithLUT: false)
+        XCTAssertEqual(ds.uint16(for: .planarConfiguration), 0, "A.8.5.4")
+        XCTAssertNil(ds[.rescaleIntercept])
+    }
+
+    func testSCMultiframeSingleBitIsComplete() async throws {
+        let ds = try await merge(slices(sopClass: U.secondaryCapture, modality: "OT", shape: .singleBit), format: .scMultiframe).dataSet
+        assertSCMultiframeComplete(ds, grayscaleWithLUT: false)
+        XCTAssertNil(ds[.rescaleIntercept], "Bits Stored 1: the C.8-25b condition fails")
+        XCTAssertNil(ds[.planarConfiguration])
     }
 
     // MARK: - SC pixel-shape refinement (byte / word / true colour / single bit)

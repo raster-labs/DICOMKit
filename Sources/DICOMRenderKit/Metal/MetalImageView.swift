@@ -3,6 +3,8 @@
 //
 // Presenting a frame from GPU memory, with zoom, pan, rotation, flip and inversion
 // applied by the display shader instead of by CPU passes and view modifiers.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — no DICOM-standard data of its own (MTKView drawing and SwiftUI wrapper); on macOS it sets the frame's ICC Profile colour space on the view (PS3.3 C.11.15.1.1, P-ICC).
 
 import Foundation
 import simd
@@ -218,6 +220,13 @@ public struct MetalImageView: PlatformViewRepresentable {
         renderer.presentation = presentation
         renderer.annotationOverlay = annotationOverlay
         Self.matchDrawableToTheDisplay(view)
+        #if os(macOS)
+        // The frame's ICC Profile colour space (PS3.3 C.11.15.1.1, P-ICC): the layer
+        // converts from it to the screen. `nil` leaves the drawable untagged, as before.
+        if view.colorspace !== frame?.colorSpace {
+            view.colorspace = frame?.colorSpace
+        }
+        #endif
         #if os(macOS)
         view.needsDisplay = true
         #else

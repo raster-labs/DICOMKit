@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent parametric map colormap and SUV helpers
-// Reference: DICOM PS3.3 C.7.6.16.2.11 (Real World Value Mapping), C.8.23 (Parametric Map)
+// Reference: DICOM PS3.3 C.7.6.16.2.11 (Real World Value Mapping Macro), C.8.32 (Parametric Map), A.75 (Parametric Map IOD)
+// NEMA-verified: 2026a, checked 2026-10-05 — citations checked against PS3.3 2026a section titles (C.8.23 is "Surface Segmentation" in 2026a; the Parametric Map modules are C.8.32, corrected); the colormaps, display defaults and SUV(bw) arithmetic carry no DICOM-defined values (the SUV unit g/ml{SUVbw} is PS3.16 2026a CID 85; the display strings are symbols, not codes)
 
 import Foundation
 

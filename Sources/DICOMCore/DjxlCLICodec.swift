@@ -6,6 +6,7 @@
 // reference encoder. djxl is selected by output extension: `.pgm` for
 // grayscale, `.ppm` for RGB, both binary PNM. macOS-only, mirrors the
 // Kakadu/Grok CLI peers.
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (external libjxl CLI wrapper). C1 classification confirmed.
 
 #if os(macOS)
 import Foundation

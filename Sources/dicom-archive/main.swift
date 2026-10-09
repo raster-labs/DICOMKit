@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — option help names the PS3.6 2026a Table 6-1 attributes each key matches (Patient's Name (0010,0010), Patient ID (0010,0020), Study Instance UID (0020,000D), Series Instance UID (0020,000E), Study Date (0008,0020), Modality (0008,0060), Modalities in Study (0008,0061), SOP Instance UID (0008,0018); all match) and the PS3.4 2026a C.2.2.2 matching the shared DICOMKit ArchiveStore performs (Wild Card C.2.2.2.4 case-sensitive except PN, List of UID C.2.2.2.2, DA Range C.2.2.2.5.1); a Study Date that is neither a DA value nor a DA range is warned
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -28,8 +29,14 @@ struct DICOMArchive: ParsableCommand {
         abstract: "Local DICOM file archive manager",
         discussion: """
             Manage a local archive of DICOM files with a JSON-based metadata index.
-            Files are organized in a Patient/Study/Series directory hierarchy with
-            deduplication by SOP Instance UID.
+            Files are stored as data/<Patient ID>/<Study Instance UID>/<Series Instance UID>/
+            <SOP Instance UID>.dcm and deduplicated by SOP Instance UID (0008,0018).
+
+            Query keys match like a DICOM C-FIND (PS3.4 C.2.2.2): * and ? wild cards
+            (C.2.2.2.4) are case-sensitive except for Patient's Name; Study Date takes a
+            single date or a range (YYYYMMDD-YYYYMMDD, -YYYYMMDD, YYYYMMDD-; C.2.2.2.5.1);
+            UID keys take one UID or a backslash-separated list (C.2.2.2.2). Patients are
+            keyed on Patient ID together with Issuer of Patient ID (0010,0021).
 
             Examples:
               # Initialize a new archive
@@ -131,25 +138,34 @@ extension DICOMArchive {
         @Option(name: .shortAndLong, help: "Path to the archive")
         var archive: String
 
-        @Option(name: .long, help: "Filter by patient name (supports * and ? wildcards)")
+        @Option(name: .long, help: "Filter by Patient's Name (0010,0010); * and ? wild cards (PS3.4 C.2.2.2.4), case-insensitive")
         var patientName: String?
 
-        @Option(name: .long, help: "Filter by patient ID (supports * and ? wildcards)")
+        @Option(name: .long, help: "Filter by Patient ID (0010,0020); * and ? wild cards, case-sensitive (PS3.4 C.2.2.2.4)")
         var patientID: String?
 
-        @Option(name: .long, help: "Filter by study UID")
+        @Option(name: .long, help: "Filter by Study Instance UID (0020,000D); one UID or a backslash-separated list (PS3.4 C.2.2.2.2)")
         var studyUID: String?
 
-        @Option(name: .long, help: "Filter by modality")
+        @Option(name: .long, help: ArgumentHelp(stringLiteral: ModalityOptionValidator.helpText("filter")
+            + " A study matches when any of its series has it (Modalities in Study (0008,0061))."))
         var modality: String?
 
-        @Option(name: .long, help: "Filter by study date (YYYYMMDD)")
+        @Flag(name: .long, help: "Reject a --modality value that is not a current DICOM Defined Term")
+        var strictModality: Bool = false
+
+        @Option(name: .long, help: "Filter by Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD, YYYYMMDD- (PS3.4 C.2.2.2.5.1)")
         var studyDate: String?
 
-        @Option(name: .shortAndLong, help: "Output format: table, json, text")
+        @Option(name: .shortAndLong, help: "Output format: table, json, text. JSON adds ModalitiesInStudy, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances (PS3.6 keywords); modality, seriesCount, imageCount are deprecated")
         var format: String = "table"
 
         mutating func run() throws {
+            // One answer to "is that a modality?" across every dicom-* tool.
+            modality = try ModalityOptionValidator.resolve(
+                modality, strict: strictModality)
+            ArchiveQueryKeys.printWarnings([ArchiveMatching.studyDateKeyWarning(studyDate)])
+
             try runArchive { try ArchiveStore.query(
                 in: archive, patientName: patientName, patientID: patientID,
                 studyUID: studyUID, modality: modality, studyDate: studyDate,
@@ -197,16 +213,16 @@ extension DICOMArchive {
         @Option(name: .shortAndLong, help: "Output directory for exported files")
         var output: String
 
-        @Option(name: .long, help: "Export by Study Instance UID")
+        @Option(name: .long, help: "Export by Study Instance UID (0020,000D); one UID or a backslash-separated list (PS3.4 C.2.2.2.2)")
         var studyUID: String?
 
-        @Option(name: .long, help: "Export by Series Instance UID")
+        @Option(name: .long, help: "Export by Series Instance UID (0020,000E); one UID or a backslash-separated list (PS3.4 C.2.2.2.2)")
         var seriesUID: String?
 
-        @Option(name: .long, help: "Export by Patient ID")
+        @Option(name: .long, help: "Export by Patient ID (0010,0020); exact match, no wild cards")
         var patientID: String?
 
-        @Flag(name: .long, help: "Flatten output (no subdirectories)")
+        @Flag(name: .long, help: "Flatten output to <SOP Instance UID>.dcm (no Patient ID / Study / Series subdirectories)")
         var flatten: Bool = false
 
         @Flag(name: .long, help: "Verbose output")

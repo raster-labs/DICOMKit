@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent helpers for Polish, Accessibility & Release (Milestone 15)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (sample localization entries, WCAG
+// checklist, coverage and benchmark targets); the VoiceOver label takes the modality string it is given.
 
 import Foundation
 

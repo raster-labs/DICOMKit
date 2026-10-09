@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (request counters and timings)
 /// Performance metrics for DICOMweb operations
 ///
 /// Tracks request latency, throughput, and error rates for

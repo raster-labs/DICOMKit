@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — P-DATA-TF and PDV layout compared with PS3.8 2026a Tables 9-22, 9-23 and the Annex E.2 message control header (bit 0 command, bit 1 last fragment): match
 
 /// P-DATA-TF PDU (Data Transfer)
 ///

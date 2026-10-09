@@ -5,6 +5,8 @@
 ///
 /// Reference: PS3.16 - Content Mapping Resource
 /// Reference: LOINC.org - https://loinc.org/
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — LOINC is outside NEMA's scope; the check was against every LN code used in PS3.16 2026a context groups. Of 53 constants, 17 appear in PS3.16: 5 with the same meaning, 12 with a different Code Meaning (mostly PS3.16 wording such as "Impressions" vs "Impression"), and 36 do not appear at all and were not verified. Four names were wrong LOINC concepts and were corrected on 2026-09-25: 18748-4 is "Diagnostic imaging study" (was "Radiology Report"), 55111-9 "Current imaging procedure descriptions" (was "Technique"), 24590-2 "MR Brain" (was "MRI report"), 18750-0 "Cardiac electrophysiology study" (was "Ultrasound report"); callers wanting an ultrasound or generic MRI report concept should pick another code.
 
 /// A LOINC code with associated metadata
 ///
@@ -153,7 +155,7 @@ extension LOINCCode {
     // MARK: - Report Sections
     
     /// Radiology report (18748-4)
-    public static let radiologyReport = LOINCCode(loincNum: "18748-4", longCommonName: "Radiology Report")
+    public static let radiologyReport = LOINCCode(loincNum: "18748-4", longCommonName: "Diagnostic imaging study")
     
     /// Clinical information (55752-0)
     public static let clinicalInformation = LOINCCode(loincNum: "55752-0", longCommonName: "Clinical information")
@@ -168,7 +170,7 @@ extension LOINCCode {
     public static let comparisonStudy = LOINCCode(loincNum: "18834-2", longCommonName: "Comparison study")
     
     /// Technique (55111-9)
-    public static let technique = LOINCCode(loincNum: "55111-9", longCommonName: "Technique")
+    public static let technique = LOINCCode(loincNum: "55111-9", longCommonName: "Current imaging procedure descriptions")
     
     /// Findings (59776-5)
     public static let findings = LOINCCode(loincNum: "59776-5", longCommonName: "Findings")
@@ -194,13 +196,13 @@ extension LOINCCode {
     public static let ctScanReport = LOINCCode(loincNum: "24727-0", longCommonName: "CT scan report")
     
     /// MRI report (24590-2)
-    public static let mriReport = LOINCCode(loincNum: "24590-2", longCommonName: "MRI report")
+    public static let mriReport = LOINCCode(loincNum: "24590-2", longCommonName: "MR Brain")
     
     /// Mammography report (24605-8)
     public static let mammographyReport = LOINCCode(loincNum: "24605-8", longCommonName: "Mammography report")
     
     /// Ultrasound report (18750-0)
-    public static let ultrasoundReport = LOINCCode(loincNum: "18750-0", longCommonName: "Ultrasound report")
+    public static let ultrasoundReport = LOINCCode(loincNum: "18750-0", longCommonName: "Cardiac electrophysiology study")
     
     /// Nuclear medicine report (18747-6)
     public static let nuclearMedicineReport = LOINCCode(loincNum: "18747-6", longCommonName: "Nuclear medicine report")

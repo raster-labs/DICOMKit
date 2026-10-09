@@ -109,9 +109,9 @@ struct DICOMJPIPErrorTests {
         #expect(err.description.contains(uid))
     }
 
-    @Test("missingPixelData description is not empty")
-    func missingPixelData_descriptionIsNotEmpty() {
-        #expect(!DICOMJPIPError.missingPixelData.description.isEmpty)
+    @Test("missingPixelDataProviderURL description names (0028,7FE0)")
+    func missingPixelDataProviderURL_descriptionNamesTag() {
+        #expect(DICOMJPIPError.missingPixelDataProviderURL.description.contains("(0028,7FE0)"))
     }
 
     @Test("jpipModuleUnavailable description is not empty")
@@ -194,11 +194,13 @@ struct DICOMJPIPImageTests {
 @Suite("DICOMJPIPClient URI Extraction Tests")
 struct DICOMJPIPClientURIExtractionTests {
 
+    /// PS3.5 A.6: the URI lives in Pixel Data Provider URL (0028,7FE0), VR UR
+    /// (PS3.6 Table 6-1); "Pixel Data (7FE0,0010) shall not be present".
     private func makeDataSet(uriString: String) -> DataSet {
         let uriData = Data(uriString.utf8)
-        let element = DataElement(tag: .pixelData, vr: .OB, length: UInt32(uriData.count), valueData: uriData)
+        let element = DataElement(tag: .pixelDataProviderURL, vr: .UR, length: UInt32(uriData.count), valueData: uriData)
         var ds = DataSet()
-        ds[.pixelData] = element
+        ds[.pixelDataProviderURL] = element
         return ds
     }
 
@@ -221,28 +223,60 @@ struct DICOMJPIPClientURIExtractionTests {
         }
     }
 
-    @Test("missing Pixel Data element throws missingPixelData")
-    func jpipURI_missingPixelData_throws() {
+    @Test("missing Pixel Data Provider URL (0028,7FE0) throws missingPixelDataProviderURL")
+    func jpipURI_missingProviderURL_throws() {
         let ds = DataSet()
         #expect {
             try DICOMJPIPClient.jpipURI(from: ds, transferSyntaxUID: "1.2.840.10008.1.2.4.94")
         } throws: { error in
-            guard case DICOMJPIPError.missingPixelData = error else { return false }
+            guard case DICOMJPIPError.missingPixelDataProviderURL = error else { return false }
             return true
         }
     }
 
-    @Test("empty Pixel Data throws missingPixelData")
-    func jpipURI_emptyPixelData_throws() {
-        let element = DataElement(tag: .pixelData, vr: .OB, length: 0, valueData: Data())
+    @Test("empty Pixel Data Provider URL throws missingPixelDataProviderURL")
+    func jpipURI_emptyProviderURL_throws() {
+        let element = DataElement(tag: .pixelDataProviderURL, vr: .UR, length: 0, valueData: Data())
         var ds = DataSet()
-        ds[.pixelData] = element
+        ds[.pixelDataProviderURL] = element
         #expect {
             try DICOMJPIPClient.jpipURI(from: ds, transferSyntaxUID: "1.2.840.10008.1.2.4.94")
         } throws: { error in
-            guard case DICOMJPIPError.missingPixelData = error else { return false }
+            guard case DICOMJPIPError.missingPixelDataProviderURL = error else { return false }
             return true
         }
+    }
+
+    @Test("a Pixel Data element is treated as absent: never read as the URI (PS3.5 A.6)")
+    func jpipURI_pixelDataElement_isIgnored() {
+        let uriData = Data("jpip://legacy.example.com/should-not-be-read".utf8)
+        var ds = DataSet()
+        ds[.pixelData] = DataElement(tag: .pixelData, vr: .OB, length: UInt32(uriData.count), valueData: uriData)
+        #expect {
+            try DICOMJPIPClient.jpipURI(from: ds, transferSyntaxUID: "1.2.840.10008.1.2.4.94")
+        } throws: { error in
+            guard case DICOMJPIPError.missingPixelDataProviderURL = error else { return false }
+            return true
+        }
+    }
+
+    @Test("Pixel Data Provider URL wins even when a stray Pixel Data element is present")
+    func jpipURI_providerURL_ignoresStrayPixelData() throws {
+        let expected = "jpip://pacs.hospital.org:8080/ct-series/007"
+        var ds = makeDataSet(uriString: expected)
+        let stray = Data("jpip://legacy.example.com/other".utf8)
+        ds[.pixelData] = DataElement(tag: .pixelData, vr: .OB, length: UInt32(stray.count), valueData: stray)
+        let url = try DICOMJPIPClient.jpipURI(from: ds, transferSyntaxUID: "1.2.840.10008.1.2.4.94")
+        #expect(url.absoluteString == expected)
+    }
+
+    @Test("Pixel Data Provider URL is read through the generic string accessor as VR UR")
+    func jpipURI_providerURL_setViaSetString() throws {
+        let expected = "http://pacs.hospital.org/jpip?target=study/1"
+        var ds = DataSet()
+        ds.setString(expected, for: .pixelDataProviderURL, vr: .UR)
+        let url = try DICOMJPIPClient.jpipURI(from: ds, transferSyntaxUID: "1.2.840.10008.1.2.4.95")
+        #expect(url.absoluteString == expected)
     }
 
     @Test("Deflate transfer syntax (UID .95) also extracts URI")

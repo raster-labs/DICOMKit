@@ -7,6 +7,8 @@
 // scores each against a real pass/fail criterion — bit-exact reconstruction
 // for lossless syntaxes, a PSNR threshold for lossy — and persists every run
 // so codec speed/quality regressions are visible over time.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — J2KBenchSyntax.all is built from DICOMCore TransferSyntax.selectableEncodings, so its names are SelectableEncoding.displayName (PS3.6 2026a Table A-1 names); the 5 default UIDs of J2KTestPlan are A-1 rows and their comment names text-diffed against A-1 (5 match after .110 "JPEG XL Lossless Only" → "JPEG XL Lossless"); isLossless defaults to the registry's answer; the rest is bench plumbing
 
 import Foundation
 import DICOMCore
@@ -120,8 +122,9 @@ public enum J2KBenchCodec: String, CaseIterable, Identifiable, Codable, Sendable
 /// A transfer syntax / mode the bench can exercise, tagged with its codec
 /// family. Every family's modes come from the shared core catalog (see
 /// ``all``): JPEG exposes Baseline/Extended/Lossless variants, JPEG-LS its
-/// Lossless + Near-Lossless pair, JPEG XL Lossless Only + the general (lossless/lossy)
-/// syntax — the bench's axis is bit-exact round-trip (lossless) or PSNR (lossy).
+/// Lossless + Near-Lossless pair, JPEG XL Lossless (.110) + the general JPEG XL
+/// (lossless/lossy) syntax — the bench's axis is bit-exact round-trip (lossless) or
+/// PSNR (lossy). Names follow PS3.6 Table A-1 (``SelectableEncoding/displayName``).
 public struct J2KBenchSyntax: Identifiable, Hashable, Codable, Sendable {
     /// Unique per row. For JPEG 2000 `both`-capable UIDs (.91/.93/.203) this is the
     /// shared catalog's `SelectableEncoding.id` ("<uid>#lossless" / "<uid>#lossy"),
@@ -141,8 +144,12 @@ public struct J2KBenchSyntax: Identifiable, Hashable, Codable, Sendable {
         self.uid = uid
         self.shortName = shortName
         self.format = format
-        // JPEG 2000 keeps the original UID-suffix heuristic when not specified.
+        // When not specified, ask the registry: a `both`-capable UID (.91/.93/.203/.112)
+        // reports lossy, as do the lossy-only syntaxes (.50/.51/.81), so the bench scores
+        // them by PSNR rather than demanding a bit-exact round trip. The old UID-suffix
+        // guess called JPEG Baseline and JPEG-LS Near-Lossless "lossless".
         self.isLossless = isLossless
+            ?? TransferSyntax.from(uid: uid)?.isLossless
             ?? (!uid.hasSuffix(".91") && !uid.hasSuffix(".93") && !uid.hasSuffix(".203"))
         self.id = id ?? uid
     }
@@ -385,11 +392,12 @@ public struct J2KTestPlan: Sendable {
     public var lossyPSNRThresholdDb: Double
 
     public init(format: J2KBenchFormat = .jpeg2000,
-                selectedSyntaxIDs: Set<String> = ["1.2.840.10008.1.2.4.90",   // JPEG 2000 Lossless Only
-                                                  "1.2.840.10008.1.2.4.201",  // HTJ2K Lossless Only
-                                                  "1.2.840.10008.1.2.4.70",   // JPEG Lossless SV1
-                                                  "1.2.840.10008.1.2.4.80",   // JPEG-LS Lossless
-                                                  "1.2.840.10008.1.2.4.110"], // JPEG XL Lossless Only
+                // PS3.6 2026a Table A-1 names:
+                selectedSyntaxIDs: Set<String> = ["1.2.840.10008.1.2.4.90",   // JPEG 2000 Image Compression (Lossless Only)
+                                                  "1.2.840.10008.1.2.4.201",  // High-Throughput JPEG 2000 Image Compression (Lossless Only)
+                                                  "1.2.840.10008.1.2.4.70",   // JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])
+                                                  "1.2.840.10008.1.2.4.80",   // JPEG-LS Lossless Image Compression
+                                                  "1.2.840.10008.1.2.4.110"], // JPEG XL Lossless
                 includeKakadu: Bool = true,
                 includeGrok: Bool = true,
                 includeDjpeg: Bool = true,

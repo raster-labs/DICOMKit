@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — document titles diffed by Scripts/diff_kit.py against PS3.16 2026a CID 7010; Modality KO (C.17.6.1); value types per Table A.35.4-2 (D17); Sup 59 (before 2014a) kept as provenance
 /// Key Object Selection Document Builder
 ///
 /// Provides a specialized fluent API for creating DICOM Key Object Selection (KOS) documents.
@@ -41,12 +42,12 @@ import DICOMCore
 /// - Of Interest (113000, DCM)
 ///
 /// ## Supported Content
-/// KOS documents support limited value types:
+/// KOS documents support the value types of PS3.3 Table A.35.4-2:
 /// - TEXT - Text descriptions
 /// - CODE - Coded concepts
-/// - DATETIME - Date/time values
 /// - UIDREF - UID references
-/// - COMPOSITE, IMAGE - References to DICOM objects
+/// - PNAME - Person names
+/// - COMPOSITE, IMAGE, WAVEFORM - References to DICOM objects
 /// - CONTAINER - Hierarchical structure
 public struct KeyObjectSelectionBuilder: Sendable {
     
@@ -418,7 +419,7 @@ public struct KeyObjectSelectionBuilder: Sendable {
             accessionNumber: accessionNumber,
             seriesInstanceUID: finalSeriesInstanceUID,
             seriesNumber: seriesNumber,
-            modality: "SR",
+            modality: "KO",   // Key Object Document Series Module (PS3.3 C.17.6.1): Enumerated Value KO
             contentDate: contentDate,
             contentTime: contentTime,
             instanceNumber: instanceNumber,
@@ -426,7 +427,10 @@ public struct KeyObjectSelectionBuilder: Sendable {
             verificationFlag: verificationFlag,
             preliminaryFlag: nil,
             documentTitle: finalDocumentTitle,
-            rootContent: rootContainer
+            rootContent: rootContainer,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName
         )
         
         return document
@@ -599,19 +603,19 @@ public enum DocumentTitle: Sendable, Equatable {
             )
         case .bestInSet:
             return CodedConcept(
-                codeValue: "113020",
+                codeValue: "113013",
                 codingSchemeDesignator: "DCM",
                 codeMeaning: "Best In Set"
             )
         case .forPrinting:
             return CodedConcept(
-                codeValue: "113030",
+                codeValue: "113018",
                 codingSchemeDesignator: "DCM",
                 codeMeaning: "For Printing"
             )
         case .forReportAttachment:
             return CodedConcept(
-                codeValue: "113040",
+                codeValue: "113020",
                 codingSchemeDesignator: "DCM",
                 codeMeaning: "For Report Attachment"
             )

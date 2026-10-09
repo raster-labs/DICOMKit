@@ -426,3 +426,47 @@ final class QueryExecutorIntegrationTests: XCTestCase {
         */
     }
 }
+
+// MARK: - Hierarchical-model warnings (PS3.4 C.4.1.2.1)
+
+final class DICOMQueryParentLevelFilterTests: XCTestCase {
+
+    func testSeriesLevelPatientFilterProducesWarningAndIsNotSentAsKey() throws {
+        var query = DICOMQuery()
+        query.level = .series
+        query.studyUid = "1.2.3"
+        query.patientName = "DOE*"
+        query.studyDate = "20240101"
+
+        let warning = try XCTUnwrap(query.parentLevelFilterWarning())
+        XCTAssertTrue(warning.contains("Patient Name"))
+        XCTAssertTrue(warning.contains("Study Date"))
+        XCTAssertTrue(warning.contains("C.4.1.2.1"))
+
+        // The filters are not emitted as matching keys at SERIES level, and the
+        // parent-level return keys are absent without --include-parent-keys.
+        let keys = query.buildQueryKeys()
+        XCTAssertFalse(keys.keys.contains { $0.tag == .patientName })
+        XCTAssertFalse(keys.keys.contains { $0.tag == .studyDate })
+        XCTAssertTrue(keys.keys.contains { $0.tag == .studyInstanceUID && $0.value == "1.2.3" })
+    }
+
+    func testIncludeParentKeysFlagAddsReturnKeys() throws {
+        var query = DICOMQuery()
+        query.level = .instance
+        query.studyUid = "1.2.3"
+        query.seriesUid = "1.2.3.4"
+        query.includeParentKeys = true
+        let keys = query.buildQueryKeys()
+        XCTAssertTrue(keys.keys.contains { $0.tag == .patientName && $0.value.isEmpty })
+        XCTAssertTrue(keys.keys.contains { $0.tag == .modality && $0.value.isEmpty })
+        XCTAssertNil(query.parentLevelFilterWarning())
+    }
+
+    func testStudyLevelFiltersProduceNoWarning() {
+        var query = DICOMQuery()
+        query.level = .study
+        query.patientName = "DOE*"
+        XCTAssertNil(query.parentLevelFilterWarning())
+    }
+}

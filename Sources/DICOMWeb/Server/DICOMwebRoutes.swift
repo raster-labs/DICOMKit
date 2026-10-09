@@ -386,6 +386,16 @@ public struct DICOMwebResponse: Sendable {
         )
     }
     
+    /// Creates a 501 Not Implemented response (PS3.18 Table 8.5-1)
+    public static func notImplemented(message: String = "Not implemented") -> DICOMwebResponse {
+        let body = "{\"error\": \"\(message)\"}"
+        return DICOMwebResponse(
+            statusCode: 501,
+            headers: ["Content-Type": "application/json"],
+            body: body.data(using: .utf8)
+        )
+    }
+    
     /// Creates a 500 Internal Server Error response
     public static func internalError(message: String = "Internal server error") -> DICOMwebResponse {
         let body = "{\"error\": \"\(message)\"}"
@@ -475,6 +485,12 @@ public enum RouteHandlerType: Sendable {
 }
 
 /// Route pattern matcher for DICOMweb URLs
+///
+/// NEMA-verified: 2026a, checked 2026-09-28 — (method, template) pairs diffed against PS3.18
+/// 2026a Tables 10.3-1, 10.4.1-1..4, 10.4.1.5-1, 10.5.1-1, 10.6.1-1, 11.3-1, 11.4.1-1,
+/// 11.10.1-1, 11.11.1-1 and 11.12.1-1. Not in PS3.18: DELETE on studies/series/instances,
+/// GET /capabilities (8.9 defines OPTIONS / returning a WADL Capabilities Description),
+/// PUT as an alias of POST for Update and Request Cancellation, and the per-workitem suspend.
 public struct DICOMwebRouter: Sendable {
     
     /// The path prefix for all routes
@@ -491,10 +507,24 @@ public struct DICOMwebRouter: Sendable {
     ///   - method: The HTTP method
     /// - Returns: A route match if found, nil otherwise
     public func match(path: String, method: DICOMwebRequest.HTTPMethod) -> RouteMatch? {
+        return match(path: path, method: method, queryParameters: [:])
+    }
+    
+    /// Matches a request path, method and (already parsed) query parameters to a route handler.
+    /// The `workitem` query parameter selects the Create Workitem with a client-specified UID
+    /// (PS3.18 Table 11.4.1-1).
+    public func match(path: String, method: DICOMwebRequest.HTTPMethod, queryParameters: [String: String]) -> RouteMatch? {
         // Strip query string from path if present
         let pathWithoutQuery: String
+        var query = queryParameters
         if let queryIndex = path.firstIndex(of: "?") {
             pathWithoutQuery = String(path[path.startIndex..<queryIndex])
+            for pair in path[path.index(after: queryIndex)...].split(separator: "&") {
+                let parts = pair.split(separator: "=", maxSplits: 1)
+                if parts.count == 2 {
+                    query[String(parts[0])] = String(parts[1]).removingPercentEncoding ?? String(parts[1])
+                }
+            }
         } else {
             pathWithoutQuery = path
         }
@@ -510,10 +540,15 @@ public struct DICOMwebRouter: Sendable {
         // Split path into components
         let components = normalizedPath.split(separator: "/").map(String.init)
         
-        return matchRoute(components: components, method: method)
+        return matchRoute(components: components, method: method, query: query)
     }
     
-    private func matchRoute(components: [String], method: DICOMwebRequest.HTTPMethod) -> RouteMatch? {
+    /// Well-known UIDs of the Worklist and Filtered Worklist Subscriptions (PS3.18 Table 11.1.1-1)
+    private static let globalSubscriptionUIDs: Set<String> = [
+        DICOMwebURLBuilder.globalSubscriptionUID, DICOMwebURLBuilder.filteredGlobalSubscriptionUID
+    ]
+    
+    private func matchRoute(components: [String], method: DICOMwebRequest.HTTPMethod, query: [String: String]) -> RouteMatch? {
         switch (method, components.count) {
         
         // GET / or GET /capabilities - Server capabilities
@@ -675,6 +710,14 @@ public struct DICOMwebRouter: Sendable {
                 handlerType: .retrieveThumbnail
             )
             
+        // GET /studies/{studyUID}/series/{seriesUID}/instances/{instanceUID}/bulkdata - Instance Bulk Data (Table 10.4.1.5-1)
+        case (.get, 7) where components[0] == "studies" && components[2] == "series" && components[4] == "instances" && components[6] == "bulkdata":
+            return RouteMatch(
+                pattern: "/studies/{studyUID}/series/{seriesUID}/instances/{instanceUID}/bulkdata",
+                parameters: ["studyUID": components[1], "seriesUID": components[3], "instanceUID": components[5]],
+                handlerType: .retrieveBulkData
+            )
+            
         // GET /studies/{studyUID}/series/{seriesUID}/instances/{instanceUID}/frames/{frames} - Retrieve frames
         case (.get, 8) where components[0] == "studies" && components[2] == "series" && components[4] == "instances" && components[6] == "frames":
             return RouteMatch(
@@ -707,6 +750,14 @@ public struct DICOMwebRouter: Sendable {
         case (.get, 1) where components[0] == "workitems":
             return RouteMatch(pattern: "/workitems", parameters: [:], handlerType: .searchWorkitems)
             
+        // POST /workitems?workitem={uid} - Create workitem with a client-specified UID (PS3.18 Table 11.4.1-1)
+        case (.post, 1) where components[0] == "workitems" && query["workitem"] != nil:
+            return RouteMatch(
+                pattern: "/workitems?workitem={workitemUID}",
+                parameters: ["workitemUID": query["workitem"]!],
+                handlerType: .createWorkitemWithUID
+            )
+            
         // POST /workitems - Create workitem (UPS-RS)
         case (.post, 1) where components[0] == "workitems":
             return RouteMatch(pattern: "/workitems", parameters: [:], handlerType: .createWorkitem)
@@ -719,16 +770,9 @@ public struct DICOMwebRouter: Sendable {
                 handlerType: .retrieveWorkitem
             )
             
-        // POST /workitems/{workitemUID} - Create workitem with specific UID (UPS-RS)
-        case (.post, 2) where components[0] == "workitems":
-            return RouteMatch(
-                pattern: "/workitems/{workitemUID}",
-                parameters: ["workitemUID": components[1]],
-                handlerType: .createWorkitemWithUID
-            )
-            
-        // PUT /workitems/{workitemUID} - Update workitem (UPS-RS)
-        case (.put, 2) where components[0] == "workitems":
+        // POST /workitems/{workitemUID} - Update workitem (PS3.18 11.6.1); PUT is tolerated as an alias
+        case (.post, 2) where components[0] == "workitems",
+             (.put, 2) where components[0] == "workitems":
             return RouteMatch(
                 pattern: "/workitems/{workitemUID}",
                 parameters: ["workitemUID": components[1]],
@@ -743,28 +787,30 @@ public struct DICOMwebRouter: Sendable {
                 handlerType: .changeWorkitemState
             )
             
-        // PUT /workitems/{workitemUID}/cancelrequest - Request cancellation (UPS-RS)
-        case (.put, 3) where components[0] == "workitems" && components[2] == "cancelrequest":
+        // POST /workitems/{workitemUID}/cancelrequest - Request cancellation (PS3.18 11.8.1); PUT tolerated
+        case (.post, 3) where components[0] == "workitems" && components[2] == "cancelrequest",
+             (.put, 3) where components[0] == "workitems" && components[2] == "cancelrequest":
             return RouteMatch(
                 pattern: "/workitems/{workitemUID}/cancelrequest",
                 parameters: ["workitemUID": components[1]],
                 handlerType: .requestWorkitemCancellation
             )
             
-        // POST /workitems/{workitemUID}/subscribers/{aeTitle} - Subscribe to workitem
+        // POST /workitems/{workitemUID}/subscribers/{aeTitle} - Subscribe (PS3.18 Table 11.10.1-1);
+        // the well-known UIDs 1.2.840.10008.5.1.4.34.5 and .5.1 address the Worklist Subscription
         case (.post, 4) where components[0] == "workitems" && components[2] == "subscribers":
             return RouteMatch(
                 pattern: "/workitems/{workitemUID}/subscribers/{aeTitle}",
                 parameters: ["workitemUID": components[1], "aeTitle": components[3]],
-                handlerType: .subscribeWorkitem
+                handlerType: Self.globalSubscriptionUIDs.contains(components[1]) ? .subscribeGlobal : .subscribeWorkitem
             )
             
-        // DELETE /workitems/{workitemUID}/subscribers/{aeTitle} - Unsubscribe from workitem
+        // DELETE /workitems/{workitemUID}/subscribers/{aeTitle} - Unsubscribe (PS3.18 Table 11.11.1-1)
         case (.delete, 4) where components[0] == "workitems" && components[2] == "subscribers":
             return RouteMatch(
                 pattern: "/workitems/{workitemUID}/subscribers/{aeTitle}",
                 parameters: ["workitemUID": components[1], "aeTitle": components[3]],
-                handlerType: .unsubscribeWorkitem
+                handlerType: Self.globalSubscriptionUIDs.contains(components[1]) ? .unsubscribeGlobal : .unsubscribeWorkitem
             )
             
         // POST /workitems/{workitemUID}/subscribers/{aeTitle}/suspend - Suspend subscription

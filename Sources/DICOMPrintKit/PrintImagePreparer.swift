@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — --raw frames checked against PS3.3 2026a Table C.13-5 grayscale/colour pixel enumerations (Photometric, Bits Allocated/Stored, Pixel Representation, High Bit); depth clamp cites Table C.13-5; C.11.2 VOI choice documented as implementation choice (C.11.2 sets no precedence or default pair)
 // PrintImagePreparer.swift
 // DICOMPrintKit
 //
@@ -13,7 +14,7 @@ import DICOMNetwork
 // MARK: - Prepared Image
 
 /// One frame ready to be sent as an image box: pixel bytes plus the mandatory
-/// image-box attributes (PS3.3 C.13.5.1).
+/// image-box pixel attributes (PS3.3 Table C.13-5).
 public struct PreparedPrintImage: Sendable {
     /// The pixel bytes to send.
     public var pixelData: Data { descriptor.pixelData }
@@ -67,8 +68,9 @@ public struct PreparedPrintImage: Sendable {
 /// Decodes and preprocesses DICOM sources into printable frames.
 ///
 /// - Encapsulated sources (JPEG/J2K/JPEG-LS/RLE) are decoded to native frames
-///   via `DICOMFile.tryPixelData()` — image boxes require uncompressed pixels
-///   (PS3.3 C.13.5).
+///   via `DICOMFile.tryPixelData()` — Print Management carries native pixels
+///   in the image box (PS3.3 Table C.13-5, Pixel Data of the Basic Grayscale /
+///   Color Image Sequence).
 /// - The request's frame selection picks frames from multi-frame files; each
 ///   selected frame becomes one image box.
 /// - Unless the request is `raw`, each frame runs through `ImagePreprocessor`
@@ -170,6 +172,14 @@ public struct PrintImagePreparer: Sendable {
         for frameIndex in frameIndices {
             let descriptor: PrintImageData
             if request.raw {
+                // Raw sends the stored values as they are, so a pixel module
+                // the image box cannot carry cannot be corrected here either —
+                // it is refused, with the rule, rather than sent non-conformant.
+                if let problem = Self.rawConformanceProblem(sourceDescriptor) {
+                    throw PrintRequestError(
+                        "--raw cannot print \(label): \(problem) Print without --raw "
+                        + "to have the frame converted.")
+                }
                 guard let frameBytes = pixelData.frameData(at: frameIndex) else {
                     throw PrintRequestError(
                         "Frame \(frameIndex + 1) of \(label) is truncated or missing")
@@ -285,6 +295,72 @@ public struct PrintImagePreparer: Sendable {
         return prepared
     }
 
+    // MARK: - Raw frames
+
+    /// The Basic Grayscale Image Sequence's pixel enumerations, PS3.3 Table
+    /// C.13-5. A raw frame is sent with the source's own pixel module, so it
+    /// has to meet them as it stands.
+    static let rawGrayscalePhotometric = ["MONOCHROME1", "MONOCHROME2"]
+    static let rawGrayscaleBitsAllocated = [8, 16]
+    static let rawGrayscaleBitsStored = [8, 12]
+    static let rawPixelRepresentation = [0]
+
+    /// The Basic Color Image Sequence's, same table: RGB, 8 bits allocated and
+    /// stored (Planar Configuration 1 is the SCU's to write — it re-lays the
+    /// samples out color-by-plane on the wire).
+    static let rawColorPhotometric = ["RGB"]
+    static let rawColorBitsAllocated = [8]
+    static let rawColorBitsStored = [8]
+
+    /// Why a source's stored pixels cannot go into an image box untouched, or
+    /// `nil` when they can.
+    ///
+    /// These are Enumerated Values, so a value outside them is non-conformant
+    /// (PS3.5 6.3), and High Bit "shall be one less than Bits
+    /// Stored" in both sequences. A signed CT (Pixel Representation 1), a
+    /// 16-bit-stored image, a YBR or PALETTE COLOR source all fail here; the
+    /// ordinary path converts every one of them.
+    static func rawConformanceProblem(_ source: PixelDataDescriptor) -> String? {
+        let photometric = source.photometricInterpretation.rawValue
+        let representation = source.isSigned ? 1 : 0
+        func fail(_ what: String, _ value: CustomStringConvertible, _ allowed: [CustomStringConvertible]) -> String {
+            "PS3.3 Table C.13-5 allows \(what) \(allowed.map(\.description).joined(separator: " or ")) "
+                + "in an image box, and the frame has \(value)."
+        }
+        switch source.samplesPerPixel {
+        case 1:
+            guard rawGrayscalePhotometric.contains(photometric) else {
+                return fail("Photometric Interpretation", photometric, rawGrayscalePhotometric)
+            }
+            guard rawGrayscaleBitsAllocated.contains(source.bitsAllocated) else {
+                return fail("Bits Allocated", source.bitsAllocated, rawGrayscaleBitsAllocated)
+            }
+            guard rawGrayscaleBitsStored.contains(source.bitsStored) else {
+                return fail("Bits Stored", source.bitsStored, rawGrayscaleBitsStored)
+            }
+        case 3:
+            guard rawColorPhotometric.contains(photometric) else {
+                return fail("Photometric Interpretation", photometric, rawColorPhotometric)
+            }
+            guard rawColorBitsAllocated.contains(source.bitsAllocated) else {
+                return fail("Bits Allocated", source.bitsAllocated, rawColorBitsAllocated)
+            }
+            guard rawColorBitsStored.contains(source.bitsStored) else {
+                return fail("Bits Stored", source.bitsStored, rawColorBitsStored)
+            }
+        default:
+            return fail("Samples per Pixel", source.samplesPerPixel, [1, 3])
+        }
+        guard rawPixelRepresentation.contains(representation) else {
+            return fail("Pixel Representation", representation, rawPixelRepresentation)
+        }
+        guard source.highBit == source.bitsStored - 1 else {
+            return "PS3.3 Table C.13-5 requires High Bit one less than Bits Stored, and the "
+                + "frame has High Bit \(source.highBit) with Bits Stored \(source.bitsStored)."
+        }
+        return nil
+    }
+
     // MARK: - Colour preparation
 
     /// The colour mode the *preprocessor* is driven with for one source.
@@ -358,7 +434,7 @@ public struct PrintImagePreparer: Sendable {
     ///   * Eight, whenever a palette is in force: PS3.3 Table C.13-5 fixes Bits
     ///     Allocated and Bits Stored at 8 for the Basic Color Image Box, so a
     ///     coloured frame has no deeper form to take.
-    ///   * Otherwise the requested depth, clamped to what PS3.3 Table C.13-3
+    ///   * Otherwise the requested depth, clamped to what PS3.3 Table C.13-5
     ///     enumerates for the Basic Grayscale Image Box — 8 or 12. A request for
     ///     16 is dropped to 12 rather than refused: every pixel of it is
     ///     meaningful and only the label is illegal, so the film is worth
@@ -396,7 +472,7 @@ public struct PrintImagePreparer: Sendable {
 
         let effective = Self.clampedGrayscaleBitDepth(request.bitDepth)
         guard effective != request.bitDepth else { return nil }
-        return "Requested \(request.bitDepth)-bit, which PS3.3 Table C.13-3 does not allow "
+        return "Requested \(request.bitDepth)-bit, which PS3.3 Table C.13-5 does not allow "
             + "for the Basic Grayscale Image Box (Bits Stored must be 8 or 12) — "
             + "preparing at \(effective)-bit instead."
     }
@@ -419,8 +495,10 @@ public struct PrintImagePreparer: Sendable {
     /// that disagrees with the screen it was approved on.
     ///
     /// A multi-valued VOI (`-600\50` / `1200\350`, a lung and a soft-tissue
-    /// window in one element) resolves to its first pair, which PS3.3 C.11.2
-    /// makes the default presentation.
+    /// window in one element) resolves to its first pair. PS3.3 C.11.2 only
+    /// says the values "shall be considered as pairs" and that one may be
+    /// applied; it names no default, so the first — what viewers conventionally
+    /// open with — is this toolkit's choice.
     static func resolvedWindow(
         _ request: PrintJobRequest,
         dataSet: DataSet
@@ -435,13 +513,15 @@ public struct PrintImagePreparer: Sendable {
 
     /// The full VOI resolution, table LUTs included (SRS FR-004).
     ///
-    /// PS3.3 C.11.2 precedence, highest first:
+    /// PS3.3 C.11.2 lets either a Window Center/Width pair "or the VOI LUT, but
+    /// not both at the same time" be applied, and sets no precedence between
+    /// them. The order below is this toolkit's, highest first:
     ///
     /// 1. The request's explicit window — the user (or the viewer the film
     ///    must match) asked for it, so it beats everything, the file's own
     ///    table included.
-    /// 2. The file's VOI LUT Sequence (0028,3010), which the standard puts
-    ///    above Window Center/Width: a file carrying both means the table.
+    /// 2. The file's VOI LUT Sequence (0028,3010): a file carrying both is
+    ///    printed through the table, the more specific of the two.
     /// 3. Window Center/Width from the header.
     /// 4. Nothing — the preprocessor auto-stretches.
     static func resolvedVOI(

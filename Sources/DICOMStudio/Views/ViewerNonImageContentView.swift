@@ -8,6 +8,8 @@
 // says what it is. Nothing here decodes a file: the content was parsed when the
 // instance was loaded, so paging through a series stays as cheap as it is for
 // images.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — StructuredReportNarrativeView.value(of:) covers the 15 non-CONTAINER Value Types of PS3.3 2026a Table C.17.3-7 (TABLE was missing, D237 sibling); the video container name is DICOMKit's containerDisplayName (no exhaustive switch over VideoContainer here, D237); PS3.5 2026a 8.2.7 cited for the MPEG-4 AVC/H.264 container rule
 
 #if canImport(SwiftUI)
 import SwiftUI
@@ -252,6 +254,10 @@ struct StructuredReportNarrativeView: View {
     }
 
     /// The item's value as a reader would say it aloud.
+    ///
+    /// One branch per PS3.3 Table C.17.3-7 Value Type other than CONTAINER (which
+    /// `append(container:)` walks): TEXT, CODE, NUM, DATE, TIME, DATETIME, PNAME,
+    /// IMAGE, WAVEFORM, SCOORD / SCOORD3D / TCOORD, COMPOSITE, UIDREF, TABLE.
     static func value(of item: AnyContentItem) -> String? {
         if let text = item.asText { return text.textValue }
         if let code = item.asCode { return code.conceptCode.codeMeaning }
@@ -278,6 +284,9 @@ struct StructuredReportNarrativeView: View {
         if item.isCoordinate { return "(coordinates)" }
         if item.asComposite != nil { return "(referenced object)" }
         if let uid = item.asUIDRef { return uid.uidValue }
+        if let table = item.asTable {
+            return "(table, \(table.rows) × \(table.columns))"
+        }
         return nil
     }
 }
@@ -379,7 +388,10 @@ struct ViewerVideoPlayerView: View {
             // a sentence naming the codec.
             guard try await asset.load(.isPlayable) else {
                 try? FileManager.default.removeItem(at: url)
-                failure = "\(video.codec.displayName) in a \(containerName) container "
+                // DICOMKit names the container (an MPEG-2 Program Stream / PES by its
+                // PS3.5 8.2.5 name), so adding a `VideoContainer` case there needs
+                // nothing here.
+                failure = "\(video.codec.displayName) in a \(video.containerDisplayName) container "
                     + "is not playable on this system."
                 return
             }
@@ -416,16 +428,6 @@ struct ViewerVideoPlayerView: View {
             self.fileURL = nil
         }
         failure = nil
-    }
-
-    private var containerName: String {
-        switch video.container {
-        case .mp4:              return "MP4"
-        case .quickTime:        return "QuickTime"
-        case .mpegTS:           return "MPEG-TS"
-        case .elementaryStream: return "elementary stream"
-        case .unknown:          return "unrecognised"
-        }
     }
 }
 #endif

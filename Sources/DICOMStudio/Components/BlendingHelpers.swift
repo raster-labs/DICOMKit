@@ -2,13 +2,18 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent image blending helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — alpha blend underlay·(1−α) + overlay·α agrees with Relative Opacity (0070,0403) in PS3.3 2026a C.11.14 Presentation State Blending Module (1.0 = superimposed replaces underlying); the citation read C.11.11, which is the Presentation State Relationship Module in 2026a, and was corrected; opacities and fusion labels are UI values
 
 import Foundation
 
 /// Platform-independent helpers for image blending operations.
 ///
 /// Provides alpha blending, opacity control, and color map application
-/// for PET/CT fusion and registered image overlay per DICOM PS3.3 C.11.11.
+/// for PET/CT fusion and registered image overlay. The alpha blend follows the
+/// Blending Presentation State's Relative Opacity (0070,0403), PS3.3 C.11.14:
+/// 1.0 means the superimposed (overlay) image completely replaces the underlying
+/// one, 0.0 that the underlying image shows through unchanged.
 public enum BlendingHelpers: Sendable {
 
     // MARK: - Alpha Blending

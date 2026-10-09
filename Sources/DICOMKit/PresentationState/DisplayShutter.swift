@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a Table C.7-17a: the shape is the visible region, origin 1,1; Shutter Presentation Color CIELab Value (0018,1624) per Table C.11.12-1 and C.10.7.1.1
 //
 // DisplayShutter.swift
 // DICOMKit
@@ -11,7 +12,9 @@ import DICOMCore
 
 /// Display shutter for masking image regions
 ///
-/// Shutters define areas of the image that should be masked (blacked out).
+/// A shutter shape marks the part of the image that stays visible; the pixels
+/// outside it are neutralised with the Shutter Presentation Value (PS3.3 C.7.6.11).
+/// Geometry is in row/column image coordinates with origin 1,1.
 ///
 /// Reference: PS3.3 Section C.7.6.11 - Display Shutter Module
 public enum DisplayShutter: Sendable, Hashable {
@@ -38,12 +41,12 @@ public enum DisplayShutter: Sendable, Hashable {
         }
     }
     
-    /// Check if a point is inside the shutter (should be masked)
+    /// Check if a point is inside the shutter shape (the visible region)
     ///
     /// - Parameters:
-    ///   - column: Column coordinate
-    ///   - row: Row coordinate
-    /// - Returns: true if the point is inside the shutter (should be masked)
+    ///   - column: Column coordinate (1-based)
+    ///   - row: Row coordinate (1-based)
+    /// - Returns: true if the point is inside the shape and therefore stays visible
     public func contains(column: Int, row: Int) -> Bool {
         switch self {
         case .rectangular(let left, let right, let top, let bottom, _):
@@ -162,6 +165,57 @@ extension DisplayShutter {
             hasher.combine(value)
         }
     }
+}
+
+// MARK: - Shutter Presentation Color CIELab Value
+
+/// The colour a shutter paints the occluded pixels with on a colour display.
+///
+/// Shutter Presentation Color CIELab Value (0018,1624) is one attribute of the
+/// data set, not of each shape, so it lives on the presentation state next to
+/// the `shutters` array rather than inside ``DisplayShutter``. It is Type 3 in
+/// the Display Shutter Macro (Table C.7-17a) and the Presentation State Shutter
+/// Module (Table C.11.12-1) makes it Type 1C: "Required if the Display Shutter
+/// Module or Bitmap Display Shutter Module is present and the SOP Class is other
+/// than Grayscale Softcopy Presentation State Storage". The three values are
+/// encoded per C.10.7.1.1 — the same encoding ``CIELabColor`` already holds.
+extension CIELabColor {
+
+    /// The three unsigned shorts as they are written to (0018,1624) or
+    /// (0070,0401): L* over 0x0000...0xFFFF, a* and b* offset so 0x8080 is 0.0
+    /// (C.10.7.1.1).
+    public var encodedValues: [Int] {
+        [l, a, b]
+    }
+
+    /// The colour read back from the three encoded values of (0018,1624) or
+    /// (0070,0401); nil when there are not exactly three.
+    public init?(encodedValues values: [Int]) {
+        guard values.count == 3 else { return nil }
+        self.init(
+            l: min(65535, max(0, values[0])),
+            a: min(65535, max(0, values[1])),
+            b: min(65535, max(0, values[2])))
+    }
+
+    /// A colour from 16-bit-per-channel sRGB, encoded per C.10.7.1.1.
+    public init(sRGB red: Int, green: Int, blue: Int) {
+        let encoded = GrayscalePresentationStateBuilder.cieLabEncoded(
+            from: (red: red, green: green, blue: blue))
+        self.init(l: encoded[0], a: encoded[1], b: encoded[2])
+    }
+
+    /// The 16-bit-per-channel sRGB colour this value renders as.
+    public var sRGBValue: (red: Int, green: Int, blue: Int) {
+        GrayscalePresentationStateBuilder.rgb(fromCIELabEncoded: [l, a, b])
+            ?? (red: 0, green: 0, blue: 0)
+    }
+
+    /// L* = 0, a* = b* = 0: what a monochrome Shutter Presentation Value of
+    /// 0000H (black, Table C.7-17a) means on a colour display. The colour
+    /// builders write it when a state has shutters but names no colour, because
+    /// Table C.11.12-1 leaves them no choice about the attribute's presence.
+    public static let shutterBlack = CIELabColor(l: 0, a: 0x8080, b: 0x8080)
 }
 
 /// Shutter shape enumeration

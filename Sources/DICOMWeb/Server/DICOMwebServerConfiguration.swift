@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (ports, TLS files, CORS, STOW policies); TLS is PS3.15 B.12, not PS3.18
 /// Configuration for DICOMweb server
 ///
 /// Contains settings for hosting a DICOMweb server including
@@ -126,7 +127,7 @@ extension DICOMwebServerConfiguration {
     /// )
     /// ```
     ///
-    /// Reference: PS3.18 Section 6 - Security Considerations
+    /// Reference: PS3.15 Annex B.12 - Secure Transport Connection Profiles (PS3.18 Section 6 is Conformance)
     public struct TLSConfiguration: Sendable, Equatable {
         /// Path to the certificate file (PEM or DER format)
         public let certificatePath: String
@@ -700,7 +701,7 @@ extension DICOMwebServerConfiguration {
     /// Controls how the server handles incoming DICOM instances via STOW-RS,
     /// including duplicate handling, validation, and allowed SOP Classes.
     ///
-    /// Reference: PS3.18 Section 10.5 - STOW-RS
+    /// Reference: PS3.18 Section 10.5 - Store Transaction (STOW-RS)
     public struct STOWConfiguration: Sendable {
         /// How to handle duplicate instances (same SOP Instance UID)
         public let duplicatePolicy: DuplicatePolicy

@@ -87,7 +87,7 @@ final class HangingProtocolParserTests: XCTestCase {
     
     func test_parse_protocolLevel_group() throws {
         var dataSet = createMinimalDataSet()
-        dataSet[.hangingProtocolLevel] = DataElement.string(tag: .hangingProtocolLevel, vr: .CS, value: "GROUP")
+        dataSet[.hangingProtocolLevel] = DataElement.string(tag: .hangingProtocolLevel, vr: .CS, value: "USER_GROUP")
         
         let hangingProtocol = try parser.parse(from: dataSet)
         
@@ -119,7 +119,7 @@ final class HangingProtocolParserTests: XCTestCase {
         var envItem = DataSet()
         envItem[.modality] = DataElement.string(tag: .modality, vr: .CS, value: "CT")
         
-        dataSet.setSequence([SequenceItem(elements: envItem.allElements)], for: .hangingProtocolEnvironmentSequence)
+        dataSet.setSequence([SequenceItem(elements: envItem.allElements)], for: .hangingProtocolDefinitionSequence)
         
         let hangingProtocol = try parser.parse(from: dataSet)
         
@@ -140,7 +140,7 @@ final class HangingProtocolParserTests: XCTestCase {
         dataSet.setSequence([
             SequenceItem(elements: env1.allElements),
             SequenceItem(elements: env2.allElements)
-        ], for: .hangingProtocolEnvironmentSequence)
+        ], for: .hangingProtocolDefinitionSequence)
         
         let hangingProtocol = try parser.parse(from: dataSet)
         
@@ -218,20 +218,52 @@ final class HangingProtocolParserTests: XCTestCase {
         XCTAssertEqual(hangingProtocol.imageSets.count, 0)
     }
     
+    /// An Image Sets Sequence item whose Time Based Image Sets Sequence
+    /// (0072,0030) holds `timeItems` (PS3.3 Table C.23.1-1).
+    private func imageSetItem(timeItems: [DataSet], selectors: [DataSet] = []) -> SequenceItem {
+        var imageSetItem = DataSet()
+        if !selectors.isEmpty {
+            imageSetItem.setSequence(selectors.map { SequenceItem(elements: $0.allElements) }, for: .imageSetSelectorSequence)
+        }
+        imageSetItem.setSequence(timeItems.map { SequenceItem(elements: $0.allElements) }, for: .timeBasedImageSetsSequence)
+        return SequenceItem(elements: imageSetItem.allElements)
+    }
+
+    private func timeItem(number: Int, label: String? = nil, category: String = "RELATIVE_TIME") -> DataSet {
+        var item = DataSet()
+        item[.imageSetNumber] = DataElement.uint16(tag: .imageSetNumber, value: UInt16(number))
+        item[.imageSetSelectorCategory] = DataElement.string(tag: .imageSetSelectorCategory, vr: .CS, value: category)
+        if let label { item[.imageSetLabel] = DataElement.string(tag: .imageSetLabel, vr: .LO, value: label) }
+        return item
+    }
+
     func test_parse_imageSets_single() throws {
         var dataSet = createMinimalDataSet()
-        
+        dataSet.setSequence([imageSetItem(timeItems: [timeItem(number: 1, label: "Primary")])], for: .imageSetsSequence)
+
+        let hangingProtocol = try parser.parse(from: dataSet)
+
+        XCTAssertEqual(hangingProtocol.imageSets.count, 1)
+        XCTAssertEqual(hangingProtocol.imageSets[0].timeBasedImageSets.count, 1)
+        XCTAssertEqual(hangingProtocol.imageSets[0].timeBasedImageSets[0].number, 1)
+        XCTAssertEqual(hangingProtocol.imageSets[0].timeBasedImageSets[0].label, "Primary")
+        XCTAssertEqual(hangingProtocol.imageSets[0].timeBasedImageSets[0].category, .relativeTime)
+    }
+
+    /// Image Set Number / Label written directly in the Image Sets Sequence
+    /// item by an earlier DICOMKit version read as one time based image set
+    @available(*, deprecated)
+    func test_parse_imageSets_legacyPlacement() throws {
+        var dataSet = createMinimalDataSet()
         var imageSetItem = DataSet()
         imageSetItem[.imageSetNumber] = DataElement.uint16(tag: .imageSetNumber, value: 1)
         imageSetItem[.imageSetLabel] = DataElement.string(tag: .imageSetLabel, vr: .LO, value: "Primary")
-        
         dataSet.setSequence([SequenceItem(elements: imageSetItem.allElements)], for: .imageSetsSequence)
-        
+
         let hangingProtocol = try parser.parse(from: dataSet)
-        
-        XCTAssertEqual(hangingProtocol.imageSets.count, 1)
         XCTAssertEqual(hangingProtocol.imageSets[0].number, 1)
         XCTAssertEqual(hangingProtocol.imageSets[0].label, "Primary")
+        XCTAssertEqual(hangingProtocol.imageSets[0].timeBasedImageSets.first?.number, 1)
     }
     
     func test_parse_imageSetSelector_basic() throws {
@@ -243,22 +275,190 @@ final class HangingProtocolParserTests: XCTestCase {
         let attrTagData = writer.serializeTag(.modality)
         selectorItem[.selectorAttribute] = DataElement(tag: .selectorAttribute, vr: .AT, length: 4, valueData: attrTagData)
         selectorItem[.selectorValueNumber] = DataElement.uint16(tag: .selectorValueNumber, value: 1)
+        selectorItem[.selectorAttributeVR] = DataElement.string(tag: .selectorAttributeVR, vr: .CS, value: "CS")
+        selectorItem[.selectorCSValue] = DataElement.strings(tag: .selectorCSValue, vr: .CS, values: ["CT", "MR"])
+        selectorItem[.imageSetSelectorUsageFlag] = DataElement.string(tag: .imageSetSelectorUsageFlag, vr: .CS, value: "NO_MATCH")
         
-        var imageSetItem = DataSet()
-        imageSetItem[.imageSetNumber] = DataElement.uint16(tag: .imageSetNumber, value: 1)
-        imageSetItem.setSequence([SequenceItem(elements: selectorItem.allElements)], for: .selectorSequence)
-        
-        dataSet.setSequence([SequenceItem(elements: imageSetItem.allElements)], for: .imageSetsSequence)
-        
+        dataSet.setSequence([imageSetItem(timeItems: [timeItem(number: 1)], selectors: [selectorItem])], for: .imageSetsSequence)
+
         let hangingProtocol = try parser.parse(from: dataSet)
-        
+
         XCTAssertEqual(hangingProtocol.imageSets.count, 1)
         XCTAssertEqual(hangingProtocol.imageSets[0].selectors.count, 1)
         XCTAssertEqual(hangingProtocol.imageSets[0].selectors[0].attribute, .modality)
+        XCTAssertEqual(hangingProtocol.imageSets[0].selectors[0].valueNumber, 1)
+        XCTAssertEqual(hangingProtocol.imageSets[0].selectors[0].attributeVR, .CS)
+        XCTAssertEqual(hangingProtocol.imageSets[0].selectors[0].values, ["CT", "MR"])
+        XCTAssertEqual(hangingProtocol.imageSets[0].selectors[0].usageFlag, .noMatch)
     }
     
+    /// Filter Operations Sequence (0072,0400) items with EQUAL / NOT_EQUAL / CONTAINS /
+    /// PRESENT / NOT_PRESENT in Filter-by Operator (0072,0406), as earlier DICOMKit versions
+    /// spelled them, read mapped to the PS3.3 2026a Table C.23.3-1 terms
+    func test_parse_filterOperations_oldOperatorSpellings() throws {
+        func parse(operator raw: String) throws -> FilterOperation? {
+            var dataSet = createMinimalDataSet()
+            var filterItem = DataSet()
+            let writer = DICOMWriter()
+            filterItem[.selectorAttribute] = DataElement(tag: .selectorAttribute, vr: .AT, length: 4, valueData: writer.serializeTag(.modality))
+            filterItem[.filterByOperator] = DataElement.string(tag: .filterByOperator, vr: .CS, value: raw)
+            var displaySetItem = DataSet()
+            displaySetItem[.displaySetNumber] = DataElement.uint16(tag: .displaySetNumber, value: 1)
+            displaySetItem[.imageSetNumber] = DataElement.uint16(tag: .imageSetNumber, value: 1)
+            displaySetItem.setSequence([SequenceItem(elements: filterItem.allElements)], for: .filterOperationsSequence)
+            dataSet.setSequence([SequenceItem(elements: displaySetItem.allElements)], for: .displaySetsSequence)
+            return try parser.parse(from: dataSet).displaySets.first?.filterOperations.first
+        }
+
+        XCTAssertEqual(try parse(operator: "EQUAL")?.operator, .memberOf)
+        XCTAssertEqual(try parse(operator: "NOT_EQUAL")?.operator, .notMemberOf)
+        XCTAssertEqual(try parse(operator: "CONTAINS")?.operator, .memberOf)
+        XCTAssertEqual(try parse(operator: "RANGE_INCL")?.operator, .rangeInclusive)
+
+        let present = try parse(operator: "PRESENT")
+        XCTAssertNil(present?.operator)
+        XCTAssertEqual(present?.attributePresence, .present)
+        let notPresent = try parse(operator: "NOT_PRESENT")
+        XCTAssertNil(notPresent?.operator)
+        XCTAssertEqual(notPresent?.attributePresence, .notPresent)
+    }
+
+    /// Selector items written by earlier DICOMKit versions with a Filter-by Operator
+    /// (0072,0406) in the Image Set Selector Sequence item (legacy placement) still read,
+    /// into the deprecated ImageSetSelector fields, with the old spellings mapped
+    @available(*, deprecated)
+    func test_parse_imageSetSelector_oldOperatorSpellings() throws {
+        func parse(operator raw: String) throws -> ImageSetSelector? {
+            var dataSet = createMinimalDataSet()
+            var selectorItem = DataSet()
+            let writer = DICOMWriter()
+            selectorItem[.selectorAttribute] = DataElement(tag: .selectorAttribute, vr: .AT, length: 4, valueData: writer.serializeTag(.modality))
+            selectorItem[.filterByOperator] = DataElement.string(tag: .filterByOperator, vr: .CS, value: raw)
+            selectorItem[.imageSetSelectorUsageFlag] = DataElement.string(tag: .imageSetSelectorUsageFlag, vr: .CS, value: "MATCH")
+            var imageSetItem = DataSet()
+            imageSetItem[.imageSetNumber] = DataElement.uint16(tag: .imageSetNumber, value: 1)
+            imageSetItem.setSequence([SequenceItem(elements: selectorItem.allElements)], for: .imageSetSelectorSequence)
+            dataSet.setSequence([SequenceItem(elements: imageSetItem.allElements)], for: .imageSetsSequence)
+            return try parser.parse(from: dataSet).imageSets.first?.selectors.first
+        }
+
+        XCTAssertEqual(try parse(operator: "EQUAL")?.operator, .memberOf)
+        XCTAssertEqual(try parse(operator: "NOT_EQUAL")?.operator, .notMemberOf)
+        XCTAssertEqual(try parse(operator: "CONTAINS")?.operator, .memberOf)
+        XCTAssertEqual(try parse(operator: "RANGE_INCL")?.operator, .rangeInclusive)
+
+        let present = try parse(operator: "PRESENT")
+        XCTAssertNil(present?.operator)
+        XCTAssertEqual(present?.attributePresence, .present)
+        let notPresent = try parse(operator: "NOT_PRESENT")
+        XCTAssertNil(notPresent?.operator)
+        XCTAssertEqual(notPresent?.attributePresence, .notPresent)
+    }
+
+    /// Old DICOMKit spellings of Sort-by Category (0072,0602) map to a Defined Term or to
+    /// the attribute they named
+    func test_parse_sortOperations_oldCategorySpellings() throws {
+        func parse(category raw: String) throws -> SortOperation? {
+            var dataSet = createMinimalDataSet()
+            var sortItem = DataSet()
+            sortItem[.sortByCategory] = DataElement.string(tag: .sortByCategory, vr: .CS, value: raw)
+            sortItem[.sortingDirection] = DataElement.string(tag: .sortingDirection, vr: .CS, value: "INCREASING")
+            // Sorting Operations Sequence (0072,0600) in a Display Sets
+            // Sequence item (PS3.3 Table C.23.3-1)
+            var displaySetItem = DataSet()
+            displaySetItem[.displaySetNumber] = DataElement.uint16(tag: .displaySetNumber, value: 1)
+            displaySetItem.setSequence([SequenceItem(elements: sortItem.allElements)], for: .sortingOperationsSequence)
+            dataSet.setSequence([SequenceItem(elements: displaySetItem.allElements)], for: .displaySetsSequence)
+            return try parser.parse(from: dataSet).displaySets.first?.sortingOperations.first
+        }
+
+        XCTAssertEqual(try parse(category: "ALONG_AXIS")?.sortByCategory, .alongAxis)
+        XCTAssertEqual(try parse(category: "BY_ACQ_TIME")?.sortByCategory, .byAcquisitionTime)
+        XCTAssertEqual(try parse(category: "ACQUISITION_TIME")?.sortByCategory, .byAcquisitionTime)
+        XCTAssertEqual(try parse(category: "IMAGE_POSITION")?.sortByCategory, .alongAxis)
+
+        let inst = try parse(category: "INSTANCE_NUMBER")
+        XCTAssertNil(inst?.sortByCategory)
+        XCTAssertEqual(inst?.attribute, .instanceNumber)
+        let slice = try parse(category: "SLICE_LOCATION")
+        XCTAssertNil(slice?.sortByCategory)
+        XCTAssertEqual(slice?.attribute, .sliceLocation)
+        XCTAssertNil(try parse(category: "ATTRIBUTE"), "ATTRIBUTE without a Selector Attribute names nothing")
+        XCTAssertNil(try parse(category: "INVALID"))
+    }
+
+    /// Abstract Prior Value (0072,003C) reads as SS VM 2; the SH text an earlier DICOMKit
+    /// version wrote maps to 1\1 (MOST_RECENT) / -1\-1 (OLDEST); a single Relative Time
+    /// value reads as n\n
+    func test_parse_timeSelection_abstractPriorValue() throws {
+        func parse(_ element: DataElement, relative: DataElement? = nil) throws -> TimeBasedSelection? {
+            // Time Based Image Sets Sequence (0072,0030) item (PS3.3 Table C.23.1-1)
+            var dataSet = createMinimalDataSet()
+            var item = timeItem(number: 1, category: "ABSTRACT_PRIOR")
+            item[element.tag] = element
+            if let relative { item[relative.tag] = relative }
+            dataSet.setSequence([imageSetItem(timeItems: [item])], for: .imageSetsSequence)
+            return try parser.parse(from: dataSet).imageSets.first?.timeBasedImageSets.first?.timeSelection
+        }
+
+        let ss = try parse(DataElement.int16s(tag: .abstractPriorValue, values: [1, -1]),
+                           relative: DataElement.uint16(tag: .relativeTime, value: 30))
+        XCTAssertEqual(ss?.abstractPriorRange, [1, -1])
+        XCTAssertEqual(ss?.relativeTimeRange, [30, 30])
+
+        XCTAssertEqual(try parse(DataElement.string(tag: .abstractPriorValue, vr: .SH, value: "MOST_RECENT"))?.abstractPriorRange, [1, 1])
+        XCTAssertEqual(try parse(DataElement.string(tag: .abstractPriorValue, vr: .SH, value: "OLDEST"))?.abstractPriorRange, [-1, -1])
+        XCTAssertEqual(try parse(DataElement.string(tag: .abstractPriorValue, vr: .SH, value: "2"))?.abstractPriorRange, [2, 2])
+        XCTAssertNil(try parse(DataElement.string(tag: .abstractPriorValue, vr: .SH, value: "SOMETHING")))
+    }
+
+    /// Partial Data Display Handling (0072,0208) written inside a Display Sets Sequence item
+    /// by an earlier DICOMKit version is read into the top-level property
+    func test_parse_partialDataDisplayHandling_legacyPlacement() throws {
+        var dataSet = createMinimalDataSet()
+        var displaySetItem = DataSet()
+        displaySetItem[.displaySetNumber] = DataElement.uint16(tag: .displaySetNumber, value: 1)
+        displaySetItem[.partialDataDisplayHandling] = DataElement.string(tag: .partialDataDisplayHandling, vr: .CS, value: "MAINTAIN_LAYOUT")
+        dataSet.setSequence([SequenceItem(elements: displaySetItem.allElements)], for: .displaySetsSequence)
+
+        XCTAssertEqual(try parser.parse(from: dataSet).partialDataDisplayHandling, .maintainLayout)
+
+        dataSet[.partialDataDisplayHandling] = DataElement.string(tag: .partialDataDisplayHandling, vr: .CS, value: "ADAPT_LAYOUT")
+        XCTAssertEqual(try parser.parse(from: dataSet).partialDataDisplayHandling, .adaptLayout, "the top-level value wins")
+    }
+
+    /// Old DICOMKit spellings inside an Image Boxes Sequence item; reformatting and 3D
+    /// Rendering Type found there (legacy placement) are promoted to the display set
+    @available(*, deprecated)
+    func test_parse_imageBox_oldSpellings() throws {
+        var dataSet = createMinimalDataSet()
+        var imageBoxItem = DataSet()
+        imageBoxItem[.imageBoxNumber] = DataElement.uint16(tag: .imageBoxNumber, value: 1)
+        imageBoxItem[.imageBoxLayoutType] = DataElement.string(tag: .imageBoxLayoutType, vr: .CS, value: "TILED_ALL")
+        imageBoxItem[.imageBoxSmallScrollType] = DataElement.string(tag: .imageBoxSmallScrollType, vr: .CS, value: "FRACTION")
+        imageBoxItem[.reformattingOperationType] = DataElement.string(tag: .reformattingOperationType, vr: .CS, value: "MinIP")
+        imageBoxItem[.reformattingOperationInitialViewDirection] = DataElement.string(tag: .reformattingOperationInitialViewDirection, vr: .CS, value: "AXIAL")
+        imageBoxItem[.threeDRenderingType] = DataElement.strings(tag: .threeDRenderingType, vr: .CS, values: ["VOLUME", "MINIP"])
+        var displaySetItem = DataSet()
+        displaySetItem[.displaySetNumber] = DataElement.uint16(tag: .displaySetNumber, value: 1)
+        displaySetItem.setSequence([SequenceItem(elements: imageBoxItem.allElements)], for: .imageBoxesSequence)
+        dataSet.setSequence([SequenceItem(elements: displaySetItem.allElements)], for: .displaySetsSequence)
+
+        let displaySet = try parser.parse(from: dataSet).displaySets[0]
+        XCTAssertEqual(displaySet.reformattingOperation?.type, .threeDRendering)
+        XCTAssertEqual(displaySet.threeDRenderingType, .volumeRendering)
+        XCTAssertEqual(displaySet.threeDRenderingSubtypes, ["MINIP"])
+        let box = displaySet.imageBoxes[0]
+        XCTAssertEqual(box.layoutType, .tiled)
+        XCTAssertEqual(box.smallScrollType, .page)
+        XCTAssertEqual(box.reformattingOperation?.type, .threeDRendering)
+        XCTAssertEqual(box.reformattingOperation?.initialViewPlane, .transverse)
+        XCTAssertEqual(box.threeDRenderingType, .volumeRendering)
+        XCTAssertEqual(box.threeDRenderingSubtypes, ["MINIP"])
+    }
+
     // MARK: - Display Set Parsing Tests
-    
+
     func test_parse_displaySets_empty() throws {
         let dataSet = createMinimalDataSet()
         
@@ -332,7 +532,8 @@ final class HangingProtocolParserTests: XCTestCase {
         var displaySetItem = DataSet()
         displaySetItem[.displaySetNumber] = DataElement.uint16(tag: .displaySetNumber, value: 1)
         displaySetItem[.displaySetPatientOrientation] = DataElement.string(tag: .displaySetPatientOrientation, vr: .CS, value: "L\\P")
-        displaySetItem[.showGrayscaleInverted] = DataElement.string(tag: .showGrayscaleInverted, vr: .CS, value: "Y")
+        displaySetItem[.showGrayscaleInverted] = DataElement.string(tag: .showGrayscaleInverted, vr: .CS, value: "YES")
+        // "Y" is what DICOMKit wrote before the Table C.23.3-1 check; it is still read
         displaySetItem[.showImageTrueSizeFlag] = DataElement.string(tag: .showImageTrueSizeFlag, vr: .CS, value: "Y")
         
         dataSet.setSequence([SequenceItem(elements: displaySetItem.allElements)], for: .displaySetsSequence)

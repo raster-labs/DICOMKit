@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — UID prefixes and names checked against PS3.6 2026a Table A-1 (--statistics prints the Table A-1 name of the Transfer Syntax and SOP Class UIDs, D147); the .20x prefix also covers JPIP HTJ2K .204/.205 (recorded); --tag matches PS3.6 Table 6-1/7-1 keywords exactly (D148); Private Creator (gggg,0010-00FF) named per PS3.5 7.8.1 (D146)
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -76,11 +77,11 @@ public struct MetadataPresenter {
         var stats = "=== File Statistics ===\n"
 
         if let transferSyntax = file.fileMetaInformation.string(for: .transferSyntaxUID) {
-            stats += "Transfer Syntax: \(transferSyntax)\n"
+            stats += "Transfer Syntax: \(Self.uidWithName(transferSyntax))\n"
         }
 
         if let sopClass = file.dataSet.string(for: .sopClassUID) {
-            stats += "SOP Class: \(sopClass)\n"
+            stats += "SOP Class: \(Self.uidWithName(sopClass))\n"
         }
 
         if let modality = file.dataSet.string(for: .modality) {
@@ -102,18 +103,11 @@ public struct MetadataPresenter {
                 continue
             }
 
-            // Filter by tag name if specified
-            if !filterTags.isEmpty {
-                let tagName = DataElementDictionary.lookup(tag: tag)?.name ?? ""
-                let matches = filterTags.contains { filter in
-                    tagName.localizedCaseInsensitiveContains(filter) ||
-                    tag.description.localizedCaseInsensitiveContains(filter)
-                }
-                guard matches else { continue }
-            }
+            // Filter by keyword, tag or name if specified
+            guard matchesFilter(tag) else { continue }
 
             let valueStr = Self.formatElementValue(element)
-            let tagName = DataElementDictionary.lookup(tag: tag)?.name ?? "Unknown"
+            let tagName = AttributeNames.name(for: tag) ?? "Unknown"
             let paddedName = tagName.padding(toLength: max(tagName.count, 40), withPad: " ", startingAt: 0)
             let line = "\(tag.description) \(paddedName) VR=\(element.vr.rawValue) \(valueStr)"
             lines.append(line)
@@ -141,12 +135,15 @@ public struct MetadataPresenter {
     private func buildStatisticsDict() -> [String: String] {
         var stats: [String: String] = [:]
 
+        // The UID values stay as they were; the PS3.6 Table A-1 names are added beside them.
         if let transferSyntax = file.fileMetaInformation.string(for: .transferSyntaxUID) {
             stats["transferSyntax"] = transferSyntax
+            if let name = Self.uidName(transferSyntax) { stats["transferSyntaxName"] = name }
         }
 
         if let sopClass = file.dataSet.string(for: .sopClassUID) {
             stats["sopClass"] = sopClass
+            if let name = Self.uidName(sopClass) { stats["sopClassName"] = name }
         }
 
         if let modality = file.dataSet.string(for: .modality) {
@@ -176,23 +173,24 @@ public struct MetadataPresenter {
                 continue
             }
 
-            if !filterTags.isEmpty {
-                let tagName = DataElementDictionary.lookup(tag: tag)?.name ?? ""
-                let matches = filterTags.contains { filter in
-                    tagName.localizedCaseInsensitiveContains(filter) ||
-                    tag.description.localizedCaseInsensitiveContains(filter)
-                }
-                guard matches else { continue }
-            }
+            guard matchesFilter(tag) else { continue }
 
             var elementDict: [String: Any] = [
                 "tag": tag.description,
-                "name": DataElementDictionary.lookup(tag: tag)?.name ?? "Unknown",
+                "name": AttributeNames.name(for: tag) ?? "Unknown",
                 "vr": element.vr.rawValue
             ]
 
+            // This JSON is the tool's own model (tag / name / vr / value), not the PS3.18
+            // Annex F DICOM JSON Model. Character VRs carry their full value; every other
+            // VR carries the same rendering as the text and CSV output (numbers of US, SS,
+            // UL, SL, FL, FD, AT tags, a hex preview of the Other VRs), so no element is
+            // left without a value (D149).
             if let stringValue = element.stringValue {
                 elementDict["value"] = stringValue
+            } else {
+                let rendered = Self.formatElementValue(element)
+                if !rendered.isEmpty { elementDict["value"] = rendered }
             }
 
             elements.append(elementDict)
@@ -210,7 +208,7 @@ public struct MetadataPresenter {
 
         for (tag, element) in allElements {
             let valueStr = Self.formatElementValue(element).replacingOccurrences(of: "\"", with: "\"\"")
-            let tagName = DataElementDictionary.lookup(tag: tag)?.name ?? "Unknown"
+            let tagName = AttributeNames.name(for: tag) ?? "Unknown"
             let line = "\"\(tag.description)\",\"\(tagName)\",\"\(element.vr.rawValue)\",\"\(valueStr)\"\n"
             csv += line
         }
@@ -245,15 +243,32 @@ public struct MetadataPresenter {
             return false
         }
 
-        if !filterTags.isEmpty {
-            let tagName = DataElementDictionary.lookup(tag: tag)?.name ?? ""
-            return filterTags.contains { filter in
-                tagName.localizedCaseInsensitiveContains(filter) ||
-                tag.description.localizedCaseInsensitiveContains(filter)
-            }
-        }
+        return matchesFilter(tag)
+    }
 
-        return true
+    /// Whether `tag` is selected by `filterTags` (always, when there are none). A filter
+    /// selects a tag when it is the tag's PS3.6 Table 6-1/7-1 keyword (exact, e.g.
+    /// "PatientName"; D148), or occurs case-insensitively in its name or "(GGGG,EEEE)".
+    func matchesFilter(_ tag: Tag) -> Bool {
+        guard !filterTags.isEmpty else { return true }
+        let entry = DataElementDictionary.lookup(tag: tag)
+        let tagName = AttributeNames.name(for: tag) ?? ""
+        return filterTags.contains { filter in
+            (entry.map { !$0.keyword.isEmpty && $0.keyword == filter } ?? false) ||
+            tagName.localizedCaseInsensitiveContains(filter) ||
+            tag.description.localizedCaseInsensitiveContains(filter)
+        }
+    }
+
+    /// The PS3.6 2026a Table A-1 name of a UID, if registered (D147).
+    static func uidName(_ uid: String) -> String? {
+        let trimmed = uid.trimmingCharacters(in: CharacterSet(charactersIn: " \u{0}"))
+        return UIDDictionary.lookup(uid: trimmed)?.name
+    }
+
+    /// "uid (Table A-1 name)", or the bare UID when it is not registered.
+    static func uidWithName(_ uid: String) -> String {
+        uidName(uid).map { "\(uid) (\($0))" } ?? uid
     }
 
     public static func formatElementValue(_ element: DataElement) -> String {

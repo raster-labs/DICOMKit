@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — RT ROI Interpreted Type (25 terms) and ROI Physical Property per PS3.3 2026a Table C.8-44; Contour Geometric Type per Table C.8-42 (CLOSEDPLANAR_XOR); ROI Generation Algorithm per Table C.8-41
 //
 // RTStructureSet.swift
 // DICOMKit
@@ -122,12 +123,18 @@ public struct RTRegionOfInterest: Sendable, Hashable, Identifiable {
     /// Frame of Reference UID for this ROI
     public let frameOfReferenceUID: String?
     
-    /// ROI generation algorithm
+    /// ROI Generation Algorithm (3006,0036) as written in the data set.
+    /// Standard terms: see ``ROIGenerationAlgorithm`` (PS3.3 Table C.8-41).
     public let generationAlgorithm: String?
-    
+
+    /// ROI Generation Algorithm (3006,0036) as a standard term, `nil` when absent or non-standard.
+    public var generationAlgorithmTerm: ROIGenerationAlgorithm? {
+        generationAlgorithm.flatMap(ROIGenerationAlgorithm.init(rawValue:))
+    }
+
     /// ROI generation description
     public let generationDescription: String?
-    
+
     /// Identifiable conformance
     public var id: Int { number }
     
@@ -147,6 +154,22 @@ public struct RTRegionOfInterest: Sendable, Hashable, Identifiable {
         self.generationAlgorithm = generationAlgorithm
         self.generationDescription = generationDescription
     }
+}
+
+// MARK: - ROIGenerationAlgorithm
+
+/// ROI Generation Algorithm (3006,0036) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.5 Structure Set Module, Table C.8-41
+public enum ROIGenerationAlgorithm: String, Sendable, Hashable, CaseIterable {
+    /// calculated ROI
+    case automatic = "AUTOMATIC"
+
+    /// ROI calculated with user assistance
+    case semiautomatic = "SEMIAUTOMATIC"
+
+    /// user-entered ROI
+    case manual = "MANUAL"
 }
 
 // MARK: - ROIContour
@@ -292,24 +315,35 @@ public struct Point3D: Sendable, Hashable {
 
 // MARK: - ContourGeometricType
 
-/// Contour geometric type
+/// Contour Geometric Type (3006,0042) Enumerated Values.
 ///
-/// Reference: PS3.3 C.8.8.6 - ROI Contour Module
+/// Reference: PS3.3 C.8.8.6 ROI Contour Module, Table C.8-42 and C.8.8.6.3
 public enum ContourGeometricType: String, Sendable, Hashable {
-    /// Single point
+    /// single point
     case point = "POINT"
-    
-    /// Open planar curve (polyline)
+
+    /// open contour containing coplanar points
     case openPlanar = "OPEN_PLANAR"
-    
-    /// Closed planar curve (polygon)
+
+    /// closed contour (polygon) containing coplanar points
     case closedPlanar = "CLOSED_PLANAR"
-    
-    /// Open non-planar curve
+
+    /// open contour containing non-coplanar points
     case openNonplanar = "OPEN_NONPLANAR"
-    
-    /// Closed non-planar curve
+
+    /// closed contour (polygon) containing coplanar points of an inner or outer contour
+    /// combined using an XOR operator (the "XOR" technique of PS3.3 C.8.8.6.3)
+    case closedPlanarXOR = "CLOSEDPLANAR_XOR"
+
+    /// Not a term of PS3.3 2026a Table C.8-42. Retained only so that data sets written with
+    /// this value by earlier DICOMKit versions still parse; never write it.
+    @available(*, deprecated, renamed: "closedPlanarXOR", message: "CLOSED_NONPLANAR is not a Contour Geometric Type in PS3.3 2026a Table C.8-42; the standard XOR term is CLOSEDPLANAR_XOR")
     case closedNonplanar = "CLOSED_NONPLANAR"
+
+    /// The five Enumerated Values of PS3.3 2026a Table C.8-42, in table order.
+    public static let standardValues: [ContourGeometricType] = [
+        .point, .openPlanar, .openNonplanar, .closedPlanar, .closedPlanarXOR
+    ]
 }
 
 // MARK: - RTROIObservation
@@ -355,65 +389,114 @@ public struct RTROIObservation: Sendable, Hashable {
 
 // MARK: - RTROIInterpretedType
 
-/// RT ROI Interpreted Type
+/// RT ROI Interpreted Type (3006,00A4) Defined Terms.
 ///
-/// Standard clinical interpretations for radiation therapy ROIs.
+/// The 25 terms of PS3.3 2026a Table C.8-44, in table order.
 ///
-/// Reference: PS3.3 C.8.8.8 - RT ROI Observations Module
-public enum RTROIInterpretedType: String, Sendable, Hashable {
-    /// Planning Target Volume
-    case ptv = "PTV"
-    
-    /// Clinical Target Volume
-    case ctv = "CTV"
-    
-    /// Gross Tumor Volume
-    case gtv = "GTV"
-    
-    /// Treated Volume
-    case treatedVolume = "TREATED_VOLUME"
-    
-    /// Irradiated Volume
-    case irradiatedVolume = "IRRADIATED_VOLUME"
-    
-    /// Organ at Risk
-    case organ = "ORGAN"
-    
-    /// External body contour
+/// Reference: PS3.3 C.8.8.8 RT ROI Observations Module, Table C.8-44 and C.8.8.8.1
+public enum RTROIInterpretedType: String, Sendable, Hashable, CaseIterable {
+    /// external patient contour
     case external = "EXTERNAL"
-    
-    /// Avoidance structure
-    case avoidance = "AVOIDANCE"
-    
-    /// Cavity
-    case cavity = "CAVITY"
-    
-    /// Contrast Agent
-    case contrastAgent = "CONTRAST_AGENT"
-    
-    /// Bolus
+
+    /// Planning Target Volume (as defined in ICRU Report 50)
+    case ptv = "PTV"
+
+    /// Clinical Target Volume (as defined in ICRU Report 50)
+    case ctv = "CTV"
+
+    /// Gross Tumor Volume (as defined in ICRU Report 50)
+    case gtv = "GTV"
+
+    /// Treated Volume (as defined in ICRU Report 50)
+    case treatedVolume = "TREATED_VOLUME"
+
+    /// Irradiated Volume (as defined in ICRU Report 50)
+    case irradiatedVolume = "IRRAD_VOLUME"
+
+    /// Organ at Risk (as defined in ICRU Report 50)
+    case organAtRisk = "OAR"
+
+    /// patient bolus to be used for external beam therapy
     case bolus = "BOLUS"
-    
-    /// Marker/Fiducial
+
+    /// region in which dose is to be minimized
+    case avoidance = "AVOIDANCE"
+
+    /// patient organ
+    case organ = "ORGAN"
+
+    /// patient marker or marker on a localizer
     case marker = "MARKER"
-    
-    /// Registration structure
+
+    /// registration ROI
     case registration = "REGISTRATION"
-    
-    /// ISOCENTER
+
+    /// treatment isocenter to be used for external beam therapy
     case isocenter = "ISOCENTER"
-    
-    /// Control point
-    case controlPoint = "CONTROL"
-    
-    /// Dose region
-    case doseRegion = "DOSE_REGION"
-    
-    /// Support structure
+
+    /// volume into which a contrast agent has been injected
+    case contrastAgent = "CONTRAST_AGENT"
+
+    /// patient anatomical cavity
+    case cavity = "CAVITY"
+
+    /// brachytherapy channel
+    case brachyChannel = "BRACHY_CHANNEL"
+
+    /// brachytherapy accessory device
+    case brachyAccessory = "BRACHY_ACCESSORY"
+
+    /// brachytherapy source applicator
+    case brachySourceApplicator = "BRACHY_SRC_APP"
+
+    /// brachytherapy channel shield
+    case brachyChannelShield = "BRACHY_CHNL_SHLD"
+
+    /// external patient support device
     case support = "SUPPORT"
-    
-    /// Fixation device
-    case fixationDevice = "FIXATION_DEVICE"
+
+    /// external patient fixation or immobilization device
+    case fixationDevice = "FIXATION"
+
+    /// ROI to be used as a dose reference
+    case doseRegion = "DOSE_REGION"
+
+    /// ROI to be used in control of dose optimization and calculation
+    case controlPoint = "CONTROL"
+
+    /// ROI representing a dose measurement device, such as a chamber or TLD
+    case doseMeasurement = "DOSE_MEASUREMENT"
+
+    /// device not addressed by another Defined Term
+    case device = "DEVICE"
+}
+
+// MARK: - ROIPhysicalPropertyType
+
+/// ROI Physical Property (3006,00B2) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.8 RT ROI Observations Module, Table C.8-44
+public enum ROIPhysicalPropertyType: String, Sendable, Hashable, CaseIterable {
+    /// mass density relative to water
+    case relativeMassDensity = "REL_MASS_DENSITY"
+
+    /// electron density relative to water
+    case relativeElectronDensity = "REL_ELEC_DENSITY"
+
+    /// effective atomic number
+    case effectiveZ = "EFFECTIVE_Z"
+
+    /// ratio of effective atomic number to mass (AMU-1)
+    case effectiveZPerA = "EFF_Z_PER_A"
+
+    /// ratio of linear stopping power of material relative to linear stopping power of water
+    case relativeStoppingRatio = "REL_STOP_RATIO"
+
+    /// elemental composition of the material (ROI Elemental Composition Sequence (3006,00B6) is then required)
+    case elementalFraction = "ELEM_FRACTION"
+
+    /// Mean Excitation Energy of the material (eV)
+    case meanExcitationEnergy = "MEAN_EXCI_ENERGY"
 }
 
 // MARK: - ROIPhysicalProperty
@@ -425,10 +508,16 @@ public enum RTROIInterpretedType: String, Sendable, Hashable {
 /// Reference: PS3.3 C.8.8.8 - RT ROI Observations Module
 public struct ROIPhysicalProperty: Sendable, Hashable {
     
-    /// Physical property type (e.g., "REL_ELEC_DENSITY", "REL_MASS_DENSITY")
+    /// ROI Physical Property (3006,00B2) as written in the data set.
+    /// Standard terms: see ``ROIPhysicalPropertyType`` (PS3.3 Table C.8-44).
     public let property: String
-    
-    /// Physical property value
+
+    /// ROI Physical Property (3006,00B2) as a standard term, `nil` when non-standard.
+    public var propertyType: ROIPhysicalPropertyType? {
+        ROIPhysicalPropertyType(rawValue: property)
+    }
+
+    /// ROI Physical Property Value (3006,00B4)
     public let value: Double
     
     /// Initialize an ROI Physical Property

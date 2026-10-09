@@ -8,6 +8,8 @@
 // criterion — bit-exact for lossless syntaxes, PSNR ≥ threshold for lossy.
 // Every entry point is synchronous and blocking; callers run them off the
 // main actor.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no transcribed DICOM-standard data — encodes/decodes through DICOMKit codecs by UID, PSNR dynamic range uses Bits Stored (PS3.3 C.7.6.3.1.1) as 2^bitsStored − 1; names come from J2KBenchSyntax
 
 import Foundation
 import DICOMKit

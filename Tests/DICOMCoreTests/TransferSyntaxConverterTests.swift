@@ -698,7 +698,9 @@ struct NativeJPEGCodecEncoderTests {
         #expect(codec.canEncode(with: config, descriptor: descriptor) == true)
     }
     
-    @Test("Can encode 8-bit RGB")
+    /// ImageIO writes colour as YCbCr 4:2:0 / 4:4:4, neither YBR_FULL_422 nor RGB components
+    /// (PS3.5 2026a Table 8.2.1-1), so NativeJPEGCodec refuses 3-sample input (D190).
+    @Test("Cannot encode 8-bit RGB (ImageIO colour has no valid Table 8.2.1-1 label)")
     func testCanEncode8BitRGB() {
         let codec = NativeJPEGCodec()
         let descriptor = PixelDataDescriptor(
@@ -714,7 +716,7 @@ struct NativeJPEGCodecEncoderTests {
         )
         
         let config = CompressionConfiguration.default
-        #expect(codec.canEncode(with: config, descriptor: descriptor) == true)
+        #expect(codec.canEncode(with: config, descriptor: descriptor) == false)
     }
     
     @Test("Cannot encode 16-bit with JPEG Baseline")

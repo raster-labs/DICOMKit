@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — script interpreter, no DICOM-standard data except the templates' dicom-anon --profile ps315 = PS3.15 2026a E.1 Basic Application Level Confidentiality Profile, with --clean-pixel-data = Clean Pixel Data Option (E.3.1) (D202), and the query template's Study Date range as one PS3.4 2026a C.2.2.2.5 range value (D200); dicom-query / dicom-retrieve / dicom-archive template options checked against those tools' current option declarations (D201, D203); templates pass directories with --recursive and no > redirection since the runner uses no shell, validator flags globs/redirection, quoted arguments unquoted (D223)
 import Foundation
 
 // Shared scripting engine for the `dicom-script` CLI and DICOMStudio. Parser,
@@ -115,13 +116,13 @@ public struct ScriptParser {
     }
 
     private func parseToolCommand(line: String) throws -> ToolCommand {
-        let parts = line.split(separator: " ", omittingEmptySubsequences: true)
+        let parts = Self.tokenize(line)
         guard !parts.isEmpty else {
             throw ScriptError.parseError("Empty command", 0)
         }
 
-        let tool = String(parts[0])
-        let arguments = Array(parts[1...]).map { String($0) }
+        let tool = parts[0]
+        let arguments = Array(parts[1...])
 
         return ToolCommand(tool: tool, arguments: arguments, inputVariable: nil, outputVariable: nil)
     }
@@ -182,6 +183,65 @@ public struct ScriptParser {
 
         let conditional = ConditionalCommand(condition: condition, thenCommands: thenCommands, elseCommands: elseCommands)
         return (conditional, i - startIndex)
+    }
+}
+
+extension ScriptParser {
+    /// Splits a command line on spaces and tabs; a "double-quoted" or 'single-quoted'
+    /// run is one argument with its quotes removed (`--patient-name "DOE*"` passes DOE*).
+    /// There is no shell: globs, redirection and backslash escapes are not interpreted.
+    public static func tokenize(_ line: String) -> [String] {
+        var tokens: [String] = []
+        var current = ""
+        var inToken = false
+        var quote: Character?
+        for ch in line {
+            if let q = quote {
+                if ch == q { quote = nil } else { current.append(ch) }
+            } else if ch == "\"" || ch == "'" {
+                quote = ch
+                inToken = true
+            } else if ch == " " || ch == "\t" {
+                if inToken { tokens.append(current); current = ""; inToken = false }
+            } else {
+                current.append(ch)
+                inToken = true
+            }
+        }
+        if inToken { tokens.append(current) }
+        return tokens
+    }
+
+    /// Shell syntax the runner does not interpret, so a script must not rely on it: it
+    /// execs each tool directly (no shell), passing `*.dcm` and `> file` through as
+    /// literal arguments. Returns the offending words of a raw command line.
+    public static func unsupportedShellSyntax(in line: String) -> [String] {
+        var words: [String] = []
+        var quote: Character?
+        var current = ""
+        func flush() {
+            let word = current
+            current = ""
+            guard !word.isEmpty else { return }
+            let redirection = word.hasPrefix(">") || word.hasPrefix("<") || word.hasPrefix("2>")
+                || word.hasPrefix("&>") || word == "&&" || word == "||" || word == ";"
+            let glob = (word.contains("*") || word.contains("?")) && !word.hasPrefix("-")
+            if redirection || glob { words.append(word) }
+        }
+        for ch in line {
+            if let q = quote {
+                if ch == q { quote = nil }
+            } else if ch == "\"" || ch == "'" {
+                quote = ch
+                current.append("q")  // a quoted run is a literal, never flagged
+            } else if ch == " " || ch == "\t" {
+                flush()
+            } else {
+                current.append(ch)
+            }
+        }
+        flush()
+        return words
     }
 }
 
@@ -427,6 +487,20 @@ public struct ScriptValidator {
         do {
             let commands = try parser.parse(content: content)
 
+            // No shell runs the tools (D223): flag globs and redirection, which would reach
+            // the tool as literal arguments.
+            for (number, rawLine) in content.split(separator: "\n", omittingEmptySubsequences: false).enumerated() {
+                let line = rawLine.trimmingCharacters(in: .whitespaces)
+                guard !line.isEmpty, !line.hasPrefix("#"), !line.hasPrefix("if "),
+                      !(line.contains("=") && !line.contains(" ")) else { continue }
+                let words = ScriptParser.unsupportedShellSyntax(in: line)
+                if !words.isEmpty {
+                    issues.append("Line \(number + 1): \(words.joined(separator: " ")) is passed to the tool literally: "
+                        + "scripts run tools without a shell, so globs and redirection are not expanded "
+                        + "(pass a directory with --recursive; tool output goes to the log)")
+                }
+            }
+
             for (index, command) in commands.enumerated() {
                 let commandIssues = validateCommand(command, index: index)
                 issues.append(contentsOf: commandIssues)
@@ -524,14 +598,17 @@ public struct TemplateGenerator {
         INPUT_DIR=/path/to/input
         OUTPUT_DIR=/path/to/output
 
+        # Tools run without a shell: pass a directory with --recursive (no *.dcm globs),
+        # and tool output goes to the script log (no > redirection).
+
         # Validate input files
-        dicom-validate ${INPUT_DIR}/*.dcm --level 2
+        dicom-validate ${INPUT_DIR} --recursive --level 2
 
         # Process files
-        dicom-convert ${INPUT_DIR}/*.dcm --output ${OUTPUT_DIR} --format png
+        dicom-convert ${INPUT_DIR} --output ${OUTPUT_DIR} --format png --recursive
 
-        # Generate summary
-        dicom-study summary ${INPUT_DIR} --format json > ${OUTPUT_DIR}/summary.json
+        # Summarize the study (printed as JSON)
+        dicom-study summary ${INPUT_DIR} --format json
         """
     }
 
@@ -547,23 +624,26 @@ public struct TemplateGenerator {
         PACS_AET=PACS
         LOCAL_AET=WORKSTATION
         PATIENT_ID=12345
+        # Set to a Study Instance UID (0020,000D) returned by the query
+        STUDY_UID=1.2.3.4.5.6.7.8.9
 
-        # Query PACS
+        # Query PACS (host is the positional argument; --aet is the calling AE Title)
         # (one command per line: the script language splits on newlines and does
         # not support backslash line-continuations)
-        dicom-query --host ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --calling-aet ${LOCAL_AET} --patient-id ${PATIENT_ID} --level STUDY
+        dicom-query ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --aet ${LOCAL_AET} --patient-id ${PATIENT_ID} --level study
 
-        # Retrieve studies
-        dicom-retrieve --host ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --calling-aet ${LOCAL_AET} --patient-id ${PATIENT_ID} --output studies/
+        # Retrieve the study (C-GET; Query/Retrieve Level STUDY, PS3.4 C.4.3)
+        dicom-retrieve ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --aet ${LOCAL_AET} --study-uid ${STUDY_UID} --method c-get --output studies/
 
-        # Validate retrieved files
-        dicom-validate studies/*.dcm --level 2
+        # Validate retrieved files (a directory with --recursive: no shell expands *.dcm)
+        dicom-validate studies/ --recursive --level 2
 
-        # Anonymize
-        dicom-anon studies/*.dcm --profile basic --output anon/
+        # Anonymize (PS3.15 Basic Application Level Confidentiality Profile)
+        dicom-anon studies/ --profile ps315 --output anon/ --recursive
 
         # Archive
-        dicom-archive create archive.db --input anon/
+        dicom-archive init --path archive
+        dicom-archive import anon/ --archive archive --recursive
         """
     }
 
@@ -577,13 +657,13 @@ public struct TemplateGenerator {
         PACS_AET=PACS
         LOCAL_AET=WORKSTATION
 
-        # Query by patient name
+        # Query by patient name (host is the positional argument; --aet is the calling AE Title)
         # (one command per line: the script language splits on newlines and does
         # not support backslash line-continuations)
-        dicom-query --host ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --calling-aet ${LOCAL_AET} --patient-name "DOE*" --level PATIENT
+        dicom-query ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --aet ${LOCAL_AET} --patient-name "DOE*" --level patient
 
-        # Query by date range
-        dicom-query --host ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --calling-aet ${LOCAL_AET} --study-date-from 20240101 --study-date-to 20241231 --level STUDY
+        # Query by date range: one Study Date range value (PS3.4 C.2.2.2.5)
+        dicom-query ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --aet ${LOCAL_AET} --study-date 20240101-20241231 --level study
         """
     }
 
@@ -592,17 +672,18 @@ public struct TemplateGenerator {
         # DICOM Archive Script
         # Generated by dicom-script v1.3.5
 
-        ARCHIVE_DB=archive.db
+        ARCHIVE=/path/to/archive
         INPUT_DIR=/path/to/dicoms
 
-        # Create archive
-        dicom-archive create ${ARCHIVE_DB} --input ${INPUT_DIR}
+        # Create the archive and import files into it
+        dicom-archive init --path ${ARCHIVE}
+        dicom-archive import ${INPUT_DIR} --archive ${ARCHIVE} --recursive
 
         # Query archive
-        dicom-archive query ${ARCHIVE_DB} --patient-id "12345"
+        dicom-archive query --archive ${ARCHIVE} --patient-id "12345"
 
         # Export from archive
-        dicom-archive export ${ARCHIVE_DB} --patient-id "12345" --output exported/
+        dicom-archive export --archive ${ARCHIVE} --patient-id "12345" --output exported/
         """
     }
 
@@ -614,16 +695,17 @@ public struct TemplateGenerator {
         INPUT_DIR=/path/to/input
         OUTPUT_DIR=/path/to/anonymized
 
-        # Anonymize with basic profile
-        dicom-anon ${INPUT_DIR}/*.dcm --profile basic --output ${OUTPUT_DIR}
+        # Anonymize with the PS3.15 Basic Application Level Confidentiality Profile
+        # (a directory with --recursive: tools run without a shell, so *.dcm is not expanded)
+        dicom-anon ${INPUT_DIR} --profile ps315 --output ${OUTPUT_DIR} --recursive
 
-        # Conditional anonymization
+        # Conditional anonymization: also blank burned-in text (PS3.15 Clean Pixel Data Option)
         if exists ${INPUT_DIR}/sensitive.dcm
-            dicom-anon ${INPUT_DIR}/sensitive.dcm --profile strict --output ${OUTPUT_DIR}
+            dicom-anon ${INPUT_DIR}/sensitive.dcm --profile ps315 --clean-pixel-data --output ${OUTPUT_DIR}
         endif
 
         # Validate anonymized files
-        dicom-validate ${OUTPUT_DIR}/*.dcm --level 2
+        dicom-validate ${OUTPUT_DIR} --recursive --level 2
         """
     }
 }

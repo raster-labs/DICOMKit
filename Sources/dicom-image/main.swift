@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — output diffed against PS3.3 2026a Table A.8-1 (Secondary Capture Image IOD): all Type 1/2 attributes of the 9 M modules present (27 grayscale, 28 colour incl. Planar Configuration 1C; Tables C.7-1, C.7-3, C.7-5a, C.8-24, C.7.10.1-1, C.7-9, C.7-11a/c, C.8-25, C.12-1); 18 options: value options refused (exit 1) when PS3.5 2026a Table 6.2-1 / Section 9 forbids them (P-IMAGE-VR); --modality via ModalityOptionValidator (C.7.3.1.1.1, 97 terms), --conversion-type Table C.8-24 (8 terms), --study-date / --study-time Study Date / Time (0008,0020/0030), Type 2 "Date / Time the Study started" (Table C.7-3), DA / TM per PS3.5 Table 6.2-1, one value per run, empty with --study-uid unless given (ImageConverter.OutputRules.studyDateTime, P-IMAGE-STUDY-DATETIME 2026-10-06); SOP Class name/UID per PS3.4 Table B.5-1 and PS3.6 Table A-1, help names per PS3.6 Table 6-1 (DICOMKit ImageConverter.OutputRules, D274); a directory run exits 1 after the summary when any file failed (D273)
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -18,12 +19,19 @@ import ImageIO
 struct DICOMImage: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "dicom-image",
-        abstract: "Convert standard images to DICOM Secondary Capture format",
+        abstract: "Convert standard images to DICOM Secondary Capture Image instances",
         discussion: """
-            Convert JPEG, PNG, TIFF, and other image formats to DICOM Secondary Capture SOP Class.
-            Supports EXIF metadata extraction and batch conversion.
+            Convert JPEG, PNG, TIFF, and other image formats to the DICOM Secondary
+            Capture Image IOD (PS3.3 A.8.1), SOP Class "Secondary Capture Image Storage"
+            (1.2.840.10008.5.1.4.1.1.7), Explicit VR Little Endian. Pixels are written as
+            8-bit RGB (Planar Configuration 0) or MONOCHROME2. Supports EXIF metadata
+            extraction and batch conversion.
 
             Supported formats: JPEG, PNG, TIFF, BMP, GIF (depends on platform support)
+
+            Values the written VR cannot hold (PS3.5 Table 6.2-1: LO and PN over 64
+            characters or with a backslash, IS outside -2^31..2^31-1, a UID breaking PS3.5
+            Section 9) are refused with exit status 1 and nothing is written.
 
             Examples:
               # Convert JPEG to DICOM
@@ -37,6 +45,13 @@ struct DICOMImage: ParsableCommand {
                 --patient-id "54321" \\
                 --use-exif \\
                 --study-description "Clinical Photography"
+
+              # Add an image to an existing study, giving the date and time it started
+              dicom-image scan.png --output scan.dcm \\
+                --patient-name "DOE^JOHN" \\
+                --patient-id "12345" \\
+                --study-uid 1.2.826.0.1.3680043.2.1125.1 \\
+                --study-date 20260915 --study-time 093000
 
               # Batch convert images
               dicom-image photos/ --output dicoms/ --recursive \\
@@ -59,37 +74,49 @@ struct DICOMImage: ParsableCommand {
     @Option(name: .shortAndLong, help: "Output file or directory path")
     var output: String?
 
-    @Option(name: .long, help: "Patient Name (DICOM PN format, e.g., 'DOE^JOHN')")
+    @Option(name: .long, help: "Patient's Name (0010,0010), PN, e.g. 'DOE^JOHN' (at most 64 characters per component group, no backslash)")
     var patientName: String?
 
-    @Option(name: .long, help: "Patient ID")
+    @Option(name: .long, help: "Patient ID (0010,0020), LO (at most 64 characters, no backslash)")
     var patientId: String?
 
-    @Option(name: .long, help: "Study Description")
+    @Option(name: .long, help: "Study Description (0008,1030), LO (at most 64 characters, no backslash)")
     var studyDescription: String?
 
-    @Option(name: .long, help: "Series Description")
+    @Option(name: .long, help: "Series Description (0008,103E), LO (at most 64 characters, no backslash)")
     var seriesDescription: String?
 
-    @Option(name: .long, help: "Study Instance UID (auto-generated if not provided)")
+    @Option(name: .long, help: "Study Instance UID (0020,000D), UI per PS3.5 Section 9 (generated if not provided)")
     var studyUid: String?
 
-    @Option(name: .long, help: "Series Instance UID (auto-generated if not provided)")
+    @Option(name: .long, help: "Series Instance UID (0020,000E), UI per PS3.5 Section 9 (generated if not provided)")
     var seriesUid: String?
 
-    @Option(name: .long, help: "Series Number")
+    @Option(name: .long, help: ArgumentHelp(stringLiteral: ImageConverter.OutputRules.studyDateHelp))
+    var studyDate: String?
+
+    @Option(name: .long, help: ArgumentHelp(stringLiteral: ImageConverter.OutputRules.studyTimeHelp))
+    var studyTime: String?
+
+    @Option(name: .long, help: "Series Number (0020,0011), IS (written empty if not provided; Type 2)")
     var seriesNumber: Int?
 
-    @Option(name: .long, help: "Instance Number (starting value for batch)")
+    @Option(name: .long, help: "Instance Number (0020,0013), IS (default 1; starting value for batch and TIFF pages)")
     var instanceNumber: Int?
 
-    @Option(name: .long, help: "Modality (default: OT - Other)")
+    @Option(name: .long, help: ArgumentHelp(stringLiteral: ModalityOptionValidator.helpText("to write (default: OT)")))
     var modality: String?
 
-    @Flag(name: .long, help: "Use EXIF metadata from images")
+    @Flag(name: .long, help: "Reject a --modality value that is not a current DICOM Defined Term")
+    var strictModality: Bool = false
+
+    @Option(name: .long, help: "Conversion Type (0008,0064): DV, DI, DF, WSD, SD, SI, DRW or SYN (PS3.3 Table C.8-24; default: WSD)")
+    var conversionType: String?
+
+    @Flag(name: .long, help: "Use EXIF metadata: DateTimeOriginal -> Acquisition Date/Time (0008,0022/0032), DPI -> Nominal Scanned Pixel Spacing (0018,2010), description -> Study Description")
     var useExif: Bool = false
 
-    @Flag(name: .long, help: "Split multi-page TIFF into separate DICOM files")
+    @Flag(name: .long, help: "Write each page of a multi-page TIFF as its own Secondary Capture instance")
     var splitPages: Bool = false
 
     @Flag(name: .long, help: "Process directories recursively")
@@ -100,20 +127,39 @@ struct DICOMImage: ParsableCommand {
 
     mutating func run() throws {
         #if canImport(CoreGraphics)
+        guard ImageConverter.OutputRules.conversionType(conversionType) != nil else {
+            throw ValidationError("--conversion-type '\(conversionType ?? "")' is not a Defined Term of PS3.3 Table C.8-24 "
+                + "(\(ConversionType.definedTerms.joined(separator: ", ")))")
+        }
+        // P-IMAGE-VR: a value the written VR cannot hold is refused (exit 1), not written.
+        let violations = ImageConverter.OutputRules.valueViolations(
+            patientName: patientName, patientID: patientId,
+            studyDescription: studyDescription, seriesDescription: seriesDescription,
+            studyUID: studyUid, seriesUID: seriesUid,
+            seriesNumber: seriesNumber, instanceNumber: instanceNumber,
+            studyDate: studyDate, studyTime: studyTime)
+        if !violations.isEmpty {
+            for line in violations {
+                FileHandle.standardError.write(Data(("Error: " + line + "\n").utf8))
+            }
+            throw ExitCode.failure
+        }
         guard FileManager.default.fileExists(atPath: input) else {
             throw ValidationError("Input path not found: \(input)")
         }
 
         var isDirectory: ObjCBool = false
         _ = FileManager.default.fileExists(atPath: input, isDirectory: &isDirectory)
+        // One moment per run: the default Study Date / Time of a new Study, the same in every instance.
+        let runDate = Date()
 
         if isDirectory.boolValue {
             guard recursive else {
                 throw ValidationError("Directory processing requires --recursive flag")
             }
-            try convertDirectory(inputPath: input, outputPath: output)
+            try convertDirectory(inputPath: input, outputPath: output, runDate: runDate)
         } else {
-            try convertFile(inputPath: input, outputPath: output)
+            try convertFile(inputPath: input, outputPath: output, runDate: runDate)
         }
         #else
         throw ValidationError("Image conversion not supported on this platform")
@@ -122,17 +168,26 @@ struct DICOMImage: ParsableCommand {
 
     #if canImport(CoreGraphics)
     private func metadata(studyUID: String, seriesUID: String, instanceNumber: Int,
-                          patientName: String, patientID: String) -> ImageConverter.Metadata {
-        ImageConverter.Metadata(
+                          patientName: String, patientID: String, runDate: Date) throws -> ImageConverter.Metadata {
+        // Throws rather than defaulting on a bad value: --strict-modality has to
+        // be able to stop the run, and this is where the value is consumed.
+        let resolved = try ModalityOptionValidator.resolve(
+            modality, strict: strictModality, verbose: verbose)
+        let study = ImageConverter.OutputRules.studyDateTime(
+            studyDate: studyDate, studyTime: studyTime, studyUID: studyUid, runDate: runDate)
+        return ImageConverter.Metadata(
             patientName: patientName, patientID: patientID,
             studyUID: studyUID, seriesUID: seriesUID, instanceNumber: instanceNumber,
             studyDescription: studyDescription, seriesDescription: seriesDescription,
-            modality: modality ?? "OT", seriesNumber: seriesNumber)
+            modality: resolved ?? Modality.ot.rawValue,
+            seriesNumber: seriesNumber,
+            conversionType: ImageConverter.OutputRules.conversionType(conversionType) ?? .workstation,
+            studyDate: study.date, studyTime: study.time)
     }
 
     // MARK: - Directory Processing
 
-    private func convertDirectory(inputPath: String, outputPath: String?) throws {
+    private func convertDirectory(inputPath: String, outputPath: String?, runDate: Date) throws {
         let inputURL = URL(fileURLWithPath: inputPath)
 
         let outputDirURL: URL
@@ -179,9 +234,10 @@ struct DICOMImage: ParsableCommand {
                 let data = try ImageConverter.secondaryCaptureData(
                     imageURL: fileURL,
                     metadata: metadata(studyUID: finalStudyUID, seriesUID: finalSeriesUID,
-                                       instanceNumber: instanceNum, patientName: patientName, patientID: patientId),
+                                       instanceNumber: instanceNum, patientName: patientName, patientID: patientId,
+                                       runDate: runDate),
                     useExif: useExif)
-                try data.write(to: outputFileURL)
+                try ImageConverter.OutputRules.finalize(data).write(to: outputFileURL)
 
                 successCount += 1
                 instanceNum += 1
@@ -201,11 +257,16 @@ struct DICOMImage: ParsableCommand {
             successful: successCount, failed: failureCount,
             studyUID: finalStudyUID, seriesUID: finalSeriesUID, outputDir: outputDirURL.path
         ), terminator: "")
+        // D273: like dicom-convert's directory run (P-CONVERT-EXIT), a run with any failed
+        // file exits 1 after the summary.
+        if failureCount > 0 {
+            throw ExitCode.failure
+        }
     }
 
     // MARK: - File Processing
 
-    private func convertFile(inputPath: String, outputPath: String?) throws {
+    private func convertFile(inputPath: String, outputPath: String?, runDate: Date) throws {
         let inputURL = URL(fileURLWithPath: inputPath)
 
         guard let patientName = patientName, !patientName.isEmpty else {
@@ -217,7 +278,7 @@ struct DICOMImage: ParsableCommand {
 
         if splitPages && (inputURL.pathExtension.lowercased() == "tiff" || inputURL.pathExtension.lowercased() == "tif") {
             try convertMultiPageTIFF(inputURL: inputURL, outputPath: outputPath,
-                                     patientName: patientName, patientID: patientId)
+                                     patientName: patientName, patientID: patientId, runDate: runDate)
         } else {
             let finalOutputPath: String
             if let specifiedOutput = outputPath {
@@ -237,9 +298,9 @@ struct DICOMImage: ParsableCommand {
                 metadata: metadata(studyUID: studyUid ?? ImageConverter.generateUID(),
                                    seriesUID: seriesUid ?? ImageConverter.generateUID(),
                                    instanceNumber: instanceNumber ?? 1,
-                                   patientName: patientName, patientID: patientId),
+                                   patientName: patientName, patientID: patientId, runDate: runDate),
                 useExif: useExif)
-            try data.write(to: outputURL)
+            try ImageConverter.OutputRules.finalize(data).write(to: outputURL)
 
             print(ImageConsole.convertedLine(outputPath: finalOutputPath, verbose: verbose))
         }
@@ -247,7 +308,8 @@ struct DICOMImage: ParsableCommand {
 
     // MARK: - Multi-Page TIFF Handling
 
-    private func convertMultiPageTIFF(inputURL: URL, outputPath: String?, patientName: String, patientID: String) throws {
+    private func convertMultiPageTIFF(inputURL: URL, outputPath: String?, patientName: String, patientID: String,
+                                      runDate: Date) throws {
         let pageCount = try ImageConverter.pageCount(of: inputURL)
         guard pageCount > 0 else {
             throw ImageConversionError.noPages
@@ -280,11 +342,11 @@ struct DICOMImage: ParsableCommand {
                     pageIndex: pageIndex,
                     metadata: metadata(studyUID: finalStudyUID, seriesUID: finalSeriesUID,
                                        instanceNumber: (instanceNumber ?? 1) + pageIndex,
-                                       patientName: patientName, patientID: patientID),
+                                       patientName: patientName, patientID: patientID, runDate: runDate),
                     // Honor --use-exif per page: ImageConverter reads each page's
                     // own EXIF via CGImageSourceCopyPropertiesAtIndex(pageIndex).
                     useExif: useExif)
-                try data.write(to: outputFileURL)
+                try ImageConverter.OutputRules.finalize(data).write(to: outputFileURL)
 
                 if verbose {
                     print(ImageConsole.pageSuccessLine(page: pageIndex + 1, outputName: outputFileName))

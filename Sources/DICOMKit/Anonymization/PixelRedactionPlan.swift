@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — pixel redaction geometry only; Burned In Annotation per PS3.3 2026a C.7.6.1
 import Foundation
 import DICOMCore
 

@@ -2,6 +2,7 @@
 // DataElement+NumericTolerant.swift
 // DICOMCore
 //
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (VR names only, all in PS3.5 2026a Table 6.2-1). C1 classification confirmed.
 
 import Foundation
 

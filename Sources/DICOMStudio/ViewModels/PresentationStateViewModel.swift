@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Presentation State ViewModel
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (selection state over the GSPS, shutter, palette and blending models; defaults to IDENTITY Presentation LUT Shape when no GSPS is applied, PS3.3 2026a C.11.6)
 
 import Foundation
 import Observation

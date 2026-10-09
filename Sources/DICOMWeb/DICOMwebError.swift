@@ -1,8 +1,9 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — the 15 mapped status codes read against PS3.18 2026a Table 8.5-1 (413 listed; 422, 429, 502, 504 are generic HTTP codes the table does not list; 410 Gone is mapped to httpError)
 /// Errors that can occur during DICOMweb operations
 ///
-/// Reference: PS3.18 Section 6 - HTTP status codes and error handling
+/// Reference: PS3.18 Section 8.5 - Status Codes (Table 8.5-1)
 public enum DICOMwebError: Error, Sendable {
     // MARK: - HTTP Status Code Errors
     

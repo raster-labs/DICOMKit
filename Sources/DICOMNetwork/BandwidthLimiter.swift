@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (token-bucket tuning constants only)
 
 // MARK: - Bandwidth Configuration
 

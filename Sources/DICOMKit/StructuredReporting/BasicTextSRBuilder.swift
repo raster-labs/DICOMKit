@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — DCM section concepts diffed by Scripts/diff_kit.py against PS3.16 2026a Table D-1 (121074 Recommendations); comparison against Table D-1 111424, CID 6052 and TID 3318 row 1; validation recurses into the Content Sequence (0040,A730) of every value type per PS3.3 2026a Table C.17-6 (D31)
 /// Basic Text SR Document Builder
 ///
 /// Provides a specialized fluent API for creating DICOM Basic Text SR documents.
@@ -693,7 +694,10 @@ public struct BasicTextSRBuilder: Sendable {
             verificationFlag: verificationFlag,
             preliminaryFlag: preliminaryFlag,
             documentTitle: finalDocumentTitle,
-            rootContent: rootContent
+            rootContent: rootContent,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName
         )
     }
     
@@ -729,10 +733,9 @@ public struct BasicTextSRBuilder: Sendable {
                 throw BuildError.unsupportedValueType(valueType: item.valueType)
             }
             
-            // Recursively validate container children
-            if let container = item.asContainer {
-                try validateValueTypes(items: container.contentItems)
-            }
+            // Recursively validate children: a CONTAINER's, and the Content Sequence
+            // any other value type may carry (PS3.3 Table C.17-6)
+            try validateValueTypes(items: item.contentItems)
         }
     }
 }
@@ -939,11 +942,11 @@ extension CodedConcept {
         codeMeaning: "Conclusion"
     )
     
-    /// Recommendation section concept
+    /// Recommendations section concept
     public static let recommendation = CodedConcept(
         codeValue: "121074",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Recommendation"
+        codeMeaning: "Recommendations"
     )
     
     /// Procedure Description section concept
@@ -954,9 +957,15 @@ extension CodedConcept {
     )
     
     /// Comparison section concept
+    ///
+    /// (111424, DCM, "Comparison to previous studies") — PS3.16 2026a CID 6052 "Breast Imaging
+    /// Report Section Title" and CID 6053; the CONTAINER concept name of TID 3318 row 1.
+    /// Table D-1: "The result of assessing the current imaging study in comparison to previous
+    /// imaging studies." (The former value 121071 is "Finding" in Table D-1; CID 7001/7002 have no
+    /// comparison heading.)
     public static let comparison = CodedConcept(
-        codeValue: "121071",
+        codeValue: "111424",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Comparison"
+        codeMeaning: "Comparison to previous studies"
     )
 }

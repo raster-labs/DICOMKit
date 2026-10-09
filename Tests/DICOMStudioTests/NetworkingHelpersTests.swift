@@ -25,9 +25,27 @@ struct NetworkingHelpersTests {
         #expect(AETitleHelpers.isValid("ABCDEFGHIJKLMNOPQ") == false) // 17 chars
     }
 
-    @Test("AETitleHelpers lowercase AE title fails")
-    func testAETitleLowercaseFails() {
-        #expect(AETitleHelpers.isValid("orthanc") == false)
+    @Test("AETitleHelpers lowercase AE title is valid — PS3.5 Table 6.2-1 AE allows the whole default repertoire")
+    func testAETitleLowercaseIsValid() {
+        #expect(AETitleHelpers.isValid("orthanc") == true)
+    }
+
+    @Test("AETitleHelpers accepts hyphen and punctuation (ANY-SCP), rejects backslash, control and non-ASCII characters")
+    func testAETitleRepertoire() {
+        // PS3.5 Table 6.2-1: Default Character Repertoire excluding 5CH (backslash) and control characters.
+        #expect(AETitleHelpers.isValid("ANY-SCP") == true)
+        #expect(AETitleHelpers.isValid("PACS.1@SITE") == true)
+        #expect(AETitleHelpers.isValid("BAD\\AE") == false)
+        #expect(AETitleHelpers.isValid("BAD\tAE") == false)
+        #expect(AETitleHelpers.isValid("CAFÉ") == false)
+    }
+
+    @Test("AETitleHelpers counts 16 bytes after trimming the non-significant spaces")
+    func testAETitleLengthIsBytesAfterTrimming() {
+        #expect(AETitleHelpers.isValid("1234567890123456") == true)       // 16
+        #expect(AETitleHelpers.isValid("  1234567890123456  ") == true)   // padding is not significant
+        #expect(AETitleHelpers.isValid("12345678901234567") == false)     // 17
+        #expect(AETitleHelpers.maximumLength == 16)
     }
 
     @Test("AETitleHelpers all-spaces AE title fails")
@@ -40,9 +58,10 @@ struct NetworkingHelpersTests {
         #expect(AETitleHelpers.isValid("PACS_01") == true)
     }
 
-    @Test("AETitleHelpers normalize uppercases and trims")
+    @Test("AETitleHelpers normalize trims the spaces and keeps the case — the standard does not fold it")
     func testAETitleNormalize() {
-        #expect(AETitleHelpers.normalize("  orthanc  ") == "ORTHANC")
+        #expect(AETitleHelpers.normalize("  orthanc  ") == "orthanc")
+        #expect(AETitleHelpers.normalize("ORTHANC") == "ORTHANC")
     }
 
     @Test("AETitleHelpers validationError returns nil for valid AE title")
@@ -61,9 +80,12 @@ struct NetworkingHelpersTests {
         #expect(AETitleHelpers.validationError(for: longTitle) != nil)
     }
 
-    @Test("AETitleHelpers validationError returns message for lowercase title")
-    func testAETitleValidationErrorForLowercase() {
-        #expect(AETitleHelpers.validationError(for: "pacs") != nil)
+    @Test("AETitleHelpers validationError is nil for a lowercase or hyphenated title and set for a backslash")
+    func testAETitleValidationErrorRepertoire() {
+        #expect(AETitleHelpers.validationError(for: "pacs") == nil)
+        #expect(AETitleHelpers.validationError(for: "ANY-SCP") == nil)
+        #expect(AETitleHelpers.validationError(for: "A\\B") != nil)
+        #expect(AETitleHelpers.validationError(for: "    ") != nil)
     }
 
     // MARK: - PortHelpers
@@ -101,6 +123,17 @@ struct NetworkingHelpersTests {
     @Test("PortHelpers displayName includes DICOM for 11112")
     func testPortHelpersDisplayNameKnownPort() {
         #expect(PortHelpers.displayName(for: 11112).contains("DICOM"))
+    }
+
+    @Test("PortHelpers tells the PS3.8 9.1.1 ports apart: 104 well-known, 11112 registered; 2762 is dicom-tls (PS3.15 B.12)")
+    func testPortHelpersStandardPorts() {
+        #expect(PortHelpers.wellKnownDICOMPort == 104)
+        #expect(PortHelpers.defaultDICOMPort == 11112)
+        #expect(PortHelpers.defaultTLSPort == 2762)
+        #expect(PortHelpers.displayName(for: 104).contains("well-known"))
+        #expect(PortHelpers.displayName(for: 11112).contains("registered"))
+        #expect(PortHelpers.displayName(for: 2762).contains("TLS"))
+        #expect(PortHelpers.wellKnownPorts.contains(104) && PortHelpers.wellKnownPorts.contains(11112))
     }
 
     @Test("PortHelpers displayName for unknown port returns number")
@@ -320,7 +353,7 @@ struct NetworkingHelpersTests {
     @Test("ServerProfileValidation invalid remote AE title fails")
     func testServerProfileValidationInvalidAETitle() {
         let profile = PACSServerProfile(name: "P", host: "h",
-                                        remoteAETitle: "lowercase", localAETitle: "DS")
+                                        remoteAETitle: "BAD\\AE", localAETitle: "DS")   // 5CH backslash is excluded from VR AE (PS3.5 Table 6.2-1)
         let errors = ServerProfileValidation.validate(profile)
         #expect(!errors.isEmpty)
     }

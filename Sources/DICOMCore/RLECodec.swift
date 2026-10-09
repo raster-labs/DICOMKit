@@ -4,6 +4,12 @@ import Foundation
 ///
 /// Decodes Run-Length Encoded pixel data as specified in DICOM PS3.5 Annex G.
 /// Reference: DICOM PS3.5 Annex G - RLE Transfer Syntax
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — byte-segment order (most significant byte of
+/// the Composite Pixel Code first, G.2), the 64-byte header with up to 15 segment offsets
+/// relative to the header (G.5), the decoder loop (G.3.2) and the encoder packet rules
+/// (replicate 2–128, literal 1–128, -128 unused, G.3.1) match PS3.5 2026a. The encoder
+/// used to let runs cross image rows, which G.3.1 forbids; fixed 2026-09-25.
 public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
     /// Supported RLE transfer syntax
     public static let supportedTransferSyntaxes: [String] = [
@@ -202,13 +208,14 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
             throw DICOMError.parsingFailed("RLE cannot encode \(numberOfSegments) segments (must be 1...15)")
         }
 
-        // De-interleave into byte planes, PackBits-encode, pad each to even length
-        // so the next segment starts on an even byte boundary (PS3.5 G.4).
+        // De-interleave into byte planes, PackBits-encode each plane row by row
+        // ("Each row of the image shall be encoded separately and not cross a row
+        // boundary", PS3.5 G.3.1), and pad each segment to an even length.
         let planes = deinterleaveSegments(frameData, descriptor: descriptor, numberOfSegments: numberOfSegments)
         var encodedSegments: [Data] = []
         encodedSegments.reserveCapacity(numberOfSegments)
         for plane in planes {
-            var encoded = encodeRLESegment(plane)
+            var encoded = encodeRLESegment(plane, rowLength: descriptor.columns)
             if encoded.count % 2 != 0 { encoded.append(0) }
             encodedSegments.append(encoded)
         }
@@ -261,12 +268,25 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
     ///
     /// Emits replicate packets (`control = -(runLength - 1)`, then the byte) for
     /// runs of ≥2 identical bytes and literal packets (`control = length - 1`,
-    /// then the bytes) otherwise, each capped at 128 bytes. Reference: PS3.5 G.3.
-    private func encodeRLESegment(_ src: [UInt8]) -> Data {
+    /// then the bytes) otherwise, each capped at 128 bytes. Every image row is
+    /// encoded on its own, so no packet crosses a row boundary (PS3.5 G.3.1).
+    /// Reference: PS3.5 G.3.
+    private func encodeRLESegment(_ src: [UInt8], rowLength: Int) -> Data {
         var out = [UInt8]()
         out.reserveCapacity(src.count / 2 + 16)
-        let n = src.count
-        var i = 0
+        let rowLength = max(1, rowLength)
+        var rowStart = 0
+        while rowStart < src.count {
+            let rowEnd = min(src.count, rowStart + rowLength)
+            encodeRLERun(src, from: rowStart, to: rowEnd, into: &out)
+            rowStart = rowEnd
+        }
+        return Data(out)
+    }
+
+    /// PackBits-encodes `src[start..<end]` (one image row) into `out`.
+    private func encodeRLERun(_ src: [UInt8], from start: Int, to n: Int, into out: inout [UInt8]) {
+        var i = start
         while i < n {
             // Measure a replicate run starting at i (capped at 128).
             var runLength = 1
@@ -290,7 +310,6 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
                 out.append(contentsOf: src[literalStart..<(literalStart + literalLength)])
             }
         }
-        return Data(out)
     }
 
     /// Writes a little-endian UInt32 into `data` at `offset`.

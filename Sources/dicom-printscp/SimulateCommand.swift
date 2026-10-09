@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — film-box option vocabularies text-diffed against PS3.3 2026a Tables C.13-1 (Medium Type 5), C.13-3 (Film Size ID 12, Film Orientation 2, Magnification Type 4, Image Display Format 6 forms, Border/Empty Image Density BLACK/WHITE/i, Trim 2), C.13-5 (Polarity 2 with default NORMAL; Bits Stored 8/12) and C.11-4 (Presentation LUT Shape 2): all match (Image Display Format forms and numeric densities added in this pass)
 //
 // SimulateCommand.swift
 // dicom-printscp
@@ -43,48 +44,48 @@ struct SimulateCommand: AsyncParsableCommand {
 
     // MARK: Film box
 
-    @Option(name: .long, help: "Image layout: \(OptionTokens.layouts) (auto if omitted)")
+    @Option(name: .long, help: "Image Display Format (2010,0010): a grid \(OptionTokens.layouts) (R rows by C columns, sent as STANDARD\\C,R) or any PS3.3 Table C.13-3 form — STANDARD\\C,R, ROW\\R1,R2,..., COL\\C1,C2,..., SLIDE, SUPERSLIDE, CUSTOM\\i (auto if omitted)")
     var layout: String?
 
-    @Option(name: .long, help: "Film size: \(OptionTokens.filmSizes) (default: 14x17)")
+    @Option(name: .long, help: "Film Size ID (2010,0050): \(OptionTokens.filmSizes) (default: 14x17)")
     var filmSize: String?
 
-    @Option(name: .long, help: "Film orientation: \(OptionTokens.orientations) (default: portrait)")
+    @Option(name: .long, help: "Film Orientation (2010,0040): \(OptionTokens.orientations) (default: portrait)")
     var orientation: String?
 
-    @Option(name: .long, help: "Magnification type: \(OptionTokens.magnifications) (default: replicate)")
+    @Option(name: .long, help: "Magnification Type (2010,0060): \(OptionTokens.magnifications) (default: replicate)")
     var magnification: String?
 
-    @Option(name: .long, help: "Medium type: \(OptionTokens.media) (default: paper)")
+    @Option(name: .long, help: "Medium Type (2000,0030): \(OptionTokens.media) (default: paper)")
     var medium: String?
 
-    @Option(name: .long, help: "Number of copies recorded on the film (default: 1)")
+    @Option(name: .long, help: "Number of Copies (2000,0010) recorded on the film (default: 1)")
     var copies: Int = 1
 
-    @Option(name: .long, help: "Image polarity: \(OptionTokens.polarities) (default: normal)")
+    @Option(name: .long, help: "Polarity (2020,0020): \(OptionTokens.polarities) (default: normal; PS3.3 Table C.13-5: NORMAL when absent)")
     var polarity: String?
 
-    @Option(name: .long, help: "Presentation LUT shape: \(OptionTokens.presentationLUTShapes) (default: none)")
+    @Option(name: .long, help: "Presentation LUT Shape (2050,0020): \(OptionTokens.presentationLUTShapes) (default: none)")
     var presentationLut: String?
 
-    @Flag(name: .long, help: "Draw the trim box around each cell (Trim = YES)")
+    @Flag(name: .long, help: "Trim (2010,0140) = YES (default: NO)")
     var trim: Bool = false
 
-    @Option(name: .long, help: "Border density: BLACK, WHITE (default: BLACK)")
+    @Option(name: .long, help: "Border Density (2010,0100): BLACK, WHITE, or i hundredths of OD (150 = 1.5 OD) (default: BLACK)")
     var borderDensity: String?
 
-    @Option(name: .long, help: "Empty-cell density: BLACK, WHITE (default: BLACK)")
+    @Option(name: .long, help: "Empty Image Density (2010,0110): BLACK, WHITE, or i hundredths of OD (default: BLACK)")
     var emptyDensity: String?
 
-    @Option(name: .long, help: "Annotation text placed on the film (repeatable; requires --annotation-format)")
+    @Option(name: .long, help: "Text String (2030,0020) of a Basic Annotation Box (repeatable; requires --annotation-format)")
     var annotate: [String] = []
 
-    @Option(name: .long, help: "Printer-configured Annotation Display Format ID (required with --annotate)")
+    @Option(name: .long, help: "Annotation Display Format ID (2010,0030) (required with --annotate)")
     var annotationFormat: String?
 
     // MARK: Pixel preparation
 
-    @Option(name: .long, help: "Color mode: \(OptionTokens.colorModes) (default: grayscale)")
+    @Option(name: .long, help: "Image box class: grayscale = Basic Grayscale Image Box SOP Class, color = Basic Color Image Box SOP Class (default: grayscale)")
     var color: String?
 
     @Option(name: .long, help: "1-based frame to take from multi-frame files (default: 1)")
@@ -102,7 +103,7 @@ struct SimulateCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Explicit VOI window width (requires --window-center)")
     var windowWidth: Double?
 
-    @Option(name: .long, help: "Grayscale bit depth: 8, 12, or 16 (default: 8)")
+    @Option(name: .long, help: "Grayscale Bits Stored: 8 or 12, PS3.3 Table C.13-5 (default: 8)")
     var bitDepth: Int = 8
 
     // MARK: Input and reporting
@@ -181,7 +182,7 @@ struct SimulateCommand: AsyncParsableCommand {
     // MARK: - Request
 
     /// Builds the SCU-side job request the simulator composes from.
-    private func makeRequest() throws -> PrintJobRequest {
+    func makeRequest() throws -> PrintJobRequest {
         if !annotate.isEmpty, annotationFormat == nil {
             throw PrintSCPCommandError("--annotate requires --annotation-format")
         }
@@ -198,44 +199,54 @@ struct SimulateCommand: AsyncParsableCommand {
         request.copies = max(1, copies)
         if let medium {
             let token = try OptionTokens.validate(
-                medium, in: PrintOptionCatalog.mediumTypes.map(\.cliToken), flag: "--medium")
+                medium, in: PrintOptionCatalog.mediumTypes.map(\.cliToken),
+                terms: OptionTokens.mediumTerms, flag: "--medium")
             request.mediumType = PrintOptionCatalog.mediumType(forToken: token) ?? .paper
         }
         if let layout {
-            let token = try OptionTokens.validate(
-                layout, in: PrintLayoutOption.allCases.map(\.rawValue), flag: "--layout")
-            if let option = PrintLayoutOption(rawValue: token) {
+            if let option = PrintLayoutOption(rawValue: layout.lowercased()) {
                 request.layoutSelection = .explicit(option)
+            } else if let format = PrintImageDisplayFormat.validated(layout) {
+                // The forms of PS3.3 Table C.13-3, as `dicom-print --layout` takes them.
+                request.layoutSelection = .displayFormat(format)
+            } else {
+                throw PrintSCPCommandError(
+                    "Invalid --layout value '\(layout)'. Valid values: \(OptionTokens.layouts), "
+                        + "or an Image Display Format: STANDARD\\C,R, ROW\\R1,R2,..., COL\\C1,C2,..., "
+                        + "SLIDE, SUPERSLIDE, CUSTOM\\i")
             }
         }
         if let filmSize {
             let token = try OptionTokens.validate(
-                filmSize, in: PrintOptionCatalog.filmSizes.map(\.cliToken), flag: "--film-size")
+                filmSize, in: PrintOptionCatalog.filmSizes.map(\.cliToken),
+                terms: OptionTokens.filmSizeTerms, flag: "--film-size")
             request.filmSize = PrintOptionCatalog.filmSize(forToken: token) ?? .size14InX17In
         }
         if let orientation {
             let token = try OptionTokens.validate(
-                orientation, in: PrintOptionCatalog.orientations.map(\.cliToken), flag: "--orientation")
+                orientation, in: PrintOptionCatalog.orientations.map(\.cliToken),
+                terms: OptionTokens.orientationTerms, flag: "--orientation")
             request.filmOrientation = PrintOptionCatalog.orientations
                 .first { $0.cliToken == token }?.value ?? .portrait
         }
         if let magnification {
             let token = try OptionTokens.validate(
                 magnification, in: PrintOptionCatalog.magnificationTypes.map(\.cliToken),
-                flag: "--magnification")
+                terms: OptionTokens.magnificationTerms, flag: "--magnification")
             request.magnificationType = PrintOptionCatalog.magnificationTypes
                 .first { $0.cliToken == token }?.value ?? .replicate
         }
         if let polarity {
             let token = try OptionTokens.validate(
-                polarity, in: PrintOptionCatalog.polarities.map(\.cliToken), flag: "--polarity")
+                polarity, in: PrintOptionCatalog.polarities.map(\.cliToken),
+                terms: OptionTokens.polarityTerms, flag: "--polarity")
             request.polarity = PrintOptionCatalog.polarities
                 .first { $0.cliToken == token }?.value ?? .normal
         }
         if let presentationLut {
             let token = try OptionTokens.validate(
                 presentationLut, in: PrintOptionCatalog.presentationLUTShapes.map(\.cliToken),
-                flag: "--presentation-lut")
+                terms: OptionTokens.presentationLUTShapeTerms, flag: "--presentation-lut")
             request.presentationLUTShape = PrintOptionCatalog.presentationLUTShapes
                 .first { $0.cliToken == token }?.value
         }
@@ -265,14 +276,19 @@ struct SimulateCommand: AsyncParsableCommand {
         return request
     }
 
-    private func density(_ value: String, flag: String) throws -> String {
+    /// Border Density (2010,0100) / Empty Image Density (2010,0110): the Defined
+    /// Terms BLACK and WHITE, or "i where i represents the desired density in
+    /// hundredths of OD" (PS3.3 Table C.13-3), written without leading zeros.
+    func density(_ value: String, flag: String) throws -> String {
         let text = value.uppercased()
-        guard PrintOptionCatalog.densities.contains(text) else {
-            throw PrintSCPCommandError(
-                "Invalid \(flag) value '\(value)'. Valid values: "
-                    + PrintOptionCatalog.densities.joined(separator: ", "))
+        if PrintOptionCatalog.densities.contains(text) { return text }
+        if !text.isEmpty, text.allSatisfy({ $0.isASCII && $0.isNumber }), let hundredths = Int(text) {
+            return String(hundredths)
         }
-        return text
+        throw PrintSCPCommandError(
+            "Invalid \(flag) value '\(value)'. Valid values: "
+                + PrintOptionCatalog.densities.joined(separator: ", ")
+                + ", or a density in hundredths of OD (e.g. 150)")
     }
 
     // MARK: - Input

@@ -222,18 +222,21 @@ final class RealWorldValueLUTTests: XCTestCase {
     }
     
     func test_codedConcept_relaxationTimes_haveCorrectValues() {
-        XCTAssertEqual(CodedConcept.t1.codeValue, "113054")
-        XCTAssertEqual(CodedConcept.t2.codeValue, "113055")
-        XCTAssertEqual(CodedConcept.t2Star.codeValue, "113056")
+        // PS3.16 2026a Table D-1
+        XCTAssertEqual(CodedConcept.t1.codeValue, "113063")
+        XCTAssertEqual(CodedConcept.t2.codeValue, "113065")
+        XCTAssertEqual(CodedConcept.t2Star.codeValue, "113064")
     }
-    
+
     func test_codedConcept_perfusionQuantities_haveCorrectValues() {
+        // PS3.16 2026a Table D-1
         XCTAssertEqual(CodedConcept.ktrans.codeValue, "126312")
-        XCTAssertEqual(CodedConcept.ve.codeValue, "126313")
-        XCTAssertEqual(CodedConcept.vp.codeValue, "126314")
-        XCTAssertEqual(CodedConcept.cbf.codeValue, "126370")
-        XCTAssertEqual(CodedConcept.cbv.codeValue, "126371")
-        XCTAssertEqual(CodedConcept.mtt.codeValue, "126372")
+        XCTAssertEqual(CodedConcept.ve.codeValue, "126314")
+        XCTAssertEqual(CodedConcept.vp.codeValue, "126331")
+        XCTAssertEqual(CodedConcept.cbf.codeValue, "113055")
+        XCTAssertEqual(CodedConcept.cbf.codeMeaning, "Regional Cerebral Blood Flow")
+        XCTAssertEqual(CodedConcept.cbv.codeValue, "113056")
+        XCTAssertEqual(CodedConcept.mtt.codeValue, "113052")
     }
     
     func test_codedConcept_suvQuantities_haveCorrectValues() {

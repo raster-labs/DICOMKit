@@ -1,5 +1,6 @@
 // main.swift — dicom-jpip
 // DICOM JPIP streaming client/server utility
+// NEMA-verified: 2026a, checked 2026-10-01 — transfer syntax lists diffed against PS3.6 2026a Table A-1 (4 JPIP rows, 4 / 4 match, via JPIPSyntaxes); Pixel Data Provider URL (0028,7FE0) and section citations against PS3.5 2026a 8.4.1, 10.8, A.6, A.7, A.11, A.12; fetch/serve parameters (layers, level, region, port) belong to ISO/IEC 15444-9 JPIP and are out of scope (plumbing)
 
 import Foundation
 import ArgumentParser
@@ -22,9 +23,11 @@ struct DICOMJpip: ParsableCommand {
             implemented in the pinned J2KSwift JPIP module (11.0.2). `uri`, `serve`
             and `info` work. Tracked as F1 in RESEARCH_ADOPTION_PLAN.md.
 
-            Transfer Syntaxes:
-              JPIP Referenced          1.2.840.10008.1.2.4.94
-              JPIP Referenced Deflate  1.2.840.10008.1.2.4.95
+            Transfer Syntaxes (PS3.6 Table A-1; PS3.5 A.6, A.7, A.11, A.12):
+              JPIP Referenced                1.2.840.10008.1.2.4.94
+              JPIP Referenced Deflate        1.2.840.10008.1.2.4.95
+              JPIP HTJ2K Referenced          1.2.840.10008.1.2.4.204
+              JPIP HTJ2K Referenced Deflate  1.2.840.10008.1.2.4.205
 
             Examples:
               # Fetch full image from JPIP server
@@ -34,7 +37,7 @@ struct DICOMJpip: ParsableCommand {
               dicom-jpip fetch http://pacs.example.com:8080 --image CT0001 \\
                   --region 0,0,512,512 --layers 2
 
-              # Extract JPIP URI from a DICOM file
+              # Print the Pixel Data Provider URL (0028,7FE0) of a JPIP-referenced file
               dicom-jpip uri study.dcm
 
               # Start an embedded JPIP server serving local DICOM files
@@ -160,10 +163,11 @@ extension DICOMJpip {
     struct URICommand: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "uri",
-            abstract: "Extract the JPIP URI from a DICOM file",
+            abstract: "Print the Pixel Data Provider URL (0028,7FE0) of a JPIP-referenced DICOM file",
             discussion: """
-                Reads a DICOM file that uses a JPIP referenced transfer syntax and prints
-                the JPIP server URI stored in the Pixel Data element.
+                Reads a DICOM file that uses a JPIP Referenced Transfer Syntax and prints its
+                Pixel Data Provider URL (0028,7FE0), the JPIP request URL that stands in for the
+                absent Pixel Data (PS3.5 8.4.1, A.6).
 
                 Examples:
                   dicom-jpip uri study.dcm
@@ -187,29 +191,28 @@ extension DICOMJpip {
             let fileURL = URL(fileURLWithPath: input)
             let dicomFile = try DICOMFile.read(from: fileURL)
             let tsUID = dicomFile.transferSyntaxUID ?? TransferSyntax.explicitVRLittleEndian.uid
-            let ts = TransferSyntax.from(uid: tsUID)
 
-            guard ts?.isJPIP == true else {
-                print("Error: Transfer syntax \(tsUID) is not a JPIP reference syntax")
-                print("JPIP transfer syntaxes: 1.2.840.10008.1.2.4.94, 1.2.840.10008.1.2.4.95")
+            guard let syntax = JPIPSyntaxes.syntax(tsUID) else {
+                print("Error: Transfer syntax \(tsUID) is not a JPIP Referenced Transfer Syntax")
+                print("JPIP transfer syntaxes: " + JPIPSyntaxes.all.map(\.uid).joined(separator: ", "))
                 throw ExitCode.failure
             }
 
-            let jpipURL = try DICOMJPIPClient.jpipURI(from: dicomFile.dataSet, transferSyntaxUID: tsUID)
+            let jpipURL = try JPIPSyntaxes.pixelDataProviderURL(from: dicomFile.dataSet, transferSyntaxUID: tsUID)
 
             if json {
                 let result: [String: Any] = [
                     "file": input,
                     "transferSyntaxUID": tsUID,
-                    "isDeflated": ts?.isDeflated ?? false,
+                    "isDeflated": syntax.deflated,
                     "jpipURI": jpipURL.absoluteString
                 ]
                 let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted])
                 print(String(data: data, encoding: .utf8) ?? "")
             } else {
-                print("File:              \(input)")
-                print("Transfer Syntax:   \(tsUID)\(ts?.isDeflated == true ? " (deflated)" : "")")
-                print("JPIP URI:          \(jpipURL.absoluteString)")
+                print("File:                     \(input)")
+                print("Transfer Syntax:          \(tsUID) (\(syntax.name))")
+                print("Pixel Data Provider URL:  \(jpipURL.absoluteString)")
             }
         }
     }
@@ -360,7 +363,7 @@ extension DICOMJpip {
             }
 
             guard let target = target else {
-                print("JPIP (JPEG 2000 Interactive Protocol) — DICOM PS3.5 Annex A.8")
+                print("JPIP (JPEG 2000 Interactive Protocol) — DICOM PS3.5 8.4.1 and Annex A.6, A.7, A.11, A.12")
                 print("")
                 print("Transfer Syntaxes:")
                 printJPIPSyntaxes(asJSON: false)
@@ -382,13 +385,24 @@ extension DICOMJpip {
             }
         }
 
-        private func printJPIPSyntaxes(asJSON: Bool) {
-            let syntaxes: [[String: Any]] = [
+        /// The rows `--list-syntaxes` prints. PS3.6 Table A-1 UIDs and names are kept as
+        /// literals so Scripts/diff_cli_web.py can diff them; JPIPSyntaxesTests pins them to
+        /// JPIPSyntaxes.all.
+        static var listedSyntaxes: [[String: String]] {
+            [
                 ["uid": "1.2.840.10008.1.2.4.94", "name": "JPIP Referenced",
-                 "description": "Pixel Data contains a JPIP server URI; image data retrieved on demand"],
+                 "description": "Pixel Data absent; Pixel Data Provider URL (0028,7FE0) references a JPEG 2000 bit stream on a JPIP server (PS3.5 A.6)"],
                 ["uid": "1.2.840.10008.1.2.4.95", "name": "JPIP Referenced Deflate",
-                 "description": "Same as JPIP Referenced but DICOM dataset is deflate-compressed"]
+                 "description": "As JPIP Referenced, with the Data Set deflate-compressed (PS3.5 A.7)"],
+                ["uid": "1.2.840.10008.1.2.4.204", "name": "JPIP HTJ2K Referenced",
+                 "description": "Pixel Data absent; Pixel Data Provider URL (0028,7FE0) references an HTJ2K bit stream on a JPIP server (PS3.5 A.11)"],
+                ["uid": "1.2.840.10008.1.2.4.205", "name": "JPIP HTJ2K Referenced Deflate",
+                 "description": "As JPIP HTJ2K Referenced, with the Data Set deflate-compressed (PS3.5 A.12)"]
             ]
+        }
+
+        private func printJPIPSyntaxes(asJSON: Bool) {
+            let syntaxes = Self.listedSyntaxes
             if asJSON {
                 let data = try? JSONSerialization.data(withJSONObject: syntaxes, options: [.prettyPrinted])
                 print(String(data: data ?? Data(), encoding: .utf8) ?? "")
@@ -408,30 +422,31 @@ extension DICOMJpip {
             let fileURL = URL(fileURLWithPath: path)
             let dicomFile = try DICOMFile.read(from: fileURL)
             let tsUID = dicomFile.transferSyntaxUID ?? TransferSyntax.explicitVRLittleEndian.uid
-            let ts = TransferSyntax.from(uid: tsUID)
+            // JPIPSyntaxes covers all four Table A-1 JPIP syntaxes, including the HTJ2K pair.
+            let syntax = JPIPSyntaxes.syntax(tsUID)
 
             if json {
                 var result: [String: Any] = [
                     "file": path,
                     "transferSyntaxUID": tsUID,
-                    "isJPIP": ts?.isJPIP ?? false
+                    "isJPIP": syntax != nil
                 ]
-                if ts?.isJPIP == true {
-                    if let jpipURL = try? DICOMJPIPClient.jpipURI(from: dicomFile.dataSet, transferSyntaxUID: tsUID) {
+                if syntax != nil {
+                    if let jpipURL = try? JPIPSyntaxes.pixelDataProviderURL(from: dicomFile.dataSet, transferSyntaxUID: tsUID) {
                         result["jpipURI"] = jpipURL.absoluteString
                     }
                 }
                 let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted])
                 print(String(data: data, encoding: .utf8) ?? "")
             } else {
-                print("File:            \(path)")
-                print("Transfer Syntax: \(tsUID)")
-                print("Is JPIP:         \(ts?.isJPIP == true ? "Yes" : "No")")
-                if ts?.isJPIP == true {
-                    if let jpipURL = try? DICOMJPIPClient.jpipURI(from: dicomFile.dataSet, transferSyntaxUID: tsUID) {
-                        print("JPIP URI:        \(jpipURL.absoluteString)")
-                        print("Server Host:     \(jpipURL.host ?? "unknown")")
-                        print("Server Port:     \(jpipURL.port.map(String.init) ?? "default")")
+                print("File:                     \(path)")
+                print("Transfer Syntax:          \(tsUID)\(syntax.map { " (\($0.name))" } ?? "")")
+                print("Is JPIP:                  \(syntax != nil ? "Yes" : "No")")
+                if syntax != nil {
+                    if let jpipURL = try? JPIPSyntaxes.pixelDataProviderURL(from: dicomFile.dataSet, transferSyntaxUID: tsUID) {
+                        print("Pixel Data Provider URL:  \(jpipURL.absoluteString)")
+                        print("Server Host:              \(jpipURL.host ?? "unknown")")
+                        print("Server Port:              \(jpipURL.port.map(String.init) ?? "default")")
                     }
                 }
             }

@@ -21,10 +21,10 @@ AI/ML integration tool for DICOM image analysis, enhancement, and automated repo
 - **JSON**: Structured prediction results
 - **Text**: Human-readable formatted output
 - **CSV**: Spreadsheet-compatible format
-- **DICOM SR**: Create Structured Reports with AI findings
+- **DICOM SR**: a PS3.16 TID 1500 Measurement Report (Comprehensive SR): Algorithm Name / Version (TID 4019), and per finding a Measurement Group with the label and its Certainty of Finding (111012, DCM) in percent, inferred from the image or the bounding box
 - **DICOM SEG**: Create Segmentation objects from AI masks
-- **GSPS**: Grayscale Presentation State with AI annotations
-- **Enhanced DICOM**: AI-processed pixel data saved as DICOM
+- **GSPS**: Grayscale Presentation State with AI annotations (library function; no subcommand writes it yet)
+- **Enhanced DICOM**: AI-processed pixel data saved as a derived image (Image Type DERIVED\SECONDARY, Source Image Sequence) of the source SOP Class
 - **Markdown**: Markdown-formatted analysis reports
 
 ## Installation
@@ -219,6 +219,7 @@ Or simply:
 - `--format, -f`: Output format (json, text, csv, dicom-sr, dicom-seg)
 - `--confidence`: Minimum confidence threshold (0.0-1.0, default: 0.5)
 - `--frame`: Frame index for multi-frame images (default: 0)
+- `--algorithm-version`: Algorithm Version (111003, DCM) written in dicom-sr output (default: the model's CoreML version metadata, else "unknown")
 - `--force`: Force parsing of files without DICM prefix
 - `--verbose`: Verbose output for debugging
 
@@ -501,7 +502,7 @@ dicom-ai enhance noisy-scan.dcm \
 
 - ✅ DICOM Structured Report (SR) generation from classification and detection predictions
 - ✅ DICOM Segmentation (SEG) object creation from AI segmentation masks
-- ✅ GSPS (Grayscale Presentation State) with AI annotations (bounding boxes, labels)
+- ✅ GSPS (Grayscale Presentation State) with AI annotations (bounding boxes, labels) — library function, not yet reachable from a subcommand
 - ✅ Enhanced DICOM file creation with AI-processed pixel data
 - ✅ Text, detection, and markdown report generation
 

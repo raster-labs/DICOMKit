@@ -1,17 +1,25 @@
 // PresentationStateModel.swift
 // DICOMStudio
 //
-// DICOM Studio — Presentation State models per DICOM PS3.3 C.11
+// DICOM Studio — Presentation State models per DICOM PS3.3 A.33, C.10 and C.11
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `PresentationLUTShape` raw values are the 2 Presentation LUT Shape (2050,0020) Enumerated Values of PS3.3 2026a C.11.6 (IDENTITY, INVERSE), both match; `DisplayedArea.presentationSizeMode` default SCALE TO FIT is a Presentation Size Mode (0070,0100) Enumerated Value of C.10.4 (the 3 are SCALE TO FIT, TRUE SIZE, MAGNIFY); `ModalityLUTTransform.rescaleType` default is now US (Unspecified), a Rescale Type (0028,1054) Defined Term of C.11.1.1.2 — it was HU, a unit the model cannot claim for every modality: corrected; `VOILUTTransform.function` default LINEAR is the C.11.2.1.3 default; `SpatialTransformationType` and `PresentationStateType` raw values are internal names (C.10.6 encodes Image Rotation 0/90/180/270 and Image Horizontal Flip Y/N; a vertical flip is ROTATE_180 + FLIP_H there); `PresentationStatePalette` raw values HOT_IRON, PET, PET_20_STEP are PS3.6 2026a Table B.1-1 Well-known Color Palette names, RAINBOW, HOT_METAL, GRAYSCALE and CUSTOM are not (documented below); the IOD citations were C.11.x module numbers and now name A.33.1–A.33.4; checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 
-/// Presentation LUT shape per DICOM PS3.3 C.11.6.
+/// Presentation LUT Shape (2050,0020) Enumerated Values, PS3.3 C.11.6.
 public enum PresentationLUTShape: String, Sendable, Equatable, Hashable, CaseIterable {
     case identity = "IDENTITY"
     case inverse = "INVERSE"
 }
 
-/// Spatial transformation type per DICOM PS3.3 C.10.6.
+/// Spatial transformation, PS3.3 C.10.6, as one name per combination.
+///
+/// The module encodes Image Rotation (0070,0042) — 0, 90, 180 or 270,
+/// clockwise, applied first — and Image Horizontal Flip (0070,0041) — Y or N,
+/// applied after the rotation. These raw values are this app's names for the
+/// combinations, not DICOM values; `flipVertical` has no C.10.6 encoding of
+/// its own (it is ROTATE_180 with FLIP_H).
 public enum SpatialTransformationType: String, Sendable, Equatable, Hashable, CaseIterable {
     case none = "NONE"
     case rotate90 = "ROTATE_90"
@@ -45,7 +53,8 @@ public struct VOILUTTransform: Sendable, Equatable, Hashable {
     /// Window width value.
     public let windowWidth: Double
 
-    /// VOI LUT function (LINEAR, LINEAR_EXACT, SIGMOID).
+    /// VOI LUT Function (0028,1056): LINEAR, LINEAR_EXACT or SIGMOID (PS3.3
+    /// C.11.2); LINEAR when the Attribute is absent (C.11.2.1.3).
     public let function: String
 
     /// Creates a new VOI LUT transform.
@@ -66,11 +75,14 @@ public struct ModalityLUTTransform: Sendable, Equatable, Hashable {
     /// Rescale intercept.
     public let rescaleIntercept: Double
 
-    /// Rescale type.
+    /// Rescale Type (0028,1054): the units of the rescaled values, a Defined
+    /// Term of PS3.3 C.11.1.1.2 (OD, HU, US, MGML, Z_EFF, ED, EDW, HU_MOD, PCT)
+    /// or any other string. US — "Unspecified" — unless the caller knows better;
+    /// HU is CT's and must be stated by the image, not assumed.
     public let rescaleType: String
 
     /// Creates a new modality LUT transform.
-    public init(rescaleSlope: Double = 1.0, rescaleIntercept: Double = 0.0, rescaleType: String = "HU") {
+    public init(rescaleSlope: Double = 1.0, rescaleIntercept: Double = 0.0, rescaleType: String = "US") {
         self.rescaleSlope = rescaleSlope
         self.rescaleIntercept = rescaleIntercept
         self.rescaleType = rescaleType
@@ -87,7 +99,8 @@ public struct DisplayedArea: Sendable, Equatable, Hashable {
     /// Bottom-right corner of the display area (image coordinates).
     public let bottomRight: AnnotationPoint
 
-    /// Presentation size mode.
+    /// Presentation Size Mode (0070,0100): SCALE TO FIT, TRUE SIZE or MAGNIFY
+    /// (PS3.3 C.10.4).
     public let presentationSizeMode: String
 
     /// Presentation pixel spacing (mm).
@@ -128,7 +141,8 @@ public struct ReferencedImage: Sendable, Equatable, Hashable {
 
 /// Grayscale Softcopy Presentation State (GSPS).
 ///
-/// Corresponds to DICOM PS3.3 C.11.1 (SOP Class 1.2.840.10008.5.1.4.1.1.11.1).
+/// Corresponds to the DICOM PS3.3 A.33.1 IOD (SOP Class
+/// 1.2.840.10008.5.1.4.1.1.11.1, Grayscale Softcopy Presentation State Storage).
 public struct GSPSModel: Identifiable, Sendable, Equatable, Hashable {
     /// Unique identifier.
     public let id: UUID
@@ -208,7 +222,8 @@ public struct GSPSModel: Identifiable, Sendable, Equatable, Hashable {
 
 /// Color Softcopy Presentation State model.
 ///
-/// Corresponds to DICOM PS3.3 C.11.9.
+/// Corresponds to the DICOM PS3.3 A.33.2 IOD (SOP Class
+/// 1.2.840.10008.5.1.4.1.1.11.2).
 public struct ColorPresentationStateModel: Identifiable, Sendable, Equatable, Hashable {
     /// Unique identifier.
     public let id: UUID
@@ -267,13 +282,16 @@ public struct ColorPresentationStateModel: Identifiable, Sendable, Equatable, Ha
 }
 
 /// Pseudo-Color palette named by a stored Pseudo-Color Softcopy Presentation
-/// State (PS3.3 C.11.10).
+/// State (PS3.3 A.33.3).
 ///
 /// Distinct from ``DICOMCore/PseudoColorPalette``, which is the palette a reader
 /// picks for the screen and the film. This one is what a *saved* presentation
 /// state says an image should be shown with — a fact read out of a file rather
-/// than a choice being made — and the two lists differ because the standard's
-/// C.11.10 vocabulary is not the set of palettes worth offering in a picker.
+/// than a choice being made. HOT_IRON, PET and PET_20_STEP are Well-known Color
+/// Palette names of PS3.6 Table B.1-1 (which also has HOT_METAL_BLUE, SPRING,
+/// SUMMER, FALL and WINTER); RAINBOW, HOT_METAL, GRAYSCALE and CUSTOM are this
+/// app's own, because the standard's list is not the set of palettes worth
+/// offering in a picker.
 public enum PresentationStatePalette: String, Sendable, Equatable, Hashable, CaseIterable {
     case hotIron = "HOT_IRON"
     case rainbow = "RAINBOW"
@@ -286,7 +304,8 @@ public enum PresentationStatePalette: String, Sendable, Equatable, Hashable, Cas
 
 /// Pseudo-Color Softcopy Presentation State model.
 ///
-/// Corresponds to DICOM PS3.3 C.11.10.
+/// Corresponds to the DICOM PS3.3 A.33.3 IOD (SOP Class
+/// 1.2.840.10008.5.1.4.1.1.11.3).
 public struct PseudoColorPresentationStateModel: Identifiable, Sendable, Equatable, Hashable {
     /// Unique identifier.
     public let id: UUID
@@ -360,7 +379,7 @@ public struct ColorEntry: Sendable, Equatable, Hashable {
 
 /// Blending Softcopy Presentation State model.
 ///
-/// Corresponds to DICOM PS3.3 C.11.11.
+/// Corresponds to the DICOM PS3.3 A.33.4 IOD.
 public struct BlendingPresentationStateModel: Identifiable, Sendable, Equatable, Hashable {
     /// Unique identifier.
     public let id: UUID

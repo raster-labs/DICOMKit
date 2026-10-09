@@ -10,7 +10,7 @@ Display metadata from DICOM files in various formats.
 
 **Features:**
 - Plain text, JSON, and CSV output formats
-- Tag filtering by name
+- Tag filtering by PS3.6 keyword, tag, or part of the Attribute name
 - Private tag inclusion/exclusion
 - File statistics
 - Forced parsing of non-standard files
@@ -27,8 +27,10 @@ dicom-info --format json report.dcm
 # CSV output for spreadsheet analysis
 dicom-info --format csv exam.dcm > metadata.csv
 
-# Filter by tag name
+# Filter by PS3.6 keyword (exact), by tag, or by part of the Attribute name (case-insensitive)
 dicom-info --tag PatientName --tag StudyDate scan.dcm
+dicom-info --tag 0010,0010 scan.dcm
+dicom-info --tag "Patient" scan.dcm
 
 # Include private tags
 dicom-info --show-private scan.dcm

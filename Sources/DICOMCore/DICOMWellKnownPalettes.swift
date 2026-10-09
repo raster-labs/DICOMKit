@@ -20,6 +20,12 @@
 // Each expansion was checked to land on exactly 256 entries, which is the
 // property a mis-read stream would almost certainly break.
 //
+// NEMA-verified: 2026a, checked 2026-09-24 — text-diffed: all 8 × 256 RGB entries match PS3.6
+// 2026a Annex B (Tables B.1.N.2-2), with descriptors (256, 0, 8). The four segmented
+// palettes were expanded per PS3.3 C.7.9.2. The standard gives no rounding rule for
+// linear segments; these tables round half-to-even, which decides Summer[223].blue = 190
+// (the exact value is 190.5).
+//
 // These are the only palettes a film can name normatively: PS3.3 Table C.13-5
 // permits only RGB in a Basic Color Image Sequence, so a palette is always
 // baked into the pixels before it reaches a printer. The identity survives in

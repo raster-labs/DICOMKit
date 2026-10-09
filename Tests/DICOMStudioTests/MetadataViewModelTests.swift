@@ -51,7 +51,7 @@ struct MetadataViewModelTests {
     func testTransferSyntaxDescription() {
         let vm = MetadataViewModel()
         vm.transferSyntaxUID = "1.2.840.10008.1.2"
-        #expect(vm.transferSyntaxDescription == "Implicit VR Little Endian")
+        #expect(vm.transferSyntaxDescription == "Implicit VR Little Endian: Default Transfer Syntax for DICOM")
     }
 
     @Test("Transfer syntax description for nil UID")

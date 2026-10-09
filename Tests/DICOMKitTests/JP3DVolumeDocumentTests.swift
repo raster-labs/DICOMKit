@@ -14,7 +14,8 @@ struct JP3DVolumeDocumentTests {
         columns: Int,
         sliceIndex: Int,
         seriesUID: String,
-        studyUID: String
+        studyUID: String,
+        photometric: String = "MONOCHROME2"
     ) throws -> DICOMFile {
         let bytesPerPixel = 2
         var pixelData = Data(capacity: rows * columns * bytesPerPixel)
@@ -33,7 +34,7 @@ struct JP3DVolumeDocumentTests {
         ds.setUInt16(11, for: .highBit)
         ds.setUInt16(0, for: .pixelRepresentation)
         ds.setUInt16(1, for: .samplesPerPixel)
-        ds.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+        ds.setString(photometric, for: .photometricInterpretation, vr: .CS)
         ds.setString("CT", for: .modality, vr: .CS)
         ds.setString(studyUID, for: .studyInstanceUID, vr: .UI)
         ds.setString(seriesUID, for: .seriesInstanceUID, vr: .UI)
@@ -136,6 +137,41 @@ struct JP3DVolumeDocumentTests {
         #expect((payload?.count ?? 0) > 8) // At least header bytes
     }
 
+    @Test("encode writes every Type 1/2 attribute of the Encapsulated Document IOD modules")
+    func test_encode_iodType1Type2Attributes() async throws {
+        let series = try makeSeries()
+        let ds = try await JP3DVolumeDocument.encode(series: series).dataSet
+
+        // Type 2 (present, may be empty): Tables C.7-1, C.7-3, C.7-8, C.24-2
+        for tag in [Tag.patientName, .patientID, .patientBirthDate, .patientSex,
+                    .studyDate, .studyTime, .referringPhysicianName, .studyID, .accessionNumber,
+                    .manufacturer, .contentDate, .contentTime, .acquisitionDateTime,
+                    .documentTitle, .conceptNameCodeSequence] {
+            #expect(ds[tag] != nil, "\(tag) must be present")
+        }
+        // Type 1 (present and non-empty): Tables C.7-3, C.24-1, C.8-24, C.24-2, C.12-1
+        for tag in [Tag.studyInstanceUID, .modality, .seriesInstanceUID, .seriesNumber, .conversionType,
+                    .instanceNumber, .burnedInAnnotation, .mimeTypeOfEncapsulatedDocument,
+                    .encapsulatedDocument, .sopClassUID, .sopInstanceUID] {
+            let element = ds[tag]
+            #expect(element != nil && element!.length > 0, "\(tag) is Type 1")
+        }
+        #expect(ds.string(for: .modality) == "DOC")
+        #expect(ds.string(for: .conversionType) == "WSD")
+        #expect(ds[.acquisitionDateTime]?.vr == .DT)
+        #expect(ds[.documentTitle]?.vr == .ST)
+        #expect(ds[.conceptNameCodeSequence]?.vr == .SQ)
+
+        // The sidecar carries Patient's Name / ID → Burned In Annotation YES (Table C.24-2).
+        #expect(ds.string(for: .burnedInAnnotation) == "YES")
+
+        // Source Instance Sequence (1C: derived from DICOM Instances): one Item per slice.
+        let sources = ds.sequence(for: .sourceInstanceSequence) ?? []
+        #expect(sources.count == series.count)
+        #expect(sources.first?.string(for: .referencedSOPClassUID) == "1.2.840.10008.5.1.4.1.1.2")
+        #expect(sources.first?.string(for: .referencedSOPInstanceUID) == series[0].dataSet.string(for: .sopInstanceUID))
+    }
+
     @Test("encode with custom study/series/SOP UIDs uses provided UIDs")
     func test_encode_customUIDs() async throws {
         let series = try makeSeries()
@@ -202,6 +238,38 @@ struct JP3DVolumeDocumentTests {
             let origPx = original.dataSet[.pixelData]!.valueData
             let decodedPx = decoded[i].dataSet[.pixelData]!.valueData
             #expect(origPx == decodedPx, "Slice \(i) pixel data mismatch")
+        }
+    }
+
+    @Test("encode/decode round-trip keeps MONOCHROME1 (PS3.3 C.7.6.3.1.2) instead of forcing MONOCHROME2")
+    func test_roundTrip_monochrome1() async throws {
+        let studyUID = UIDGenerator.generateUID().value
+        let seriesUID = UIDGenerator.generateUID().value
+        let series = try (0..<3).map { i in
+            try makeGrayscaleFile(rows: 8, columns: 8, sliceIndex: i, seriesUID: seriesUID,
+                                  studyUID: studyUID, photometric: "MONOCHROME1")
+        }
+        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
+        let decoded = try await JP3DVolumeDocument.decode(from: doc)
+        #expect(decoded.count == 3)
+        for slice in decoded {
+            #expect(slice.dataSet.string(for: .photometricInterpretation) == "MONOCHROME1")
+            #expect(slice.dataSet.uint16(for: .highBit) == 11)
+        }
+        // Stored values are kept as written (no inversion).
+        #expect(decoded[1].dataSet[.pixelData]?.valueData == series[1].dataSet[.pixelData]?.valueData)
+    }
+
+    @Test("encode refuses a series whose slices disagree on Photometric Interpretation")
+    func test_encode_mixedPhotometricThrows() async throws {
+        let studyUID = UIDGenerator.generateUID().value
+        let seriesUID = UIDGenerator.generateUID().value
+        let series = try (0..<2).map { i in
+            try makeGrayscaleFile(rows: 8, columns: 8, sliceIndex: i, seriesUID: seriesUID,
+                                  studyUID: studyUID, photometric: i == 0 ? "MONOCHROME2" : "MONOCHROME1")
+        }
+        await #expect(throws: DICOMError.self) {
+            _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
         }
     }
 

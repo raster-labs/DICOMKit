@@ -5,8 +5,8 @@
 // What the printer does with an image box whose depth the standard does not
 // allow.
 //
-// PS3.3 Table C.13-3 enumerates Bits Stored as 8 or 12 on the Basic Grayscale
-// Image Box; Table C.13-5 fixes the colour box at 8. A sender that puts 16 in
+// PS3.3 Table C.13-5 enumerates Bits Stored as 8 or 12 in the Basic Grayscale
+// Image Sequence and fixes the Basic Color Image Sequence at 8. A sender that puts 16 in
 // Bits Stored has produced a non-conformant SOP Instance, and the SCP would be
 // within its rights to fail the N-SET.
 //
@@ -94,7 +94,9 @@ final class PrintSCPPixelDepthTests: XCTestCase {
         XCTAssertEqual(resolved.highBit, 11)
 
         let note = try XCTUnwrap(resolved.notes.first)
-        XCTAssertTrue(note.contains("C.13-3"), note)
+        // Both image sequences are enumerated in PS3.3 Table C.13-5 (Image
+        // Box Pixel Presentation Module); C.13-3 is the Film Box module.
+        XCTAssertTrue(note.contains("C.13-5"), note)
         XCTAssertTrue(note.contains("16"), note)
         XCTAssertTrue(note.contains("12"), note)
     }

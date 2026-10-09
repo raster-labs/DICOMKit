@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (testing-only: builds the dicom-* products with swift build for the Compare-CLI diff; grep for tags, UIDs, STD-* profiles, VR codes and PS3 clauses found none)
 // CLIToolBuilder.swift
 // DICOMStudio
 //

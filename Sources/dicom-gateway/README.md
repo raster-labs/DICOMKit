@@ -69,15 +69,18 @@ dicom-gateway dicom-to-hl7 study.dcm --output study.hl7 -v
 ### HL7 to DICOM Conversion
 
 ```bash
-# Convert HL7 to DICOM
-dicom-gateway hl7-to-dicom message.hl7 --output study.dcm
-
-# Use template DICOM file
+# Convert HL7 to DICOM: --template is required
 dicom-gateway hl7-to-dicom message.hl7 --template template.dcm --output study.dcm
 
 # Verbose output
-dicom-gateway hl7-to-dicom message.hl7 --output study.dcm -v
+dicom-gateway hl7-to-dicom message.hl7 --template template.dcm --output study.dcm -v
 ```
+
+`--template` is required (exit 1 without it). An HL7 message carries no image; without a
+template the output would claim Secondary Capture Image Storage with no Image Pixel Module and no
+SC Image Module, both Mandatory in the Secondary Capture Image IOD (PS3.3 2026a Table A.8-1).
+A template whose SOP Class is an image Storage SOP Class but which has no Pixel Data is refused
+for the same reason.
 
 ### DICOM to FHIR Conversion
 
@@ -104,15 +107,17 @@ dicom-gateway dicom-to-fhir study.dcm --resource ImagingStudy
 ### FHIR to DICOM Conversion
 
 ```bash
-# Convert FHIR ImagingStudy to DICOM
-dicom-gateway fhir-to-dicom imaging-study.json --output study.dcm
+# Convert FHIR ImagingStudy to DICOM: --template is required
+dicom-gateway fhir-to-dicom imaging-study.json --template template.dcm --output study.dcm
 
-# Use template
+# Patient resource into a template
 dicom-gateway fhir-to-dicom patient.json --template template.dcm --output study.dcm
 
 # Verbose output
-dicom-gateway fhir-to-dicom imaging-study.json --output study.dcm -v
+dicom-gateway fhir-to-dicom imaging-study.json --template template.dcm --output study.dcm -v
 ```
+
+`--template` is required, as for `hl7-to-dicom` (PS3.3 2026a Table A.8-1).
 
 ### Batch Conversion
 
@@ -175,12 +180,31 @@ dicom-gateway batch dicom-to-fhir "studies/*.dcm" --output fhir/ -v
 ```
 DICOM Tag                    → HL7 Segment.Field
 ─────────────────────────────────────────────────
-Patient ID (0010,0020)       → PID-2
-Patient Name (0010,0010)     → PID-5
-Birth Date (0010,0030)       → PID-7
-Sex (0010,0040)              → PID-8
-Accession Number (0008,0050) → PV1-19
+Patient ID (0010,0020)            → PID-2
+Patient's Name (0010,0010)        → PID-5
+Patient's Birth Date (0010,0030)  → PID-7
+Patient's Sex (0010,0040)         → PID-8
+Accession Number (0008,0050)      → PV1-19
 ```
+
+### HL7 v2 to DICOM (`hl7-to-dicom`)
+```
+HL7 Segment.Field   → DICOM Attribute (VR)
+─────────────────────────────────────────────────
+PID-3 CX.1          → Patient ID (0010,0020) LO
+PID-3 CX.4          → Issuer of Patient ID (0010,0021) LO
+PID-5 XPN           → Patient's Name (0010,0010) PN — family^given^middle^prefix^suffix
+PID-7               → Patient's Birth Date (0010,0030) DA — YYYYMMDD only, else empty
+PID-8               → Patient's Sex (0010,0040) CS — M, F, O; U → empty
+ORC-2 EI.1          → Accession Number (0008,0050) SH — warning above 16 characters
+OBR-3 EI.1          → Study Instance UID (0020,000D) — only when a valid UID
+OBR-4.1 / OBR-4.2   → Modality (0008,0060) / Study Description (0008,1030)
+OBR-7               → Study Date (0008,0020) DA, Study Time (0008,0030) TM
+```
+Values follow PS3.5 2026a Table 6.2-1 and PS3.3 2026a Table C.7-1. The values are written into
+the `--template` data set, which is required: a demographics-only data set claiming Secondary
+Capture Image Storage with no pixel data is not a Secondary Capture Image IOD (PS3.3 2026a
+Table A.8-1), so it is no longer written.
 
 ### DICOM to HL7 ORM
 ```
@@ -286,7 +310,7 @@ dicom-gateway/
 
 ## Standards Compliance
 
-- **DICOM**: Compliant with DICOM PS3 standard
+- **DICOM**: the DICOM side of the mappings (PN, DA, TM, Patient's Sex, UIDs) is checked against DICOM 2026a; HL7 v2, FHIR and IHE are not NEMA standards
 - **HL7 v2.5**: Supports HL7 v2.5 message structure
 - **FHIR R4**: Generates FHIR R4 resources
 - **IHE**: Foundation IHE profile support (PDI, XDS-I, PIX, PDQ)

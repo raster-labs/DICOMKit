@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — the 23 Command Field values text-diffed against PS3.7 2026a Table E.1-1 (0000,0100) (Scripts/diff_network.py): 23 of 23 match
 
 /// DIMSE Command Field values
 ///

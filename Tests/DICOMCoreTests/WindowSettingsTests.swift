@@ -37,6 +37,23 @@ struct WindowSettingsTests {
         
         #expect(window.width == 1.0)
     }
+
+    /// PS3.3 C.11.2.1.3.1 / C.11.2.1.3.2: SIGMOID and LINEAR_EXACT only require
+    /// Window Width > 0; the LINEAR minimum of 1 (C.11.2.1.2.1) does not apply (D64).
+    @Test("SIGMOID and LINEAR_EXACT keep widths between 0 and 1")
+    func testNonLinearFunctionsKeepSubUnitWidths() {
+        #expect(WindowSettings(center: 0.5, width: 0.25, function: .linearExact).width == 0.25)
+        #expect(WindowSettings(center: 0.5, width: 0.25, function: .sigmoid).width == 0.25)
+        #expect(WindowSettings(center: 0.5, width: 0.25, function: .linear).width == 1.0)
+        // Forbidden for every function: applied as 1.
+        #expect(WindowSettings(center: 0, width: 0, function: .linearExact).width == 1.0)
+        #expect(WindowSettings(center: 0, width: -3, function: .sigmoid).width == 1.0)
+        // LINEAR_EXACT over c = 0.5, w = 0.25: 0.375 is the lower edge, 0.625 the upper.
+        let exact = WindowSettings(center: 0.5, width: 0.25, function: .linearExact)
+        #expect(exact.apply(to: 0.375) == 0.0)
+        #expect(exact.apply(to: 0.5) == 0.5)
+        #expect(exact.apply(to: 0.625) == 1.0)
+    }
     
     // MARK: - Range Tests
     

@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — decoder compared with PS3.8 2026a Tables 9-11..9-26 and PS3.7 Tables D.3-1..D.3-15 (item types 0x10-0x59; 0x53/0x57 skipped as §9.3.1 permits; 0x56 SOP Class Extended Negotiation decoded per Table D.3-11 (2026-10-01); Protocol-version preserved for the bit-0 test)
 
 /// PDU Decoder for parsing DICOM network PDUs from binary data
 ///
@@ -110,7 +111,8 @@ public enum PDUDecoder {
             throw DICOMNetworkError.decodingFailed("A-ASSOCIATE-RQ too short")
         }
         
-        // Protocol Version (2 bytes)
+        // Protocol Version (2 bytes) - kept so the SCP can test bit 0 (PS3.8 Table 9-11)
+        let protocolVersion = readUInt16BigEndian(from: data, at: offset)
         offset += 2
         
         // Reserved (2 bytes)
@@ -140,6 +142,8 @@ public enum PDUDecoder {
         var implementationClassUID = ""
         var implementationVersionName: String?
         var userIdentity: UserIdentity?
+        var roleSelections: [SCPSCURoleSelection] = []
+        var extendedNegotiations: [SOPClassExtendedNegotiation] = []
         
         while offset < data.endIndex {
             guard offset + 4 <= data.endIndex else { break }
@@ -170,6 +174,8 @@ public enum PDUDecoder {
                 implementationClassUID = userInfo.implementationClassUID ?? implementationClassUID
                 implementationVersionName = userInfo.implementationVersionName
                 userIdentity = userInfo.userIdentity
+                roleSelections = userInfo.roleSelections
+                extendedNegotiations = userInfo.extendedNegotiations
                 
             default:
                 break // Unknown item type, skip
@@ -177,6 +183,7 @@ public enum PDUDecoder {
         }
         
         return AssociateRequestPDU(
+            protocolVersion: protocolVersion,
             calledAETitle: calledAETitle,
             callingAETitle: callingAETitle,
             presentationContexts: presentationContexts,
@@ -184,7 +191,9 @@ public enum PDUDecoder {
             implementationClassUID: implementationClassUID,
             implementationVersionName: implementationVersionName,
             userIdentity: userIdentity,
-            applicationContextName: applicationContextName
+            applicationContextName: applicationContextName,
+            roleSelections: roleSelections,
+            extendedNegotiations: extendedNegotiations
         )
     }
     
@@ -233,6 +242,8 @@ public enum PDUDecoder {
         var implementationVersionName: String?
         var userIdentity: UserIdentity?
         var userIdentityServerResponse: UserIdentityServerResponse?
+        var roleSelections: [SCPSCURoleSelection] = []
+        var extendedNegotiations: [SOPClassExtendedNegotiation] = []
     }
     
     private static func decodeUserInformationFull(from data: Data) throws -> UserInformationResult {
@@ -259,6 +270,14 @@ public enum PDUDecoder {
                 }
             case 0x52: // Implementation Class UID
                 result.implementationClassUID = String(data: subItemData, encoding: .ascii)
+            case SCPSCURoleSelection.subItemType: // SCP/SCU Role Selection (PS3.7 D.3.3.4)
+                if let role = try? SCPSCURoleSelection.decode(from: subItemData) {
+                    result.roleSelections.append(role)
+                }
+            case SOPClassExtendedNegotiation.subItemType: // SOP Class Extended Negotiation (PS3.7 D.3.3.5)
+                if let negotiation = try? SOPClassExtendedNegotiation.decode(from: subItemData) {
+                    result.extendedNegotiations.append(negotiation)
+                }
             case 0x55: // Implementation Version Name
                 result.implementationVersionName = String(data: subItemData, encoding: .ascii)
             case 0x58: // User Identity (A-ASSOCIATE-RQ)
@@ -391,6 +410,8 @@ public enum PDUDecoder {
         var implementationClassUID = ""
         var implementationVersionName: String?
         var userIdentityServerResponse: UserIdentityServerResponse?
+        var roleSelections: [SCPSCURoleSelection] = []
+        var extendedNegotiations: [SOPClassExtendedNegotiation] = []
         
         while offset < data.endIndex {
             guard offset + 4 <= data.endIndex else { break }
@@ -420,6 +441,8 @@ public enum PDUDecoder {
                 implementationClassUID = userInfo.implementationClassUID ?? implementationClassUID
                 implementationVersionName = userInfo.implementationVersionName
                 userIdentityServerResponse = userInfo.userIdentityServerResponse
+                roleSelections = userInfo.roleSelections
+                extendedNegotiations = userInfo.extendedNegotiations
                 
             default:
                 break
@@ -435,7 +458,9 @@ public enum PDUDecoder {
             maxPDUSize: maxPDUSize,
             implementationClassUID: implementationClassUID,
             implementationVersionName: implementationVersionName,
-            userIdentityServerResponse: userIdentityServerResponse
+            userIdentityServerResponse: userIdentityServerResponse,
+            roleSelections: roleSelections,
+            extendedNegotiations: extendedNegotiations
         )
     }
     
@@ -470,6 +495,12 @@ public enum PDUDecoder {
             if subItemType == 0x40 { // Transfer Syntax
                 transferSyntax = String(data: subItemData, encoding: .ascii)
             }
+        }
+        
+        // PS3.8 Table 9-18: the Transfer Syntax sub-item is not significant
+        // (and "shall not be tested") when the Result/Reason is not acceptance.
+        if result != .acceptance || transferSyntax?.isEmpty == true {
+            transferSyntax = nil
         }
         
         return AcceptedPresentationContext(id: contextID, result: result, transferSyntax: transferSyntax)

@@ -60,6 +60,22 @@ struct DataElementTests {
         #expect(values?[2] == "VALUE3")
     }
     
+    @Test("Empty values of a multi-valued attribute are kept in position (PS3.5 §6.4, D25)")
+    func testEmptyValuesPreserved() {
+        let data = "MPG\\\\XR3".data(using: .utf8)!
+        let element = DataElement(tag: Tag.imageType, vr: .CS, length: UInt32(data.count), valueData: data)
+        #expect(element.stringValues == ["MPG", "", "XR3"])
+        
+        let trailing = "A\\B\\ ".data(using: .utf8)!
+        let trailingElement = DataElement(tag: Tag.imageType, vr: .CS, length: UInt32(trailing.count), valueData: trailing)
+        #expect(trailingElement.stringValues == ["A", "B", ""])
+        
+        let empty = DataElement(tag: Tag.imageType, vr: .CS, length: 0, valueData: Data())
+        #expect(empty.stringValues == [])
+        let padding = DataElement(tag: Tag.imageType, vr: .CS, length: 2, valueData: Data("  ".utf8))
+        #expect(padding.stringValues == [])
+    }
+    
     @Test("UInt16 value extraction")
     func testUInt16Value() {
         var data = Data()

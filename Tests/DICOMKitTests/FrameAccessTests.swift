@@ -126,8 +126,10 @@ final class FrameAccessTests: XCTestCase {
         XCTAssertEqual(encapsulated.frameData(at: 1, using: index), Data([3, 3, 3]))
     }
 
-    func testFrameIndexExtendedOffsetTableWinsAndExcludesHeaders() throws {
-        // EOT offsets exclude item headers: frame0@0, frame1@6.
+    func testFrameIndexExtendedOffsetTableWinsAndIncludesHeaders() throws {
+        // EOT offsets point at each frame's Item Tag, measured from the first Item
+        // Tag after the Basic Offset Table (PS3.3 C.7.6.3.1.8), so they include the
+        // 8-byte item headers: frame0@0, frame1@(8+4)+(8+2) = 22.
         let descriptor = PixelDataDescriptor(
             rows: 2, columns: 2, numberOfFrames: 2, bitsAllocated: 8, bitsStored: 8,
             highBit: 7, isSigned: false, samplesPerPixel: 1,
@@ -136,7 +138,7 @@ final class FrameAccessTests: XCTestCase {
             offsetTable: [],
             fragments: [Data([1, 1, 1, 1]), Data([2, 2]), Data([3, 3, 3])],
             descriptor: descriptor)
-        let index = try XCTUnwrap(encapsulated.makeFrameIndex(extendedOffsets: [0, 6]))
+        let index = try XCTUnwrap(encapsulated.makeFrameIndex(extendedOffsets: [0, 22]))
         XCTAssertEqual(index.source, .extendedOffsetTable)
         XCTAssertEqual(index.fragmentsPerFrame, [[0, 1], [2]])
     }

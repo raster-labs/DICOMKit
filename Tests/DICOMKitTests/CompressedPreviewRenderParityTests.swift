@@ -117,6 +117,13 @@ final class CompressedPreviewRenderParityTests: XCTestCase {
 
         for src in sources {
             for codec in losslessCodecs {
+                // YBR_FULL needs SGcod MCT 0, which J2KSwift cannot write, and its conversion to
+                // RGB is not bit-preserving, so a reversible J2K / HTJ2K encode is refused
+                // (PS3.5 2026a 8.2.4, Table 8.2.4-1; D-CORE-3).
+                if src.label == "ybrFull", codec.hasPrefix("jpeg2000") || codec.hasPrefix("htj2k") {
+                    XCTAssertThrowsError(try mgr.compressData(src.data, codec: codec, quality: nil), codec)
+                    continue
+                }
                 let compressed = try mgr.compressData(src.data, codec: codec, quality: nil)
                 let decompressed = try mgr.decompressData(compressed, syntax: .explicitVRLittleEndian)
 

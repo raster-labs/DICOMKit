@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (testing-only: spawns the real dicom-* binary with the Workshop's pasted command and diffs both consoles, ANSI stripped; the output parity it measures is pinned by SplitMergeWorkshopCLIParityTests and NetworkToolWorkshopCLIParityTests; grep for tags, UIDs, STD-* profiles, VR codes and PS3 clauses found none)
 // CLIToolTerminalCompare.swift
 // DICOMStudio
 //

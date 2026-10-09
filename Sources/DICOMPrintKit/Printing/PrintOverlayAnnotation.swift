@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — point conventions of the shape kinds (POINT, POLYLINE, INTERPOLATED, CIRCLE centre + perimeter, ELLIPSE major/minor axis ends) checked against PS3.3 2026a C.10.5.1.2; row/column order per C.7.6.3.1.4
 // PrintOverlayAnnotation.swift
 // DICOMPrintKit
 //

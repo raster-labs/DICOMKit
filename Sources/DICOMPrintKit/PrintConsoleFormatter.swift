@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — JSON keyword keys diffed against PS3.6 2026a Table 6-1 (9 keywords: PrinterStatus, PrinterStatusInfo, PrinterName, Manufacturer, ManufacturerModelName, ExecutionStatus, ExecutionStatusInfo, CreationDate DA, CreationTime TM; P-PRINT-JSON); the older tool keys are kept (deprecated); text labels are the PS3.3 Table C.13-8 (4) / C.13-9 (5) attribute names as PS3.6 spells them (D90)
 // PrintConsoleFormatter.swift
 // DICOMPrintKit
 //
@@ -16,36 +17,45 @@ public enum PrintConsoleFormatter {
 
     // MARK: - Printer status
 
-    /// Human-readable printer status block.
+    /// Human-readable printer status block. Each label is the attribute name of the
+    /// Printer Module (PS3.3 Table C.13-9) as PS3.6 Table 6-1 spells it.
     public static func printerStatusText(_ status: PrinterStatus) -> [String] {
         var lines: [String] = []
         lines.append("Printer Status")
         lines.append("==============")
-        lines.append("Name: \(status.printerName ?? "Unknown")")
-        lines.append("Status: \(status.status)")
+        lines.append("Printer Name: \(status.printerName ?? "Unknown")")
+        lines.append("Printer Status: \(status.status)")
         if let info = status.statusInfo {
-            lines.append("Status Info: \(info)")
+            lines.append("Printer Status Info: \(info)")
         }
         if let manufacturer = status.manufacturer {
             lines.append("Manufacturer: \(manufacturer)")
         }
         if let model = status.manufacturerModelName {
-            lines.append("Model: \(model)")
+            lines.append("Manufacturer's Model Name: \(model)")
         }
         lines.append("Is Normal: \(status.isNormal ? "Yes" : "No")")
         return lines
     }
 
-    /// Machine-readable printer status.
+    /// Machine-readable printer status. Each N-GET attribute is keyed by its PS3.6
+    /// Table 6-1 keyword (`PrinterStatus`, `PrinterStatusInfo`, `PrinterName`,
+    /// `Manufacturer`, `ManufacturerModelName`). The older tool keys (`status`,
+    /// `statusInfo`, `name`, `manufacturer`, `model`) carry the same values and are
+    /// deprecated; `isNormal` is derived and has no keyword.
     public static func printerStatusJSON(_ status: PrinterStatus) -> String? {
         var dict: [String: Any] = [
             "status": status.status,
+            "PrinterStatus": status.status,
             "isNormal": status.isNormal
         ]
-        if let name = status.printerName { dict["name"] = name }
-        if let info = status.statusInfo { dict["statusInfo"] = info }
-        if let manufacturer = status.manufacturer { dict["manufacturer"] = manufacturer }
-        if let model = status.manufacturerModelName { dict["model"] = model }
+        if let name = status.printerName { dict["name"] = name; dict["PrinterName"] = name }
+        if let info = status.statusInfo { dict["statusInfo"] = info; dict["PrinterStatusInfo"] = info }
+        if let manufacturer = status.manufacturer {
+            dict["manufacturer"] = manufacturer
+            dict["Manufacturer"] = manufacturer
+        }
+        if let model = status.manufacturerModelName { dict["model"] = model; dict["ManufacturerModelName"] = model }
         return json(from: dict)
     }
 
@@ -88,36 +98,60 @@ public enum PrintConsoleFormatter {
 
     // MARK: - Print job status
 
-    /// Human-readable print job status block.
+    /// Human-readable print job status block. Each label is the attribute name of the
+    /// Print Job Module (PS3.3 Table C.13-8) as PS3.6 Table 6-1 spells it.
     public static func jobStatusText(_ status: PrintJobStatus) -> [String] {
         var lines: [String] = []
         lines.append("Print Job Status")
         lines.append("================")
         lines.append("Job UID: \(status.printJobUID)")
-        lines.append("Status: \(status.executionStatus)")
+        lines.append("Execution Status: \(status.executionStatus)")
         if let info = status.executionStatusInfo {
-            lines.append("Status Info: \(info)")
+            lines.append("Execution Status Info: \(info)")
         }
         if let creationDate = status.creationDate {
             let formatter = DateFormatter()
             formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            lines.append("Creation Date: \(formatter.string(from: creationDate))")
+        }
+        if let creationTime = status.creationTime {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .none
             formatter.timeStyle = .medium
-            lines.append("Created: \(formatter.string(from: creationDate))")
+            lines.append("Creation Time: \(formatter.string(from: creationTime))")
         }
         return lines
     }
 
-    /// Machine-readable print job status.
+    /// Machine-readable print job status. Each N-GET attribute is keyed by its PS3.6
+    /// Table 6-1 keyword (`ExecutionStatus`, `ExecutionStatusInfo`, `CreationDate` as DA
+    /// YYYYMMDD, `CreationTime` as TM HHMMSS). The older tool keys (`status`,
+    /// `statusInfo`, `creationDate` as ISO 8601) carry the same values and are
+    /// deprecated; `jobUID` (the Print Job SOP Instance UID) stays.
     public static func jobStatusJSON(_ status: PrintJobStatus) -> String? {
         var dict: [String: Any] = [
             "jobUID": status.printJobUID,
-            "status": status.executionStatus
+            "status": status.executionStatus,
+            "ExecutionStatus": status.executionStatus
         ]
-        if let info = status.executionStatusInfo { dict["statusInfo"] = info }
+        if let info = status.executionStatusInfo { dict["statusInfo"] = info; dict["ExecutionStatusInfo"] = info }
         if let creationDate = status.creationDate {
             dict["creationDate"] = ISO8601DateFormatter().string(from: creationDate)
+            dict["CreationDate"] = dicomValue(creationDate, format: "yyyyMMdd")
+        }
+        if let creationTime = status.creationTime {
+            dict["CreationTime"] = dicomValue(creationTime, format: "HHmmss")
         }
         return json(from: dict)
+    }
+
+    /// DA / TM text in the time zone DICOMNetwork parsed the value in (the current one).
+    private static func dicomValue(_ date: Date, format: String) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = format
+        return formatter.string(from: date)
     }
 
     // MARK: - Film plan

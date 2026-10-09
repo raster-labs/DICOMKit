@@ -208,14 +208,15 @@ final class DICOMScriptTests: XCTestCase {
     
     func testAnonymizeTemplate() throws {
         let template = """
-        dicom-anon ${INPUT_DIR}/*.dcm --profile basic --output ${OUTPUT_DIR}
+        dicom-anon ${INPUT_DIR}/*.dcm --profile ps315 --output ${OUTPUT_DIR}
         if exists ${INPUT_DIR}/sensitive.dcm
-            dicom-anon ${INPUT_DIR}/sensitive.dcm --profile strict
+            dicom-anon ${INPUT_DIR}/sensitive.dcm --profile ps315 --clean-pixel-data --output ${OUTPUT_DIR}
         endif
         """
         
         XCTAssertTrue(template.contains("dicom-anon"))
-        XCTAssertTrue(template.contains("--profile basic"))
+        // PS3.15 2026a E.1 Basic Application Level Confidentiality Profile; Clean Pixel Data Option E.3.1
+        XCTAssertTrue(template.contains("--profile ps315"))
         XCTAssertTrue(template.contains("if exists"))
     }
     
@@ -337,7 +338,7 @@ final class DICOMScriptTests: XCTestCase {
         # Step 2: Process
         if exists ${INPUT_DIR}
             dicom-study organize ${INPUT_DIR} --output ${TEMP_DIR}
-            dicom-anon ${TEMP_DIR}/**/*.dcm --profile basic --output ${OUTPUT_DIR}
+            dicom-anon ${TEMP_DIR}/**/*.dcm --profile ps315 --output ${OUTPUT_DIR}
         else
             echo "Input directory not found"
         endif

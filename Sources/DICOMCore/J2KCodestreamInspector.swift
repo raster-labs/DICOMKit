@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-25 — implements ISO/IEC 15444, not DICOM. The one PS3.5 citation was corrected to A.4.4, which in 2026a defines all five JPEG 2000 and HTJ2K syntaxes. C1 classification confirmed.
+
 import Foundation
 
 /// Read-only inspection of a JPEG 2000 codestream's headers.
@@ -77,8 +79,8 @@ public enum J2KCodestreamInspector {
     /// header selects the irreversible 9/7 wavelet (ISO/IEC 15444-1 Table A.20:
     /// SPcod/SPcoc transformation byte 0; 1 is the reversible 5/3 filter).
     ///
-    /// A lossless-only DICOM transfer syntax (PS3.5 A.4.4 `…4.90`, A.4.6 `…4.201`
-    /// / `…4.202`) promises exact reconstruction, which a 9/7 codestream cannot
+    /// A lossless-only DICOM transfer syntax (PS3.5 2026a A.4.4: `…4.90`, `…4.201`
+    /// and `…4.202`) promises exact reconstruction, which a 9/7 codestream cannot
     /// deliver, so the codec refuses such a frame instead of returning
     /// approximated samples. Rate truncation of a reversible codestream is not
     /// detectable from headers and is not claimed here.
@@ -114,6 +116,215 @@ public enum J2KCodestreamInspector {
             }
         }
         return irreversible
+    }
+
+    // MARK: - HTJ2K Lossless RPCL (PS3.5 2026a 10.18.1)
+
+    /// Main-header coding-style facts a DICOM Data Set or Transfer Syntax must agree with.
+    public struct CodingStyle: Sendable, Equatable {
+        /// SGcod progression order (ISO/IEC 15444-1 Table A.16): 0 LRCP, 1 RLCP, 2 RPCL, 3 PCRL, 4 CPRL.
+        public var progressionOrder: UInt8
+        /// SGcod number of quality layers.
+        public var qualityLayers: Int
+        /// SGcod multiple component transformation: 1 = RCT (5-3) or ICT (9-7) applied.
+        public var multipleComponentTransform: UInt8
+        /// SPcod number of decomposition levels.
+        public var decompositionLevels: Int
+        /// SPcod transformation: `true` for the reversible 5-3 filter, `false` for 9-7.
+        public var reversibleWavelet: Bool
+        /// Scod bit 0: precinct sizes are given (otherwise one maximal 2^15 precinct per band).
+        public var userDefinedPrecincts: Bool
+        /// A TLM marker segment (FF55) is present in the main header.
+        public var hasTLM: Bool
+        /// A POC marker segment (FF5F) is present in the main or a tile-part header.
+        public var hasPOC: Bool
+        /// A COD or COC marker segment overrides the main COD (COC anywhere, COD in a tile-part header).
+        public var hasCodingStyleOverride: Bool
+        /// Number of components (SIZ Csiz).
+        public var componentCount: Int
+        /// Reference grid size (SIZ Xsiz, Ysiz).
+        public var gridWidth: Int
+        public var gridHeight: Int
+        /// Number of tile-parts.
+        public var tilePartCount: Int
+    }
+
+    /// Reads the coding-style facts of a bare codestream (or of the `jp2c` box of a JP2 file).
+    /// Returns `nil` when no SIZ or main-header COD marker segment is found.
+    public static func codingStyle(in data: Data) -> CodingStyle? {
+        guard let codestream = locateCodestream(in: data) else { return nil }
+        var siz: (csiz: Int, width: Int, height: Int)?
+        var cod: (scod: UInt8, prog: UInt8, layers: Int, mct: UInt8, levels: Int, reversible: Bool)?
+        var tlm = false, poc = false, override = false
+        var tileParts = 0
+        var inTilePart = false
+        forEachHeaderSegment(in: codestream) { marker, offset, length in
+            switch marker {
+            case Self.sot:
+                tileParts += 1
+                inTilePart = true
+            case Self.siz:
+                if length >= 38, let csiz = readUInt16(codestream, at: offset + 38),
+                   let x = readUInt32(codestream, at: offset + 6), let y = readUInt32(codestream, at: offset + 10) {
+                    siz = (Int(csiz), Int(x), Int(y))
+                }
+            case Self.cod:
+                if inTilePart { override = true; break }
+                // Lcod(2) Scod(1) SGcod: progression(1) layers(2) MCT(1); SPcod: NL xcb ycb style transformation.
+                if length >= 12,
+                   let scod = readUInt8(codestream, at: offset + 4),
+                   let prog = readUInt8(codestream, at: offset + 5),
+                   let layers = readUInt16(codestream, at: offset + 6),
+                   let mct = readUInt8(codestream, at: offset + 8),
+                   let levels = readUInt8(codestream, at: offset + 9),
+                   let transformation = readUInt8(codestream, at: offset + 13) {
+                    cod = (scod, prog, Int(layers), mct, Int(levels), transformation == 1)
+                }
+            case Self.coc:
+                override = true
+            case Self.tlm:
+                if !inTilePart { tlm = true }
+            case Self.poc:
+                poc = true
+            default:
+                break
+            }
+        }
+        guard let siz, let cod else { return nil }
+        return CodingStyle(
+            progressionOrder: cod.prog, qualityLayers: cod.layers, multipleComponentTransform: cod.mct,
+            decompositionLevels: cod.levels, reversibleWavelet: cod.reversible,
+            userDefinedPrecincts: cod.scod & 0x01 != 0, hasTLM: tlm, hasPOC: poc,
+            hasCodingStyleOverride: override, componentCount: siz.csiz,
+            gridWidth: siz.width, gridHeight: siz.height, tilePartCount: tileParts)
+    }
+
+    /// PS3.5 2026a 10.18.1: "The number of decompositions shall be sufficient for the width or
+    /// height of the base resolution to be <= 64". Read strictly (both ≤ 64), this is the number
+    /// of halvings that brings the larger dimension to 64 or less.
+    public static func minimumDecompositionLevelsForRPCL(rows: Int, columns: Int) -> Int {
+        var levels = 0
+        var size = max(rows, columns)
+        while size > 64 {
+            size = (size + 1) / 2
+            levels += 1
+        }
+        return levels
+    }
+
+    /// The PS3.5 2026a 10.18.1 requirements of HTJ2K Lossless RPCL (1.2.840.10008.1.2.4.202)
+    /// that `data` misses: RPCL progression, enough decompositions for a base resolution ≤ 64,
+    /// and a TLM marker segment. Empty when the codestream conforms.
+    public static func htj2kRPCLViolations(in data: Data, rows: Int, columns: Int) -> [String] {
+        guard let style = codingStyle(in: data) else { return ["no SIZ / COD marker segment found"] }
+        var out: [String] = []
+        if style.progressionOrder != 2 || style.hasPOC { out.append("progression order is not RPCL") }
+        let need = minimumDecompositionLevelsForRPCL(rows: rows, columns: columns)
+        if style.decompositionLevels < need {
+            out.append("\(style.decompositionLevels) decomposition levels; \(need) needed for a base resolution ≤ 64")
+        }
+        if !style.hasTLM { out.append("no TLM marker segment") }
+        return out
+    }
+
+    /// Brings a bare codestream to the PS3.5 2026a 10.18.1 marker requirements where that is
+    /// possible without re-encoding, and returns it unchanged otherwise:
+    ///
+    /// - **Progression order.** When the packet sequence of the declared order is provably the
+    ///   same as RPCL's, SGcod is set to RPCL (2). That holds for one quality layer, the default
+    ///   (maximal, 2^15) precincts with a reference grid of at most 32768 × 32768 or a single
+    ///   component, and no POC / COC / tile-part COD: each tile then has one precinct per
+    ///   component and resolution, so every order emits the packets resolution by resolution,
+    ///   component by component (ISO/IEC 15444-1 B.12.1). The codestream bytes after the main
+    ///   header are not touched.
+    /// - **TLM.** A TLM marker segment (ISO/IEC 15444-1 A.7.1) listing every tile-part's
+    ///   index and length is inserted at the end of the main header.
+    public static func conformingToHTJ2KRPCL(_ data: Data) -> Data {
+        guard readUInt16(data, at: 0) == soc, let style = codingStyle(in: data) else { return data }
+        var bytes = [UInt8](data)
+
+        // 1. Relabel the progression order when the packet order is unchanged by it.
+        let onePrecinctPerBand = !style.userDefinedPrecincts
+            && (style.componentCount == 1 || (style.gridWidth <= 32768 && style.gridHeight <= 32768))
+        if style.progressionOrder != 2, style.qualityLayers == 1, onePrecinctPerBand,
+           !style.hasPOC, !style.hasCodingStyleOverride,
+           let codOffset = mainHeaderSegmentOffset(bytes, marker: cod) {
+            bytes[codOffset + 5] = 2
+        }
+
+        // 2. Insert TLM before the first SOT.
+        guard !style.hasTLM, let tileParts = tilePartLengths(bytes), !tileParts.parts.isEmpty else {
+            return Data(bytes)
+        }
+        let wideIndex = tileParts.parts.contains { $0.index > 0xFF }
+        let entrySize = (wideIndex ? 2 : 1) + 4
+        let perSegment = (0xFFFF - 4) / entrySize
+        let chunks = stride(from: 0, to: tileParts.parts.count, by: perSegment).map {
+            Array(tileParts.parts[$0..<min($0 + perSegment, tileParts.parts.count)])
+        }
+        guard chunks.count <= 256 else { return Data(bytes) }
+        var tlmBytes: [UInt8] = []
+        for (z, chunk) in chunks.enumerated() {
+            let length = 4 + chunk.count * entrySize
+            // Stlm: ST (bits 4-5) = 1 for 8-bit, 2 for 16-bit Ttlm; SP (bit 6) = 1 for 32-bit Ptlm.
+            let stlm: UInt8 = (wideIndex ? 0x20 : 0x10) | 0x40
+            tlmBytes += [0xFF, 0x55, UInt8(length >> 8), UInt8(length & 0xFF), UInt8(z), stlm]
+            for part in chunk {
+                if wideIndex { tlmBytes += [UInt8(part.index >> 8), UInt8(part.index & 0xFF)] }
+                else { tlmBytes.append(UInt8(part.index)) }
+                let l = UInt32(part.length)
+                tlmBytes += [UInt8(l >> 24), UInt8((l >> 16) & 0xFF), UInt8((l >> 8) & 0xFF), UInt8(l & 0xFF)]
+            }
+        }
+        bytes.insert(contentsOf: tlmBytes, at: tileParts.firstSOT)
+        return Data(bytes)
+    }
+
+    private static let tlm: UInt16 = 0xFF55  // Tile-part lengths
+    private static let poc: UInt16 = 0xFF5F  // Progression order change
+
+    /// Offset of a main-header marker segment (before the first SOT).
+    private static func mainHeaderSegmentOffset(_ bytes: [UInt8], marker: UInt16) -> Int? {
+        var offset = 2
+        while offset + 4 <= bytes.count, bytes[offset] == 0xFF {
+            let m = UInt16(bytes[offset]) << 8 | UInt16(bytes[offset + 1])
+            if m == sot || m == sod || m == eoc { return nil }
+            if m == marker { return offset }
+            let length = Int(bytes[offset + 2]) << 8 | Int(bytes[offset + 3])
+            guard length >= 2 else { return nil }
+            offset += 2 + length
+        }
+        return nil
+    }
+
+    /// The offset of the first SOT and each tile-part's (Isot, length from SOT to its end).
+    /// `nil` when the tile-part chain is malformed.
+    private static func tilePartLengths(_ bytes: [UInt8]) -> (firstSOT: Int, parts: [(index: Int, length: Int)])? {
+        var offset = 2
+        while offset + 4 <= bytes.count, bytes[offset] == 0xFF {
+            let m = UInt16(bytes[offset]) << 8 | UInt16(bytes[offset + 1])
+            if m == sot { break }
+            if m == sod || m == eoc { return nil }
+            let length = Int(bytes[offset + 2]) << 8 | Int(bytes[offset + 3])
+            guard length >= 2 else { return nil }
+            offset += 2 + length
+        }
+        let firstSOT = offset
+        var parts: [(index: Int, length: Int)] = []
+        // The codestream ends with EOC; a Psot of 0 runs to it.
+        let end = bytes.count >= 2 && bytes[bytes.count - 2] == 0xFF && bytes[bytes.count - 1] == 0xD9
+            ? bytes.count - 2 : bytes.count
+        while offset + 12 <= end, bytes[offset] == 0xFF, bytes[offset + 1] == 0x90 {
+            let isot = Int(bytes[offset + 4]) << 8 | Int(bytes[offset + 5])
+            var psot = 0
+            for k in 0..<4 { psot = psot << 8 | Int(bytes[offset + 6 + k]) }
+            if psot == 0 { psot = end - offset }
+            guard psot >= 14, offset + psot <= end else { return nil }
+            parts.append((isot, psot))
+            offset += psot
+        }
+        guard offset == end, !parts.isEmpty else { return nil }
+        return (firstSOT, parts)
     }
 
     // MARK: - Container handling

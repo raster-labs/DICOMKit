@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — IlluminationType strings are not DICOM terms (recorded); PS3.3 2026a citations checked
 //
 // DisplayFeatures.swift
 // DICOMKit

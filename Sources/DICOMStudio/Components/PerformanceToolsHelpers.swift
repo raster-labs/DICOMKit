@@ -3,6 +3,17 @@
 //
 // DICOM Studio — Platform-independent helpers for Performance & Developer Tools (Milestone 13)
 // Reference: DICOM PS3.2 (Conformance), PS3.5 (Data Structures), PS3.6 (Data Dictionary)
+// NEMA-verified: 2026a, checked 2026-10-05 — the 15 sample tag rows text-diffed against PS3.6 2026a Table 6-1
+// (name, keyword, VR, VM, retired: 15 of 15 match); the 34 VR names against PS3.5 2026a Table 6.2-1 (OB/OD/OF/OW
+// corrected from "Other … String" to "Other Byte/Double/Float/Word", UI and UR now carry the full "VR Name"
+// cell including its abbreviation); every UID literal and the name beside it against PS3.6 Table A-1 (the three Query/
+// Retrieve rows paired Study Root names with the Patient Root UIDs 1.2.840.10008.5.1.4.1.2.1.x — the Study
+// Root UIDs .2.2.x are what the Workshop's study/series/image-level C-FIND uses and are now written, and the
+// Patient Root rows it uses at PATIENT level are listed beside them; 1.2.840.10008.5.1.4.34.6.4
+// is named Unified Procedure Step - Event; PET/US/SC and the two JPEG abbreviations spelled as in A-1);
+// "Retired in DICOM 2014" for Explicit VR Big Endian is not datable from the 2026a text or the 2014a–2016a
+// release notes and now reads "Retired (PS3.6 Table A-1)". The conformance notes' clause citations checked
+// against the 2026a section titles (C-MOVE C.4.2, C-GET C.4.3, C-ECHO PS3.7 9.1.5, WADO-RS PS3.18 10.4).
 
 import Foundation
 
@@ -203,12 +214,12 @@ public enum TagDictionaryHelpers: Sendable {
         case "IS": return "Integer String"
         case "LO": return "Long String"
         case "LT": return "Long Text"
-        case "OB": return "Other Byte String"
-        case "OD": return "Other Double String"
-        case "OF": return "Other Float String"
+        case "OB": return "Other Byte"
+        case "OD": return "Other Double"
+        case "OF": return "Other Float"
         case "OL": return "Other Long"
         case "OV": return "Other 64-bit Very Long"
-        case "OW": return "Other Word String"
+        case "OW": return "Other Word"
         case "PN": return "Person Name"
         case "SH": return "Short String"
         case "SL": return "Signed Long"
@@ -218,10 +229,10 @@ public enum TagDictionaryHelpers: Sendable {
         case "SV": return "Signed 64-bit Very Long"
         case "TM": return "Time"
         case "UC": return "Unlimited Characters"
-        case "UI": return "Unique Identifier"
+        case "UI": return "Unique Identifier (UID)"
         case "UL": return "Unsigned Long"
         case "UN": return "Unknown"
-        case "UR": return "Universal Resource Identifier"
+        case "UR": return "Universal Resource Identifier or Universal Resource Locator (URI/URL)"
         case "US": return "Unsigned Short"
         case "UT": return "Unlimited Text"
         case "UV": return "Unsigned 64-bit Very Long"
@@ -302,16 +313,16 @@ public enum UIDLookupHelpers: Sendable {
         return [
             UIDEntry(uid: "1.2.840.10008.1.2",     name: "Implicit VR Little Endian",   category: .transferSyntax, uidDescription: "Default transfer syntax (PS3.5 §10.1)"),
             UIDEntry(uid: "1.2.840.10008.1.2.1",   name: "Explicit VR Little Endian",   category: .transferSyntax, uidDescription: "Most widely used transfer syntax"),
-            UIDEntry(uid: "1.2.840.10008.1.2.2",   name: "Explicit VR Big Endian",      category: .transferSyntax, uidDescription: "Retired in DICOM 2014"),
+            UIDEntry(uid: "1.2.840.10008.1.2.2",   name: "Explicit VR Big Endian",      category: .transferSyntax, uidDescription: "Retired (PS3.6 Table A-1)"),
             UIDEntry(uid: "1.2.840.10008.1.2.4.50",name: "JPEG Baseline (Process 1)",   category: .transferSyntax, uidDescription: "Lossy JPEG compression"),
             UIDEntry(uid: "1.2.840.10008.1.2.4.70",name: "JPEG Lossless",               category: .transferSyntax, uidDescription: "Lossless JPEG compression"),
             UIDEntry(uid: "1.2.840.10008.1.2.4.90",name: "JPEG 2000 Lossless Only",    category: .transferSyntax, uidDescription: "JPEG 2000 lossless compression"),
             UIDEntry(uid: "1.2.840.10008.1.2.4.91",name: "JPEG 2000",                  category: .transferSyntax, uidDescription: "JPEG 2000 with optional lossy compression"),
             UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.2",  name: "CT Image Storage",      category: .sopClass,       uidDescription: "Computed Tomography Image Storage"),
             UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.4",  name: "MR Image Storage",      category: .sopClass,       uidDescription: "Magnetic Resonance Image Storage"),
-            UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.128",name: "PET Image Storage",     category: .sopClass,       uidDescription: "Positron Emission Tomography Image Storage"),
-            UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.6.1",name: "US Image Storage",      category: .sopClass,       uidDescription: "Ultrasound Image Storage"),
-            UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.7",  name: "SC Image Storage",      category: .sopClass,       uidDescription: "Secondary Capture Image Storage"),
+            UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.128",name: "Positron Emission Tomography Image Storage", category: .sopClass, uidDescription: "PET Image Storage"),
+            UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.6.1",name: "Ultrasound Image Storage", category: .sopClass,   uidDescription: "US Image Storage"),
+            UIDEntry(uid: "1.2.840.10008.5.1.4.1.1.7",  name: "Secondary Capture Image Storage", category: .sopClass, uidDescription: "SC Image Storage"),
             UIDEntry(uid: "1.2.840.10008.1.1",     name: "Verification SOP Class",      category: .wellKnown,      uidDescription: "Used for C-ECHO (ping) verification"),
             UIDEntry(uid: "1.2.840.10008.3.1.1.1", name: "DICOM Application Context",   category: .wellKnown,      uidDescription: "Standard DICOM application context name"),
         ]
@@ -343,7 +354,7 @@ public enum TransferSyntaxInfoHelpers: Sendable {
             TransferSyntaxInfoEntry(
                 uid: "1.2.840.10008.1.2.2",
                 name: "Explicit VR Big Endian",
-                tsDescription: "Retired in DICOM 2014. Explicit VR, big-endian byte order, uncompressed pixel data.",
+                tsDescription: "Retired (PS3.6 Table A-1). Explicit VR, big-endian byte order, uncompressed pixel data.",
                 compressionType: .none, byteOrder: .bigEndian, vrEncoding: .explicit, supportStatus: .supported
             ),
             TransferSyntaxInfoEntry(
@@ -372,7 +383,7 @@ public enum TransferSyntaxInfoHelpers: Sendable {
             ),
             TransferSyntaxInfoEntry(
                 uid: "1.2.840.10008.1.2.4.70",
-                name: "JPEG Lossless (SV1)",
+                name: "JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])",
                 tsDescription: "Lossless JPEG compression using the first-order prediction process.",
                 compressionType: .lossless, byteOrder: .littleEndian, vrEncoding: .explicit, supportStatus: .supported
             ),
@@ -384,7 +395,7 @@ public enum TransferSyntaxInfoHelpers: Sendable {
             ),
             TransferSyntaxInfoEntry(
                 uid: "1.2.840.10008.1.2.4.81",
-                name: "JPEG-LS Near-Lossless",
+                name: "JPEG-LS Lossy (Near-Lossless)",
                 tsDescription: "ISO JPEG-LS near-lossless compression with a user-defined tolerance.",
                 compressionType: .lossy, byteOrder: .littleEndian, vrEncoding: .explicit, supportStatus: .supported
             ),
@@ -441,10 +452,10 @@ public enum ConformanceStatementHelpers: Sendable {
     /// Returns the built-in DICOMKit network service capability matrix.
     public static func networkCapabilities() -> [ConformanceCapabilityEntry] {
         return [
-            ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-ECHO",  status: .supported,    notes: "Verification SOP Class (PS3.7 §9.1)"),
+            ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-ECHO",  status: .supported,    notes: "Verification SOP Class (PS3.4 Annex A; PS3.7 §9.1.5)"),
             ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-FIND",  status: .supported,    notes: "Query/Retrieve SCU: Study, Series, Instance (PS3.4 §C)"),
-            ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-MOVE",  status: .supported,    notes: "Retrieve SCU (PS3.4 §C.4)"),
-            ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-GET",   status: .supported,    notes: "Retrieve SCU (PS3.4 §C.5)"),
+            ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-MOVE",  status: .supported,    notes: "Retrieve SCU (PS3.4 §C.4.2)"),
+            ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-GET",   status: .supported,    notes: "Retrieve SCU (PS3.4 §C.4.3)"),
             ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "C-STORE", status: .supported,    notes: "Storage SCU and SCP (PS3.4 §B)"),
             ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "N-ACTION",status: .supported,    notes: "Used for MPPS and Print Management"),
             ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "N-CREATE",status: .supported,    notes: "Used for MPPS and Print Management"),
@@ -452,7 +463,7 @@ public enum ConformanceStatementHelpers: Sendable {
             ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "N-GET",   status: .supported,    notes: "Used for Print Management"),
             ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "N-DELETE",status: .supported,    notes: "Used for Print Film Session management"),
             ConformanceCapabilityEntry(serviceCategory: .dicomNetworking, serviceName: "N-EVENT-REPORT", status: .supported, notes: "Used for Storage Commitment"),
-            ConformanceCapabilityEntry(serviceCategory: .dicomweb,        serviceName: "WADO-RS", status: .supported,    notes: "DICOMweb retrieve (PS3.18 §10)"),
+            ConformanceCapabilityEntry(serviceCategory: .dicomweb,        serviceName: "WADO-RS", status: .supported,    notes: "DICOMweb retrieve (PS3.18 §10.4)"),
             ConformanceCapabilityEntry(serviceCategory: .dicomweb,        serviceName: "STOW-RS", status: .supported,    notes: "DICOMweb store (PS3.18 §10.5)"),
             ConformanceCapabilityEntry(serviceCategory: .dicomweb,        serviceName: "QIDO-RS", status: .supported,    notes: "DICOMweb query (PS3.18 §10.6)"),
             ConformanceCapabilityEntry(serviceCategory: .dicomweb,        serviceName: "UPS-RS",  status: .supported,    notes: "Unified Procedure Step (PS3.18 §11)"),
@@ -466,16 +477,22 @@ public enum ConformanceStatementHelpers: Sendable {
             SOPClassEntry(uid: "1.2.840.10008.1.1",          name: "Verification",                      role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
             SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.2",  name: "CT Image Storage",                  role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91"]),
             SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.4",  name: "MR Image Storage",                  role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.90"]),
-            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.128",name: "PET Image Storage",                 role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1"]),
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.128",name: "Positron Emission Tomography Image Storage", role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1"]),
             SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.6.1",name: "Ultrasound Image Storage",          role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1", "1.2.840.10008.1.2.4.50"]),
             SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.7",  name: "Secondary Capture Image Storage",   role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
             SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.88.22",  name: "Enhanced SR Storage",           role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
             SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.104.1",  name: "Encapsulated PDF Storage",      role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
             SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.1.481.3",  name: "RT Structure Set Storage",      role: .both, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
-            SOPClassEntry(uid: "1.2.840.10008.5.1.4.34.6.4",     name: "Unified Procedure Step",        role: .scu,  supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
-            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.1.1",    name: "Study Root Q/R - FIND",         role: .scu,  supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
-            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.1.2",    name: "Study Root Q/R - MOVE",         role: .scu,  supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
-            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.1.3",    name: "Study Root Q/R - GET",          role: .scu,  supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.34.6.4",     name: "Unified Procedure Step - Event", role: .scu,  supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
+            // Study Root (PS3.6 Table A-1 .2.2.x): Studio queries at the study level.
+            // The rows used to carry the Patient Root UIDs (.2.1.x) under Study Root names.
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.2.1",    name: "Study Root Query/Retrieve Information Model - FIND", role: .scu, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.2.2",    name: "Study Root Query/Retrieve Information Model - MOVE", role: .scu, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.2.3",    name: "Study Root Query/Retrieve Information Model - GET",  role: .scu, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
+            // Patient Root (.2.1.x): what the Workshop sends for a PATIENT-level query (CLIWorkshopViewModel).
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.1.1",    name: "Patient Root Query/Retrieve Information Model - FIND", role: .scu, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.1.2",    name: "Patient Root Query/Retrieve Information Model - MOVE", role: .scu, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
+            SOPClassEntry(uid: "1.2.840.10008.5.1.4.1.2.1.3",    name: "Patient Root Query/Retrieve Information Model - GET",  role: .scu, supportedTransferSyntaxUIDs: ["1.2.840.10008.1.2.1"]),
         ]
     }
 

@@ -55,8 +55,13 @@ struct MockPrintSCPBehavior: Sendable {
     var printerStatusInfo: String? = nil
     var printerName: String? = "MOCK-PRINTER"
 
-    /// Omit the Print Job UID from the N-ACTION response (P2-4 behavior).
+    /// Omit the Referenced Print Job Sequence (2100,0500) — and with it the
+    /// data set — from the N-ACTION response, as a printer without Print Job
+    /// support does (PS3.4 Table H.4-8, "-/MC").
     var omitPrintJobUID: Bool = false
+
+    /// Answer the Printer N-GET with no data set at all.
+    var omitPrinterStatusDataSet: Bool = false
 
     /// Push a Printer SOP Class N-EVENT-REPORT (WARNING) immediately before
     /// responding to the first film-session N-CREATE (interleave test).
@@ -349,17 +354,26 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
 
         case .nActionRequest:
-            let jobUID = behavior.omitPrintJobUID ? "" : "1.2.826.0.1.3680043.9.mock.job.1"
+            // PS3.7 N-ACTION-RSP: Affected SOP Class / Instance are the Film
+            // Box (or Film Session) the action was invoked on. The Print Job
+            // is named in the data set by Referenced Print Job Sequence
+            // (2100,0500) — PS3.4 Table H.4-8 — unless this printer has no
+            // Print Job support, in which case there is no data set at all.
+            let dataSet: Data? = behavior.omitPrintJobUID
+                ? nil
+                : PrintSCPEncoder.printJobReference(
+                    printJobUID: "1.2.826.0.1.3680043.9.mock.job.1",
+                    explicitVR: negotiatedExplicitVR)
             let response = NActionResponse(
                 messageIDBeingRespondedTo: messageID,
-                affectedSOPClassUID: printJobSOPClassUID,
-                affectedSOPInstanceUID: jobUID,
+                affectedSOPClassUID: sopClass,
+                affectedSOPInstanceUID: sopInstance,
                 actionTypeID: 1,
                 status: .success,
-                hasDataSet: false,
+                hasDataSet: dataSet != nil,
                 presentationContextID: contextID
             )
-            try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
+            try await send(commandSet: response.commandSet, dataSet: dataSet, contextID: contextID)
 
         case .nDeleteRequest:
             let response = NDeleteResponse(
@@ -405,6 +419,18 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
     }
 
     private func respondPrinterStatus(messageID: UInt16, contextID: UInt8) async throws {
+        if behavior.omitPrinterStatusDataSet {
+            let response = NGetResponse(
+                messageIDBeingRespondedTo: messageID,
+                affectedSOPClassUID: printerSOPClassUID,
+                affectedSOPInstanceUID: printerSOPInstanceUID,
+                status: .success,
+                hasDataSet: false,
+                presentationContextID: contextID
+            )
+            try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
+            return
+        }
         var elements: [DataElement] = [
             DataElement.string(tag: Tag(group: 0x2110, element: 0x0010), vr: .CS, value: behavior.printerStatus)
         ]

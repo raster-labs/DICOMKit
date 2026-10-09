@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — options diffed against PS3.18 2026a Tables 9.1.2-1/9.1.2-2/9.4.1-1/9.5.1-1 (WADO-URI: 19 of 19 parameters reachable, D108), 9.1.2.2.1/8.7.4-1 (15 contentType values: application/dicom + 14 Rendered Media Types), 8.3.4-1 (QIDO: 4 of 7 parameters), 10.6.1-5 (3 levels; 12 of 20 matching keys), 11.3-1 (UPS: 6 of 8 transactions), 11.7.1.4 (3 Change State targets); PS3.3 2026a Tables C.30.1-1 (4 states), C.30.2-1 (3 priorities), C.7-1 (3 sexes): all match; Scripts/diff_cli_web.py; 2026-10-01 P-items: ups --change-state (11.7, --update deprecated alias), SCHEDULED refused (11.7.1.4; PS3.4 Table CC.1.1-2 C303H), query/ups --format dicom-json (PS3.18 F.2.1/F.2.2)
 import Foundation
 import ArgumentParser
 import DICOMCore
@@ -81,8 +82,44 @@ struct RetrieveCommand: AsyncParsableCommand {
     @Flag(name: .long, help: "Use WADO-URI protocol (legacy query-parameter URLs for dcm4chee2 etc.)")
     var uri: Bool = false
     
-    @Option(name: .long, help: "Content type for WADO-URI: application/dicom, image/jpeg, image/png, image/gif (default: application/dicom)")
+    @Option(name: .long, help: "Content type for WADO-URI: application/dicom (default), or a Rendered Media Type: image/jpeg, image/gif, image/png, image/jp2, image/jph, image/jxl, video/mpeg, video/mp4, video/H265, text/html, text/plain, text/xml, text/rtf, application/pdf (PS3.18 9.1.2.2.1, Table 8.7.4-1)")
     var contentType: String?
+
+    @Option(name: .long, help: "WADO-URI charset: comma-separated character sets of the response, e.g. UTF-8 (PS3.18 9.1.2.2.2)")
+    var charset: String?
+
+    @Option(name: .long, help: "WADO-URI annotation (application/dicom) / imageAnnotation (rendered): patient, technique, or both comma-separated (PS3.18 9.4.1.2.2, Table 9.5.1-1)")
+    var annotation: String?
+
+    @Option(name: .long, help: "WADO-URI imageQuality of a rendered image, 1-100 (PS3.18 9.5.1.2.3, 8.3.5.1.2)")
+    var imageQuality: Int?
+
+    @Option(name: .long, help: "WADO-URI region: xmin,ymin,xmax,ymax in normalized 0.0-1.0 image coordinates (PS3.18 9.5.1.2.5)")
+    var region: String?
+
+    @Option(name: .long, help: "WADO-URI windowCenter of a rendered image; needs --window-width (PS3.18 9.5.1.2.6.1)")
+    var windowCenter: Double?
+
+    @Option(name: .long, help: "WADO-URI windowWidth of a rendered image; needs --window-center (PS3.18 9.5.1.2.6.2)")
+    var windowWidth: Double?
+
+    @Option(name: .long, help: "WADO-URI presentationUID: Presentation State SOP Instance UID used to render; needs --presentation-series-uid (PS3.18 9.5.1.2.7.2)")
+    var presentationUid: String?
+
+    @Option(name: .long, help: "WADO-URI presentationSeriesUID: Series of that Presentation State; needs --presentation-uid (PS3.18 9.5.1.2.7.1)")
+    var presentationSeriesUid: String?
+
+    @Option(name: .long, help: "WADO-URI transferSyntax: Transfer Syntax UID for an application/dicom retrieve (PS3.18 9.4.1.2.3)")
+    var transferSyntax: String?
+
+    @Flag(name: .long, help: "WADO-URI anonymize=yes: ask the server to remove Individually Identifiable Information (PS3.18 9.4.1.2.1)")
+    var anonymize: Bool = false
+
+    @Option(name: .long, help: "WADO-URI rows: pixel rows of the rendered image, a positive integer (PS3.18 9.5.1.2.4.1)")
+    var rows: Int?
+
+    @Option(name: .long, help: "WADO-URI columns: pixel columns of the rendered image, a positive integer (PS3.18 9.5.1.2.4.2)")
+    var columns: Int?
     
     @Flag(name: .long, help: "Retrieve only metadata (not pixel data)")
     var metadata: Bool = false
@@ -107,16 +144,55 @@ struct RetrieveCommand: AsyncParsableCommand {
     
     @Flag(name: .long, help: "Show verbose output including progress")
     var verbose: Bool = false
-    
+
+    func validate() throws {
+        _ = try cliRefusal { try DICOMwebOptionRules.uriContentType(contentType) }
+        let uriOnly = charset != nil || annotation != nil || imageQuality != nil || region != nil
+            || windowCenter != nil || windowWidth != nil || presentationUid != nil || presentationSeriesUid != nil
+        if !uri && (transferSyntax != nil || anonymize || rows != nil || columns != nil || uriOnly) {
+            throw ValidationError("--transfer-syntax, --anonymize, --rows, --columns, --charset, --annotation, --image-quality, --region, --window-center, --window-width, --presentation-uid and --presentation-series-uid are WADO-URI query parameters (PS3.18 Section 9); add --uri")
+        }
+        if let r = rows, r < 1 { throw ValidationError("--rows must be a positive integer (PS3.18 9.5.1.2.4.1)") }
+        if let c = columns, c < 1 { throw ValidationError("--columns must be a positive integer (PS3.18 9.5.1.2.4.2)") }
+        if uri {
+            // Every rule of PS3.18 Section 9 the shared client checks (pairs, ranges, exclusions)
+            let problems = try uriParameters(frame: cliRefusal { try DICOMwebOptionRules.uriFrameNumber(frames) }?.frame).problems()
+            if !problems.isEmpty { throw ValidationError(problems.joined(separator: "; ")) }
+        }
+    }
+
+    /// The WADO-URI request parameters (PS3.18 Tables 9.1.2-2, 9.4.1-1, 9.5.1-1) from the options.
+    func uriParameters(frame: Int?) throws -> WADOURIClient.Parameters {
+        WADOURIClient.Parameters(
+            contentType: [try cliRefusal { try DICOMwebOptionRules.uriContentType(contentType) }],
+            charset: charset.map { $0.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } } ?? [],
+            anonymize: anonymize,
+            annotation: DICOMwebOptionRules.uriAnnotation(annotation),
+            transferSyntax: transferSyntax,
+            frameNumber: frame,
+            imageQuality: imageQuality,
+            rows: rows,
+            columns: columns,
+            region: try cliRefusal { try DICOMwebOptionRules.uriRegion(region) },
+            windowCenter: windowCenter,
+            windowWidth: windowWidth,
+            presentationSeriesUID: presentationSeriesUid,
+            presentationUID: presentationUid)
+    }
+
     func run() async throws {
         guard let studyUID = study else {
             throw ValidationError("--study is required for retrieve operations")
         }
         
         // Configure client
-        let config = try DICOMwebConfiguration(
-            baseURLString: baseURL,
-            authentication: token.map { .bearer(token: $0) }
+        guard let baseURLValue = URL(string: baseURL) else {
+            throw DICOMwebError.invalidURL(url: baseURL)
+        }
+        let config = DICOMwebConfiguration(
+            baseURL: baseURLValue,
+            authentication: token.map { .bearer(token: $0) },
+            timeouts: DICOMwebOptionRules.timeouts(seconds: timeout)
         )
         
         // WADO-URI mode
@@ -163,17 +239,28 @@ struct RetrieveCommand: AsyncParsableCommand {
         
         // Shared mapping (single source of truth) — the CLI-parity reference calls the
         // same factory, so both request the identical representation for a --content-type.
-        let wadoContentType = WADOURIClient.ContentType.fromRequestString(contentType)
-        
-        let frameNumber: Int?
-        if let framesString = frames,
-           let first = framesString.split(separator: ",").first,
-           let num = Int(first.trimmingCharacters(in: .whitespaces)) {
-            frameNumber = num
-        } else {
-            frameNumber = nil
+        // A value it cannot request is rejected (9.1.2.2.1) instead of becoming application/dicom.
+        let wadoContentType = try cliRefusal { try DICOMwebOptionRules.uriContentType(contentType) }
+
+        // frameNumber names a single Frame (9.5.1.2.1): only the first list entry is sent.
+        let parsedFrame = try cliRefusal { try DICOMwebOptionRules.uriFrameNumber(frames) }
+        let frameNumber = parsedFrame?.frame
+        if let dropped = parsedFrame?.notSent, dropped > 0 {
+            fprintln("Warning: WADO-URI frameNumber names a single frame (PS3.18 9.5.1.2.1); "
+                + "only frame \(frameNumber ?? 0) is requested, \(dropped) further frame number(s) ignored",
+                to: .standardError)
         }
-        
+        var otherRendered: [String] = []
+        if imageQuality != nil { otherRendered.append("imageQuality (--image-quality)") }
+        if region != nil { otherRendered.append("region (--region)") }
+        if presentationUid != nil { otherRendered.append("presentationUID (--presentation-uid)") }
+        if presentationSeriesUid != nil { otherRendered.append("presentationSeriesUID (--presentation-series-uid)") }
+        for warning in DICOMwebOptionRules.uriParameterWarnings(
+            contentType: wadoContentType, frame: frameNumber, rows: rows, columns: columns,
+            transferSyntax: transferSyntax, anonymize: anonymize, otherRendered: otherRendered) {
+            fprintln("Warning: \(warning)", to: .standardError)
+        }
+
         let fmt = WADORetrieveConsoleFormatter()
         if verbose {
             fprintln(fmt.verbosePreambleURI(
@@ -183,27 +270,21 @@ struct RetrieveCommand: AsyncParsableCommand {
         }
 
         let client = WADOURIClient(configuration: config)
-        let result = try await client.retrieve(
-            studyUID: studyUID,
-            seriesUID: seriesUID,
-            objectUID: instanceUID,
-            contentType: wadoContentType,
-            frameNumber: frameNumber
-        )
+        let result: WADOURIClient.RetrieveResult
+        do {
+            result = try await client.retrieve(
+                studyUID: studyUID,
+                seriesUID: seriesUID,
+                objectUID: instanceUID,
+                parameters: try uriParameters(frame: frameNumber)
+            )
+        } catch let error as WADOURIParameterError {
+            throw ValidationError(error.description)
+        }
         
         // Determine filename and extension
         let frameSuffix = frameNumber.map { "_frame\($0)" } ?? ""
-        let ext: String
-        switch wadoContentType {
-        case .dicom:          ext = "dcm"
-        case .jpeg:           ext = "jpg"
-        case .png:            ext = "png"
-        case .gif:            ext = "gif"
-        case .jpeg2000:       ext = "jp2"
-        case .htj2k:          ext = "jph"
-        case .htj2kContainer: ext = "jphc"
-        case .mpeg:           ext = "mpg"
-        }
+        let ext = wadoContentType.fileExtension
         let filename = "\(instanceUID)\(frameSuffix).\(ext)"
         try saveData(result.data, filename: filename)
         
@@ -467,40 +548,57 @@ struct QueryCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Accession number")
     var accessionNumber: String?
     
-    @Option(name: .long, help: "Modality (e.g., CT, MR, US)")
+    @Option(name: .long, help: ArgumentHelp(stringLiteral: ModalityOptionValidator.helpText("filter")))
     var modality: String?
+
+    @Flag(name: .long, help: "Reject a --modality value that is not a current DICOM Defined Term")
+    var strictModality: Bool = false
     
     @Option(name: .long, help: "Study description")
     var studyDescription: String?
-    
+
+    @Option(name: .long, help: "Series level: Performed Procedure Step Start Date (0040,0244), YYYYMMDD or a YYYYMMDD-YYYYMMDD range")
+    var ppsStartDate: String?
+
+    @Option(name: .long, help: "Series level: Performed Procedure Step Start Time (0040,0245), HHMMSS or an HHMMSS-HHMMSS range")
+    var ppsStartTime: String?
+
+    @Option(name: .long, help: "Series level: Scheduled Procedure Step ID inside Request Attributes Sequence (0040,0275.0040,0009)")
+    var spsId: String?
+
+    @Option(name: .long, help: "Series level: Requested Procedure ID inside Request Attributes Sequence (0040,0275.0040,1001)")
+    var requestedProcedureId: String?
+
     @Option(name: .long, help: "Maximum number of results (default: 100)")
     var limit: Int = 100
     
     @Option(name: .long, help: "Offset for pagination (default: 0)")
     var offset: Int = 0
+
+    @Flag(name: .long, help: "Ask for fuzzy matching of person names (PS3.18 8.3.4.2: fuzzymatching=true)")
+    var fuzzyMatching: Bool = false
     
     @Option(name: .long, help: "OAuth2 bearer token for authentication")
     var token: String?
     
-    @Option(name: .shortAndLong, help: "Output format: table, json, csv (default: table)")
+    @Option(name: .shortAndLong, help: "Output format: table, json, csv, dicom-json (default: table). dicom-json is the PS3.18 F.2 DICOM JSON Model; json is a tool summary (keyword keys)")
     var format: OutputFormat = .table
     
     @Flag(name: .long, help: "Show verbose output")
     var verbose: Bool = false
     
-    func run() async throws {
-        // Configure client
-        let config = try DICOMwebConfiguration(
-            baseURLString: baseURL,
-            authentication: token.map { .bearer(token: $0) }
-        )
-        
-        let client = DICOMwebClient(configuration: config)
-        
-        // Build query
+    func validate() throws {
+        try cliRefusal { try DICOMwebOptionRules.validatePaging(limit: limit, offset: offset) }
+    }
+
+    /// The QIDO-RS query the options describe (PS3.18 10.6.1; query parameters of Table 8.3.4-1).
+    func buildQuery() throws -> QIDOQuery {
         var query = QIDOQuery()
         query = query.limit(limit)
         query = query.offset(offset)
+        if fuzzyMatching {
+            query = query.fuzzyMatching(true)
+        }
         
         if let patientName = patientName {
             query = query.patientName(patientName)
@@ -520,7 +618,10 @@ struct QueryCommand: AsyncParsableCommand {
         if let accessionNumber = accessionNumber {
             query = query.accessionNumber(accessionNumber)
         }
-        if let modality = modality {
+        // Validated here rather than at parse time: this builder is the one
+        // place the value is consumed, and resolve() normalizes aliases.
+        if let modality = try ModalityOptionValidator.resolve(
+            modality, strict: strictModality, verbose: verbose) {
             // Use the correct DICOM matching key per query level (PS3.18 §10.6),
             // mirroring the app's in-process path (CLIWorkshopViewModel.executeDicomQIDO)
             // and the sibling dicom-query / dicom-qr tools:
@@ -539,7 +640,47 @@ struct QueryCommand: AsyncParsableCommand {
         if let studyDescription = studyDescription {
             query = query.studyDescription(studyDescription)
         }
+        // Series-level keys of PS3.18 Table 10.6.1-5. They are only matching keys
+        // at the series level; sending them at study/instance level would be
+        // ignored by the server, so say so rather than issuing a silent no-op.
+        if level != .series {
+            var misplaced: [String] = []
+            if ppsStartDate != nil { misplaced.append("--pps-start-date") }
+            if ppsStartTime != nil { misplaced.append("--pps-start-time") }
+            if spsId != nil { misplaced.append("--sps-id") }
+            if requestedProcedureId != nil { misplaced.append("--requested-procedure-id") }
+            if !misplaced.isEmpty {
+                fprintln("Warning: \(misplaced.joined(separator: ", ")) "
+                    + "\(misplaced.count == 1 ? "is a series-level matching key" : "are series-level matching keys") "
+                    + "(PS3.18 Table 10.6.1-5) and will be ignored at \(level) level. Use --level series.")
+            }
+        }
+        if let ppsStartDate = ppsStartDate {
+            query = query.performedProcedureStepStartDate(ppsStartDate)
+        }
+        if let ppsStartTime = ppsStartTime {
+            query = query.performedProcedureStepStartTime(ppsStartTime)
+        }
+        if let spsId = spsId {
+            query = query.scheduledProcedureStepID(spsId)
+        }
+        if let requestedProcedureId = requestedProcedureId {
+            query = query.requestedProcedureID(requestedProcedureId)
+        }
+        return query
+    }
+
+    func run() async throws {
+        // Configure client
+        let config = try DICOMwebConfiguration(
+            baseURLString: baseURL,
+            authentication: token.map { .bearer(token: $0) }
+        )
         
+        let client = DICOMwebClient(configuration: config)
+        
+        let query = try buildQuery()
+
         if verbose {
             fprintln("DICOMweb Server: \(baseURL)")
             fprintln("Query Level: \(level)")
@@ -744,6 +885,12 @@ struct StoreCommand: AsyncParsableCommand {
                                                            code: failure.failureReason)
                         fprintln(stowFmt.failureDetail(sopInstanceUID: failure.sopInstanceUID, reason: reason))
                     }
+                    // Warning Reason (0008,1196), PS3.18 Table I.1-1 / I.2-1 (D106)
+                    for stored in response.storedInstances {
+                        if let code = stored.warningReason {
+                            fprintln(stowFmt.warningDetail(sopInstanceUID: stored.sopInstanceUID, code: code))
+                        }
+                    }
                 }
             } catch {
                 if continueOnError {
@@ -759,9 +906,17 @@ struct StoreCommand: AsyncParsableCommand {
         // Summary
         fprintln(stowFmt.summary(total: filesToUpload.count, succeeded: totalSuccess, failed: totalFailure))
         
-        if totalFailure > 0 && !continueOnError {
-            throw ExitCode.failure
+        // Any instance not stored is a failure of the run, with or without
+        // --continue-on-error (which only keeps later batches going); PS3.18 Table
+        // 10.5.3-1: 202 (Accepted) and 4xx mean some or all Instances were not stored.
+        if let code = Self.exitCode(failed: totalFailure) {
+            throw code
         }
+    }
+
+    /// The exit status for a store run: failure (1) when any file was not stored.
+    static func exitCode(failed: Int) -> ExitCode? {
+        failed > 0 ? .failure : nil
     }
 }
 
@@ -780,8 +935,14 @@ struct UPSCommand: AsyncParsableCommand {
               dicom-wado ups https://server/dicom-web --get <workitem-uid>
               dicom-wado ups https://server/dicom-web --create worklist.json
               dicom-wado ups https://server/dicom-web --create-workitem --label "CT Scan" --patient-name "Doe^Jane" --patient-id PAT001
-              dicom-wado ups https://server/dicom-web --update <uid> --state IN_PROGRESS --aet MY_AE
-              dicom-wado ups https://server/dicom-web --update <uid> --state COMPLETED --aet MY_AE --transaction-uid <txuid>
+              dicom-wado ups https://server/dicom-web --change-state <uid> --state "IN PROGRESS" --aet MY_AE
+              dicom-wado ups https://server/dicom-web --change-state <uid> --state COMPLETED --aet MY_AE --transaction-uid <txuid>
+              dicom-wado ups https://server/dicom-web --search --format dicom-json
+
+            --change-state performs Change Workitem State (PS3.18 11.7); --update is its
+            deprecated alias. A change to SCHEDULED is refused (PS3.18 11.7.1.4; PS3.4
+            Table CC.1.1-2, C303H). --format dicom-json prints the PS3.18 F.2 DICOM JSON
+            Model the server returned; --format json is a tool summary with camelCase keys.
               dicom-wado ups https://server/dicom-web --subscribe --workitem-uid <uid> --aet MY_AE
               dicom-wado ups https://server/dicom-web --unsubscribe --workitem-uid <uid> --aet MY_AE
             """
@@ -802,7 +963,10 @@ struct UPSCommand: AsyncParsableCommand {
     @Flag(name: .customLong("create-workitem"), help: "Create a new worklist item from command-line options")
     var createWorkitemFlag: Bool = false
     
-    @Option(name: .long, help: "Update worklist item UID")
+    @Option(name: .customLong("change-state"), help: "Change Workitem State (PS3.18 11.7) of the workitem with this UID; use with --state")
+    var changeState: String?
+
+    @Option(name: .long, help: "Deprecated alias of --change-state (it performs Change Workitem State, PS3.18 11.7, not Update Workitem, 11.6)")
     var update: String?
     
     @Flag(name: .long, help: "Subscribe to workitem events (requires --workitem-uid and --aet)")
@@ -814,15 +978,15 @@ struct UPSCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Local Application Entity Title for subscribe/unsubscribe")
     var aet: String?
     
-    @Option(name: .long, help: "New state for update: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED")
+    @Option(name: .long, help: "New Procedure Step State for --change-state: IN PROGRESS, COMPLETED, CANCELED (PS3.18 11.7.1.4); IN_PROGRESS is accepted for IN PROGRESS")
     var state: String?
     
-    @Option(name: .long, help: "Transaction UID for state changes (required for COMPLETED/CANCELED; auto-generated for IN_PROGRESS)")
+    @Option(name: .long, help: "Transaction UID (0008,1195) for state changes (required for COMPLETED/CANCELED; auto-generated for IN PROGRESS, PS3.18 11.7.1.4)")
     var transactionUID: String?
     
     // MARK: - Search Filters
     
-    @Option(name: .long, help: "Filter by procedure step state")
+    @Option(name: .long, help: "Filter by Procedure Step State (0074,1000): SCHEDULED, IN PROGRESS, COMPLETED, CANCELED (PS3.3 Table C.30.1-1); IN_PROGRESS is accepted")
     var filterState: String?
     
     @Option(name: .long, help: "Filter by scheduled station AE")
@@ -842,13 +1006,13 @@ struct UPSCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Patient ID")
     var patientID: String?
     
-    @Option(name: .long, help: "Priority: STAT, HIGH, MEDIUM, LOW (default: MEDIUM)")
+    @Option(name: .long, help: "Scheduled Procedure Step Priority (0074,1200): HIGH, MEDIUM, LOW (PS3.3 Table C.30.2-1; default: MEDIUM). STAT is accepted and sent as HIGH")
     var priority: String?
     
     @Option(name: .long, help: "Patient birth date (YYYYMMDD)")
     var patientBirthDate: String?
     
-    @Option(name: .long, help: "Patient sex: M, F, O")
+    @Option(name: .long, help: "Patient's Sex (0010,0040): M, F, O (PS3.3 Table C.7-1)")
     var patientSex: String?
     
     @Option(name: .long, help: "Study Instance UID to reference")
@@ -895,12 +1059,20 @@ struct UPSCommand: AsyncParsableCommand {
     @Option(name: .long, help: "OAuth2 bearer token for authentication")
     var token: String?
     
-    @Option(name: .shortAndLong, help: "Output format: table, json (default: table)")
+    @Option(name: .shortAndLong, help: "Output format: table, json, csv, dicom-json (default: table). dicom-json is the PS3.18 F.2 DICOM JSON Model; json is a tool summary (camelCase keys)")
     var format: OutputFormat = .table
     
     @Flag(name: .long, help: "Show verbose output")
     var verbose: Bool = false
-    
+
+    func validate() throws {
+        // PS3.18 2026a 11.7.1.4 / PS3.4 Table CC.1.1-2: SCHEDULED and unknown states are refused (exit 1).
+        if let s = state {
+            _ = try cliRefusal { try UPSState.changeStateTarget(optionValue: s) }
+        }
+        _ = try cliRefusal { try DICOMwebOptionRules.changeStateWorkitem(changeState: changeState, update: update) }
+    }
+
     func run() async throws {
         // Configure client
         let config = try DICOMwebConfiguration(
@@ -922,14 +1094,17 @@ struct UPSCommand: AsyncParsableCommand {
             try await createWorkitemFromJSON(client: client, jsonFile: jsonFile)
         } else if createWorkitemFlag {
             try await createWorkitemFromOptions(client: client)
-        } else if let uid = update {
+        } else if let uid = try cliRefusal({ try DICOMwebOptionRules.changeStateWorkitem(changeState: changeState, update: update) }) {
+            if changeState == nil {
+                fprintln(DICOMwebOptionRules.updateDeprecationNote, to: .standardError)
+            }
             try await updateWorkitem(client: client, uid: uid)
         } else if subscribe {
             try await subscribeToWorkitem(client: client)
         } else if unsubscribe {
             try await unsubscribeFromWorkitem(client: client)
         } else {
-            throw ValidationError("Specify an operation: --search, --get, --create, --create-workitem, --update, --subscribe, or --unsubscribe")
+            throw ValidationError("Specify an operation: --search, --get, --create, --create-workitem, --change-state, --subscribe, or --unsubscribe")
         }
     }
     
@@ -937,10 +1112,12 @@ struct UPSCommand: AsyncParsableCommand {
         // Build query via the SHARED UPSQuery.workitemSearch builder (DICOMWeb) — the
         // single source of truth the CLI Workshop's in-app search and the CLI-parity
         // reference also call, so the three issue an IDENTICAL UPS-RS query. Maps only
-        // the two real search flags (--filter-state / --scheduled-station).
+        // the two real search flags (--filter-state / --scheduled-station). The builder
+        // takes "IN PROGRESS" as PS3.3 Table C.30.1-1 spells it (D107), so no rewrite here.
         let query: UPSQuery
         do {
-            query = try UPSQuery.workitemSearch(filterState: filterState, scheduledStation: scheduledStation)
+            query = try UPSQuery.workitemSearch(filterState: filterState,
+                                                scheduledStation: scheduledStation)
         } catch let error as UPSSearchFilterError {
             throw ValidationError(error.description)
         }
@@ -949,6 +1126,8 @@ struct UPSCommand: AsyncParsableCommand {
             fprintln("Searching worklist items...")
         }
 
+        // dicom-json (PS3.18 F.2) renders the DICOM JSON objects each WorkitemResult keeps
+        // (D213), so every format comes from this one search.
         let results = try await client.searchWorkitems(query: query)
 
         // Render via the SHARED UPSResultFormatter — the single workitem-search renderer
@@ -1085,8 +1264,8 @@ struct UPSCommand: AsyncParsableCommand {
     
     private func parsePriority(_ value: String) throws -> UPSPriority {
         switch value.uppercased() {
-        case "STAT": return .stat
-        case "HIGH": return .high
+        case "STAT", "HIGH": return .high  // PS3.3 C.30.2: HIGH is equivalent to a STAT request
+
         case "MEDIUM": return .medium
         case "LOW": return .low
         default:
@@ -1126,23 +1305,12 @@ struct UPSCommand: AsyncParsableCommand {
     
     private func updateWorkitem(client: DICOMwebClient, uid: String) async throws {
         guard let stateString = state else {
-            throw ValidationError("--state is required for update operations")
+            throw ValidationError("--state is required for --change-state")
         }
         
-        // Parse state string to UPSState
-        let newState: UPSState
-        switch stateString.uppercased() {
-        case "SCHEDULED":
-            newState = .scheduled
-        case "IN_PROGRESS", "INPROGRESS":
-            newState = .inProgress
-        case "COMPLETED":
-            newState = .completed
-        case "CANCELED":
-            newState = .canceled
-        default:
-            throw ValidationError("Invalid state: \(stateString). Valid states: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED")
-        }
+        // Procedure Step State (0074,1000), PS3.3 Table C.30.1-1; "IN PROGRESS" and IN_PROGRESS both accepted.
+        // SCHEDULED is refused: PS3.18 2026a 11.7.1.4, PS3.4 2026a Table CC.1.1-2 (C303H).
+        let newState = try cliRefusal { try UPSState.changeStateTarget(optionValue: stateString) }
         
         // Determine transaction UID:
         // - IN_PROGRESS: auto-generate if not provided (server returns one in response)
@@ -1160,8 +1328,9 @@ struct UPSCommand: AsyncParsableCommand {
             effectiveTxUID = transactionUID
         }
         
-        // Per PS3.18 §11.6, DCM4CHEE requires the Requesting AE as the
-        // last path segment of the state URL; without it the route returns 404.
+        // PS3.18 11.7.1.2 (Table 11.7.2.1-1) carries the requesting AE in the `requester`
+        // query parameter; DICOMwebClient sends it as the last path segment of the state
+        // URL instead, which DCM4CHEE requires (without it the route returns 404).
         let requestingAE = aet
         
         if verbose {
@@ -1173,7 +1342,7 @@ struct UPSCommand: AsyncParsableCommand {
         // Per PS3.4 CC.2.1.3/Table CC.2.5-3, the SCP validates that the Unified
         // Procedure Step Performed Procedure Sequence (0074,1216) is populated
         // before allowing transition to COMPLETED. The shared client helper sends
-        // a minimal Update Workitem (PS3.18 §11.5) to satisfy this and then
+        // a minimal Update Workitem (PS3.18 11.6) to satisfy this and then
         // performs the Change State — a single source of truth shared with the
         // CLI-parity reference so the two cannot drift.
         let response: UPSStateChangeResponse
@@ -1282,13 +1451,16 @@ enum OutputFormat: String, ExpressibleByArgument {
     case table
     case json
     case csv
+    /// The PS3.18 2026a F.2 DICOM JSON Model (tag keys, `vr`, `Value`), additive (P-QUERY-JSON).
+    case dicomJSON = "dicom-json"
 
     /// Bridges the CLI's `--format` to the shared `QIDOResultFormatter` (DICOMWeb).
     /// The cases line up 1:1, so the rawValue maps directly (table is the fallback).
     var asQIDO: QIDOOutputFormat { QIDOOutputFormat(rawValue: rawValue) ?? .table }
 
     /// Bridges the CLI's `--format` to the shared `UPSResultFormatter` (DICOMWeb).
-    /// The cases line up 1:1, so the rawValue maps directly (table is the fallback).
+    /// The cases line up 1:1 (dicom-json from the DICOM JSON each WorkitemResult keeps,
+    /// D213); table is the fallback.
     var asUPS: UPSOutputFormat { UPSOutputFormat(rawValue: rawValue) ?? .table }
 }
 

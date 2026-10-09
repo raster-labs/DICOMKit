@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — the only DICOM statements here are PS3.5 2026a 8.2.7 / 8.2.8 ("the Values for [Rows, Columns, Cine Rate, Frame Time] shall be compliant with the High Profile / Level 4.1 [4.2] of the MPEG-4 AVC/H.264 standard … and restricted to a square pixel aspect ratio"), 8.2.9 (Stereo High Profile / Level 4.2) and 8.2.10 / 8.2.11 (HEVC Main / Main 10 Profile / Level 5.1), which this type applies by checking the coded picture size and frame rate against the claimed level. The level limits themselves (ITU-T H.264 Table A-1 MaxMBPS / MaxFS, ITU-T H.265 Table A.8 MaxLumaPs / MaxLumaSr, Main tier) are codec-internal and out of the NEMA scope: not verified against the DocBook. The PS3.5 frame-rate / Rows / Columns tables (Tables 8-1 … 8-8) are applied by VideoConformanceValidator, not here. Merged from origin/main PR #217 (1416f7e2) (A1).
 //
 // VideoLevelLimits.swift
 // DICOMKit
@@ -9,8 +10,8 @@ import Foundation
 
 /// The picture-size and throughput limits a codec level imposes.
 ///
-/// PS3.5 requires Rows, Columns and the frame rate to be "compliant with" the
-/// transfer syntax's profile and level - not merely that the stream's
+/// PS3.5 2026a 8.2.7-8.2.11 require Rows, Columns and the frame rate to be
+/// "compliant with" the transfer syntax's profile and level - not merely that the stream's
 /// `level_idc` be low enough. A stream can claim Level 4.1 while coding 4K
 /// pictures (x264 warns and writes it anyway), so the claim is checked against
 /// what the stream actually codes.

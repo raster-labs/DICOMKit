@@ -180,7 +180,7 @@ final class VideoStandard2026dConformanceTests: XCTestCase {
         // 576 rows is the 25 Hz limit; at 29.97 Hz it is 480.
         let found = violations(mpeg2(width: 720, height: 576, level: 8, frameRate: 30000.0 / 1001.0, aspect: 2),
                                .mpeg2MainProfile)
-        guard case .mpeg2FormatNotPermitted? = found.first else {
+        guard case .mpeg2MainLevelGeometryExceedsMaximum? = found.first else {
             return XCTFail("expected a Table 8-1 violation, got \(found)")
         }
     }
@@ -190,14 +190,14 @@ final class VideoStandard2026dConformanceTests: XCTestCase {
         XCTAssertTrue(violations(mpeg2(width: 1280, height: 720, level: 4, frameRate: 50, progressive: true),
                                  .mpeg2MainProfileHighLevel).isEmpty)
 
-        guard case .mpeg2FormatNotPermitted? =
+        guard case .mpeg2HighLevelGeometryNotPermitted? =
                 violations(mpeg2(width: 1440, height: 1080, level: 4), .mpeg2MainProfileHighLevel).first else {
             return XCTFail("1440x1080 is not 1280x720 or 1920x1080")
         }
         XCTAssertEqual(violations(mpeg2(width: 1920, height: 1080, level: 4, aspect: 2), .mpeg2MainProfileHighLevel),
                        [.mpeg2AspectRatioNotPermitted(observed: 2)])
         // 1080p50 is beyond Main Profile / High Level (PS3.5 8.2.6 note).
-        guard case .mpeg2FormatNotPermitted? =
+        guard case .mpeg2FrameRateNotPermitted? =
                 violations(mpeg2(width: 1920, height: 1080, level: 4, frameRate: 50, progressive: true),
                            .mpeg2MainProfileHighLevel).first else {
             return XCTFail("1080p50 must be rejected")
@@ -303,12 +303,15 @@ final class VideoStandard2026dConformanceTests: XCTestCase {
     }
 
     func test_audioViolation_remedyCopiesTheVideo() {
+        // PS3.5 8.2.12: audio "shall follow the constraints", so a known violation rejects.
+        let track = VideoAudioTrack(
+            format: .aac, codecTag: "mp4a", samplingFrequency: 44_100, channelCount: 2)
         let result = VideoConformanceValidator.validate(
             probe: probe(h264(), audio: [AudioStreamInfo(format: .aac, sampleRate: 44_100, channels: 2)]),
             transferSyntax: .mpeg4AVCHP41)
-        XCTAssertEqual(result.violations.count, 1)
-        XCTAssertTrue(result.report.contains("audio track 1 (AAC, 44.1 kHz, 2 ch)"))
-        XCTAssertTrue(result.report.contains("-c:v copy -c:a aac -ar 48000"))
+        XCTAssertEqual(result.violations.count, 1, result.report)
+        XCTAssertTrue(result.report.contains("audio track 1 (\(track.summary))"), result.report)
+        XCTAssertTrue(result.report.contains("-c:v copy -c:a aac -ar 48000"), result.report)
     }
 
     // MARK: - Audio header parsing
@@ -474,7 +477,7 @@ final class VideoStandard2026dConformanceTests: XCTestCase {
         XCTAssertEqual(result.frameCountSource, .accessUnitScan)
         XCTAssertEqual(result.suggestedTransferSyntax, .mpeg4AVCHP41)
         XCTAssertEqual(result.audioTracks.first?.format, .aac)
-        XCTAssertEqual(result.audioTracks.first?.sampleRate, 48_000)
+        XCTAssertEqual(result.audioTracks.first?.samplingFrequency, 48_000)
     }
 
     // MARK: - Shared fixtures

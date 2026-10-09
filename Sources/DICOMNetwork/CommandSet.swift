@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — command set encoding checked against PS3.7 2026a §6.3.1 (Implicit VR LE, group length first, even lengths) and Table E.1-1 (0000,0800) = 0101H; pad byte per VR from PS3.5 Table 6.2-1 (UI NULL, AE/LO SPACE)
 
 /// Value indicating that no data set follows the command
 ///
@@ -88,19 +89,34 @@ public struct CommandSet: Sendable, Hashable {
         elements[tag] = data
     }
     
-    /// Sets a string value for a tag (with null padding to even length)
+    /// Sets a string value for a tag, padded to even length
+    ///
+    /// The pad byte follows the element's VR (PS3.5 Table 6.2-1, 2026a): UI
+    /// values get a trailing NULL (00H); AE and LO values get a trailing SPACE
+    /// (20H). The VR is taken from PS3.7 Table E.1-1 by tag: Move Destination
+    /// (0000,0600) and Move Originator Application Entity Title (0000,1030)
+    /// are AE, Error Comment (0000,0902) is LO; every other string command
+    /// element is UI.
     ///
     /// - Parameters:
     ///   - value: The string value
     ///   - tag: The command tag
     public mutating func setString(_ value: String, for tag: Tag) {
         var data = value.data(using: .ascii) ?? Data()
-        // Pad to even length with null byte if needed
         if data.count % 2 != 0 {
-            data.append(0x00)
+            data.append(Self.spacePaddedCommandTags.contains(tag) ? 0x20 : 0x00)
         }
         elements[tag] = data
     }
+
+    /// Command elements of VR AE or LO (PS3.7 Table E.1-1), which are
+    /// space-padded (PS3.5 Table 6.2-1); the remaining string command
+    /// elements are UI and NULL-padded.
+    private static let spacePaddedCommandTags: Set<Tag> = [
+        .moveDestination,                        // (0000,0600) AE
+        .moveOriginatorApplicationEntityTitle,   // (0000,1030) AE
+        .errorComment                            // (0000,0902) LO
+    ]
     
     /// Removes a value for a tag
     ///

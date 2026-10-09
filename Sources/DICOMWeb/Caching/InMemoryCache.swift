@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (in-memory HTTP response cache; Accept and Accept-Encoding are generic RFC 7231 header names)
 /// In-memory cache implementation for DICOMweb responses
 ///
 /// Provides a thread-safe, LRU-based cache for storing HTTP responses.

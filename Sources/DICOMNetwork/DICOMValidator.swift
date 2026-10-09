@@ -1,6 +1,7 @@
 import Foundation
 import DICOMCore
 import DICOMDictionary
+// NEMA-verified: 2026a, checked 2026-09-28 — transfer syntaxes now come from DICOMCore's PS3.6 2026a Table A-1 registry (was a hand list with 2 unregistered and 29 missing UIDs); storage classes from DICOMDictionary (PS3.4 Table B.5-1)
 
 // MARK: - Validation Error
 
@@ -366,74 +367,16 @@ public struct DICOMValidator: Sendable {
     /// storage objects — see ``StorageSOPClass``.
     private static let knownStorageSOPClasses: Set<String> = StorageSOPClass.allUIDSet
     
-    /// Known Transfer Syntax UIDs
-    private static let knownTransferSyntaxes: Set<String> = [
-        // Implicit VR Little Endian
-        "1.2.840.10008.1.2",
-        // Explicit VR Little Endian
-        "1.2.840.10008.1.2.1",
-        // Deflated Explicit VR Little Endian
-        "1.2.840.10008.1.2.1.99",
-        // Explicit VR Big Endian (Retired)
-        "1.2.840.10008.1.2.2",
-        // JPEG Baseline (Process 1)
-        "1.2.840.10008.1.2.4.50",
-        // JPEG Extended (Process 2 & 4)
-        "1.2.840.10008.1.2.4.51",
-        // JPEG Lossless, Non-Hierarchical (Process 14)
-        "1.2.840.10008.1.2.4.57",
-        // JPEG Lossless SV1 (Process 14, Selection Value 1)
-        "1.2.840.10008.1.2.4.70",
-        // JPEG 2000 Lossless
-        "1.2.840.10008.1.2.4.90",
-        // JPEG 2000 Lossy
-        "1.2.840.10008.1.2.4.91",
-        // JPEG 2000 Part 2 Lossless
-        "1.2.840.10008.1.2.4.92",
-        // JPEG 2000 Part 2 Lossy
-        "1.2.840.10008.1.2.4.93",
-        // HTJ2K Lossless
-        "1.2.840.10008.1.2.4.201",
-        // HTJ2K RPCL Lossless
-        "1.2.840.10008.1.2.4.202",
-        // HTJ2K Lossy
-        "1.2.840.10008.1.2.4.203",
-        // JPEG-LS Lossless
-        "1.2.840.10008.1.2.4.80",
-        // JPEG-LS Lossy
-        "1.2.840.10008.1.2.4.81",
-        // RLE Lossless
-        "1.2.840.10008.1.2.5",
-        // MPEG2 Main Profile
-        "1.2.840.10008.1.2.4.100",
-        // MPEG2 Main Profile High Level
-        "1.2.840.10008.1.2.4.101",
-        // MPEG4 AVC/H.264 High Profile
-        "1.2.840.10008.1.2.4.102",
-        // MPEG4 AVC/H.264 BD-compatible High Profile
-        "1.2.840.10008.1.2.4.103",
-        // HEVC/H.265 Main Profile
-        "1.2.840.10008.1.2.4.107",
-        // HEVC/H.265 Main 10 Profile
-        "1.2.840.10008.1.2.4.108",
-        // MPEG4 AVC/H.264 High Profile Level 4.2 For 2D Video
-        "1.2.840.10008.1.2.4.104",
-        // MPEG4 AVC/H.264 High Profile Level 4.2 For 3D Video
-        "1.2.840.10008.1.2.4.105",
-        // MPEG4 AVC/H.264 Stereo High Profile Level 4.2
-        "1.2.840.10008.1.2.4.106",
-        // Fragmentable video variants (PS3.5 A.4.5 - A.4.7)
-        "1.2.840.10008.1.2.4.100.1",
-        "1.2.840.10008.1.2.4.101.1",
-        "1.2.840.10008.1.2.4.102.1",
-        "1.2.840.10008.1.2.4.103.1",
-        "1.2.840.10008.1.2.4.104.1",
-        "1.2.840.10008.1.2.4.105.1",
-        "1.2.840.10008.1.2.4.106.1",
-        // HEVC .107 and .108 are fragmentable in their own right and have no
-        // ".1" twins (PS3.5 8.2.10 - 8.2.11, PS3.6 Table A-1).
-    ]
-    
+    /// Known Transfer Syntax UIDs.
+    ///
+    /// Sourced from DICOMCore's registry (`TransferSyntax.allKnown`, PS3.6
+    /// Table A-1 plus the fragmentable video variants of PS3.5 Annex A.4
+    /// (video transfer syntaxes)) so the validator recognises every registered
+    /// syntax — JPEG XL, Encapsulated Uncompressed, Deflated Image Frame
+    /// Compression, SMPTE ST 2110, JPIP, the retired JPEG processes, RFC 2557
+    /// and Papyrus 3 — instead of a hand-maintained subset.
+    private static let knownTransferSyntaxes: Set<String> = Set(TransferSyntax.allKnown.map(\.uid))
+
     // MARK: - Initialization
     
     /// Creates a new DICOM validator

@@ -1,5 +1,6 @@
 // JPEGCodecEngine.swift
 // DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-25 — the four JPEG transfer syntaxes named below (.50 Baseline Process 1, .51 Extended, .57 Lossless, .70 Lossless SV1) match PS3.6 2026a Table A-1; the file holds no other standard data. C1 classification confirmed.
 
 import Foundation
 

@@ -1380,7 +1380,7 @@ dicom-script run workflow.dcmscript
 query pacs://server:11112 --patient "DOE*" | \
 retrieve --output studies/ | \
 validate --level 2 | \
-anonymize --profile basic --output anon/ | \
+anonymize --profile ps315 --output anon/ | \
 convert --format png --output images/
 
 # Pipeline with conditions

@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for Integration Testing, Accessibility & Polish (Milestone 23)
+// NEMA-verified: 2026a, checked 2026-10-05 — the standard-derived content is the 42 IntegrationTestToolCategory.toolNames (E2E scenarios), diffed against the Sources/dicom-* targets by Scripts/diff_studio_g1_shell.py: dicom-qido, dicom-stow, dicom-ups do not exist (they are dicom-wado subcommands) and dicom-j2k, dicom-jpip, dicom-printscp, dicom-video were missing; toolCount now matches; no CLI option, tag, UID or PS3 clause is carried (test, accessibility, performance and documentation bookkeeping otherwise)
 
 import Foundation
 
@@ -73,10 +74,10 @@ public enum IntegrationTestToolCategory: String, Sendable, CaseIterable, Identif
     public var toolCount: Int {
         switch self {
         case .fileInspection:   return 4
-        case .fileProcessing:   return 4
+        case .fileProcessing:   return 5
         case .fileOrganization: return 4
-        case .dataExchange:     return 5
-        case .networking:       return 14
+        case .dataExchange:     return 6
+        case .networking:       return 13
         case .viewer:           return 3
         case .clinical:         return 3
         case .utilities:        return 2
@@ -84,14 +85,15 @@ public enum IntegrationTestToolCategory: String, Sendable, CaseIterable, Identif
         }
     }
 
-    /// The tool names belonging to this category.
+    /// The tool names belonging to this category: every `Sources/dicom-*` target, once (QIDO-RS, STOW-RS and
+    /// UPS-RS are `dicom-wado` subcommands, not tools).
     public var toolNames: [String] {
         switch self {
         case .fileInspection:   return ["dicom-info", "dicom-dump", "dicom-tags", "dicom-diff"]
-        case .fileProcessing:   return ["dicom-convert", "dicom-validate", "dicom-anon", "dicom-compress"]
+        case .fileProcessing:   return ["dicom-convert", "dicom-validate", "dicom-anon", "dicom-compress", "dicom-j2k"]
         case .fileOrganization: return ["dicom-split", "dicom-merge", "dicom-dcmdir", "dicom-archive"]
-        case .dataExchange:     return ["dicom-json", "dicom-xml", "dicom-pdf", "dicom-export", "dicom-pixedit"]
-        case .networking:       return ["dicom-echo", "dicom-query", "dicom-send", "dicom-retrieve", "dicom-qr", "dicom-wado", "dicom-qido", "dicom-stow", "dicom-ups", "dicom-mwl", "dicom-mpps", "dicom-print", "dicom-gateway", "dicom-server"]
+        case .dataExchange:     return ["dicom-json", "dicom-xml", "dicom-pdf", "dicom-export", "dicom-pixedit", "dicom-video"]
+        case .networking:       return ["dicom-echo", "dicom-query", "dicom-send", "dicom-retrieve", "dicom-qr", "dicom-wado", "dicom-mwl", "dicom-mpps", "dicom-print", "dicom-printscp", "dicom-jpip", "dicom-gateway", "dicom-server"]
         case .viewer:           return ["dicom-viewer", "dicom-image", "dicom-3d"]
         case .clinical:         return ["dicom-report", "dicom-measure", "dicom-study"]
         case .utilities:        return ["dicom-uid", "dicom-script"]

@@ -73,6 +73,20 @@ Useful flags:
   video PID's parameter sets and pictures, PES timestamps for the frame rate,
   and the audio PIDs); this flag skips that, so it requires an explicit
   `--transfer-syntax`.
+- `--modality`, `--patient-sex`, `--patient-birth-date` — a value the IOD does
+  not allow is refused: the command exits 1 and writes nothing. Modality
+  (0008,0060) shall be `ES`, `GM` or `XC` for `--type endoscopic`, `microscopic`
+  or `photographic` (PS3.3 A.32.5.4.1, A.32.6.4.1, A.32.7.4.1); Patient's Sex is
+  `M`, `F` or `O` (PS3.3 Table C.7-1); a birth date must be DA (`YYYYMMDD`,
+  PS3.5 Table 6.2-1). `--transfer-syntax 1.2.840.10008.1.2.4.107.1` / `.108.1`
+  ("Fragmentable HEVC") is refused too: PS3.6 Table A-1 does not register them.
+  (Until 2026-10-01 these were written with a warning.)
+- `--audio-channel-source <keyword|SCHEME:VALUE[:MEANING]>` — the PS3.16 CID 3000
+  source of the multiplexed audio, written in (003A,0300) (PS3.3 Table C.7-13).
+  Given once, it applies to every audio track. Repeat it to give one source per
+  audio track, in container order: each (003A,0300) Item has its own Channel
+  Source Sequence (003A,0208). A count that matches neither 1 nor the number of
+  tracks exits 1.
 - `-v, --verbose` — explain each step: the container recognised, why that
   transfer syntax was chosen, where the frame count came from, the UIDs minted
   and how many bytes of the output are payload rather than DICOM overhead.
@@ -207,8 +221,10 @@ expected value and a remedy:
 - **Bit depth** must be 8 or 10, and must match the transfer syntax.
 - **Pixels must be square.** DICOM cannot express anamorphic video, because
   Pixel Aspect Ratio (0028,0034) must be absent (PS3.5 §8.2.7).
-- **Container** must be MP4 or MPEG-TS (PS3.5 §8.2.7). A `.mov` is not MP4;
-  the remedy rewraps it without re-encoding.
+- **Container** must be MP4 or MPEG-TS (PS3.5 §8.2.7–8.2.11). A `.mov` is not MP4.
+  For MPEG2 (§8.2.5, §8.2.6) the standard leaves the container unconstrained, but
+  this tool still requires MP4 or MPEG-TS.
+  The remedy for a `.mov` rewraps it without re-encoding.
 - **Size**: a non-fragmentable transfer syntax holds the whole bit stream in
   one fragment, so a payload over 4 GiB needs the `….1` variant.
 - **BD-compatible** (`…4.103`) additionally requires a resolution and frame-rate
@@ -230,10 +246,12 @@ player, driven by the viewer's cine transport.
 
 ## References
 
-- PS3.5 §8.2.5–8.2.11 — video encoding constraints, Tables 8-1, 8-2, 8-4, 8-8
+- PS3.5 §8.2.5–8.2.11 — video encoding constraints, Tables 8-1 to 8-8; §8.2.12 — audio
 - PS3.5 §8.2.12 — audio in AVC and HEVC bit streams
-- PS3.6 Table A-1 — the 16 video transfer syntax UIDs (DICOM 2026d)
+- PS3.6 Table A-1 — the video transfer syntax UIDs
 - ITU-T H.264 Table A-1, ITU-T H.265 Table A.8 — level limits
 - PS3.5 §A.4 — encapsulation of encoded pixel data
-- PS3.3 §A.32.5 — Video Endoscopic Image IOD
+- PS3.6 Table A-1 — the 16 MPEG2 / MPEG-4 AVC/H.264 / HEVC/H.265 transfer syntaxes
+- PS3.3 §A.32.5, §A.32.6, §A.32.7 — Video Endoscopic, Microscopic and Photographic Image IODs
+- PS3.3 Table C.7-13 — Cine Module (Frame Time, Cine Rate, Recommended Display Frame Rate)
 - IHE Endoscopy Image Archiving (EIA) Rev. 1.1 §3.10.4.1.1.1 — series grouping

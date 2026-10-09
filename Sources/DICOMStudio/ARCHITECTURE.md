@@ -6,10 +6,16 @@ DICOM Studio is a macOS SwiftUI application showcasing DICOMKit. It follows **MV
 
 ## Directory Structure
 
+The `@main` entry point is not in this library. It lives in
+`Sources/DICOMStudioApp/DICOMStudioApp.swift`, which only the
+`DICOMStudio.xcodeproj` app target compiles; it imports this library and
+declares the app's windows, menus and Settings scene.
+
 ```
 Sources/DICOMStudio/
-├── App/                        # Application entry point
-│   └── DICOMStudioApp.swift    # @main (macOS only)
+├── App/                        # Menu commands used by the app's scenes
+│   ├── StudioWindowCommands.swift  # Window menu: Printer Emulator, Print Preview
+│   └── ViewerCommands.swift        # View/Image menu: zoom, fit, overlays, transforms
 ├── Models/                     # Data models (pure Swift, Sendable)
 │   ├── StudyModel.swift        # Study-level DICOM metadata
 │   ├── SeriesModel.swift       # Series-level DICOM metadata

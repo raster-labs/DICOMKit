@@ -250,4 +250,259 @@ final class RTPlanTests: XCTestCase {
         XCTAssertEqual(controlPoint.position3D?.z, 30.0)
         XCTAssertEqual(controlPoint.cumulativeTimeWeight, 0.75)
     }
+
+    // MARK: - 2026a term enums (PS3.3 Tables C.8-45, C.8-46, C.8-51)
+
+    func test_rtPlanGeometry_rawValues() {
+        XCTAssertEqual(RTPlanGeometry.allCases.map(\.rawValue), ["PATIENT", "TREATMENT_DEVICE"])
+        XCTAssertEqual(RTPlan(sopInstanceUID: "1", geometry: "TREATMENT_DEVICE").planGeometry, .treatmentDevice)
+        XCTAssertNil(RTPlan(sopInstanceUID: "1").planGeometry)
+    }
+
+    func test_doseReference_terms_rawValues() {
+        XCTAssertEqual(DoseReferenceStructureType.allCases.map(\.rawValue), ["POINT", "VOLUME", "COORDINATES", "SITE"])
+        XCTAssertEqual(DoseReferenceType.allCases.map(\.rawValue), ["TARGET", "ORGAN_AT_RISK"])
+        let ref = DoseReference(number: 1, structureType: "SITE", type: "TARGET")
+        XCTAssertEqual(ref.structureTypeTerm, .site)
+        XCTAssertEqual(ref.doseReferenceType, .target)
+        XCTAssertNil(DoseReference(number: 2, structureType: "ROI", type: "OAR").structureTypeTerm)
+        XCTAssertNil(DoseReference(number: 2, structureType: "ROI", type: "OAR").doseReferenceType)
+    }
+
+    func test_brachyApplicationSetupType_rawValues() {
+        XCTAssertEqual(BrachyApplicationSetupType.allCases.map(\.rawValue), [
+            "FLETCHER_SUIT", "DELCLOS", "BLOEDORN", "JOSLIN_FLYNN", "CHANDIGARH", "MANCHESTER", "HENSCHKE",
+            "NASOPHARYNGEAL", "OESOPHAGEAL", "ENDOBRONCHIAL", "SYED_NEBLETT", "ENDORECTAL", "PERINEAL"
+        ])
+        XCTAssertEqual(BrachyApplicationSetup(number: 1, type: "MANCHESTER").setupType, .manchester)
+        // MANUAL/HDR/MDR/LDR/PDR are Brachy Treatment Type (300A,0202) values, not Application Setup Types
+        XCTAssertNil(BrachyApplicationSetup(number: 2, type: "HDR").setupType)
+    }
+}
+
+// MARK: - RTPlanParserTests
+//
+// Round-trip tests for the RT General Plan (PS3.3 2026a Table C.8-45), RT Prescription (C.8-46),
+// RT Fraction Scheme (C.8-49), RT Beams (C.8-50) and RT Brachy Application Setups (C.8-51)
+// terms through RTPlanParser. Lives in this file because the DICOMKitTests target in
+// Package.swift enumerates its RadiationTherapy sources explicitly.
+final class RTPlanParserTests: XCTestCase {
+
+    // MARK: - Helpers
+
+    private func cs(_ tag: Tag, _ value: String) -> DataElement {
+        DataElement(tag: tag, vr: .CS, length: UInt32(value.count), valueData: value.data(using: .ascii)!)
+    }
+
+    private func ds(_ tag: Tag, _ value: String) -> DataElement {
+        DataElement(tag: tag, vr: .DS, length: UInt32(value.count), valueData: value.data(using: .ascii)!)
+    }
+
+    private func integerString(_ tag: Tag, _ value: Int) -> DataElement {
+        let s = String(value)
+        return DataElement(tag: tag, vr: .IS, length: UInt32(s.count), valueData: s.data(using: .ascii)!)
+    }
+
+    private func sequence(_ tag: Tag, _ items: [SequenceItem]) -> DataElement {
+        DataElement(tag: tag, vr: .SQ, length: 0xFFFFFFFF, valueData: Data(), sequenceItems: items)
+    }
+
+    private func minimalPlan() -> [Tag: DataElement] {
+        var elements: [Tag: DataElement] = [:]
+        elements[.sopInstanceUID] = DataElement(tag: .sopInstanceUID, vr: .UI, length: 9, valueData: "1.2.3.4.5".data(using: .ascii)!)
+        elements[.sopClassUID] = DataElement(tag: .sopClassUID, vr: .UI, length: 29, valueData: "1.2.840.10008.5.1.4.1.1.481.5".data(using: .ascii)!)
+        return elements
+    }
+
+    // MARK: - RT General Plan Module (Table C.8-45)
+
+    func test_parse_rtPlanGeometry() throws {
+        for term in RTPlanGeometry.allCases {
+            var elements = minimalPlan()
+            elements[.rtPlanGeometry] = cs(.rtPlanGeometry, term.rawValue)
+            let plan = try RTPlanParser.parse(from: DataSet(elements: Array(elements.values)))
+            XCTAssertEqual(plan.geometry, term.rawValue)
+            XCTAssertEqual(plan.planGeometry, term, term.rawValue)
+        }
+        XCTAssertEqual(RTPlanGeometry.allCases.map(\.rawValue), ["PATIENT", "TREATMENT_DEVICE"])
+    }
+
+    // MARK: - RT Prescription Module (Table C.8-46)
+
+    func test_parse_doseReference_terms() throws {
+        var elements = minimalPlan()
+        var ref: [Tag: DataElement] = [:]
+        ref[.doseReferenceNumber] = integerString(.doseReferenceNumber, 1)
+        ref[.doseReferenceStructureType] = cs(.doseReferenceStructureType, "COORDINATES")
+        ref[.doseReferenceType] = cs(.doseReferenceType, "ORGAN_AT_RISK")
+        elements[.doseReferenceSequence] = sequence(.doseReferenceSequence, [SequenceItem(elements: ref)])
+
+        let plan = try RTPlanParser.parse(from: DataSet(elements: Array(elements.values)))
+        XCTAssertEqual(plan.doseReferences.count, 1)
+        XCTAssertEqual(plan.doseReferences[0].structureType, "COORDINATES")
+        XCTAssertEqual(plan.doseReferences[0].structureTypeTerm, .coordinates)
+        XCTAssertEqual(plan.doseReferences[0].type, "ORGAN_AT_RISK")
+        XCTAssertEqual(plan.doseReferences[0].doseReferenceType, .organAtRisk)
+    }
+
+    // MARK: - RT Fraction Scheme Module (Table C.8-49)
+
+    /// Fraction Pattern (300A,007B) is VR LT (PS3.6): a string of 0's and 1's, 7 x digits-per-day x cycle length long.
+    func test_parse_fractionPattern_LT() throws {
+        var elements = minimalPlan()
+        var group: [Tag: DataElement] = [:]
+        group[.fractionGroupNumber] = integerString(.fractionGroupNumber, 1)
+        group[.numberOfFractionsPlanned] = integerString(.numberOfFractionsPlanned, 5)
+        group[.numberOfFractionPatternDigitsPerDay] = integerString(.numberOfFractionPatternDigitsPerDay, 1)
+        group[.repeatFractionCycleLength] = integerString(.repeatFractionCycleLength, 1)
+        let pattern = "1111100"   // Monday..Friday treated, weekend not
+        group[.fractionPattern] = DataElement(tag: .fractionPattern, vr: .LT, length: UInt32(pattern.count), valueData: pattern.data(using: .ascii)!)
+        group[.numberOfBeams] = integerString(.numberOfBeams, 0)
+        elements[.fractionGroupSequence] = sequence(.fractionGroupSequence, [SequenceItem(elements: group)])
+
+        let plan = try RTPlanParser.parse(from: DataSet(elements: Array(elements.values)))
+        XCTAssertEqual(plan.fractionGroups.count, 1)
+        let parsed = plan.fractionGroups[0]
+        XCTAssertEqual(parsed.fractionPattern, pattern)
+        XCTAssertEqual(parsed.fractionPattern?.count, 7 * 1 * 1)
+        XCTAssertEqual(parsed.numberOfFractionsPerDay, 1)
+        XCTAssertEqual(parsed.repeatFractionCycleLength, 1)
+        XCTAssertEqual(parsed.numberOfFractionsPlanned, 5)
+    }
+
+    // MARK: - RT Beams Module (Table C.8-50)
+
+    private func beamItem(number: Int, type: String, radiation: String, dosimeter: String,
+                          delivery: String? = nil, highDose: String? = nil,
+                          controlPoints: [SequenceItem] = []) -> SequenceItem {
+        var beam: [Tag: DataElement] = [:]
+        beam[.beamNumber] = integerString(.beamNumber, number)
+        beam[.beamType] = cs(.beamType, type)
+        beam[.radiationType] = cs(.radiationType, radiation)
+        beam[.primaryDosimeterUnit] = cs(.primaryDosimeterUnit, dosimeter)
+        if let delivery {
+            beam[Tag(group: 0x300A, element: 0x00CE)] = cs(Tag(group: 0x300A, element: 0x00CE), delivery)
+        }
+        if let highDose {
+            beam[Tag(group: 0x300A, element: 0x00C7)] = cs(Tag(group: 0x300A, element: 0x00C7), highDose)
+        }
+        if !controlPoints.isEmpty {
+            beam[.controlPointSequence] = sequence(.controlPointSequence, controlPoints)
+        }
+        return SequenceItem(elements: beam)
+    }
+
+    func test_parse_beam_terms() throws {
+        var elements = minimalPlan()
+        elements[.beamSequence] = sequence(.beamSequence, [
+            beamItem(number: 1, type: "STATIC", radiation: "PHOTON", dosimeter: "MU", delivery: "TREATMENT", highDose: "TBI"),
+            beamItem(number: 2, type: "DYNAMIC", radiation: "ELECTRON", dosimeter: "MINUTE", delivery: "SETUP"),
+            beamItem(number: 3, type: "ARC", radiation: "CARBON", dosimeter: "MINUTES", delivery: "PORTFILM"),
+        ])
+
+        let plan = try RTPlanParser.parse(from: DataSet(elements: Array(elements.values)))
+        XCTAssertEqual(plan.beams.count, 3)
+
+        let b1 = plan.beams[0]
+        XCTAssertEqual(b1.type, "STATIC")
+        XCTAssertEqual(b1.beamType, .static)
+        XCTAssertEqual(b1.radiationType, "PHOTON")
+        XCTAssertEqual(b1.radiationTypeTerm, .photon)
+        XCTAssertEqual(b1.primaryDosimeterUnit, "MU")
+        XCTAssertEqual(b1.primaryDosimeterUnitTerm, .monitorUnit)
+        XCTAssertEqual(b1.treatmentDeliveryType, "TREATMENT")
+        XCTAssertEqual(b1.treatmentDeliveryTypeTerm, .treatment)
+        XCTAssertEqual(b1.highDoseTechniqueType, "TBI")
+        XCTAssertEqual(b1.highDoseTechniqueTypeTerm, .totalBodyIrradiation)
+
+        let b2 = plan.beams[1]
+        XCTAssertEqual(b2.beamType, .dynamic)
+        XCTAssertEqual(b2.radiationTypeTerm, .electron)
+        XCTAssertEqual(b2.primaryDosimeterUnitTerm, .minute)
+        XCTAssertEqual(b2.treatmentDeliveryTypeTerm, .setup)
+        XCTAssertNil(b2.highDoseTechniqueType)
+        XCTAssertNil(b2.highDoseTechniqueTypeTerm)
+
+        // Non-standard strings are preserved, typed accessors are nil
+        let b3 = plan.beams[2]
+        XCTAssertEqual(b3.type, "ARC")
+        XCTAssertNil(b3.beamType)
+        XCTAssertEqual(b3.radiationType, "CARBON")
+        XCTAssertNil(b3.radiationTypeTerm)
+        XCTAssertEqual(b3.primaryDosimeterUnit, "MINUTES")
+        XCTAssertNil(b3.primaryDosimeterUnitTerm)
+        XCTAssertNil(b3.treatmentDeliveryTypeTerm)
+    }
+
+    func test_parse_allRadiationAndDeliveryTypes() throws {
+        var elements = minimalPlan()
+        let radiation = RadiationType.allCases
+        let delivery = TreatmentDeliveryType.allCases
+        var items: [SequenceItem] = []
+        for i in 0..<max(radiation.count, delivery.count) {
+            items.append(beamItem(number: i + 1, type: "STATIC",
+                                  radiation: radiation[i % radiation.count].rawValue, dosimeter: "MU",
+                                  delivery: delivery[i % delivery.count].rawValue))
+        }
+        elements[.beamSequence] = sequence(.beamSequence, items)
+
+        let plan = try RTPlanParser.parse(from: DataSet(elements: Array(elements.values)))
+        for (i, beam) in plan.beams.enumerated() {
+            XCTAssertEqual(beam.radiationTypeTerm, radiation[i % radiation.count])
+            XCTAssertEqual(beam.treatmentDeliveryTypeTerm, delivery[i % delivery.count])
+        }
+    }
+
+    func test_parse_controlPoint_rotationDirections_and_beamLimitingDeviceType() throws {
+        var bld: [Tag: DataElement] = [:]
+        bld[.rtBeamLimitingDeviceType] = cs(.rtBeamLimitingDeviceType, "MLCX")
+        bld[.leafJawPositions] = ds(.leafJawPositions, "-10\\10\\-20\\20")
+
+        var cp: [Tag: DataElement] = [:]
+        cp[.controlPointIndex] = integerString(.controlPointIndex, 0)
+        cp[.gantryRotationDirection] = cs(.gantryRotationDirection, "CW")
+        cp[.beamLimitingDeviceRotationDirection] = cs(.beamLimitingDeviceRotationDirection, "CC")
+        cp[.patientSupportRotationDirection] = cs(.patientSupportRotationDirection, "NONE")
+        cp[.beamLimitingDevicePositionSequence] = sequence(.beamLimitingDevicePositionSequence, [SequenceItem(elements: bld)])
+
+        var elements = minimalPlan()
+        elements[.beamSequence] = sequence(.beamSequence, [
+            beamItem(number: 1, type: "DYNAMIC", radiation: "PROTON", dosimeter: "MU", controlPoints: [SequenceItem(elements: cp)])
+        ])
+
+        let plan = try RTPlanParser.parse(from: DataSet(elements: Array(elements.values)))
+        let point = try XCTUnwrap(plan.beams.first?.controlPoints.first)
+        XCTAssertEqual(point.gantryRotationDirection, "CW")
+        XCTAssertEqual(point.gantryRotation, .clockwise)
+        XCTAssertEqual(point.beamLimitingDeviceRotationDirection, "CC")
+        XCTAssertEqual(point.beamLimitingDeviceRotation, .counterClockwise)
+        XCTAssertEqual(point.patientSupportRotationDirection, "NONE")
+        XCTAssertEqual(point.patientSupportRotation, RotationDirection.none)
+        XCTAssertEqual(point.beamLimitingDevicePositions.count, 1)
+        XCTAssertEqual(point.beamLimitingDevicePositions[0].type, "MLCX")
+        XCTAssertEqual(point.beamLimitingDevicePositions[0].deviceType, .mlcX)
+        XCTAssertEqual(point.beamLimitingDevicePositions[0].positions, [-10, 10, -20, 20])
+    }
+
+    // MARK: - RT Brachy Application Setups Module (Table C.8-51)
+
+    func test_parse_brachyApplicationSetupType() throws {
+        var elements = minimalPlan()
+        var setup: [Tag: DataElement] = [:]
+        setup[.applicationSetupNumber] = integerString(.applicationSetupNumber, 1)
+        setup[.applicationSetupType] = cs(.applicationSetupType, "FLETCHER_SUIT")
+        var legacy: [Tag: DataElement] = [:]
+        legacy[.applicationSetupNumber] = integerString(.applicationSetupNumber, 2)
+        legacy[.applicationSetupType] = cs(.applicationSetupType, "HDR")   // a Brachy Treatment Type value, not a setup type
+        elements[.brachyApplicationSetupSequence] = sequence(.brachyApplicationSetupSequence, [
+            SequenceItem(elements: setup), SequenceItem(elements: legacy)
+        ])
+
+        let plan = try RTPlanParser.parse(from: DataSet(elements: Array(elements.values)))
+        XCTAssertEqual(plan.brachyApplicationSetups.count, 2)
+        XCTAssertEqual(plan.brachyApplicationSetups[0].type, "FLETCHER_SUIT")
+        XCTAssertEqual(plan.brachyApplicationSetups[0].setupType, .fletcherSuit)
+        XCTAssertEqual(plan.brachyApplicationSetups[1].type, "HDR")
+        XCTAssertNil(plan.brachyApplicationSetups[1].setupType)
+    }
 }

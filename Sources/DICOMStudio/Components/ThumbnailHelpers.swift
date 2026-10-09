@@ -2,8 +2,11 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent thumbnail generation helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — supportedPhotometricInterpretations is built from DICOMCore PhotometricInterpretation == the 11 PS3.3 2026a C.7.6.3.1.2 Defined Terms less the three retired in PS3.3-2001 (was 7: YBR_PARTIAL_420, YBR_ICT, YBR_RCT, XYB missing — D10); default window presets are not standard data
 
 import Foundation
+import DICOMCore
 
 /// Platform-independent helpers for thumbnail generation sizing and metadata.
 ///
@@ -46,23 +49,26 @@ public enum ThumbnailHelpers: Sendable {
     /// - Parameter modality: The DICOM modality code (e.g., "CT", "MR", "CR").
     /// - Returns: A tuple of (center, width) values.
     public static func defaultWindowSettings(for modality: String) -> (center: Double, width: Double) {
-        switch modality.uppercased() {
-        case "CT":
+        // Display-ready 8-bit frames (US, endoscopy, visible light) and anything
+        // unrecognized share the neutral 128/256 default.
+        let fallback = (center: 128.0, width: 256.0)
+        guard let resolved = Modality.normalized(modality) else { return fallback }
+        switch resolved {
+        case .ct:
             return (center: 40.0, width: 400.0) // Soft tissue
-        case "MR":
+        case .mr:
             return (center: 500.0, width: 1000.0)
-        case "CR", "DX":
-            return (center: 2048.0, width: 4096.0)
-        case "MG":
+        case .mg:
             return (center: 3000.0, width: 6000.0)
-        case "NM", "PT":
+        case .nm, .pt:
             return (center: 500.0, width: 1000.0)
-        case "US":
-            return (center: 128.0, width: 256.0)
-        case "XA":
-            return (center: 128.0, width: 256.0)
         default:
-            return (center: 128.0, width: 256.0)
+            // Projection X-ray is wide-latitude; everything else is display-ready.
+            // XA/RF are 8-bit in practice, so they keep the neutral default.
+            if resolved.category == .radiography, resolved != .xa, resolved != .rf {
+                return (center: 2048.0, width: 4096.0)
+            }
+            return fallback
         }
     }
 
@@ -99,10 +105,23 @@ public enum ThumbnailHelpers: Sendable {
         return true
     }
 
-    /// Returns the supported photometric interpretations for thumbnail generation.
-    public static let supportedPhotometricInterpretations: Set<String> = [
-        "MONOCHROME1", "MONOCHROME2", "RGB",
-        "PALETTE COLOR", "YBR_FULL", "YBR_FULL_422", "YBR_PARTIAL_422"
+    /// The photometric interpretations a thumbnail can be rendered from.
+    ///
+    /// Every ``DICOMCore/PhotometricInterpretation`` the decoders produce — the
+    /// PS3.3 C.7.6.3.1.2 Defined Terms except HSV, ARGB and CMYK, retired in
+    /// PS3.3-2001 and absent from DICOMCore. The compressed-domain terms
+    /// (YBR_ICT, YBR_RCT, XYB) and the video term YBR_PARTIAL_420 are included
+    /// because the decode path hands the viewer RGB samples for them; leaving
+    /// them out left every JPEG 2000 / JPEG XL colour file without a thumbnail.
+    public static let supportedPhotometricInterpretations: Set<String> = Set(
+        renderablePhotometricInterpretations.map(\.rawValue))
+
+    /// ``supportedPhotometricInterpretations`` as DICOMCore values, so a new
+    /// case in DICOMCore is a compile-time nudge rather than a silent gap.
+    static let renderablePhotometricInterpretations: [PhotometricInterpretation] = [
+        .monochrome1, .monochrome2, .paletteColor, .rgb,
+        .ybrFull, .ybrFull422, .ybrPartial422, .ybrPartial420,
+        .ybrICT, .ybrRCT, .xyb,
     ]
 
     /// Checks if a photometric interpretation is supported for thumbnail rendering.

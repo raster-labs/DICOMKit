@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (cloud URL parsing, provider endpoints and error text); Scripts/diff_cli.py: 0 UID, tag or code literals
 import Foundation
 
 // MARK: - Cloud URL

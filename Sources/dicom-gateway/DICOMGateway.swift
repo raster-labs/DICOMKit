@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — options: 33 options of 7 subcommands compared (contract rows in DICOMCLI_STANDARD_IMPLEMENTATION.md); all are HL7 v2 / FHIR selectors or plumbing (paths, ports, verbosity) — HL7 and FHIR are not NEMA standards; `forward --listen-port` 11112 is the registered DICOM port of PS3.8 2026a 9.1.1; the DICOM values written and read are checked in DICOMValueMapping.swift
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -22,8 +23,8 @@ struct DICOMGateway: AsyncParsableCommand {
               # Convert DICOM to FHIR ImagingStudy
               dicom-gateway dicom-to-fhir study.dcm --output study.json --resource ImagingStudy
               
-              # Convert FHIR to DICOM
-              dicom-gateway fhir-to-dicom imaging-study.json --output study.dcm
+              # Convert FHIR to DICOM (--template is required, see fhir-to-dicom --help)
+              dicom-gateway fhir-to-dicom imaging-study.json --template template.dcm --output study.dcm
               
               # Batch conversion
               dicom-gateway batch dicom-to-fhir studies/*.dcm --output fhir-resources/
@@ -129,6 +130,12 @@ struct HL7ToDICOM: AsyncParsableCommand {
         discussion: """
             Parse HL7 v2 messages and populate DICOM tags from demographics
             and order information.
+
+            --template is required: an HL7 message carries no image, and without a
+            template the output would claim Secondary Capture Image Storage with no
+            Image Pixel or SC Image Module, which PS3.3 Table A.8-1 makes Mandatory.
+            A template that claims an image Storage SOP Class but has no Pixel Data
+            is refused for the same reason (exit 1).
             """
     )
     
@@ -138,11 +145,16 @@ struct HL7ToDICOM: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Output DICOM file path")
     var output: String
     
-    @Option(name: .long, help: "Template DICOM file to populate")
+    @Option(name: .long, help: "Template DICOM file to populate (required; PS3.3 Table A.8-1)")
     var template: String?
     
     @Flag(name: .shortAndLong, help: "Verbose output")
     var verbose: Bool = false
+
+    func validate() throws {
+        // P-GATEWAY-SC (D104): no image, so no Secondary Capture output without a template.
+        try GatewayOutputRules.requireTemplate(template, command: "hl7-to-dicom")
+    }
     
     mutating func run() async throws {
         guard FileManager.default.fileExists(atPath: input) else {
@@ -171,7 +183,9 @@ struct HL7ToDICOM: AsyncParsableCommand {
             guard FileManager.default.fileExists(atPath: templatePath) else {
                 throw GatewayError.invalidInput("Template file not found: \(templatePath)")
             }
-            templateFile = try DICOMFile.read(from: URL(fileURLWithPath: templatePath))
+            let file = try DICOMFile.read(from: URL(fileURLWithPath: templatePath))
+            try GatewayOutputRules.checkTemplate(file, path: templatePath)
+            templateFile = file
         }
         
         // Convert to DICOM
@@ -275,6 +289,12 @@ struct FHIRToDICOM: AsyncParsableCommand {
         abstract: "Convert FHIR resources to DICOM files",
         discussion: """
             Parse FHIR JSON resources and populate DICOM tags.
+
+            --template is required: a FHIR resource carries no image, and without a
+            template the output would claim Secondary Capture Image Storage with no
+            Image Pixel or SC Image Module, which PS3.3 Table A.8-1 makes Mandatory.
+            A template that claims an image Storage SOP Class but has no Pixel Data
+            is refused for the same reason (exit 1).
             """
     )
     
@@ -284,11 +304,16 @@ struct FHIRToDICOM: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Output DICOM file path")
     var output: String
     
-    @Option(name: .long, help: "Template DICOM file to populate")
+    @Option(name: .long, help: "Template DICOM file to populate (required; PS3.3 Table A.8-1)")
     var template: String?
     
     @Flag(name: .shortAndLong, help: "Verbose output")
     var verbose: Bool = false
+
+    func validate() throws {
+        // P-GATEWAY-SC (D104): no image, so no Secondary Capture output without a template.
+        try GatewayOutputRules.requireTemplate(template, command: "fhir-to-dicom")
+    }
     
     mutating func run() async throws {
         guard FileManager.default.fileExists(atPath: input) else {
@@ -315,7 +340,9 @@ struct FHIRToDICOM: AsyncParsableCommand {
             guard FileManager.default.fileExists(atPath: templatePath) else {
                 throw GatewayError.invalidInput("Template file not found: \(templatePath)")
             }
-            templateFile = try DICOMFile.read(from: URL(fileURLWithPath: templatePath))
+            let file = try DICOMFile.read(from: URL(fileURLWithPath: templatePath))
+            try GatewayOutputRules.checkTemplate(file, path: templatePath)
+            templateFile = file
         }
         
         // Convert to DICOM
@@ -451,13 +478,14 @@ struct BatchConvert: AsyncParsableCommand {
 struct ListenCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "listen",
-        abstract: "Listen for HL7 messages and forward to PACS",
+        abstract: "Listen for HL7 messages and convert them to DICOM",
         discussion: """
-            Run an HL7 TCP listener that receives HL7 v2 messages,
-            converts them to DICOM, and forwards to a PACS server.
-            
-            This enables real-time integration where HL7 messages trigger
-            DICOM operations (e.g., creating imaging orders from ORM messages).
+            Run an HL7 TCP listener that receives HL7 v2 messages and
+            converts them to DICOM.
+
+            Not implemented: forwarding to a PACS. --forward pacs://host:port
+            is accepted but only reports what would be sent; no PS3.8
+            association is opened and no C-STORE (PS3.4 Annex B) is sent.
             """
     )
     
@@ -467,7 +495,7 @@ struct ListenCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Port to listen on")
     var port: UInt16 = 2575
     
-    @Option(name: .long, help: "Forward destination (e.g., pacs://server:11112)")
+    @Option(name: .long, help: "Forward destination (e.g., pacs://server:11112). Not implemented: reports what would be sent; no C-STORE is performed")
     var forward: String?
     
     @Option(name: .long, help: "Message types to process (comma-separated, e.g., ADT,ORM)")
@@ -479,6 +507,9 @@ struct ListenCommand: AsyncParsableCommand {
     mutating func run() async throws {
         guard protocolType.lowercased() == "hl7" else {
             throw GatewayError.invalidProtocol("Only HL7 protocol is currently supported for listening")
+        }
+        if forward != nil {
+            FileHandle.standardError.write(Data("Warning: --forward is not implemented: no PS3.8 association is opened and no C-STORE (PS3.4 Annex B) is sent; no data set is built from the messages, since listen takes no --template (PS3.3 2026a Table A.8-1); each message is reported as not forwarded (D103, D214).\n".utf8))
         }
         
         let types = messageTypes.isEmpty ? [] : messageTypes.split(separator: ",").map(String.init)
@@ -513,17 +544,20 @@ struct ListenCommand: AsyncParsableCommand {
 struct ForwardCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "forward",
-        abstract: "Forward DICOM events as HL7/FHIR messages",
+        abstract: "Forward DICOM events as HL7/FHIR messages (DICOM listener not implemented)",
         discussion: """
-            Run a DICOM listener that receives DICOM files and forwards
-            them as HL7 v2 or FHIR messages to external systems.
-            
-            This enables integration where DICOM events trigger notifications
-            to other healthcare IT systems.
+            Intended to receive DICOM instances and forward them as HL7 v2 or
+            FHIR messages.
+
+            Not implemented: the listener on --listen-port accepts TCP
+            connections but does not implement the PS3.8 DICOM Upper Layer
+            protocol or a Storage SCP (PS3.4 Annex B), so no DICOM
+            association can be made with it. Use the convert subcommands
+            (dicom-to-hl7, dicom-to-fhir) on files instead.
             """
     )
     
-    @Option(name: .long, help: "Port to listen for DICOM connections")
+    @Option(name: .long, help: "TCP port to open (no PS3.8 Upper Layer / C-STORE SCP is implemented)")
     var listenPort: UInt16 = 11112
     
     @Option(name: .long, help: "HL7 destination (e.g., hl7://server:2575)")
@@ -542,6 +576,7 @@ struct ForwardCommand: AsyncParsableCommand {
         guard forwardHl7 != nil || forwardFhir != nil else {
             throw GatewayError.invalidConfiguration("At least one forward destination (--forward-hl7 or --forward-fhir) must be specified")
         }
+        FileHandle.standardError.write(Data("Warning: the DICOM listener is not implemented: --listen-port accepts TCP but speaks no PS3.8 Upper Layer protocol and is not a Storage SCP (PS3.4 Annex B), so no DICOM association can be made (D103).\n".utf8))
         
         let forwarder = DICOMForwarder(
             listenPort: listenPort,

@@ -296,7 +296,8 @@ struct SRDocumentBuilderTests {
     
     @Test("Add 3D spatial coordinates content item")
     func testAddSpatialCoordinates3DContentItem() throws {
-        let document = try SRDocumentBuilder()
+        // SCOORD3D is a Comprehensive 3D SR value type (PS3.3 Table A.35.13-2), not Comprehensive SR
+        let document = try SRDocumentBuilder(documentType: .comprehensive3DSR)
             .addSpatialCoordinates3D(
                 graphicType: .point,
                 graphicData: [100.0, 200.0, 50.0],
@@ -552,6 +553,9 @@ struct SRDocumentSerializerTests {
             .withVerificationFlag(.verified)
             .withPreliminaryFlag(.final)
             .build()
+            // VERIFIED requires the Verifying Observer Sequence (PS3.3 Table C.17-2, Type 1C)
+            .withVerifyingObservers([VerifyingObserver(
+                name: "Smith^Jane", organization: "Radiology", verificationDateTime: "20260929101500")])
         
         let dataSet = try document.toDataSet()
         
@@ -679,6 +683,9 @@ struct SRDocumentSerializerTests {
             .withVerificationFlag(.verified)
             .addText(conceptName: CodedConcept.finding, value: "Normal appearance")
             .build()
+            // VERIFIED requires the Verifying Observer Sequence (PS3.3 Table C.17-2, Type 1C)
+            .withVerifyingObservers([VerifyingObserver(
+                name: "Smith^Jane", organization: "Radiology", verificationDateTime: "20260929101500")])
         
         // Serialize to DataSet
         let dataSet = try originalDocument.toDataSet()
@@ -775,47 +782,72 @@ struct ContainerBuilderTests {
 
 @Suite("SRDocumentType ValueType Validation Tests")
 struct SRDocumentTypeValueTypeTests {
-    
-    @Test("Basic Text SR allows only limited value types")
+
+    @Test("Basic Text SR value types follow PS3.3 Table A.35.1-2")
     func testBasicTextSRValueTypes() {
         let documentType = SRDocumentType.basicTextSR
-        
-        // Should allow
-        #expect(documentType.allowsValueType(.text))
-        #expect(documentType.allowsValueType(.code))
-        #expect(documentType.allowsValueType(.container))
-        
-        // Should NOT allow numeric and spatial coordinates
-        #expect(!documentType.allowsValueType(.num))
-        #expect(!documentType.allowsValueType(.scoord))
-        #expect(!documentType.allowsValueType(.scoord3D))
+
+        // Table A.35.1-2 target value types
+        #expect(documentType.allows(.text))
+        #expect(documentType.allows(.code))
+        #expect(documentType.allows(.container))
+        #expect(documentType.allows(.image))
+        #expect(documentType.allows(.composite))
+        #expect(documentType.allows(.waveform))
+
+        // Not in the table
+        #expect(!documentType.allows(.num))
+        #expect(!documentType.allows(.scoord))
+        #expect(!documentType.allows(.scoord3D))
     }
-    
-    @Test("Enhanced SR allows numeric but not 3D coordinates")
+
+    @Test("Enhanced SR value types follow PS3.3 Table A.35.2-2")
     func testEnhancedSRValueTypes() {
         let documentType = SRDocumentType.enhancedSR
-        
-        #expect(documentType.allowsValueType(.text))
-        #expect(documentType.allowsValueType(.num))
-        #expect(!documentType.allowsValueType(.scoord3D))
+
+        #expect(documentType.allows(.text))
+        #expect(documentType.allows(.num))
+        #expect(documentType.allows(.scoord))
+        #expect(documentType.allows(.tcoord))
+        #expect(!documentType.allows(.scoord3D))
     }
-    
-    @Test("Comprehensive SR allows all value types except 3D")
+
+    @Test("Comprehensive SR value types follow PS3.3 Table A.35.3-2")
     func testComprehensiveSRValueTypes() {
         let documentType = SRDocumentType.comprehensiveSR
-        
-        #expect(documentType.allowsValueType(.text))
-        #expect(documentType.allowsValueType(.num))
-        #expect(documentType.allowsValueType(.scoord))
+
+        #expect(documentType.allows(.text))
+        #expect(documentType.allows(.num))
+        #expect(documentType.allows(.scoord))
+        #expect(!documentType.allows(.scoord3D))
     }
-    
-    @Test("Comprehensive 3D SR allows all value types")
+
+    @Test("Comprehensive 3D SR value types follow PS3.3 Table A.35.13-2")
     func testComprehensive3DSRValueTypes() {
         let documentType = SRDocumentType.comprehensive3DSR
-        
-        #expect(documentType.allowsValueType(.text))
-        #expect(documentType.allowsValueType(.num))
-        #expect(documentType.allowsValueType(.scoord))
-        #expect(documentType.allowsValueType(.scoord3D))
+
+        #expect(documentType.allows(.text))
+        #expect(documentType.allows(.num))
+        #expect(documentType.allows(.scoord))
+        #expect(documentType.allows(.scoord3D))
+    }
+
+    @Test("Key Object Selection and Mammography CAD SR do not allow DATETIME (Tables A.35.4-2, A.35.5-2)")
+    func testKOSAndMammoCADValueTypes() {
+        #expect(!SRDocumentType.keyObjectSelectionDocument.allows(.datetime))
+        #expect(!SRDocumentType.keyObjectSelectionDocument.allows(.num))
+        #expect(!SRDocumentType.mammographyCADSR.allows(.datetime))
+        #expect(SRDocumentType.mammographyCADSR.allows(.date))
+        #expect(!SRDocumentType.chestCADSR.allows(.datetime))
+    }
+
+    @Test("The deprecated allowsValueType gives the same answer as allows")
+    @available(*, deprecated)
+    func testDeprecatedAllowsValueTypeForwards() {
+        for type in [SRDocumentType.basicTextSR, .enhancedSR, .keyObjectSelectionDocument, .mammographyCADSR] {
+            for valueType in [ContentItemValueType.text, .num, .datetime, .image, .scoord, .scoord3D] {
+                #expect(type.allowsValueType(valueType) == type.allows(valueType))
+            }
+        }
     }
 }

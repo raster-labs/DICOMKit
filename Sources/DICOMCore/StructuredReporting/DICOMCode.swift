@@ -5,6 +5,10 @@
 ///
 /// Reference: PS3.16 - Content Mapping Resource
 /// Reference: PS3.16 Annex D - DICOM Controlled Terminology Definitions
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — every constant text-diffed against PS3.16 2026a
+/// Table D-1 (code value and code meaning). Constants whose meaning has no DCM code, or is an
+/// SCT/NCIt concept or a relationship type, are marked unavailable with the correct reference.
 
 /// A DICOM Controlled Terminology (DCM) code
 ///
@@ -61,19 +65,24 @@ extension DICOMCode {
     // MARK: - Document Structure
     
     /// Report (121060)
-    public static let report = DICOMCode(codeValue: "121060", codeMeaning: "Report")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Report\"; 121060 means \"History\"")
+    public static var report: DICOMCode { fatalError() }
     
     /// Finding (121071)
     public static let finding = DICOMCode(codeValue: "121071", codeMeaning: "Finding")
+
+    /// Imaging Measurement Report (126000): a Measurement Report document title (CID 7021)
+    public static let imagingMeasurementReport = DICOMCode(codeValue: "126000", codeMeaning: "Imaging Measurement Report")
     
     /// Measurement (125007)
-    public static let measurement = DICOMCode(codeValue: "125007", codeMeaning: "Measurement")
+    @available(*, unavailable, message: "125007 does not mean \"Measurement\"; use measurementGroup (125007 is \"Measurement Group\")")
+    public static var measurement: DICOMCode { fatalError() }
     
     /// Measurement Group (125007)
     public static let measurementGroup = DICOMCode(codeValue: "125007", codeMeaning: "Measurement Group")
     
     /// Procedure Reported (121058)
-    public static let procedureReported = DICOMCode(codeValue: "121058", codeMeaning: "Procedure Reported")
+    public static let procedureReported = DICOMCode(codeValue: "121058", codeMeaning: "Procedure reported")
     
     /// Imaging Measurements (126010)
     public static let imagingMeasurements = DICOMCode(codeValue: "126010", codeMeaning: "Imaging Measurements")
@@ -82,16 +91,16 @@ extension DICOMCode {
     public static let derivedImagingMeasurements = DICOMCode(codeValue: "126011", codeMeaning: "Derived Imaging Measurements")
     
     /// Summary (121070)
-    public static let summary = DICOMCode(codeValue: "121070", codeMeaning: "Summary")
+    public static let summary = DICOMCode(codeValue: "121111", codeMeaning: "Summary")
     
     /// Conclusion (121076)
-    public static let conclusion = DICOMCode(codeValue: "121076", codeMeaning: "Conclusion")
+    public static let conclusion = DICOMCode(codeValue: "121077", codeMeaning: "Conclusion")
     
     /// Impression (121077)
-    public static let impression = DICOMCode(codeValue: "121077", codeMeaning: "Impression")
+    public static let impression = DICOMCode(codeValue: "121073", codeMeaning: "Impression")
     
     /// Recommendation (121074)
-    public static let recommendation = DICOMCode(codeValue: "121074", codeMeaning: "Recommendation")
+    public static let recommendation = DICOMCode(codeValue: "121075", codeMeaning: "Recommendation")
     
     /// Addendum (121078)
     public static let addendum = DICOMCode(codeValue: "121078", codeMeaning: "Addendum")
@@ -100,13 +109,14 @@ extension DICOMCode {
     public static let request = DICOMCode(codeValue: "121062", codeMeaning: "Request")
     
     /// Clinical History (121060)
-    public static let clinicalHistory = DICOMCode(codeValue: "121060", codeMeaning: "Clinical History")
+    public static let clinicalHistory = DICOMCode(codeValue: "121060", codeMeaning: "History")
     
     /// Current Procedure Descriptions (121064)
     public static let currentProcedureDescriptions = DICOMCode(codeValue: "121064", codeMeaning: "Current Procedure Descriptions")
     
     /// Comparison Study (121068)
-    public static let comparisonStudy = DICOMCode(codeValue: "121068", codeMeaning: "Comparison Study")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Comparison Study\"; 121068 means \"Previous Findings\"")
+    public static var comparisonStudy: DICOMCode { fatalError() }
     
     // MARK: - Observer Context
     
@@ -152,10 +162,10 @@ extension DICOMCode {
     public static let subjectSex = DICOMCode(codeValue: "121032", codeMeaning: "Subject Sex")
     
     /// Subject Species (121024)
-    public static let subjectSpecies = DICOMCode(codeValue: "121024", codeMeaning: "Subject Species")
+    public static let subjectSpecies = DICOMCode(codeValue: "121034", codeMeaning: "Subject Species")
     
     /// Subject Breed (121025)
-    public static let subjectBreed = DICOMCode(codeValue: "121025", codeMeaning: "Subject Breed")
+    public static let subjectBreed = DICOMCode(codeValue: "121035", codeMeaning: "Subject Breed")
     
     // MARK: - Language Context
     
@@ -172,66 +182,82 @@ extension DICOMCode {
     // MARK: - Measurement Types
     
     /// Diameter (131190)
-    public static let diameter = DICOMCode(codeValue: "131190", codeMeaning: "Diameter")
+    @available(*, unavailable, message: "\"Diameter\" is not a DCM concept; it is (81827009, SCT, \"Diameter\"). Use CodedConcept(codeValue: \"81827009\", scheme: .SCT, codeMeaning: \"Diameter\")")
+    public static var diameter: DICOMCode { fatalError() }
     
     /// Long Axis (103340)
-    public static let longAxis = DICOMCode(codeValue: "103340", codeMeaning: "Long Axis")
+    @available(*, unavailable, message: "\"Long Axis\" is not a DCM concept; it is (103339001, SCT, \"Long Axis\"). Use CodedConcept(codeValue: \"103339001\", scheme: .SCT, codeMeaning: \"Long Axis\")")
+    public static var longAxis: DICOMCode { fatalError() }
     
     /// Short Axis (103339)
-    public static let shortAxis = DICOMCode(codeValue: "103339", codeMeaning: "Short Axis")
+    @available(*, unavailable, message: "\"Short Axis\" is not a DCM concept; it is (103340004, SCT, \"Short Axis\"). Use CodedConcept(codeValue: \"103340004\", scheme: .SCT, codeMeaning: \"Short Axis\")")
+    public static var shortAxis: DICOMCode { fatalError() }
     
     /// Perpendicular Axis (103338)
-    public static let perpendicularAxis = DICOMCode(codeValue: "103338", codeMeaning: "Perpendicular Axis")
+    @available(*, unavailable, message: "\"Perpendicular Axis\" is not a DCM concept; it is (131189007, SCT, \"Perpendicular Axis\"). Use CodedConcept(codeValue: \"131189007\", scheme: .SCT, codeMeaning: \"Perpendicular Axis\")")
+    public static var perpendicularAxis: DICOMCode { fatalError() }
     
     /// Area (131184)
-    public static let area = DICOMCode(codeValue: "131184", codeMeaning: "Area")
+    @available(*, unavailable, message: "\"Area\" is not a DCM concept; it is (42798000, SCT, \"Area\"). Use CodedConcept(codeValue: \"42798000\", scheme: .SCT, codeMeaning: \"Area\")")
+    public static var area: DICOMCode { fatalError() }
     
     /// Volume (118565)
-    public static let volume = DICOMCode(codeValue: "118565", codeMeaning: "Volume")
+    @available(*, unavailable, message: "\"Volume\" is not a DCM concept; it is (118565006, SCT, \"Volume\"). Use CodedConcept(codeValue: \"118565006\", scheme: .SCT, codeMeaning: \"Volume\")")
+    public static var volume: DICOMCode { fatalError() }
     
     /// Circumference (131183)
-    public static let circumference = DICOMCode(codeValue: "131183", codeMeaning: "Circumference")
+    @available(*, unavailable, message: "\"Circumference\" is not a DCM concept; it is (74551000, SCT, \"Circumference\"). Use CodedConcept(codeValue: \"74551000\", scheme: .SCT, codeMeaning: \"Circumference\")")
+    public static var circumference: DICOMCode { fatalError() }
     
     /// Perimeter (131189)
-    public static let perimeter = DICOMCode(codeValue: "131189", codeMeaning: "Perimeter")
+    @available(*, unavailable, message: "\"Perimeter\" is not a DCM concept; it is (131191004, SCT, \"Perimeter\"). Use CodedConcept(codeValue: \"131191004\", scheme: .SCT, codeMeaning: \"Perimeter\")")
+    public static var perimeter: DICOMCode { fatalError() }
     
     /// Length (118558)
-    public static let length = DICOMCode(codeValue: "118558", codeMeaning: "Length")
+    @available(*, unavailable, message: "\"Length\" is not a DCM concept; it is (410668003, SCT, \"Length\"). Use CodedConcept(codeValue: \"410668003\", scheme: .SCT, codeMeaning: \"Length\")")
+    public static var length: DICOMCode { fatalError() }
     
     /// Width (118559)
-    public static let width = DICOMCode(codeValue: "118559", codeMeaning: "Width")
+    @available(*, unavailable, message: "\"Width\" is not a DCM concept; it is (103355008, SCT, \"Width\"). Use CodedConcept(codeValue: \"103355008\", scheme: .SCT, codeMeaning: \"Width\")")
+    public static var width: DICOMCode { fatalError() }
     
     /// Height (121211)
-    public static let height = DICOMCode(codeValue: "121211", codeMeaning: "Height")
+    public static let height = DICOMCode(codeValue: "121207", codeMeaning: "Height")
     
     /// Depth (121212)
-    public static let depth = DICOMCode(codeValue: "121212", codeMeaning: "Depth")
+    public static let depth = DICOMCode(codeValue: "111020", codeMeaning: "Depth")
     
     // MARK: - Image Measurements
     
     /// Mean Value (121401)
-    public static let meanValue = DICOMCode(codeValue: "121401", codeMeaning: "Mean Value")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Mean Value\"; 121401 means \"Derivation\"")
+    public static var meanValue: DICOMCode { fatalError() }
     
     /// Maximum Value (121403)
-    public static let maximumValue = DICOMCode(codeValue: "121403", codeMeaning: "Maximum Value")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Maximum Value\"; 121403 means \"Level of Significance\"")
+    public static var maximumValue: DICOMCode { fatalError() }
     
     /// Minimum Value (121402)
-    public static let minimumValue = DICOMCode(codeValue: "121402", codeMeaning: "Minimum Value")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Minimum Value\"; 121402 means \"Normality\"")
+    public static var minimumValue: DICOMCode { fatalError() }
     
     /// Standard Deviation (121404)
-    public static let standardDeviation = DICOMCode(codeValue: "121404", codeMeaning: "Standard Deviation")
+    public static let standardDeviation = DICOMCode(codeValue: "113061", codeMeaning: "Standard Deviation")
     
     /// Median (121405)
-    public static let median = DICOMCode(codeValue: "121405", codeMeaning: "Median")
+    public static let median = DICOMCode(codeValue: "130290", codeMeaning: "Median")
     
     /// Mode (121406)
-    public static let mode = DICOMCode(codeValue: "121406", codeMeaning: "Mode")
+    @available(*, unavailable, message: "\"Mode\" is not a DCM concept; it is (373100007, SCT, \"Mode\"). Use CodedConcept(codeValue: \"373100007\", scheme: .SCT, codeMeaning: \"Mode\")")
+    public static var mode: DICOMCode { fatalError() }
     
     /// Count (121407)
-    public static let count = DICOMCode(codeValue: "121407", codeMeaning: "Count")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Count\"; 121407 means \"Normal Range description\"")
+    public static var count: DICOMCode { fatalError() }
     
     /// Sum (121408)
-    public static let sum = DICOMCode(codeValue: "121408", codeMeaning: "Sum")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Sum\"; 121408 means \"Normal Range Authority\"")
+    public static var sum: DICOMCode { fatalError() }
     
     /// Attenuation Coefficient (112031)
     public static let attenuationCoefficient = DICOMCode(codeValue: "112031", codeMeaning: "Attenuation Coefficient")
@@ -245,10 +271,11 @@ extension DICOMCode {
     public static let derivation = DICOMCode(codeValue: "121401", codeMeaning: "Derivation")
     
     /// Derivation Parameter (121413)
-    public static let derivationParameter = DICOMCode(codeValue: "121413", codeMeaning: "Derivation Parameter")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Derivation Parameter\", and 121413 is not a DCM code")
+    public static var derivationParameter: DICOMCode { fatalError() }
     
     /// Image Region (130488)
-    public static let imageRegion = DICOMCode(codeValue: "130488", codeMeaning: "Image Region")
+    public static let imageRegion = DICOMCode(codeValue: "111030", codeMeaning: "Image Region")
     
     /// Tracking Identifier (112039)
     public static let trackingIdentifier = DICOMCode(codeValue: "112039", codeMeaning: "Tracking Identifier")
@@ -261,19 +288,22 @@ extension DICOMCode {
 
 extension DICOMCode {
     /// Image Reference (121191)
-    public static let imageReference = DICOMCode(codeValue: "121191", codeMeaning: "Image Reference")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Image Reference\"; 121191 means \"Referenced Segment\"")
+    public static var imageReference: DICOMCode { fatalError() }
     
     /// Composite Reference (121190)
-    public static let compositeReference = DICOMCode(codeValue: "121190", codeMeaning: "Composite Reference")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Composite Reference\"; 121190 means \"Referenced Frames\"")
+    public static var compositeReference: DICOMCode { fatalError() }
     
     /// Waveform Reference (121192)
-    public static let waveformReference = DICOMCode(codeValue: "121192", codeMeaning: "Waveform Reference")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Waveform Reference\"; 121192 means \"Device Subject\"")
+    public static var waveformReference: DICOMCode { fatalError() }
     
     /// Source Image for Segmentation (121324)
-    public static let sourceImageForSegmentation = DICOMCode(codeValue: "121324", codeMeaning: "Source Image for Segmentation")
+    public static let sourceImageForSegmentation = DICOMCode(codeValue: "121233", codeMeaning: "Source image for segmentation")
     
     /// Source Series for Segmentation (121232)
-    public static let sourceSeriesForSegmentation = DICOMCode(codeValue: "121232", codeMeaning: "Source Series for Segmentation")
+    public static let sourceSeriesForSegmentation = DICOMCode(codeValue: "121232", codeMeaning: "Source series for segmentation")
 }
 
 // MARK: - Qualitative Evaluation
@@ -282,74 +312,90 @@ extension DICOMCode {
     // MARK: - Assessment Types
     
     /// Qualitative Evaluation (C0034375)
-    public static let qualitativeEvaluation = DICOMCode(codeValue: "C0034375", codeMeaning: "Qualitative Evaluation")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Qualitative Evaluation\", and C0034375 is not a DCM code")
+    public static var qualitativeEvaluation: DICOMCode { fatalError() }
     
     /// Assessment (121073)
-    public static let assessment = DICOMCode(codeValue: "121073", codeMeaning: "Assessment")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Assessment\"; 121073 means \"Impression\"")
+    public static var assessment: DICOMCode { fatalError() }
     
     /// Probability of Cancer (121208)
-    public static let probabilityOfCancer = DICOMCode(codeValue: "121208", codeMeaning: "Probability of Cancer")
+    public static let probabilityOfCancer = DICOMCode(codeValue: "111047", codeMeaning: "Probability of cancer")
     
     /// Abnormality (121072)
-    public static let abnormality = DICOMCode(codeValue: "121072", codeMeaning: "Abnormality")
+    @available(*, unavailable, message: "\"Abnormality\" is not a DCM concept; it is (C9440, NCIt, \"Abnormality\"). Use CodedConcept(codeValue: \"C9440\", scheme: .NCIt, codeMeaning: \"Abnormality\")")
+    public static var abnormality: DICOMCode { fatalError() }
     
     // MARK: - Change Assessment
     
     /// No Change (121056)
-    public static let noChange = DICOMCode(codeValue: "121056", codeMeaning: "No Change")
+    @available(*, unavailable, message: "\"No Change\" is not a DCM concept; it is (260388006, SCT, \"No change\"). Use CodedConcept(codeValue: \"260388006\", scheme: .SCT, codeMeaning: \"No change\")")
+    public static var noChange: DICOMCode { fatalError() }
     
     /// Progression (121057)
-    public static let progression = DICOMCode(codeValue: "121057", codeMeaning: "Progression")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Progression\"; 121057 means \"Perimeter outline\"")
+    public static var progression: DICOMCode { fatalError() }
     
     /// Improvement (121055)
-    public static let improvement = DICOMCode(codeValue: "121055", codeMeaning: "Improvement")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Improvement\"; 121055 means \"Path\"")
+    public static var improvement: DICOMCode { fatalError() }
 }
 
 // MARK: - Relationship Type Codes
 
 extension DICOMCode {
     /// Contains (121311)
-    public static let contains = DICOMCode(codeValue: "121311", codeMeaning: "Contains")
+    @available(*, unavailable, message: "\"Contains\" is a relationship, not a code; use RelationshipType.contains")
+    public static var contains: DICOMCode { fatalError() }
     
     /// Has Properties (121309)
-    public static let hasProperties = DICOMCode(codeValue: "121309", codeMeaning: "Has Properties")
+    @available(*, unavailable, message: "\"Has Properties\" is a relationship, not a code; use RelationshipType.hasProperties")
+    public static var hasProperties: DICOMCode { fatalError() }
     
     /// Has Observation Context (121310)
-    public static let hasObservationContext = DICOMCode(codeValue: "121310", codeMeaning: "Has Observation Context")
+    @available(*, unavailable, message: "\"Has Observation Context\" is a relationship, not a code; use RelationshipType.hasObsContext")
+    public static var hasObservationContext: DICOMCode { fatalError() }
     
     /// Has Acquisition Context (121312)
-    public static let hasAcquisitionContext = DICOMCode(codeValue: "121312", codeMeaning: "Has Acquisition Context")
+    @available(*, unavailable, message: "\"Has Acquisition Context\" is a relationship, not a code; use RelationshipType.hasAcqContext")
+    public static var hasAcquisitionContext: DICOMCode { fatalError() }
     
     /// Inferred From (121307)
-    public static let inferredFrom = DICOMCode(codeValue: "121307", codeMeaning: "Inferred From")
+    @available(*, unavailable, message: "\"Inferred From\" is a relationship, not a code; use RelationshipType.inferredFrom")
+    public static var inferredFrom: DICOMCode { fatalError() }
     
     /// Selected From (121308)
-    public static let selectedFrom = DICOMCode(codeValue: "121308", codeMeaning: "Selected From")
+    @available(*, unavailable, message: "\"Selected From\" is a relationship, not a code; use RelationshipType.selectedFrom")
+    public static var selectedFrom: DICOMCode { fatalError() }
     
     /// Has Concept Modifier (121313)
-    public static let hasConceptModifier = DICOMCode(codeValue: "121313", codeMeaning: "Has Concept Modifier")
+    @available(*, unavailable, message: "\"Has Concept Modifier\" is a relationship, not a code; use RelationshipType.hasConceptMod")
+    public static var hasConceptModifier: DICOMCode { fatalError() }
 }
 
 // MARK: - SR Document Title Codes
 
 extension DICOMCode {
     /// Basic Diagnostic Imaging Report (126000)
-    public static let basicDiagnosticImagingReport = DICOMCode(codeValue: "126000", codeMeaning: "Basic Diagnostic Imaging Report")
+    @available(*, unavailable, message: "126000 does not mean \"Basic Diagnostic Imaging Report\"; use imagingMeasurementReport (126000 is \"Imaging Measurement Report\")")
+    public static var basicDiagnosticImagingReport: DICOMCode { fatalError() }
     
     /// Comprehensive SR (121181)
-    public static let comprehensiveSR = DICOMCode(codeValue: "121181", codeMeaning: "Comprehensive SR")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Comprehensive SR\"; 121181 means \"DICOM Object Catalog\"")
+    public static var comprehensiveSR: DICOMCode { fatalError() }
     
     /// Mammography CAD Report (111001)
-    public static let mammographyCADReport = DICOMCode(codeValue: "111001", codeMeaning: "Mammography CAD Report")
+    public static let mammographyCADReport = DICOMCode(codeValue: "111036", codeMeaning: "Mammography CAD Report")
     
     /// Chest CAD Report (111002)
-    public static let chestCADReport = DICOMCode(codeValue: "111002", codeMeaning: "Chest CAD Report")
+    public static let chestCADReport = DICOMCode(codeValue: "112000", codeMeaning: "Chest CAD Report")
     
     /// Colon CAD Report (111003)
-    public static let colonCADReport = DICOMCode(codeValue: "111003", codeMeaning: "Colon CAD Report")
+    public static let colonCADReport = DICOMCode(codeValue: "112220", codeMeaning: "Colon CAD Report")
     
     /// Procedure Log (121184)
-    public static let procedureLog = DICOMCode(codeValue: "121184", codeMeaning: "Procedure Log")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Procedure Log\", and 121184 is not a DCM code")
+    public static var procedureLog: DICOMCode { fatalError() }
     
     /// X-Ray Radiation Dose Report (113701)
     public static let xRayRadiationDoseReport = DICOMCode(codeValue: "113701", codeMeaning: "X-Ray Radiation Dose Report")
@@ -358,26 +404,30 @@ extension DICOMCode {
     public static let ctDoseLengthProductTotal = DICOMCode(codeValue: "113813", codeMeaning: "CT Dose Length Product Total")
     
     /// Measurement Report (126000)
-    public static let measurementReport = DICOMCode(codeValue: "126000", codeMeaning: "Measurement Report")
+    @available(*, unavailable, message: "126000 does not mean \"Measurement Report\"; use imagingMeasurementReport (126000 is \"Imaging Measurement Report\")")
+    public static var measurementReport: DICOMCode { fatalError() }
 }
 
 // MARK: - Activity Codes
 
 extension DICOMCode {
     /// Study (110180)
-    public static let study = DICOMCode(codeValue: "110180", codeMeaning: "Study")
+    public static let study = DICOMCode(codeValue: "113014", codeMeaning: "Study")
     
     /// Series (110181)
-    public static let series = DICOMCode(codeValue: "110181", codeMeaning: "Series")
+    public static let series = DICOMCode(codeValue: "113015", codeMeaning: "Series")
     
     /// Instance (110182)
-    public static let instance = DICOMCode(codeValue: "110182", codeMeaning: "Instance")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Instance\"; 110182 means \"Node ID\"")
+    public static var instance: DICOMCode { fatalError() }
     
     /// Image (121192)
-    public static let image = DICOMCode(codeValue: "121192", codeMeaning: "Image")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Image\"; 121192 means \"Device Subject\"")
+    public static var image: DICOMCode { fatalError() }
     
     /// Composite Object (121193)
-    public static let compositeObject = DICOMCode(codeValue: "121193", codeMeaning: "Composite Object")
+    @available(*, unavailable, message: "PS3.16 2026a Annex D has no DCM code meaning \"Composite Object\"; 121193 means \"Device Subject Name\"")
+    public static var compositeObject: DICOMCode { fatalError() }
 }
 
 // MARK: - CodedConcept Convenience

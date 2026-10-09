@@ -497,4 +497,46 @@ final class FilmComposerTests: XCTestCase {
         XCTAssertEqual(image?.width, composed.width)
         XCTAssertEqual(image?.height, composed.height)
     }
+
+    // MARK: Trim (2010,0140) — D92
+
+    /// Bright runs along one row of the sheet (row as a fraction, top-down).
+    private func brightRuns(_ film: ComposedFilm, atFractionY fy: Double) -> Int {
+        let row = min(film.height - 1, max(0, Int(Double(film.height) * fy)))
+        let base = film.pixels.startIndex + row * film.bytesPerRow
+        var runs = 0, inRun = false
+        for column in 0..<film.width {
+            let bright = film.pixels[base + column * film.samplesPerPixel] > 128
+            if bright && !inRun { runs += 1 }
+            inRun = bright
+        }
+        return runs
+    }
+
+    /// PS3.3 2026a Table C.13-3, Trim (2010,0140): "Specifies whether a trim box
+    /// shall be printed surrounding each image on the film." A black 2×2 film on a
+    /// black border shows only the trim boxes: a row through the top two images
+    /// crosses four box edges, and the sheet corners stay clear.
+    func testTrimYesPrintsABoxSurroundingEachImage() throws {
+        let trimmed = try composer.compose(
+            film(format: "STANDARD\\2,2", image: image(value: 0), trim: .yes))
+        XCTAssertEqual(brightRuns(trimmed, atFractionY: 0.25), 4,
+                       "left and right edge of the trim box around each of the two images")
+        XCTAssertFalse(regionHasInk(trimmed, x: 0...0.02, y: 0...0.02),
+                       "no sheet-corner crop marks")
+        XCTAssertFalse(regionHasInk(trimmed, x: 0.98...1, y: 0.98...1))
+
+        let untrimmed = try composer.compose(
+            film(format: "STANDARD\\2,2", image: image(value: 0), trim: .no))
+        XCTAssertFalse(regionHasInk(untrimmed), "Trim = NO prints no box")
+    }
+
+    func testTrimBoxDoesNotCoverTheImage() throws {
+        // A white image on a black border: the box is drawn outside the image,
+        // so the image's own pixels are unchanged by Trim = YES.
+        let plain = try composer.compose(film(image: image(value: 255), trim: .no))
+        let trimmed = try composer.compose(film(image: image(value: 255), trim: .yes))
+        XCTAssertEqual(sample(trimmed, atFractionX: 0.5, y: 0.5), sample(plain, atFractionX: 0.5, y: 0.5))
+        XCTAssertNotEqual(trimmed.pixels, plain.pixels, "the trim box is printed")
+    }
 }

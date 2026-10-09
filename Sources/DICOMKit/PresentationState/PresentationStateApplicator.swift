@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — the value chain is GrayscaleDisplayPipeline (PS3.4 2026a N.2); cells are read Bits Allocated wide (PS3.5 8.1.1, D67) and quantised by WindowLUT.displayByte (D63)
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.4 2026a N.2 pipeline: shutters mask outside every shape before the C.10.6 rotate-then-flip transform; the no-VOI range follows C.11.6.1
 //
 // PresentationStateApplicator.swift
 // DICOMKit
@@ -14,16 +16,18 @@ import CoreGraphics
 
 /// Applies a presentation state to DICOM pixel data for display
 ///
-/// Handles the complete transformation pipeline:
+/// Applies these steps of the PS3.4 N.2 pipeline:
 /// 1. Modality LUT (stored pixels → modality values)
 /// 2. VOI LUT (modality values → values of interest)
 /// 3. Presentation LUT (values of interest → P-Values for display)
-/// 4. Spatial transformation (rotation and flip)
-/// 5. Displayed area selection (zoom and pan)
-/// 6. Shutters (masking regions)
-/// 7. Graphic annotations (overlays)
+/// 4. Display shutters (pixels outside every shutter shape are set to the
+///    Shutter Presentation Value), in image coordinates
+/// 5. Spatial transformation (rotation, then horizontal flip)
 ///
-/// Reference: PS3.3 Part 3 Section A.33 - Grayscale Softcopy Presentation State IOD
+/// Displayed area selection and graphic annotations are not applied; the
+/// returned image is the whole transformed frame.
+///
+/// Reference: PS3.3 Section A.33.1 - Grayscale Softcopy Presentation State IOD; PS3.4 N.2
 public struct PresentationStateApplicator: Sendable {
     /// The presentation state to apply
     public let presentationState: GrayscalePresentationState
@@ -62,45 +66,29 @@ public struct PresentationStateApplicator: Sendable {
         // Create output buffer
         var outputBytes = [UInt8](repeating: 0, count: totalPixels)
         
-        // Extract pixel values and apply the complete transformation pipeline
+        // The PS3.4 N.2 chain of this presentation state, shared with the exporter and
+        // the renderers (GrayscaleDisplayPipeline). Cells are read Bits Allocated wide
+        // (PS3.5 8.1.1, D67), then shifted, masked and sign-extended.
+        let pipeline = GrayscaleDisplayPipeline(
+            modalityLUT: presentationState.modalityLUT,
+            voiLUT: presentationState.voiLUT,
+            presentationLUT: presentationState.presentationLUT)
         let bytesPerSample = descriptor.bytesPerSample
-        let bitShift = descriptor.bitShift
-        let storedBitMask = descriptor.storedBitMask
-        let isSigned = descriptor.isSigned
-        
-        for i in 0..<totalPixels {
-            let offset = i * bytesPerSample
-            guard offset + bytesPerSample <= frameData.count else {
-                break
+        frameData.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+            for i in 0..<totalPixels {
+                let offset = i * bytesPerSample
+                guard offset + bytesPerSample <= bytes.count else { break }
+                let stored = descriptor.storedValue(fromCell: descriptor.cellValue(in: bytes, at: offset))
+                outputBytes[i] = pipeline.displayByte(forStoredValue: stored, descriptor: descriptor)
             }
-            
-            // Extract stored pixel value
-            var pixelValue: Int
-            if bytesPerSample == 1 {
-                pixelValue = Int(frameData[offset])
-            } else {
-                let bytes = frameData[offset..<offset+bytesPerSample]
-                let rawValue = bytes.withUnsafeBytes { $0.load(as: UInt16.self) }
-                pixelValue = Int((rawValue >> bitShift) & UInt16(storedBitMask))
-            }
-            
-            // Handle signed pixel values
-            if isSigned {
-                let signBit = 1 << (descriptor.bitsStored - 1)
-                if pixelValue >= signBit {
-                    pixelValue -= (1 << descriptor.bitsStored)
-                }
-            }
-            
-            // Apply transformation pipeline
-            let displayValue = applyTransformationPipeline(to: pixelValue)
-            
-            // Convert to 8-bit for display
-            let byteValue = UInt8(max(0, min(255, Int(displayValue * 255.0))))
-            outputBytes[i] = byteValue
         }
-        
-        // Apply spatial transformation and shutters if needed
+
+        // Shutters are defined in the image's own row/column coordinates
+        // (C.7.6.11), so they are applied before the spatial transformation.
+        if !presentationState.shutters.isEmpty {
+            applyShutters(to: &outputBytes, width: width, height: height)
+        }
+
         if let spatialTransform = presentationState.spatialTransformation, spatialTransform.hasTransformation {
             outputBytes = applySpatialTransformation(
                 to: outputBytes,
@@ -108,11 +96,6 @@ public struct PresentationStateApplicator: Sendable {
                 height: height,
                 transform: spatialTransform
             )
-        }
-        
-        // Apply shutters
-        if !presentationState.shutters.isEmpty {
-            applyShutters(to: &outputBytes, width: width, height: height)
         }
         
         // Determine final dimensions based on spatial transformation
@@ -126,40 +109,6 @@ public struct PresentationStateApplicator: Sendable {
         )
     }
     
-    // MARK: - Transformation Pipeline
-    
-    /// Applies the complete transformation pipeline to a pixel value
-    ///
-    /// Pipeline: Stored Pixel → Modality LUT → VOI LUT → Presentation LUT → Display
-    ///
-    /// - Parameter storedPixelValue: The stored pixel value from the DICOM file
-    /// - Returns: Normalized display value (0.0-1.0)
-    private func applyTransformationPipeline(to storedPixelValue: Int) -> Double {
-        // Step 1: Apply Modality LUT (stored pixels → modality values, e.g., Hounsfield Units)
-        var modalityValue = Double(storedPixelValue)
-        if let modalityLUT = presentationState.modalityLUT {
-            modalityValue = modalityLUT.apply(to: storedPixelValue)
-        }
-        
-        // Step 2: Apply VOI LUT (modality values → values of interest, window/level)
-        var voiValue = modalityValue
-        if let voiLUT = presentationState.voiLUT {
-            voiValue = voiLUT.apply(to: modalityValue)
-        } else {
-            // Default: normalize to 0.0-1.0 (assuming typical grayscale range)
-            voiValue = modalityValue / 4095.0  // Assume 12-bit default
-        }
-        
-        // Step 3: Apply Presentation LUT (values of interest → P-Values, polarity)
-        var presentationValue = voiValue
-        if let presentationLUT = presentationState.presentationLUT {
-            presentationValue = presentationLUT.apply(to: voiValue)
-        }
-        
-        // Clamp to valid range
-        return max(0.0, min(1.0, presentationValue))
-    }
-    
     // MARK: - Spatial Transformation
     
     private func applySpatialTransformation(
@@ -169,17 +118,20 @@ public struct PresentationStateApplicator: Sendable {
         transform: SpatialTransformation
     ) -> [UInt8] {
         var result = bytes
-        
-        // Apply horizontal flip if needed
-        if transform.isFlipped {
-            result = applyHorizontalFlip(to: result, width: width, height: height)
-        }
-        
-        // Apply rotation if needed
+        var (currentWidth, currentHeight) = (width, height)
+
+        // C.10.6: Image Rotation is applied before any Image Horizontal Flip
         if transform.isRotated {
-            result = applyRotation(to: result, width: width, height: height, degrees: transform.rotation)
+            result = applyRotation(to: result, width: currentWidth, height: currentHeight, degrees: transform.rotation)
+            if transform.rotation == 90 || transform.rotation == 270 {
+                swap(&currentWidth, &currentHeight)
+            }
         }
-        
+
+        if transform.isFlipped {
+            result = applyHorizontalFlip(to: result, width: currentWidth, height: currentHeight)
+        }
+
         return result
     }
     
@@ -272,26 +224,25 @@ public struct PresentationStateApplicator: Sendable {
     
     // MARK: - Shutters
     
+    /// C.7.6.11: a shutter neutralises the pixels *outside* its shape; with several
+    /// shapes "the least amount of image remaining shall be visible", i.e. only pixels
+    /// inside every shape stay. Coordinates are row/column with origin 1,1, and the
+    /// Shutter Presentation Value is a 16-bit P-Value (C.11.12), scaled to 8 bits here.
     private func applyShutters(to bytes: inout [UInt8], width: Int, height: Int) {
-        let shutterValue: UInt8
-        
-        // Use the presentation value from the first shutter, or default to black (0)
-        if let firstShutterValue = presentationState.shutters.first?.presentationValue {
-            shutterValue = UInt8(max(0, min(255, firstShutterValue)))
-        } else {
-            shutterValue = 0
+        let shapes = presentationState.shutters.filter {
+            if case .bitmap = $0 { return false }   // needs the overlay plane (C.7.6.15)
+            return true
         }
-        
+        guard !shapes.isEmpty else { return }
+
+        let pValue = presentationState.shutters.first?.presentationValue ?? 0
+        let fill = UInt8(max(0, min(255, (pValue * 255 + 32767) / 65535)))
+
         for y in 0..<height {
             for x in 0..<width {
-                // Check if this pixel is inside any shutter
-                let isShuttered = presentationState.shutters.contains { shutter in
-                    shutter.contains(column: x, row: y)
-                }
-                
-                if isShuttered {
-                    let index = y * width + x
-                    bytes[index] = shutterValue
+                let visible = shapes.allSatisfy { $0.contains(column: x + 1, row: y + 1) }
+                if !visible {
+                    bytes[y * width + x] = fill
                 }
             }
         }

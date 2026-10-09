@@ -3,6 +3,7 @@
 //
 // DICOM Studio — Specialized modality data models for RT, Segmentation,
 // Parametric Maps, Waveforms, Video, Encapsulated Documents, Secondary Capture, and WSI
+// NEMA-verified: 2026a, checked 2026-10-06 — enum raw values diffed by script against PS3.3 2026a: RTROIType 25 active cases vs RT ROI Interpreted Type (3006,00A4) Defined Terms (Table C.8-44 / C.8.8.8.1: 25/25, same order; OTHER is a deprecated case outside allCases and init(rawValue:) — P-STUDIO-RT-ROI-TYPES); RTDoseUnits vs Dose Units (3004,0002) Enumerated Values (Table C.8-39: GY, RELATIVE, CODED 3/3; CGY is no longer a raw value, decodes as GY, cGy is RTDoseDisplayScale — P-STUDIO-RT-DOSE-UNITS); RTRadiationType 4 vs Radiation Type (300A,00C6) Defined Terms (Table C.8-50: 4/4); SegmentAlgorithmType 3 vs Segment Algorithm Type (0062,0008) (Table C.8.20-4: 3/3); EncapsulatedDocumentType MIME types vs the MIME Type of Encapsulated Document Enumerated Values of A.45.1.4.1, A.45.2.4 and A.85.1-A.85.3 (5: 4 match, CDA corrected to "text/XML"); SecondaryCaptureDisplayType 5 SOP Class UIDs vs PS3.6 2026a Table A-1 (5/5); the rest (colours, colormaps, display state, SUV input, video) carries no standard data
 
 import Foundation
 
@@ -28,26 +29,112 @@ public struct RTStructureSetROI: Sendable, Equatable, Hashable {
     }
 }
 
-/// Types of RT ROIs per DICOM PS3.3 C.8.8.
+/// Types of RT ROIs: the RT ROI Interpreted Type (3006,00A4) Defined Terms of PS3.3 2026a
+/// C.8.8.8.1 (RT ROI Observations Module, Table C.8-44) — all 25 are carried, in the order the
+/// standard lists them (P-STUDIO-RT-ROI-TYPES).
+///
+/// `init(rawValue:)` returns nil for a value that is not one of the 25 terms, including "OTHER";
+/// the deprecated `other` case is kept for source compatibility only and is not in `allCases`.
 public enum RTROIType: String, Sendable, Equatable, Hashable, CaseIterable {
-    case ptv = "PTV"
-    case ctv = "CTV"
-    case gtv = "GTV"
-    case oar = "OAR"
+    /// EXTERNAL — external patient contour.
     case external = "EXTERNAL"
+    /// PTV — Planning Target Volume (ICRU 50).
+    case ptv = "PTV"
+    /// CTV — Clinical Target Volume (ICRU 50).
+    case ctv = "CTV"
+    /// GTV — Gross Tumor Volume (ICRU 50).
+    case gtv = "GTV"
+    /// TREATED_VOLUME — Treated Volume (ICRU 50).
+    case treatedVolume = "TREATED_VOLUME"
+    /// IRRAD_VOLUME — Irradiated Volume (ICRU 50).
+    case irradiatedVolume = "IRRAD_VOLUME"
+    /// OAR — Organ at Risk (ICRU 50).
+    case oar = "OAR"
+    /// BOLUS — patient bolus to be used for external beam therapy.
+    case bolus = "BOLUS"
+    /// AVOIDANCE — region in which dose is to be minimized.
+    case avoidance = "AVOIDANCE"
+    /// ORGAN — patient organ.
+    case organ = "ORGAN"
+    /// MARKER — patient marker or marker on a localizer.
+    case marker = "MARKER"
+    /// REGISTRATION — registration ROI.
+    case registration = "REGISTRATION"
+    /// ISOCENTER — treatment isocenter to be used for external beam therapy.
+    case isocenter = "ISOCENTER"
+    /// CONTRAST_AGENT — volume into which a contrast agent has been injected.
+    case contrastAgent = "CONTRAST_AGENT"
+    /// CAVITY — patient anatomical cavity.
+    case cavity = "CAVITY"
+    /// BRACHY_CHANNEL — brachytherapy channel.
+    case brachyChannel = "BRACHY_CHANNEL"
+    /// BRACHY_ACCESSORY — brachytherapy accessory device.
+    case brachyAccessory = "BRACHY_ACCESSORY"
+    /// BRACHY_SRC_APP — brachytherapy source applicator.
+    case brachySourceApplicator = "BRACHY_SRC_APP"
+    /// BRACHY_CHNL_SHLD — brachytherapy channel shield.
+    case brachyChannelShield = "BRACHY_CHNL_SHLD"
+    /// SUPPORT — external patient support device.
     case support = "SUPPORT"
+    /// FIXATION — external patient fixation or immobilization device.
+    case fixation = "FIXATION"
+    /// DOSE_REGION — ROI to be used as a dose reference.
+    case doseRegion = "DOSE_REGION"
+    /// CONTROL — ROI to be used in control of dose optimization and calculation.
+    case control = "CONTROL"
+    /// DOSE_MEASUREMENT — ROI representing a dose measurement device, such as a chamber or TLD.
+    case doseMeasurement = "DOSE_MEASUREMENT"
+    /// DEVICE — device not addressed by another Defined Term.
+    case device = "DEVICE"
+    /// Not an RT ROI Interpreted Type Defined Term; never produced by `init(rawValue:)`.
+    @available(*, deprecated, message: "OTHER is not an RT ROI Interpreted Type Defined Term (PS3.3 2026a C.8.8.8.1); use an optional RTROIType, nil for an unknown or empty value")
     case other = "OTHER"
 
-    /// Human-readable display name.
+    /// The 25 Defined Terms of PS3.3 2026a C.8.8.8.1, in the standard's order (the deprecated
+    /// `other` is not included).
+    public static let allCases: [RTROIType] = [
+        .external, .ptv, .ctv, .gtv, .treatedVolume, .irradiatedVolume, .oar, .bolus, .avoidance,
+        .organ, .marker, .registration, .isocenter, .contrastAgent, .cavity, .brachyChannel,
+        .brachyAccessory, .brachySourceApplicator, .brachyChannelShield, .support, .fixation,
+        .doseRegion, .control, .doseMeasurement, .device,
+    ]
+
+    /// Creates a type from an RT ROI Interpreted Type value; nil when the value is not one of the
+    /// 25 Defined Terms (an unknown value, an empty value or the legacy app value "OTHER").
+    public init?(rawValue: String) {
+        guard let match = Self.allCases.first(where: { $0.rawValue == rawValue }) else { return nil }
+        self = match
+    }
+
+    /// Human-readable display name (the PS3.3 2026a C.8.8.8.1 description).
     public var displayName: String {
         switch self {
+        case .external: return "External Patient Contour"
         case .ptv: return "Planning Target Volume"
         case .ctv: return "Clinical Target Volume"
-        case .gtv: return "Gross Target Volume"
+        case .gtv: return "Gross Tumor Volume"
+        case .treatedVolume: return "Treated Volume"
+        case .irradiatedVolume: return "Irradiated Volume"
         case .oar: return "Organ at Risk"
-        case .external: return "External"
+        case .bolus: return "Bolus"
+        case .avoidance: return "Avoidance Region"
+        case .organ: return "Organ"
+        case .marker: return "Marker"
+        case .registration: return "Registration"
+        case .isocenter: return "Isocenter"
+        case .contrastAgent: return "Contrast Agent"
+        case .cavity: return "Cavity"
+        case .brachyChannel: return "Brachy Channel"
+        case .brachyAccessory: return "Brachy Accessory"
+        case .brachySourceApplicator: return "Brachy Source Applicator"
+        case .brachyChannelShield: return "Brachy Channel Shield"
         case .support: return "Support"
-        case .other: return "Other"
+        case .fixation: return "Fixation"
+        case .doseRegion: return "Dose Region"
+        case .control: return "Control"
+        case .doseMeasurement: return "Dose Measurement"
+        case .device: return "Device"
+        default: return "Other"   // deprecated `other`
         }
     }
 
@@ -57,10 +144,25 @@ public enum RTROIType: String, Sendable, Equatable, Hashable, CaseIterable {
         case .ptv: return "circle.dashed"
         case .ctv: return "circle.dotted"
         case .gtv: return "circle.fill"
+        case .treatedVolume, .irradiatedVolume: return "circle.circle"
         case .oar: return "exclamationmark.triangle"
+        case .organ: return "heart"
+        case .avoidance: return "nosign"
         case .external: return "person.fill"
+        case .bolus: return "square.stack"
+        case .marker: return "mappin"
+        case .registration: return "scope"
+        case .isocenter: return "plus.circle"
+        case .contrastAgent: return "drop.fill"
+        case .cavity: return "circle.dotted.circle"
+        case .brachyChannel, .brachyChannelShield: return "line.diagonal"
+        case .brachyAccessory, .brachySourceApplicator: return "wrench.and.screwdriver"
         case .support: return "rectangle.fill"
-        case .other: return "questionmark.circle"
+        case .fixation: return "lock.fill"
+        case .doseRegion, .doseMeasurement: return "gauge.medium"
+        case .control: return "slider.horizontal.3"
+        case .device: return "cpu"
+        default: return "questionmark.circle"   // deprecated `other`
         }
     }
 }
@@ -186,23 +288,61 @@ public struct RTDosePoint: Sendable, Equatable, Hashable {
     }
 }
 
-/// Units for RT dose values.
+/// Dose Units (3004,0002) of the RT Dose Module: the PS3.3 2026a Enumerated Values GY, RELATIVE
+/// and CODED (Table C.8-39, C.8.8.3) (P-STUDIO-RT-DOSE-UNITS).
+///
+/// Centigray is not a Dose Units value: a dose in GY is shown in cGy through
+/// `RTDoseDisplayScale.centigray`. `init(rawValue:)` maps the legacy app value "CGY" to `.gy`.
 public enum RTDoseUnits: String, Sendable, Equatable, Hashable, CaseIterable {
-    case gy  = "GY"
-    case cgy = "CGY"
+    /// GY — Gray.
+    case gy = "GY"
+    /// RELATIVE — dose relative to implicit reference value.
+    case relative = "RELATIVE"
+    /// CODED — unit described by code (Dose Units Code Sequence (3004,0020)).
+    case coded = "CODED"
 
-    public var displayName: String {
-        switch self {
-        case .gy:  return "Gy"
-        case .cgy: return "cGy"
+    /// Former centigray case; cGy is a display scale, not a Dose Units value.
+    @available(*, deprecated, message: "CGY is not a Dose Units Enumerated Value (PS3.3 2026a Table C.8-39); store the dose in .gy and display it with RTDoseDisplayScale.centigray")
+    public static var cgy: RTDoseUnits { .gy }
+
+    /// Creates units from a Dose Units value; the legacy app value "CGY" decodes as `.gy`.
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "GY", "CGY": self = .gy
+        case "RELATIVE": self = .relative
+        case "CODED": self = .coded
+        default: return nil
         }
     }
 
-    /// Conversion factor to Gy.
-    public var conversionToGy: Double {
+    public var displayName: String {
         switch self {
-        case .gy:  return 1.0
-        case .cgy: return 0.01
+        case .gy:       return "Gy"
+        case .relative: return "relative"
+        case .coded:    return "coded"
+        }
+    }
+
+    /// Conversion factor to Gy: 1 for `.gy`; NaN for RELATIVE and CODED, which are not an
+    /// absolute dose in Gy. For cGy display use `RTDoseDisplayScale`.
+    public var conversionToGy: Double {
+        self == .gy ? 1.0 : .nan
+    }
+}
+
+/// Display scale for a dose stored in GY: Gy or cGy. Not a DICOM value.
+public enum RTDoseDisplayScale: String, Sendable, Equatable, Hashable, CaseIterable {
+    case gray = "Gy"
+    case centigray = "cGy"
+
+    /// Unit symbol.
+    public var symbol: String { rawValue }
+
+    /// Value in this scale of 1 Gy.
+    public var perGray: Double {
+        switch self {
+        case .gray: return 1.0
+        case .centigray: return 100.0
         }
     }
 }
@@ -604,7 +744,7 @@ public enum EncapsulatedDocumentType: String, Sendable, Equatable, Hashable, Cas
     public var mimeType: String {
         switch self {
         case .pdf:     return "application/pdf"
-        case .cda:     return "text/xml"
+        case .cda:     return "text/XML"   // PS3.3 A.45.2.4: Enumerated Value for MIME Type of Encapsulated Document (0042,0012)
         case .stl:     return "model/stl"
         case .obj:     return "model/obj"
         case .mtl:     return "model/mtl"

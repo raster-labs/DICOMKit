@@ -1,144 +1,148 @@
 #!/usr/bin/env python3
 """
-Generate DICOM Data Element Dictionary resource and Swift loader.
+Generate the DICOM Data Element Dictionary resource from the NEMA DocBook text.
 
-Produces:
-  - Resources/DataElementDictionary.txt: pipe-delimited dictionary data (not compiled)
-  - DataElementDictionary.swift: minimal Swift loader (~60 lines, compiles instantly)
-  - Removes any old DataElementDictionary+DataN.swift chunk files
+Usage:
+    python3 Scripts/generate_full_dictionary.py part06_2026a.xml part07_2026a.xml [--date YYYY-MM-DD]
 
-The resource-based approach eliminates compilation of dictionary data entirely.
+    (fetch the inputs with `python3 Scripts/nema_docbook.py fetch 2026a 06` and `... 07`)
+
+Writes Sources/DICOMDictionary/Resources/DataElementDictionary.txt, a pipe-delimited
+file read at runtime by DataElementDictionary.swift:
+
+    GGGG|EEEE|Name|Keyword|VR[/VR...]|VM|Retired
+
+Sources, all from the same edition (the script refuses two different editions):
+  - PS3.6 Table 6-1  Registry of DICOM Data Elements
+  - PS3.6 Table 7-1  Registry of DICOM File Meta Elements
+  - PS3.6 Table 8-1  Registry of DICOM Directory Structuring Elements
+  - PS3.6 Table 9-1  Registry of DICOM Dynamic RTP Payload Elements
+  - PS3.7 Table E.1-1 Command Fields, Table E.2-1 Retired Command Fields (group 0000,
+    which PS3.6 does not list)
+
+Rules (decided in DICOMDICTIONARY_STANDARD_IMPLEMENTATION.md, P1):
+  - Every cell is kept verbatim: names keep "µ", VM keeps "1-n or 1", a blank Name,
+    Keyword, VR or VM stays blank (the Swift loader maps a blank VR to UN).
+  - Multi-VR attributes ("US or SS") are written "US/SS", primary first.
+  - Repeating groups 50xx (Curve) and 60xx (Overlay) are emitted once at their base
+    group (5000, 6000); the Swift loader normalises any even group in the range to the
+    base before lookup. The other, retired, mask families ((0020,31xx), (0028,04x0)…,
+    (1000,xxx0)…, (1010,xxxx), (7Fxx,00x0)) are not emitted; they are listed in the
+    header of the output so the omission is visible.
+  - The three delimiters (FFFE,E000), (FFFE,E00D), (FFFE,E0DD) have no VR ("See Note")
+    and are not emitted; the parser handles them structurally.
+  - Retired is "R" when the PS3.6 column starts with "RET" (it carries the year, e.g.
+    "RET (2007)"), or for every row of PS3.7 Table E.2-1. Retired elements are emitted
+    because they appear in real-world files and must be nameable.
+  - Lines starting with "#" are comments; the loader and Scripts/audit_tags.py skip them.
+
+The Swift loader (DataElementDictionary.swift) is hand-maintained and NOT regenerated.
 """
-
-import sys
+import argparse
+import datetime
 import os
-import glob
+import re
+import sys
 
-try:
-    from pydicom.datadict import DicomDictionary
-except ImportError:
-    print("Error: pydicom is required. Install with: pip3 install pydicom", file=sys.stderr)
-    sys.exit(1)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from nema_docbook import Part  # noqa: E402
 
-# Map pydicom VR strings to Swift VR enum cases
-VR_MAP = {
-    "AE": "AE", "AS": "AS", "AT": "AT", "CS": "CS", "DA": "DA",
-    "DS": "DS", "DT": "DT", "FL": "FL", "FD": "FD", "IS": "IS",
-    "LO": "LO", "LT": "LT", "OB": "OB", "OD": "OD", "OF": "OF",
-    "OL": "OL", "OW": "OW", "PN": "PN", "SH": "SH", "SL": "SL",
-    "SQ": "SQ", "SS": "SS", "ST": "ST", "TM": "TM", "UC": "UC",
-    "UI": "UI", "UL": "UL", "UN": "UN", "UR": "UR", "US": "US",
-    "UT": "UT",
-    # Multi-VR: pick first one
-    "US or SS": "US", "OB or OW": "OB", "US or OW": "US",
-    "US or SS or OW": "US", "OW or OB": "OW",
-    # OV/SV/UV are newer VRs not yet in the Swift VR enum - map to compatible types
-    "OV": "UN", "SV": "SL", "UV": "UL",
+OUT = "Sources/DICOMDictionary/Resources/DataElementDictionary.txt"
+
+# The Swift VR enum (DICOMCore/VR.swift). Anything else is an error, not a silent drop.
+SWIFT_VRS = {
+    "AE", "AS", "AT", "CS", "DA", "DS", "DT", "FL", "FD", "IS", "LO", "LT",
+    "OB", "OD", "OF", "OL", "OV", "OW", "PN", "SH", "SL", "SQ", "SS", "ST",
+    "SV", "TM", "UC", "UI", "UL", "UN", "UR", "US", "UT", "UV",
 }
+REPEATING_BASES = {"50": 0x5000, "60": 0x6000}
+TAG_RE = re.compile(r"^\(([0-9A-Fa-fxX]{4}),([0-9A-Fa-fxX]{4})\)$")
 
-def to_keyword(keyword):
-    """Use PascalCase keyword as-is from DICOM standard."""
-    if not keyword:
-        return "Unknown"
-    return keyword
+
+def edition_of(part):
+    m = re.search(r"\b(\d{4}[a-e])\b", part.subtitle)
+    if not m:
+        sys.exit(f"cannot find an edition in subtitle {part.subtitle!r}")
+    return m.group(1)
+
+
+def vr_field(vr):
+    if not vr:
+        return ""
+    parts = [p.strip() for p in vr.split(" or ")]
+    bad = [p for p in parts if p not in SWIFT_VRS]
+    if bad:
+        sys.exit(f"VR {bad} is not in the Swift VR enum; add it to DICOMCore first")
+    return "/".join(parts)
+
 
 def main():
-    base_dir = "Sources/DICOMDictionary"
-    resource_dir = f"{base_dir}/Resources"
-    os.makedirs(resource_dir, exist_ok=True)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("part06")
+    ap.add_argument("part07")
+    ap.add_argument("--date", default=datetime.date.today().isoformat())
+    a = ap.parse_args()
 
-    # Remove old chunk files from previous generator version
-    for old_file in glob.glob(f"{base_dir}/DataElementDictionary+Data*.swift"):
-        os.remove(old_file)
-        print(f"Removed old file: {old_file}")
+    p6, p7 = Part(a.part06), Part(a.part07)
+    if "PS3.6" not in p6.subtitle or "PS3.7" not in p7.subtitle:
+        sys.exit(f"expected PS3.6 and PS3.7, got {p6.subtitle!r} and {p7.subtitle!r}")
+    edition = edition_of(p6)
+    if edition_of(p7) != edition:
+        sys.exit(f"edition mismatch: {p6.subtitle!r} vs {p7.subtitle!r}")
 
-    # Collect all standard (non-repeating) tags
-    data_lines = []
-    for tag_int, (vr_str, vm, name, retired_str, keyword) in sorted(DicomDictionary.items()):
-        group = (tag_int >> 16) & 0xFFFF
-        element = tag_int & 0xFFFF
+    rows = {}
+    skipped_masks, skipped_delims, counts = [], [], {}
 
-        # Skip repeating group tags
-        if group % 2 == 1 and group >= 0x6001 and group <= 0x60FF:
-            continue
-        if group % 2 == 1 and group >= 0x5001 and group <= 0x50FF:
-            continue
+    def add(tag, name, kw, vr, vm, retired, source):
+        m = TAG_RE.match(tag)
+        if not m:
+            sys.exit(f"unexpected tag {tag!r} in {source}")
+        g, e = m.group(1).upper(), m.group(2).upper()
+        if "X" in g or "X" in e:
+            if g[:2] in REPEATING_BASES and "X" not in e:
+                g = f"{REPEATING_BASES[g[:2]]:04X}"
+            else:
+                skipped_masks.append(f"({g},{e})")
+                return
+        if vr.startswith("See Note"):
+            skipped_delims.append(f"({g},{e})")
+            return
+        key = (int(g, 16), int(e, 16))
+        if key in rows:
+            sys.exit(f"duplicate tag ({g},{e}) from {source}")
+        rows[key] = f"{g}|{e}|{name}|{kw}|{vr_field(vr)}|{vm}|{'R' if retired else ''}"
+        counts[source] = counts.get(source, 0) + 1
 
-        swift_vr = VR_MAP.get(vr_str)
-        if swift_vr is None:
-            continue
+    for label in ("6-1", "7-1", "8-1", "9-1"):
+        for r in p6.rows(p6.table(label)):
+            if len(r) < 5:
+                continue
+            ret = len(r) > 5 and r[5].startswith("RET")
+            add(r[0], r[1], r[2], r[3], r[4], ret, f"PS3.6 Table {label}")
+    for label, retired in (("E.1-1", False), ("E.2-1", True)):
+        for r in p7.rows(p7.table(label)):
+            if len(r) < 5:
+                continue
+            add(r[0], r[1], r[2], r[3], r[4], retired, f"PS3.7 Table {label}")
 
-        kw = to_keyword(keyword) if keyword else to_keyword(name.replace(" ", ""))
-        data_lines.append(f"{group:04X}|{element:04X}|{name}|{kw}|{swift_vr}|{vm}")
+    header = [
+        f"# GENERATED by Scripts/generate_full_dictionary.py from {p6.subtitle} and {p7.subtitle}.",
+        "# Do not edit by hand; change the generator and re-run it.",
+        "# Columns: GGGG|EEEE|Name|Keyword|VR[/VR...]|VM|Retired(R). Lines starting with # are comments.",
+        f"# NEMA-verified: {edition}, checked {a.date} — every row is copied from "
+        + ", ".join(f"{s} ({n} rows)" for s, n in counts.items())
+        + "; names, keywords, VR, VM and retired flags verbatim; "
+        f"50xx/60xx repeating groups stored at their base group.",
+        "# Not emitted: the delimiters " + ", ".join(skipped_delims) + " (no VR); "
+        "the retired mask families " + ", ".join(sorted(set(skipped_masks))) + ".",
+    ]
+    lines = header + [rows[k] for k in sorted(rows)]
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    with open(OUT, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    print(f"Wrote {OUT}: {len(rows)} entries ({counts}); skipped {len(skipped_delims)} delimiters, "
+          f"{len(set(skipped_masks))} mask families")
 
-    # Write resource file
-    resource_path = f"{resource_dir}/DataElementDictionary.txt"
-    with open(resource_path, "w") as f:
-        f.write("\n".join(data_lines))
-        f.write("\n")
-    print(f"Generated {resource_path} ({len(data_lines)} entries)")
-
-    # Generate minimal Swift loader
-    swift_path = f"{base_dir}/DataElementDictionary.swift"
-    swift_code = f'''import Foundation
-import DICOMCore
-
-/// Comprehensive DICOM Data Element Dictionary
-///
-/// Contains all standard DICOM data elements from PS3.6 2026a.
-/// Total entries: {len(data_lines)}
-///
-/// Dictionary data is stored as a bundled resource file for zero compilation overhead.
-/// Parsed once at first access and cached in a static dictionary.
-public struct DataElementDictionary: Sendable {{
-
-    // MARK: - Parsed Dictionary
-
-    private static let entries: [Tag: DataElementEntry] = {{
-        guard let url = Bundle.module.url(forResource: "DataElementDictionary", withExtension: "txt"),
-              let content = try? String(contentsOf: url, encoding: .utf8) else {{
-            return [:]
-        }}
-        var dict = [Tag: DataElementEntry](minimumCapacity: {len(data_lines)})
-        for line in content.split(separator: "\\n") {{
-            let fields = line.split(separator: "|", maxSplits: 5)
-            guard fields.count == 6,
-                  let group = UInt16(fields[0], radix: 16),
-                  let element = UInt16(fields[1], radix: 16) else {{ continue }}
-            let tag = Tag(group: group, element: element)
-            let vr = VR(rawValue: String(fields[4])) ?? .UN
-            dict[tag] = DataElementEntry(
-                tag: tag,
-                name: String(fields[2]),
-                keyword: String(fields[3]),
-                vr: vr,
-                vm: String(fields[5])
-            )
-        }}
-        return dict
-    }}()
-
-    /// Looks up a data element entry by tag
-    /// - Parameter tag: The tag to look up
-    /// - Returns: The dictionary entry, or nil if not found
-    public static func lookup(tag: Tag) -> DataElementEntry? {{
-        return entries[tag]
-    }}
-
-    /// Looks up a data element entry by keyword
-    /// - Parameter keyword: The keyword to look up
-    /// - Returns: The dictionary entry, or nil if not found
-    public static func lookup(keyword: String) -> DataElementEntry? {{
-        return entries.values.first {{ $0.keyword == keyword }}
-    }}
-}}
-'''
-    with open(swift_path, "w") as f:
-        f.write(swift_code)
-    print(f"Generated {swift_path} (loader)")
-
-    print(f"\\nTotal: {len(data_lines)} entries — resource file + minimal Swift loader")
 
 if __name__ == "__main__":
     main()
-

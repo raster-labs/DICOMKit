@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — status names the N-GET attributes per PS3.3 2026a Table C.13-9 / PS3.6 Table 6-1 and the Printer SOP Instance UID per PS3.6 Table A-1; the text/JSON is DICOMPrintKit's PrintConsoleFormatter (labels reported as a deferred finding); queues carries no DICOM-standard data
 //
 // InfoCommands.swift
 // dicom-printscp
@@ -18,9 +19,17 @@ struct StatusCommand: AsyncParsableCommand {
         commandName: "status",
         abstract: "Show the printer identity and status the emulator would report",
         discussion: """
-            Answers the same question `dicom-print status` asks over the network,
-            from the configuration alone. Useful for checking a --config file, and
+            Answers the same question `dicom-print status` asks over the network
+            (N-GET on the Printer SOP Instance, 1.2.840.10008.5.1.1.17): Printer
+            Status (2110,0010), Printer Status Info (2110,0020), Printer Name
+            (2110,0030), Manufacturer and Manufacturer's Model Name — from the
+            configuration alone. Useful for checking a --config file, and
             for confirming what --printer-status failure will make an SCU see.
+
+            --format json keys each attribute by its PS3.6 keyword (PrinterStatus,
+            PrinterStatusInfo, PrinterName, Manufacturer, ManufacturerModelName);
+            the older keys status, statusInfo, name, manufacturer and model carry
+            the same values and are deprecated.
             """
     )
 

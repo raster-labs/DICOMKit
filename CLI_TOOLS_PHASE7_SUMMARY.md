@@ -334,7 +334,7 @@ dicom-qr pacs://server:11112 --patient "DOE*" --output studies/
 
 # 2. Validate and anonymize
 dicom-validate studies/*.dcm --level 2
-dicom-anon studies/ --output anon/ --profile clinical-trial --recursive
+dicom-anon studies/ --output anon/ --profile ps315 --recursive   # PS3.15 Basic Profile; clinical-trial is now the deprecated legacy-clinical-trial list
 
 # 3. Generate measurements
 dicom-measure volume anon/*.dcm --roi roi.dcm --output measurements.json

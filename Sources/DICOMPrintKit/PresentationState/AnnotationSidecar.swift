@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — claims about GSPS vocabulary checked against PS3.3 2026a Table C.10-5 (Compound Graphic Type ARROW) and Tables C.10-5a/5b (per-object CIELab colour), which the GSPS now carries (D39); colour-image inversion kept here because Table A.33.2-1 has no Presentation LUT module; otherwise private JSON, no DICOM data
 // AnnotationSidecar.swift
 // DICOMPrintKit
 //
@@ -5,13 +6,14 @@
 //
 // A GSPS can carry annotations — Graphic Annotation Sequence (PS3.3 C.10.5) is
 // part of the standard, and the parser in DICOMKit already reads it. It is not
-// what these are written to, for one reason: the standard's vocabulary cannot
-// hold what a `PrintOverlayAnnotation` actually says. There is no arrow
-// primitive in DICOM, per-annotation colour is not a GSPS concept (a layer
-// carries one *recommended* value for everything on it), and nothing
-// corresponds to `scale`. Writing an annotation out through that vocabulary and
-// reading it back would return a different annotation than the reader drew,
-// which is the exact failure this file exists to prevent.
+// what our own restore reads, for one reason: the standard's vocabulary says
+// a drawing's position, colour and halo — a Compound Graphic of type ARROW
+// (PS3.3 Table C.10-5) and per-object CIELab colour and shadow through the Text
+// Style and Line Style Sequences (Tables C.10-5a, C.10-5b), all of which the
+// GSPS now carries — but not the reader's `scale`, nor which tool drew it.
+// Reading an annotation back from the object alone would return a close cousin
+// of what the reader drew, not the drawing, which is the exact failure this
+// file exists to prevent.
 //
 // So the sidecar is lossless and private, and the GSPS beside it stays
 // conformant and describes the display parameters it can describe honestly.
@@ -28,7 +30,11 @@
 //     nothing. Drawings are therefore keyed by frame index.
 //   * The pseudo-colour palette the view was read through, if any. GSPS has no
 //     way to say "coloured" — its Presentation LUT speaks only of grey and its
-//     inverse — so the palette lives here or nowhere.
+//     inverse — so the palette lives here as well as in the Pseudo-Color
+//     object's Palette Color LUT.
+//   * Whether a colour image was shown inverted. The Color Softcopy
+//     Presentation State has no Presentation LUT module (PS3.3 Table
+//     A.33.2-1), so the object itself cannot say it.
 //
 // One file per GSPS object, named after it: `<sopInstanceUID>.annotations.json`
 // sits next to `<sopInstanceUID>.dcm`. Pairing by name means the two cannot
@@ -60,10 +66,14 @@ enum AnnotationSidecar {
         /// re-published over the original.
         var isImported: Bool = false
 
+        /// Whether a colour image was shown inverted — what a Color Softcopy
+        /// object has no module to state (Table A.33.2-1).
+        var inverted: Bool = false
+
         /// Nothing worth a file: no colour, nothing drawn, nothing to remember.
         var isEmpty: Bool {
             palette == nil && annotationsByFrame.isEmpty
-                && annotationsByFrameByImage.isEmpty && !isImported
+                && annotationsByFrameByImage.isEmpty && !isImported && !inverted
         }
 
         /// Every drawing regardless of frame, in frame order — what callers
@@ -82,6 +92,7 @@ enum AnnotationSidecar {
         var frames: [String: [PrintOverlayAnnotation]]?
         var images: [String: [String: [PrintOverlayAnnotation]]]?
         var imported: Bool?
+        var inverted: Bool?
     }
 
     /// The file holding the annotations for the GSPS object at `stateURL`.
@@ -125,7 +136,8 @@ enum AnnotationSidecar {
             palette: contents.palette,
             frames: frames.isEmpty ? nil : frames,
             images: images.isEmpty ? nil : images,
-            imported: contents.isImported ? true : nil)
+            imported: contents.isImported ? true : nil,
+            inverted: contents.inverted ? true : nil)
 
         let encoder = JSONEncoder()
         // Sorted keys so a view saved twice with the same annotations produces
@@ -190,7 +202,8 @@ enum AnnotationSidecar {
                 palette: payload.palette,
                 annotationsByFrame: byFrame,
                 annotationsByFrameByImage: byImage,
-                isImported: payload.imported ?? false)
+                isImported: payload.imported ?? false,
+                inverted: payload.inverted ?? false)
         }
 
         guard let legacy = try? decoder.decode(

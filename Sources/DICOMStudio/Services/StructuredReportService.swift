@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Service for SR document state management
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (thread-safe document, terminology, CAD and builder state)
 
 import Foundation
 

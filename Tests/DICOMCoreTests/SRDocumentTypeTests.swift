@@ -131,7 +131,7 @@ struct SRDocumentTypeTests {
         #expect(allowed.contains(.scoord3D))
         
         // Has all value types
-        #expect(allowed == Set(ContentItemValueType.allCases))
+        #expect(allowed == Set(ContentItemValueType.allCases).subtracting([.table]))
     }
     
     @Test("Key Object Selection limited types")
@@ -187,8 +187,8 @@ struct SRDocumentTypeTests {
     
     @Test("allSOPClassUIDs contains all document types")
     func testAllSOPClassUIDsCount() {
-        // 18 document types defined
-        #expect(SRDocumentType.allSOPClassUIDs.count == 18)
+        // 20 document types defined (PS3.6 2026a Table A-1, current SR Storage SOP Classes)
+        #expect(SRDocumentType.allSOPClassUIDs.count == 20)
     }
     
     @Test("allSOPClassUIDs contains specific UIDs")
@@ -224,5 +224,51 @@ struct SRDocumentTypeTests {
         set.insert(.enhancedSR)
         
         #expect(set.count == 2)
+    }
+
+    // MARK: - PS3.3 2026a A.35 Value Type constraints
+
+    private static let standardValueTypes: [(SRDocumentType, Set<ContentItemValueType>)] = [
+        (SRDocumentType.basicTextSR, [.text, .code, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .container]),  // A.35.1
+        (SRDocumentType.enhancedSR, [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .tcoord, .container]),  // A.35.2
+        (SRDocumentType.comprehensiveSR, [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .tcoord, .container]),  // A.35.3
+        (SRDocumentType.comprehensive3DSR, [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .scoord3D, .tcoord, .container]),  // A.35.13
+        (SRDocumentType.extensibleSR, Set(ContentItemValueType.allCases)),  // A.35.15
+        (SRDocumentType.keyObjectSelectionDocument, [.text, .code, .uidref, .pname, .composite, .image, .waveform, .container]),  // A.35.4
+        (SRDocumentType.mammographyCADSR, [.text, .code, .num, .date, .time, .uidref, .pname, .composite, .image, .scoord, .container]),  // A.35.5
+        (SRDocumentType.chestCADSR, [.text, .code, .num, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .tcoord, .container]),  // A.35.6
+        (SRDocumentType.colonCADSR, [.text, .code, .num, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .scoord3D, .container]),  // A.35.10 (Table A.35.10-2 targets; TCOORD is only a source)
+        (SRDocumentType.xRayRadiationDoseSR, [.text, .code, .num, .datetime, .uidref, .pname, .composite, .image, .container]),  // A.35.8
+        (SRDocumentType.enhancedXRayRadiationDoseSR, [.text, .code, .num, .datetime, .uidref, .pname, .composite, .image, .scoord3D, .container, .table]),  // A.35.22
+        (SRDocumentType.radiopharmaceuticalRadiationDoseSR, [.text, .code, .num, .datetime, .uidref, .pname, .container]),  // A.35.14
+        (SRDocumentType.patientRadiationDoseSR, [.text, .code, .num, .datetime, .uidref, .pname, .composite, .image, .container]),  // A.35.18
+        (SRDocumentType.acquisitionContextSR, [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .scoord3D, .container]),  // A.35.16
+        (SRDocumentType.simplifiedAdultEchoSR, [.text, .code, .num, .datetime, .uidref, .pname, .image, .waveform, .scoord, .tcoord, .container]),  // A.35.17
+        (SRDocumentType.implantationPlanSR, [.text, .code, .num, .date, .uidref, .pname, .composite, .image, .container]),  // A.35.12
+        (SRDocumentType.plannedImagingAgentAdministrationSR, [.text, .code, .num, .datetime, .date, .uidref, .pname, .container]),  // A.35.19
+        (SRDocumentType.performedImagingAgentAdministrationSR, [.text, .code, .num, .datetime, .date, .uidref, .pname, .composite, .image, .waveform, .container]),  // A.35.20
+        (SRDocumentType.procedureLog, [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .container]),  // A.35.7
+        (SRDocumentType.waveformAnnotationSR, [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .waveform, .tcoord, .container]),  // A.35.23
+    ]
+
+    @Test("allowedValueTypes equals each IOD's Enumerated Values in PS3.3 2026a A.35",
+          arguments: standardValueTypes)
+    func testAllowedValueTypesMatchStandard(entry: (SRDocumentType, Set<ContentItemValueType>)) {
+        #expect(entry.0.allowedValueTypes == entry.1, "\(entry.0)")
+    }
+
+    @Test("Procedure Log and Waveform Annotation SR are recognized")
+    func testNewSOPClasses() {
+        #expect(SRDocumentType.from(sopClassUID: "1.2.840.10008.5.1.4.1.1.88.40") == .procedureLog)
+        #expect(SRDocumentType.from(sopClassUID: "1.2.840.10008.5.1.4.1.1.88.77") == .waveformAnnotationSR)
+        #expect(SRDocumentType.procedureLog.displayName == "Procedure Log")
+    }
+
+    @Test("Retired Trial SR SOP Classes count as SR documents but have no type")
+    func testRetiredTrialSOPClasses() {
+        for uid in ["1.2.840.10008.5.1.4.1.1.88.1", "1.2.840.10008.5.1.4.1.1.88.4"] {
+            #expect(SRDocumentType.isSRDocument(sopClassUID: uid))
+            #expect(SRDocumentType.from(sopClassUID: uid) == nil)
+        }
     }
 }

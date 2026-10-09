@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — functional-group flattening per PS3.3 2026a C.7.6.16; the Magnetization Transfer and Partial Fourier literals are recorded
 import Foundation
 import DICOMCore
 
@@ -258,7 +259,7 @@ public enum FunctionalGroupFlattener {
     private static let echoPulseSequence = Tag(group: 0x0018, element: 0x9008)
     private static let inversionRecovery = Tag(group: 0x0018, element: 0x9009)
     private static let echoPlanarPulseSequence = Tag(group: 0x0018, element: 0x9018)
-    private static let segmentedKSpaceTraversal = Tag(group: 0x0018, element: 0x9105)
+    private static let segmentedKSpaceTraversal = Tag(group: 0x0018, element: 0x9033)
     private static let magnetizationTransfer = Tag(group: 0x0018, element: 0x9020)
     private static let steadyStatePulseSequence = Tag(group: 0x0018, element: 0x9017)
     private static let spoiling = Tag(group: 0x0018, element: 0x9016)

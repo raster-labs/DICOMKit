@@ -4,6 +4,8 @@ import Foundation
 ///
 /// Represents uncompressed pixel data extracted from a DICOM file.
 /// Reference: DICOM PS3.5 Section 8.2 - Native Pixel Data Format
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — sample extraction (little-endian Pixel Cells, High Bit / Bits Stored masking, two's-complement sign extension, Planar Configuration 0/1 layouts) matches PS3.5 2026a §8.1.1 and §8.2 and PS3.3 2026a C.7.6.3.1.3.
 public struct PixelData: Sendable {
     /// The raw pixel data bytes
     public let data: Data

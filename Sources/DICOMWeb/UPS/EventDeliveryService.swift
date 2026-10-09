@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (in-process event queue and dispatcher; no PS3.18 8.10 message format)
 // MARK: - EventDeliveryService Protocol
 
 /// Protocol for delivering UPS events to subscribers

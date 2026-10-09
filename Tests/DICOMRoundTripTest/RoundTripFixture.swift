@@ -18,6 +18,36 @@ import Foundation
 
 // MARK: - Synthetic DICOM builders
 
+/// The Type 1 and Type 2 attributes a CT Image (PS3.3 2026a Table A.3-1) must carry
+/// beyond identity and Image Pixel: Patient (Table C.7-1), General Study (C.7-3),
+/// General Series (C.7-5a, Patient Position 2C), Frame of Reference (C.7-6), General
+/// Equipment (C.7-8), General Image (C.7-9), Image Plane (C.7-10) and CT Image (C.8-3).
+/// The validator reports every missing one as an error (PS3.5 7.4.1, 7.4.3).
+func addCTImageModules(_ ds: inout DataSet) {
+    ds.setString("", for: .patientBirthDate, vr: .DA)
+    ds.setString("", for: .patientSex, vr: .CS)
+    ds.setString("", for: .studyDate, vr: .DA)
+    ds.setString("", for: .studyTime, vr: .TM)
+    ds.setString("", for: .referringPhysicianName, vr: .PN)
+    ds.setString("", for: .studyID, vr: .SH)
+    ds.setString("", for: .accessionNumber, vr: .SH)
+    ds.setString("", for: .seriesNumber, vr: .IS)
+    ds.setString("HFS", for: .patientPosition, vr: .CS)
+    ds.setString("1.2.3.4.5.300", for: .frameOfReferenceUID, vr: .UI)
+    ds.setString("", for: .positionReferenceIndicator, vr: .LO)
+    ds.setString("", for: .manufacturer, vr: .LO)
+    ds.setString("", for: .instanceNumber, vr: .IS)
+    ds.setStrings(["0.5", "0.5"], for: .pixelSpacing, vr: .DS)
+    ds.setStrings(["1", "0", "0", "0", "1", "0"], for: .imageOrientationPatient, vr: .DS)
+    ds.setStrings(["0", "0", "0"], for: .imagePositionPatient, vr: .DS)
+    ds.setString("", for: .sliceThickness, vr: .DS)
+    ds.setStrings(["ORIGINAL", "PRIMARY", "AXIAL"], for: .imageType, vr: .CS)
+    ds.setString("0", for: .rescaleIntercept, vr: .DS)
+    ds.setString("1", for: .rescaleSlope, vr: .DS)
+    ds.setString("", for: .kvp, vr: .DS)
+    ds.setString("", for: .acquisitionNumber, vr: .IS)
+}
+
 /// 8-bit MONOCHROME2, pixel[i] = fillPattern(i).
 func makeGrayscale8(
     rows: UInt16, cols: UInt16,
@@ -39,6 +69,7 @@ func makeGrayscale8(
     ds.setUInt16(0, for: .pixelRepresentation)
     ds.setUInt16(1, for: .samplesPerPixel)
     ds.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+    addCTImageModules(&ds)
     let count = Int(rows) * Int(cols)
     let pixels = Data((0..<count).map { fillPattern($0) })
     ds[.pixelData] = DataElement.data(tag: .pixelData, vr: .OB, data: pixels)
@@ -67,6 +98,7 @@ func makeGrayscale16(
     ds.setUInt16(signed ? 1 : 0, for: .pixelRepresentation)
     ds.setUInt16(1, for: .samplesPerPixel)
     ds.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+    addCTImageModules(&ds)
     let count = Int(rows) * Int(cols)
     var pixels = Data(count: count * 2)
     for i in 0..<count {

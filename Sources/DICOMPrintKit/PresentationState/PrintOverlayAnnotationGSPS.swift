@@ -1,17 +1,21 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Graphic Type, Graphic/Bounding Box/Anchor Point Annotation Units, column-row order and Referenced Frame Number checked against PS3.3 2026a Table C.10-5 and C.10.5.1.2; layer colour per Table C.10-7 (0070,0401); arrows as Compound Graphic ARROW (anchor, then foot; C.10.5.1.3.11) with the polylines as alternate rendering (C.10.5.1.3.1), per-object colour and halo via Text/Line Style Sequences (Tables C.10-5a/5b) (D39)
 // PrintOverlayAnnotationGSPS.swift
 // DICOMPrintKit
 //
 // Drawn text and arrows, translated into the DICOM vocabulary a GSPS carries —
 // PS3.3 C.10.5 text objects and polylines.
 //
-// This is a one-way, best-effort translation written *in addition to* the JSON
-// sidecar (see ``AnnotationSidecar``), never instead of it. DICOM's vocabulary
-// cannot say everything ``PrintOverlayAnnotation`` says — there is no arrow
-// primitive, no per-annotation colour (a layer carries one *recommended*
-// value), and nothing corresponding to `scale` — so the sidecar remains the
-// authority our own restore reads, and this sequence is what makes the saved
-// object legible to any other DICOM viewer: the words at their anchor, and the
-// arrow as the polylines of its shaft and head.
+// This is a translation written *in addition to* the JSON sidecar (see
+// ``AnnotationSidecar``), never instead of it. Most of what a
+// ``PrintOverlayAnnotation`` says has a C.10.5 form: an arrow is a Compound
+// Graphic of type ARROW (Table C.10-5, C.10.5.1.3.11), written together with
+// the polylines of its shaft and head as the alternate rendering every
+// compound graphic must carry (C.10.5.1.3.1); each object's own colour and
+// halo travel in its Line or Text Style Sequence (Tables C.10-5a/5b), which
+// overrides the layer's recommended colour. Nothing in C.10.5 corresponds to
+// `scale` as such, and the sidecar keeps the reader's exact drawing — so it
+// remains the authority our own restore reads, and this sequence is what makes
+// the saved object legible to any other DICOM viewer.
 
 import Foundation
 import DICOMKit
@@ -27,13 +31,15 @@ public enum PrintOverlayAnnotationGSPS {
     ///
     /// One layer rather than one per colour: layers exist for stacking order,
     /// and drawn annotations have none — they were placed on one image by one
-    /// reader. The layer's recommended RGB is the first annotation's colour,
-    /// which is right when the film uses one colour (the common case) and an
-    /// honest approximation when it does not.
+    /// reader. The layer's recommended colour — Graphic Layer Recommended
+    /// Display CIELab Value (0070,0401), Table C.10-7, which the builder
+    /// converts the model's RGB into — is the first annotation's colour, which
+    /// is right when the film uses one colour (the common case) and an honest
+    /// approximation when it does not.
     public static let layerName = "DRAWINGS"
 
-    /// The layer the annotation below belongs to — required by C.10.5, which
-    /// files every annotation under a named layer.
+    /// The layer the annotation below belongs to — Graphic Layer (0070,0002) is
+    /// Type 1 in every Graphic Annotation Sequence item (PS3.3 Table C.10-5).
     public static func graphicLayers(
         for annotations: [PrintOverlayAnnotation]
     ) -> [GraphicLayer] {
@@ -98,6 +104,9 @@ public enum PrintOverlayAnnotationGSPS {
                 referencedImage: referencedImage).map { [$0] } ?? []
         }
 
+        // Compound Graphic Instance IDs are unique within the object
+        // (C.10.5.1.3.1), so they run on across the frames' items.
+        var nextCompoundID = 1
         return annotationsByFrame
             .sorted { $0.key < $1.key }
             .compactMap { frame, annotations in
@@ -109,11 +118,14 @@ public enum PrintOverlayAnnotationGSPS {
                     sopClassUID: referencedImage.sopClassUID,
                     sopInstanceUID: referencedImage.sopInstanceUID,
                     referencedFrameNumbers: [frame + 1])
-                return graphicAnnotation(
+                let item = graphicAnnotation(
                     from: annotations,
                     imageWidth: imageWidth,
                     imageHeight: imageHeight,
-                    referencedImage: framed)
+                    referencedImage: framed,
+                    firstCompoundGraphicID: nextCompoundID)
+                nextCompoundID += item?.compoundGraphics.count ?? 0
+                return item
             }
     }
 
@@ -128,11 +140,15 @@ public enum PrintOverlayAnnotationGSPS {
     ///   - referencedImage: The image the annotation applies to, stated
     ///     explicitly so a multi-image series cannot misfile it — including
     ///     the frame, when the caller has one to name.
+    ///   - firstCompoundGraphicID: The Compound Graphic Instance ID the first
+    ///     arrow takes; IDs must be unique within the object, so a caller
+    ///     writing several items continues from where the last stopped.
     public static func graphicAnnotation(
         from annotations: [PrintOverlayAnnotation],
         imageWidth: Int,
         imageHeight: Int,
-        referencedImage: ReferencedImage
+        referencedImage: ReferencedImage,
+        firstCompoundGraphicID: Int = 1
     ) -> GraphicAnnotation? {
         guard imageWidth > 0, imageHeight > 0 else { return nil }
         let drawable = annotations.filter { !$0.isBlank }
@@ -140,6 +156,18 @@ public enum PrintOverlayAnnotationGSPS {
 
         var graphicObjects: [GraphicObject] = []
         var textObjects: [TextObject] = []
+        var compoundGraphics: [CompoundGraphic] = []
+        var nextID = firstCompoundGraphicID
+
+        func addArrow(_ annotation: PrintOverlayAnnotation) {
+            let pieces = arrowObjects(
+                for: annotation, imageWidth: imageWidth, imageHeight: imageHeight,
+                compoundGraphicID: nextID)
+            guard let compound = pieces.compound else { return }
+            graphicObjects.append(contentsOf: pieces.polylines)
+            compoundGraphics.append(compound)
+            nextID += 1
+        }
 
         for annotation in drawable {
             switch annotation.kind {
@@ -147,8 +175,7 @@ public enum PrintOverlayAnnotationGSPS {
                 textObjects.append(textObject(
                     for: annotation, imageWidth: imageWidth, imageHeight: imageHeight))
             case .arrow:
-                graphicObjects.append(contentsOf: arrowObjects(
-                    for: annotation, imageWidth: imageWidth, imageHeight: imageHeight))
+                addArrow(annotation)
             case .annotation:
                 // The combined kind is exactly DICOM's anchored text: the words
                 // in their bounding box, with a visible anchor point the display
@@ -160,8 +187,7 @@ public enum PrintOverlayAnnotationGSPS {
                         for: annotation, imageWidth: imageWidth, imageHeight: imageHeight,
                         anchor: annotation.hasArrow ? annotation.end : nil))
                 } else {
-                    graphicObjects.append(contentsOf: arrowObjects(
-                        for: annotation, imageWidth: imageWidth, imageHeight: imageHeight))
+                    addArrow(annotation)
                 }
             case .polyline, .circle, .ellipse, .point:
                 // A shape that came *from* a GSPS goes back out as the same
@@ -183,7 +209,56 @@ public enum PrintOverlayAnnotationGSPS {
             layer: layerName,
             referencedImages: [referencedImage],
             graphicObjects: graphicObjects,
-            textObjects: textObjects)
+            textObjects: textObjects,
+            compoundGraphics: compoundGraphics)
+    }
+
+    // MARK: - Styles (Tables C.10-5a, C.10-5b)
+
+    /// A drawn colour as the CIELab PCS-Values the style macros carry.
+    static func cieLab(_ color: PrintOverlayColor) -> CIELabColor {
+        CIELabColor(sRGBRed: color.red, green: color.green, blue: color.blue)
+    }
+
+    /// The halo the burner draws behind an annotation, as an OUTLINED shadow:
+    /// C.10.5.1.3.13.2 makes the offset vector's length its radius, and its
+    /// colour the far end of the scale from the annotation's (the burner's
+    /// rule: dark behind a light colour, light behind a dark one).
+    static func halo(for color: PrintOverlayColor, radius: Double) -> GraphicShadow {
+        let dark = color.luminance > 0.45
+        return GraphicShadow(
+            style: .outlined, offsetX: radius, offsetY: 0,
+            color: dark ? GraphicShadow.black : CIELabColor(l: 65535, a: 0x8080, b: 0x8080),
+            opacity: 1)
+    }
+
+    /// The Line Style of a drawn arrow or shape: its colour, the burner's line
+    /// weight for its scale, and its halo — in image pixels, the object's
+    /// Graphic Annotation Units.
+    static func lineStyle(for annotation: PrintOverlayAnnotation, imageHeight: Int) -> LineStyle {
+        let geometry = PrintArrowGeometry(
+            scale: annotation.scale, imageHeight: Double(imageHeight), arrowLength: Double(imageHeight))
+        return LineStyle(
+            onColor: cieLab(annotation.color),
+            thickness: geometry.lineWidth,
+            shadow: halo(for: annotation.color, radius: geometry.haloWidth / 2))
+    }
+
+    /// The Text Style of drawn words: the burner's face (Helvetica-Bold, a
+    /// standard font of ISO 32000, the Font Name Type's Defined Term), bold,
+    /// the annotation's colour and halo.
+    static func textStyle(for annotation: PrintOverlayAnnotation, imageHeight: Int) -> TextStyle {
+        let fontSize = ImageAnnotationBurner.overlayFontSize(
+            imageHeight: Double(imageHeight), scale: annotation.scale)
+        return TextStyle(
+            fontName: ImageAnnotationBurner.overlayFontFamily,
+            fontNameType: "ISO_32000",
+            cssFontName: "sans-serif",
+            color: cieLab(annotation.color),
+            horizontalAlignment: .left,
+            verticalAlignment: .top,
+            shadow: halo(for: annotation.color, radius: max(1, fontSize * 0.06)),
+            bold: true)
     }
 
     // MARK: - Text
@@ -219,7 +294,8 @@ public enum PrintOverlayAnnotationGSPS {
                 ?? (column: anchorColumn, row: anchorRow),
             anchorPointVisible: anchor != nil,
             boundingBoxUnits: .pixel,
-            anchorPointUnits: .pixel)
+            anchorPointUnits: .pixel,
+            textStyle: textStyle(for: annotation, imageHeight: imageHeight))
     }
 
     /// The words' extent in image pixels — measured with the burner's own face
@@ -263,7 +339,9 @@ public enum PrintOverlayAnnotationGSPS {
             data.append(point.x * Double(imageWidth))
             data.append(point.y * Double(imageHeight))
         }
-        return GraphicObject(type: type, data: data, filled: annotation.filled, units: .pixel)
+        return GraphicObject(
+            type: type, data: data, filled: annotation.filled, units: .pixel,
+            lineStyle: lineStyle(for: annotation, imageHeight: imageHeight))
     }
 
     // MARK: - Reading a state written elsewhere
@@ -313,13 +391,29 @@ public enum PrintOverlayAnnotationGSPS {
             let color = colours[item.layer] ?? .yellow
 
             var overlays: [PrintOverlayAnnotation] = []
+            // ARROW compound graphics are drawn as arrows; the objects that are
+            // their alternate rendering (C.10.5.1.3.1) are then left out, or
+            // the arrow would be drawn twice.
+            var drawnCompounds = Set<Int>()
+            for compound in item.compoundGraphics {
+                if let overlay = arrowOverlay(compound, width: width, height: height, color: color) {
+                    overlays.append(overlay)
+                    drawnCompounds.insert(compound.instanceID)
+                }
+            }
             for object in item.graphicObjects {
-                if let overlay = shapeOverlay(object, width: width, height: height, color: color) {
+                if let id = object.compoundGraphicInstanceID, drawnCompounds.contains(id) { continue }
+                // A Line Style colour "shall override" the layer's (Table C.10-5b).
+                let own = object.lineStyle.map { overlayColor($0.onColor) } ?? color
+                if let overlay = shapeOverlay(object, width: width, height: height, color: own) {
                     overlays.append(overlay)
                 }
             }
             for text in item.textObjects {
-                if let overlay = textOverlay(text, width: width, height: height, color: color) {
+                if let id = text.compoundGraphicInstanceID, drawnCompounds.contains(id) { continue }
+                // So does a Text Style colour (Table C.10-5a).
+                let own = text.textStyle.map { overlayColor($0.color) } ?? color
+                if let overlay = textOverlay(text, width: width, height: height, color: own) {
                     overlays.append(overlay)
                 }
             }
@@ -346,6 +440,30 @@ public enum PrintOverlayAnnotationGSPS {
             }
         }
         return byFrame
+    }
+
+    /// A style's CIELab colour as a drawn colour.
+    static func overlayColor(_ lab: CIELabColor) -> PrintOverlayColor {
+        let rgb = lab.sRGB
+        return PrintOverlayColor(red: rgb.red, green: rgb.green, blue: rgb.blue)
+    }
+
+    /// An ARROW compound graphic as an arrow overlay: Graphic Data is the
+    /// anchor (the head) then the foot (C.10.5.1.3.11). PIXEL units only — a
+    /// DISPLAY arrow, or a rotated one, is left to its alternate rendering.
+    static func arrowOverlay(
+        _ compound: CompoundGraphic, width: Double, height: Double, color: PrintOverlayColor
+    ) -> PrintOverlayAnnotation? {
+        guard compound.type == .arrow, compound.units == .pixel,
+              compound.rotationAngle == nil || compound.rotationAngle == 0,
+              compound.points.count == 2 else { return nil }
+        let head = compound.points[0], foot = compound.points[1]
+        let own = compound.lineStyle.map { overlayColor($0.onColor) } ?? color
+        return PrintOverlayAnnotation(
+            kind: .arrow,
+            start: PrintOverlayPoint(x: foot.column / width, y: foot.row / height),
+            end: PrintOverlayPoint(x: head.column / width, y: head.row / height),
+            color: own, isLocked: true)
     }
 
     /// The layer's recommended colour, RGB first (16-bit per channel), then
@@ -444,10 +562,13 @@ public enum PrintOverlayAnnotationGSPS {
             let x = data[index]
             let y = data[index + 1]
             switch units {
-            case .pixel:
+            case .pixel, .matrix:
                 // The same convention the writers above use — a fraction of
                 // the image's size, no half-pixel offset — so a shape written
                 // by this app and read back lands exactly where it was.
+                // MATRIX (PS3.3 Table C.10-5) is relative to a tiled image's
+                // Total Pixel Matrix; the printed image is the whole matrix
+                // this code ever sees, so it is read the same way.
                 points.append(PrintOverlayPoint(x: x / width, y: y / height))
             case .display:
                 points.append(PrintOverlayPoint(x: x, y: y))
@@ -458,18 +579,21 @@ public enum PrintOverlayAnnotationGSPS {
 
     // MARK: - Arrow
 
-    /// An arrow as two polylines: the shaft from tail to tip, and the open
-    /// head traced left wing → tip → right wing.
+    /// An arrow: the polylines of the shaft (tail to tip) and the open head
+    /// (left wing → tip → right wing), sized by the same ``PrintArrowGeometry``
+    /// the film is burned with, plus the ARROW compound graphic they render.
     ///
-    /// GSPS has no arrow primitive, so this is the closest statement its
-    /// vocabulary makes: a viewer that renders the polylines shows a line with
-    /// a chevron at the pointing end. The head's size comes from the same
-    /// ``PrintArrowGeometry`` the film is burned with, so the two agree.
+    /// Written two ways, as C.10.5.1.3.1 requires: the Compound Graphic of type
+    /// ARROW — two points, "the first point is the anchor point, the second
+    /// point is the foot point" (C.10.5.1.3.11), so the head first — and, under
+    /// the same Compound Graphic Instance ID, the polylines of the shaft and the
+    /// head for viewers that do not draw compound graphics.
     private static func arrowObjects(
         for annotation: PrintOverlayAnnotation,
         imageWidth: Int,
-        imageHeight: Int
-    ) -> [GraphicObject] {
+        imageHeight: Int,
+        compoundGraphicID: Int
+    ) -> (polylines: [GraphicObject], compound: CompoundGraphic?) {
         let tail = PrintPlanePoint(
             x: annotation.start.x * Double(imageWidth),
             y: annotation.start.y * Double(imageHeight))
@@ -479,27 +603,39 @@ public enum PrintOverlayAnnotationGSPS {
         let dx = head.x - tail.x
         let dy = head.y - tail.y
         let length = (dx * dx + dy * dy).squareRoot()
-        guard length > 0 else { return [] }
+        guard length > 0 else { return ([], nil) }
 
         let geometry = PrintArrowGeometry(
             scale: annotation.scale,
             imageHeight: Double(imageHeight),
             arrowLength: length)
-        guard let outline = geometry.outline(tail: tail, head: head) else { return [] }
+        guard let outline = geometry.outline(tail: tail, head: head) else { return ([], nil) }
+        let style = lineStyle(for: annotation, imageHeight: imageHeight)
 
-        return [
+        let polylines = [
             GraphicObject(
                 type: .polyline,
                 data: [tail.x, tail.y, head.x, head.y],
                 filled: false,
-                units: .pixel),
+                units: .pixel,
+                lineStyle: style,
+                compoundGraphicInstanceID: compoundGraphicID),
             GraphicObject(
                 type: .polyline,
                 data: [outline.headLeft.x, outline.headLeft.y,
                        head.x, head.y,
                        outline.headRight.x, outline.headRight.y],
                 filled: false,
-                units: .pixel)
+                units: .pixel,
+                lineStyle: style,
+                compoundGraphicInstanceID: compoundGraphicID)
         ]
+        let compound = CompoundGraphic(
+            instanceID: compoundGraphicID,
+            type: .arrow,
+            units: .pixel,
+            data: [head.x, head.y, tail.x, tail.y],
+            lineStyle: style)
+        return (polylines, compound)
     }
 }

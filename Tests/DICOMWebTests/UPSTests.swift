@@ -23,7 +23,9 @@ final class UPSTests: XCTestCase {
     func testUPSStateValidTransitions() {
         // From SCHEDULED
         XCTAssertTrue(UPSState.scheduled.canTransition(to: .inProgress))
-        XCTAssertTrue(UPSState.scheduled.canTransition(to: .canceled))
+        // PS3.4 Table CC.1.1-2: Change State to CANCELED from SCHEDULED fails (C310H); the SCP
+        // cancels a SCHEDULED UPS itself on Request Cancel (CC.2.2.3)
+        XCTAssertFalse(UPSState.scheduled.canTransition(to: .canceled))
         XCTAssertFalse(UPSState.scheduled.canTransition(to: .completed))
         XCTAssertFalse(UPSState.scheduled.canTransition(to: .scheduled))
         
@@ -347,7 +349,8 @@ final class UPSQueryTests: XCTestCase {
         
         let params = query.toParameters()
         XCTAssertEqual(params[UPSQueryAttribute.procedureStepState], "SCHEDULED")
-        XCTAssertTrue(params[UPSQueryAttribute.scheduledProcedureStepPriority]?.contains("STAT") == true)
+        // PS3.3 C.30.2: STAT is not a defined term; HIGH is "equivalent to a STAT request"
+        XCTAssertFalse(params[UPSQueryAttribute.scheduledProcedureStepPriority]?.contains("STAT") == true)
         XCTAssertTrue(params[UPSQueryAttribute.scheduledProcedureStepPriority]?.contains("HIGH") == true)
     }
 }
@@ -406,6 +409,19 @@ final class UPSResultsTests: XCTestCase {
         // INPROGRESS alias resolves to the canonical "IN PROGRESS" rawValue (matches the CLI).
         let inProgress = try UPSQuery.workitemSearch(filterState: "INPROGRESS", scheduledStation: "").toParameters()
         XCTAssertEqual(inProgress, ["00741000": "IN PROGRESS"])
+    }
+
+    /// D107: PS3.3 2026a Table C.30.1-1 (Enumerated Values) spells the state "IN PROGRESS" (with a space); the
+    /// shared builder accepts it as written, case-insensitively, and still takes IN_PROGRESS.
+    func testWorkitemSearchAcceptsTheStandardInProgressTerm() throws {
+        for term in ["IN PROGRESS", "in progress", " IN PROGRESS ", "IN_PROGRESS"] {
+            let params = try UPSQuery.workitemSearch(filterState: term, scheduledStation: nil).toParameters()
+            XCTAssertEqual(params, ["00741000": "IN PROGRESS"], term)
+        }
+        XCTAssertThrowsError(try UPSQuery.workitemSearch(filterState: "IN  PROGRESS", scheduledStation: nil))
+        XCTAssertThrowsError(try UPSQuery.workitemSearch(filterState: "STARTED", scheduledStation: nil)) { error in
+            XCTAssertTrue((error as? UPSSearchFilterError)?.description.contains("IN PROGRESS") == true)
+        }
     }
 
     func testWorkitemSearchStationFilter() throws {

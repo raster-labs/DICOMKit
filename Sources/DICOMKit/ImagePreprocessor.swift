@@ -1,3 +1,6 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — the auto window is the PS3.3 2026a C.11.2.1.2.1 full-range window over the modality values (D66); Bits Allocated 32 cells are read whole (PS3.5 8.1.1, D67)
+// NEMA-verified: 2026a, checked 2026-09-30 — the print VOI LUT path opts in to GrayscaleLUT used-range scaling explicitly (FR-004 tolerance; PS3.3 2026a C.11.2.1.1 default is 0...2^n-1) so print output is unchanged (D53)
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a C.7.6.3.1.2 YBR conversions and C.13 image box citations checked; PrintColorMode is the DICOMCore type (D24 closed)
 /// Image Preprocessing for DICOM Print Management
 ///
 /// Phase 3.1 of the DICOM Print Management implementation.
@@ -19,11 +22,11 @@ import Accelerate
 
 // MARK: - Print Color Mode
 
-/// Print color mode for image preparation
-public enum PrintColorMode: String, Sendable {
-    case grayscale = "GRAYSCALE"
-    case color = "COLOR"
-}
+/// Print color mode for image preparation.
+///
+/// The same type as `DICOMNetwork.PrintColorMode`: both are `DICOMCore.PrintColorMode`
+/// (D24), so a `PrintConfiguration` colour mode can be passed straight to the preprocessor.
+public typealias PrintColorMode = DICOMCore.PrintColorMode
 
 // MARK: - Prepared Image
 
@@ -247,18 +250,27 @@ public actor ImagePreprocessor {
         // otherwise a window — provided, or auto-stretched over the frame.
         var normalizedPixels: [Double]
         if let voiLUT {
-            normalizedPixels = pixelValues.map { voiLUT.normalized($0) }
+            // Print keeps the FR-004 used-range tolerance (12-bit tables
+            // declared as 16 bits per entry fill the film); the standard
+            // 0...2^n - 1 output range of PS3.3 C.11.2.1.1 is the default
+            // elsewhere (D53).
+            normalizedPixels = pixelValues.map { voiLUT.normalized($0, normalizeToUsedRange: true) }
         } else {
             let window: WindowSettings
             if let providedWindow = windowSettings {
                 window = providedWindow
             } else {
-                // Auto-calculate from pixel range
+                // Auto-calculate from the frame's modality range: lowest value black,
+                // highest white. For unit-step values this is PS3.3 C.11.2.1.2.1's
+                // full-range window (centre (x1+x2+1)/2, width x2−x1+1), written as the
+                // identical LINEAR_EXACT window so it holds for any rescale; a flat frame
+                // is that window's unit-width threshold (D66).
                 let minVal = pixelValues.min() ?? 0.0
                 let maxVal = pixelValues.max() ?? 1.0
-                let center = (minVal + maxVal) / 2.0
-                let width = maxVal - minVal
-                window = WindowSettings(center: center, width: max(1.0, width))
+                window = maxVal > minVal
+                    ? WindowSettings(center: (minVal + maxVal) / 2.0, width: maxVal - minVal,
+                                     function: .linearExact)
+                    : WindowSettings(center: minVal + 0.5, width: 1)
             }
 
             // Apply window/level transformation
@@ -473,7 +485,7 @@ public actor ImagePreprocessor {
         // Uncompressed YBR sources must be converted to RGB before printing —
         // Basic Color Image Boxes carry RGB (PS3.3 C.13.5). YBR_FULL is
         // full-resolution interleaved; YBR_FULL_422 / YBR_PARTIAL_422 are
-        // packed 2 bytes/pixel (Y1 Y2 Cb Cr per pixel pair, PS3.5 §8.7.4) —
+        // packed 2 bytes/pixel (Y1 Y2 Cb Cr per pixel pair, PS3.3 C.7.6.3.1.2) —
         // `PixelData.frameData(at:)` assumes 3 samples/pixel, so packed frames
         // are sliced manually here. 4:2:0 and the ICT/RCT codestream variants
         // never occur uncompressed and are rejected. (Compressed YBR sources
@@ -602,7 +614,13 @@ public actor ImagePreprocessor {
                 }
                 index = Int(UInt16(frameData[offset]) | (UInt16(frameData[offset + 1]) << 8))
             } else {
-                throw ImagePreprocessingError.unsupportedBitsAllocated(descriptor.bitsAllocated)
+                // A wider Pixel Cell (Bits Allocated 32) is read whole, least significant
+                // byte first (PS3.5 8.1.1, 8.2; D67).
+                let offset = i * bytesPerSample
+                guard offset + bytesPerSample <= frameData.count else {
+                    throw ImagePreprocessingError.insufficientPixelData
+                }
+                index = frameData.withUnsafeBytes { descriptor.cellValue(in: $0, at: offset) }
             }
             let (r, g, b) = lut.lookup(index)
             rgbBytes.append(r)
@@ -684,7 +702,9 @@ public actor ImagePreprocessor {
                 let byte2 = UInt16(frameData[offset + 1])
                 rawValue = Int((byte2 << 8) | byte1)
             } else {
-                throw ImagePreprocessingError.unsupportedBitsAllocated(descriptor.bitsAllocated)
+                // A wider Pixel Cell (Bits Allocated 32) is read whole, least significant
+                // byte first (PS3.5 8.1.1, 8.2; D67).
+                rawValue = frameData.withUnsafeBytes { descriptor.cellValue(in: $0, at: offset) }
             }
             
             // Apply bit shift and mask

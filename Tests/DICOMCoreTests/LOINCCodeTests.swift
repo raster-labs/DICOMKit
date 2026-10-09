@@ -172,3 +172,22 @@ struct LOINCCodeTests {
         #expect(set.count == 1)
     }
 }
+
+// MARK: - Meanings cross-checked with PS3.16 2026a
+
+@Suite("LOINCCode meanings vs PS3.16 2026a")
+struct LOINCCodePS316Tests {
+    @Test("Codes that PS3.16 uses carry the LOINC concept PS3.16 names", arguments: [
+        (LOINCCode.radiologyReport, "18748-4", "Diagnostic imaging study"),
+        (LOINCCode.technique, "55111-9", "Current imaging procedure descriptions"),
+        (LOINCCode.mriReport, "24590-2", "MR Brain"),
+        (LOINCCode.ultrasoundReport, "18750-0", "Cardiac electrophysiology study"),
+        (LOINCCode.impression, "19005-8", "Impression"),
+        (LOINCCode.recommendation, "18783-1", "Recommendation"),
+    ])
+    func testMeaning(entry: (LOINCCode, String, String)) {
+        let (code, number, name) = entry
+        #expect(code.loincNum == number)
+        #expect(code.longCommonName == name)
+    }
+}

@@ -91,7 +91,39 @@ final class SecondaryCaptureTests: XCTestCase {
         XCTAssertEqual(ConversionType.workstation.rawValue, "WSD")
         XCTAssertEqual(ConversionType.scannedDocument.rawValue, "SD")
         XCTAssertEqual(ConversionType.scannedImage.rawValue, "SI")
+        XCTAssertEqual(ConversionType.drawing.rawValue, "DRW")
         XCTAssertEqual(ConversionType.synthesized.rawValue, "SYN")
+    }
+
+    /// PS3.3 2026a Table C.8-24, Conversion Type (0008,0064) Defined Terms.
+    func test_conversionType_definedTerms_matchTableC8_24() {
+        XCTAssertEqual(ConversionType.definedTerms, ["DV", "DI", "DF", "WSD", "SD", "SI", "DRW", "SYN"])
+        XCTAssertEqual(ConversionType.allCases.map(\.rawValue), ConversionType.definedTerms)
+        for term in ConversionType.definedTerms {
+            let parsed = ConversionType(definedTerm: term)
+            XCTAssertEqual(parsed?.rawValue, term)
+            XCTAssertEqual(parsed?.standardTerm, term)
+            XCTAssertEqual(parsed?.isDefinedTerm, true)
+        }
+        XCTAssertNil(ConversionType(definedTerm: ""))
+        XCTAssertNil(ConversionType(definedTerm: "BOGUS"))
+    }
+
+    /// Conversion Type is Type 1: the deprecated empty case is never written; it maps to WSD.
+    @available(*, deprecated)
+    func test_conversionType_unknown_isNotWritten_mapsToWSD() throws {
+        XCTAssertEqual(ConversionType.unknown.rawValue, "")
+        XCTAssertEqual(ConversionType.unknown.standardTerm, "WSD")
+        XCTAssertFalse(ConversionType.unknown.isDefinedTerm)
+        XCTAssertFalse(ConversionType.allCases.contains(.unknown))
+
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .singleFrame, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setConversionType(.unknown)
+        .buildDataSet()
+        XCTAssertEqual(dataSet.string(for: .conversionType), "WSD")
     }
 
     func test_conversionType_fromDICOMValue() {
@@ -101,8 +133,12 @@ final class SecondaryCaptureTests: XCTestCase {
         XCTAssertEqual(ConversionType(dicomValue: "WSD"), .workstation)
         XCTAssertEqual(ConversionType(dicomValue: "SD"), .scannedDocument)
         XCTAssertEqual(ConversionType(dicomValue: "SI"), .scannedImage)
+        XCTAssertEqual(ConversionType(dicomValue: "DRW"), .drawing)
         XCTAssertEqual(ConversionType(dicomValue: "SYN"), .synthesized)
-        XCTAssertEqual(ConversionType(dicomValue: "UNKNOWN"), .unknown)
+        // Parser tolerance: a value outside Table C.8-24 is kept as a non-term.
+        XCTAssertFalse(ConversionType(dicomValue: "UNKNOWN").isDefinedTerm)
+        XCTAssertFalse(ConversionType(dicomValue: "").isDefinedTerm)
+        XCTAssertEqual(ConversionType(dicomValue: "UNKNOWN").standardTerm, "WSD")
     }
 
     func test_conversionType_fromDICOMValue_withWhitespace() {
@@ -117,8 +153,9 @@ final class SecondaryCaptureTests: XCTestCase {
         XCTAssertEqual(ConversionType.workstation.displayName, "Workstation")
         XCTAssertEqual(ConversionType.scannedDocument.displayName, "Scanned Document")
         XCTAssertEqual(ConversionType.scannedImage.displayName, "Scanned Image")
-        XCTAssertEqual(ConversionType.synthesized.displayName, "Synthesized Image")
-        XCTAssertEqual(ConversionType.unknown.displayName, "Unknown")
+        XCTAssertEqual(ConversionType.drawing.displayName, "Drawing")
+        XCTAssertEqual(ConversionType.synthesized.displayName, "Synthetic Image")
+        XCTAssertEqual(ConversionType(dicomValue: "BOGUS").displayName, "Unknown")
     }
 
     // MARK: - SOP Class UID Constants
@@ -721,5 +758,255 @@ final class SecondaryCaptureTests: XCTestCase {
     func test_secondaryCaptureTag_pageNumberVector() {
         XCTAssertEqual(Tag.pageNumberVector.group, 0x0018)
         XCTAssertEqual(Tag.pageNumberVector.element, 0x2001)
+    }
+
+    // MARK: - IOD completeness (PS3.3 2026a Tables A.8-1 … A.8-5)
+
+    /// Type 1 attributes of the mandatory modules shared by every SC IOD:
+    /// SOP Common (C.12-1), General Study (C.7-3), General Series (C.7-5a),
+    /// SC Equipment (C.8-24), Image Pixel (C.7-11a).
+    private let commonType1: [Tag] = [
+        .sopClassUID, .sopInstanceUID, .studyInstanceUID, .modality, .seriesInstanceUID,
+        .conversionType, .samplesPerPixel, .photometricInterpretation, .rows, .columns,
+        .bitsAllocated, .bitsStored, .highBit, .pixelRepresentation,
+    ]
+
+    /// Type 2 attributes: Patient (C.7-1), General Study (C.7-3), General Series
+    /// (C.7-5a), General Image (C.7-9, Patient Orientation 2C always required for SC).
+    private let commonType2: [Tag] = [
+        .patientName, .patientID, .patientBirthDate, .patientSex,
+        .studyDate, .studyTime, .referringPhysicianName, .studyID, .accessionNumber,
+        .seriesNumber, .instanceNumber, .patientOrientation,
+    ]
+
+    private func assertType1Present(_ dataSet: DataSet, _ tags: [Tag], file: StaticString = #filePath, line: UInt = #line) {
+        for tag in tags {
+            guard let element = dataSet[tag] else {
+                XCTFail("Type 1 \(tag) missing", file: file, line: line); continue
+            }
+            XCTAssertFalse(element.valueData.isEmpty, "Type 1 \(tag) is empty", file: file, line: line)
+            if let text = element.stringValue {
+                XCTAssertFalse(text.isEmpty, "Type 1 \(tag) is empty", file: file, line: line)
+            }
+        }
+    }
+
+    private func assertType2Present(_ dataSet: DataSet, _ tags: [Tag], file: StaticString = #filePath, line: UInt = #line) {
+        for tag in tags {
+            XCTAssertNotNil(dataSet[tag], "Type 2 \(tag) missing", file: file, line: line)
+        }
+    }
+
+    private func frameIncrementTarget(_ dataSet: DataSet) -> Tag? {
+        guard let element = dataSet[.frameIncrementPointer], element.vr == .AT, element.valueData.count == 4 else { return nil }
+        let bytes = [UInt8](element.valueData)
+        return Tag(group: UInt16(bytes[0]) | UInt16(bytes[1]) << 8, element: UInt16(bytes[2]) | UInt16(bytes[3]) << 8)
+    }
+
+    func test_iod_singleFrame_type1AndType2Complete() throws {
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .singleFrame, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setPixelData(Data(repeating: 1, count: 16))
+        .buildDataSet()
+
+        assertType1Present(dataSet, commonType1 + [.pixelData])
+        assertType2Present(dataSet, commonType2)
+        XCTAssertEqual(dataSet.string(for: .conversionType), "WSD", "default Conversion Type")
+        XCTAssertEqual(dataSet.string(for: .modality), "OT")
+        XCTAssertEqual(dataSet.string(for: .patientName), "")
+        XCTAssertEqual(dataSet.string(for: .patientOrientation), "")
+        // The single-frame IOD (Table A.8-1) has no Multi-frame / SC Multi-frame modules.
+        XCTAssertNil(dataSet[.numberOfFrames])
+        XCTAssertNil(dataSet[.frameIncrementPointer])
+        XCTAssertNil(dataSet[.presentationLUTShape])
+        XCTAssertNil(dataSet[.burnedInAnnotation], "Burned In Annotation is Type 3 in Table C.7-9")
+        XCTAssertNil(dataSet[.planarConfiguration], "Planar Configuration only when Samples per Pixel > 1")
+        XCTAssertEqual(dataSet[.conversionType]?.vr, .CS)
+        XCTAssertEqual(dataSet[.patientBirthDate]?.vr, .DA)
+        XCTAssertEqual(dataSet[.patientSex]?.vr, .CS)
+        XCTAssertEqual(dataSet[.referringPhysicianName]?.vr, .PN)
+        XCTAssertEqual(dataSet[.studyID]?.vr, .SH)
+        XCTAssertEqual(dataSet[.accessionNumber]?.vr, .SH)
+        XCTAssertEqual(dataSet[.seriesNumber]?.vr, .IS)
+        XCTAssertEqual(dataSet[.patientOrientation]?.vr, .CS)
+    }
+
+    func test_iod_singleFrame_type2ValuesRoundTrip() throws {
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .singleFrame, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setPatientBirthDate(DICOMDate(year: 1980, month: 2, day: 29))
+        .setPatientSex("F")
+        .setStudyDateTime(date: DICOMDate(year: 2026, month: 9, day: 29), time: DICOMTime(hour: 10, minute: 5, second: 0))
+        .setReferringPhysicianName("Ref^Doc")
+        .setStudyID("S1")
+        .setAccessionNumber("ACC1")
+        .setSeriesNumber(7)
+        .setInstanceNumber(3)
+        .setPatientOrientation(row: "L", column: "P")
+        .setStudyDescription("Desc")
+        .buildDataSet()
+
+        XCTAssertEqual(dataSet.string(for: .patientBirthDate), "19800229")
+        XCTAssertEqual(dataSet.string(for: .patientSex), "F")
+        XCTAssertEqual(dataSet.string(for: .studyDate), "20260929")
+        XCTAssertEqual(dataSet.string(for: .studyTime), "100500")
+        XCTAssertEqual(dataSet.string(for: .referringPhysicianName), "Ref^Doc")
+        XCTAssertEqual(dataSet.string(for: .studyID), "S1")
+        XCTAssertEqual(dataSet.string(for: .accessionNumber), "ACC1")
+        XCTAssertEqual(dataSet.string(for: .seriesNumber), "7")
+        XCTAssertEqual(dataSet.string(for: .instanceNumber), "3")
+        XCTAssertEqual(dataSet.strings(for: .patientOrientation), ["L", "P"])
+        XCTAssertEqual(dataSet.string(for: .studyDescription), "Desc")
+
+        let parsed = try SecondaryCaptureParser.parse(from: dataSet)
+        XCTAssertEqual(parsed.patientBirthDate?.dicomString, "19800229")
+        XCTAssertEqual(parsed.patientSex, "F")
+        XCTAssertEqual(parsed.studyDate?.dicomString, "20260929")
+        XCTAssertEqual(parsed.referringPhysicianName, "Ref^Doc")
+        XCTAssertEqual(parsed.studyID, "S1")
+        XCTAssertEqual(parsed.accessionNumber, "ACC1")
+        XCTAssertEqual(parsed.patientOrientation, ["L", "P"])
+    }
+
+    func test_iod_multiframeGrayscaleByte_type1Complete() throws {
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .multiframeGrayscaleByte, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setNumberOfFrames(3)
+        .setPixelData(Data(repeating: 1, count: 48))
+        .buildDataSet()
+
+        // Table A.8-3: Multi-frame (C.7-14), SC Multi-frame Image (C.8-25b), SC Multi-frame Vector (C.8-25c).
+        assertType1Present(dataSet, commonType1 + [.pixelData, .numberOfFrames, .burnedInAnnotation, .frameIncrementPointer,
+                                                    .presentationLUTShape, .rescaleIntercept, .rescaleSlope, .rescaleType])
+        assertType2Present(dataSet, commonType2)
+        XCTAssertEqual(dataSet.string(for: .numberOfFrames), "3")
+        XCTAssertEqual(dataSet.string(for: .burnedInAnnotation), "NO")
+        XCTAssertEqual(dataSet.string(for: .presentationLUTShape), "IDENTITY")
+        // A.8.3.4: Rescale Intercept 0, Rescale Slope 1, Rescale Type US.
+        XCTAssertEqual(dataSet.string(for: .rescaleIntercept), "0")
+        XCTAssertEqual(dataSet.string(for: .rescaleSlope), "1")
+        XCTAssertEqual(dataSet.string(for: .rescaleType), "US")
+        XCTAssertEqual(dataSet[.rescaleIntercept]?.vr, .DS)
+        XCTAssertEqual(dataSet[.rescaleType]?.vr, .LO)
+        XCTAssertEqual(dataSet[.presentationLUTShape]?.vr, .CS)
+        XCTAssertEqual(dataSet[.frameIncrementPointer]?.vr, .AT)
+        XCTAssertEqual(frameIncrementTarget(dataSet), .pageNumberVector)
+        XCTAssertEqual(dataSet.strings(for: .pageNumberVector), ["1", "2", "3"])
+        XCTAssertNil(dataSet[.planarConfiguration], "A.8.3.4: Planar Configuration shall not be present")
+    }
+
+    func test_iod_multiframeGrayscaleWord_rescaleOverridable() throws {
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .multiframeGrayscaleWord, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setNumberOfFrames(2)
+        .setRescale(intercept: -1024, slope: 0.5, type: "HU")
+        .setFrameTime(40)
+        .setBurnedInAnnotation("YES")
+        .setPixelData(Data(repeating: 1, count: 64))
+        .buildDataSet()
+
+        assertType1Present(dataSet, commonType1 + [.numberOfFrames, .burnedInAnnotation, .frameIncrementPointer,
+                                                    .presentationLUTShape, .rescaleIntercept, .rescaleSlope, .rescaleType])
+        XCTAssertEqual(dataSet.string(for: .rescaleIntercept), "-1024")
+        XCTAssertEqual(dataSet.string(for: .rescaleSlope), "0.5")
+        XCTAssertEqual(dataSet.string(for: .rescaleType), "HU")
+        XCTAssertEqual(dataSet.string(for: .burnedInAnnotation), "YES")
+        XCTAssertEqual(frameIncrementTarget(dataSet), .frameTime)
+        XCTAssertEqual(dataSet.string(for: .frameTime), "40")
+        XCTAssertNil(dataSet[.pageNumberVector])
+
+        let parsed = try SecondaryCaptureParser.parse(from: dataSet)
+        XCTAssertEqual(parsed.frameTime, 40)
+        XCTAssertEqual(parsed.rescaleIntercept, -1024)
+        XCTAssertEqual(parsed.rescaleSlope, 0.5)
+        XCTAssertEqual(parsed.rescaleType, "HU")
+    }
+
+    func test_iod_multiframeSingleBit_noPresentationLUTShape() throws {
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .multiframeSingleBit, rows: 8, columns: 8,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setNumberOfFrames(2)
+        .setPageNumberVector([1, 2])
+        .setPixelData(Data(repeating: 0xAA, count: 16))
+        .buildDataSet()
+
+        assertType1Present(dataSet, commonType1 + [.numberOfFrames, .burnedInAnnotation, .frameIncrementPointer])
+        assertType2Present(dataSet, commonType2)
+        // Table C.8-25b: the 1C condition (MONOCHROME2 and Bits Stored > 1) fails for 1 bit.
+        XCTAssertNil(dataSet[.presentationLUTShape])
+        XCTAssertNil(dataSet[.rescaleIntercept])
+        XCTAssertNil(dataSet[.rescaleSlope])
+        XCTAssertNil(dataSet[.rescaleType])
+        XCTAssertNil(dataSet[.planarConfiguration])
+        XCTAssertEqual(dataSet[.bitsAllocated]?.uint16Value, 1)
+        XCTAssertEqual(frameIncrementTarget(dataSet), .pageNumberVector)
+    }
+
+    func test_iod_multiframeTrueColor_noGrayscaleAttributes_planarConfiguration0() throws {
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .multiframeTrueColor, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setNumberOfFrames(2)
+        .setFrameLabelVector(["a", "b"])
+        .setPixelData(Data(repeating: 1, count: 96))
+        .buildDataSet()
+
+        assertType1Present(dataSet, commonType1 + [.numberOfFrames, .burnedInAnnotation, .frameIncrementPointer, .planarConfiguration])
+        assertType2Present(dataSet, commonType2)
+        XCTAssertNil(dataSet[.presentationLUTShape])
+        XCTAssertNil(dataSet[.rescaleIntercept])
+        XCTAssertEqual(dataSet[.planarConfiguration]?.uint16Value, 0, "A.8.5.4: 0 (color-by-pixel) for RGB")
+        XCTAssertEqual(frameIncrementTarget(dataSet), .frameLabelVector)
+        XCTAssertEqual(dataSet.strings(for: .frameLabelVector), ["a", "b"])
+        XCTAssertEqual(dataSet[.frameLabelVector]?.vr, .SH)
+    }
+
+    func test_iod_multiframe_singleFrame_noFrameIncrementPointerRequired() throws {
+        // Table C.8-25b specializes Frame Increment Pointer to "present if Number of Frames > 1".
+        let dataSet = try SecondaryCaptureBuilder(
+            secondaryCaptureType: .multiframeGrayscaleByte, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .buildDataSet()
+        XCTAssertEqual(dataSet.string(for: .numberOfFrames), "1")
+        XCTAssertNil(dataSet[.frameIncrementPointer])
+        XCTAssertNotNil(dataSet[.burnedInAnnotation])
+    }
+
+    func test_iod_multiframe_digitizedFilm_requiresNominalScannedPixelSpacing() throws {
+        let builder = SecondaryCaptureBuilder(
+            secondaryCaptureType: .multiframeGrayscaleByte, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setConversionType(.digitizedFilm)
+        XCTAssertThrowsError(try builder.build()) { error in
+            XCTAssertTrue("\(error)".contains("Nominal Scanned Pixel Spacing"))
+        }
+
+        let dataSet = try builder.setNominalScannedPixelSpacing(row: 0.1, column: 0.2).buildDataSet()
+        XCTAssertEqual(dataSet.string(for: .conversionType), "DF")
+        XCTAssertEqual(dataSet.strings(for: .nominalScannedPixelSpacing), ["0.1", "0.2"])
+        XCTAssertEqual(dataSet[.nominalScannedPixelSpacing]?.vr, .DS)
+        XCTAssertEqual(try SecondaryCaptureParser.parse(from: dataSet).nominalScannedPixelSpacing, [0.1, 0.2])
+    }
+
+    func test_iod_burnedInAnnotation_enumeratedValuesOnly() {
+        let builder = SecondaryCaptureBuilder(
+            secondaryCaptureType: .singleFrame, rows: 4, columns: 4,
+            studyInstanceUID: "1.2.3.4.5", seriesInstanceUID: "1.2.3.4.5.6"
+        )
+        .setBurnedInAnnotation("MAYBE")
+        XCTAssertThrowsError(try builder.build())
     }
 }

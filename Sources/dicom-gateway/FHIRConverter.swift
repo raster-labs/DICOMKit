@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — DICOM side only: PN, DA, TM, Patient's Sex (M/F/O, PS3.3 2026a Table C.7-1) and UID checks via DICOMValueMapping; the ImagingStudy.modality system URI equals the FHIR column for DCM in PS3.16 2026a Table 8-1; Modality values are DICOMCore.Modality (PS3.3 C.7.3.1.1.1); the 3 Tag literals match PS3.6 Table 6-1; FHIR resources themselves are not NEMA (plumbing)
 import Foundation
 import DICOMKit
 import DICOMCore
@@ -110,14 +111,7 @@ class FHIRConverter {
         
         // Patient Name
         if let patientName = extractString(from: dicomFile, tag: .patientName) {
-            let nameComponents = parseDICOMName(patientName)
-            resource["name"] = [
-                [
-                    "use": "official",
-                    "family": nameComponents.family,
-                    "given": nameComponents.given
-                ]
-            ]
+            resource["name"] = [fhirHumanName(fromDICOM: patientName)]
         }
         
         // Birth Date
@@ -140,14 +134,7 @@ class FHIRConverter {
         
         // Referring Physician
         if let referringPhysician = extractString(from: dicomFile, tag: .referringPhysicianName) {
-            let nameComponents = parseDICOMName(referringPhysician)
-            resource["name"] = [
-                [
-                    "use": "official",
-                    "family": nameComponents.family,
-                    "given": nameComponents.given
-                ]
-            ]
+            resource["name"] = [fhirHumanName(fromDICOM: referringPhysician)]
         }
         
         return resource
@@ -213,18 +200,19 @@ class FHIRConverter {
         if let identifiers = fhir["identifier"] as? [[String: Any]],
            let firstIdentifier = identifiers.first,
            let value = firstIdentifier["value"] as? String {
-            // Remove "urn:oid:" prefix if present
+            // Remove "urn:oid:" prefix if present; used only when it is a UID (PS3.5 9.1)
             let uid = value.replacingOccurrences(of: "urn:oid:", with: "")
-            try setElement(&dicomFile, tag: .studyInstanceUID, value: uid, vr: .UI)
+            if DICOMValueMapping.isValidUID(uid) {
+                try setElement(&dicomFile, tag: .studyInstanceUID, value: uid, vr: .UI)
+            }
         }
         
         // Study Date/Time
         if let started = fhir["started"] as? String {
-            let (date, time) = parseFHIRDateTime(started)
-            if !date.isEmpty {
+            if let date = DICOMValueMapping.date(fromFHIR: started) {
                 try setElement(&dicomFile, tag: .studyDate, value: date, vr: .DA)
             }
-            if !time.isEmpty {
+            if let time = DICOMValueMapping.time(fromFHIR: started) {
                 try setElement(&dicomFile, tag: .studyTime, value: time, vr: .TM)
             }
         }
@@ -238,7 +226,11 @@ class FHIRConverter {
         if let modalities = fhir["modality"] as? [[String: Any]],
            let firstModality = modalities.first,
            let code = firstModality["code"] as? String {
-            try setElement(&dicomFile, tag: .modality, value: code, vr: .CS)
+            // Same normalization as the HL7 path: FHIR is an external source,
+            // so resolve aliases and canonicalize to CS form, keeping an
+            // unrecognized code rather than dropping it.
+            let modality = Modality.normalized(code) ?? Modality(unchecked: code)
+            try setElement(&dicomFile, tag: .modality, value: modality.rawValue, vr: .CS)
         }
     }
     
@@ -253,19 +245,25 @@ class FHIRConverter {
            let firstName = names.first {
             let family = firstName["family"] as? String ?? ""
             let given = firstName["given"] as? [String] ?? []
-            let dicomName = formatDICOMName(family: family, given: given)
+            let dicomName = DICOMValueMapping.personName(
+                fhirFamily: family,
+                given: given,
+                prefix: firstName["prefix"] as? [String] ?? [],
+                suffix: firstName["suffix"] as? [String] ?? []
+            )
             try setElement(&dicomFile, tag: .patientName, value: dicomName, vr: .PN)
         }
         
         // Birth Date
         if let birthDate = fhir["birthDate"] as? String {
-            let dicomDate = birthDate.replacingOccurrences(of: "-", with: "")
+            // DA is YYYYMMDD only; a partial FHIR date gives the empty (Type 2) value
+            let dicomDate = DICOMValueMapping.date(fromFHIR: birthDate) ?? ""
             try setElement(&dicomFile, tag: .patientBirthDate, value: dicomDate, vr: .DA)
         }
         
         // Gender
         if let gender = fhir["gender"] as? String {
-            try setElement(&dicomFile, tag: .patientSex, value: mapFHIRGenderToDICOM(gender), vr: .CS)
+            try setElement(&dicomFile, tag: .patientSex, value: DICOMValueMapping.patientSex(fromFHIR: gender), vr: .CS)
         }
     }
     
@@ -282,41 +280,33 @@ class FHIRConverter {
     }
     
     private func createBasicDICOMFile() throws -> DICOMFile {
-        var dataset = DataSet()
-        var fileMetaInformation = DataSet()
-        
+        // A minimal Secondary Capture Image Storage data set; UIDs and File Meta Information
+        // under DICOMKit's own root (UIDGenerator, DICOMFile.create — PS3.5 9.1).
         let sopClassUID = "1.2.840.10008.5.1.4.1.1.7" // Secondary Capture Image Storage
-        let sopInstanceUID = generateUID()
+        let sopInstanceUID = UIDGenerator.generateSOPInstanceUID().value
         
-        // File Meta Information
-        fileMetaInformation.setString("1.2.840.10008.1.2.1", for: .transferSyntaxUID, vr: .UI)
-        fileMetaInformation.setString(sopClassUID, for: .mediaStorageSOPClassUID, vr: .UI)
-        fileMetaInformation.setString(sopInstanceUID, for: .mediaStorageSOPInstanceUID, vr: .UI)
-        fileMetaInformation.setString("1.2.826.0.1.3680043.10.1078", for: .implementationClassUID, vr: .UI)
-        fileMetaInformation.setString("DICOMKit_1.0", for: .implementationVersionName, vr: .SH)
-        
-        // Main dataset
+        var dataset = DataSet()
         dataset.setString(sopClassUID, for: .sopClassUID, vr: .UI)
         dataset.setString(sopInstanceUID, for: .sopInstanceUID, vr: .UI)
-        dataset.setString(generateUID(), for: .studyInstanceUID, vr: .UI)
-        dataset.setString(generateUID(), for: .seriesInstanceUID, vr: .UI)
-        dataset.setString("OT", for: .modality, vr: .CS)
+        dataset.setString(UIDGenerator.generateStudyInstanceUID().value, for: .studyInstanceUID, vr: .UI)
+        dataset.setString(UIDGenerator.generateSeriesInstanceUID().value, for: .seriesInstanceUID, vr: .UI)
+        dataset.setString(Modality.ot.rawValue, for: .modality, vr: .CS)
         
-        return DICOMFile(fileMetaInformation: fileMetaInformation, dataSet: dataset)
+        return DICOMFile.create(dataSet: dataset, sopClassUID: sopClassUID, sopInstanceUID: sopInstanceUID)
     }
     
-    private func parseDICOMName(_ name: String) -> (family: String, given: [String]) {
-        let components = name.split(separator: "^")
-        let family = components.first.map(String.init) ?? ""
-        let given = components.count > 1 ? [String(components[1])] : []
-        return (family, given)
-    }
-    
-    private func formatDICOMName(family: String, given: [String]) -> String {
-        if given.isEmpty {
-            return family
-        }
-        return "\(family)^\(given.joined(separator: " "))"
+    /// DICOM PN (first component group) to a FHIR HumanName: given and middle name
+    /// components become the `given` list; prefix and suffix are carried.
+    private func fhirHumanName(fromDICOM value: String) -> [String: Any] {
+        let pn = DICOMValueMapping.personName(fromDICOM: value)
+        var name: [String: Any] = [
+            "use": "official",
+            "family": pn.family,
+            "given": [pn.given, pn.middle].filter { !$0.isEmpty }
+        ]
+        if !pn.prefix.isEmpty { name["prefix"] = [pn.prefix] }
+        if !pn.suffix.isEmpty { name["suffix"] = [pn.suffix] }
+        return name
     }
     
     private func formatFHIRDateTime(date: String, time: String) -> String {
@@ -349,23 +339,6 @@ class FHIRConverter {
         return "\(year)-\(month)-\(day)"
     }
     
-    private func parseFHIRDateTime(_ dateTime: String) -> (date: String, time: String) {
-        // FHIR: YYYY-MM-DDTHH:MM:SS -> DICOM: YYYYMMDD + HHMMSS
-        let components = dateTime.split(separator: "T")
-        
-        var date = ""
-        if !components.isEmpty {
-            date = String(components[0]).replacingOccurrences(of: "-", with: "")
-        }
-        
-        var time = ""
-        if components.count > 1 {
-            time = String(components[1]).replacingOccurrences(of: ":", with: "")
-        }
-        
-        return (date, time)
-    }
-    
     private func mapDICOMSexToFHIR(_ sex: String) -> String {
         switch sex.uppercased() {
         case "M": return "male"
@@ -375,21 +348,6 @@ class FHIRConverter {
         }
     }
     
-    private func mapFHIRGenderToDICOM(_ gender: String) -> String {
-        switch gender.lowercased() {
-        case "male": return "M"
-        case "female": return "F"
-        case "other": return "O"
-        default: return ""
-        }
-    }
-    
-    private func generateUID() -> String {
-        let prefix = "1.2.826.0.1.3680043.10"
-        let timestamp = Date().timeIntervalSince1970
-        let random = UInt32.random(in: 0...999999)
-        return "\(prefix).\(Int(timestamp)).\(random)"
-    }
 }
 
 // MARK: - Additional DICOM Tags (not in standard extensions)

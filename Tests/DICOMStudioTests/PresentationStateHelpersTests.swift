@@ -35,6 +35,41 @@ struct PresentationStateVOITests {
         #expect(result == 0.0)
     }
 
+    /// PS3.3 2026a C.11.2.1.2.1 pseudo-code, ymin 0, ymax 1: the thresholds are
+    /// c − 0.5 ∓ (w − 1)/2, so for c 50.5, w 100 they sit at 0.5 and 99.5; the
+    /// ramp (x − 50)/99 + 0.5 meets 0 and 1 exactly there ("without any
+    /// discontinuity at the boundaries") and never exceeds 1. The old upper
+    /// threshold, c + w/2 = 100.5, let x = 100 reach 100/99.
+    @Test("Linear VOI thresholds are c − 0.5 ∓ (w − 1)/2 (PS3.3 C.11.2.1.2.1)")
+    func testLinearThresholdsPerStandard() {
+        func y(_ x: Double) -> Double {
+            PresentationStateHelpers.applyLinearVOI(pixelValue: x, center: 50.5, width: 100)
+        }
+        #expect(y(0) == 0.0)                       // x <= 0.5 → ymin
+        #expect(y(0.5) == 0.0)
+        #expect(abs(y(1) - 1.0 / 198.0) < 1e-12)   // (1 − 50)/99 + 0.5
+        #expect(abs(y(99.5) - 1.0) < 1e-12)        // the ramp meets ymax at the threshold
+        #expect(y(99) < 1.0)
+        #expect(y(100) == 1.0)                     // x > 99.5 → ymax (was 100/99)
+        #expect(y(101) == 1.0)
+        // The standard's worked example: c=2048, w=4096 → x <= 0 is 0, x > 4095 is 1.
+        #expect(PresentationStateHelpers.applyLinearVOI(pixelValue: 0, center: 2048, width: 4096) == 0.0)
+        #expect(PresentationStateHelpers.applyLinearVOI(pixelValue: 4096, center: 2048, width: 4096) == 1.0)
+        #expect(PresentationStateHelpers.applyLinearVOI(pixelValue: 4095, center: 2048, width: 4096) == 1.0)
+        let mid = PresentationStateHelpers.applyLinearVOI(pixelValue: 2047.5, center: 2048, width: 4096)
+        #expect(abs(mid - 0.5) < 1e-12)
+    }
+
+    /// "When Window Width (0028,1051) is equal to 1, they specify a threshold
+    /// below which input values will be displayed as the minimum output value"
+    /// — c=2048, w=1: x <= 2047.5 is 0, x > 2047.5 is 1, no division by zero.
+    @Test("Linear VOI with width 1 is a threshold at c − 0.5 (PS3.3 C.11.2.1.2.1)")
+    func testLinearWidthOneIsThreshold() {
+        #expect(PresentationStateHelpers.applyLinearVOI(pixelValue: 2047.5, center: 2048, width: 1) == 0.0)
+        #expect(PresentationStateHelpers.applyLinearVOI(pixelValue: 2047.6, center: 2048, width: 1) == 1.0)
+        #expect(PresentationStateHelpers.applyLinearVOI(pixelValue: 2048, center: 2048, width: 1) == 1.0)
+    }
+
     @Test("Sigmoid VOI - at center")
     func testSigmoidCenter() {
         let result = PresentationStateHelpers.applySigmoidVOI(pixelValue: 128, center: 128, width: 256)
@@ -168,6 +203,30 @@ struct PresentationStateSpatialTests {
         )
         #expect(result.x == 412) // 512 - 100
         #expect(result.y == 200)
+    }
+
+    /// PS3.3 2026a Table C.10-6: Image Rotation turns the image clockwise
+    /// "before any Image Horizontal Flip (0070,0041) is applied", and the flip
+    /// mirrors the rotated image "such that the left side of the image becomes
+    /// the right side". On a 512 × 256 image, (100, 200) turned 90° clockwise is
+    /// (256 − 200, 100) = (56, 100) in a 256-wide image; flipped: (200, 100).
+    /// Flipping first and turning after gave (56, 412).
+    @Test("Rotation is applied before the horizontal flip (PS3.3 Table C.10-6)")
+    func testRotateThenFlipOrder() {
+        let point = AnnotationPoint(x: 100, y: 200)
+        let rotated = PresentationStateHelpers.transformPoint(
+            point, transformation: .rotate90, imageWidth: 512, imageHeight: 256)
+        #expect(rotated.x == 56)
+        #expect(rotated.y == 100)
+        let rotatedFlipped = PresentationStateHelpers.transformPoint(
+            point, transformation: .rotate90FlipH, imageWidth: 512, imageHeight: 256)
+        #expect(rotatedFlipped.x == 200)
+        #expect(rotatedFlipped.y == 100)
+        let rotated270Flipped = PresentationStateHelpers.transformPoint(
+            point, transformation: .rotate270FlipH, imageWidth: 512, imageHeight: 256)
+        // 270° clockwise: (y, W − x) = (200, 412); flipped about the 256 width: (56, 412).
+        #expect(rotated270Flipped.x == 56)
+        #expect(rotated270Flipped.y == 412)
     }
 }
 

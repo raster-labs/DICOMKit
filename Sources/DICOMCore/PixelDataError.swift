@@ -2,6 +2,13 @@
 ///
 /// Provides detailed information about why pixel data extraction failed,
 /// allowing applications to provide meaningful feedback to users.
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the file holds no standard data of its own.
+/// Transfer syntax names shown to users come from `TransferSyntax.displayName`, and the
+/// list of decodable syntaxes from `CodecRegistry`, so neither is duplicated here. The
+/// doc comment that used to list JPEG-LS, JPEG 2000 Part 2 and HTJ2K as "common
+/// unsupported" syntaxes was stale: the module has codecs for them. C1 classification
+/// confirmed.
 public enum PixelDataError: Error, Sendable {
     /// Required pixel data descriptor attributes are missing
     ///
@@ -41,15 +48,13 @@ public enum PixelDataError: Error, Sendable {
     
     /// The transfer syntax is not supported for decoding
     ///
-    /// The DICOM file uses a compressed transfer syntax that DICOMKit
-    /// does not have a codec for. The associated value contains the
-    /// unsupported transfer syntax UID.
+    /// The DICOM file uses a compressed transfer syntax that this build of
+    /// DICOMKit has no decoder for. The associated value contains the
+    /// transfer syntax UID.
     ///
-    /// Common unsupported transfer syntaxes include:
-    /// - JPEG-LS Lossless (1.2.840.10008.1.2.4.80)
-    /// - JPEG-LS Near-Lossless (1.2.840.10008.1.2.4.81)
-    /// - JPEG 2000 Part 2 (1.2.840.10008.1.2.4.92, 1.2.840.10008.1.2.4.93)
-    /// - HTJPEG 2000 (1.2.840.10008.1.2.4.201, 1.2.840.10008.1.2.4.202)
+    /// Which syntaxes can be decoded depends on the build and platform; the
+    /// authoritative list is `CodecRegistry.shared.supportedTransferSyntaxes`,
+    /// and `transferSyntaxName` gives the PS3.6 name of the offending UID.
     case unsupportedTransferSyntax(String)
     
     /// Failed to extract frame data from encapsulated pixel data
@@ -132,9 +137,16 @@ extension PixelDataError {
             return "The DICOM file has compressed pixel data but the Transfer Syntax UID is not " +
                    "available in the file metadata. This is required to determine which codec to use."
         case .unsupportedTransferSyntax(let uid):
-            return "The DICOM file uses compressed transfer syntax '\(uid)' which is not currently supported. " +
-                   "Supported compressed formats include JPEG Baseline, JPEG Extended, JPEG Lossless, " +
-                   "JPEG 2000 Lossless/Lossy, and RLE Lossless."
+            let named = transferSyntaxName.map { " (\($0))" } ?? ""
+            let decodable = Set(CodecRegistry.shared.supportedTransferSyntaxes
+                .compactMap { TransferSyntax.from(uid: $0)?.displayName })
+                .sorted()
+                .joined(separator: ", ")
+            let supportedList = decodable.isEmpty
+                ? "This build has no pixel data decoders registered."
+                : "This build can decode: \(decodable)."
+            return "The DICOM file uses compressed transfer syntax '\(uid)'\(named) which is not currently supported. " +
+                   supportedList
         case .frameExtractionFailed(let frameIndex):
             return "Could not extract frame \(frameIndex) from the compressed pixel data structure. " +
                    "The encapsulated pixel data may be malformed or the frame index may be out of bounds."
@@ -148,16 +160,14 @@ extension PixelDataError {
     /// Human-readable name for the unsupported transfer syntax, or nil for an unknown
     /// UID (or a non-`unsupportedTransferSyntax` error).
     ///
-    /// Sourced from the single shared catalog (`TransferSyntax.displayName` /
-    /// `SelectableEncoding`) so error text matches labels used everywhere else. The
-    /// `both`-capable general UIDs (`.91`/`.93`/`.203`) are surfaced in their lossy form,
-    /// consistent with the compression layer.
+    /// The PS3.6 2026a Table A-1 name (`TransferSyntax.displayName`). A UID that may carry
+    /// lossy or lossless data (`.91`/`.93`/`.203`) is named as the standard names it; before
+    /// 2026-10-01 its "Lossy" picker label was shown (D176).
     public var transferSyntaxName: String? {
         guard case .unsupportedTransferSyntax(let uid) = self,
               let syntax = TransferSyntax.from(uid: uid) else {
             return nil
         }
-        guard syntax.losslessCapability == .both else { return syntax.displayName }
-        return SelectableEncoding(transferSyntax: syntax, intent: .lossy).displayName
+        return syntax.displayName
     }
 }

@@ -4,6 +4,8 @@
 /// A coded concept consists of a Code Value, Coding Scheme Designator, and Code Meaning.
 ///
 /// Reference: PS3.3 Section 8.8 - Coded Entry Data
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the triplet, the 16/16/64-character limits (Code Value SH, Coding Scheme Designator SH, Code Meaning LO), Coding Scheme Version, Long Code Value (0008,0119) and URN Code Value (0008,0120) match PS3.3 2026a Table 8.8-1a; the designators in `CodingSchemeDesignator` match PS3.16 2026a Table 8-1 except "HL7" (not registered) and "99PVT" (a private scheme by convention). `ICD10CM` carried "I10", which is WHO ICD-10; it is now "I10C" and `ICD10` was added.
 
 /// Common coding scheme designators used in DICOM
 public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseIterable {
@@ -21,8 +23,10 @@ public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseI
     case RADLEX = "RADLEX"
     /// Unified Code for Units of Measure
     case UCUM = "UCUM"
-    /// ICD-10 Clinical Modification
-    case ICD10CM = "I10"
+    /// ICD-10 (WHO). PS3.16 Table 8-1: I10.
+    case ICD10 = "I10"
+    /// ICD-10 Clinical Modification. PS3.16 Table 8-1: I10C (was wrongly "I10" until 2026-09-25).
+    case ICD10CM = "I10C"
     /// ICD-10 Procedure Coding System
     case ICD10PCS = "I10P"
     /// HL7v2 Tables
@@ -46,6 +50,7 @@ public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseI
         case .FMA: return "Foundational Model of Anatomy"
         case .RADLEX: return "RadLex"
         case .UCUM: return "UCUM"
+        case .ICD10: return "ICD-10"
         case .ICD10CM: return "ICD-10-CM"
         case .ICD10PCS: return "ICD-10-PCS"
         case .HL7: return "HL7v2"

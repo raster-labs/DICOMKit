@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Codec inspector panel view (Phase 8)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — UI layout only; the #Preview's .4.90 literal and its name "JPEG 2000 Image Compression (Lossless Only)" match PS3.6 2026a Table A-1
 
 #if canImport(SwiftUI)
 import SwiftUI

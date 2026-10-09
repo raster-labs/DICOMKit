@@ -30,7 +30,7 @@ final class EncapsulatedDocumentTests: XCTestCase {
     func test_documentType_stl_fromSOPClassUID() {
         let type = EncapsulatedDocumentType(sopClassUID: "1.2.840.10008.5.1.4.1.1.104.3")
         XCTAssertEqual(type, .stl)
-        XCTAssertEqual(type.expectedMIMEType, "application/sla")
+        XCTAssertEqual(type.expectedMIMEType, "model/stl")   // PS3.3 A.85.1 Enumerated Value
     }
 
     func test_documentType_obj_fromSOPClassUID() {
@@ -358,7 +358,7 @@ final class EncapsulatedDocumentTests: XCTestCase {
 
         XCTAssertTrue(doc.isCDA)
         XCTAssertEqual(doc.hl7InstanceIdentifier, "2.16.840.1.113883.19.999.1")
-        XCTAssertEqual(doc.mimeType, "text/xml")
+        XCTAssertEqual(doc.mimeType, "text/XML", "PS3.3 A.45.2.4 Enumerated Value spelling")
     }
 
     func test_builder_generatesUniqueSOPInstanceUID() throws {
@@ -532,7 +532,9 @@ final class EncapsulatedDocumentTests: XCTestCase {
         let parsed = try EncapsulatedDocumentParser.parse(from: dataSet)
 
         XCTAssertEqual(parsed.sopClassUID, EncapsulatedDocument.encapsulatedCDAStorageUID)
-        XCTAssertEqual(parsed.mimeType, "text/xml")
+        // PS3.3 A.45.2.4: the Enumerated Value is spelled "text/XML"; the builder
+        // normalises the case-insensitive MIME type to it.
+        XCTAssertEqual(parsed.mimeType, "text/XML")
         XCTAssertEqual(parsed.hl7InstanceIdentifier, "2.16.840.1.113883.19.999.1")
         XCTAssertTrue(parsed.isCDA)
     }
@@ -610,6 +612,150 @@ final class EncapsulatedDocumentTests: XCTestCase {
         XCTAssertEqual(dataSet.string(for: .sopClassUID), EncapsulatedDocument.encapsulatedPDFStorageUID)
         XCTAssertEqual(dataSet.string(for: .mimeTypeOfEncapsulatedDocument), "application/pdf")
         XCTAssertEqual(dataSet.string(for: .documentTitle), "Direct DataSet Test")
+    }
+
+
+    // MARK: - IOD completeness (P-ENCAP): Type 1 / Type 2 of Tables A.45.1-1, A.85.1-1
+
+    private func pdfDataSet(_ configure: (EncapsulatedDocumentBuilder) -> Void = { _ in }) throws -> DataSet {
+        let builder = EncapsulatedDocumentBuilder(
+            documentData: makeSamplePDFData(),
+            mimeType: "application/pdf",
+            documentType: .pdf,
+            studyInstanceUID: "1.2.3",
+            seriesInstanceUID: "1.2.3.4")
+        configure(builder)
+        return try builder.buildDataSet()
+    }
+
+    private func assertPresent(_ ds: DataSet, _ tag: Tag, _ name: String, nonEmpty: Bool, file: StaticString = #filePath, line: UInt = #line) {
+        guard let element = ds[tag] else {
+            XCTFail("\(name) \(tag) must be present", file: file, line: line); return
+        }
+        if nonEmpty {
+            let empty = element.sequenceItems?.isEmpty ?? (element.length == 0)
+            XCTAssertFalse(empty, "\(name) \(tag) is Type 1 and must not be empty", file: file, line: line)
+        }
+    }
+
+    func test_buildDataSet_pdf_writesEveryType1AndType2Attribute() throws {
+        let ds = try pdfDataSet()
+        // Table C.7-1 Patient (Type 2)
+        for (tag, name) in [(Tag.patientName, "Patient's Name"), (.patientID, "Patient ID"),
+                            (.patientBirthDate, "Patient's Birth Date"), (.patientSex, "Patient's Sex")] {
+            assertPresent(ds, tag, name, nonEmpty: false)
+        }
+        // Table C.7-3 General Study
+        assertPresent(ds, .studyInstanceUID, "Study Instance UID", nonEmpty: true)
+        for (tag, name) in [(Tag.studyDate, "Study Date"), (.studyTime, "Study Time"),
+                            (.referringPhysicianName, "Referring Physician's Name"),
+                            (.studyID, "Study ID"), (.accessionNumber, "Accession Number")] {
+            assertPresent(ds, tag, name, nonEmpty: false)
+        }
+        // Table C.24-1 Encapsulated Document Series (all Type 1)
+        assertPresent(ds, .modality, "Modality", nonEmpty: true)
+        XCTAssertEqual(ds.string(for: .modality), "DOC")
+        assertPresent(ds, .seriesInstanceUID, "Series Instance UID", nonEmpty: true)
+        assertPresent(ds, .seriesNumber, "Series Number", nonEmpty: true)
+        // Table C.7-8 General Equipment (Type 2) and Table C.8-24 SC Equipment (Type 1)
+        assertPresent(ds, .manufacturer, "Manufacturer", nonEmpty: false)
+        assertPresent(ds, .conversionType, "Conversion Type", nonEmpty: true)
+        XCTAssertEqual(ds.string(for: .conversionType), "WSD")
+        // Table C.24-2 Encapsulated Document
+        assertPresent(ds, .instanceNumber, "Instance Number", nonEmpty: true)
+        assertPresent(ds, .contentDate, "Content Date", nonEmpty: false)
+        assertPresent(ds, .contentTime, "Content Time", nonEmpty: false)
+        assertPresent(ds, .acquisitionDateTime, "Acquisition DateTime", nonEmpty: false)
+        assertPresent(ds, .burnedInAnnotation, "Burned In Annotation", nonEmpty: true)
+        XCTAssertEqual(ds.string(for: .burnedInAnnotation), "YES")
+        assertPresent(ds, .documentTitle, "Document Title", nonEmpty: false)
+        assertPresent(ds, .conceptNameCodeSequence, "Concept Name Code Sequence", nonEmpty: false)
+        XCTAssertEqual(ds[.conceptNameCodeSequence]?.vr, .SQ)
+        assertPresent(ds, .mimeTypeOfEncapsulatedDocument, "MIME Type of Encapsulated Document", nonEmpty: true)
+        assertPresent(ds, .encapsulatedDocument, "Encapsulated Document", nonEmpty: true)
+        // Table C.12-1 SOP Common
+        assertPresent(ds, .sopClassUID, "SOP Class UID", nonEmpty: true)
+        assertPresent(ds, .sopInstanceUID, "SOP Instance UID", nonEmpty: true)
+        // Not part of the PDF IOD
+        XCTAssertNil(ds[.frameOfReferenceUID])
+        XCTAssertNil(ds[.measurementUnitsCodeSequence])
+
+        // VRs per PS3.6 Table 6-1
+        XCTAssertEqual(ds[.acquisitionDateTime]?.vr, .DT)
+        XCTAssertEqual(ds[.burnedInAnnotation]?.vr, .CS)
+        XCTAssertEqual(ds[.documentTitle]?.vr, .ST)
+        XCTAssertEqual(ds[.seriesNumber]?.vr, .IS)
+        XCTAssertEqual(ds[.conversionType]?.vr, .CS)
+    }
+
+    func test_buildDataSet_pdf_setters() throws {
+        let ds = try pdfDataSet {
+            $0.setBurnedInAnnotation(false)
+             .setConversionType("SD")
+             .setPatientSex("F")
+             .setEquipment(manufacturer: "ACME", modelName: "Scanner 1")
+             .setAcquisitionDateTime(DICOMDateTime(year: 2026, month: 9, day: 29, hour: 12, minute: 0, second: 0))
+        }
+        XCTAssertEqual(ds.string(for: .burnedInAnnotation), "NO")
+        XCTAssertEqual(ds.string(for: .conversionType), "SD")
+        XCTAssertEqual(ds.string(for: .patientSex), "F")
+        XCTAssertEqual(ds.string(for: .manufacturer), "ACME")
+        XCTAssertEqual(ds.string(for: .manufacturerModelName), "Scanner 1")
+        XCTAssertEqual(ds.string(for: .acquisitionDateTime)?.hasPrefix("20260929120000"), true)
+    }
+
+    func test_build_rejectsInvalidType1Values() {
+        // MIME Type of Encapsulated Document Enumerated Value (A.45.1.4.1)
+        XCTAssertThrowsError(try EncapsulatedDocumentBuilder(
+            documentData: makeSamplePDFData(), mimeType: "image/png", documentType: .pdf,
+            studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4").build())
+        // Conversion Type Defined Terms (Table C.8-24)
+        XCTAssertThrowsError(try EncapsulatedDocumentBuilder(
+            documentData: makeSamplePDFData(), mimeType: "application/pdf", documentType: .pdf,
+            studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4").setConversionType("XYZ").build())
+        // HL7 Instance Identifier 1C for CDA (Table C.24-2)
+        XCTAssertThrowsError(try EncapsulatedDocumentBuilder(
+            documentData: Data("<ClinicalDocument/>".utf8), mimeType: "text/xml", documentType: .cda,
+            studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4").build())
+        // Modality Enumerated Value M3D for STL (A.85.1.4.3)
+        XCTAssertThrowsError(try EncapsulatedDocumentBuilder(
+            documentData: Data(repeating: 0, count: 84), mimeType: "model/stl", documentType: .stl,
+            studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4").setModality("DOC").build())
+    }
+
+    func test_buildDataSet_stl_writesEnhancedEquipmentFrameOfReferenceAndUnits() throws {
+        let ds = try EncapsulatedDocumentBuilder(
+            documentData: Data(repeating: 0, count: 84), mimeType: "model/stl", documentType: .stl,
+            studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4").buildDataSet()
+
+        XCTAssertEqual(ds.string(for: .modality), "M3D")
+        XCTAssertEqual(ds.string(for: .mimeTypeOfEncapsulatedDocument), "model/stl")
+        // Table C.7-8b Enhanced General Equipment (all Type 1)
+        for (tag, name) in [(Tag.manufacturer, "Manufacturer"), (.manufacturerModelName, "Manufacturer's Model Name"),
+                            (.deviceSerialNumber, "Device Serial Number"), (.softwareVersions, "Software Versions")] {
+            assertPresent(ds, tag, name, nonEmpty: true)
+        }
+        XCTAssertNil(ds[.conversionType], "SC Equipment is not in Table A.85.1-1")
+        // Table C.7-6 Frame of Reference
+        assertPresent(ds, .frameOfReferenceUID, "Frame of Reference UID", nonEmpty: true)
+        assertPresent(ds, .positionReferenceIndicator, "Position Reference Indicator", nonEmpty: false)
+        // Table C.35.1-1 Measurement Units Code Sequence (CID 7063)
+        let units = try XCTUnwrap(ds.sequence(for: .measurementUnitsCodeSequence)?.first)
+        XCTAssertEqual(units.string(for: .codeValue), "mm")
+        XCTAssertEqual(units.string(for: .codingSchemeDesignator), "UCUM")
+        XCTAssertEqual(units.string(for: .codeMeaning), "mm")
+    }
+
+    func test_buildDataSet_mtl_hasNoFrameOfReference() throws {
+        let ds = try EncapsulatedDocumentBuilder(
+            documentData: Data("newmtl a\n".utf8), mimeType: "model/mtl", documentType: .mtl,
+            studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4")
+            .setEquipment(manufacturer: "ACME", modelName: "M", deviceSerialNumber: "S1", softwareVersions: ["1.0"])
+            .setMeasurementUnits(codeValue: "cm", codingSchemeDesignator: "UCUM", codeMeaning: "cm")
+            .buildDataSet()
+        XCTAssertNil(ds[.frameOfReferenceUID], "Table A.85.3-1 has no Frame of Reference module")
+        XCTAssertEqual(ds.string(for: .deviceSerialNumber), "S1")
+        XCTAssertEqual(ds.sequence(for: .measurementUnitsCodeSequence)?.first?.string(for: .codeValue), "cm")
     }
 
     // MARK: - DICOM File Creation Test
@@ -712,5 +858,56 @@ final class EncapsulatedDocumentTests: XCTestCase {
         dataSet.setString("DOC", for: .modality, vr: .CS)
         dataSet.setString("Reports", for: .seriesDescription, vr: .LO)
         return dataSet
+    }
+}
+
+/// PS3.3 2026a Table C.24-2 (Encapsulated Document Length) and Table C.12-1 (Specific
+/// Character Set) in the shared builder and parser (D181, D182).
+final class EncapsulatedDocumentLengthTests: XCTestCase {
+
+    private let lengthTag = Tag(group: 0x0042, element: 0x0015)
+    private let oddPDF = Data("%PDF-1.4\n%%EOF".utf8)   // 14 bytes … made odd below
+
+    private func builder(_ data: Data) -> EncapsulatedDocumentBuilder {
+        EncapsulatedDocumentBuilder(documentData: data, mimeType: "application/pdf", documentType: .pdf,
+                                    studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4")
+    }
+
+    /// D182 + D181: the length "not including any trailing padding" is written, and the
+    /// parser returns the document without the padding byte DICOM adds to an odd length.
+    func testOddLengthDocumentRoundTripsWithoutThePaddingByte() throws {
+        let document = oddPDF + Data("\n".utf8)   // 15 bytes
+        let dataSet = try builder(document).buildDataSet()
+        XCTAssertEqual(dataSet.uint32(for: lengthTag), 15)
+
+        let file = DICOMFile.create(dataSet: dataSet, sopClassUID: EncapsulatedDocument.encapsulatedPDFStorageUID,
+                                    transferSyntaxUID: "1.2.840.10008.1.2.1")
+        let read = try DICOMFile.read(from: file.write()).dataSet
+        XCTAssertEqual(read[.encapsulatedDocument]?.valueData.count, 16, "value padded to even length")
+        let parsed = try EncapsulatedDocumentParser.parse(from: read)
+        XCTAssertEqual(parsed.documentData, document)
+        XCTAssertTrue(parsed.metadataReport().contains("Size: 15 bytes"), parsed.metadataReport())
+    }
+
+    /// Without (0042,0015) (Type 3) the stored value is returned unchanged.
+    func testDocumentWithoutLengthIsReturnedAsStored() {
+        var dataSet = DataSet()
+        dataSet.setString("x", for: .patientName, vr: .PN)
+        let value = Data([1, 2, 3, 0])
+        XCTAssertEqual(EncapsulatedDocumentParser.documentStream(value, in: dataSet), value)
+        dataSet[lengthTag] = DataElement.uint32(tag: lengthTag, value: 3)
+        XCTAssertEqual(EncapsulatedDocumentParser.documentStream(value, in: dataSet), Data([1, 2, 3]))
+        dataSet[lengthTag] = DataElement.uint32(tag: lengthTag, value: 1)
+        XCTAssertEqual(EncapsulatedDocumentParser.documentStream(value, in: dataSet), value,
+                       "a length that is neither VL nor VL-1 is not trusted")
+    }
+
+    /// D182: Specific Character Set ISO_IR 192 when a value is not ASCII (Tables C.12-1, C.12-5).
+    func testNonASCIITextGetsISOIR192() throws {
+        let utf8 = try builder(oddPDF).setPatientName("Müller^Jörg").setDocumentTitle("Befund für Jörg").buildDataSet()
+        XCTAssertEqual(utf8.string(for: .specificCharacterSet), "ISO_IR 192")
+        XCTAssertNil(try builder(oddPDF).setPatientName("DOE^John").buildDataSet()[.specificCharacterSet])
+        let plain = try builder(oddPDF).setPatientName("Müller^Jörg").build().toDataSet()
+        XCTAssertEqual(plain.string(for: .specificCharacterSet), "ISO_IR 192")
     }
 }

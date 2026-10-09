@@ -1,3 +1,8 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — the JPEG XL JPEG Recompression source rules match the two
+// .111 rows of PS3.5 2026a Table 8.2.15-1 (Photometric Interpretation per Samples per Pixel, Pixel
+// Representation 0, Bits Allocated / Stored 8), dumped by script; the 1-based frame-number rule cites PS3.3
+// 2026a Table 10-3 (Referenced Frame Number: "The first Frame shall be denoted as Frame number 1"); transfer
+// syntax names come from TransferSyntax.displayName (PS3.6 Table A-1).
 import Foundation
 import DICOMCore
 
@@ -234,6 +239,12 @@ extension DICOMConverter {
         "Frame \(requested) does not exist. The file has \(total) frame\(total == 1 ? "" : "s"), numbered 0 to \(max(total - 1, 0))."
     }
 
+    /// Shared text when an image export asks for a Frame number (1-based, PS3.3 Table 10-3:
+    /// "The first Frame shall be denoted as Frame number 1") the file does not have.
+    public static func invalidFrameNumberMessage(requested: Int, total: Int) -> String {
+        "Frame number \(requested) does not exist. The file has \(total) frame\(total == 1 ? "" : "s"), numbered 1 to \(max(total, 1))."
+    }
+
     /// Checks that `dicomFile` can be converted to `encoding` and throws a
     /// ``ConversionFailure`` naming the exact mismatch when it cannot.
     ///
@@ -367,8 +378,14 @@ extension DICOMConverter {
         if descriptor.samplesPerPixel != 1 && descriptor.samplesPerPixel != 3 {
             problems.append("The source has \(descriptor.samplesPerPixel) samples per pixel, but only 1 or 3 are allowed.")
         }
-        if descriptor.photometricInterpretation == .monochrome1 {
+        // Table 8.2.15-1 rows for …4.111: MONOCHROME2 with 1 sample; YBR_FULL_422, XYB or RGB with 3.
+        let pi = descriptor.photometricInterpretation
+        if pi == .monochrome1 {
             problems.append("MONOCHROME1 is not allowed with JPEG XL JPEG Recompression (DICOM PS3.5 Table 8.2.15-1).")
+        } else if descriptor.samplesPerPixel == 1 && pi != .monochrome2 {
+            problems.append("With 1 sample per pixel JPEG XL JPEG Recompression allows only MONOCHROME2, not \(pi.rawValue) (DICOM PS3.5 Table 8.2.15-1).")
+        } else if descriptor.samplesPerPixel == 3 && ![.ybrFull422, .xyb, .rgb].contains(pi) {
+            problems.append("With 3 samples per pixel JPEG XL JPEG Recompression allows only YBR_FULL_422, XYB or RGB, not \(pi.rawValue) (DICOM PS3.5 Table 8.2.15-1).")
         }
         if !problems.isEmpty {
             throw ConversionFailure(

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Printer Status values FAILURE/WARNING compared against PS3.3 2026a Table C.13-9; Basic Grayscale/Colour image box Samples per Pixel 1/3 per Table C.13-5; DIMSE sequence lives in DICOMNetwork
 // PrintWorkflow.swift
 // DICOMPrintKit
 //

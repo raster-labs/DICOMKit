@@ -10,7 +10,7 @@ Query DICOM servers using C-FIND and QIDO-RS protocols.
 
 - **Multiple Query Levels**: Patient, Study, Series, and Instance queries
 - **Flexible Filters**: Filter by patient name, ID, study date, modality, and more
-- **Multiple Output Formats**: Table (default), JSON, CSV, and compact formats
+- **Multiple Output Formats**: Table (default), JSON, CSV, compact, and DICOM JSON (PS3.18 F.2) formats
 - **Wildcard Support**: Use * and ? in patient names and descriptions
 - **Date Range Queries**: Query by date ranges (e.g., 20240101-20240131)
 - **PACS Protocol**: Standard DICOM C-FIND over TCP/IP
@@ -45,17 +45,20 @@ dicom-query <url> --aet <calling-ae> [options]
 
 ### Query Level Options
 
-- `--level <level>`: Query level (default: study)
-  - `patient`: Patient-level query
-  - `study`: Study-level query
-  - `series`: Series-level query
-  - `instance`: Instance-level query
+- `--level <level>`: Query/Retrieve Level (0008,0052) (default: study). The values are those of
+  PS3.4 Tables C.6.1-1 / C.6.2-1 in lower case:
+  - `patient`: PATIENT level (Patient Root Query/Retrieve Information Model)
+  - `study`: STUDY level
+  - `series`: SERIES level (requires `--study-uid`)
+  - `image`: IMAGE level, one composite object instance (requires `--study-uid` and `--series-uid`);
+    `instance` is accepted as an alias of `image`
 
 ### Filter Options
 
-- `--patient-name <name>`: Patient name (wildcards * and ? supported)
-- `--patient-id <id>`: Patient ID
-- `--study-date <date>`: Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)
+- `--patient-name <name>`: Patient's Name (0010,0010); `*` and `?` wild cards (PS3.4 C.2.2.2.4)
+- `--patient-id <id>`: Patient ID (0010,0020)
+- `--study-date <date>`: Study Date (0008,0020): `YYYYMMDD`, or a range `YYYYMMDD-YYYYMMDD`,
+  `-YYYYMMDD` (up to and including) or `YYYYMMDD-` (from) per PS3.4 C.2.2.2.5
 - `--study-uid <uid>`: Study Instance UID
 - `--series-uid <uid>`: Series Instance UID
 - `--accession-number <number>`: Accession number
@@ -70,6 +73,8 @@ dicom-query <url> --aet <calling-ae> [options]
   - `json`: JSON format for scripting
   - `csv`: CSV format for spreadsheets
   - `compact`: Compact one-line format
+  - `dicom-json`: PS3.18 Annex F.2 DICOM JSON Model (see below)
+- `--csv-keywords`: CSV header row uses PS3.6 keywords instead of `(GGGG,EEEE)`
 - `--verbose`: Show detailed query information
 
 ### Connection Options
@@ -160,7 +165,7 @@ dicom-query pacs://pacs.hospital.com:11112 \
 ```bash
 dicom-query pacs://pacs.hospital.com:11112 \
   --aet MY_SCU \
-  --level instance \
+  --level image \
   --study-uid 1.2.840.113619.2.55.3.4 \
   --series-uid 1.2.840.113619.2.55.3.5
 ```
@@ -195,42 +200,72 @@ Found 42 result(s)
 
 ### Table Format (Default)
 
-Human-readable table with aligned columns:
+Human-readable table with aligned columns. The column labels are the PS3.6 2026a Table 6-1
+Attribute Names of the attributes shown (e.g. `Patient's Name`, `Modalities in Study`,
+`Number of Study Related Series`, `SOP Class UID`, `Number of Frames`; the instance table's
+`Columns × Rows` column prints Columns (0028,0011) × Rows (0028,0010)). Labels before
+2026-10-01 were abbreviations (`Patient Name`, `Date`, `Modalities`, `Series`, `Dimensions`, …):
 
 ```
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-Patient Name              Patient ID   Date         Description                    Modalities   Series  
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-SMITH^JOHN                12345        2024-02-15   CT CHEST W/ CONTRAST           CT           3       
-DOE^JANE                  67890        2024-02-16   MR BRAIN W/WO CONTRAST         MR           5       
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Patient's Name            Patient ID   Study Date   Study Description              Modalities in Study Number of Study Related Series
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+SMITH^JOHN                12345        2024-02-15   CT CHEST W/ CONTRAST           CT                  3                             
+DOE^JANE                  67890        2024-02-16   MR BRAIN W/WO CONTRAST         MR                  5                             
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Total: 2 study(ies)
 ```
 
 ### JSON Format
 
-Structured JSON output for scripting:
+A tool-specific summary for scripting: one object per match, keyed by the attribute tag as
+`(GGGG,EEEE)` with the decoded string value. This is **not** the PS3.18 Annex F DICOM JSON Model;
+use `--format dicom-json` for that (below). `json` keeps its keys and values unchanged.
 
 ```json
 [
   {
-    "(0010,0010) Patient's Name": "SMITH^JOHN",
-    "(0010,0020) Patient ID": "12345",
-    "(0008,0020) Study Date": "20240215",
-    "(0008,1030) Study Description": "CT CHEST W/ CONTRAST",
-    "(0020,000D) Study Instance UID": "1.2.840.113619.2.55.3.4"
+    "(0008,0020)": "20240215",
+    "(0008,1030)": "CT CHEST W/ CONTRAST",
+    "(0010,0010)": "SMITH^JOHN",
+    "(0010,0020)": "12345",
+    "(0020,000D)": "1.2.840.113619.2.55.3.4"
+  }
+]
+```
+
+### DICOM JSON Format (`--format dicom-json`)
+
+The PS3.18 2026a Annex F.2 DICOM JSON Model, encoded by DICOMWeb's `DICOMJSONEncoder` (the
+same encoder `dicom-json` and `dicom-wado` use): a top-level array with one object per match,
+keyed by the eight-digit uppercase tag in ascending order, each attribute carrying `vr` and
+`Value` (PN as `{"Alphabetic": …}` component objects, F.2.2–F.2.5). The VR is taken from PS3.6
+Table 6-1 (C-FIND responses may be Implicit VR; unknown or private tags are `UN`). Text is
+decoded with the response's Specific Character Set and written as UTF-8, and (0008,0005) is
+written as `ISO_IR 192` (F.2: "The default character repertoire shall be UTF-8 / ISO_IR 192").
+A sequence in a response is written as `UN` `InlineBinary` (its raw bytes, F.2.7).
+
+```json
+[
+  {
+    "00080020" : { "vr" : "DA", "Value" : [ "20240215" ] },
+    "00100010" : { "vr" : "PN", "Value" : [ { "Alphabetic" : "SMITH^JOHN" } ] },
+    "0020000D" : { "vr" : "UI", "Value" : [ "1.2.840.113619.2.55.3.4" ] }
   }
 ]
 ```
 
 ### CSV Format
 
-CSV output for spreadsheet import:
+CSV output for spreadsheet import. By default the header row holds the attribute tags as
+`(GGGG,EEEE)` (quoted, since they contain a comma), sorted by tag. With `--csv-keywords` the
+header names each column by its PS3.6 Table 6-1 Keyword instead (`StudyDate,StudyDescription,
+PatientName,…`; a tag without a keyword keeps its `(GGGG,EEEE)` form); rows are unchanged:
 
 ```csv
-"(0008,0020) Study Date","(0008,1030) Study Description","(0010,0010) Patient's Name","(0010,0020) Patient ID","(0020,000D) Study Instance UID"
-20240215,"CT CHEST W/ CONTRAST","SMITH^JOHN",12345,1.2.840.113619.2.55.3.4
-20240216,"MR BRAIN W/WO CONTRAST","DOE^JANE",67890,1.2.840.113619.2.55.3.5
+"(0008,0020)","(0008,1030)","(0010,0010)","(0010,0020)","(0020,000D)"
+20240215,CT CHEST W/ CONTRAST,SMITH^JOHN,12345,1.2.840.113619.2.55.3.4
+20240216,MR BRAIN W/WO CONTRAST,DOE^JANE,67890,1.2.840.113619.2.55.3.5
 ```
 
 ### Compact Format
@@ -271,9 +306,9 @@ If you don't specify a filter, the attribute will be returned in results but won
 
 ## Exit Codes
 
-- `0`: Success
-- `1`: Validation error (invalid arguments)
-- `2`: Connection error or query failed
+- `0`: Success (the C-FIND completed; an empty result set is still a success)
+- `1`: Connection error, association rejected, or a C-FIND Failure status (PS3.4 Table C.4-1)
+- `64`: Invalid arguments (usage error, e.g. `--level series` without `--study-uid`)
 
 ## Limitations
 
@@ -306,10 +341,10 @@ This tool implements:
 ### Information Model
 
 Uses the Study Root Query/Retrieve Information Model by default, which supports:
-- PATIENT level (top)
+- PATIENT level (top; `--level patient` switches to the Patient Root model, PS3.4 Table C.6.1-1)
 - STUDY level
 - SERIES level
-- IMAGE level (instance, bottom)
+- IMAGE level (`--level image`, alias `instance`; PS3.4 Table C.6.2-1)
 
 ### Network Protocol
 

@@ -810,7 +810,7 @@ final class DICOMAITests: XCTestCase {
         // Verify modality is PR (Presentation State)
         XCTAssertEqual(gspsDataSet.string(for: .modality), "PR")
         // Verify presentation label
-        XCTAssertEqual(gspsDataSet.string(for: .presentationLabel), "AI_ANNOTATIONS")
+        XCTAssertEqual(gspsDataSet.string(for: .contentLabel), "AI_ANNOTATIONS")
     }
     
     func test_createGSPSWithAnnotations_emptyDetections() throws {

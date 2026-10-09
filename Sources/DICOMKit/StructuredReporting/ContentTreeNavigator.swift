@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (content tree traversal; relationship types are DICOMCore enums); traversal descends into the Content Sequence of every value type per PS3.3 2026a Table C.17-6 (D31)
 /// Content Tree Navigation
 ///
 /// Provides traversal, query, and navigation APIs for SR content trees.
@@ -45,12 +46,14 @@ public struct ContentTreeIterator: IteratorProtocol, Sendable {
         
         let (item, depth) = stack.removeLast()
         
-        // If this item has children and we haven't exceeded max depth, add them to the stack
-        if let container = item.asContainer {
+        // If this item has children and we haven't exceeded max depth, add them to the stack.
+        // Any value type may have children (Content Sequence, PS3.3 Table C.17-6).
+        let children = item.contentItems
+        if !children.isEmpty {
             let withinDepth = maxDepth.map { depth < $0 } ?? true
             if withinDepth {
                 // Add children in reverse order for proper traversal order
-                for child in container.contentItems.reversed() {
+                for child in children.reversed() {
                     stack.append((child, depth + 1))
                 }
             }
@@ -100,11 +103,13 @@ public struct BreadthFirstIterator: IteratorProtocol, Sendable {
         let (item, depth) = queue[currentIndex]
         currentIndex += 1
         
-        // If this item has children and we haven't exceeded max depth, add them to the queue
-        if let container = item.asContainer {
+        // If this item has children and we haven't exceeded max depth, add them to the queue.
+        // Any value type may have children (Content Sequence, PS3.3 Table C.17-6).
+        let children = item.contentItems
+        if !children.isEmpty {
             let withinDepth = maxDepth.map { depth < $0 } ?? true
             if withinDepth {
-                for child in container.contentItems {
+                for child in children {
                     queue.append((child, depth + 1))
                 }
             }
@@ -378,11 +383,11 @@ extension ContainerContentItem {
             return AnyContentItem(self)
         }
         
-        return navigate(path: path, components: path.components[...])
+        return Self.navigate(in: contentItems, components: path.components[...])
     }
     
     /// Internal navigation helper
-    private func navigate(path: SRPath, components: ArraySlice<SRPath.Component>) -> AnyContentItem? {
+    private static func navigate(in contentItems: [AnyContentItem], components: ArraySlice<SRPath.Component>) -> AnyContentItem? {
         guard let firstComponent = components.first else {
             return nil
         }
@@ -403,9 +408,9 @@ extension ContainerContentItem {
             return targetItem
         }
         
-        // Otherwise, continue navigating (only if it's a container)
-        guard let container = targetItem.asContainer else { return nil }
-        return container.navigate(path: path, components: remaining)
+        // Otherwise, continue into its children: a container's, or the Content Sequence of
+        // any other value type (PS3.3 Table C.17-6)
+        return navigate(in: targetItem.contentItems, components: remaining)
     }
     
     // MARK: - Subscript Access
@@ -780,17 +785,22 @@ extension AnyContentItem {
         return container.contentTreeSequence(order: order, maxDepth: maxDepth)
     }
     
-    /// Access children by index if this is a container
+    /// Access children by index (a container's, or the Content Sequence of any other item)
     /// - Parameter index: The index
-    /// - Returns: The child at the index, or nil if not a container or out of bounds
+    /// - Returns: The child at the index, or nil if out of bounds
     public subscript(index: Int) -> AnyContentItem? {
-        asContainer?[index]
+        let children = contentItems
+        guard index >= 0 && index < children.count else { return nil }
+        return children[index]
     }
     
-    /// Access children by concept name if this is a container
+    /// Access children by concept name (a container's, or the Content Sequence of any other item)
     /// - Parameter conceptName: The concept name to search for
     /// - Returns: The first child with matching concept name, or nil if not found
     public subscript(concept conceptName: String) -> AnyContentItem? {
-        asContainer?[concept: conceptName]
+        contentItems.first { item in
+            guard let concept = item.conceptName else { return false }
+            return concept.codeMeaning == conceptName || concept.codeValue == conceptName
+        }
     }
 }

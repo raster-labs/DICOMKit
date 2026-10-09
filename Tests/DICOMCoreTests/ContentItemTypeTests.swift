@@ -6,9 +6,11 @@ import Testing
 @Suite("ContentItemValueType Tests")
 struct ContentItemValueTypeTests {
     
-    @Test("All 15 value types are defined")
+    @Test("All 16 value types of PS3.3 2026a Table C.17.3-7 are defined")
     func testAllValueTypesDefined() {
-        #expect(ContentItemValueType.allCases.count == 15)
+        #expect(ContentItemValueType.allCases.count == 16)
+        #expect(ContentItemValueType.allCases.contains(.table))
+        #expect(ContentItemValueType.table.rawValue == "TABLE")
     }
     
     @Test("Raw values match DICOM standard")
@@ -205,16 +207,15 @@ struct RelationshipTypeTests {
 @Suite("GraphicType Tests")
 struct GraphicTypeTests {
     
-    @Test("All graphic types are defined")
+    @Test("allCases is exactly the five SCOORD Graphic Types of PS3.3 C.18.6.1.2")
     func testAllGraphicTypesDefined() {
-        #expect(GraphicType.allCases.count == 6)
+        #expect(GraphicType.allCases.map(\.rawValue) == ["POINT", "MULTIPOINT", "POLYLINE", "CIRCLE", "ELLIPSE"])
     }
     
     @Test("Raw values match DICOM standard")
     func testRawValues() {
         #expect(GraphicType.point.rawValue == "POINT")
         #expect(GraphicType.polyline.rawValue == "POLYLINE")
-        #expect(GraphicType.polygon.rawValue == "POLYGON")
         #expect(GraphicType.ellipse.rawValue == "ELLIPSE")
         #expect(GraphicType.circle.rawValue == "CIRCLE")
         #expect(GraphicType.multipoint.rawValue == "MULTIPOINT")
@@ -225,7 +226,6 @@ struct GraphicTypeTests {
         #expect(GraphicType.point.minimumPoints == 1)
         #expect(GraphicType.multipoint.minimumPoints == 2)
         #expect(GraphicType.polyline.minimumPoints == 2)
-        #expect(GraphicType.polygon.minimumPoints == 3)
         #expect(GraphicType.circle.minimumPoints == 2)
         #expect(GraphicType.ellipse.minimumPoints == 4)
     }
@@ -260,9 +260,9 @@ struct GraphicType3DTests {
 @Suite("TemporalRangeType Tests")
 struct TemporalRangeTypeTests {
     
-    @Test("All temporal range types are defined")
+    @Test("All six Temporal Range Types of PS3.3 C.18.7.1.1 are defined")
     func testAllTemporalRangeTypesDefined() {
-        #expect(TemporalRangeType.allCases.count == 5)
+        #expect(Set(TemporalRangeType.allCases.map(\.rawValue)) == ["POINT", "MULTIPOINT", "SEGMENT", "MULTISEGMENT", "BEGIN", "END"])
     }
     
     @Test("Raw values match DICOM standard")
@@ -270,8 +270,51 @@ struct TemporalRangeTypeTests {
         #expect(TemporalRangeType.point.rawValue == "POINT")
         #expect(TemporalRangeType.multipoint.rawValue == "MULTIPOINT")
         #expect(TemporalRangeType.segment.rawValue == "SEGMENT")
+        #expect(TemporalRangeType.multisegment.rawValue == "MULTISEGMENT")
         #expect(TemporalRangeType.beginSegment.rawValue == "BEGIN")
         #expect(TemporalRangeType.endSegment.rawValue == "END")
+    }
+}
+
+// MARK: - NumericValueQualifier Tests
+
+@Suite("NumericValueQualifier Tests")
+struct NumericValueQualifierTests {
+
+    /// PS3.16 2026a CID 43 and CID 44, the members of CID 42 Numeric Value Qualifier.
+    private static let cid42: [(NumericValueQualifier, String, String)] = [
+        (.notANumber, "114000", "Not a number"),
+        (.negativeInfinity, "114001", "Negative Infinity"),
+        (.positiveInfinity, "114002", "Positive Infinity"),
+        (.divideByZero, "114003", "Divide by zero"),
+        (.underflow, "114004", "Underflow"),
+        (.overflow, "114005", "Overflow"),
+        (.measurementFailure, "114006", "Measurement failure"),
+        (.measurementNotAttempted, "114007", "Measurement not attempted"),
+        (.calculationFailure, "114008", "Calculation failure"),
+        (.valueOutOfRange, "114009", "Value out of range"),
+        (.valueUnknown, "114010", "Value unknown"),
+        (.valueIndeterminate, "114011", "Value indeterminate"),
+    ]
+
+    @Test("All 12 CID 42 qualifiers are defined")
+    func testCount() {
+        #expect(NumericValueQualifier.allCases.count == 12)
+        #expect(Set(Self.cid42.map { $0.0 }) == Set(NumericValueQualifier.allCases))
+    }
+
+    @Test("Each qualifier carries its CID 42 code", arguments: cid42)
+    func testCode(entry: (NumericValueQualifier, String, String)) {
+        let (qualifier, value, meaning) = entry
+        #expect(qualifier.code.codeValue == value)
+        #expect(qualifier.code.codeMeaning == meaning)
+        #expect(NumericValueQualifier(code: qualifier.code.concept) == qualifier)
+    }
+
+    @Test("A non-CID-42 code gives no qualifier")
+    func testUnknownCode() {
+        #expect(NumericValueQualifier(code: CodedConcept(codeValue: "121071", scheme: .DCM, codeMeaning: "Finding")) == nil)
+        #expect(NumericValueQualifier(code: CodedConcept(codeValue: "114000", scheme: .SCT, codeMeaning: "x")) == nil)
     }
 }
 

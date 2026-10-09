@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — backslash multiplicity per PS3.5 2026a 6.4 (the LT, ST, UT, UR exception is recorded)
 import Foundation
 import DICOMCore
 

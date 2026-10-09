@@ -60,9 +60,18 @@ struct SRDocumentTypeTests {
 
 @Suite("ContentItemValueType Tests")
 struct ContentItemValueTypeTests {
-    @Test("All 15 value types have raw values")
+    @Test("All 16 value types have raw values")
     func testAllValueTypes() {
-        #expect(ContentItemValueType.allCases.count == 15)
+        #expect(ContentItemValueType.allCases.count == 16)
+        // PS3.3 2026a Table C.17.3-7 Value Type Definitions (16 rows)
+        let table = ["TEXT", "NUM", "CODE", "DATETIME", "DATE", "TIME", "UIDREF", "PNAME", "COMPOSITE",
+                     "IMAGE", "WAVEFORM", "SCOORD", "SCOORD3D", "TCOORD", "CONTAINER", "TABLE"]
+        #expect(Set(ContentItemValueType.allCases.map(\.rawValue)) == Set(table))
+        #expect(ContentItemValueType.table.rawValue == "TABLE")
+        #expect(ContentItemValueType(rawValue: "TABLE") == .table)
+        #expect(ContentItemValueType.table.displayName == "Table")
+        #expect(SRTreeHelpers.sfSymbolForValueType(.table) == "tablecells")
+        #expect(SRTreeHelpers.formatItemValue(SRContentItem(valueType: .table)) == "Table")
         #expect(ContentItemValueType.container.rawValue == "CONTAINER")
         #expect(ContentItemValueType.text.rawValue == "TEXT")
         #expect(ContentItemValueType.code.rawValue == "CODE")
@@ -121,7 +130,7 @@ struct CodingSchemeDesignatorTests {
         #expect(CodingSchemeDesignator.loinc.displayName == "LOINC")
         #expect(CodingSchemeDesignator.radlex.displayName == "RadLex")
         #expect(CodingSchemeDesignator.ucum.displayName == "UCUM")
-        #expect(CodingSchemeDesignator.dcm.displayName == "DICOM")
+        #expect(CodingSchemeDesignator.dcm.displayName == "DICOM Controlled Terminology")   // PS3.16 2026a Table 8-1
     }
 
     @Test("All schemes count is 5")
@@ -207,15 +216,23 @@ struct CodedConceptTests {
 
 @Suite("SpatialCoordGraphicType Tests")
 struct SpatialCoordGraphicTypeTests {
-    @Test("All 6 graphic types")
+    // PS3.3 2026a C.18.6.1.2: POINT, MULTIPOINT, POLYLINE, CIRCLE, ELLIPSE
+    @Test("allCases are the 5 C.18.6.1.2 graphic types")
     func testAllCases() {
-        #expect(SpatialCoordGraphicType.allCases.count == 6)
+        #expect(SpatialCoordGraphicType.allCases.map(\.rawValue) == ["POINT", "MULTIPOINT", "POLYLINE", "CIRCLE", "ELLIPSE"])
         #expect(SpatialCoordGraphicType.point.rawValue == "POINT")
         #expect(SpatialCoordGraphicType.polyline.rawValue == "POLYLINE")
         #expect(SpatialCoordGraphicType.circle.rawValue == "CIRCLE")
         #expect(SpatialCoordGraphicType.ellipse.rawValue == "ELLIPSE")
-        #expect(SpatialCoordGraphicType.polygon.rawValue == "POLYGON")
         #expect(SpatialCoordGraphicType.multipoint.rawValue == "MULTIPOINT")
+    }
+
+    @Test("Reading POLYGON stays tolerant (deprecated case)")
+    func testLegacyPolygonDecodes() {
+        let legacy = SpatialCoordGraphicType(rawValue: "POLYGON")
+        #expect(legacy != nil)
+        #expect(legacy?.rawValue == "POLYGON")
+        #expect(legacy != .polyline)
     }
 }
 

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — --tag accepts PS3.6 2026a Table 6-1/7-1 keywords exactly, matched by the shared MetadataPresenter (D148; the CLI keyword workaround is gone), plus the name/tag substring match; printed (tag, name, VR) of a CT fixture match PS3.6 Table 6-1/7-1 31/31; date/time values print in their PS3.5 Table 6.2-1 VR form; output format vocabulary text/json/csv carries no DICOM-standard data
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -16,6 +17,9 @@ struct DICOMInfo: ParsableCommand {
               dicom-info scan.dcm
               dicom-info --format json report.dcm
               dicom-info --tag PatientName --tag StudyDate exam.dcm
+
+            --tag takes a PS3.6 keyword (exact, e.g. PatientName), a tag (0010,0010), or
+            any part of a PS3.6 Attribute name (case-insensitive, e.g. "Patient").
             """,
         version: "1.0.0"
     )
@@ -26,7 +30,7 @@ struct DICOMInfo: ParsableCommand {
     @Option(name: .shortAndLong, help: "Output format: text, json, csv")
     var format: OutputFormat = .text
     
-    @Option(name: .shortAndLong, help: "Filter by specific tag names (can be used multiple times)")
+    @Option(name: .shortAndLong, help: "Filter by keyword, tag (GGGG,EEEE) or part of the Attribute name (can be used multiple times)")
     var tag: [String] = []
     
     @Flag(name: .long, help: "Include private tags in output")

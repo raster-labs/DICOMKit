@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (resampling)
 /// Image Resizing for DICOM Print Management
 ///
 /// Phase 3.2 of the DICOM Print Management implementation.

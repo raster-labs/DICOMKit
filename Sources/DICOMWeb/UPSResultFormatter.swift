@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-10-01 — dicom-json renders each workitem's DICOM JSON Model object (PS3.18 2026a F.2) kept on WorkitemResult (D213); checked 2026-09-28 — carries no DICOM-standard data (console text for worklist results); the Final State note follows PS3.4 2026a CC.2.1.3
 /// Output renderings shared by the `dicom-wado ups --search` CLI (UPS-RS) and
 /// DICOMStudio's in-app UPS worklist search, so both produce identical text for the
 /// same workitem results. This mirrors `QIDOResultFormatter` (QIDO-RS) and
@@ -11,6 +12,9 @@ public enum UPSOutputFormat: String, Sendable, CaseIterable {
     case table
     case json
     case csv
+    /// The PS3.18 2026a F.2 DICOM JSON Model: each workitem's attributes as the origin
+    /// server returned them (`WorkitemResult.dicomJSON`), via `DICOMJSONModelFormatter`.
+    case dicomJSON = "dicom-json"
 }
 
 /// Renders UPS-RS workitem search results to text. The only UPS worklist output
@@ -23,6 +27,7 @@ public struct UPSResultFormatter {
         case .table: return table(workitems)
         case .json:  return json(workitems)
         case .csv:   return csv(workitems)
+        case .dicomJSON: return DICOMJSONModelFormatter.format(workitems.compactMap(\.attributes))
         }
     }
 

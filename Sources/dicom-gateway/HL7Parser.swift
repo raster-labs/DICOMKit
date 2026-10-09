@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (HL7 v2 ER7 parsing and generation; HL7 is not a NEMA standard)
 import Foundation
 
 // MARK: - HL7 v2 Message Types

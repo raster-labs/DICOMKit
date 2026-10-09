@@ -7,6 +7,10 @@
 // prepared film images and runs the job. No DIMSE logic and no pixel
 // preparation live here — both come from the shared print core, so the app and
 // the dicom-print CLI put identical bytes on film.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data: an adapter over DICOMPrintKit's
+// PrintImagePreparer / PrintWorkflow and DICOMNetwork's DICOMVerificationService; the Film Size and
+// orientation it pads cells against come from the request's enums, verified in DICOMNetwork.
 
 import Foundation
 import DICOMCore

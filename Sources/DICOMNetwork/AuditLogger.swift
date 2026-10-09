@@ -1,17 +1,22 @@
 import Foundation
 #if canImport(os)
 import os
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data: event names and JSON-Lines schema are DICOMKit's own, not the PS3.15 2026a Annex A.5 audit message format (header says so)
 #endif
 
 // MARK: - Audit Event Type
 
 /// Types of auditable DICOM network events
 ///
-/// These event types align with IHE ATNA (Audit Trail and Node Authentication)
-/// requirements for healthcare system audit logging.
+/// These are DICOMKit's own event names for a local JSON-Lines / OSLog audit trail. They
+/// are *not* the PS3.15 Annex A.5 Audit Trail Message Format (the DCM 1101xx EventID /
+/// EventTypeCode codes, ActiveParticipant and ParticipantObjectIdentification of the
+/// RFC 3881 schema used by IHE ATNA); the outcome names mirror the A.5.1
+/// EventOutcomeIndicator meanings only. Producing conformant ATNA messages is a separate
+/// feature; nothing here claims it.
 ///
+/// Reference: DICOM PS3.15 Annex A.5 (for what an audit message would have to carry)
 /// Reference: IHE ITI TF-2a - Audit Trail and Node Authentication
-/// Reference: DICOM PS3.15 - Security and System Management Profiles
 public enum AuditEventType: String, Sendable, CaseIterable {
     /// Association establishment (successful or failed)
     case associationEstablished = "ASSOCIATION_ESTABLISHED"

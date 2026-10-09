@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-05 — the 30 --iod suggestions are SOP Class UID Keywords of PS3.6 2026a Table A-1 (script-checked: 25 matched, 5 corrected from Multiframe… to MultiFrame…); the 5 level descriptions carry dicom-validate's --level help wording (PS3.10 Table 7.1-1, PS3.6 Table 6-1, PS3.5 Table 6.2-1 / 6.2.1 / 9.1, PS3.3 Type 1/1C/2/2C); issue levels, run records and the command builder are plumbing
 // ValidationModel.swift
 // DICOMStudio
 //
@@ -132,20 +133,22 @@ public struct ValidationRunRecord: Identifiable, Sendable, Equatable, Hashable {
 
 /// Platform-independent helpers for ValidationView.
 public enum ValidationHelpers: Sendable {
-    /// Known IOD names accepted by the --iod flag.
+    /// IOD suggestions for the --iod field: SOP Class UID Keywords of PS3.6 2026a Table A-1
+    /// (the spelling dicom-validate accepts; the engine validates the Table A-1 classes it knows
+    /// and reports "IOD validation not implemented" for the rest).
     public static let knownIODs: [String] = [
         "CTImageStorage",
         "MRImageStorage",
         "UltrasoundImageStorage",
-        "UltrasoundMultiframeImageStorage",
+        "UltrasoundMultiFrameImageStorage",
         "XRayAngiographicImageStorage",
         "DigitalXRayImageStorageForPresentation",
         "DigitalXRayImageStorageForProcessing",
         "SecondaryCaptureImageStorage",
-        "MultiframeSingleBitSecondaryCaptureImageStorage",
-        "MultiframeGrayscaleByteSecondaryCaptureImageStorage",
-        "MultiframeGrayscaleWordSecondaryCaptureImageStorage",
-        "MultiframeTrueColorSecondaryCaptureImageStorage",
+        "MultiFrameSingleBitSecondaryCaptureImageStorage",
+        "MultiFrameGrayscaleByteSecondaryCaptureImageStorage",
+        "MultiFrameGrayscaleWordSecondaryCaptureImageStorage",
+        "MultiFrameTrueColorSecondaryCaptureImageStorage",
         "EnhancedCTImageStorage",
         "EnhancedMRImageStorage",
         "EnhancedPETImageStorage",
@@ -166,14 +169,14 @@ public enum ValidationHelpers: Sendable {
         "SegmentationStorage",
     ]
 
-    /// Validation level descriptions matching the CLI help text.
+    /// Validation level descriptions: the five levels of dicom-validate's `--level` help, same wording.
     public static func levelDescription(_ level: Int) -> String {
         switch level {
-        case 1: return "1 — File format (preamble, DICM prefix, meta)"
-        case 2: return "2 — Tags, VR/VM conformance"
-        case 3: return "3 — IOD-specific mandatory elements"
+        case 1: return "1 — File Meta Information (PS3.10 Table 7.1-1)"
+        case 2: return "2 — VR and VM against PS3.6 Table 6-1, value length, character repertoire and DA/TM/UI/AS/DS/IS value forms (PS3.5 Table 6.2-1, 6.2.1, 9.1)"
+        case 3: return "3 — IOD Type 1/1C/2/2C (PS3.3)"
         case 4: return "4 — Best practices"
-        case 5: return "5 — JPEG 2000 codestream conformance"
+        case 5: return "5 — J2K codestream"
         default: return "Unknown"
         }
     }

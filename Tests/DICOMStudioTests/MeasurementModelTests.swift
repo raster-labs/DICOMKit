@@ -15,11 +15,25 @@ struct MeasurementUnitTests {
         #expect(MeasurementUnit.millimeters.rawValue == "mm")
         #expect(MeasurementUnit.centimeters.rawValue == "cm")
         #expect(MeasurementUnit.inches.rawValue == "in")
+        #expect(MeasurementUnit.micrometers.rawValue == "um")
     }
 
-    @Test("CaseIterable has 3 units")
+    @Test("CaseIterable has 4 units")
     func testCaseIterable() {
-        #expect(MeasurementUnit.allCases.count == 3)
+        #expect(MeasurementUnit.allCases.count == 4)
+    }
+
+    // PS3.16 2026a CID 7460: (um, UCUM, "micrometer"); CID 7461: (um2, UCUM, "square micrometer")
+    @Test("micrometers is the CID 7460 code um, displayed as µm; area code um2 (CID 7461)")
+    func testMicrometers() {
+        #expect(MeasurementUnit(rawValue: "um") == .micrometers)
+        #expect(MeasurementUnit.micrometers.displaySymbol == "µm")
+        #expect(MeasurementUnit.millimeters.displaySymbol == "mm")
+        #expect(ROIHelpers.ucumAreaCode(for: .micrometers) == "um2")
+        #expect(ROIHelpers.areaUnitText(for: .micrometers) == "um2 (µm²)")
+        #expect(MeasurementHelpers.convert(mm: 1.5, to: .micrometers) == 1500)
+        #expect(MeasurementHelpers.formatLength(pixels: 10, mm: 0.25, unit: .micrometers) == "250.0 µm")
+        #expect(ROIHelpers.formatArea(pixelArea: 10, physicalArea: 0.5, unit: .micrometers) == "500000 um2 (µm²)")
     }
 }
 

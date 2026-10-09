@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — LOW/MEDIUM/HIGH text-diffed against PS3.7 2026a Table E.1-1 (0000,0700) (Scripts/diff_network.py): 3 of 3 match; the value is defined in PS3.7 §9.1.x, not PS3.4
 
 /// Priority level for DIMSE operations
 ///

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — the 12 tag names accepted by tagByName are PS3.6 2026a Table 6-1 keywords (lower-cased); the HL7 field references are not NEMA (plumbing)
 import Foundation
 import DICOMKit
 import DICOMCore

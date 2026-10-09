@@ -2,10 +2,17 @@ import Foundation
 
 /// Directory Record Type
 ///
-/// Defines the type of directory record in a DICOMDIR structure.
-/// Reference: DICOM PS3.3 F.5 - Media Storage Directory SOP Class
+/// Defines the type of directory record in a DICOMDIR structure: the Enumerated Values of
+/// Directory Record Type (0004,1430).
+/// Reference: DICOM PS3.3 Table F.3-3 (values) and Table F.4-1 (hierarchy)
+///
+/// NEMA-verified: 2026a, checked 2026-09-24 — text-diffed against PS3.3 2026a Table F.3-3:
+/// all 35 current Enumerated Values are present, plus the 16 retired ones it lists (retired
+/// in PS3.3-1998, PS3.3-2004 and PS3.3-2018b), kept so that legacy DICOMDIRs can be read.
+/// `ROOT` is not a DICOM value; it is an internal placeholder and is never valid in (0004,1430).
 public enum DirectoryRecordType: String, Sendable, Codable {
-    /// Root of the directory hierarchy
+    /// Root of the directory hierarchy. Internal placeholder only: "ROOT" is not an
+    /// Enumerated Value of (0004,1430); the root is the Directory Information Module itself.
     case root = "ROOT"
     
     /// Patient-level record
@@ -20,34 +27,34 @@ public enum DirectoryRecordType: String, Sendable, Codable {
     /// Image-level record (CT, MR, etc.)
     case image = "IMAGE"
     
-    /// Overlay-level record
+    /// Overlay-level record. Retired; see PS3.3-2004.
     case overlay = "OVERLAY"
     
-    /// Modality LUT-level record
+    /// Modality LUT-level record. Retired; see PS3.3-2004.
     case modalityLUT = "MODALITY LUT"
     
-    /// VOI LUT-level record
+    /// VOI LUT-level record. Retired; see PS3.3-2004.
     case voiLUT = "VOI LUT"
     
-    /// Curve-level record
+    /// Curve-level record. Retired; see PS3.3-2004.
     case curve = "CURVE"
     
-    /// Topic-level record (for Structured Reporting)
+    /// Topic-level record (for Structured Reporting). Retired; see PS3.3-2004.
     case topic = "TOPIC"
     
-    /// Visit-level record
+    /// Visit-level record. Retired; see PS3.3-2004.
     case visit = "VISIT"
     
-    /// Results-level record
+    /// Results-level record. Retired; see PS3.3-2004.
     case results = "RESULTS"
     
-    /// Interpretation-level record
+    /// Interpretation-level record. Retired; see PS3.3-2004.
     case interpretation = "INTERPRETATION"
     
-    /// Study Component-level record
+    /// Study Component-level record. Retired; see PS3.3-2004.
     case studyComponent = "STUDY COMPONENT"
     
-    /// Stored Print-level record
+    /// Stored Print-level record. Retired; see PS3.3-2004.
     case storedPrint = "STORED PRINT"
     
     /// RT Dose-level record
@@ -92,7 +99,7 @@ public enum DirectoryRecordType: String, Sendable, Codable {
     /// Encapsulated Document-level record
     case encapsulatedDocument = "ENCAP DOC"
     
-    /// HL7 Structured Document-level record
+    /// HL7 Structured Document-level record. Retired; see PS3.3-2018b.
     case hl7StructuredDocument = "HL7 STRUC DOC"
     
     /// Value Map-level record
@@ -122,8 +129,83 @@ public enum DirectoryRecordType: String, Sendable, Codable {
     /// Surface Scan-level record
     case surfaceScan = "SURFACE SCAN"
     
-    /// Private record type
+    /// Plan-level record
+    case plan = "PLAN"
+
+    /// Tract-level record (tractography results)
+    case tract = "TRACT"
+
+    /// Assessment-level record
+    case assessment = "ASSESSMENT"
+
+    /// Radiotherapy-level record (second-generation RT objects)
+    case radiotherapy = "RADIOTHERAPY"
+
+    /// Annotation-level record
+    case annotation = "ANNOTATION"
+
+    /// Inventory-level record
+    case inventory = "INVENTORY"
+
+    /// Waveform Presentation-level record
+    case wfPresentation = "WF PRESENTATION"
+
+    /// Private record type. Its type is defined by Private Record UID (0004,1432).
     case `private` = "PRIVATE"
+
+    /// Print Queue-level record. Retired; see PS3.3-1998.
+    case printQueue = "PRINT QUEUE"
+
+    /// Film Session-level record. Retired; see PS3.3-1998.
+    case filmSession = "FILM SESSION"
+
+    /// Film Box-level record. Retired; see PS3.3-1998.
+    case filmBox = "FILM BOX"
+
+    /// Image Box-level record. Retired; see PS3.3-1998.
+    case imageBox = "IMAGE BOX"
+
+    /// Multi-Referenced File record, for indirect reference to a file by several records.
+    /// Retired; see PS3.3-2004.
+    case mrdr = "MRDR"
+
+    /// Whether this value was retired from (0004,1430) (PS3.3 Table F.3-3).
+    public var isRetired: Bool {
+        switch self {
+        case .overlay, .modalityLUT, .voiLUT, .curve, .topic, .visit, .results, .interpretation,
+             .studyComponent, .storedPrint, .hl7StructuredDocument,
+             .printQueue, .filmSession, .filmBox, .imageBox, .mrdr:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Record types allowed directly under the root (PS3.3 Table F.4-1, Root Directory Entity).
+    public static let rootLevelTypes: Set<DirectoryRecordType> = [
+        .patient, .hangingProtocol, .palette, .implant, .implantAssy, .implantGroup, .inventory, .private,
+    ]
+
+    /// Record types allowed at the next lower level (PS3.3 Table F.4-1). PRIVATE may appear
+    /// under any record type, and PRIVATE may contain any record type. Returns nil when the
+    /// Standard no longer defines the hierarchy (retired values, and `ROOT`).
+    public var allowedChildTypes: Set<DirectoryRecordType>? {
+        switch self {
+        case .patient:
+            return [.study, .private]
+        case .study:
+            return [.series, .private]
+        case .series:
+            return [.image, .rtDose, .rtStructureSet, .rtPlan, .rtTreatRecord, .presentation, .waveform,
+                    .srDocument, .keyObjectDoc, .spectroscopy, .rawData, .registration, .fiducial,
+                    .encapsulatedDocument, .valueMap, .stereometricRelationship, .plan, .measurement,
+                    .surface, .tract, .assessment, .radiotherapy, .annotation, .wfPresentation, .private]
+        case .private, .root:
+            return nil
+        default:
+            return isRetired ? nil : [.private]
+        }
+    }
 }
 
 /// Directory Record

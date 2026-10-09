@@ -10,8 +10,10 @@ import Foundation
 /// Helpers for end-to-end integration test generation and summary reporting.
 public enum E2ETestHelpers: Sendable {
 
-    /// Total number of CLI tools across all categories.
-    public static var totalToolCount: Int { 41 }
+    /// Total number of CLI tools across all categories (the sum of `IntegrationTestToolCategory.toolCount`).
+    public static var totalToolCount: Int {
+        IntegrationTestToolCategory.allCases.reduce(0) { $0 + $1.toolCount }
+    }
 
     /// Generates test cases for every tool in the given category.
     public static func generateTestCases(for category: IntegrationTestToolCategory) -> [IntegrationTestCase] {

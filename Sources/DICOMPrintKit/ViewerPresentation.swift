@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — the one citation (Basic Color Image Sequence RGB only, Table C.13-5) checked against PS3.3 2026a; otherwise viewer geometry with no DICOM data
 // ViewerPresentation.swift
 // DICOMPrintKit
 //

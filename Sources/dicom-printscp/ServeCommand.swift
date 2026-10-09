@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — Printer SOP Instance UID (PS3.6 2026a Table A-1) and PS3.4 H.4.6 citation checked; otherwise carries no DICOM-standard data (listener lifecycle, console routing)
 //
 // ServeCommand.swift
 // dicom-printscp
@@ -21,8 +22,8 @@ struct ServeCommand: AsyncParsableCommand {
             written to --output-dir; --output none receives and discards, which is
             useful when only the protocol trace matters.
 
-            The listener answers N-GET on the Printer SOP Instance with the
-            identity flags below, so an SCU sees exactly the printer described on
+            The listener answers N-GET on the Printer SOP Instance
+            (1.2.840.10008.5.1.1.17, PS3.4 H.4.6) with the identity flags below, so an SCU sees exactly the printer described on
             the command line.
             """
     )

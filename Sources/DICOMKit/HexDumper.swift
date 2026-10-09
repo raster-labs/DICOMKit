@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — the VR lists are the 34 VRs of PS3.5 2026a Table 6.2-1 and the 4-byte-length VRs of Table 7.1-1 (OV, SV, UV added); the walk starts after the Preamble only when "DICM" is at bytes 128-131 (PS3.10 7.1), covers the whole file for --offset (D144); Items and delimiters carry the (FFFE,E000/E00D/E0DD) keywords of PS3.6 Table 6-1 and every Item is descended except encapsulated fragments (PS3.5 7.5, A.4; D145); Private Creator (gggg,0010-00FF) named per PS3.5 7.8.1 (D146)
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -40,7 +41,7 @@ public final class HexDumper {
         maxBytes: Int? = nil
     ) -> String? {
         guard let element = file.dataSet[tag] ?? file.fileMetaInformation[tag] else { return nil }
-        let name = DataElementDictionary.lookup(tag: tag)?.name ?? "Unknown"
+        let name = AttributeNames.name(for: tag) ?? "Unknown"
         var out = "Tag: \(tag.description)  \(name)  VR=\(element.vr.rawValue)  Length=\(element.length)\n"
         if verbose {
             out += "Value: \(MetadataPresenter.formatElementValue(element))\n"
@@ -62,23 +63,64 @@ public final class HexDumper {
     }
 
     /// Dumps data as hexadecimal with ASCII representation.
+    ///
+    /// `data` is the dumped bytes and `startOffset` the file offset of its first byte.
+    /// Annotations come from walking `data` itself: from byte 132 when `startOffset` is 0
+    /// and "DICM" sits at bytes 128-131 (PS3.10 7.1: 128-byte Preamble + 4-byte Prefix),
+    /// else from its first byte — so a slice that does not begin on an element boundary
+    /// cannot be annotated correctly. To dump part of a file, pass the whole file to
+    /// ``dump(fileData:startOffset:length:dicomFile:highlightTag:)`` instead (D144).
     public func dump(
         data: Data,
         startOffset: Int,
         dicomFile: DICOMFile?,
         highlightTag: Tag?
     ) -> String {
-        var output = ""
-
         // Build the tag position map when annotating OR highlighting. The scan is
         // raw (operates on the bytes), so a parsed DICOMFile isn't required.
         var tagPositions: [Int: TagInfo] = [:]
         if annotate || highlightTag != nil {
-            tagPositions = buildTagPositionMap(fileData: data)
+            tagPositions = buildTagPositionMap(fileData: data, skipPreamble: startOffset == 0)
         }
+        return render(data: data, startOffset: startOffset, tagPositions: tagPositions, highlightTag: highlightTag)
+    }
+
+    /// Dumps `length` bytes (nil: to the end) of a whole file from `startOffset`.
+    ///
+    /// The element walk covers the whole file — past the 128-byte Preamble and "DICM"
+    /// Prefix only when they are present (PS3.10 2026a 7.1) — so `--annotate` and
+    /// `--highlight` stay on the right bytes at any offset, and an element that begins
+    /// before the dumped range can still be highlighted (D144).
+    public func dump(
+        fileData: Data,
+        startOffset: Int,
+        length: Int?,
+        dicomFile: DICOMFile?,
+        highlightTag: Tag?
+    ) -> String {
+        let data = Data(fileData)  // 0-based indices
+        let start = max(0, min(startOffset, data.count))
+        let end = length.map { min(data.count, start + max(0, $0)) } ?? data.count
+        let slice = Data(data[start..<end])
+        var tagPositions: [Int: TagInfo] = [:]
+        if annotate || highlightTag != nil {
+            for (offset, info) in buildTagPositionMap(fileData: data, skipPreamble: true) {
+                // Keep elements that start in the dumped range, and any element that
+                // overlaps it (for --highlight); re-base to slice indices.
+                guard info.range.upperBound > start, info.range.lowerBound < end else { continue }
+                tagPositions[offset - start] = TagInfo(
+                    tag: info.tag, vr: info.vr, length: info.length, keyword: info.keyword,
+                    range: (info.range.lowerBound - start)..<(info.range.upperBound - start))
+            }
+        }
+        return render(data: slice, startOffset: start, tagPositions: tagPositions, highlightTag: highlightTag)
+    }
+
+    private func render(data: Data, startOffset: Int, tagPositions: [Int: TagInfo], highlightTag: Tag?) -> String {
+        var output = ""
         // The element (in data-index space) to highlight, if requested.
         let highlightInfo: TagInfo? = highlightTag.flatMap { ht in
-            tagPositions.values.first(where: { $0.tag == ht })
+            tagPositions.values.filter { $0.tag == ht }.min { $0.range.lowerBound < $1.range.lowerBound }
         }
         let highlightRange = highlightInfo?.range
 
@@ -155,7 +197,9 @@ public final class HexDumper {
             // Highlighted-tag marker on its first line — a plain-text label so
             // --highlight is visible even in no-color output (e.g. the in-app
             // console), not just as colored bytes in a terminal.
-            if let info = highlightInfo, info.range.lowerBound >= dataIndex, info.range.lowerBound < lineEnd {
+            // An element that begins before the dumped range is labelled on the first line.
+            if let info = highlightInfo,
+               max(info.range.lowerBound, 0) >= dataIndex, max(info.range.lowerBound, 0) < lineEnd {
                 output += "  "
                 output += useColor ? color("◀ HIGHLIGHT ", .yellow) : "◀ HIGHLIGHT "
                 output += formatTagAnnotation(info)
@@ -175,32 +219,60 @@ public final class HexDumper {
     /// with its full byte range. This replaces the old heuristic byte-scan, which
     /// byte-walked and misaligned — missing main-dataset tags (e.g. (0008,0060)),
     /// so --highlight / --annotate only found early group-0002 tags.
-    private func buildTagPositionMap(fileData: Data) -> [Int: TagInfo] {
+    ///
+    /// The walk starts after the File Preamble and DICOM Prefix only when "DICM" is at
+    /// bytes 128-131 (PS3.10 2026a 7.1) and `skipPreamble` is set (the data begins at file
+    /// offset 0); a file without them (`--force`) is walked from byte 0 (D144).
+    ///
+    /// Items and delimiters (FFFE,E000/E00D/E0DD) are recorded with their PS3.6 Table 6-1
+    /// keywords and no VR (PS3.5 2026a 7.5). Sequences and Items are descended whether
+    /// their length is defined or undefined, so the elements of every Item are annotated;
+    /// the Items of encapsulated Pixel Data (PS3.5 A.4) hold fragments, not elements, and
+    /// are stepped over by their length (D145).
+    private func buildTagPositionMap(fileData: Data, skipPreamble: Bool) -> [Int: TagInfo] {
         var positions: [Int: TagInfo] = [:]
         let data = fileData
         let base = data.startIndex
         let undefinedLength = 0xFFFF_FFFF
 
-        // Skip the 128-byte preamble + "DICM" if present.
-        var offset = (data.count > 132) ? 132 : 0
+        func byteAt(_ i: Int) -> UInt8 { data[data.index(base, offsetBy: i)] }
 
+        // Skip the 128-byte preamble + "DICM" only when the prefix is really there.
+        let hasPrefix = data.count >= 132
+            && byteAt(128) == 0x44 && byteAt(129) == 0x49 && byteAt(130) == 0x43 && byteAt(131) == 0x4D
+        var offset = (skipPreamble && hasPrefix) ? 132 : 0
+
+        // The 34 VRs of PS3.5 Table 6.2-1, and those with the 4-byte length field (Table 7.1-1)
         let knownVRs: Set<String> = [
             "AE","AS","AT","CS","DA","DS","DT","FL","FD","IS","LO","LT","OB","OD","OF",
-            "OL","OW","PN","SH","SL","SQ","SS","ST","TM","UC","UI","UL","UN","UR","US","UT"
+            "OL","OV","OW","PN","SH","SL","SQ","SS","ST","SV","TM","UC","UI","UL","UN","UR","US","UT","UV"
         ]
-        let extendedVRs: Set<String> = ["OB","OD","OF","OL","OW","SQ","UC","UR","UT","UN"]
+        let extendedVRs: Set<String> = ["OB","OD","OF","OL","OV","OW","SQ","SV","UC","UR","UT","UN","UV"]
 
-        func byteAt(_ i: Int) -> UInt8 { data[data.index(base, offsetBy: i)] }
+        // Inside undefined-length encapsulated Pixel Data the Items are fragments.
+        var inEncapsulatedPixelData = false
 
         while offset + 8 <= data.count {
             let group = readUInt16LE(data, at: offset)
             let element = readUInt16LE(data, at: offset + 2)
 
-            // Item / sequence delimiters (FFFE,xxxx): 4-byte length, no VR. Skip the
-            // item content by its length (descend only for undefined-length items).
+            // Item / delimiters (FFFE,xxxx): 4-byte length, no VR (PS3.5 7.5).
             if group == 0xFFFE {
-                let len = Int(readUInt32LE(data, at: offset + 4))
-                offset += (len == undefinedLength) ? 8 : 8 + max(0, len)
+                let tag = Tag(group: group, element: element)
+                let rawLength = Int(readUInt32LE(data, at: offset + 4))
+                let undefined = rawLength == undefinedLength
+                let isFragment = inEncapsulatedPixelData && element == 0xE000
+                let span = (isFragment && !undefined) ? 8 + max(0, rawLength) : 8
+                positions[offset] = TagInfo(
+                    tag: tag,
+                    vr: nil,
+                    length: UInt32(truncatingIfNeeded: rawLength),
+                    keyword: AttributeNames.delimiters[tag]?.keyword,
+                    range: offset..<min(offset + span, data.count)
+                )
+                if element == 0xE0DD { inEncapsulatedPixelData = false }
+                // Descend into an Item of a Sequence; step over a fragment.
+                offset += span
                 continue
             }
 
@@ -236,14 +308,18 @@ public final class HexDumper {
                 tag: tag,
                 vr: vr,
                 length: UInt32(truncatingIfNeeded: valueLength),
-                keyword: entry?.keyword,
+                keyword: entry?.keyword ?? (AttributeNames.isPrivateCreator(tag) ? AttributeNames.privateCreatorName : nil),
                 range: offset..<max(offset + 1, elementEnd)
             )
 
-            // Advance. Defined-length values (including defined-length sequences)
-            // are skipped wholesale; undefined-length (SQ / encapsulated pixel data)
-            // descends by the header — the FFFE handling above steps over item data.
-            offset += undefined ? headerLength : headerLength + max(0, valueLength)
+            // Advance. A Sequence (SQ, defined or undefined length) is descended by its
+            // header so its Items and their elements are walked; an undefined-length
+            // non-SQ element is encapsulated Pixel Data (or UN holding a sequence) and
+            // is descended too; any other value is stepped over.
+            if undefined && vr != .SQ && vr != .UN {
+                inEncapsulatedPixelData = true
+            }
+            offset += (vr == .SQ || undefined) ? headerLength : headerLength + max(0, valueLength)
         }
 
         return positions
@@ -274,7 +350,7 @@ public final class HexDumper {
         var annotation = tagStr
 
         if verbose {
-            annotation += " VR=\(tagInfo.vr.rawValue)"
+            if let vr = tagInfo.vr { annotation += " VR=\(vr.rawValue)" }
 
             if tagInfo.length == 0xFFFFFFFF {
                 annotation += " Len=undefined"
@@ -312,7 +388,8 @@ public final class HexDumper {
 /// Information about a DICOM tag found in raw data
 struct TagInfo {
     let tag: Tag
-    let vr: VR
+    /// nil for Items and delimiters, which have no VR (PS3.5 7.5).
+    let vr: VR?
     let length: UInt32
     let keyword: String?
     /// Byte range of the whole element (header + value) in the dumped data's index space.

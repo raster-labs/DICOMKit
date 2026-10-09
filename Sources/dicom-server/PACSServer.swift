@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (NWListener lifecycle, connection limit, session bookkeeping)
 import Foundation
 import DICOMCore
 import DICOMNetwork

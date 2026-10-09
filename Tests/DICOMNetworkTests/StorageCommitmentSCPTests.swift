@@ -153,7 +153,7 @@ final class StorageCommitmentSCPTests: XCTestCase {
     func testDefaultImplementationClassUID() {
         XCTAssertEqual(
             StorageCommitmentSCPConfiguration.defaultImplementationClassUID,
-            "1.2.826.0.1.3680043.9.7433.1.3"
+            "1.2.826.0.1.3680043.10.511.3.0.5.0"  // DICOMKit root (D155)
         )
     }
     

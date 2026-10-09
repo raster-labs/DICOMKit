@@ -21,6 +21,7 @@ import Foundation
 ///     print("RadLex equivalent: \(radlex)")
 /// }
 /// ```
+/// NEMA-verified: 2026a, checked 2026-09-25 — carries a hand-written cross-scheme mapping table; the DCM and SCT concepts in it are checked against PS3.16 2026a (all match). The three SRT laterality codes (G-A100, G-A101, G-A102) are from the retired SNOMED-RT designator and no longer appear in PS3.16; they are kept so legacy objects can be mapped to SCT.
 public final class CodeMapper: @unchecked Sendable {
     /// The shared code mapper instance
     public static let shared = CodeMapper()

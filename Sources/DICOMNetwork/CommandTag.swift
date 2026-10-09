@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — all 24 command elements (tag, name, VR, VM) text-diffed against PS3.7 2026a Table E.1-1 (Scripts/diff_network.py): 24 of 24 match; the 20 retired elements of Table E.2-1 are not carried by design
 
 /// DICOM Command Set Tags (Group 0000)
 ///

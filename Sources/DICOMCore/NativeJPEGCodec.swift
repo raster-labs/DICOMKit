@@ -9,7 +9,8 @@ import UniformTypeIdentifiers
 ///
 /// Supports JPEG Baseline, Extended, and Lossless transfer syntaxes.
 /// Provides both decoding and encoding capabilities.
-/// Reference: DICOM PS3.5 Section A.4.1-A.4.3
+/// Reference: DICOM PS3.5 Section A.4.1 - JPEG Image Compression
+/// NEMA-verified: 2026a, checked 2026-10-01 — the four JPEG UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1); encoding only monochrome Baseline at 8 bits matches Table 8.2.1-1 (ImageIO colour is 4:2:0 / 4:4:4 YCbCr, neither YBR_FULL_422 nor RGB components — D190). The "A.4.1-A.4.3" citation was narrowed to §A.4.1. ImageIO implements ITU-T T.81, outside DICOM.
 public struct NativeJPEGCodec: ImageCodec, ImageEncoder, Sendable {
     /// Supported JPEG transfer syntaxes for decoding
     public static let supportedTransferSyntaxes: [String] = [
@@ -66,8 +67,11 @@ public struct NativeJPEGCodec: ImageCodec, ImageEncoder, Sendable {
             return false
         }
         
-        // Support grayscale and RGB
-        guard descriptor.samplesPerPixel == 1 || descriptor.samplesPerPixel == 3 else {
+        // Monochrome only. ImageIO writes colour as YCbCr 4:2:0 (H 2, V 2) below quality 1.0 and
+        // YCbCr 4:4:4 at 1.0, and offers no 4:2:2 or RGB-component mode; PS3.5 2026a Table 8.2.1-1
+        // allows a 3-sample JPEG Baseline stream only as YBR_FULL_422 or RGB, so neither output has a
+        // valid Photometric Interpretation (D190 / D-CORE-2). Colour goes to JLICodec (4:2:2).
+        guard descriptor.samplesPerPixel == 1 else {
             return false
         }
         
@@ -91,8 +95,9 @@ public struct NativeJPEGCodec: ImageCodec, ImageEncoder, Sendable {
         // Create CGImage from raw pixel data
         let cgImage = try createCGImage(from: frameData, descriptor: descriptor)
         
-        // Encode to JPEG
-        return try encodeToJPEG(cgImage, configuration: configuration)
+        // Encode to JPEG. ImageIO writes a JFIF APP0 segment; PS3.5 2026a 8.2.1 recommends it
+        // be absent from DICOM encapsulated JPEG (D190).
+        return JPEGInterchangeFormat.removingJFIFSegments(try encodeToJPEG(cgImage, configuration: configuration))
     }
     
     // MARK: - Private Decoding Helpers

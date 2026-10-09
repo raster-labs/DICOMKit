@@ -4,6 +4,8 @@
 /// its identifier, name, version, and associated metadata.
 ///
 /// Reference: PS3.16 - Content Mapping Resource
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the built-in designators and UIDs are text-diffed against PS3.16 2026a Table 8-1 (Coding Schemes). Fixed 2026-09-25: `icd10CM` carried designator "I10" (WHO ICD-10) with the ICD-10-CM UID and is now "I10C", with a new `icd10` for I10 / 2.16.840.1.113883.6.3; `acr` gained its UID 2.16.840.1.113883.6.76. "HL7" is not a Table 8-1 designator and is documented as such.
 
 #if canImport(Foundation)
 import Foundation
@@ -183,10 +185,21 @@ extension CodingScheme {
         resourceURL: URL(string: "https://bioportal.bioontology.org/ontologies/FMA")
     )
     
-    /// ICD-10 Clinical Modification
-    public static let icd10CM = CodingScheme(
+    /// ICD-10 (WHO). PS3.16 Table 8-1: I10, 2.16.840.1.113883.6.3.
+    public static let icd10 = CodingScheme(
         designator: "I10",
-        name: "ICD-10 Clinical Modification",
+        name: "ICD-10",
+        uid: "2.16.840.1.113883.6.3",
+        isExternal: true
+    )
+    
+    /// ICD-10 Clinical Modification. PS3.16 Table 8-1: I10C, 2.16.840.1.113883.6.90.
+    ///
+    /// Until 2026-09-25 this constant carried the designator "I10", which is WHO ICD-10,
+    /// with the ICD-10-CM UID.
+    public static let icd10CM = CodingScheme(
+        designator: "I10C",
+        name: "ICD-10-CM",
         uid: "2.16.840.1.113883.6.90",
         isExternal: true
     )
@@ -217,7 +230,11 @@ extension CodingScheme {
         resourceURL: URL(string: "https://www.nlm.nih.gov/research/umls/")
     )
     
-    /// HL7v2 Tables
+    /// HL7 Version 2 tables.
+    ///
+    /// "HL7" is not a designator in PS3.16 2026a Table 8-1 or 8-2 (HL7 v2 tables are
+    /// referenced as "HL7" plus the table number in some IHE profiles, and HL7 v3 code
+    /// systems by their own names in Table 8-2). Kept for callers that need it.
     public static let hl7 = CodingScheme(
         designator: "HL7",
         name: "HL7 Version 2 Tables",
@@ -225,11 +242,11 @@ extension CodingScheme {
         isExternal: true
     )
     
-    /// ACR Index for Radiological Diagnoses (deprecated)
+    /// ACR Index for Radiological Diagnoses (PS3.16 Table 8-1: ACR, 2.16.840.1.113883.6.76)
     public static let acr = CodingScheme(
         designator: "ACR",
-        name: "ACR Index for Radiological Diagnoses",
-        uid: nil,
+        name: "ACR Index",
+        uid: "2.16.840.1.113883.6.76",
         isExternal: true
     )
 }
@@ -273,6 +290,7 @@ public final class CodingSchemeRegistry: @unchecked Sendable {
             .radlex,
             .ucum,
             .fma,
+            .icd10,
             .icd10CM,
             .icd10PCS,
             .nciThesaurus,

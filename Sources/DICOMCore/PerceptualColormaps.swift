@@ -24,6 +24,7 @@
 // All four are published at full 256-entry resolution and are transcribed at
 // that resolution: interpolating a handful of anchors would band visibly on
 // film, where a gradient can cover a whole sheet.
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (CC0 colormap tables). C1 classification confirmed.
 
 import Foundation
 

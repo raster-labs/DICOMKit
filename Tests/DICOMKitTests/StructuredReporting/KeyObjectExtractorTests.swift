@@ -363,7 +363,7 @@ final class KeyObjectExtractorTests: XCTestCase {
         
         let keyObjects = try KeyObjects.extract(from: parsed)
         
-        XCTAssertEqual(keyObjects.documentTitle?.codeValue, "113020")
+        XCTAssertEqual(keyObjects.documentTitle?.codeValue, "113013")   // (113013, DCM, "Best In Set"), CID 7010
     }
     
     // MARK: - SOP Class Variations Tests

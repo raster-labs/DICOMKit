@@ -70,7 +70,7 @@ final class ConversionDiagnosticsTests: XCTestCase {
             .jpegXLRecompression))
         XCTAssertEqual(f.category, .recompressionSource)
         XCTAssertTrue(f.reason.contains("SOF3"), f.reason)
-        XCTAssertTrue(f.headline?.contains("JPEG Lossless (Process 14) [1.2.840.10008.1.2.4.57]") == true)
+        XCTAssertTrue(f.headline?.contains("JPEG Lossless, Non-Hierarchical (Process 14) [1.2.840.10008.1.2.4.57]") == true)  // PS3.6 Table A-1 (D176)
         XCTAssertTrue(f.suggestion?.contains("jxl-lossless-only") == true)
         XCTAssertEqual(f.sourceDetails?.contains("3 samples per pixel, RGB"), true)
     }
@@ -94,6 +94,25 @@ final class ConversionDiagnosticsTests: XCTestCase {
             makeFile(transferSyntaxUID: TransferSyntax.jpegBaseline.uid, photometric: "MONOCHROME1"),
             .jpegXLRecompression))
         XCTAssertTrue(f.reason.contains("MONOCHROME1"), f.reason)
+    }
+
+    // PS3.5 2026a Table 8.2.15-1, .111 rows: MONOCHROME2 with 1 sample; YBR_FULL_422, XYB or RGB with 3.
+    func testRecompression_rejectsPhotometricOutsideTable8_2_15_1() throws {
+        let palette = try XCTUnwrap(failure(
+            makeFile(transferSyntaxUID: TransferSyntax.jpegBaseline.uid, photometric: "PALETTE COLOR"),
+            .jpegXLRecompression))
+        XCTAssertTrue(palette.reason.contains("only MONOCHROME2"), palette.reason)
+        let ybrFull = try XCTUnwrap(failure(
+            makeFile(transferSyntaxUID: TransferSyntax.jpegBaseline.uid, samples: 3, photometric: "YBR_FULL"),
+            .jpegXLRecompression))
+        XCTAssertTrue(ybrFull.reason.contains("YBR_FULL_422, XYB or RGB"), ybrFull.reason)
+    }
+
+    func testRecompression_acceptsTable8_2_15_1ColourRows() {
+        for pi in ["YBR_FULL_422", "RGB"] {
+            assertAccepted(makeFile(transferSyntaxUID: TransferSyntax.jpegBaseline.uid, samples: 3, photometric: pi),
+                           .jpegXLRecompression)
+        }
     }
 
     func testRecompression_acceptsBaselineAndExtended8Bit() {

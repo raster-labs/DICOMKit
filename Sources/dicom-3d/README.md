@@ -10,11 +10,17 @@
 ## Features
 
 ### Multi-Planar Reformation (MPR)
-- **Axial, Sagittal, Coronal** reformations
-- **Oblique MPR** with arbitrary plane orientation
-- **Curved MPR** along custom paths
-- Trilinear interpolation for smooth reformations
-- Configurable slice thickness
+- **Axial, Sagittal, Coronal** reformations, named in the patient (LPS) coordinate
+  system of PS3.3 C.7.6.2.1.1 whatever the acquisition plane
+- **Oblique** MPR: `--planes oblique --oblique-normal x,y,z [--oblique-point x,y,z]` (patient LPS
+  coordinates, mm), one image sampled with PS3.3 C.7.6.2.1.1 Equation C.7.6.2.1-1; its Image
+  Orientation (Patient) / Image Position (Patient) describe the oblique plane in `--format dcm`
+- Curved MPR: not available
+- Axial/sagittal/coronal planes are cut along the voxel grid (the volume axis closest to each LPS
+  axis): no resampling, so `--interpolation` affects oblique planes only
+- Configurable slice thickness (thick-slab averaging)
+- `--format dcm`: derived DICOM series (Image Type `DERIVED\SECONDARY`, Derivation Code
+  DCM 113072 "Multiplanar reformatting", Source Image Sequence, plane geometry)
 
 ### Intensity Projections
 - **Maximum Intensity Projection (MIP)** - highlight bright structures
@@ -61,6 +67,13 @@ Generate only sagittal slices:
 
 ```bash
 dicom-3d mpr series/*.dcm --output sagittal/ --planes sagittal
+```
+
+An oblique plane through a point, as a derived DICOM image (normal and point in LPS mm):
+
+```bash
+dicom-3d mpr series/*.dcm --output obl/ --planes oblique \
+  --oblique-normal 0,1,1 --oblique-point 0,-20,35 --format dcm
 ```
 
 With custom windowing:
@@ -198,20 +211,29 @@ dicom-3d export series/*.dcm \
 ### Common Options
 
 - `--verbose` - Enable verbose output for debugging
-- `--window-center <value>` - Window center for display (Hounsfield units for CT)
-- `--window-width <value>` - Window width for display
+- `--window-center <value>` - Window Center for display (Modality LUT output units, e.g. Hounsfield units for CT)
+- `--window-width <value>` - Window Width for display; >= 1, applied with the LINEAR VOI LUT function (PS3.3 C.11.2.1.2.1). MONOCHROME1 data are shown inverted (C.7.6.3.1.2)
 
 ### MPR Options
 
 - `--planes <list>` - Comma-separated list: axial, sagittal, coronal, oblique
-- `--thickness <mm>` - Slice thickness in millimeters
-- `--interpolation <method>` - Interpolation: nearest, linear, cubic (default: linear)
+- `--oblique-normal <x,y,z>` - Normal of the oblique plane in the patient (LPS) system (x to patient
+  left, y to posterior, z to head); required with `oblique`, need not be unit length
+- `--oblique-point <x,y,z>` - A point on the oblique plane, mm (LPS); default: the centre of the volume.
+  The output grid has a pixel centre on this point; Pixel Spacing is the smaller in-plane source
+  spacing; the image covers the volume's projection on the plane, outside samples take the volume
+  minimum. Row/column directions follow the patient plane whose normal is closest to the given normal
+- `--thickness <mm>` - Slice thickness in millimeters: consecutive planes are averaged into slabs
+  (oblique: samples along the normal averaged over this thickness)
+- `--interpolation <method>` - Interpolation of oblique planes: nearest, linear (trilinear; default).
+  `cubic` is **deprecated** and uses linear (a note is printed). Axial/sagittal/coronal planes are
+  voxel-aligned and not resampled
 - `--format <fmt>` - Output format: png, dcm (default: png)
 
 ### Projection Options
 
 - `--direction <dir>` - Projection direction: axial, sagittal, coronal
-- `--thickness <mm>` - Slab thickness in mm (0 = full volume)
+- `--thickness <mm>` - Slab thickness in mm, centred on the middle of the volume (0 = full volume; mip and minip)
 
 ### Surface Options
 
@@ -271,22 +293,26 @@ dicom-3d export brain-mri/*.dcm \
 
 ### Volume Loading
 
-- Automatically sorts slices by position
-- Handles non-uniform slice spacing
-- Supports all standard DICOM orientations
-- Applies rescale slope/intercept (e.g., Hounsfield units)
+- Sorts slices by Image Position (Patient) along the normal of Image Orientation (Patient), not by Instance Number
+- Pixel Spacing value 1 is the spacing between rows, value 2 between columns (PS3.3 Table C.7-10)
+- Slice spacing is the mean centre-to-centre distance along the normal (Spacing Between Slices, then Slice Thickness, for a single slice)
+- Rejects slices with different Frame of Reference UIDs, orientations or matrix sizes
+- Enhanced multi-frame input: per-frame Plane Position / Plane Orientation / Pixel Measures functional groups
+- Applies each slice's Rescale Slope/Intercept (e.g., Hounsfield units)
 
 ### Interpolation Methods
 
+Used only for oblique planes (axial/sagittal/coronal are voxel-aligned, not resampled):
+
 - **Nearest**: Fast, preserves original values
-- **Linear**: Smooth, good for most cases (default)
-- **Cubic**: Smoothest, slower (planned)
+- **Linear**: Trilinear, smooth (default)
+- **Cubic**: Deprecated — no cubic kernel exists; it uses linear and prints a note
 
 ### Coordinate Systems
 
-- Preserves DICOM coordinate system (LPS)
-- Handles Image Orientation Patient correctly
-- Maintains spatial relationships in exports
+- Preserves DICOM coordinate system (LPS); STL/OBJ vertices are LPS millimetres
+- NIfTI sform is converted to RAS (x and y negated); MetaImage keeps LPS with the direction cosines in TransformMatrix
+- Exported voxels are already rescaled, so NIfTI scl_slope/scl_inter are 1/0
 
 ### File Formats
 
@@ -318,7 +344,8 @@ dicom-3d export brain-mri/*.dcm \
 
 ### Current Version (1.5.0)
 
-- **Volume rendering**: Not yet implemented
+- **Volume rendering**: Not implemented. The `volume` subcommand is hidden from `--help`; running
+  it prints that it is not implemented and exits 1 (`--camera-angle`, `--transfer-function` have no effect)
 - **Curved MPR**: Planned for future version
 - **Animation**: Planned for future version
 - **Transfer functions**: Planned for future version

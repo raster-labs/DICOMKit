@@ -1,6 +1,13 @@
 // PrintViewModel+PresentationStates.swift
 // DICOMStudio
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard literal of its own (no tag, UID, VR or
+// defined term): a film cell adopts a stored GSPS through the shared `ViewerPresentationStateBridge.restore`
+// (verified with DICOMKit / DICOMPrintKit), and since D42 (`6372e096`) hands it the image's Photometric
+// Interpretation read by `FrameRenderer.photometricInterpretation(path:)` so the Presentation LUT Shape is
+// applied per PS3.4 2026a N.2 (INVERSE on MONOCHROME1 is the upright picture); Displayed Area is restored in
+// source pixels against the cell's viewport (PS3.3 C.10.4).
+//
 // DICOM Studio — printing an image the way it was saved.
 //
 // A reader who saved "Lung window" on a slice has already decided how that
@@ -188,12 +195,18 @@ extension PrintViewModel {
         // Displayed Area is stated in source pixels, so the restore needs the
         // frame's real size. Read once per file and kept — see ``pixelSizes``.
         let pixelSize = await pixelSize(forPath: item.filePath)
+        // And its Photometric Interpretation: the state's Presentation LUT is
+        // read against it (PS3.4 N.2 — INVERSE on a MONOCHROME1 image is the
+        // upright picture). Through the same cache the renderer fills, so a
+        // cell already on film costs nothing.
+        let photometric = await FrameRenderer.photometricInterpretation(path: item.filePath)
 
         // The mark may have been unmarked or edited while the file was read.
         guard let item = selection.items.first(where: { $0.id == itemID }) else { return false }
 
         guard let updated = itemApplying(
-            stored, to: item, cellSize: cellSize, pixelSize: pixelSize) else { return false }
+            stored, to: item, cellSize: cellSize, pixelSize: pixelSize,
+            photometricInterpretation: photometric) else { return false }
 
         // A hand adjustment, because it is one: the reader picked this view for
         // this cell, and the choice must survive the viewer's next re-sync the
@@ -347,7 +360,8 @@ extension PrintViewModel {
         _ stored: StoredPresentationState,
         to item: PrintSelectionItem,
         cellSize: CGSize?,
-        pixelSize: CGSize?
+        pixelSize: CGSize?,
+        photometricInterpretation: String? = nil
     ) -> PrintSelectionItem? {
         // The viewport the state is restored against. The cell when the caller
         // knows it, else whatever the mark was composed in, else a square —
@@ -368,7 +382,8 @@ extension PrintViewModel {
             imageHeight: max(1, imageHeight),
             viewportWidth: max(1, viewportWidth),
             viewportHeight: max(1, viewportHeight),
-            covers: picturesCoverTheirCells)
+            covers: picturesCoverTheirCells,
+            photometricInterpretation: photometricInterpretation)
 
         var presentation = ViewerPresentation(
             zoom: restored.zoom,

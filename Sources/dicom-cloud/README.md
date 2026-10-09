@@ -250,6 +250,8 @@ dicom-cloud upload study/ s3://my-bucket/studies/study1/ \
 # Upload with metadata tags
 dicom-cloud upload scan.dcm s3://my-bucket/scans/ \
   --tags "PatientID=12345,StudyDate=20240101,Modality=CT"
+# (tag keys are free-form object metadata, not DICOM attributes, and are not de-identified:
+#  a PatientID tag is visible to anyone who can list the bucket)
 
 # Upload with server-side encryption
 dicom-cloud upload study/ s3://my-bucket/studies/ \
@@ -432,8 +434,8 @@ dicom-cloud upload study/ s3://bucket/study/ --recursive --verbose
 # 1. Validate DICOM files
 dicom-validate study/*.dcm
 
-# 2. Anonymize for archival
-dicom-anon study/ --output anon-study/ --profile archive --recursive
+# 2. De-identify for archival (PS3.15 Annex E Basic Application Level Confidentiality Profile)
+dicom-anon study/ --output anon-study/ --profile ps315 --recursive
 
 # 3. Upload to cloud with metadata
 dicom-cloud upload anon-study/ s3://pacs-archive/studies/$(date +%Y%m%d)/ \

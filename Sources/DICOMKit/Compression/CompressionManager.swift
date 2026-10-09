@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — XYB relabelled RGB after JPEG XL decode per PS3.3 2026a C.7.6.3.1.2 (D12); encapsulation per PS3.5 A.4; lossy output per PS3.3 2026a C.7.6.1.1.5 (0028,2110/2112/2114, DERIVED, new SOP Instance UID, Derivation Description; D184); J2K/HTJ2K PI from SGcod MCT (YBR_RCT/YBR_ICT, RGB after decode) per PS3.5 2026a 8.2.4 / 8.2.14 (D185, D186); JPEG colour YBR_FULL_422 per Table 8.2.1-1 (D190); File Meta UI padded per PS3.5 6.2 (D188)
 import Foundation
 import DICOMCore
 
@@ -33,6 +34,9 @@ public struct CompressionInfo {
     public let samplesPerPixel: UInt16?
     public let photometricInterpretation: String?
     public let numberOfFrames: String?
+    /// Lossy Image Compression (0028,2110) as stored ("00" / "01"), `nil` when absent.
+    /// PS3.3 C.7.6.1.1.5.
+    public var lossyImageCompression: String? = nil
 }
 
 // MARK: - Compression Manager
@@ -230,7 +234,8 @@ public struct CompressionManager {
             photometricInterpretation: file.dataSet.string(for: .photometricInterpretation)?
                 .trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")),
             numberOfFrames: file.dataSet.string(for: .numberOfFrames)?
-                .trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")),
+            lossyImageCompression: lossyFlag
         )
     }
 
@@ -465,10 +470,13 @@ public struct CompressionManager {
         }
         // Source pixel data must be uncompressed bytes here (caller
         // guarantees source !isEncapsulated). The encoder takes the
-        // contiguous byte buffer for all frames concatenated.
-        let uncompressedBytes = pixelDataElement.valueData
+        // contiguous byte buffer for all frames concatenated, little-endian:
+        // OW Pixel Data read from an Explicit VR Big Endian file is swapped first.
+        var uncompressedBytes = DICOMWriter.value(
+            pixelDataElement.valueData, vr: pixelDataElement.vr,
+            from: pixelDataElement.byteOrder, to: .littleEndian)
 
-        let descriptor = try buildPixelDataDescriptor(from: dataSet)
+        var descriptor = try buildPixelDataDescriptor(from: dataSet)
 
         // Reversible vs irreversible for THIS encode. The general (`.both`-capable) UIDs
         // honour the caller's intent (`.lossless`/`.lossy`); single-capability UIDs are
@@ -497,10 +505,23 @@ public struct CompressionManager {
             return CompressionConfiguration(forcedBackend: forced)
         }()
 
-        // Reject unsupported target syntaxes (currently JPEG 2000 Part-2) with a
-        // clear, specific reason before the generic layout check below.
+        // Reject unsupported target syntaxes (currently JPEG 2000 Part-2) with a clear,
+        // specific reason before the generic layout check below.
         if let reason = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: targetSyntax.uid) {
             throw CompressionError.unsupportedPixelDataConfiguration(reason)
+        }
+
+        // J2KSwift applies the Part 1 colour transform (SGcod MCT = 1) to every 3-component
+        // image, which PS3.5 2026a 8.2.4 / 8.2.14 permit only under YBR_RCT / YBR_ICT: YBR_FULL
+        // samples are converted to RGB first (lossy targets only — the conversion rounds) and
+        // labelled from the codestream below (D-CORE-3, shared with TransferSyntaxConverter).
+        if targetSyntax.isJPEG2000, descriptor.photometricInterpretation == .ybrFull {
+            do {
+                (uncompressedBytes, descriptor) = try TransferSyntaxConverter.rgbForJPEG2000Encode(
+                    uncompressedBytes, descriptor: descriptor, lossless: encodeLossless)
+            } catch TranscodingError.encodingFailed(let reason) {
+                throw CompressionError.unsupportedPixelDataConfiguration(reason)
+            }
         }
 
         guard encoder.canEncode(with: configuration, descriptor: descriptor) else {
@@ -528,6 +549,9 @@ public struct CompressionManager {
             encapsulatedOffsetTable: offsetTable
         )
 
+        // Photometric Interpretation / Planar Configuration follow what was encoded.
+        labelEncodedColour(in: &dataSet, targetSyntax: targetSyntax, firstCodestream: compressedFrames.first)
+
         // Record DICOM lossy-compression provenance when this encode was irreversible.
         if !encodeLossless {
             let compressedByteCount = compressedFrames.reduce(0) { $0 + $1.count }
@@ -537,6 +561,38 @@ public struct CompressionManager {
                 uncompressedByteCount: uncompressedBytes.count,
                 compressedByteCount: compressedByteCount
             )
+        }
+    }
+
+    /// Sets Photometric Interpretation and Planar Configuration from the codestream an encoder
+    /// wrote (D185 / D-KIT-1, D190 / D-CORE-2):
+    /// - JPEG 2000 / HTJ2K: SGcod MCT = 1 → YBR_RCT (5-3 reversible) or YBR_ICT (9-7
+    ///   irreversible); Planar Configuration "shall be set to 0" (PS3.5 2026a 8.2.4, Table
+    ///   8.2.4-1; 8.2.14, Table 8.2.14-1).
+    /// - JPEG Baseline / Extended: 3 components sampled H 2,1,1 / V 1,1,1 → YBR_FULL_422 with
+    ///   Planar Configuration 0 (Table 8.2.1-1 allows only YBR_FULL_422 or RGB).
+    static func labelEncodedColour(in dataSet: inout DataSet, targetSyntax: TransferSyntax,
+                                   firstCodestream: Data?) {
+        guard let codestream = firstCodestream else { return }
+        var newPI: String?
+        if targetSyntax.isJPEG2000 {
+            guard let style = J2KCodestreamInspector.codingStyle(in: codestream),
+                  style.componentCount == 3 else { return }
+            if style.multipleComponentTransform == 1 {
+                newPI = style.reversibleWavelet ? "YBR_RCT" : "YBR_ICT"
+            }
+        } else if targetSyntax.uid == TransferSyntax.jpegBaseline.uid
+                    || targetSyntax.uid == TransferSyntax.jpegExtended.uid {
+            guard JPEGInterchangeFormat.isHorizontally422(codestream) else { return }
+            newPI = "YBR_FULL_422"
+        } else {
+            return
+        }
+        if let newPI {
+            dataSet.setString(newPI, for: .photometricInterpretation, vr: .CS)
+        }
+        if dataSet[.planarConfiguration] != nil {
+            dataSet.setUInt16(0, for: .planarConfiguration)
         }
     }
 
@@ -579,13 +635,31 @@ public struct CompressionManager {
         dataSet.setStrings(methods, for: .lossyImageCompressionMethod, vr: .CS)
 
         // (0008,0008) Image Type Value 1 → DERIVED once lossy compression has been applied
-        // (PS3.3 C.7.6.1.1.5.1: "shall be set to DERIVED"). Only rewrite when Image Type is
-        // present and still marked ORIGINAL; leave absent Image Type alone (not all IODs
-        // define it) and preserve an already-DERIVED value.
+        // (PS3.3 2026a C.7.6.1.1.5: "If an image is a compressed version of another image, …
+        // Value 1 of the Attribute Image Type (0008,0008) shall be set to DERIVED"). Only rewrite
+        // when Image Type is present and still marked ORIGINAL; leave absent Image Type alone
+        // (not all IODs define it) and preserve an already-DERIVED value.
         var imageType = dataSet.strings(for: .imageType) ?? []
         if !imageType.isEmpty, imageType[0].uppercased() == "ORIGINAL" {
             imageType[0] = "DERIVED"
             dataSet.setStrings(imageType, for: .imageType, vr: .CS)
+        }
+
+        // "… and if the predecessor was a DICOM image, then the Image shall receive a new SOP
+        // Instance UID" (PS3.3 2026a C.7.6.1.1.5; D184, D192). The File Meta Information's Media
+        // Storage SOP Instance UID (0002,0003) is written from this value.
+        if dataSet[.sopInstanceUID] != nil {
+            dataSet.setString(UIDGenerator.generateSOPInstanceUID().value, for: .sopInstanceUID, vr: .UI)
+        }
+
+        // "For historical reasons, the lossy compression ratio should also be described in
+        // Derivation Description (0008,2111)" (C.7.6.1.1.5.2). Appended, so earlier steps stay.
+        let step = "Lossy compression \(method), ratio \(DICOMDecimalString(value: ratio).dicomString):1"
+        let previous = dataSet.string(for: .derivationDescription)?
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")) ?? ""
+        let description = previous.isEmpty ? step : previous + "; " + step
+        if description.utf8.count <= 1024 {   // ST: at most 1024 characters (PS3.5 Table 6.2-1)
+            dataSet.setString(description, for: .derivationDescription, vr: .ST)
         }
     }
 
@@ -657,6 +731,15 @@ public struct CompressionManager {
             valueData: combined
         )
 
+        // JPEG 2000 / HTJ2K decoders invert the Part 1 multi-component transformation: "If color
+        // components are converted from YBR_ICT or YBR_RCT to RGB during decompression and Native
+        // re-encoding, the Photometric Interpretation will be changed to RGB" (PS3.5 2026a 8.2.4;
+        // 8.2.14 for HTJ2K); native Pixel Data never carries YBR_RCT / YBR_ICT (D186 / D-KIT-1).
+        if sourceSyntax.isJPEG2000,
+           descriptor.photometricInterpretation == .ybrRCT || descriptor.photometricInterpretation == .ybrICT {
+            dataSet.setString("RGB", for: .photometricInterpretation, vr: .CS)
+        }
+
         // JPEG Baseline/Extended (SOF0/SOF1) decode always yields RGB samples —
         // JLIDecoder converts YCbCr → RGB internally regardless of the source's
         // declared Photometric Interpretation (PS3.5 Table 8.2.1-1 permits either
@@ -667,6 +750,13 @@ public struct CompressionManager {
             || sourceSyntax.uid == TransferSyntax.jpegExtended.uid),
            descriptor.samplesPerPixel == 3,
            descriptor.photometricInterpretation.isYBR {
+            dataSet.setString("RGB", for: .photometricInterpretation, vr: .CS)
+        }
+
+        // The JPEG XL decoder applies the inverse XYB transform and yields RGB samples;
+        // "Images in XYB transcoded to other Transfer Syntaxes will use RGB"
+        // (PS3.3 C.7.6.3.1.2), as TransferSyntaxConverter already does.
+        if sourceSyntax.isJPEGXL, descriptor.photometricInterpretation == .xyb {
             dataSet.setString("RGB", for: .photometricInterpretation, vr: .CS)
         }
     }
@@ -893,47 +983,30 @@ struct TransferSyntaxHelper {
             valueData: Data([0x00, 0x01])
         )
 
+        // UI values are padded to an even length with a single trailing NULL (PS3.5 2026a 6.2,
+        // Table 6.2-1 UI; 7.1: even Value Length; D188).
+        func uiElement(_ tag: Tag, _ uid: String) -> DataElement? {
+            let trimmed = uid.trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))
+            guard !trimmed.isEmpty, trimmed.allSatisfy(\.isASCII) else { return nil }
+            let data = DICOMWriter().padString(trimmed, vr: .UI)
+            return DataElement(tag: tag, vr: .UI, length: UInt32(data.count), valueData: data)
+        }
+
         // Media Storage SOP Class UID
-        if let sopClassUID = dataSet.string(for: .sopClassUID),
-           let data = sopClassUID.data(using: .ascii) {
-            fileMeta[.mediaStorageSOPClassUID] = DataElement(
-                tag: .mediaStorageSOPClassUID,
-                vr: .UI,
-                length: UInt32(data.count),
-                valueData: data
-            )
+        if let sopClassUID = dataSet.string(for: .sopClassUID) {
+            fileMeta[.mediaStorageSOPClassUID] = uiElement(.mediaStorageSOPClassUID, sopClassUID)
         }
 
         // Media Storage SOP Instance UID
-        if let sopInstanceUID = dataSet.string(for: .sopInstanceUID),
-           let data = sopInstanceUID.data(using: .ascii) {
-            fileMeta[.mediaStorageSOPInstanceUID] = DataElement(
-                tag: .mediaStorageSOPInstanceUID,
-                vr: .UI,
-                length: UInt32(data.count),
-                valueData: data
-            )
+        if let sopInstanceUID = dataSet.string(for: .sopInstanceUID) {
+            fileMeta[.mediaStorageSOPInstanceUID] = uiElement(.mediaStorageSOPInstanceUID, sopInstanceUID)
         }
 
         // Transfer Syntax UID
-        if let tsData = targetSyntax.uid.data(using: .ascii) {
-            fileMeta[.transferSyntaxUID] = DataElement(
-                tag: .transferSyntaxUID,
-                vr: .UI,
-                length: UInt32(tsData.count),
-                valueData: tsData
-            )
-        }
+        fileMeta[.transferSyntaxUID] = uiElement(.transferSyntaxUID, targetSyntax.uid)
 
         // Implementation Class UID
-        if let implData = "1.2.826.0.1.3680043.10.1".data(using: .ascii) {
-            fileMeta[.implementationClassUID] = DataElement(
-                tag: .implementationClassUID,
-                vr: .UI,
-                length: UInt32(implData.count),
-                valueData: implData
-            )
-        }
+        fileMeta[.implementationClassUID] = uiElement(.implementationClassUID, "1.2.826.0.1.3680043.10.1")
 
         // Implementation Version Name
         if let versionData = "DICOMKIT-1.0".data(using: .ascii) {

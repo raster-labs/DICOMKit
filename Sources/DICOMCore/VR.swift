@@ -1,8 +1,14 @@
 /// Value Representation (VR) enumeration
 ///
 /// Defines all 34 Value Representations from DICOM PS3.5 2026d Table 6.2-1,
-/// including the 64-bit OV, SV and UV representations added by CP-1818.
+/// including the 64-bit OV, SV and UV representations added by CP 1819 (2019a).
 /// Each VR specifies the data type and format of a DICOM data element value.
+///
+/// NEMA-verified: 2026a, checked 2026-09-24 — text-diffed against PS3.5 2026a (frozen): the
+/// 34 cases match Table 6.2-1, and `uses32BitLength` matches §7.1.2 / Tables 7.1-1 and 7.1-2
+/// (21 VRs with a 16-bit length, 13 with a 32-bit length); OV/SV/UV provenance: CP 1819 (2019a).
+/// NEMA-verified: 2026d, checked 2026-09-24 — the same comparison against PS3.5 2026d (NEMA
+/// `/current/`, subtitle "PS3.5 2026d"; no frozen 2026d copy is published yet) also matches.
 ///
 /// Reference: DICOM PS3.5 Section 6.2 - Value Representation (VR)
 public enum VR: String, Sendable, Hashable, CaseIterable {

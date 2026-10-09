@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-10-01 — CLI resume state; the study row's key `ModalitiesInStudy` is the PS3.6 2026a Table 6-1 keyword of (0008,0061), the STUDY-level return key of PS3.4 Table C.6-5 (P-QR-STATE-MODALITIES; the old `modality` key, (0008,0060), is kept)
 
 // Shared save-state model for `dicom-qr` — the JSON written by `--save-state`
 // and consumed by `dicom-qr resume`. Lives in DICOMNetwork so the CLI and
@@ -13,7 +14,25 @@ public struct QRStudyInfo: Codable, Sendable {
     public let studyDate: String?
     public let studyDescription: String?
     public let accessionNumber: String?
+    /// Modality (0008,0060), a Series-level attribute: nil unless the SCP
+    /// volunteered it in a STUDY-level response.
+    ///
+    /// Deprecated as the study's modality: a STUDY-level C-FIND returns
+    /// Modalities in Study (0008,0061) (PS3.4 Table C.6-5), stored under the
+    /// PS3.6 keyword key `ModalitiesInStudy` (``modalitiesInStudy``). The JSON
+    /// key `modality` is still written, with the same value as before, so
+    /// older readers keep working.
     public let modality: String?
+    /// Modalities in Study (0008,0061) of the STUDY-level C-FIND response
+    /// (PS3.4 Table C.6-5), multiple values joined by `\`. JSON key
+    /// `ModalitiesInStudy` (PS3.6 keyword); absent in files written before
+    /// 2026-10-01, which decode it as nil.
+    public let modalitiesInStudy: String?
+
+    enum CodingKeys: String, CodingKey {
+        case studyInstanceUID, patientName, patientID, studyDate, studyDescription, accessionNumber, modality
+        case modalitiesInStudy = "ModalitiesInStudy"
+    }
 
     public init(from result: GenericQueryResult) {
         self.studyInstanceUID = result.studyInstanceUID
@@ -23,6 +42,7 @@ public struct QRStudyInfo: Codable, Sendable {
         self.studyDescription = result.studyDescription
         self.accessionNumber = result.accessionNumber
         self.modality = result.modality
+        self.modalitiesInStudy = result.toStudyResult().modalitiesInStudy
     }
 }
 

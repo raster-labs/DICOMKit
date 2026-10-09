@@ -13,6 +13,7 @@ import Foundation
 /// Reference: PS3.6 Section 6 - Registry of DICOM Data Elements
 /// Parametric Map tags are in group 0x0068
 /// Real World Value Mapping tags are in group 0x0040
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     
     // MARK: - Parametric Map Series Module (PS3.3 C.8.23.1)
@@ -82,13 +83,13 @@ extension Tag {
     /// Defines the physical quantity being mapped
     public static let quantityDefinitionSequence = Tag(group: 0x0040, element: 0x9220)
     
-    /// Double Float Real World Value First Value Mapped (0040,9213)
-    /// 64-bit float: First pixel value mapped in the LUT
-    public static let doubleFloatRealWorldValueFirstValueMapped = Tag(group: 0x0040, element: 0x9213)
+    /// Double Float Real World Value First Value Mapped (0040,9214)
+    /// VR: FD, VM: 1 — first pixel value mapped in the LUT
+    public static let doubleFloatRealWorldValueFirstValueMapped = Tag(group: 0x0040, element: 0x9214)
     
-    /// Double Float Real World Value Last Value Mapped (0040,9214)
-    /// 64-bit float: Last pixel value mapped in the LUT
-    public static let doubleFloatRealWorldValueLastValueMapped = Tag(group: 0x0040, element: 0x9214)
+    /// Double Float Real World Value Last Value Mapped (0040,9213)
+    /// VR: FD, VM: 1 — last pixel value mapped in the LUT
+    public static let doubleFloatRealWorldValueLastValueMapped = Tag(group: 0x0040, element: 0x9213)
     
     /// LUT Label (0040,9210)
     /// Label for the LUT

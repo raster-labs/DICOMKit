@@ -350,8 +350,10 @@ final class DICOMServerTests: XCTestCase {
         var queryDS = DataSet()
         queryDS.setString("STUDY", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("PAT001", for: .patientID, vr: .LO)
+        // PS3.4 C.4.1.1.3.2: only requested keys are returned, so ask for the unique key
+        queryDS.setString("", for: .studyInstanceUID, vr: .UI)
         
-        let results = try await db.queryForFind(queryDataset: queryDS, level: "STUDY")
+        let results = try await db.queryForFind(queryDataset: queryDS, level: .study)
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].string(for: .studyInstanceUID), "1.2.3.4")
     }
@@ -383,7 +385,7 @@ final class DICOMServerTests: XCTestCase {
         var queryDS = DataSet()
         queryDS.setString("PATIENT", for: .queryRetrieveLevel, vr: .CS)
         
-        let results = try await db.queryForFind(queryDataset: queryDS, level: "PATIENT")
+        let results = try await db.queryForFind(queryDataset: queryDS, level: .patient)
         XCTAssertEqual(results.count, 3)
     }
     
@@ -416,7 +418,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("PATIENT", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("SMITH*", for: .patientName, vr: .PN)
         
-        let results = try await db.queryForFind(queryDataset: queryDS, level: "PATIENT")
+        let results = try await db.queryForFind(queryDataset: queryDS, level: .patient)
         XCTAssertEqual(results.count, 2)
     }
     
@@ -449,7 +451,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("1.2.3.4", for: .studyInstanceUID, vr: .UI)
         queryDS.setString("CT", for: .modality, vr: .CS)
         
-        let results = try await db.queryForFind(queryDataset: queryDS, level: "SERIES")
+        let results = try await db.queryForFind(queryDataset: queryDS, level: .series)
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].string(for: .modality), "CT")
     }
@@ -482,7 +484,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("IMAGE", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("1.2.3.4.5", for: .seriesInstanceUID, vr: .UI)
         
-        let results = try await db.queryForFind(queryDataset: queryDS, level: "IMAGE")
+        let results = try await db.queryForFind(queryDataset: queryDS, level: .image)
         XCTAssertEqual(results.count, 5)
     }
     
@@ -512,14 +514,14 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("IMAGE", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("1.2.3.4.5.6", for: .sopInstanceUID, vr: .UI)
         
-        var results = try await db.queryForFind(queryDataset: queryDS, level: "IMAGE")
+        var results = try await db.queryForFind(queryDataset: queryDS, level: .image)
         XCTAssertEqual(results.count, 1)
         
         // Delete
         try await db.delete(sopInstanceUID: "1.2.3.4.5.6")
         
         // Query again - should not find
-        results = try await db.queryForFind(queryDataset: queryDS, level: "IMAGE")
+        results = try await db.queryForFind(queryDataset: queryDS, level: .image)
         XCTAssertEqual(results.count, 0)
     }
     
@@ -539,7 +541,11 @@ final class DICOMServerTests: XCTestCase {
         dataSet.setString("1.2.840.10008.5.1.4.1.1.2", for: .sopClassUID, vr: .UI)
         
         // Store
-        let filePath = try await storage.storeFile(dataset: dataSet, sopInstanceUID: "1.2.3.4.5.6")
+        let filePath = try await storage.storeReceived(
+            dataSetData: ServerProtocol.encodeDataSet(dataSet, transferSyntaxUID: "1.2.840.10008.1.2.1"),
+            sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3.4.5.6",
+            transferSyntaxUID: "1.2.840.10008.1.2.1", serverAETitle: "TEST_SCP", callingAETitle: "TEST_SCU"
+        ).filePath
         XCTAssertFalse(filePath.isEmpty)
         XCTAssertTrue(FileManager.default.fileExists(atPath: filePath))
         XCTAssertTrue(filePath.contains("1.2.3.4"))
@@ -560,7 +566,11 @@ final class DICOMServerTests: XCTestCase {
         dataSet.setString("INSTANCE_UID_789", for: .sopInstanceUID, vr: .UI)
         
         // Store
-        let filePath = try await storage.storeFile(dataset: dataSet, sopInstanceUID: "INSTANCE_UID_789")
+        let filePath = try await storage.storeReceived(
+            dataSetData: ServerProtocol.encodeDataSet(dataSet, transferSyntaxUID: "1.2.840.10008.1.2.1"),
+            sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "INSTANCE_UID_789",
+            transferSyntaxUID: "1.2.840.10008.1.2.1", serverAETitle: "TEST_SCP", callingAETitle: nil
+        ).filePath
         
         // Verify directory structure
         XCTAssertTrue(filePath.contains("STUDY_UID_123"))
@@ -627,7 +637,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("STUDY", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("1.2.3.4", for: .studyInstanceUID, vr: .UI)
         
-        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: "STUDY")
+        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: .study)
         XCTAssertEqual(instances.count, 2)
         XCTAssertTrue(instances.contains { $0.sopInstanceUID == "1.2.3.4.5.6" })
         XCTAssertTrue(instances.contains { $0.sopInstanceUID == "1.2.3.4.5.7" })
@@ -676,7 +686,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("SERIES", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("1.2.3.4.5", for: .seriesInstanceUID, vr: .UI)
         
-        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: "SERIES")
+        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: .series)
         XCTAssertEqual(instances.count, 1)
         XCTAssertEqual(instances[0].sopInstanceUID, "1.2.3.4.5.6")
     }
@@ -708,7 +718,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("IMAGE", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("1.2.3.4.5.6", for: .sopInstanceUID, vr: .UI)
         
-        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: "IMAGE")
+        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: .image)
         XCTAssertEqual(instances.count, 1)
         XCTAssertEqual(instances[0].sopInstanceUID, "1.2.3.4.5.6")
         XCTAssertEqual(instances[0].filePath, "/tmp/test1.dcm")
@@ -742,7 +752,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("PATIENT", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("PAT001", for: .patientID, vr: .LO)
         
-        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: "PATIENT")
+        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: .patient)
         XCTAssertEqual(instances.count, 3)
     }
     
@@ -755,7 +765,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("STUDY", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("999.999.999", for: .studyInstanceUID, vr: .UI)
         
-        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: "STUDY")
+        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: .study)
         XCTAssertEqual(instances.count, 0)
     }
     
@@ -787,7 +797,7 @@ final class DICOMServerTests: XCTestCase {
         queryDS.setString("PATIENT", for: .queryRetrieveLevel, vr: .CS)
         queryDS.setString("PAT*", for: .patientID, vr: .LO)
         
-        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: "PATIENT")
+        let instances = try await db.queryForRetrieve(queryDataset: queryDS, level: .patient)
         XCTAssertEqual(instances.count, 3)
     }
     

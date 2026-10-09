@@ -92,7 +92,7 @@ final class RealWorldValueLUTParserTests: XCTestCase {
         // Create RWV Mapping Item
         var rwvMappingDS = DataSet()
         rwvMappingDS[Tag(group: 0x0040, element: 0x9210)] = DataElement.string(tag: Tag(group: 0x0040, element: 0x9210), vr: .LO, value: "ADC Mapping")
-        rwvMappingDS[Tag(group: 0x0040, element: 0x9211)] = DataElement.string(tag: Tag(group: 0x0040, element: 0x9211), vr: .LO, value: "Apparent Diffusion Coefficient")
+        rwvMappingDS[Tag.lutExplanation] = DataElement.string(tag: Tag.lutExplanation, vr: .LO, value: "Apparent Diffusion Coefficient")
         
         // Measurement Units Code Sequence
         var unitsDS = DataSet()
@@ -246,7 +246,7 @@ final class RealWorldValueLUTParserTests: XCTestCase {
         
         var rwvMappingDS = DataSet()
         rwvMappingDS[Tag(group: 0x0040, element: 0x9210)] = DataElement.string(tag: Tag(group: 0x0040, element: 0x9210), vr: .LO, value: "SUVbw")
-        rwvMappingDS[Tag(group: 0x0040, element: 0x9211)] = DataElement.string(tag: Tag(group: 0x0040, element: 0x9211), vr: .LO, value: "Standardized Uptake Value body weight")
+        rwvMappingDS[Tag.lutExplanation] = DataElement.string(tag: Tag.lutExplanation, vr: .LO, value: "Standardized Uptake Value body weight")
         
         var unitsDS = DataSet()
         unitsDS[Tag.codeValue] = DataElement.string(tag: Tag.codeValue, vr: .SH, value: "g/ml")

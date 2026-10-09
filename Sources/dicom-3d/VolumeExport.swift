@@ -1,8 +1,47 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — DICOM side of the NIfTI / MetaImage export: the voxel-to-patient affine is PS3.3 2026a C.7.6.2.1.1 Equation C.7.6.2.1-1 with the LPS axes of that section (NIfTI sform converted to RAS by negating x and y; MetaImage keeps LPS), Pixel Spacing order of Table C.7-10, voxels already in Modality LUT output units (C.11.1.1.2) so no second rescale; NIfTI-1 / MetaIO header layouts are not DICOM and were not compared with the standard
 import Foundation
 
 // MARK: - Volume Export Extensions
 
 extension VolumeData {
+    /// Voxel-index → patient (LPS, mm) affine: columns are X·Δi, Y·Δj, N·Δk and the
+    /// origin S (PS3.3 C.7.6.2.1.1 Equation C.7.6.2.1-1, extended along the normal).
+    var lpsAffine: [[Double]] {
+        let x = axisDirection(0).scaled(spacing.x)
+        let y = axisDirection(1).scaled(spacing.y)
+        let z = axisDirection(2).scaled(spacing.z)
+        return [[x.x, y.x, z.x, origin.x],
+                [x.y, y.y, z.y, origin.y],
+                [x.z, y.z, z.z, origin.z]]
+    }
+
+    /// NIfTI sform rows: NIfTI's scanner space is RAS, DICOM's patient space LPS,
+    /// so the first two rows change sign.
+    var niftiSform: [[Float]] {
+        let a = lpsAffine
+        return [a[0].map { Float(-$0) }, a[1].map { Float(-$0) }, a[2].map { Float($0) }]
+    }
+
+    /// MetaImage TransformMatrix: the direction cosines of the three index axes, axis by axis.
+    var metaImageTransformMatrix: [Double] {
+        (0..<3).flatMap { axis -> [Double] in
+            let d = axisDirection(axis)
+            return [d.x, d.y, d.z]
+        }
+    }
+
+    /// MetaImage AnatomicalOrientation: for each index axis, the patient side it
+    /// runs *from* (ITK convention; "RAI" is the LPS identity).
+    var metaImageAnatomicalOrientation: String {
+        (0..<3).map { axis -> String in
+            let d = axisDirection(axis)
+            let components = [(abs(d.x), d.x >= 0 ? "R" : "L"),
+                              (abs(d.y), d.y >= 0 ? "A" : "P"),
+                              (abs(d.z), d.z >= 0 ? "I" : "S")]
+            return components.max { $0.0 < $1.0 }!.1
+        }.joined()
+    }
+
     /// Export volume as NIfTI format (.nii)
     func exportNIfTI(to url: URL) throws {
         // NIfTI-1 header (348 bytes)
@@ -76,9 +115,10 @@ extension VolumeData {
         var voxOffset: Float = 352.0
         data.append(Data(bytes: &voxOffset, count: 4))
         
-        // scl_slope, scl_inter (8 bytes) - scaling
-        var sclSlope: Float = Float(rescaleSlope)
-        var sclInter: Float = Float(rescaleIntercept)
+        // scl_slope, scl_inter (8 bytes): the voxels already hold Rescale Slope /
+        // Intercept output values (PS3.3 C.11.1.1.2), so the identity is written.
+        var sclSlope: Float = 1
+        var sclInter: Float = 0
         data.append(Data(bytes: &sclSlope, count: 4))
         data.append(Data(bytes: &sclInter, count: 4))
         
@@ -131,17 +171,18 @@ extension VolumeData {
         data.append(Data(bytes: &quaternD, count: 4))
         
         // qoffset_x, qoffset_y, qoffset_z (12 bytes)
-        var qoffsetX: Float = Float(origin.x)
-        var qoffsetY: Float = Float(origin.y)
+        var qoffsetX: Float = Float(-origin.x)  // RAS
+        var qoffsetY: Float = Float(-origin.y)  // RAS
         var qoffsetZ: Float = Float(origin.z)
         data.append(Data(bytes: &qoffsetX, count: 4))
         data.append(Data(bytes: &qoffsetY, count: 4))
         data.append(Data(bytes: &qoffsetZ, count: 4))
         
-        // srow_x, srow_y, srow_z (48 bytes) - affine transform
-        let srowX: [Float] = [Float(spacing.x), 0, 0, Float(origin.x)]
-        let srowY: [Float] = [0, Float(spacing.y), 0, Float(origin.y)]
-        let srowZ: [Float] = [0, 0, Float(spacing.z), Float(origin.z)]
+        // srow_x, srow_y, srow_z (48 bytes) - affine transform (RAS)
+        let sform = niftiSform
+        let srowX: [Float] = sform[0]
+        let srowY: [Float] = sform[1]
+        let srowZ: [Float] = sform[2]
         
         for i in 0..<4 {
             var x = srowX[i]
@@ -186,10 +227,10 @@ extension VolumeData {
         header += "BinaryData = True\n"
         header += "BinaryDataByteOrderMSB = False\n"
         header += "CompressedData = False\n"
-        header += "TransformMatrix = 1 0 0 0 1 0 0 0 1\n"
+        header += "TransformMatrix = \(metaImageTransformMatrix.map { String($0) }.joined(separator: " "))\n"
         header += "Offset = \(origin.x) \(origin.y) \(origin.z)\n"
         header += "CenterOfRotation = 0 0 0\n"
-        header += "AnatomicalOrientation = RAI\n"
+        header += "AnatomicalOrientation = \(metaImageAnatomicalOrientation)\n"
         header += "ElementSpacing = \(spacing.x) \(spacing.y) \(spacing.z)\n"
         header += "DimSize = \(dimensions.width) \(dimensions.height) \(dimensions.depth)\n"
         header += "ElementType = MET_DOUBLE\n"

@@ -78,20 +78,20 @@ dicom-printscp queues                      # CUPS queues for --paper-queue
 | `--idle-timeout` | Seconds an idle association may sit before it is aborted; 0 disables (default: 300) |
 | `--allow-ae` | Calling AE title to accept (repeatable; default: accept all) |
 | `--deny-ae` | Calling AE title to refuse (repeatable; takes precedence over `--allow-ae`) |
-| `--max-pdu` | Maximum PDU size accepted during negotiation (default: 65536) |
+| `--max-pdu` | Maximum Length of a received P-DATA-TF PDU offered during negotiation (PS3.8 D.1) (default: 65536) |
 
 **Negotiated capability**
 
 | Option | Description |
 |--------|-------------|
-| `--accept-color` / `--no-accept-color` | Accept the Color Print Management Meta SOP Class (default: yes) |
-| `--presentation-lut` / `--no-presentation-lut` | Accept Presentation LUT N-CREATE (default: yes) |
-| `--annotation-box` / `--no-annotation-box` | Accept Basic Annotation Box N-CREATE / N-SET (default: yes) |
-| `--annotation-boxes-per-film` | Annotation boxes offered per film box (default: 6) |
-| `--push-job-events` | Push Print Job N-EVENT-REPORTs after N-ACTION |
-| `--film-size` | Film size to accept (repeatable; default: all) |
-| `--medium` | Medium type to accept (repeatable; default: all) |
-| `--max-image-boxes` | Maximum image boxes a film box may declare (default: 64) |
+| `--accept-color` / `--no-accept-color` | Accept the Basic Color Print Management Meta SOP Class (1.2.840.10008.5.1.1.18) (default: yes) |
+| `--presentation-lut` / `--no-presentation-lut` | Accept the Presentation LUT SOP Class (1.2.840.10008.5.1.1.23) N-CREATE (default: yes) |
+| `--annotation-box` / `--no-annotation-box` | Accept the Basic Annotation Box SOP Class (1.2.840.10008.5.1.1.15) N-SET (default: yes; PS3.4 Table H.4.4.2-1 defines N-SET only) |
+| `--annotation-boxes-per-film` | Basic Annotation Box instances created per film box, in Referenced Basic Annotation Box Sequence (2010,0520) (default: 6) |
+| `--push-job-events` | Send a Print Job SOP Class N-EVENT-REPORT, Event Type Done (3, PS3.4 Table H.4-14), after each N-ACTION |
+| `--film-size` | Film Size ID (2010,0050) to accept (repeatable; default: all): 8x10 = 8INX10IN, 8.5x11 = 8_5INX11IN, 10x12 = 10INX12IN, 10x14 = 10INX14IN, 11x14 = 11INX14IN, 11x17 = 11INX17IN, 14x14 = 14INX14IN, 14x17 = 14INX17IN, 24x24cm = 24CMX24CM, 24x30cm = 24CMX30CM, a4 = A4, a3 = A3 (the Defined Term is also accepted) |
+| `--medium` | Medium Type (2000,0030) to accept (repeatable; default: all): paper, clear-film, blue-film, mammo-clear-film, mammo-blue-film = PAPER, CLEAR FILM, BLUE FILM, MAMMO CLEAR FILM, MAMMO BLUE FILM (the Defined Term is also accepted) |
+| `--max-image-boxes` | Maximum image boxes an Image Display Format (2010,0010) may declare (default: 64) |
 | `--max-image-dimension` | Largest image dimension accepted in an image box (default: 10000) |
 
 **Reported identity (answers N-GET)**
@@ -100,22 +100,22 @@ dicom-printscp queues                      # CUPS queues for --paper-queue
 |--------|-------------|
 | `--printer-name` | Printer Name (2110,0030) |
 | `--manufacturer` | Manufacturer (0008,0070) |
-| `--model` | Manufacturer Model Name (0008,1090) |
+| `--model` | Manufacturer's Model Name (0008,1090) |
 | `--serial-number` | Device Serial Number (0018,1000) |
-| `--software-version` | Software Version (0018,1020) |
-| `--printer-status` | Printer Status (2110,0010): normal, warning, failure |
-| `--status-info` | Printer Status Info (2110,0020); empty uses the status's own text |
+| `--software-version` | Software Versions (0018,1020) |
+| `--printer-status` | Printer Status (2110,0010), PS3.3 Table C.13-9: normal, warning, failure = NORMAL, WARNING, FAILURE |
+| `--status-info` | Printer Status Info (2110,0020), a PS3.3 C.13.9.1 Defined Term such as SUPPLY EMPTY; empty uses the status's own term |
 
 **Composition**
 
 | Option | Description |
 |--------|-------------|
 | `--dpi` | Rasterization resolution of the composed sheet (default: 300) |
-| `--density` | Density interpretation: paper, film (default: paper) |
+| `--density` | Density interpretation: paper, film, gsdf (the PS3.14 Grayscale Standard Display Function) (default: paper) |
 | `--margin-mm` | Sheet margin in millimetres (default: 5) |
 | `--cell-spacing-mm` | Gap between image cells in millimetres (default: 2) |
 | `--annotations` / `--no-annotations` | Draw Basic Annotation Box text (default: yes) |
-| `--trim-marks` / `--no-trim-marks` | Draw crop marks when Trim is YES (default: yes) |
+| `--trim-marks` / `--no-trim-marks` | Print a trim box around each image when Trim (2010,0140) is YES, PS3.3 Table C.13-3 (default: yes) |
 | `--max-pixels` | Cap on the composed bitmap's longest side (default: 12000) |
 
 **Output**
@@ -149,9 +149,21 @@ Print SCU would have sent: `--layout`, `--film-size`, `--orientation`, `--magnif
 `--empty-density`, `--annotate` / `--annotation-format`, `--color`, `--frame`, `--all-frames`,
 `--raw`, `--window-center` / `--window-width`, `--bit-depth`, `--recursive`, `--calling-ae`.
 
+Each film-box option names its attribute in `--help` with the term every token sends
+(`14x17 = 14INX17IN`), and takes the term itself as well. `--layout` takes a grid `RxC` (sent as
+`STANDARD\C,R`) or any Image Display Format form of PS3.3 Table C.13-3 (`'ROW\1,2'`,
+`'COL\1,4,4'`, `SLIDE`, `SUPERSLIDE`, `'CUSTOM\i'`). `--border-density` / `--empty-density`
+take BLACK, WHITE or a density in hundredths of OD (`150` = 1.5 OD). `--bit-depth` is 8 or 12, the
+Bits Stored values of Table C.13-5.
+
 ### `status` / `queues`
 
 `status` takes every settings option plus `--format` and `--verbose`. `queues` takes `--format`.
+
+`status --format json` keys each attribute by its PS3.6 Table 6-1 keyword (`PrinterStatus`,
+`PrinterStatusInfo`, `PrinterName`, `Manufacturer`, `ManufacturerModelName`), the same object
+`dicom-print status --format json` prints. The older keys `status`, `statusInfo`, `name`,
+`manufacturer` and `model` carry the same values and are deprecated.
 
 ## Configuration file
 

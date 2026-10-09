@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Image viewer ViewModel
+//
+// NEMA-verified: 2026a, checked 2026-10-06 — `applyDefaultWindow` takes the file's default window from DICOMKit `determineModalityWindow` (modality units, PS3.3 C.11.2.1.2.1) and converts it to the viewer's stored-unit state with (c − b) / m, w / |m| (A6 / D65; the deprecated `determineWindowSettings` is no longer called); the viewport now renders through the PS3.4 2026a N.2 chain (D65, D68): `displayModalityLUT` is the image's Modality LUT Sequence else its Rescale pair (PS3.3 C.11.1), or the applied presentation state's (N.2.1.1); `displayWindow` hands the renderer the window in modality units (C.11.2.1.2.1 — the viewer keeps stored-pixel units for its tools and converts c·m+b, w·|m|), `displayVOI` the file's VOI LUT Sequence while the window is the untouched default (C.11.2, one or the other), `displayICCProfile` the ICC Profile (0028,2000) of colour frames (C.11.15.1.1); the Presentation LUT is left to the photometric (MONOCHROME1 → INVERSE, C.7.6.3.1.2); `voiLUTFunction` defaults to LINEAR (C.11.2.1.3); the MONOCHROME1/2 and RGB literals are C.7.6.3.1.2 terms; `isWaveformFile` now excludes the .9.100 Waveform Presentation State branch of the PS3.6 Table A-1 .9 arc (the two were classified as waveforms: corrected); the window fallbacks are the C.11.2.1.2.1 full-range window then the header's own; checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 import Observation
@@ -180,6 +182,22 @@ public final class ImageViewerViewModel {
 
     /// Rescale intercept from the DICOM header (default 0.0).
     public var rescaleIntercept: Double = 0.0
+
+    /// Where the Modality LUT the viewport renders through comes from.
+    ///
+    /// The image's own — its Modality LUT Sequence or Rescale pair — until a
+    /// saved view is applied, then the view's: under a presentation state the
+    /// state's Modality LUT replaces the image's, and an absent one is the
+    /// identity ("Any Modality LUT or equivalent Attributes in the Image shall
+    /// not be used", PS3.4 N.2.1.1). Back to the image's once a tool moves,
+    /// when the picture is no longer the saved view.
+    @ObservationIgnored var modalityLUTSource: DisplayModalityLUTSource = .image
+
+    /// The file's VOI LUT Sequence table, when the file windows through a table
+    /// rather than a centre and width (PS3.3 C.11.2, "one or the other"). Shown
+    /// for as long as the window is the untouched default; a drag replaces it
+    /// with the window the reader made.
+    @ObservationIgnored private var defaultVOILUTTable: LUTData?
 
     // MARK: - Multi-Frame / Cine State
 
@@ -854,12 +872,16 @@ public final class ImageViewerViewModel {
 
     /// Returns whether the data set represents a Waveform IOD.
     ///
-    /// Detects by SOP Class UID (the `1.2.840.10008.5.1.4.1.1.9.*` family) or by the
-    /// presence of a Waveform Sequence, so legacy files with a missing/other SOP
-    /// Class UID but valid waveform data are still recognized.
+    /// Detects by SOP Class UID — the `1.2.840.10008.5.1.4.1.1.9.*` arc of PS3.6
+    /// Table A-1 holds the Waveform Storage classes, except its `.9.100.*`
+    /// branch, which is the two Waveform Presentation State Storage classes
+    /// (objects about waveforms, with no Waveform Sequence of their own) — or
+    /// by the presence of a Waveform Sequence, so legacy files with a
+    /// missing/other SOP Class UID but valid waveform data are still recognized.
     private static func isWaveformFile(_ ds: DataSet) -> Bool {
         if let sopClass = ds.string(for: .sopClassUID)?.trimmingCharacters(in: .whitespaces),
-           sopClass.hasPrefix("1.2.840.10008.5.1.4.1.1.9") {
+           sopClass.hasPrefix("1.2.840.10008.5.1.4.1.1.9."),
+           !sopClass.hasPrefix("1.2.840.10008.5.1.4.1.1.9.100.") {
             return true
         }
         return ds.sequence(for: .waveformSequence)?.isEmpty == false
@@ -908,6 +930,8 @@ public final class ImageViewerViewModel {
         }
 
         self.dicomFile = file
+        // A new image renders through its own Modality LUT until a view is applied.
+        modalityLUTSource = .image
         // The decoded pixels belong to the *previous* file. Anything that assigns
         // `dicomFile` must clear them, or the viewport shows the last image's pixels
         // under the new one's window. This is the only assignment site; keep it that
@@ -1229,6 +1253,85 @@ public final class ImageViewerViewModel {
     }
     #endif
 
+    // MARK: - The PS3.4 N.2 chain
+
+    /// The Modality LUT the viewport renders through (PS3.3 C.11.1): the
+    /// image's Modality LUT Sequence, else its Rescale pair (`nil` for the
+    /// identity 1 / 0) — or, under a saved view, the view's (PS3.4 N.2.1.1).
+    var displayModalityLUT: ModalityLUT? {
+        switch modalityLUTSource {
+        case .presentationState(let lut):
+            return lut
+        case .image:
+            if let table = dicomFile?.dataSet.modalityLUTData() { return .lut(table) }
+            guard rescaleSlope != 0, rescaleSlope != 1 || rescaleIntercept != 0 else { return nil }
+            return .rescale(slope: rescaleSlope, intercept: rescaleIntercept,
+                            type: dicomFile?.dataSet.string(for: .rescaleType))
+        }
+    }
+
+    /// The linear pair the viewer's stored-unit window converts through.
+    ///
+    /// `windowCenter` / `windowWidth` are held in stored-pixel units — the
+    /// tools, the panel and the print marks all speak them. The renderer
+    /// applies the Modality LUT first and the window to its output (PS3.3
+    /// C.11.2.1.2.1), so the window goes to it in modality units: `c·m + b`,
+    /// `w·|m|` for a rescale, and unchanged for a table LUT or the identity,
+    /// whose stored numbers already are the modality numbers the window
+    /// was converted from.
+    var displayRescale: (slope: Double, intercept: Double) {
+        if case .rescale(let slope, let intercept, _)? = displayModalityLUT, slope != 0 {
+            return (slope, intercept)
+        }
+        return (1, 0)
+    }
+
+    /// The window on screen in modality units, with its VOI LUT Function
+    /// (PS3.3 C.11.2.1.2.1, C.11.2.1.3).
+    var displayWindow: WindowSettings {
+        let (slope, intercept) = displayRescale
+        return WindowSettings(center: windowCenter * slope + intercept,
+                              width: windowWidth * abs(slope),
+                              function: VOILUTFunction.parse(voiLUTFunction))
+    }
+
+    /// The VOI the viewport renders with (PS3.3 C.11.2): the file's VOI LUT
+    /// table while the window is the untouched default of a file that windows
+    /// through one, else the window on screen.
+    var displayVOI: VOILUT {
+        if let table = defaultVOILUTTable, let untouched = frameDefaultWindow,
+           untouched.center == windowCenter, untouched.width == windowWidth {
+            return .lut(table)
+        }
+        return VOILUT(displayWindow)
+    }
+
+    /// The image's ICC Profile (0028,2000), for colour output (PS3.3 C.11.15.1.1).
+    var displayICCProfile: Data? {
+        guard samplesPerPixel > 1,
+              let data = dicomFile?.dataSet[.iccProfile]?.valueData, !data.isEmpty else { return nil }
+        return data
+    }
+
+    /// The current frame's render request through the PS3.4 N.2 chain.
+    ///
+    /// `voi` nil asks the renderer for its auto-window over the Modality LUT's
+    /// output. The Presentation LUT is left to the photometric (MONOCHROME1 →
+    /// INVERSE, C.7.6.3.1.2); the reader's inversion is applied to the rendered
+    /// frame, or in the display shader, as it always was.
+    func displayRenderRequest(
+        pixelData: PixelData, paletteLUT: PaletteColorLUT?, voi: VOILUT?
+    ) -> FrameRenderRequest {
+        FrameRenderRequest(
+            pixelData: pixelData, frameIndex: currentFrameIndex,
+            window: nil, paletteLUT: paletteLUT,
+            pseudoColorPalette: palette,
+            modalityLUT: displayModalityLUT,
+            voiLUT: voi,
+            presentationLUT: nil,
+            iccProfile: displayICCProfile)
+    }
+
     // MARK: - Rendering
 
     /// Renders the current frame with the current window/level settings.
@@ -1250,15 +1353,15 @@ public final class ImageViewerViewModel {
         do {
             let decoded = try decodedPixelSource(for: file)
             source = (decoded.0, decoded.1)
-            let window = WindowSettings(center: windowCenter, width: windowWidth)
-            let request = FrameRenderRequest(
-                pixelData: decoded.0, frameIndex: currentFrameIndex,
-                window: window, paletteLUT: decoded.1,
-                // The reader's colour choice. Folded into the render rather than
-                // applied after it, so the GPU display path colours in the same
-                // dispatch that windows — and so the picture on screen is the
-                // one the film composer builds from the same request.
-                pseudoColorPalette: palette)
+            // The PS3.4 N.2 chain: the Modality LUT, then the window in modality
+            // units (PS3.3 C.11.2.1.2.1) or the file's VOI LUT table, then the
+            // Presentation LUT the photometric implies; the ICC Profile for
+            // colour frames (C.11.15.1.1). The reader's colour choice is folded
+            // into the same request, so the GPU display path colours in the
+            // dispatch that windows — and the picture on screen is the one the
+            // film composer builds from the same request.
+            let request = displayRenderRequest(
+                pixelData: decoded.0, paletteLUT: decoded.1, voi: displayVOI)
 
             #if canImport(Metal)
             // The GPU display path, when this frame qualifies: one dispatch yields
@@ -1281,28 +1384,27 @@ public final class ImageViewerViewModel {
             detailedError = error.localizedDescription
         }
 
-        // Fallback 1: automatic windowing from the frame's actual pixel range.
-        // This recovers from a degenerate explicit window far more usefully than the
-        // raw stored window, which — for modalities with a large Rescale Intercept
-        // (e.g. CT) — clips almost everything to black and looks like a blank image.
+        // Fallback 1: automatic windowing from the frame's actual range — the
+        // full-range window of C.11.2.1.2.1 over the Modality LUT's output. This
+        // recovers from a degenerate explicit window far more usefully than the
+        // header's window, which on a CT with a large Rescale Intercept can clip
+        // almost everything to black and look like a blank image.
         //
-        // A nil window means "auto-window", which the CPU renderer resolves from the
-        // frame's pixel range — the same thing `tryRenderFrame(_:)` did here before.
+        // A nil VOI means "auto-window", which the CPU renderer resolves from the
+        // frame's range — the same thing `tryRenderFrame(_:)` did here before.
         if image == nil, let source,
-           let auto = FrameRenderService.shared.renderFrame(FrameRenderRequest(
-               pixelData: source.pixelData, frameIndex: currentFrameIndex,
-               window: nil, paletteLUT: source.palette,
-               pseudoColorPalette: palette)) {
+           let auto = FrameRenderService.shared.renderFrame(displayRenderRequest(
+               pixelData: source.pixelData, paletteLUT: source.palette, voi: nil)) {
             image = auto
             detailedError = nil
         }
 
-        // Fallback 2: the header's stored window, as a last resort.
-        if image == nil, let source {
-            if let stored = FrameRenderService.shared.renderFrame(FrameRenderRequest(
-                pixelData: source.pixelData, frameIndex: currentFrameIndex,
-                window: file.windowSettings(), paletteLUT: source.palette,
-                pseudoColorPalette: palette)) {
+        // Fallback 2: the header's own window, in the modality units the header
+        // states it in, as a last resort.
+        if image == nil, let source, let header = file.windowSettings() {
+            if let stored = FrameRenderService.shared.renderFrame(displayRenderRequest(
+                pixelData: source.pixelData, paletteLUT: source.palette,
+                voi: VOILUT(header))) {
                 image = stored
                 detailedError = nil
             }
@@ -1366,11 +1468,15 @@ public final class ImageViewerViewModel {
     /// Adopts a file's own presentation: its header VOI, or the pixel range when
     /// it declares none.
     ///
-    /// The renderer works in stored-value space, so header values (which are in
-    /// output units) are converted through the rescale pair.
-    /// The numbers come from ``DICOMImageExporter/determineWindowSettings`` — the
+    /// The viewer holds its window in stored-pixel units, so header values (which
+    /// are in modality units) are converted through the rescale pair here and
+    /// back again when the frame is rendered — the renderer applies the window
+    /// *after* the Modality LUT (PS3.3 C.11.2.1.2.1), see ``displayWindow``.
+    /// The numbers come from ``DICOMImageExporter/determineModalityWindow`` — the
     /// one window-resolution policy shared with export, the tile cache and the
     /// film — so a tile and the viewport showing the same image cannot disagree.
+    /// A file that windows through a VOI LUT Sequence instead of a centre and
+    /// width keeps that table on screen until the reader drags (``displayVOI``).
     ///
     /// `frameIndex` picks the frame whose functional groups supply the VOI on an
     /// Enhanced object (default: the frame on screen), so a reset lands on the
@@ -1382,6 +1488,10 @@ public final class ImageViewerViewModel {
         if let firstWindow = headerWindowSettings.first {
             voiLUTFunction = firstWindow.function.rawValue
         }
+        // PS3.3 C.11.2: a window pair or a VOI LUT, one or the other. The table
+        // is the file's default presentation only when it has no window pair.
+        defaultVOILUTTable = headerWindowSettings.isEmpty
+            ? file.dataSet.voiLUT().map(LUTData.init) : nil
         defer { frameDefaultWindow = (windowCenter, windowWidth) }
         guard let pixData = file.pixelData() else {
             // No pixels to measure: the header VOI is all there is to go on.
@@ -1395,11 +1505,19 @@ public final class ImageViewerViewModel {
             }
             return
         }
-        let window = DICOMImageExporter.determineWindowSettings(
+        // The shared policy states the window in modality units (A6 / D65); the
+        // viewer's state is in stored units, so it goes back through this frame's
+        // rescale pair, (c − b) / m and w / |m|, as the branch above does.
+        let window = DICOMImageExporter.determineModalityWindow(
             from: file, pixelData: pixData, frameIndex: frame,
             windowCenter: nil, windowWidth: nil)
-        windowCenter = window.center
-        windowWidth = window.width
+        if slope != 0 {
+            windowCenter = (window.center - intercept) / slope
+            windowWidth = window.width / abs(slope)
+        } else {
+            windowCenter = window.center
+            windowWidth = window.width
+        }
     }
 
     /// Lets the window follow the frame on a file that windows per frame.
@@ -1449,7 +1567,9 @@ public final class ImageViewerViewModel {
 
     /// Applies a window/level preset.
     ///
-    /// Preset values are in output units; they are converted to stored-value space.
+    /// Preset values are in modality units (HU on CT); the viewer holds its
+    /// window in stored-pixel units, so they are converted through the rescale
+    /// pair and converted back when rendered (``displayWindow``).
     /// - Parameter preset: The preset to apply.
     public func applyPreset(_ preset: WindowLevelPreset) {
         if rescaleSlope != 0 {
@@ -1464,7 +1584,9 @@ public final class ImageViewerViewModel {
 
     /// Applies window settings from the DICOM header.
     ///
-    /// Header values are in output units; they are converted to stored-value space.
+    /// Header values are in modality units; the viewer holds its window in
+    /// stored-pixel units, so they are converted through the rescale pair and
+    /// converted back when rendered (``displayWindow``).
     /// - Parameter settings: The window settings to apply.
     public func applyWindowSettings(_ settings: WindowSettings) {
         if rescaleSlope != 0 {
@@ -1953,8 +2075,11 @@ public final class ImageViewerViewModel {
         }
 
         let svc = decodingService
-        let wc = windowCenter
-        let ww = windowWidth
+        // The decoder windows after the Modality LUT (PS3.3 C.11.2.1.2.1), so
+        // it is given the window in modality units, not the viewer's stored
+        // pixel units.
+        let wc = displayWindow.center
+        let ww = displayWindow.width
 
         progressiveDecodeState = .decoding(level: .quarter)
 
@@ -1990,3 +2115,11 @@ public final class ImageViewerViewModel {
     }
 }
 
+/// Whose Modality LUT the viewport renders through — see
+/// ``ImageViewerViewModel/modalityLUTSource``.
+enum DisplayModalityLUTSource: Equatable, Sendable {
+    /// The image's own: its Modality LUT Sequence or Rescale pair.
+    case image
+    /// The applied presentation state's; `nil` is the identity (PS3.4 N.2.1.1).
+    case presentationState(ModalityLUT?)
+}

@@ -203,6 +203,35 @@ struct DICOMUniqueIdentifierTests {
         let transferSyntax = DICOMUniqueIdentifier.parse("1.2.840.10008.1.2")
         #expect(transferSyntax?.isSOPClass == false)
     }
+
+    @Test("SOP Class and Transfer Syntax sets are the PS3.6 2026a Table A-1 registry")
+    func testRegistrySetsMatchTableA1() {
+        #expect(DICOMUniqueIdentifier.sopClassUIDs.count == 311)
+        #expect(DICOMUniqueIdentifier.transferSyntaxUIDs.count == 63)
+        // SOP Classes the old prefix heuristic missed.
+        for uid in ["1.2.840.10008.1.1",          // Verification
+                    "1.2.840.10008.1.20.1",       // Storage Commitment Push Model
+                    "1.2.840.10008.5.1.1.1",      // Basic Film Session
+                    "1.2.840.10008.1.42",         // Substance Administration Logging
+                    "1.2.840.10008.1.3.10",       // Media Storage Directory Storage
+                    "1.2.840.10008.5.1.4.1.1.2"] { // CT Image Storage
+            #expect(DICOMUniqueIdentifier.parse(uid)?.isSOPClass == true, Comment(rawValue: uid))
+        }
+        // UIDs the old heuristic wrongly called SOP Classes.
+        for uid in ["1.2.840.10008.1.40.1",              // Procedural Event Logging SOP Instance
+                    "1.2.840.10008.5.1.4.34.5",          // UPS Global Subscription SOP Instance
+                    "1.2.840.10008.5.1.4.34.6",          // UPS Service Class
+                    "1.2.840.10008.3.1.2.1.4",           // Detached Patient Management Meta SOP Class
+                    "1.2.840.10008.5.1.4.1.1.201.1.1"] { // Storage Management SOP Instance
+            #expect(DICOMUniqueIdentifier.parse(uid)?.isSOPClass == false, Comment(rawValue: uid))
+        }
+        // Papyrus 3 is a (retired) Transfer Syntax outside the 1.2.840.10008.1.2 prefix.
+        #expect(DICOMUniqueIdentifier.parse("1.2.840.10008.1.20")?.isTransferSyntax == true)
+        #expect(DICOMUniqueIdentifier.parse("1.2.840.10008.1.20.1")?.isTransferSyntax == false)
+        #expect(DICOMUniqueIdentifier.parse("1.2.840.10008.1.2.4.112")?.isTransferSyntax == true) // JPEG XL
+        #expect(DICOMUniqueIdentifier.parse("1.2.840.10008.1.2.99")?.isTransferSyntax == false)
+        #expect(DICOMUniqueIdentifier.sopClassUIDs.isDisjoint(with: DICOMUniqueIdentifier.transferSyntaxUIDs))
+    }
     
     // MARK: - Multiple Values Tests
     

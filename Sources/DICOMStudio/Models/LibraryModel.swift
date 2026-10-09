@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Local file database model
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (in-memory study/series/instance index
+// keyed by the UIDs).
 
 import Foundation
 

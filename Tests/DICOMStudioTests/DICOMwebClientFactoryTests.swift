@@ -100,11 +100,62 @@ struct DICOMwebClientFactoryTests {
         let params = QIDOQueryParams(modality: "CT")
         let query = DICOMwebClientFactory.buildQIDOQuery(from: params)
         let parameters = query.toParameters()
-        // buildQIDOQuery currently calls .modality() (series-level Modality, 0008,0060)
-        // for any QIDOQueryParams.modality value, regardless of queryLevel. For
-        // study-level QIDO this arguably should use .modalitiesInStudy() (0008,0061),
-        // but matching the test to the actual behaviour for now.
-        #expect(parameters[QIDOQueryAttribute.modality] == "CT")
+        // Default query level is study: PS3.18 Table 10.6.1-5 lists Modalities in Study
+        // (0008,0061) as the study-level matching key, not Modality (0008,0060).
+        #expect(parameters[QIDOQueryAttribute.modalitiesInStudy] == "CT")
+        #expect(parameters[QIDOQueryAttribute.modality] == nil)
+    }
+
+    // MARK: - NEMA pins (PS3.18 2026a Table 10.6.1-5, 8.3.4-1, 8.3.4.2, 8.3.4.4; PS3.4 C.2.2.2.5)
+
+    @Test("buildQIDOQuery uses Modalities in Study (0008,0061) at the study level (Table 10.6.1-5)")
+    func testBuildQIDOQueryStudyLevelModalitiesInStudy() {
+        let params = QIDOQueryParams(modality: "MR", queryLevel: .study)
+        let parameters = DICOMwebClientFactory.buildQIDOQuery(from: params).toParameters()
+        #expect(parameters["00080061"] == "MR")
+        #expect(parameters["00080060"] == nil)
+    }
+
+    @Test("buildQIDOQuery uses Modality (0008,0060) at the series and instance levels (Table 10.6.1-5)")
+    func testBuildQIDOQuerySeriesLevelModality() {
+        for level in [QIDOQueryLevel.series, .instance] {
+            let params = QIDOQueryParams(modality: "MR", queryLevel: level)
+            let parameters = DICOMwebClientFactory.buildQIDOQuery(from: params).toParameters()
+            #expect(parameters["00080060"] == "MR")
+            #expect(parameters["00080061"] == nil)
+        }
+    }
+
+    @Test("buildQIDOQuery sends fuzzymatching=true only when requested (PS3.18 8.3.4.2: absent means false)")
+    func testBuildQIDOQueryFuzzyMatching() {
+        let off = DICOMwebClientFactory.buildQIDOQuery(from: QIDOQueryParams()).toParameters()
+        #expect(off["fuzzymatching"] == nil)
+        let on = DICOMwebClientFactory.buildQIDOQuery(from: QIDOQueryParams(fuzzyMatching: true)).toParameters()
+        #expect(on["fuzzymatching"] == "true")
+    }
+
+    @Test("buildQIDOQuery sends an open Study Date range (PS3.4 C.2.2.2.5: 'YYYYMMDD-' and '-YYYYMMDD')")
+    func testBuildQIDOQueryOpenDateRanges() {
+        let fromOnly = DICOMwebClientFactory.buildQIDOQuery(from: QIDOQueryParams(studyDateFrom: "20260101")).toParameters()
+        #expect(fromOnly["00080020"] == "20260101-")
+        let toOnly = DICOMwebClientFactory.buildQIDOQuery(from: QIDOQueryParams(studyDateTo: "20260131")).toParameters()
+        #expect(toOnly["00080020"] == "-20260131")
+        let both = DICOMwebClientFactory.buildQIDOQuery(
+            from: QIDOQueryParams(studyDateFrom: "20260101", studyDateTo: "20260131")).toParameters()
+        #expect(both["00080020"] == "20260101-20260131")
+    }
+
+    @Test("buildQIDOQuery matching keys are the PS3.18 Table 10.6.1-5 study-level attributes by tag")
+    func testBuildQIDOQueryStudyLevelTags() {
+        let params = QIDOQueryParams(patientName: "DOE^JOHN", patientID: "P1", accessionNumber: "A1",
+                                     studyDescription: "Brain", limit: 10, offset: 20)
+        let parameters = DICOMwebClientFactory.buildQIDOQuery(from: params).toParameters()
+        #expect(parameters["00100010"] == "DOE^JOHN")   // Patient's Name
+        #expect(parameters["00100020"] == "P1")         // Patient ID
+        #expect(parameters["00080050"] == "A1")         // Accession Number
+        #expect(parameters["00081030"] == "Brain")      // Study Description (0008,1030)
+        #expect(parameters["limit"] == "10")            // PS3.18 8.3.4.4
+        #expect(parameters["offset"] == "20")
     }
 
     @Test("buildQIDOQuery with accessionNumber sets parameter")
@@ -156,7 +207,7 @@ struct DICOMwebClientFactoryTests {
         let parameters = query.toParameters()
         #expect(parameters[QIDOQueryAttribute.patientName] == "SMITH*")
         #expect(parameters[QIDOQueryAttribute.patientID] == "12345")
-        #expect(parameters[QIDOQueryAttribute.modality] == "MR")
+        #expect(parameters[QIDOQueryAttribute.modalitiesInStudy] == "MR")
         #expect(parameters[QIDOQueryAttribute.accessionNumber] == "A001")
         #expect(parameters[QIDOQueryAttribute.studyDescription] == "Brain MRI")
         #expect(parameters["limit"] == "25")
@@ -228,5 +279,25 @@ struct DICOMwebClientFactoryTests {
         let results = QIDOInstanceResults(results: [instance], totalCount: 1)
         let items = DICOMwebClientFactory.mapInstanceResults(results)
         #expect(items.first?.queryLevel == .instance)
+    }
+
+    // MARK: - makeConfiguration(from:timeouts:) (D260)
+
+    @Test("makeConfiguration: timeouts default to .default; a passed TimeoutConfiguration is carried with the profile's URL and auth (D260)")
+    func testMakeConfigurationTimeouts() throws {
+        let profile = DICOMwebServerProfile(
+            name: "Test PACS", baseURL: "https://pacs.example.com/dicom-web",
+            authMethod: .bearer, bearerToken: "tok")
+        let plain = try DICOMwebClientFactory.makeConfiguration(from: profile)
+        #expect(plain.timeouts.connectTimeout == DICOMwebConfiguration.TimeoutConfiguration.default.connectTimeout)
+        #expect(plain.timeouts.readTimeout == DICOMwebConfiguration.TimeoutConfiguration.default.readTimeout)
+
+        let custom = DICOMwebOptionRules.timeouts(seconds: 7)
+        let config = try DICOMwebClientFactory.makeConfiguration(from: profile, timeouts: custom)
+        #expect(config.timeouts.connectTimeout == 7)
+        #expect(config.timeouts.readTimeout == 7)
+        #expect(config.baseURL == plain.baseURL)
+        #expect(config.maxConcurrentRequests == plain.maxConcurrentRequests)
+        #expect(String(describing: config.authentication) == String(describing: plain.authentication))
     }
 }

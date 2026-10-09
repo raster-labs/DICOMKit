@@ -3,6 +3,8 @@
 //
 // Saving what a reader is looking at, and putting it back.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — saves hand DICOMPrintKit the image's Photometric Interpretation and Rescale Type (D42): a colour image is saved as a Color Softcopy Presentation State (PS3.3 2026a A.33.1.1 "may only be used to reference monochrome images", A.33.2), a MONOCHROME1 image folds its polarity into the Presentation LUT (PS3.4 N.2.1.4, Photometric Interpretation ignored) and the state's Modality LUT carries the Rescale Type (C.11.1.1.2); restores read the state's Presentation LUT against the image's photometric; a state's Modality LUT replaces the image's while shown and an absent one is the identity (N.2.1.1, D28) — except this app's own pre-2026-09-29 objects (sidecar not imported, no Modality LUT), which were written in the image's rescaled units and are read with it (the S-2 migration rule); a state's window is undone through its own rescale, not the image's; the Secondary Capture fallback UID 1.2.840.10008.5.1.4.1.1.7 is a PS3.6 Table A-1 row; checked by Scripts/diff_studio_g2_viewer.py
+//
 // The viewer holds one extra idea because of this: a *selected* view. It starts
 // as the default — the image as the file describes it — and naming one of the
 // saved views applies that instead. The selection is remembered per image so
@@ -463,7 +465,10 @@ extension ImageViewerViewModel {
             windowCenter: presentationStateWindowCenter,
             windowWidth: presentationStateWindowWidth,
             imageWidth: imageColumns,
-            imageHeight: imageRows)
+            imageHeight: imageRows,
+            // PS3.4 N.2: the state's Presentation LUT replaces the image's
+            // polarity, so a MONOCHROME1 image's inversion folds into it.
+            photometricInterpretation: photometricInterpretation)
 
         var context = PresentationStatePatientContext.make(from: file.dataSet)
         // The data set is the authority on study identity, but a file loaded
@@ -499,7 +504,14 @@ extension ImageViewerViewModel {
             // What lets the drawings name their frames: an arrow on frame 3 of
             // a cine has to say frame 3, or every other viewer paints it onto
             // all of them.
-            numberOfFrames: numberOfFrames)
+            numberOfFrames: numberOfFrames,
+            // What decides the IOD: a GSPS "may only be used to reference
+            // monochrome images" (PS3.3 A.33.1.1), so a colour image is saved
+            // as a Color Softcopy Presentation State (A.33.2).
+            photometricInterpretation: photometricInterpretation,
+            // Written with the state's own Modality LUT (PS3.4 N.2.1.1): HU on
+            // CT, else whatever the image declares.
+            rescaleType: file.dataSet.string(for: .rescaleType))
 
         do {
             let saved = try store.save(
@@ -588,7 +600,9 @@ extension ImageViewerViewModel {
                 isSigned: isSigned,
                 rescaleSlope: rescaleSlope,
                 rescaleIntercept: rescaleIntercept,
-                numberOfFrames: numberOfFrames)
+                numberOfFrames: numberOfFrames,
+                photometricInterpretation: photometricInterpretation,
+                rescaleType: file.dataSet.string(for: .rescaleType))
         }
         let identities = paths.compactMap { byPath[$0] }
         guard !identities.isEmpty else {
@@ -615,7 +629,10 @@ extension ImageViewerViewModel {
                 windowCenter: presentationStateWindowCenter,
                 windowWidth: presentationStateWindowWidth,
                 imageWidth: width,
-                imageHeight: height)
+                imageHeight: height,
+                // Each image's own photometric: a series can mix MONOCHROME1
+                // and MONOCHROME2, and the fold is per image (PS3.4 N.2).
+                photometricInterpretation: identity.photometricInterpretation)
             images.append(PresentationStateStore.ImageToSave(
                 sopClassUID: identity.sopClassUID,
                 sopInstanceUID: identity.sopInstanceUID,
@@ -635,7 +652,9 @@ extension ImageViewerViewModel {
                 isSigned: identity.isSigned,
                 rescaleSlope: identity.rescaleSlope,
                 rescaleIntercept: identity.rescaleIntercept,
-                numberOfFrames: identity.numberOfFrames))
+                numberOfFrames: identity.numberOfFrames,
+                photometricInterpretation: identity.photometricInterpretation,
+                rescaleType: identity.rescaleType))
         }
 
         do {
@@ -694,6 +713,12 @@ extension ImageViewerViewModel {
         /// drawings name the frame they were made on. One when the header says
         /// nothing, which is what a single-frame image has.
         var numberOfFrames: Int = 1
+        /// Photometric Interpretation (0028,0004): decides the IOD of the save
+        /// (PS3.3 A.33.1.1) and the Presentation LUT fold (PS3.4 N.2). `nil`
+        /// when the header says nothing, which reads as MONOCHROME2.
+        var photometricInterpretation: String? = nil
+        /// Rescale Type (0028,1054), written with the state's Modality LUT.
+        var rescaleType: String? = nil
     }
 
     /// Reads each file's identity — headers only, no pixel data.
@@ -732,7 +757,9 @@ extension ImageViewerViewModel {
                 // images the reader is not looking at, and a cine among them
                 // still needs its drawings pinned to their frames.
                 numberOfFrames: file.dataSet.string(for: .numberOfFrames)
-                    .flatMap { Int($0.trimmingCharacters(in: .whitespaces)) } ?? 1))
+                    .flatMap { Int($0.trimmingCharacters(in: .whitespaces)) } ?? 1,
+                photometricInterpretation: file.dataSet.string(for: .photometricInterpretation),
+                rescaleType: file.dataSet.string(for: .rescaleType)))
         }
         return identities
     }
@@ -937,6 +964,8 @@ extension ImageViewerViewModel {
         // a presentation state applied to a monochrome image left the greys
         // swapped with the picker claiming the file's own view was on screen.
         isInverted = false
+        // And the Modality LUT: the file's own, not the view's (PS3.4 N.2.1.1).
+        modalityLUTSource = .image
         // And the colour with it, for the same reason: "the image as the file
         // describes it" is a grey image, because the file describes no palette.
         palette = nil
@@ -1042,21 +1071,41 @@ extension ImageViewerViewModel {
             imageWidth: imageColumns,
             imageHeight: imageRows,
             viewportWidth: viewContentWidth,
-            viewportHeight: viewContentHeight)
+            viewportHeight: viewContentHeight,
+            // The Presentation LUT folds back out exactly as the save folded
+            // it in: INVERSE on a MONOCHROME1 image is its upright picture.
+            photometricInterpretation: photometricInterpretation)
 
         // Applied without going through the tool paths: those clear the
         // selection, which would drop the view the moment it was applied.
         applyingPresentationState = true
         defer { applyingPresentationState = false }
 
+        // The state's Modality LUT replaces the image's for as long as the view
+        // is on screen; a state without one is the identity, and "any Modality
+        // LUT or equivalent Attributes in the Image shall not be used" (PS3.4
+        // N.2.1.1). The one exception is this app's own objects from before
+        // the store wrote a Modality LUT (2026-09-29): those carry the window
+        // in the image's rescaled units with no rescale to say so, and are read
+        // with the image's — an adopted object never is.
+        let modalityLUT: ModalityLUT?
+        if let own = stored.state.modalityLUT {
+            modalityLUT = own
+        } else if !stored.isImported, rescaleSlope != 0,
+                  rescaleSlope != 1 || rescaleIntercept != 0 {
+            modalityLUT = .rescale(slope: rescaleSlope, intercept: rescaleIntercept, type: nil)
+        } else {
+            modalityLUT = nil
+        }
+        modalityLUTSource = .presentationState(modalityLUT)
+
         if let center = restored.windowCenter, let width = restored.windowWidth {
-            // The object speaks rescaled units; the viewer's window is kept in
-            // stored-pixel units — the inverse of the conversion the save did.
-            // A state that brings its own Modality LUT means its window in
-            // those units, so its rescale is the one to undo.
-            let slope = restored.rescaleSlope ?? rescaleSlope
-            let intercept = restored.rescaleIntercept ?? rescaleIntercept
-            if slope != 0 {
+            // The object's window is in the units its Modality LUT puts out;
+            // the viewer's window is kept in stored-pixel units, so a rescale
+            // is undone here and re-applied when the frame is rendered (see
+            // ``displayWindow``). A table LUT or the identity leaves the
+            // numbers as they are.
+            if case .rescale(let slope, let intercept, _)? = modalityLUT, slope != 0 {
                 windowCenter = (center - intercept) / slope
                 windowWidth = width / abs(slope)
             } else {
@@ -1229,6 +1278,10 @@ extension ImageViewerViewModel {
     /// not immediately clear itself.
     func presentationStateFollowsTools() {
         guard !applyingPresentationState else { return }
+        // A moved tool is no longer the state's picture, so the image's own
+        // Modality LUT comes back with it (PS3.4 N.2.1.1 binds the state's
+        // only while the state is what is shown).
+        modalityLUTSource = .image
         guard selectedPresentationStateLabel != nil else { return }
         selectedPresentationStateLabel = nil
         // Only the label goes. The standing choice in `appliedViewByImage`

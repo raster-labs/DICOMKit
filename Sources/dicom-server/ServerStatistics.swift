@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — the 5 operation labels C-ECHO, C-STORE, C-FIND, C-MOVE, C-GET are the DIMSE-C service names of PS3.7 2026a 9.1.1-9.1.5; the rest is counters and formatting (plumbing)
 import Foundation
 
 /// Server statistics tracking

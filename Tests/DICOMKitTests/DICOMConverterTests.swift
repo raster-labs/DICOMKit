@@ -93,6 +93,21 @@ struct DICOMConverterTests {
         #expect(DICOMConverter.resolveTargetEncoding("jpeg-xl-lossless-only")?.uid == TransferSyntax.jpegXLLossless.uid)
     }
 
+    // PS3.6 2026a Table A-1 (dumped): JPEG2000Lossless .90, HTJ2KLossless .201, JPEGXLLossless .110.
+    @Test("Table A-1 keywords JPEG2000Lossless / HTJ2KLossless / JPEGXLLossless select their A-1 UID; …Reversible the general UID (P-CONVERT-TS-KEYWORDS)")
+    func reassignedTableA1Keywords() {
+        for row in TransferSyntax.reassignedTableA1Keywords {
+            #expect(DICOMConverter.resolveTargetEncoding(row.keyword)?.uid == row.uid, "\(row.keyword)")
+            let old = DICOMConverter.resolveTargetEncoding(row.reversibleName)
+            #expect(old?.uid == row.generalUID && old?.intent == .lossless, "\(row.reversibleName)")
+            #expect(DICOMConverter.cliTokens.contains(row.reversibleName))
+            #expect(!DICOMConverter.cliTokens.contains(row.keyword))
+        }
+        #expect(DICOMConverter.resolveTargetEncoding("JPEG2000Lossless")?.uid == "1.2.840.10008.1.2.4.90")
+        #expect(DICOMConverter.resolveTargetEncoding("HTJ2KLossless")?.uid == "1.2.840.10008.1.2.4.201")
+        #expect(DICOMConverter.resolveTargetEncoding("JPEGXLLossless")?.uid == "1.2.840.10008.1.2.4.110")
+    }
+
     @Test("legacy short aliases preserved (CLI ↔ app parity)")
     func legacyAliases() {
         #expect(DICOMConverter.parseTarget("evle")?.uid == TransferSyntax.explicitVRLittleEndian.uid)

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (element container and typed accessors delegating to DICOMCore value types)
 import Foundation
 import DICOMCore
 

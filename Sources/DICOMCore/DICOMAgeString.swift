@@ -5,6 +5,8 @@ import Foundation
 /// Represents an age in DICOM format (nnnX).
 /// Reference: DICOM PS3.5 Section 6.2 - AS Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the AS row of PS3.5 2026a Table 6.2-1 (nnnD/W/M/Y, 4 bytes fixed).
+///
 /// The AS format is a string of 4 characters with format nnnX where:
 /// - nnn = 3-digit number (000-999)
 /// - X = age unit: D (days), W (weeks), M (months), Y (years)

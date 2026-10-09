@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — MPEG2 transfer syntax UIDs .100/.101 match PS3.6 2026a Table A-1; the bitstream syntax is ITU-T H.262 (out of scope)
 //
 // MPEG2Parser.swift
 // DICOMKit

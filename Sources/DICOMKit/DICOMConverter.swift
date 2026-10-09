@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — transfer syntax capabilities via DICOMCore; UID literals, names and PS3.5 citations diffed by Scripts/diff_kit.py against PS3.6 2026a Table A-1 and the PS3.5 text; --strip-private recurses into Sequence Items (PS3.5 2026a 7.8.1, D191); lossy output gets a new SOP Instance UID (PS3.3 2026a C.7.6.1.1.5, D192)
+// NEMA-verified: 2026a, checked 2026-10-06 — additionalTableA1Keywords (folded in from dicom-convert TransferSyntaxKeywords, D268): the 7 keyword → UID rows are the PS3.6 2026a Table A-1 keyword column of 1.2.840.10008.1.2.1.99, .4.50, .4.51, .4.92, .4.93, .4.111, .4.202 (dumped by script), the catalog target UIDs whose keyword no cliToken spells; transferSyntaxOptionHelpWithKeywords is the CLI's composed help, unchanged
 import Foundation
 import DICOMCore
 
@@ -44,7 +46,7 @@ public enum DICOMConverter {
         /// Lossy Image Compression provenance attributes.
         public let intent: EncodingIntent
         /// CamelCase token emitted in the CLI `--transfer-syntax` help listing
-        /// (e.g. `ExplicitVRLittleEndian`, `JPEG2000Lossless`). Accepted on input.
+        /// (e.g. `ExplicitVRLittleEndian`, `JPEG2000Reversible`). Accepted on input.
         public let cliToken: String
         /// kebab-case alias shown in the app pickers (CLI Workshop + representative parameter
         /// catalog) so every transfer-syntax dropdown reads the same short style as
@@ -115,24 +117,27 @@ public enum DICOMConverter {
         Target(.jpegLosslessSV1,                 cli: "JPEGLosslessSV1",         alias: "jpeg-lossless-sv1"),
         // JPEG 2000 — general .91 (lossy + lossless) + lossless-only .90.
         Target(.jpeg2000, intent: .lossy,        cli: "JPEG2000Lossy",           alias: "jpeg2000-lossy",           extra: ["jpeg2000", "j2k", "j2k-lossy"]),
-        Target(.jpeg2000, intent: .lossless,     cli: "JPEG2000Lossless",        alias: "jpeg2000-lossless",        extra: ["j2k-lossless"]),
-        Target(.jpeg2000Lossless,                cli: "JPEG2000LosslessOnly",    alias: "jpeg2000-lossless-only",   extra: ["j2k-lossless-only"]),
+        // `JPEG2000Lossless` is the PS3.6 2026a Table A-1 keyword of .90, so it is an alias of
+        // the .90 target; the reversible encode into .91 is `JPEG2000Reversible`
+        // (P-CONVERT-TS-KEYWORDS; the same for HTJ2K .201/.203 and JPEG XL .110/.112 below).
+        Target(.jpeg2000, intent: .lossless,     cli: "JPEG2000Reversible",      alias: "jpeg2000-lossless",        extra: ["j2k-lossless"]),
+        Target(.jpeg2000Lossless,                cli: "JPEG2000LosslessOnly",    alias: "jpeg2000-lossless-only",   extra: ["j2k-lossless-only", "jpeg2000lossless"]),
         // JPEG 2000 Part 2 — general .93 (lossy + lossless) + lossless-only .92.
         Target(.jpeg2000Part2, intent: .lossy,   cli: "JPEG2000Part2Lossy",      alias: "jpeg2000-part2-lossy",     extra: ["jpeg2000-part2", "j2k-part2", "j2k-part2-lossy"]),
         Target(.jpeg2000Part2, intent: .lossless, cli: "JPEG2000Part2Lossless",  alias: "jpeg2000-part2-lossless",  extra: ["j2k-part2-lossless"]),
         Target(.jpeg2000Part2Lossless,           cli: "JPEG2000Part2LosslessOnly", alias: "jpeg2000-part2-lossless-only", extra: ["j2k-part2-lossless-only"]),
         // HTJ2K — general .203 (lossy + lossless) + lossless-only .201 + RPCL lossless-only .202.
         Target(.htj2kLossy, intent: .lossy,      cli: "HTJ2KLossy",              alias: "htj2k-lossy",              extra: ["htj2k"]),
-        Target(.htj2kLossy, intent: .lossless,   cli: "HTJ2KLossless",           alias: "htj2k-lossless"),
-        Target(.htj2kLossless,                   cli: "HTJ2KLosslessOnly",       alias: "htj2k-lossless-only"),
+        Target(.htj2kLossy, intent: .lossless,   cli: "HTJ2KReversible",         alias: "htj2k-lossless"),
+        Target(.htj2kLossless,                   cli: "HTJ2KLosslessOnly",       alias: "htj2k-lossless-only",     extra: ["htj2klossless"]),
         Target(.htj2kRPCLLossless,               cli: "HTJ2KRPCLLosslessOnly",   alias: "htj2k-rpcl-lossless-only", extra: ["htj2k-rpcl", "htj2k-lossless-rpcl"]),
         // JPEG-LS
         Target(.jpegLSLossless,                  cli: "JPEGLSLossless",          alias: "jpeg-ls-lossless",        extra: ["jpegls", "jpegls-lossless", "jls-lossless"]),
         Target(.jpegLSNearLossless,              cli: "JPEGLSNearLossless",      alias: "jpeg-ls-near-lossless",   extra: ["jpegls-near"]),
         // JPEG XL — general .112 (lossy VarDCT + lossless Modular) + lossless-only .110 + JPEG recompression .111.
         Target(.jpegXL, intent: .lossy,          cli: "JPEGXLLossy",             alias: "jpeg-xl-lossy",           extra: ["jpeg-xl", "jxl", "jpegxl", "jxl-lossy"]),
-        Target(.jpegXL, intent: .lossless,       cli: "JPEGXLLossless",          alias: "jpeg-xl-lossless",        extra: ["jxl-lossless"]),
-        Target(.jpegXLLossless,                  cli: "JPEGXLLosslessOnly",      alias: "jpeg-xl-lossless-only",   extra: ["jxl-lossless-only"]),
+        Target(.jpegXL, intent: .lossless,       cli: "JPEGXLReversible",        alias: "jpeg-xl-lossless",        extra: ["jxl-lossless"]),
+        Target(.jpegXLLossless,                  cli: "JPEGXLLosslessOnly",      alias: "jpeg-xl-lossless-only",   extra: ["jxl-lossless-only", "jpegxllossless"]),
         Target(.jpegXLRecompression,             cli: "JPEGXLRecompression",     alias: "jpeg-xl-recompression",   extra: ["jxl-recompression", "jpegxl-recompression", "jpeg-xl-jpeg-recompression"]),
         // RLE
         Target(.rleLossless,                     cli: "RLELossless",             alias: "rle-lossless",            extra: ["rle"]),
@@ -178,8 +183,28 @@ public enum DICOMConverter {
                 return t
             }
         }
+        // A PS3.6 Table A-1 keyword that is not a catalog token selects its UID (first match =
+        // lossy for a shared UID, as for a bare UID).
+        if let uid = additionalTableA1Keywords.first(where: { $0.key.lowercased() == lower })?.value {
+            return targets.first { $0.syntax.uid == uid }
+        }
         return nil
     }
+
+    /// The PS3.6 2026a Table A-1 keywords of catalog target UIDs whose keyword is not a
+    /// ``Target/cliToken`` (nor one of the three reassigned keywords of
+    /// ``DICOMCore/TransferSyntax/reassignedTableA1Keywords``), keyword → Transfer Syntax UID.
+    /// ``resolveTarget(_:)`` accepts them case-insensitively, so every Table A-1 keyword of a
+    /// target UID selects its Table A-1 UID (D268; was `dicom-convert`'s TransferSyntaxKeywords).
+    public static let additionalTableA1Keywords: [String: String] = [
+        "DeflatedExplicitVRLittleEndian": "1.2.840.10008.1.2.1.99",
+        "JPEGBaseline8Bit": "1.2.840.10008.1.2.4.50",
+        "JPEGExtended12Bit": "1.2.840.10008.1.2.4.51",
+        "JPEG2000MCLossless": "1.2.840.10008.1.2.4.92",
+        "JPEG2000MC": "1.2.840.10008.1.2.4.93",
+        "JPEGXLJPEGRecompression": "1.2.840.10008.1.2.4.111",
+        "HTJ2KLosslessRPCL": "1.2.840.10008.1.2.4.202",
+    ]
 
     /// Resolves a user-supplied token to a ``SelectableEncoding`` (UID + intent). This is the
     /// intent-aware entry point the CLI and app use so a `…-lossless` name encodes reversibly
@@ -203,6 +228,21 @@ public enum DICOMConverter {
     /// accepted CamelCase target names (kept in sync with ``targets``).
     public static var transferSyntaxOptionHelp: String {
         "Target transfer syntax: " + cliTokens.joined(separator: ", ")
+    }
+
+    /// The `dicom-convert --transfer-syntax` help: ``transferSyntaxOptionHelp`` plus what else
+    /// is accepted — a Transfer Syntax UID and the PS3.6 Table A-1 keywords
+    /// (``additionalTableA1Keywords`` and the reassigned ones), with the 2026-10-01 meaning
+    /// change of `JPEG2000Lossless` / `HTJ2KLossless` / `JPEGXLLossless` (P-CONVERT-TS-KEYWORDS).
+    /// The CLI and the Workshop print this text (D268).
+    public static var transferSyntaxOptionHelpWithKeywords: String {
+        transferSyntaxOptionHelp
+            + ". Also a Transfer Syntax UID or a PS3.6 Table A-1 keyword ("
+            + (additionalTableA1Keywords.keys + TransferSyntax.reassignedTableA1Keywords.map(\.keyword)).sorted()
+                .joined(separator: ", ")
+            + "); every Table A-1 keyword selects its Table A-1 UID. Changed: JPEG2000Lossless, "
+            + "HTJ2KLossless and JPEGXLLossless now select .90 / .201 / .110; the reversible encode "
+            + "into .91 / .203 / .112 is JPEG2000Reversible, HTJ2KReversible, JPEGXLReversible."
     }
 
     /// A multi-line, grouped listing of the supported convert targets for error output.
@@ -341,13 +381,13 @@ public enum DICOMConverter {
         // Optionally strip private tags.
         var strippedCount = 0
         if stripPrivate {
-            let publicTags = dataSet.tags.filter { !$0.isPrivate }
-            strippedCount = dataSet.tags.count - publicTags.count
+            // Every Sequence Item is a Data Set with its own Private Data Elements and Private
+            // Creators (PS3.5 2026a 7.8.1), so the strip recurses into nested Items (D191).
             var filtered = DataSet()
-            for tag in publicTags {
-                if let element = dataSet[tag] {
-                    filtered[tag] = element
-                }
+            for tag in dataSet.tags {
+                guard let element = dataSet[tag] else { continue }
+                if tag.isPrivate { strippedCount += 1; continue }
+                filtered[tag] = strippingPrivate(element, count: &strippedCount)
             }
             dataSet = filtered
         }
@@ -497,6 +537,26 @@ public enum DICOMConverter {
             isLossless: isLossless,
             strippedPrivateTagCount: strippedCount
         )
+    }
+
+    /// `element` with the Private Data Elements of its Sequence Items removed, at any depth;
+    /// `count` is increased by the number removed.
+    static func strippingPrivate(_ element: DataElement, count: inout Int) -> DataElement {
+        guard let items = element.sequenceItems else { return element }
+        let before = count
+        let newItems: [SequenceItem] = items.map { item in
+            var kept: [Tag: DataElement] = [:]
+            for (tag, child) in item.elements {
+                if tag.isPrivate { count += 1; continue }
+                kept[tag] = strippingPrivate(child, count: &count)
+            }
+            return SequenceItem(elements: kept)
+        }
+        guard count != before else { return element }
+        // DICOMWriter re-encodes a sequence from its Items and recomputes the length, so the
+        // raw `valueData` of the source is not carried.
+        return DataElement(tag: element.tag, vr: element.vr, length: 0, valueData: Data(),
+                           sequenceItems: newItems, byteOrder: element.byteOrder)
     }
 
     /// Re-reads a freshly transcoded encapsulated file, stamps the DICOM Lossy Image Compression

@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (vendor-private CSA binary format). C1 classification confirmed.
+
 import Foundation
 
 /// Siemens CSA Header Parser

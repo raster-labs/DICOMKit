@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (CLI Workshop data models: tool and parameter definitions, visibility conditions, history, presets, terminal/SCP log levels; grep for (gggg,eeee) tags, 1.2.840.10008 UIDs, STD-* profiles, VR codes and PS3 clauses found none); the standard-derived form content is in CLIWorkshopHelpers.swift and the executors in CLIWorkshopViewModel.swift
 // CLIWorkshopModel.swift
 // DICOMStudio
 //

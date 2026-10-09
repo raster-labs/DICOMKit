@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — binary VRs are the Other VRs of PS3.5 2026a Table 6.2-1 plus UN (D5); Private Creator (gggg,0010-00FF) named per PS3.5 7.8.1 (D146)
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -80,7 +81,7 @@ public struct ComparisonReport {
         if !result.modified.isEmpty {
             output += "\n--- Modified Tags ---\n"
             for modification in result.modified.sorted(by: { $0.tag < $1.tag }) {
-                let tagName = DataElementDictionary.lookup(tag: modification.tag)?.name ?? "Unknown"
+                let tagName = AttributeNames.name(for: modification.tag) ?? "Unknown"
                 output += "\n[\(modification.tag)] \(tagName)\n"
                 output += "  File 1: \(formatValue(modification.value1))\n"
                 output += "  File 2: \(formatValue(modification.value2))\n"
@@ -118,7 +119,7 @@ public struct ComparisonReport {
             "onlyInFile2": result.onlyInFile2.sorted { $0.key < $1.key }.map { ["tag": $0.key.description, "value": formatValue($0.value)] },
             "modified": result.modified.sorted { $0.tag < $1.tag }.map { [
                 "tag": $0.tag.description,
-                "tagName": DataElementDictionary.lookup(tag: $0.tag)?.name ?? "Unknown",
+                "tagName": AttributeNames.name(for: $0.tag) ?? "Unknown",
                 "value1": formatValue($0.value1),
                 "value2": formatValue($0.value2)
             ]}
@@ -155,7 +156,7 @@ public struct ComparisonReport {
     }
 
     private func formatTagValue(_ tag: Tag, _ element: DataElement) -> String {
-        let tagName = DataElementDictionary.lookup(tag: tag)?.name ?? "Unknown"
+        let tagName = AttributeNames.name(for: tag) ?? "Unknown"
         let value = formatValue(element)
         return "[\(tag)] \(tagName): \(value)\n"
     }
@@ -166,7 +167,8 @@ public struct ComparisonReport {
             return "<Sequence with \(element.sequenceItems?.count ?? 0) items>"
         }
 
-        if element.vr == .OB || element.vr == .OW || element.vr == .OF || element.vr == .OD {
+        // The "Other" byte-stream VRs of PS3.5 Table 6.2-1, plus UN
+        if [.OB, .OD, .OF, .OL, .OV, .OW, .UN].contains(element.vr) {
             let byteCount = element.valueData.count
             return "<Binary data, \(byteCount) bytes>"
         }

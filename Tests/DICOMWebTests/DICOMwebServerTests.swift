@@ -956,8 +956,8 @@ struct STOWRSServerHandlerTests {
         )
         
         let response = await server.handleRequest(request)
-        // Should get 200 with failure in response body, not 415
-        #expect(response.statusCode == 400 || response.statusCode == 200)
+        // PS3.18 Table 10.5.3-1: 409 when no Instance could be stored (cannot understand), not 415
+        #expect(response.statusCode == 409)
     }
     
     @Test("STOW-RS request size limit")
@@ -1132,9 +1132,10 @@ struct UPSRSServerHandlerTests {
         ]
         let body = try JSONSerialization.data(withJSONObject: workitemJSON)
         
+        // PS3.18 Table 11.4.1-1: POST /workitems?workitem={uid}
         let request = DICOMwebRequest(
             method: .post,
-            path: "/dicom-web/workitems/1.2.3.4.5",
+            path: "/dicom-web/workitems?workitem=1.2.3.4.5",
             headers: ["Content-Type": "application/dicom+json"],
             body: body
         )
@@ -1142,6 +1143,7 @@ struct UPSRSServerHandlerTests {
         let response = await server.handleRequest(request)
         #expect(response.statusCode == 201)
         #expect(response.headers["Location"]?.contains("1.2.3.4.5") == true)
+        #expect(response.body == nil, "11.4.3.3: a success response should have no payload")
     }
     
     @Test("Create duplicate workitem returns 409")
@@ -1162,7 +1164,7 @@ struct UPSRSServerHandlerTests {
         
         let request = DICOMwebRequest(
             method: .post,
-            path: "/dicom-web/workitems/1.2.3.4.5",
+            path: "/dicom-web/workitems?workitem=1.2.3.4.5",
             headers: ["Content-Type": "application/dicom+json"],
             body: body
         )
@@ -1191,15 +1193,16 @@ struct UPSRSServerHandlerTests {
         ]
         let body = try JSONSerialization.data(withJSONObject: updateJSON)
         
+        // PS3.18 11.6.1: POST /workitems/{workitem}; Table 11.6.3-1: 200
         let request = DICOMwebRequest(
-            method: .put,
+            method: .post,
             path: "/dicom-web/workitems/1.2.3.4.5",
             headers: ["Content-Type": "application/dicom+json"],
             body: body
         )
         
         let response = await server.handleRequest(request)
-        #expect(response.statusCode == 204)
+        #expect(response.statusCode == 200)
         
         // Verify update
         let updated = try await upsStorage.getWorkitem(workitemUID: "1.2.3.4.5")
@@ -1216,9 +1219,10 @@ struct UPSRSServerHandlerTests {
         let workitem = Workitem(workitemUID: "1.2.3.4.5", state: .scheduled)
         try await upsStorage.createWorkitem(workitem)
         
-        // Change state
+        // Change state: PS3.18 11.7.1.4 / PS3.4 CC.2.1.2, the SCU generates and sends the Transaction UID
         let stateJSON: [String: Any] = [
-            "00741000": ["vr": "CS", "Value": ["IN PROGRESS"]]
+            "00741000": ["vr": "CS", "Value": ["IN PROGRESS"]],
+            "00081195": ["vr": "UI", "Value": ["2.25.111"]]
         ]
         let body = try JSONSerialization.data(withJSONObject: stateJSON)
         
@@ -1231,13 +1235,12 @@ struct UPSRSServerHandlerTests {
         
         let response = await server.handleRequest(request)
         #expect(response.statusCode == 200)
+        #expect(response.body == nil, "11.7.3.3: a success response shall have no payload")
         
-        // Response should contain transaction UID
-        if let responseBody = response.body,
-           let json = try? JSONSerialization.jsonObject(with: responseBody) as? [String: Any] {
-            let txUIDElement = json["00081195"] as? [String: Any]
-            let values = txUIDElement?["Value"] as? [String]
-            #expect(values?.first != nil)
+        // PS3.4 CC.2.1.3: the SCP records the Transaction UID the SCU provided
+        let claimed = try await upsStorage.getWorkitem(workitemUID: "1.2.3.4.5")
+        #expect(claimed?.transactionUID == "2.25.111")
+        if false {
         }
     }
     
@@ -1251,9 +1254,10 @@ struct UPSRSServerHandlerTests {
         let workitem = Workitem(workitemUID: "1.2.3.4.5", state: .scheduled)
         try await upsStorage.createWorkitem(workitem)
         
-        // Try to complete directly (invalid)
+        // Try to complete directly (invalid: PS3.4 Table CC.1.1-2 gives C310H; PS3.18 Table 11.7.3-1: 409)
         let stateJSON: [String: Any] = [
-            "00741000": ["vr": "CS", "Value": ["COMPLETED"]]
+            "00741000": ["vr": "CS", "Value": ["COMPLETED"]],
+            "00081195": ["vr": "UI", "Value": ["2.25.222"]]
         ]
         let body = try JSONSerialization.data(withJSONObject: stateJSON)
         
@@ -1278,8 +1282,9 @@ struct UPSRSServerHandlerTests {
         let workitem = Workitem(workitemUID: "1.2.3.4.5", state: .scheduled)
         try await upsStorage.createWorkitem(workitem)
         
+        // PS3.18 11.8.1: POST /workitems/{workitem}/cancelrequest; Table 11.8.3-1: 202
         let request = DICOMwebRequest(
-            method: .put,
+            method: .post,
             path: "/dicom-web/workitems/1.2.3.4.5/cancelrequest",
             headers: ["Content-Type": "application/dicom+json"],
             body: nil
@@ -1310,7 +1315,7 @@ struct UPSRSServerHandlerTests {
         )
         
         let response = await server.handleRequest(request)
-        #expect(response.statusCode == 200)
+        #expect(response.statusCode == 201, "PS3.18 Table 11.10.3-1: 201 (Created)")
     }
     
     @Test("Unsubscribe from workitem returns success")
@@ -1424,21 +1429,30 @@ struct UPSRSRouterTests {
         #expect(match?.parameters["workitemUID"] == "1.2.3.4.5")
     }
     
-    @Test("Match create workitem with UID route")
+    @Test("Match create workitem with UID route (PS3.18 Table 11.4.1-1: /workitems?workitem=)")
     func testMatchCreateWorkitemWithUID() {
-        let match = router.match(path: "/dicom-web/workitems/1.2.3.4.5", method: .post)
+        let match = router.match(path: "/dicom-web/workitems?workitem=1.2.3.4.5", method: .post)
         
         #expect(match != nil)
         #expect(match?.handlerType == .createWorkitemWithUID)
         #expect(match?.parameters["workitemUID"] == "1.2.3.4.5")
     }
     
-    @Test("Match update workitem route")
+    @Test("Match update workitem route (PS3.18 11.6.1: POST /workitems/{workitem}; PUT tolerated)")
     func testMatchUpdateWorkitem() {
-        let match = router.match(path: "/dicom-web/workitems/1.2.3.4.5", method: .put)
+        let match = router.match(path: "/dicom-web/workitems/1.2.3.4.5", method: .post)
         
         #expect(match != nil)
         #expect(match?.handlerType == .updateWorkitem)
+        #expect(router.match(path: "/dicom-web/workitems/1.2.3.4.5", method: .put)?.handlerType == .updateWorkitem)
+    }
+    
+    @Test("Well-known subscription UIDs route to the global handlers (PS3.18 Table 11.10.1-1)")
+    func testMatchGlobalSubscription() {
+        let global = router.match(path: "/dicom-web/workitems/1.2.840.10008.5.1.4.34.5/subscribers/MYAE", method: .post)
+        #expect(global?.handlerType == .subscribeGlobal)
+        let filtered = router.match(path: "/dicom-web/workitems/1.2.840.10008.5.1.4.34.5.1/subscribers/MYAE", method: .delete)
+        #expect(filtered?.handlerType == .unsubscribeGlobal)
     }
     
     @Test("Match change workitem state route")
@@ -1452,7 +1466,7 @@ struct UPSRSRouterTests {
     
     @Test("Match cancel request route")
     func testMatchCancelRequest() {
-        let match = router.match(path: "/dicom-web/workitems/1.2.3.4.5/cancelrequest", method: .put)
+        let match = router.match(path: "/dicom-web/workitems/1.2.3.4.5/cancelrequest", method: .post)
         
         #expect(match != nil)
         #expect(match?.handlerType == .requestWorkitemCancellation)

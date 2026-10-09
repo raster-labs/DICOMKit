@@ -18,6 +18,10 @@
 //
 // Textures are full-resolution GPU allocations, so only the film on screen holds
 // them; paging to another film releases the last one's.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data; Polarity REVERSE (2020,0020, PS3.3
+// 2026a Table C.13-5) and the rendered-inverse Presentation LUT are composed into the shader's invert flag
+// exactly as DICOMPrintKit's FilmComposer composes them on the sheet.
 
 import Foundation
 import DICOMNetwork

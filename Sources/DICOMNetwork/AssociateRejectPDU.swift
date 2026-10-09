@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — A-ASSOCIATE-RJ layout and the 12 result/source/reason texts text-diffed against PS3.8 2026a Table 9-21 (Scripts/diff_network.py): all match
 
 /// A-ASSOCIATE-RJ PDU (Association Reject)
 ///

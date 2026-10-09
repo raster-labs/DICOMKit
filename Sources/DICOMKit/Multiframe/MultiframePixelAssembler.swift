@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — frame assembly per PS3.5 2026a 8.1.1
 import Foundation
 import DICOMCore
 

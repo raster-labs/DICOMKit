@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (RFC 6749 §5.1 / §5.2 token and error responses)
 /// OAuth2 token response
 ///
 /// Represents an OAuth2 access token with optional refresh token

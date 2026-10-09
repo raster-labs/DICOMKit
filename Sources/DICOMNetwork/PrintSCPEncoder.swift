@@ -12,6 +12,7 @@
 
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — Print Job N-GET attributes text-diffed against PS3.3 2026a Table C.13-8 and Printer attributes against Table C.13-9; Referenced Print Job Sequence per PS3.4 Tables H.4-3/H.4-8
 
 /// A print job the SCP created in response to N-ACTION.
 ///
@@ -30,7 +31,9 @@ public struct PrintSCPJobRecord: Sendable, Equatable {
     public var executionStatusInfo: String
     /// Print Priority (2000,0020) inherited from the film session.
     public let printPriority: PrintPriority
-    /// Number of copies inherited from the film session.
+    /// Number of copies inherited from the film session. Kept on the record
+    /// for the delegate; it is a Film Session attribute (PS3.3 C.13.1) and is
+    /// not returned by the Print Job N-GET (Table C.13-8).
     public let numberOfCopies: Int
     /// When the job was created.
     public let creationDate: Date
@@ -64,6 +67,11 @@ public struct PrintSCPJobRecord: Sendable, Equatable {
             creationDate: creationDate,
             creationTime: creationDate)
     }
+}
+
+extension Tag {
+    /// Referenced Print Job Sequence (2100,0500) — PS3.4 Tables H.4-3 / H.4-8.
+    static let referencedPrintJobSequence = Tag(group: 0x2100, element: 0x0500)
 }
 
 /// Serializes the data sets a Print SCP returns.
@@ -135,7 +143,7 @@ public enum PrintSCPEncoder {
         var elements: [DataElement] = [
             DataElement.string(tag: .numberOfCopies, vr: .IS, value: String(session.numberOfCopies)),
             DataElement.string(tag: .printPriority, vr: .CS, value: session.printPriority.rawValue),
-            DataElement.string(tag: .mediumType, vr: .CS, value: session.mediumType.rawValue),
+            DataElement.string(tag: .mediumType, vr: .CS, value: session.mediumType.wireValue),
             DataElement.string(tag: .filmDestination, vr: .CS, value: session.filmDestination.rawValue)
         ]
         if let label = session.filmSessionLabel {
@@ -183,14 +191,28 @@ public enum PrintSCPEncoder {
 
     /// The Print Job SOP Class attribute set returned by N-GET.
     ///
-    /// Reference: PS3.3 C.13.8 (Print Job module).
+    /// Reference: PS3.3 C.13.8, Table C.13-8 (Print Job module): Execution
+    /// Status, Execution Status Info, Creation Date, Creation Time, Print
+    /// Priority, Printer Name and Originator. Number of Copies (2000,0010)
+    /// belongs to the Film Session and is not a Print Job attribute.
     public static func printJobAttributes(
         _ job: PrintSCPJobRecord,
         printerName: String,
         explicitVR: Bool
     ) -> Data {
-        let elements: [DataElement] = [
-            DataElement.string(tag: .numberOfCopies, vr: .IS, value: String(job.numberOfCopies)),
+        printJobAttributes(job, printerName: printerName, originator: nil, explicitVR: explicitVR)
+    }
+
+    /// ``printJobAttributes(_:printerName:explicitVR:)`` with Originator
+    /// (2100,0070), the AE title that issued the print operation, when the
+    /// SCP knows it.
+    static func printJobAttributes(
+        _ job: PrintSCPJobRecord,
+        printerName: String,
+        originator: String?,
+        explicitVR: Bool
+    ) -> Data {
+        var elements: [DataElement] = [
             DataElement.string(tag: .printPriority, vr: .CS, value: job.printPriority.rawValue),
             DataElement.string(tag: .executionStatus, vr: .CS, value: job.executionStatus),
             DataElement.string(tag: .executionStatusInfo, vr: .CS,
@@ -199,7 +221,26 @@ public enum PrintSCPEncoder {
             DataElement.string(tag: .creationTime, vr: .TM, value: dicomTime(job.creationDate)),
             DataElement.string(tag: .printerName, vr: .LO, value: printerName)
         ]
+        if let originator, !originator.isEmpty {
+            elements.append(DataElement.string(
+                tag: .originatingPrintManagement, vr: .AE, value: originator))
+        }
         return serialize(elements, explicitVR: explicitVR)
+    }
+
+    /// The data set of a successful Film Session / Film Box N-ACTION (Print)
+    /// response: Referenced Print Job Sequence (2100,0500) with one item
+    /// naming the Print Job SOP Instance the SCP created.
+    ///
+    /// Reference: PS3.4 Tables H.4-3 and H.4-8 — "-/MC, required if Print
+    /// Job SOP is supported".
+    static func printJobReference(printJobUID: String, explicitVR: Bool) -> Data {
+        serialize([
+            referenceSequence(
+                tag: .referencedPrintJobSequence,
+                sopClassUID: printJobSOPClassUID,
+                sopInstanceUIDs: [printJobUID])
+        ], explicitVR: explicitVR)
     }
 
     /// The data set accompanying a Printer SOP Class N-EVENT-REPORT.

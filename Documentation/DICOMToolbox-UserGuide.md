@@ -340,7 +340,7 @@ As you configure parameters in the panel, the console area updates in real time 
 Example preview:
 
 ```
-$ dicom-anon --profile clinical-trial --output ./anonymized/ patient_study.dcm
+$ dicom-anon --profile ps315 --output ./anonymized/ patient_study.dcm
 ```
 
 ### Executing Commands

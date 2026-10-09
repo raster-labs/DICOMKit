@@ -1,11 +1,13 @@
 // DICOMwebModel.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-06 — UPSState is now a deprecated alias of DICOMWeb's UPSState (WebUPSState; P-STUDIO-UPS-STATE-RAW), whose raw values were diffed by script against PS3.3 2026a Table C.30.1-1 (SCHEDULED, IN PROGRESS, CANCELED, COMPLETED 4/4) and whose transitions are PS3.4 2026a Table CC.1.1-2 (verified in DICOMWeb); the retired raw values IN_PROGRESS / CANCELLED decode through WebUPSState(legacyRawValue:); UPSPriority against C.30.2 (3/3); QIDOQueryLevel resources and WADOProtocol.protocolDescription parameter names against PS3.18 2026a Tables 10.6.1-1 and 9.1.2-1 (3/3, 4/4); DICOMwebTLSMode offers the PS3.15 2026a Annex B profiles B.12 / B.13 (titles diffed by script; B.9–B.11 retired) and hands them to DICOMwebConfiguration.tlsProfile (P-STUDIO-TLS-PROFILES; COMPATIBLE / STRICT decode to them); tabs, auth methods, job statuses, event-channel states and performance statistics carry no DICOM-standard data
 //
 // DICOM Studio — Data models for the DICOMweb Integration Hub (Milestone 10)
 // Reference: DICOM PS3.18 (Web Services)
 // Reference: DICOM PS3.19 (Application Hosting)
 
 import Foundation
+import DICOMWeb
 
 // MARK: - Navigation Tab
 
@@ -49,7 +51,7 @@ public enum DICOMwebTab: String, Sendable, Equatable, Hashable, CaseIterable {
 // MARK: - Authentication Method
 
 /// HTTP authentication method for DICOMweb connections.
-/// Reference: DICOM PS3.18 Section 8.3 – Security
+/// Reference: DICOM PS3.18 8.11 Security and Privacy (names no mechanism; these are HTTP/OAuth2 conventions)
 public enum DICOMwebAuthMethod: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     case none       = "NONE"
     case bearer     = "BEARER"
@@ -71,21 +73,59 @@ public enum DICOMwebAuthMethod: String, Sendable, Equatable, Hashable, CaseItera
 
 // MARK: - TLS Mode
 
-/// TLS security mode for DICOMweb HTTPS connections.
-/// Reference: DICOM PS3.15 Annex B – Secure Transport Connection Profiles
+/// TLS security mode for DICOMweb HTTPS connections: no TLS, one of the live PS3.15 2026a
+/// Annex B TLS Secure Transport Connection Profiles, or development (self-signed certificates).
+///
+/// Reference: DICOM PS3.15 2026a Annex B — B.12 "BCP 195 RFC 8996, 9325 TLS Secure Transport
+/// Connection Profile" and B.13 "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection
+/// Profile" (B.9–B.11 are retired). ``webTLSProfile`` is what `DICOMwebClientFactory` hands to
+/// `DICOMwebConfiguration`; URLSession applies it as a TLS 1.2 minimum with no maximum and
+/// cannot restrict cipher suites, so the B.13 suite, key-length and certificate rules are not
+/// enforced (see `DICOMwebConfiguration.TLSProfile`).
+///
+/// The former cases `compatible` ("COMPATIBLE", TLS 1.2+) and `strict` ("STRICT", TLS 1.3 only)
+/// named TLS versions, not profiles; they are deprecated aliases of ``bcp195`` and
+/// ``modifiedBCP195`` (B.13 allows a TLS 1.3-only client), and a stored "COMPATIBLE" /
+/// "STRICT" decodes to those cases.
 public enum DICOMwebTLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
-    case none        = "NONE"
-    case compatible  = "COMPATIBLE"
-    case strict      = "STRICT"
-    case development = "DEVELOPMENT"
+    /// No TLS (plain HTTP).
+    case none           = "NONE"
+    /// PS3.15 2026a B.12 BCP 195 RFC 8996, 9325 TLS.
+    case bcp195         = "BCP195"
+    /// PS3.15 2026a B.13 Modified BCP 195 RFC 8996, 9325 TLS.
+    case modifiedBCP195 = "MODIFIED_BCP195"
+    /// TLS accepting self-signed certificates — development only, no PS3.15 profile.
+    case development    = "DEVELOPMENT"
+
+    /// TLS 1.2 or later; the profile with that version rule is B.12.
+    @available(*, deprecated, renamed: "bcp195",
+               message: "PS3.15 2026a B.12 (BCP 195) is the TLS 1.2+ profile")
+    public static var compatible: DICOMwebTLSMode { .bcp195 }
+
+    /// TLS 1.3 only; the nearest profile is B.13, which allows a TLS 1.3-only client.
+    @available(*, deprecated, renamed: "modifiedBCP195",
+               message: "PS3.15 2026a B.13 (Modified BCP 195) is the profile that allows a TLS 1.3-only client")
+    public static var strict: DICOMwebTLSMode { .modifiedBCP195 }
+
+    /// Accepts the current raw values and the retired "COMPATIBLE" / "STRICT" (stored profiles
+    /// decode to ``bcp195`` / ``modifiedBCP195``).
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "NONE":                      self = .none
+        case "BCP195", "COMPATIBLE":      self = .bcp195
+        case "MODIFIED_BCP195", "STRICT": self = .modifiedBCP195
+        case "DEVELOPMENT":               self = .development
+        default:                          return nil
+        }
+    }
 
     /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .none:        return "No TLS (HTTP)"
-        case .compatible:  return "TLS (Compatible)"
-        case .strict:      return "TLS (Strict)"
-        case .development: return "TLS (Dev / Self-Signed)"
+        case .none:           return "No TLS (HTTP)"
+        case .bcp195:         return "BCP 195 TLS (PS3.15 B.12)"
+        case .modifiedBCP195: return "Modified BCP 195 TLS (PS3.15 B.13)"
+        case .development:    return "TLS (Dev / Self-Signed)"
         }
     }
 
@@ -94,6 +134,16 @@ public enum DICOMwebTLSMode: String, Sendable, Equatable, Hashable, CaseIterable
 
     /// Whether self-signed certificates are accepted.
     public var allowsSelfSigned: Bool { self == .development }
+
+    /// The DICOMWeb TLS profile for this mode; nil for ``none`` and ``development`` (which
+    /// follows no PS3.15 profile).
+    public var webTLSProfile: DICOMwebConfiguration.TLSProfile? {
+        switch self {
+        case .none, .development: return nil
+        case .bcp195:             return .bcp195
+        case .modifiedBCP195:     return .modifiedBCP195
+        }
+    }
 }
 
 // MARK: - Connection Status
@@ -135,7 +185,7 @@ public enum DICOMwebConnectionStatus: String, Sendable, Equatable, Hashable, Cas
 // MARK: - Service Type
 
 /// DICOMweb service types supported by a server.
-/// Reference: DICOM PS3.18 Section 6 – Services
+/// Reference: DICOM PS3.18 Chapters 9 (URI Service), 10 (Studies Service) and 11 (Worklist Service)
 public enum DICOMwebServiceType: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     case wadoRS = "WADO_RS"
     case qidoRS = "QIDO_RS"
@@ -166,7 +216,7 @@ public enum DICOMwebServiceType: String, Sendable, Equatable, Hashable, CaseIter
 // MARK: - Server Profile
 
 /// A DICOMweb server configuration profile.
-/// Reference: DICOM PS3.18 Section 8 – Conformance
+/// Reference: DICOM PS3.18 Chapter 8 Common Aspects of DICOM Web Services (8.2 Target Resources: Base URI)
 public struct DICOMwebServerProfile: Sendable, Identifiable, Equatable, Hashable, Codable {
     /// Unique profile identifier.
     public let id: UUID
@@ -232,7 +282,7 @@ public struct DICOMwebServerProfile: Sendable, Identifiable, Equatable, Hashable
 // MARK: - QIDO-RS Query Level
 
 /// Information model level for a QIDO-RS search request.
-/// Reference: DICOM PS3.18 Section 10.6 – QIDO-RS
+/// Reference: DICOM PS3.18 10.6 Search Transaction, Table 10.6.1-1 (All Studies, All Series, All Instances)
 public enum QIDOQueryLevel: String, Sendable, Equatable, Hashable, CaseIterable {
     case study    = "STUDY"
     case series   = "SERIES"
@@ -260,7 +310,8 @@ public enum QIDOQueryLevel: String, Sendable, Equatable, Hashable, CaseIterable 
 // MARK: - QIDO-RS Query Parameters
 
 /// Parameters for a QIDO-RS search request.
-/// Reference: DICOM PS3.18 Section 10.6.1 – Query Parameters
+/// Reference: DICOM PS3.18 8.3.4 Search Query Parameters (Table 8.3.4-1: fuzzymatching, limit, offset)
+/// and Table 10.6.1-5 Required Matching Attributes
 public struct QIDOQueryParams: Sendable, Equatable, Hashable {
     /// Unique identifier for this query.
     public let id: UUID
@@ -334,7 +385,7 @@ public struct QIDOQueryParams: Sendable, Equatable, Hashable {
 // MARK: - QIDO-RS Result Item
 
 /// A single result item returned from a QIDO-RS search.
-/// Reference: DICOM PS3.18 Section 10.6.2 – Response
+/// Reference: DICOM PS3.18 10.6.3 Response (Tables 10.6.3-3, 10.6.3-4, 10.6.3-5)
 public struct QIDOResultItem: Sendable, Identifiable, Equatable, Hashable {
     /// Unique local identifier.
     public let id: UUID
@@ -393,7 +444,7 @@ public struct QIDOResultItem: Sendable, Identifiable, Equatable, Hashable {
 // MARK: - WADO Protocol
 
 /// The WADO protocol variant to use for retrieval.
-/// Reference: DICOM PS3.18 §8 (WADO-URI) and §10.4 (WADO-RS)
+/// Reference: DICOM PS3.18 Chapter 9 URI Service (Table 9.1.2-1) and 10.4 Retrieve Transaction
 public enum WADOProtocol: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     /// WADO-RS (RESTful) — modern protocol using path-based URLs.
     /// Supported by dcm4chee5, Orthanc, Google Cloud Healthcare, etc.
@@ -424,7 +475,7 @@ public enum WADOProtocol: String, Sendable, Equatable, Hashable, CaseIterable, C
 // MARK: - WADO-RS Retrieve Mode
 
 /// The scope or mode for a WADO-RS retrieve request.
-/// Reference: DICOM PS3.18 Section 10.4 – WADO-RS
+/// Reference: DICOM PS3.18 10.4 Retrieve Transaction (Tables 10.4.1-1, 10.4.1-3, 10.4.1.5-1, 10.4.1.6-1)
 public enum WADORetrieveMode: String, Sendable, Equatable, Hashable, CaseIterable {
     case study    = "STUDY"
     case series   = "SERIES"
@@ -572,7 +623,7 @@ public struct WADORetrieveJob: Sendable, Identifiable, Equatable, Hashable {
 // MARK: - STOW-RS Duplicate Handling
 
 /// Policy for handling duplicate DICOM instances during a STOW-RS upload.
-/// Reference: DICOM PS3.18 Section 10.5 – STOW-RS
+/// Reference: DICOM PS3.18 10.5 Store Transaction (Table 10.5.3-1: 409 Conflict)
 public enum STOWDuplicateHandling: String, Sendable, Equatable, Hashable, CaseIterable {
     case reject    = "REJECT"
     case overwrite = "OVERWRITE"
@@ -695,50 +746,23 @@ public struct STOWUploadJob: Sendable, Identifiable, Equatable, Hashable {
 
 // MARK: - UPS-RS State
 
-/// State of a Unified Procedure Step (UPS) workitem.
+/// State of a Unified Procedure Step (UPS) workitem — DICOMWeb's `UPSState` (P-STUDIO-UPS-STATE-RAW).
+///
+/// Formerly a Studio enum whose raw values `IN_PROGRESS` and `CANCELLED` were not the Procedure
+/// Step State (0074,1000) words; it is now the DICOMWeb enum, whose raw values are PS3.3 2026a
+/// Table C.30.1-1's SCHEDULED, IN PROGRESS, COMPLETED, CANCELED. The case `.cancelled` is a
+/// deprecated alias of `.canceled`; a value stored with an old raw spelling decodes through
+/// `WebUPSState(legacyRawValue:)`. Display name, SF Symbol, `dicomTerm` and `allowedTransitions`
+/// are extensions in WebUPSState.swift.
 /// Reference: DICOM PS3.4 Annex CC – Unified Procedure Step Service Class
-public enum UPSState: String, Sendable, Equatable, Hashable, CaseIterable {
-    case scheduled  = "SCHEDULED"
-    case inProgress = "IN_PROGRESS"
-    case completed  = "COMPLETED"
-    case cancelled  = "CANCELLED"
-
-    /// Human-readable display name.
-    public var displayName: String {
-        switch self {
-        case .scheduled:  return "Scheduled"
-        case .inProgress: return "In Progress"
-        case .completed:  return "Completed"
-        case .cancelled:  return "Cancelled"
-        }
-    }
-
-    /// SF Symbol for this state.
-    public var sfSymbol: String {
-        switch self {
-        case .scheduled:  return "clock"
-        case .inProgress: return "arrow.triangle.2.circlepath"
-        case .completed:  return "checkmark.circle.fill"
-        case .cancelled:  return "xmark.circle"
-        }
-    }
-
-    /// Valid next states from this state per the UPS state machine.
-    /// Reference: DICOM PS3.4 Table CC.1.1-2
-    public var allowedTransitions: [UPSState] {
-        switch self {
-        case .scheduled:  return [.inProgress, .cancelled]
-        case .inProgress: return [.completed, .cancelled]
-        case .completed:  return []
-        case .cancelled:  return []
-        }
-    }
-}
+@available(*, deprecated, renamed: "WebUPSState",
+           message: "UPSState is DICOMWeb's UPSState; raw values are the PS3.3 Table C.30.1-1 words")
+public typealias UPSState = WebUPSState
 
 // MARK: - UPS-RS Priority
 
 /// Scheduled procedure step priority for a UPS workitem.
-/// Reference: DICOM PS3.4 Annex CC
+/// Reference: DICOM PS3.3 C.30.2 Scheduled Procedure Step Priority (0074,1200): HIGH, MEDIUM, LOW
 public enum UPSPriority: String, Sendable, Equatable, Hashable, CaseIterable {
     case high   = "HIGH"
     case medium = "MEDIUM"
@@ -765,8 +789,10 @@ public enum UPSPriority: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - UPS-RS Event Type
 
-/// Event types that can be subscribed to via UPS-RS Watch.
-/// Reference: DICOM PS3.18 Section 11 – UPS-RS
+/// Display categories for UPS event reports. They group the Event Type IDs of PS3.4 Table CC.2.4-1
+/// (1 State Report, 2 Cancel Requested, 3 Progress Report, 4 SCP Status Change, 5 Assigned);
+/// `stepStateChange` has no counterpart and is never produced by the event channel.
+/// Reference: DICOM PS3.18 11.13 Workitem Event Reports; PS3.4 Table CC.2.4-1
 public enum UPSEventType: String, Sendable, Equatable, Hashable, CaseIterable {
     case stateChange           = "STATE_CHANGE"
     case progressChange        = "PROGRESS_CHANGE"
@@ -787,7 +813,7 @@ public enum UPSEventType: String, Sendable, Equatable, Hashable, CaseIterable {
 // MARK: - UPS-RS Event Subscription
 
 /// A subscription to UPS-RS watch events for one or all workitems.
-/// Reference: DICOM PS3.18 Section 11.11 – Subscribe to Receive UPS Event Reports
+/// Reference: DICOM PS3.18 11.10 Subscribe Transaction (Table 11.1.1-1 Worklist / Workitem Subscription)
 public struct UPSEventSubscription: Sendable, Identifiable, Equatable, Hashable {
     /// Unique subscription identifier.
     public let id: UUID
@@ -836,7 +862,7 @@ public struct UPSWorkitem: Sendable, Identifiable, Equatable, Hashable {
     /// Scheduled procedure step start date/time.
     public var scheduledDateTime: Date?
     /// Current state.
-    public var state: UPSState
+    public var state: WebUPSState
     /// Priority of this workitem.
     public var priority: UPSPriority
     /// Free-text progress information.
@@ -851,7 +877,7 @@ public struct UPSWorkitem: Sendable, Identifiable, Equatable, Hashable {
         patientID: String = "",
         procedureStepLabel: String = "",
         scheduledDateTime: Date? = nil,
-        state: UPSState = .scheduled,
+        state: WebUPSState = .scheduled,
         priority: UPSPriority = .medium,
         progressInformation: String = "",
         completionPercentage: Int = 0

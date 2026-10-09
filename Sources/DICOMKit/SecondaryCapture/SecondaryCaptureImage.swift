@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — SOP Class UIDs match PS3.6 2026a Table A-1; Conversion Type Defined Terms (DV, DI, DF, WSD, SD, SI, DRW, SYN) per PS3.3 Table C.8-24; Type 1/2 attributes of Tables C.7-1, C.7-3, C.7-5a, C.7-9, C.7-14, C.8-25b, C.8-25c modelled
 //
 // SecondaryCaptureImage.swift
 // DICOMKit
@@ -68,6 +69,32 @@ public struct SecondaryCaptureImage: Sendable {
     /// Patient ID
     public let patientID: String?
 
+    /// Patient's Birth Date (0010,0030), Type 2 in the Patient Module (Table C.7-1)
+    public let patientBirthDate: DICOMDate?
+
+    /// Patient's Sex (0010,0040), Type 2 in the Patient Module (Table C.7-1)
+    public let patientSex: String?
+
+    // MARK: - Study Information (General Study Module, Table C.7-3)
+
+    /// Study Date (0008,0020), Type 2
+    public let studyDate: DICOMDate?
+
+    /// Study Time (0008,0030), Type 2
+    public let studyTime: DICOMTime?
+
+    /// Referring Physician's Name (0008,0090), Type 2
+    public let referringPhysicianName: String?
+
+    /// Study ID (0020,0010), Type 2
+    public let studyID: String?
+
+    /// Accession Number (0008,0050), Type 2
+    public let accessionNumber: String?
+
+    /// Study Description (0008,1030), Type 3
+    public let studyDescription: String?
+
     // MARK: - Series Information
 
     /// Modality (typically "OT" for Secondary Capture)
@@ -91,6 +118,12 @@ public struct SecondaryCaptureImage: Sendable {
 
     /// Time of Secondary Capture
     public let timeOfSecondaryCapture: DICOMTime?
+
+    /// Nominal Scanned Pixel Spacing (0018,2010): adjacent row spacing, adjacent
+    /// column spacing in mm on the digitized medium. Type 3 in the SC Image Module
+    /// (Table C.8-25); Type 1C in the SC Multi-frame Image Module (Table C.8-25b):
+    /// required if Conversion Type is DF.
+    public let nominalScannedPixelSpacing: [Double]?
 
     // MARK: - Image Pixel Module
 
@@ -132,8 +165,39 @@ public struct SecondaryCaptureImage: Sendable {
     /// Derivation Description
     public let derivationDescription: String?
 
-    /// Burned In Annotation ("YES" or "NO")
+    /// Burned In Annotation ("YES" or "NO"); Type 3 in the General Image Module,
+    /// Type 1 in the SC Multi-frame Image Module (Table C.8-25b).
     public let burnedInAnnotation: String?
+
+    /// Patient Orientation (0020,0020), Type 2C in the General Image Module
+    /// (Table C.7-9); always required for SC since the IOD has no Image
+    /// Orientation (Patient). Two values, e.g. ["L", "P"]; empty when unknown.
+    public let patientOrientation: [String]?
+
+    // MARK: - Multi-frame / SC Multi-frame Vector Modules (Tables C.7-14, C.8-25c)
+
+    /// Frame Time (0018,1063) in ms; when set, Frame Increment Pointer points to it (Cine Module).
+    public let frameTime: Double?
+
+    /// Frame Time Vector (0018,1065) in ms, one per frame.
+    public let frameTimeVector: [Double]?
+
+    /// Page Number Vector (0018,2001), one per frame.
+    public let pageNumberVector: [Int]?
+
+    /// Frame Label Vector (0018,2002), one per frame.
+    public let frameLabelVector: [String]?
+
+    // MARK: - SC Multi-frame Image Module rescale (Table C.8-25b, Type 1C)
+
+    /// Rescale Intercept (0028,1052); defaults to 0 when written.
+    public let rescaleIntercept: Double?
+
+    /// Rescale Slope (0028,1053); defaults to 1 when written.
+    public let rescaleSlope: Double?
+
+    /// Rescale Type (0028,1054); defaults to "US" when written.
+    public let rescaleType: String?
 
     // MARK: - Content Date/Time
 
@@ -162,7 +226,7 @@ public struct SecondaryCaptureImage: Sendable {
         modality: String? = nil,
         seriesDescription: String? = nil,
         seriesNumber: Int? = nil,
-        conversionType: ConversionType = .digitizedFilm,
+        conversionType: ConversionType = .workstation,
         dateOfSecondaryCapture: DICOMDate? = nil,
         timeOfSecondaryCapture: DICOMTime? = nil,
         rows: Int,
@@ -180,7 +244,24 @@ public struct SecondaryCaptureImage: Sendable {
         burnedInAnnotation: String? = nil,
         contentDate: DICOMDate? = nil,
         contentTime: DICOMTime? = nil,
-        pixelData: Data? = nil
+        pixelData: Data? = nil,
+        patientBirthDate: DICOMDate? = nil,
+        patientSex: String? = nil,
+        studyDate: DICOMDate? = nil,
+        studyTime: DICOMTime? = nil,
+        referringPhysicianName: String? = nil,
+        studyID: String? = nil,
+        accessionNumber: String? = nil,
+        studyDescription: String? = nil,
+        nominalScannedPixelSpacing: [Double]? = nil,
+        patientOrientation: [String]? = nil,
+        frameTime: Double? = nil,
+        frameTimeVector: [Double]? = nil,
+        pageNumberVector: [Int]? = nil,
+        frameLabelVector: [String]? = nil,
+        rescaleIntercept: Double? = nil,
+        rescaleSlope: Double? = nil,
+        rescaleType: String? = nil
     ) {
         self.sopInstanceUID = sopInstanceUID
         self.sopClassUID = sopClassUID
@@ -211,6 +292,23 @@ public struct SecondaryCaptureImage: Sendable {
         self.contentDate = contentDate
         self.contentTime = contentTime
         self.pixelData = pixelData
+        self.patientBirthDate = patientBirthDate
+        self.patientSex = patientSex
+        self.studyDate = studyDate
+        self.studyTime = studyTime
+        self.referringPhysicianName = referringPhysicianName
+        self.studyID = studyID
+        self.accessionNumber = accessionNumber
+        self.studyDescription = studyDescription
+        self.nominalScannedPixelSpacing = nominalScannedPixelSpacing
+        self.patientOrientation = patientOrientation
+        self.frameTime = frameTime
+        self.frameTimeVector = frameTimeVector
+        self.pageNumberVector = pageNumberVector
+        self.frameLabelVector = frameLabelVector
+        self.rescaleIntercept = rescaleIntercept
+        self.rescaleSlope = rescaleSlope
+        self.rescaleType = rescaleType
     }
 
     /// The secondary capture type inferred from the SOP Class UID
@@ -298,7 +396,7 @@ public enum SecondaryCaptureType: String, Sendable {
 
     /// The default modality for Secondary Capture
     public var defaultModality: String {
-        return "OT"
+        return Modality.ot.rawValue
     }
 
     /// Default pixel characteristics for this type
@@ -336,57 +434,96 @@ public enum SecondaryCaptureType: String, Sendable {
 
 /// Describes the kind of image conversion that was performed
 ///
-/// Reference: PS3.3 C.8.6.1 - SC Equipment Module
-public enum ConversionType: String, Sendable {
-    /// Digitized Video - image captured from a video source
+/// Conversion Type (0008,0064) is Type 1 in the SC Equipment Module. The cases
+/// are the Defined Terms of PS3.3 2026a Table C.8-24: DV, DI, DF, WSD, SD, SI,
+/// DRW, SYN.
+///
+/// Reference: PS3.3 C.8.6.1 - SC Equipment Module, Table C.8-24
+public enum ConversionType: String, Sendable, CaseIterable {
+    /// DV - Digitized Video
     case digitizedVideo = "DV"
 
-    /// Digital Interface - image captured via a digital interface
+    /// DI - Digital Interface
     case digitalInterface = "DI"
 
-    /// Digitized Film - image captured by scanning a film
+    /// DF - Digitized Film
     case digitizedFilm = "DF"
 
-    /// Workstation - image captured from a workstation display
+    /// WSD - Workstation
     case workstation = "WSD"
 
-    /// Scanned Document - image captured by scanning a document
+    /// SD - Scanned Document
     case scannedDocument = "SD"
 
-    /// Scanned Image - image captured by scanning an image
+    /// SI - Scanned Image
     case scannedImage = "SI"
 
-    /// Synthesized Image - image computed from other data
+    /// DRW - Drawing
+    case drawing = "DRW"
+
+    /// SYN - Synthetic Image
     case synthesized = "SYN"
 
-    /// Unknown conversion type
+    /// A value that is not one of the Table C.8-24 Defined Terms (parser tolerance only).
+    ///
+    /// Conversion Type is Type 1, so an empty value is not a legal encoding. Writers
+    /// never emit this case: ``standardTerm`` maps it to `WSD` (Workstation), the
+    /// term used for images captured from a display.
+    @available(*, deprecated, message: "Conversion Type (0008,0064) is Type 1; there is no empty/unknown term in PS3.3 2026a Table C.8-24. Writers emit WSD for this case; use standardTerm.")
     case unknown = ""
 
+    /// The Table C.8-24 term that serializers write for this case.
+    ///
+    /// Every Defined Term writes itself; the deprecated `.unknown` case writes
+    /// `WSD` because a Type 1 attribute must carry a value.
+    public var standardTerm: String {
+        let raw = rawValue
+        return raw.isEmpty ? ConversionType.workstation.rawValue : raw
+    }
+
+    /// The Defined Terms of PS3.3 2026a Table C.8-24, in table order.
+    public static let definedTerms: [String] = ["DV", "DI", "DF", "WSD", "SD", "SI", "DRW", "SYN"]
+
+    /// The Defined-Term cases only (the deprecated `.unknown` is not a term).
+    public static var allCases: [ConversionType] {
+        [.digitizedVideo, .digitalInterface, .digitizedFilm, .workstation,
+         .scannedDocument, .scannedImage, .drawing, .synthesized]
+    }
+
     /// Creates a ConversionType from its DICOM string value
+    ///
+    /// Values that are not Defined Terms are tolerated on read and map to the
+    /// deprecated `.unknown` case; use ``init?(definedTerm:)`` for a strict parse.
     public init(dicomValue: String) {
-        switch dicomValue.trimmingCharacters(in: .whitespaces) {
-        case "DV": self = .digitizedVideo
-        case "DI": self = .digitalInterface
-        case "DF": self = .digitizedFilm
-        case "WSD": self = .workstation
-        case "SD": self = .scannedDocument
-        case "SI": self = .scannedImage
-        case "SYN": self = .synthesized
-        default: self = .unknown
+        if let term = ConversionType(definedTerm: dicomValue) {
+            self = term
+        } else {
+            self = ConversionType(rawValue: "")!
         }
     }
 
-    /// Human-readable description
+    /// Strict parse: nil unless the (trimmed) value is a Table C.8-24 Defined Term.
+    public init?(definedTerm: String) {
+        let trimmed = definedTerm.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, let term = ConversionType(rawValue: trimmed) else { return nil }
+        self = term
+    }
+
+    /// Whether this is one of the Table C.8-24 Defined Terms (false only for the deprecated `.unknown`).
+    public var isDefinedTerm: Bool { !rawValue.isEmpty }
+
+    /// Human-readable description (the Table C.8-24 meanings)
     public var displayName: String {
-        switch self {
-        case .digitizedVideo: return "Digitized Video"
-        case .digitalInterface: return "Digital Interface"
-        case .digitizedFilm: return "Digitized Film"
-        case .workstation: return "Workstation"
-        case .scannedDocument: return "Scanned Document"
-        case .scannedImage: return "Scanned Image"
-        case .synthesized: return "Synthesized Image"
-        case .unknown: return "Unknown"
+        switch rawValue {
+        case "DV": return "Digitized Video"
+        case "DI": return "Digital Interface"
+        case "DF": return "Digitized Film"
+        case "WSD": return "Workstation"
+        case "SD": return "Scanned Document"
+        case "SI": return "Scanned Image"
+        case "DRW": return "Drawing"
+        case "SYN": return "Synthetic Image"
+        default: return "Unknown"
         }
     }
 }

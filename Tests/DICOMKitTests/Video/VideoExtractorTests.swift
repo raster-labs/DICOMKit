@@ -205,6 +205,27 @@ final class VideoExtractorTests: XCTestCase {
         XCTAssertEqual(extracted.suggestedFileExtension, "ts")
     }
 
+    func test_extractedProgramStreamAndPES_areTheirOwnContainers() throws {
+        // PS3.5 2026a 8.2.5 / 8.2.6: an MPEG-2 bit stream may arrive as MPEG-PS or
+        // MPEG-PES; both are reported by their own VideoContainer case (D237).
+        let pack: [UInt8] = [0x00, 0x00, 0x01, 0xBA, 0x44, 0x00, 0x04, 0x00, 0x04, 0x01, 0x01, 0x89, 0xC3, 0xF8]
+        let pes: [UInt8] = [0x00, 0x00, 0x01, 0xE0, 0x00, 0x0B, 0x80, 0x00, 0x00,
+                            0x00, 0x00, 0x01, 0xB3, 0x2D, 0x02, 0x40, 0x33]
+        let psFile = try roundTripFile(bitstream: Data(pack + pes), transferSyntax: .mpeg2MainProfile)
+        let ps = try VideoExtractor.extract(from: psFile)
+        XCTAssertEqual(ps.container, .mpegPS)
+        XCTAssertEqual(ps.containerDisplayName, "MPEG-2 Program Stream (MPEG-PS)")
+        XCTAssertEqual(ps.suggestedFileExtension, "mpg")
+        XCTAssertTrue(ps.container.isPermittedByDICOM(for: .mpeg2), "8.2.5: container not constrained")
+
+        let pesFile = try roundTripFile(bitstream: Data(pes), transferSyntax: .mpeg2MainProfile)
+        let pesVideo = try VideoExtractor.extract(from: pesFile)
+        XCTAssertEqual(pesVideo.container, .mpegPES)
+        XCTAssertEqual(pesVideo.containerDisplayName, "MPEG-2 Packetized Elementary Stream (MPEG-PES)")
+        XCTAssertEqual(pesVideo.suggestedFileExtension, "mpg")
+        XCTAssertTrue(VideoConsole.extractSummary(pesVideo).contains("Container:        MPEG-2 Packetized Elementary Stream (MPEG-PES)"))
+    }
+
     // MARK: - Fragmentable variants
 
     func test_fragmentableVariant_concatenatesFragmentsInOrder() throws {

@@ -7,6 +7,8 @@ import Foundation
 /// by Item tags (FFFE,E000) and Item Delimitation Item tags (FFFE,E00D).
 ///
 /// Reference: DICOM PS3.5 Section 7.5 - Nesting of Data Sets
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the three delimiter tags (FFFE,E000), (FFFE,E00D) and (FFFE,E0DD) and their roles match PS3.5 2026a §7.5 and §7.5.1; no other standard data.
 public struct SequenceItem: Sendable {
     /// Data elements contained within this sequence item
     public let elements: [Tag: DataElement]

@@ -5,6 +5,8 @@ import Foundation
 /// Represents a decimal number in DICOM format.
 /// Reference: DICOM PS3.5 Section 6.2 - DS Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the DS row of PS3.5 2026a Table 6.2-1 (fixed or floating point, optional sign, E/e exponent, 16 bytes max). `Double(_:)` also accepts hexadecimal floats, which the DS repertoire does not; that leniency is on read only.
+///
 /// A string of characters representing either a fixed point number
 /// or a floating point number. A fixed point number shall contain
 /// only the characters 0-9 with an optional leading "+" or "-" and

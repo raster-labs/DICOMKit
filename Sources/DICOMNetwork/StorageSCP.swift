@@ -45,7 +45,7 @@ public struct StorageSCPConfiguration: Sendable, Hashable {
     public let callingAEBlacklist: Set<String>?
     
     /// Default Implementation Class UID for DICOMKit SCP
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.2"
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
     
     /// Default Implementation Version Name for DICOMKit SCP
     public static let defaultImplementationVersionName = "DICOMKIT_SCP"
@@ -101,7 +101,7 @@ public struct StorageSCPConfiguration: Sendable, Hashable {
     /// - Parameters:
     ///   - aeTitle: The local AE title
     ///   - port: The port to listen on (default: 11112)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - maxConcurrentAssociations: Maximum concurrent associations (default: 10)
@@ -384,6 +384,7 @@ public actor DefaultStorageHandler: StorageDelegate {
 
 #if canImport(Network)
 import Network
+// NEMA-verified: 2026a, checked 2026-09-28 — A-ASSOCIATE-RJ reasons per PS3.8 2026a Table 9-21, Protocol-version bit 0 per Table 9-11, maximum length per Annex D.1; C-STORE/C-ECHO responses per PS3.7 Tables 9.3-2/9.3-13 and PS3.4 Table B.2-1; unsupported operations answered 0211H (PS3.7 Annex C)
 
 // MARK: - DICOM Storage Server
 
@@ -781,12 +782,24 @@ actor SCPAssociation {
         
         callingAETitle = associateRequest.callingAETitle.value
         
+        // PS3.8 Table 9-11: only bit 0 of Protocol-version is tested; reject
+        // with source 2 (ACSE), reason 2 (protocol-version-not-supported)
+        guard associateRequest.isProtocolVersionSupported else {
+            try await sendAssociateReject(
+                result: .rejectedPermanent,
+                source: .serviceProviderACSE,
+                reason: 2 // Protocol version not supported
+            )
+            await eventHandler(.associationRejected(callingAE: callingAETitle, reason: "Protocol version not supported"))
+            return
+        }
+        
         // Check if calling AE is allowed
         guard configuration.isCallingAEAllowed(callingAETitle) else {
             try await sendAssociateReject(
                 result: .rejectedPermanent,
                 source: .serviceUser,
-                reason: 2 // Calling AE Title not recognized
+                reason: 3 // PS3.8 Table 9-21: calling-AE-title-not-recognized
             )
             await eventHandler(.associationRejected(callingAE: callingAETitle, reason: "Calling AE not allowed"))
             return
@@ -830,8 +843,8 @@ actor SCPAssociation {
         // Negotiate presentation contexts
         let acceptedPresentationContexts = negotiatePresentationContexts(associateRequest.presentationContexts)
         
-        // Store negotiated maximum PDU size
-        maxPDUSize = min(configuration.maxPDUSize, associateRequest.maxPDUSize)
+        // Store negotiated maximum PDU size (PS3.8 Annex D.1: 0 = unlimited)
+        maxPDUSize = negotiatedMaxPDUSize(local: configuration.maxPDUSize, remote: associateRequest.maxPDUSize)
         
         // Send A-ASSOCIATE-AC
         let acceptPDU = AssociateAcceptPDU(
@@ -940,12 +953,52 @@ actor SCPAssociation {
         case .cStoreRequest:
             try await handleCStore(message)
             
+        case .none:
+            // Undecodable command field: abort rather than guess a response
+            try await sendAbort(reason: .invalidPDUParameterValue)
+            
         default:
-            // Unsupported command - send error response
-            break
+            // PS3.7: every DIMSE request expects a response. Answer an
+            // operation this SCP does not implement with the matching
+            // response command carrying Unrecognized operation (0211H).
+            try await sendUnrecognizedOperationResponse(for: message)
         }
     }
     
+    /// Answers a DIMSE request this SCP does not implement.
+    ///
+    /// PS3.7 §10.1.x lists "Unrecognized operation (0211H)" for the N-services
+    /// and every C-service defines a response; the response command is the
+    /// request command with bit 15 set (PS3.7 Table E.1-1), and no data set is
+    /// sent. C-CANCEL-RQ has no response and is ignored.
+    private func sendUnrecognizedOperationResponse(for message: AssembledMessage) async throws {
+        guard let command = message.command,
+              command.isRequest,
+              let responseCommand = command.responseCommand else {
+            return
+        }
+            
+        var commandSet = CommandSet()
+        commandSet.setCommand(responseCommand)
+        commandSet.setMessageIDBeingRespondedTo(message.commandSet.messageID ?? 0)
+        if let sopClassUID = message.commandSet.affectedSOPClassUID
+            ?? message.commandSet.requestedSOPClassUID {
+            commandSet.setAffectedSOPClassUID(sopClassUID)
+        }
+        commandSet.setHasDataSet(false)
+        commandSet.setStatus(DIMSEStatus.from(0x0211))
+            
+        let fragmenter = MessageFragmenter(maxPDUSize: maxPDUSize)
+        let pdus = fragmenter.fragmentMessage(
+            commandSet: commandSet,
+            dataSet: nil,
+            presentationContextID: message.presentationContextID
+        )
+        for pdu in pdus {
+            try await send(pdu: pdu)
+        }
+    }
+            
     private func handleCEcho(_ message: AssembledMessage) async throws {
         guard let request = message.asCEchoRequest() else { return }
         
@@ -1068,12 +1121,10 @@ actor SCPAssociation {
     private func receivePDU() async throws -> any PDU {
         // Read PDU header (6 bytes)
         let headerData = try await receive(length: 6)
-        let (_, pduLength) = try PDUDecoder.readHeader(from: headerData)
+        let (pduType, pduLength) = try PDUDecoder.readHeader(from: headerData)
         
-        // Validate PDU length
-        guard pduLength <= configuration.maxPDUSize else {
-            throw DICOMNetworkError.pduTooLarge(received: pduLength, maximum: configuration.maxPDUSize)
-        }
+        // Validate PDU length (PS3.8 Annex D.1: the limit applies to P-DATA-TF only)
+        try checkPDULength(type: pduType, length: pduLength, maxPDUSize: configuration.maxPDUSize)
         
         // Read PDU body
         let bodyData = try await receive(length: Int(pduLength))

@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Study browser ViewModel
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (library state, import orchestration and
+// file clean-up).
 
 import Foundation
 import Observation

@@ -5,6 +5,8 @@ import Foundation
 /// Represents an integer number in DICOM format.
 /// Reference: DICOM PS3.5 Section 6.2 - IS Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the IS row of PS3.5 2026a Table 6.2-1 (digits with optional sign, 12 bytes max, -2^31 <= n <= 2^31-1).
+///
 /// A string of characters representing an Integer in base-10 (decimal),
 /// shall contain only the characters 0-9 with an optional leading "+" or "-".
 /// Integer Strings may be padded with leading and/or trailing spaces.

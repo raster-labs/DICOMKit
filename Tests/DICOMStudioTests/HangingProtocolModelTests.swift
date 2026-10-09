@@ -57,6 +57,27 @@ struct LayoutTypeTests {
     }
 }
 
+@Suite("ImageSortDirection Tests")
+struct ImageSortDirectionTests {
+
+    // PS3.3 2026a Table C.23.3-1 Sorting Direction (0072,0604): INCREASING, DECREASING
+    @Test("Raw values are the Sorting Direction Enumerated Values")
+    func testRawValues() {
+        #expect(ImageSortDirection.ascending.rawValue == "INCREASING")
+        #expect(ImageSortDirection.descending.rawValue == "DECREASING")
+        #expect(ImageSortDirection.allCases.map(\.rawValue) == ["INCREASING", "DECREASING"])
+        #expect(ImageSortDirection(rawValue: "INCREASING") == .ascending)
+        #expect(ImageSortDirection(rawValue: "DECREASING") == .descending)
+    }
+
+    @Test("Legacy stored values ASCENDING / DESCENDING still decode")
+    func testLegacyDecoding() {
+        #expect(ImageSortDirection(rawValue: "ASCENDING") == .ascending)
+        #expect(ImageSortDirection(rawValue: "DESCENDING") == .descending)
+        #expect(ImageSortDirection(rawValue: "UP") == nil)
+    }
+}
+
 @Suite("ImageSelectionCriteria Tests")
 struct ImageSelectionCriteriaTests {
 

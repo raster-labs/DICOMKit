@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — the 13 tags named in ComposedFilmInfo (2000,xxxx; 2010,xxxx; 2050,0020) checked against PS3.6 2026a Table 6-1 names (Scripts/diff_printkit.py); DensityMapping gsdf per PS3.14 7.2/7.3
 //
 // ComposedFilm.swift
 // DICOMPrintKit
@@ -34,10 +35,19 @@ public enum DensityMapping: String, Sendable, Hashable, CaseIterable, Codable {
     /// inverted relative to `paperDirect`, so dense areas read as dark.
     case filmEmulation = "FILM"
 
+    /// Calibrated: draw what a printer conforming to PS3.14 produces. Each
+    /// P-Value is laid down at the density the Grayscale Standard Display
+    /// Function gives it between Min and Max Density (PS3.14 7.2 for film,
+    /// 7.3 for PAPER), LIN OD and numeric Border/Empty densities are taken as
+    /// densities, and the sheet's luminance under PS3.14's typical viewing
+    /// conditions is encoded for the screen.
+    case gsdf = "GSDF"
+
     public var displayName: String {
         switch self {
         case .paperDirect: return "Paper (direct)"
         case .filmEmulation: return "Film emulation"
+        case .gsdf: return "Calibrated (PS3.14 GSDF)"
         }
     }
 }

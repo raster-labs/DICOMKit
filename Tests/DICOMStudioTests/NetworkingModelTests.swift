@@ -3,6 +3,7 @@
 
 import Testing
 @testable import DICOMStudio
+import DICOMNetwork
 import Foundation
 
 @Suite("Networking Model Tests")
@@ -36,9 +37,9 @@ struct NetworkingModelTests {
         #expect(TLSMode.none.isEnabled == false)
     }
 
-    @Test("TLSMode tls12 is enabled")
+    @Test("TLSMode bcp195 is enabled")
     func testTLSMode12Enabled() {
-        #expect(TLSMode.tls12.isEnabled == true)
+        #expect(TLSMode.bcp195.isEnabled == true)
     }
 
     @Test("TLSMode mtls requires client certificate")
@@ -46,9 +47,9 @@ struct NetworkingModelTests {
         #expect(TLSMode.mtls.requiresClientCertificate == true)
     }
 
-    @Test("TLSMode tls13 does not require client certificate")
+    @Test("TLSMode modifiedBCP195 does not require client certificate")
     func testTLSModeTLS13NoCert() {
-        #expect(TLSMode.tls13.requiresClientCertificate == false)
+        #expect(TLSMode.modifiedBCP195.requiresClientCertificate == false)
     }
 
     @Test("TLSMode all cases have non-empty display names")
@@ -210,12 +211,12 @@ struct NetworkingModelTests {
         }
     }
 
-    // MARK: - TransferPriority
+    // MARK: - DICOMStudio.TransferPriority
 
-    @Test("TransferPriority ordering is low < normal < high")
+    @Test("DICOMStudio.TransferPriority ordering is low < normal < high")
     func testTransferPriorityOrdering() {
-        #expect(TransferPriority.low < TransferPriority.normal)
-        #expect(TransferPriority.normal < TransferPriority.high)
+        #expect(DICOMStudio.TransferPriority.low < DICOMStudio.TransferPriority.normal)
+        #expect(DICOMStudio.TransferPriority.normal < DICOMStudio.TransferPriority.high)
     }
 
     // MARK: - TransferItem
@@ -290,11 +291,11 @@ struct NetworkingModelTests {
         #expect(SendStatus.completed.canRetry == false)
     }
 
-    // MARK: - ValidationLevel
+    // MARK: - DICOMStudio.ValidationLevel
 
-    @Test("ValidationLevel all cases have non-empty display names and descriptions")
+    @Test("DICOMStudio.ValidationLevel all cases have non-empty display names and descriptions")
     func testValidationLevelDisplayNamesAndDescriptions() {
-        for level in ValidationLevel.allCases {
+        for level in DICOMStudio.ValidationLevel.allCases {
             #expect(!level.displayName.isEmpty)
             #expect(!level.description.isEmpty)
         }
@@ -319,23 +320,23 @@ struct NetworkingModelTests {
         #expect(item.scheduledStationAETitle == "CT1")
     }
 
-    // MARK: - MPPSStatus
+    // MARK: - DICOMStudio.MPPSStatus
 
-    @Test("MPPSStatus inProgress can complete and discontinue")
+    @Test("DICOMStudio.MPPSStatus inProgress can complete and discontinue")
     func testMPPSStatusInProgressTransitions() {
-        #expect(MPPSStatus.inProgress.canComplete == true)
-        #expect(MPPSStatus.inProgress.canDiscontinue == true)
+        #expect(DICOMStudio.MPPSStatus.inProgress.canComplete == true)
+        #expect(DICOMStudio.MPPSStatus.inProgress.canDiscontinue == true)
     }
 
-    @Test("MPPSStatus completed cannot complete again")
+    @Test("DICOMStudio.MPPSStatus completed cannot complete again")
     func testMPPSStatusCompletedCannotTransition() {
-        #expect(MPPSStatus.completed.canComplete == false)
-        #expect(MPPSStatus.completed.canDiscontinue == false)
+        #expect(DICOMStudio.MPPSStatus.completed.canComplete == false)
+        #expect(DICOMStudio.MPPSStatus.completed.canDiscontinue == false)
     }
 
-    @Test("MPPSStatus all cases have non-empty display names and SF symbols")
+    @Test("DICOMStudio.MPPSStatus all cases have non-empty display names and SF symbols")
     func testMPPSStatusDisplayNamesAndSymbols() {
-        for status in MPPSStatus.allCases {
+        for status in DICOMStudio.MPPSStatus.allCases {
             #expect(!status.displayName.isEmpty)
             #expect(!status.sfSymbol.isEmpty)
         }
@@ -356,18 +357,43 @@ struct NetworkingModelTests {
         #expect(item.numberOfInstances == 0)
     }
 
-    // MARK: - PrintPriority
+    // MARK: - Print Priority / Medium Type / Film Size (DICOMNetwork's, P-STUDIO-PRINT-ENUMS)
 
-    @Test("PrintPriority all cases have non-empty display names")
+    @Test("DICOMNetwork.PrintPriority all cases have non-empty display names")
     func testPrintPriorityDisplayNames() {
-        for p in PrintPriority.allCases { #expect(!p.displayName.isEmpty) }
+        for p in DICOMNetwork.PrintPriority.allCases { #expect(!p.displayName.isEmpty) }
     }
 
-    // MARK: - PrintMediumType
-
-    @Test("PrintMediumType all cases have non-empty display names")
+    @Test("DICOMNetwork.MediumType all cases have non-empty display names")
     func testPrintMediumTypeDisplayNames() {
-        for m in PrintMediumType.allCases { #expect(!m.displayName.isEmpty) }
+        for m in DICOMNetwork.MediumType.allCases { #expect(!m.displayName.isEmpty) }
+    }
+
+    @Test("Medium Type picker values are the 5 PS3.3 2026a Table C.13-1 Defined Terms, MAMMO included (D22)")
+    func testPrintMediumTypeTerms() {
+        #expect(DICOMNetwork.MediumType.paper.rawValue == "PAPER")
+        #expect(DICOMNetwork.MediumType.clearFilm.rawValue == "CLEAR FILM")
+        #expect(DICOMNetwork.MediumType.blueFilm.rawValue == "BLUE FILM")
+        #expect(DICOMNetwork.MediumType.blueFilm.displayName == "Blue Film")
+        #expect(DICOMNetwork.MediumType.mammoClearFilm.displayName == "Mammo Clear Film")
+        #expect(DICOMNetwork.MediumType.mammoBlueFilm.displayName == "Mammo Blue Film")
+        let terms = ["PAPER", "CLEAR FILM", "BLUE FILM", "MAMMO CLEAR FILM", "MAMMO BLUE FILM"]
+        #expect(DICOMNetwork.MediumType.allCases.map(\.rawValue) == terms)
+    }
+
+    @Test("Print Priority values are the Table C.13-1 Print Priority terms")
+    func testPrintPriorityTerms() {
+        #expect(DICOMNetwork.PrintPriority.allCases.map(\.rawValue) == ["HIGH", "MED", "LOW"])
+        #expect(DICOMNetwork.PrintPriority.medium.displayName == "Medium")
+    }
+
+    @Test("Film Size values are the 12 Table C.13-3 Film Size ID terms, each with a display name")
+    func testPrintFilmSizeTerms() {
+        #expect(DICOMNetwork.FilmSize.allCases.map(\.rawValue) == [
+            "8INX10IN", "8_5INX11IN", "10INX12IN", "10INX14IN", "11INX14IN", "11INX17IN",
+            "14INX14IN", "14INX17IN", "24CMX24CM", "24CMX30CM", "A4", "A3"])
+        #expect(DICOMNetwork.FilmSize.size14InX17In.displayName == "14\" × 17\"")
+        #expect(Set(DICOMNetwork.FilmSize.allCases.map(\.displayName)).count == 12)
     }
 
     // MARK: - FilmLayout
@@ -395,14 +421,48 @@ struct NetworkingModelTests {
         }
     }
 
-    // MARK: - PrintJobStatus
+    @Test("FilmLayout raw values are Image Display Format STANDARD\\C,R — columns first (PS3.3 C.13.3) — and agree with PrintLayout")
+    func testFilmLayoutImageDisplayFormat() {
+        for layout in FilmLayout.allCases {
+            #expect(layout.rawValue == "STANDARD\\\(layout.columns),\(layout.rows)")
+            #expect(layout.cellCount == layout.rows * layout.columns)
+            // What the Networking panel now hands to DICOMPrintService.printImages(layout:).
+            let network = PrintLayout(rows: layout.rows, columns: layout.columns)
+            #expect(network.imageDisplayFormat == layout.rawValue)
+        }
+    }
 
-    @Test("PrintJobStatus all cases have non-empty display names and SF symbols")
+    // MARK: - NetworkPrintJobState
+
+    @Test("NetworkPrintJobState all cases have non-empty display names and SF symbols")
     func testPrintJobStatusDisplayNamesAndSymbols() {
-        for status in [PrintJobStatus.pending, .printing, .completed, .failed] {
+        for status in [NetworkPrintJobState.pending, .printing, .completed, .failed] {
             #expect(!status.displayName.isEmpty)
             #expect(!status.sfSymbol.isEmpty)
         }
+    }
+
+    @Test("NetworkPrintJobState raw values are the PS3.3 Table C.13-8 Execution Status terms (D22)")
+    func testPrintJobStatusExecutionStatusTerms() {
+        #expect(NetworkPrintJobState.pending.rawValue == "PENDING")
+        #expect(NetworkPrintJobState.printing.rawValue == "PRINTING")
+        #expect(NetworkPrintJobState.completed.rawValue == "DONE")
+        #expect(NetworkPrintJobState.failed.rawValue == "FAILURE")
+    }
+
+    @Test("DICOMStudio.MPPSStatus raw values are the PS3.3 C.4.14 Performed Procedure Step Status terms, as DICOMNetwork spells them")
+    func testMPPSStatusTerms() {
+        #expect(DICOMStudio.MPPSStatus.inProgress.rawValue == "IN PROGRESS")
+        #expect(DICOMStudio.MPPSStatus.completed.rawValue == "COMPLETED")
+        #expect(DICOMStudio.MPPSStatus.discontinued.rawValue == "DISCONTINUED")
+        for status in DICOMStudio.MPPSStatus.allCases {
+            #expect(DICOMNetwork.MPPSStatus(rawValue: status.rawValue) != nil)
+        }
+    }
+
+    @Test("NetworkQueryLevel raw values are the PS3.4 Table C.6.1-1 Query/Retrieve Level values")
+    func testQueryLevelTerms() {
+        #expect(NetworkQueryLevel.allCases.map(\.rawValue) == ["PATIENT", "STUDY", "SERIES", "IMAGE"])
     }
 
     // MARK: - PrintJob

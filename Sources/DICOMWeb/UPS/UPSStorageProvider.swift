@@ -1,5 +1,7 @@
 import Foundation
+import DICOMCore
 
+// NEMA-verified: 2026a, checked 2026-09-28 — state changes per PS3.4 2026a Table CC.1.1-2 and CC.2.1.3; Request Cancel of a SCHEDULED UPS per CC.2.2.3; Transaction UIDs per PS3.5 9.1 / B.2
 // MARK: - UPSStorageProvider Protocol
 
 /// Protocol for UPS workitem storage backend
@@ -344,7 +346,15 @@ public actor InMemoryUPSStorageProvider: UPSStorageProvider {
         
         let currentState = workitem.state
         
-        // Validate state transition
+        // Validate state transition (PS3.4 Table CC.1.1-2). A SCHEDULED UPS is cancelled by
+        // this provider itself on a cancellation request: through IN PROGRESS (CC.2.2.3).
+        if currentState == .scheduled && newState == .canceled {
+            try await changeWorkitemState(workitemUID: workitemUID, newState: .inProgress,
+                                          transactionUID: transactionUID ?? generateTransactionUID())
+            let lock = workitems[workitemUID]?.transactionUID
+            try await changeWorkitemState(workitemUID: workitemUID, newState: .canceled, transactionUID: lock)
+            return
+        }
         guard currentState.canTransition(to: newState) else {
             throw UPSError.invalidStateTransition(from: currentState, to: newState)
         }
@@ -359,8 +369,9 @@ public actor InMemoryUPSStorageProvider: UPSStorageProvider {
             }
         }
         
-        // Generate transaction UID for IN PROGRESS transition
-        if newState == .inProgress && workitem.transactionUID == nil {
+        // PS3.4 CC.2.1.3: on the change to IN PROGRESS the SCP records the Transaction UID the
+        // SCU provided (one is generated for callers that supplied none)
+        if newState == .inProgress {
             workitem.transactionUID = transactionUID ?? generateTransactionUID()
         }
         
@@ -375,29 +386,18 @@ public actor InMemoryUPSStorageProvider: UPSStorageProvider {
         
         // Generate state change event
         if let dispatcher = eventDispatcher {
+            // PS3.4 CC.2.4.3: one UPS State Report per state change, with the current
+            // Procedure Step State and Input Readiness State
             let event = UPSStateReportEvent(
                 workitemUID: workitemUID,
                 transactionUID: workitem.transactionUID,
                 previousState: currentState,
-                newState: newState
+                newState: newState,
+                reason: newState == .canceled ? workitem.cancellationReason : nil,
+                inputReadinessState: workitem.inputReadinessState ?? .ready
             )
             await dispatcher.dispatch(event)
             
-            // Generate additional events for final states
-            if newState == .completed {
-                let completedEvent = UPSCompletedEvent(
-                    workitemUID: workitemUID,
-                    transactionUID: workitem.transactionUID
-                )
-                await dispatcher.dispatch(completedEvent)
-            } else if newState == .canceled {
-                let canceledEvent = UPSCanceledEvent(
-                    workitemUID: workitemUID,
-                    transactionUID: workitem.transactionUID,
-                    reason: workitem.cancellationReason
-                )
-                await dispatcher.dispatch(canceledEvent)
-            }
         }
     }
     
@@ -476,10 +476,9 @@ public actor InMemoryUPSStorageProvider: UPSStorageProvider {
         }
     }
     
-    /// Generates a unique transaction UID
+    /// Generates a unique transaction UID (PS3.5 9.1: digits and dots only, so the UUID is
+    /// carried as its decimal value under the 2.25 root, PS3.5 B.2)
     private func generateTransactionUID() -> String {
-        // Use a simple UUID-based UID generation
-        let uuid = UUID().uuidString.replacingOccurrences(of: "-", with: "")
-        return "2.25.\(uuid.prefix(32))"
+        return UIDGenerator.generateUID().value
     }
 }

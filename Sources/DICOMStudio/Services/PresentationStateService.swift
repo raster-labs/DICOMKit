@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Service for loading and applying DICOM Presentation States
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data of its own: a GSPS Softcopy VOI LUT replaces the image's window (PS3.4 2026a N.2.1.3), rotation/flip come from PresentationStateHelpers (C.10.6), the default layer name LAYER0 is a free Graphic Layer (0070,0002) value
 
 import Foundation
 

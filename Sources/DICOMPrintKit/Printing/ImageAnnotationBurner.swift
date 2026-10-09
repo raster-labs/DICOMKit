@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — MONOCHROME1 polarity of burned text per PS3.3 2026a C.7.6.3.1.2; 8-bit grayscale/RGB image box pixels per Table C.13-5; otherwise CoreGraphics drawing
 // ImageAnnotationBurner.swift
 // DICOMPrintKit
 //

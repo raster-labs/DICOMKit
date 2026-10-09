@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — footer Text String (2030,0020) kept a legal LO per PS3.5 2026a Table 6.2-1 (64 characters, no backslash or control characters); Annotation Display Format ID per PS3.3 Table C.13-3; Annotation Position per Table C.13-7
 // FilmIdentification.swift
 // DICOMPrintKit
 //
@@ -234,7 +235,8 @@ public enum FilmIdentificationFooter {
     /// The Annotation Display Format ID used when the printer's own has not
     /// been configured.
     ///
-    /// The attribute is printer-defined (PS3.3 C.13.3) and a film box cannot
+    /// The attribute's formats are "defined in the Conformance Statement"
+    /// (PS3.3 Table C.13-3), so it is printer-defined, and a film box cannot
     /// carry annotation boxes without one, so a job that wants a footer must
     /// send *something*. This is a plain, widely-recognised token; a device that
     /// refuses it refuses the film box, which the SCU recovers from by creating
@@ -246,10 +248,35 @@ public enum FilmIdentificationFooter {
     ///
     /// Position 1 is the first line: the composer stacks them upwards from the
     /// bottom margin, and a printer lays them out per its own configured
-    /// Annotation Display Format.
+    /// Annotation Display Format. Each line is made a legal Text String
+    /// first — see ``textString(_:)``.
     public static func annotations(for lines: [String]) -> [PrintAnnotation] {
         lines.enumerated().map { index, text in
-            PrintAnnotation(position: UInt16(index + 1), text: text)
+            PrintAnnotation(position: UInt16(index + 1), text: textString(text))
         }
+    }
+
+    /// The most characters a Text String (2030,0020) carries: the attribute is
+    /// LO, "64 chars maximum" (PS3.5 Table 6.2-1).
+    public static let textStringMaximumLength = 64
+
+    /// A caption line as a legal LO value.
+    ///
+    /// PS3.5 Table 6.2-1: at most 64 characters, no backslash (it separates
+    /// the values of a multi-valued element) and no control characters but
+    /// ESC. A patient footer runs long — name, ID, birth date and a study
+    /// description joined on one line — and a printer is within its rights to
+    /// reject the N-CREATE of a box that exceeds the VR, so the line is cut at
+    /// the limit rather than sent whole. A backslash becomes a slash, which
+    /// reads the same on film.
+    public static func textString(_ line: String) -> String {
+        let cleaned = line
+            .replacingOccurrences(of: "\\", with: "/")
+            .filter { character in
+                !character.unicodeScalars.contains {
+                    $0.properties.generalCategory == .control && $0 != "\u{1B}"
+                }
+            }
+        return String(cleaned.prefix(textStringMaximumLength))
     }
 }

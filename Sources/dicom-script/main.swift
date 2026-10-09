@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (runs, validates and prints templates of the shell-like script language in DICOMKit/Scripting; scripts name dicom-* tools and their options, not DICOM keywords, tags or UIDs)
 import Foundation
 import ArgumentParser
 import DICOMKit

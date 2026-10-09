@@ -411,10 +411,22 @@ struct ComprehensiveSRBuilderTests {
         let document = try ComprehensiveSRBuilder()
             .addPolygon(points: points)
             .build()
-        
+
+        // PS3.3 C.18.6.1.2: a closed 2D shape is a POLYLINE whose last vertex repeats the first
         let item = document.rootContent.contentItems[0]
         let scoord = item.asSpatialCoordinates
-        #expect(scoord?.graphicType == .polygon)
+        #expect(scoord?.graphicType == .polyline)
+        #expect(scoord?.pointCount == 5)
+        #expect(scoord?.graphicData.suffix(2) == [100.0, 100.0])
+    }
+
+    @Test("Add polygon that is already closed is not closed twice")
+    func testAddClosedPolygon() throws {
+        let document = try ComprehensiveSRBuilder()
+            .addPolygon(points: [(0, 0), (10, 0), (10, 10), (0, 0)])
+            .build()
+        let scoord = document.rootContent.contentItems[0].asSpatialCoordinates
+        #expect(scoord?.graphicType == .polyline)
         #expect(scoord?.pointCount == 4)
     }
     
@@ -900,14 +912,15 @@ struct ComprehensiveSRBuilderTests {
         #expect(item.asSpatialCoordinates?.graphicType == .polyline)
     }
     
-    @Test("Section content - polygon creation")
+    @Test("Section content - polygon creation is a closed POLYLINE")
     func testSectionContentPolygon() {
         let item = ComprehensiveSectionContent.polygon(points: [
             (100.0, 100.0),
             (200.0, 100.0),
             (200.0, 200.0)
         ])
-        #expect(item.asSpatialCoordinates?.graphicType == .polygon)
+        #expect(item.asSpatialCoordinates?.graphicType == .polyline)
+        #expect(item.asSpatialCoordinates?.graphicData == [100.0, 100.0, 200.0, 100.0, 200.0, 200.0, 100.0, 100.0])
     }
     
     @Test("Section content - circle creation")
@@ -1010,5 +1023,35 @@ struct ComprehensiveSRBuilderTests {
         let item = ComprehensiveSectionContent.personName(name: "Doe^John")
         #expect(item.valueType == .pname)
         #expect(item.asPersonName?.personName == "Doe^John")
+    }
+
+    // MARK: - Concept Constants (PS3.16 2026a)
+
+    @Test("regionOfInterest is (130488, DCM, \"Region in Space\") per PS3.16 2026a Table D-1 / TID 1410 row 8b")
+    func testRegionOfInterestConcept() {
+        #expect(CodedConcept.regionOfInterest.codeValue == "130488")
+        #expect(CodedConcept.regionOfInterest.codingSchemeDesignator == "DCM")
+        #expect(CodedConcept.regionOfInterest.codeMeaning == "Region in Space")
+    }
+
+    @Test("measurementLocation is (363698007, SCT, \"Finding Site\") per PS3.16 2026a CID 9000 / TID 301 row 5")
+    func testMeasurementLocationConcept() {
+        #expect(CodedConcept.measurementLocation.codeValue == "363698007")
+        #expect(CodedConcept.measurementLocation.codingSchemeDesignator == "SCT")
+        #expect(CodedConcept.measurementLocation.codeMeaning == "Finding Site")
+    }
+
+    @Test("temporalExtent is (130532, DCM, \"Duration of Time Period\") per PS3.16 2026a CID 10073")
+    func testTemporalExtentConcept() {
+        #expect(CodedConcept.temporalExtent.codeValue == "130532")
+        #expect(CodedConcept.temporalExtent.codingSchemeDesignator == "DCM")
+        #expect(CodedConcept.temporalExtent.codeMeaning == "Duration of Time Period")
+    }
+
+    @Test("imageRegion is (111030, DCM, \"Image Region\") per PS3.16 2026a TID 4104 row 21")
+    func testImageRegionConcept() {
+        #expect(CodedConcept.imageRegion.codeValue == "111030")
+        #expect(CodedConcept.imageRegion.codingSchemeDesignator == "DCM")
+        #expect(CodedConcept.imageRegion.codeMeaning == "Image Region")
     }
 }

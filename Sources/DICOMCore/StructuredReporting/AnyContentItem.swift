@@ -1,3 +1,6 @@
+// NEMA-verified: 2026a, checked 2026-09-25 — all 16 value types of PS3.3 2026a Table C.17.3-7 are wrapped (TABLE added 2026-09-25, P8). Cites C.17.3 correctly. C1 classification confirmed.
+// NEMA-verified: 2026a, checked 2026-09-29 — `contentItems` / `children` expose the Content Sequence (0040,A730) of every value type per PS3.3 2026a Table C.17-6 (D31).
+
 /// Type-erased Content Item Wrapper
 ///
 /// Provides a type-erased wrapper for content items to enable heterogeneous collections.
@@ -29,6 +32,7 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
         case scoord3D(SpatialCoordinates3DContentItem)
         case tcoord(TemporalCoordinatesContentItem)
         case container(ContainerContentItem)
+        case table(TableContentItem)
     }
     
     // MARK: - Initialization
@@ -107,6 +111,11 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
     public init(_ item: ContainerContentItem) {
         self.storage = .container(item)
     }
+
+    /// Creates an AnyContentItem from a TableContentItem
+    public init(_ item: TableContentItem) {
+        self.storage = .table(item)
+    }
     
     // MARK: - Common Properties
     
@@ -128,6 +137,7 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
         case .scoord3D: return .scoord3D
         case .tcoord: return .tcoord
         case .container: return .container
+        case .table: return .table
         }
     }
     
@@ -149,6 +159,7 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
         case .scoord3D(let item): return item.conceptName
         case .tcoord(let item): return item.conceptName
         case .container(let item): return item.conceptName
+        case .table(let item): return item.conceptName
         }
     }
     
@@ -170,6 +181,7 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
         case .scoord3D(let item): return item.relationshipType
         case .tcoord(let item): return item.relationshipType
         case .container(let item): return item.relationshipType
+        case .table(let item): return item.relationshipType
         }
     }
     
@@ -191,6 +203,7 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
         case .scoord3D(let item): return item.observationDateTime
         case .tcoord(let item): return item.observationDateTime
         case .container(let item): return item.observationDateTime
+        case .table(let item): return item.observationDateTime
         }
     }
     
@@ -285,6 +298,12 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
         if case .container(let item) = storage { return item }
         return nil
     }
+
+    /// Returns the wrapped item as TableContentItem if applicable
+    public var asTable: TableContentItem? {
+        if case .table(let item) = storage { return item }
+        return nil
+    }
     
     // MARK: - Utility Properties
     
@@ -314,9 +333,80 @@ public struct AnyContentItem: Sendable, Equatable, Hashable {
         }
     }
     
-    /// Returns child items if this is a container, otherwise nil
+    /// Returns the child items: a container's contents (possibly empty), or the Content
+    /// Sequence of any other item that has one. Nil for a non-container item without
+    /// children, as before non-container items could carry them.
     public var children: [AnyContentItem]? {
-        asContainer?.contentItems
+        if let container = asContainer { return container.contentItems }
+        let items = contentItems
+        return items.isEmpty ? nil : items
+    }
+
+    /// The Target Content Items of the wrapped item's by-value relationships: its Content
+    /// Sequence (0040,A730), which PS3.3 Table C.17-6 gives every value type. Empty when
+    /// the item has none.
+    public var contentItems: [AnyContentItem] {
+        switch storage {
+        case .text(let item): return item.contentItems
+        case .code(let item): return item.contentItems
+        case .numeric(let item): return item.contentItems
+        case .date(let item): return item.contentItems
+        case .time(let item): return item.contentItems
+        case .dateTime(let item): return item.contentItems
+        case .personName(let item): return item.contentItems
+        case .uidRef(let item): return item.contentItems
+        case .composite(let item): return item.contentItems
+        case .image(let item): return item.contentItems
+        case .waveform(let item): return item.contentItems
+        case .scoord(let item): return item.contentItems
+        case .scoord3D(let item): return item.contentItems
+        case .tcoord(let item): return item.contentItems
+        case .container(let item): return item.contentItems
+        case .table(let item): return item.contentItems
+        }
+    }
+
+    /// Returns a copy of the wrapped item with `items` as its Content Sequence (0040,A730),
+    /// replacing any children it had (PS3.3 Table C.17-6).
+    public func withContentItems(_ items: [AnyContentItem]) -> AnyContentItem {
+        func set<T>(_ item: T, _ path: WritableKeyPath<T, [AnyContentItem]>) -> T {
+            var copy = item
+            copy[keyPath: path] = items
+            return copy
+        }
+        switch storage {
+        case .text(let item): return AnyContentItem(set(item, \.contentItems))
+        case .code(let item): return AnyContentItem(set(item, \.contentItems))
+        case .numeric(let item): return AnyContentItem(set(item, \.contentItems))
+        case .date(let item): return AnyContentItem(set(item, \.contentItems))
+        case .time(let item): return AnyContentItem(set(item, \.contentItems))
+        case .dateTime(let item): return AnyContentItem(set(item, \.contentItems))
+        case .personName(let item): return AnyContentItem(set(item, \.contentItems))
+        case .uidRef(let item): return AnyContentItem(set(item, \.contentItems))
+        case .composite(let item): return AnyContentItem(set(item, \.contentItems))
+        case .image(let item): return AnyContentItem(set(item, \.contentItems))
+        case .waveform(let item): return AnyContentItem(set(item, \.contentItems))
+        case .scoord(let item): return AnyContentItem(set(item, \.contentItems))
+        case .scoord3D(let item): return AnyContentItem(set(item, \.contentItems))
+        case .tcoord(let item): return AnyContentItem(set(item, \.contentItems))
+        case .table(let item): return AnyContentItem(set(item, \.contentItems))
+        case .container(let item):
+            return AnyContentItem(ContainerContentItem(
+                conceptName: item.conceptName,
+                continuityOfContent: item.continuityOfContent,
+                contentItems: items,
+                templateIdentifier: item.templateIdentifier,
+                mappingResource: item.mappingResource,
+                relationshipType: item.relationshipType,
+                observationDateTime: item.observationDateTime,
+                observationUID: item.observationUID
+            ))
+        }
+    }
+
+    /// Returns a copy of the wrapped item with `items` appended to its Content Sequence
+    public func addingContentItems(_ items: [AnyContentItem]) -> AnyContentItem {
+        items.isEmpty ? self : withContentItems(contentItems + items)
     }
 }
 

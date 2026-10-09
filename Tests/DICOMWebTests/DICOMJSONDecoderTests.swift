@@ -226,8 +226,29 @@ struct DICOMJSONDecoderTests {
     
     // MARK: - Inline Binary Decoding
     
-    @Test("Decode inline binary")
+    @Test("Decode inline binary as a sibling of vr (PS3.18 F.2.2)")
     func testDecodeInlineBinary() throws {
+        let originalData = Data([0x00, 0x01, 0x02, 0x03])
+        let base64 = originalData.base64EncodedString()
+        
+        let json = """
+        {
+            "7FE00010": {
+                "vr": "OB",
+                "InlineBinary": "\(base64)"
+            }
+        }
+        """
+        
+        let elements = try decoder.decode(string: json)
+        let element = elements.first
+        
+        #expect(element?.vr == .OB)
+        #expect(element?.valueData == originalData)
+    }
+    
+    @Test("Decode inline binary in the pre-2026 DICOMKit layout (inside Value)")
+    func testDecodeLegacyInlineBinaryLayout() throws {
         let originalData = Data([0x00, 0x01, 0x02, 0x03])
         let base64 = originalData.base64EncodedString()
         

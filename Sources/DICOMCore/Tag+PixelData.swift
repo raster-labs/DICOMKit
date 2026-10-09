@@ -2,6 +2,7 @@
 ///
 /// Tags from Group 7FE0 and related pixel data elements
 /// Reference: DICOM PS3.3 - Information Object Definitions
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - Pixel Data
     
@@ -18,7 +19,7 @@ extension Tag {
     public static let doubleFloatPixelData = Tag(group: 0x7FE0, element: 0x0009)
     
     /// Pixel Data Provider URL (0028,7FE0)
-    /// VR: UT, VM: 1
+    /// VR: UR, VM: 1
     public static let pixelDataProviderURL = Tag(group: 0x0028, element: 0x7FE0)
     
     /// Extended Offset Table (7FE0,0001)
@@ -82,17 +83,17 @@ extension Tag {
     // MARK: - LUT Storage
     
     /// Large Red Palette Color Lookup Table Data (0028,1211)
-    /// VR: OW or OB, VM: 1
+    /// VR: OW, VM: 1
     /// Retired
     public static let largeRedPaletteColorLookupTableData = Tag(group: 0x0028, element: 0x1211)
     
     /// Large Green Palette Color Lookup Table Data (0028,1212)
-    /// VR: OW or OB, VM: 1
+    /// VR: OW, VM: 1
     /// Retired
     public static let largeGreenPaletteColorLookupTableData = Tag(group: 0x0028, element: 0x1212)
     
     /// Large Blue Palette Color Lookup Table Data (0028,1213)
-    /// VR: OW or OB, VM: 1
+    /// VR: OW, VM: 1
     /// Retired
     public static let largeBluePaletteColorLookupTableData = Tag(group: 0x0028, element: 0x1213)
     

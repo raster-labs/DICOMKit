@@ -630,4 +630,94 @@ final class RTStructureSetParserTests: XCTestCase {
         XCTAssertEqual(structureSet.roiObservations[0].interpretedType, .ptv)
         XCTAssertEqual(structureSet.roiObservations[1].interpretedType, .organ)
     }
+
+    // MARK: - 2026a term round trips
+
+    private func cs(_ tag: Tag, _ value: String) -> DataElement {
+        DataElement(tag: tag, vr: .CS, length: UInt32(value.count), valueData: value.data(using: .ascii)!)
+    }
+
+    private func integerString(_ tag: Tag, _ value: Int) -> DataElement {
+        let s = String(value)
+        return DataElement(tag: tag, vr: .IS, length: UInt32(s.count), valueData: s.data(using: .ascii)!)
+    }
+
+    private func sequence(_ tag: Tag, _ items: [SequenceItem]) -> DataElement {
+        DataElement(tag: tag, vr: .SQ, length: 0xFFFFFFFF, valueData: Data(), sequenceItems: items)
+    }
+
+    /// Contour Geometric Type (3006,0042) CLOSEDPLANAR_XOR (PS3.3 2026a Table C.8-42, C.8.8.6.3) parses.
+    func test_parse_contourGeometricType_closedPlanarXOR() throws {
+        var elements = createMinimalRTStructureSet()
+
+        var contourElements: [Tag: DataElement] = [:]
+        contourElements[.contourGeometricType] = cs(.contourGeometricType, "CLOSEDPLANAR_XOR")
+        contourElements[.numberOfContourPoints] = integerString(.numberOfContourPoints, 3)
+        let contourData = "0\\0\\0\\10\\0\\0\\0\\10\\0"
+        contourElements[.contourData] = DataElement(
+            tag: .contourData, vr: .DS, length: UInt32(contourData.count), valueData: contourData.data(using: .ascii)!)
+
+        var roiContourElements: [Tag: DataElement] = [:]
+        roiContourElements[.referencedROINumber] = integerString(.referencedROINumber, 1)
+        roiContourElements[.contourSequence] = sequence(.contourSequence, [SequenceItem(elements: contourElements)])
+        elements[.roiContourSequence] = sequence(.roiContourSequence, [SequenceItem(elements: roiContourElements)])
+
+        let structureSet = try RTStructureSetParser.parse(from: DataSet(elements: Array(elements.values)))
+        XCTAssertEqual(structureSet.roiContours[0].contours.count, 1)
+        XCTAssertEqual(structureSet.roiContours[0].contours[0].geometricType, .closedPlanarXOR)
+        XCTAssertEqual(structureSet.roiContours[0].contours[0].geometricType.rawValue, "CLOSEDPLANAR_XOR")
+    }
+
+    /// The 2026a RT ROI Interpreted Type terms added for P-RT (PS3.3 Table C.8-44) parse.
+    func test_parse_rtROIInterpretedType_2026aTerms() throws {
+        var elements = createMinimalRTStructureSet()
+
+        let terms: [(String, RTROIInterpretedType)] = [
+            ("OAR", .organAtRisk), ("BRACHY_CHANNEL", .brachyChannel), ("BRACHY_ACCESSORY", .brachyAccessory),
+            ("BRACHY_SRC_APP", .brachySourceApplicator), ("BRACHY_CHNL_SHLD", .brachyChannelShield),
+            ("DOSE_MEASUREMENT", .doseMeasurement), ("DEVICE", .device), ("IRRAD_VOLUME", .irradiatedVolume)
+        ]
+        let items = terms.enumerated().map { index, pair -> SequenceItem in
+            var obs: [Tag: DataElement] = [:]
+            obs[.observationNumber] = integerString(.observationNumber, index + 1)
+            obs[.referencedROINumber] = integerString(.referencedROINumber, index + 1)
+            obs[.rtROIInterpretedType] = cs(.rtROIInterpretedType, pair.0)
+            return SequenceItem(elements: obs)
+        }
+        elements[.rtROIObservationsSequence] = sequence(.rtROIObservationsSequence, items)
+
+        let structureSet = try RTStructureSetParser.parse(from: DataSet(elements: Array(elements.values)))
+        XCTAssertEqual(structureSet.roiObservations.count, terms.count)
+        for (index, pair) in terms.enumerated() {
+            XCTAssertEqual(structureSet.roiObservations[index].interpretedType, pair.1, pair.0)
+        }
+    }
+
+    /// ROI Generation Algorithm (Table C.8-41) and ROI Physical Property (Table C.8-44) typed accessors
+    /// are populated from the parsed strings.
+    func test_parse_roiGenerationAlgorithm_and_physicalPropertyTerms() throws {
+        var elements = createMinimalRTStructureSet()
+
+        var roi: [Tag: DataElement] = [:]
+        roi[.roiNumber] = integerString(.roiNumber, 1)
+        roi[.roiName] = DataElement(tag: .roiName, vr: .LO, length: 3, valueData: "PTV".data(using: .ascii)!)
+        roi[.roiGenerationAlgorithm] = cs(.roiGenerationAlgorithm, "AUTOMATIC")
+        elements[.structureSetROISequence] = sequence(.structureSetROISequence, [SequenceItem(elements: roi)])
+
+        var prop: [Tag: DataElement] = [:]
+        prop[.roiPhysicalProperty] = cs(.roiPhysicalProperty, "MEAN_EXCI_ENERGY")
+        prop[.roiPhysicalPropertyValue] = DataElement(
+            tag: .roiPhysicalPropertyValue, vr: .DS, length: 4, valueData: "75.0".data(using: .ascii)!)
+        var obs: [Tag: DataElement] = [:]
+        obs[.observationNumber] = integerString(.observationNumber, 1)
+        obs[.referencedROINumber] = integerString(.referencedROINumber, 1)
+        obs[.roiPhysicalPropertiesSequence] = sequence(.roiPhysicalPropertiesSequence, [SequenceItem(elements: prop)])
+        elements[.rtROIObservationsSequence] = sequence(.rtROIObservationsSequence, [SequenceItem(elements: obs)])
+
+        let structureSet = try RTStructureSetParser.parse(from: DataSet(elements: Array(elements.values)))
+        XCTAssertEqual(structureSet.rois[0].generationAlgorithm, "AUTOMATIC")
+        XCTAssertEqual(structureSet.rois[0].generationAlgorithmTerm, .automatic)
+        XCTAssertEqual(structureSet.roiObservations[0].physicalProperties[0].propertyType, .meanExcitationEnergy)
+        XCTAssertEqual(structureSet.roiObservations[0].physicalProperties[0].value, 75.0)
+    }
 }

@@ -142,6 +142,35 @@ dicom-wado retrieve https://pacs.example.com/dicom-web \
   --output ./
 ```
 
+### WADO-URI (PS3.18 Section 9)
+
+`--uri` sends a URI service request (`requestType=WADO&studyUID=…&seriesUID=…&objectUID=…`);
+`--study`, `--series` and `--instance` are required. The other parameters:
+
+| Option | WADO-URI parameter | PS3.18 2026a |
+|--------|--------------------|--------------|
+| `--content-type` | `contentType`: `application/dicom` (default) or a Rendered Media Type: `image/jpeg`, `image/gif`, `image/png`, `image/jp2`, `image/jph`, `image/jxl`, `video/mpeg`, `video/mp4`, `video/H265`, `text/html`, `text/plain`, `text/xml`, `text/rtf`, `application/pdf`. Any other value is rejected | 9.1.2.2.1, Table 8.7.4-1 |
+| `--charset <list>` | `charset`: comma-separated character sets | 9.1.2.2.2 |
+| `--transfer-syntax <uid>` | `transferSyntax` (application/dicom) | 9.4.1.2.3 |
+| `--anonymize` | `anonymize=yes` (application/dicom) | 9.4.1.2.1 |
+| `--annotation <list>` | `annotation` (application/dicom, Table 9.4.1-1) or `imageAnnotation` (rendered, Table 9.5.1-1): `patient`, `technique` | 9.4.1.2.2 |
+| `--frames <n>` | `frameNumber`: one positive frame number; further list entries are not sent | 9.5.1.2.1 |
+| `--image-quality <1-100>` | `imageQuality` | 9.5.1.2.3, 8.3.5.1.2 |
+| `--rows <n>`, `--columns <n>` | `rows`, `columns`: positive integers, both or neither (rendered) | 9.5.1.2.4 |
+| `--region <xmin,ymin,xmax,ymax>` | `region`: normalized 0.0-1.0, xmin < xmax, ymin < ymax | 9.5.1.2.5 |
+| `--window-center <d>`, `--window-width <d>` | `windowCenter`, `windowWidth`: both or neither; not with application/dicom or a Presentation State | 9.5.1.2.6 |
+| `--presentation-uid <uid>`, `--presentation-series-uid <uid>` | `presentationUID`, `presentationSeriesUID`: both or neither | 9.5.1.2.7 |
+
+A value that breaks one of these rules is refused before the request is sent. A parameter
+that the requested representation's table does not define (for example `--frames` with
+`application/dicom`, Table 9.4.1-1) is still sent, with a warning on stderr.
+
+```bash
+dicom-wado retrieve http://server:8080/wado --uri \
+  --study 1.2.3 --series 1.2.3.4 --instance 1.2.3.4.5 \
+  --content-type image/jpeg --rows 512 --columns 512 -o out/
+```
+
 ---
 
 ## QIDO-RS: Query Operations
@@ -163,6 +192,18 @@ dicom-wado query https://pacs.example.com/dicom-web \
   --study-date 20240101-20240131 \
   --modality CT
 ```
+
+Ask the server for fuzzy matching of person names (`fuzzymatching=true`, PS3.18 8.3.4.2):
+
+```bash
+dicom-wado query https://pacs.example.com/dicom-web \
+  --patient-name "DOE^JON" \
+  --fuzzy-matching
+```
+
+`--limit` and `--offset` take unsigned integers (PS3.18 8.3.4.4). At the study level
+`--modality` matches Modalities in Study (0008,0061); at the series level, Modality
+(0008,0060) (PS3.18 Table 10.6.1-5).
 
 Search with specific study UID:
 
@@ -226,6 +267,14 @@ dicom-wado query https://pacs.example.com/dicom-web \
   --format csv > results.csv
 ```
 
+DICOM JSON Model (PS3.18 F.2: tag keys, `vr`, `Value`, PN component objects):
+
+```bash
+dicom-wado query https://pacs.example.com/dicom-web \
+  --patient-name "SMITH*" \
+  --format dicom-json > results.json
+```
+
 ---
 
 ## STOW-RS: Store Operations
@@ -282,6 +331,10 @@ dicom-wado store https://pacs.example.com/dicom-web \
   --verbose
 ```
 
+`--continue-on-error` keeps later batches going; the run still exits 1 when any file was not
+stored (PS3.18 Table 10.5.3-1: 202 Accepted or a 4xx status means some or all Instances were
+not stored).
+
 ---
 
 ## UPS-RS: Worklist Operations
@@ -294,7 +347,8 @@ Search all worklist items:
 dicom-wado ups https://pacs.example.com/dicom-web --search
 ```
 
-Filter by state:
+Filter by state (Procedure Step State (0074,1000): `SCHEDULED`, `"IN PROGRESS"`, `COMPLETED`,
+`CANCELED`, PS3.3 Table C.30.1-1; `IN_PROGRESS` is also accepted):
 
 ```bash
 dicom-wado ups https://pacs.example.com/dicom-web \
@@ -366,7 +420,7 @@ dicom-wado ups https://pacs.example.com/dicom-web \
   --patient-id PAT002 \
   --patient-birth-date 19800115 \
   --patient-sex M \
-  --priority STAT \
+  --priority HIGH \
   --scheduled-start "2026-03-21T09:00:00" \
   --expected-completion "2026-03-21T10:30:00" \
   --study-uid 1.2.840.113619.2.xxx \
@@ -411,8 +465,8 @@ dicom-wado ups https://pacs.example.com/dicom-web \
 | `--patient-name` | Patient name in DICOM format (e.g. `Doe^Jane`) |
 | `--patient-id` | Patient identifier |
 | `--patient-birth-date` | Patient birth date (`YYYYMMDD`) |
-| `--patient-sex` | Patient sex: `M`, `F`, `O` |
-| `--priority` | Priority: `STAT`, `HIGH`, `MEDIUM` (default), `LOW` |
+| `--patient-sex` | Patient's Sex (0010,0040): `M`, `F`, `O` (PS3.3 Table C.7-1) |
+| `--priority` | Scheduled Procedure Step Priority (0074,1200): `HIGH`, `MEDIUM` (default), `LOW` (PS3.3 Table C.30.2-1). `STAT` is accepted and sent as `HIGH` ("equivalent to a STAT request") |
 | `--scheduled-start` | Scheduled start date/time (ISO 8601) |
 | `--expected-completion` | Expected completion date/time (ISO 8601) |
 | `--study-uid` | Study Instance UID to reference |
@@ -430,19 +484,24 @@ dicom-wado ups https://pacs.example.com/dicom-web \
 
 ### Update Worklist State
 
-Change worklist item state:
+Change worklist item state (Change Workitem State, PS3.18 11.7):
 
 ```bash
 dicom-wado ups https://pacs.example.com/dicom-web \
-  --update 1.2.840.113619.2.xxx \
-  --state IN_PROGRESS
+  --change-state 1.2.840.113619.2.xxx \
+  --state "IN PROGRESS"
 ```
 
-Valid states:
-- `SCHEDULED`
-- `IN_PROGRESS`
-- `COMPLETED`
-- `CANCELED`
+`--update <uid>` is a deprecated alias of `--change-state` (it never performed Update Workitem,
+PS3.18 11.6); it still works and prints a stderr note. Giving both is refused (exit 1).
+
+Valid target states (PS3.18 11.7.1.4, Procedure Step State (0074,1000)):
+- `IN PROGRESS` (`IN_PROGRESS` is also accepted; a Transaction UID is generated when `--transaction-uid` is omitted)
+- `COMPLETED` (requires `--transaction-uid`)
+- `CANCELED` (requires `--transaction-uid`)
+
+`SCHEDULED` is refused with exit 1: it is not a Change State target (PS3.18 2026a 11.7.1.4), and
+PS3.4 2026a Table CC.1.1-2 answers a change to SCHEDULED with C303H.
 
 ---
 
@@ -546,7 +605,7 @@ STUDY_UID="1.2.840.113619.2.xxx"
 SERIES=$(dicom-wado query https://pacs.example.com/dicom-web \
   --level series \
   --study $STUDY_UID \
-  --format json | jq -r '.[].["0020000E"].Value[0]')
+  --format json | jq -r '.[].SeriesInstanceUID')
 
 # Download thumbnail for each series
 for SERIES_UID in $SERIES; do
@@ -565,21 +624,28 @@ done
 The tool provides detailed error messages and appropriate exit codes:
 
 - Exit code 0: Success
-- Exit code 1: General error
-- Exit code 2: Invalid arguments
+- Exit code 1: General error, an HTTP error status, or (store) any file not stored
+- Exit code 64: Invalid arguments (ArgumentParser validation error)
 
-HTTP errors are reported with status codes:
+HTTP errors are reported with the PS3.18 Table 8.5-1 status names, e.g.:
 - 400: Bad Request
 - 401: Unauthorized
 - 404: Not Found
+- 409: Conflict
 - 500: Internal Server Error
 
-Example error output:
+Other codes print as `HTTP Error <code>`. Example error output:
 
 ```
-Error: Study not found
-HTTP 404: The requested study does not exist on the server
+Error: Not Found: <response body, if any>
 ```
+
+`--format json` for `query` and `ups` prints a summary array (query: PS3.6 keywords as keys,
+e.g. `"SeriesInstanceUID"`; ups: camelCase keys), not the PS3.18 Annex F DICOM JSON Model.
+`--format dicom-json` for `query` and `ups --search` / `--get` prints the PS3.18 2026a F.2 DICOM
+JSON Model: the objects the server returned, as one top-level array, attributes in ascending tag
+order, Group Length attributes removed (F.2.2).
+`retrieve --metadata --format json` prints the server's DICOM JSON Model as received.
 
 ---
 

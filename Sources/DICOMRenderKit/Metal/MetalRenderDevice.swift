@@ -3,6 +3,8 @@
 //
 // The process-wide Metal device, command queue, shader library and pipeline-state
 // cache. One of these, created lazily, `nil` when the machine has no GPU.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — carries no DICOM-standard data (device, queue, shader library, pipeline cache, kernel names). C1 classification confirmed.
 
 import Foundation
 

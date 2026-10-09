@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-10-06 — CStoreOutcome classes (Success 0000; Warning B000/B006/B007; Failure A7xx/A9xx/Cxxx) re-read from PS3.4 2026a Table B.2-1 (D261); retrieveFinalResponse — the non-success C-MOVE / C-GET final response of dicom-retrieve and dicom-qr — worded per PS3.4 2026a Tables C.4-2 / C.4-3 via DIMSEServiceStatusText, counters per PS3.7 Table 9.3-10, Failed SOP Instance UID List (0008,0058) per PS3.6 / C.4.2.1.4.2 (D262); A-ASSOCIATE-RJ reason texts taken from AssociateRejectPDU (PS3.8 2026a Table 9-21); C-STORE warning lines, sendFileResult(status:) for the three classes and the summary Warnings count per PS3.4 2026a Table B.2-1 via DIMSEServiceStatusText (P-SEND-SUMMARY, D75); Query/Retrieve Level values PATIENT / STUDY / SERIES / IMAGE per PS3.4 Table C.6.1-1 (D74), C-MOVE counters under the PS3.7 Table 9.3-10 names and Modalities in Study (0008,0061) labelled per PS3.6 (D77); retrieve header Priority per PS3.7 Tables 9.3-9 / 9.3-6 and relational-retrieval per PS3.4 Table C.5-3; MWL JSON PS3.6 keyword keys (P-MWL-JSON-KEYS); other text is display labels
 
 /// Shared console rendering for the network CLIs (`dicom-query`, `dicom-send`,
 /// `dicom-retrieve`, `dicom-qr`) AND the DICOMStudio CLI Workshop in-process
@@ -112,6 +113,30 @@ public enum NetworkConsole {
 
     // MARK: - Send (C-STORE)
 
+    /// How a C-STORE response status is reported, per PS3.4 2026a Table B.2-1:
+    /// Success (0000) and the Warning class (B000 Coercion of Data Elements, B006
+    /// Elements Discarded, B007 Data Set does not match SOP Class) mean the SCP
+    /// stored the SOP Instance (PS3.7 9.1.1.1.9: "was able to store ... but detected
+    /// a probable error"); the Failure class (A7xx Refused: Out of resources, A9xx
+    /// Error: Data Set does not match SOP Class, Cxxx Error: Cannot understand, 0122
+    /// Refused: SOP Class not supported) means it was not stored. Formerly
+    /// dicom-send's CLI-local `StoreOutcome` (D261).
+    public enum CStoreOutcome: Equatable, Sendable {
+        case stored
+        case storedWithWarning
+        case failed
+
+        public init(status: DIMSEStatus) {
+            if status.isSuccess {
+                self = .stored
+            } else if status.isWarning {
+                self = .storedWithWarning
+            } else {
+                self = .failed
+            }
+        }
+    }
+
     public static func sendHeader(
         host: String, port: UInt16,
         callingAE: String, calledAE: String,
@@ -146,15 +171,70 @@ public enum NetworkConsole {
         return " ❌ \(error ?? "Unknown error")\n"
     }
 
+    /// The line printed after a ``sendFileResultSuffix(success:rtt:error:)`` when
+    /// the C-STORE response was in the Warning class of PS3.4 Table B.2-1
+    /// (B000 / B006 / B007, or another Bxxx): the SCP stored the instance but
+    /// reports a deviation. Worded per Table B.2-1 via ``DIMSEServiceStatusText``.
+    public static func sendFileWarningLine(status: DIMSEStatus) -> String {
+        "    ⚠️ Stored with warning: \(status.description(for: .cStore))\n"
+    }
+
+    /// Completes a ``sendFilePrefix(index:total:filename:size:)`` line from the
+    /// C-STORE-RSP status, by its PS3.4 Table B.2-1 class: Success → ` ✅ (rtt)`;
+    /// Warning → ` ✅ (rtt)` plus ``sendFileWarningLine(status:)`` (the instance is
+    /// stored); Failure → ` ❌` with the Table B.2-1 wording (not stored). One call
+    /// renders all three classes, so a caller holding a returned failure status
+    /// cannot print it as a success (D75).
+    public static func sendFileResult(status: DIMSEStatus, rtt: TimeInterval) -> String {
+        switch CStoreOutcome(status: status) {
+        case .stored:
+            return sendFileResultSuffix(success: true, rtt: rtt, error: nil)
+        case .storedWithWarning:
+            return sendFileResultSuffix(success: true, rtt: rtt, error: nil) + sendFileWarningLine(status: status)
+        case .failed:
+            return sendFileResultSuffix(success: false, rtt: rtt, error: sendStoreFailedText(status: status))
+        }
+    }
+
+    /// The text of a C-STORE response in the Failure class of PS3.4 2026a Table B.2-1
+    /// (A7xx Refused: Out of resources, A9xx Error: Data Set does not match SOP Class, Cxxx
+    /// Error: Cannot understand, 0122 Refused: SOP Class not supported): the instance was not
+    /// stored. Worded via ``DIMSEServiceStatusText`` for the C-STORE service; the `❌` part of
+    /// ``sendFileResult(status:rtt:)`` and the error dicom-send (and the DICOMStudio CLI
+    /// Workshop) report after the retries (D261).
+    public static func sendStoreFailedText(status: DIMSEStatus) -> String {
+        "C-STORE response status \(status.description(for: .cStore)) — not stored (PS3.4 Table B.2-1)"
+    }
+
+    /// dicom-send's end-of-run error when at least one file was not stored
+    /// (printed as `Error: …`, exit 1): `Send completed with S succeeded and F failed`.
+    public static func sendPartialFailureText(succeeded: Int, failed: Int) -> String {
+        "Send completed with \(succeeded) succeeded and \(failed) failed"
+    }
+
     /// A dry-run listing line: `  [i/total] name (size)`.
     public static func sendDryRunLine(index: Int, total: Int, filename: String, size: Int) -> String {
         "  [\(index)/\(total)] \(filename) (\(formatBytes(size)))\n"
     }
 
+    /// The transfer summary. `succeeded` counts every stored instance, including
+    /// those stored with a Warning status; `warnings` is how many of them got a
+    /// Warning-class C-STORE response (PS3.4 Table B.2-1) and is shown as its own
+    /// line only when non-zero, so a run without warnings renders as before.
     public static func sendSummary(total: Int, succeeded: Int, failed: Int, bytes: Int, duration: TimeInterval) -> String {
+        sendSummary(total: total, succeeded: succeeded, failed: failed, bytes: bytes, duration: duration, warnings: 0)
+    }
+
+    /// ``sendSummary(total:succeeded:failed:bytes:duration:)`` with the Warning
+    /// count (P-SEND-SUMMARY, 2026-10-01).
+    public static func sendSummary(total: Int, succeeded: Int, failed: Int, bytes: Int, duration: TimeInterval,
+                                   warnings: Int) -> String {
         var out = "\n" + rule("Transfer Summary")
         out += field("Total files:", "\(total)")
         out += field("Succeeded:", "\(succeeded)")
+        if warnings > 0 {
+            out += field("Warnings:", "\(warnings) (stored; PS3.4 Table B.2-1 Warning class)")
+        }
         out += field("Failed:", "\(failed)")
         out += field("Bytes sent:", formatBytes(bytes))
         out += field("Duration:", formatDuration(duration))
@@ -175,10 +255,32 @@ public enum NetworkConsole {
         host: String, port: UInt16,
         callingAE: String, calledAE: String,
         moveDestination: String?,
-        level: String,                  // "Study" / "Series" / "Instance"
+        level: String,                  // "Study" / "Series" / "Instance" (printed as STUDY / SERIES / IMAGE)
         studyUID: String, seriesUID: String?, instanceUID: String?,
         output: String, hierarchical: Bool, timeout: Int,
         transferSyntax: String?
+    ) -> String {
+        retrieveHeader(method: method, host: host, port: port, callingAE: callingAE, calledAE: calledAE,
+                       moveDestination: moveDestination, level: level,
+                       studyUID: studyUID, seriesUID: seriesUID, instanceUID: instanceUID,
+                       output: output, hierarchical: hierarchical, timeout: timeout,
+                       transferSyntax: transferSyntax, priority: nil, relationalRetrieval: false)
+    }
+
+    /// The retrieve header with the requested Priority (0000,0700) (shown when
+    /// non-nil) and the relational-retrieval proposal (shown when true); added
+    /// 2026-10-01 for dicom-retrieve --priority / --relational-retrieve.
+    public static func retrieveHeader(
+        method: String,
+        host: String, port: UInt16,
+        callingAE: String, calledAE: String,
+        moveDestination: String?,
+        level: String,
+        studyUID: String, seriesUID: String?, instanceUID: String?,
+        output: String, hierarchical: Bool, timeout: Int,
+        transferSyntax: String?,
+        priority: DIMSEPriority?,
+        relationalRetrieval: Bool
     ) -> String {
         var out = rule("DICOM Retrieve (\(method))")
         out += field("Server:", "\(host):\(port)")
@@ -186,7 +288,7 @@ public enum NetworkConsole {
         out += field("Called AE Title:", calledAE)
         out += field("Method:", method)
         if let dest = moveDestination, !dest.isEmpty { out += field("Move Destination:", dest) }
-        out += field("Level:", level)
+        out += field("Level:", queryRetrieveLevelValue(level))
         out += field("Study UID:", studyUID)
         if let s = seriesUID, !s.isEmpty { out += field("Series UID:", s) }
         if let i = instanceUID, !i.isEmpty { out += field("Instance UID:", i) }
@@ -196,6 +298,11 @@ public enum NetworkConsole {
         if let ts = transferSyntax, !ts.isEmpty {
             out += field("Transfer Syntax:", transferSyntaxDisplay(ts, isCMove: method == "C-MOVE"))
         }
+        // Printed only when set, so a default (MEDIUM, baseline) run renders as before.
+        // Priority (0000,0700): PS3.7 Tables 9.3-9 / 9.3-6; relational-retrieval:
+        // PS3.4 Table C.5-3 byte 1.
+        if let priority { out += field("Priority:", "\(priority) (\(String(format: "%04X", priority.rawValue))H)") }
+        if relationalRetrieval { out += field("Ext. Negotiation:", "relational-retrieval (PS3.4 C.5.2.1)") }
         out += "\n"
         return out
     }
@@ -218,15 +325,49 @@ public enum NetworkConsole {
         "  Received [\(index)]: \(sopInstanceUID) (\(formatBytes(size)))\n"
     }
 
-    /// C-MOVE result block.
+    /// C-MOVE result block. The counters carry their PS3.7 2026a Table 9.3-10
+    /// names (Number of Completed / Failed / Warning Sub-operations, (0000,1021) /
+    /// (0000,1022) / (0000,1023)); before 2026-10-01 they read "Completed:",
+    /// "Failed:", "Warnings:" (D77).
     public static func cMoveResult(status: String, completed: Int, failed: Int, warning: Int, isSuccess: Bool) -> String {
         var out = "C-MOVE Result:\n"
         out += field("Status:", status)
-        out += field("Completed:", "\(completed)")
-        out += field("Failed:", "\(failed)")
-        out += field("Warnings:", "\(warning)")
+        out += field("Number of Completed Sub-operations:", " \(completed)")
+        out += field("Number of Failed Sub-operations:", " \(failed)")
+        out += field("Number of Warning Sub-operations:", " \(warning)")
         out += isSuccess ? "\n✅ Retrieval successful\n" : "\n❌ Retrieval returned non-success status\n"
         return out
+    }
+
+    /// The report of a C-MOVE / C-GET final response, shared by dicom-retrieve and
+    /// dicom-qr (D262; dicom-retrieve's wording is canonical):
+    ///  - `lines` (stderr): the Failed SOP Instance UID List (0008,0058) (PS3.4 2026a
+    ///    C.4.2.1.4.2 / C.4.3.1.4.2) as `Failed SOP Instance UID List (0008,0058), N UID(s):`
+    ///    plus one `  <uid>` line each, whenever the SCP sent one; then, unless the result
+    ///    is a full success (status 0000 and no failed sub-operations, C.4.2.2.1 /
+    ///    C.4.3.2.1), `Final C-MOVE response: <status> — <counts>`;
+    ///  - `failure`: `nil` for a full success, else
+    ///    `C-MOVE final response <status> (<counts>)[; Failed SOP Instance UID List (0008,0058): a, b]`,
+    ///    the error the CLI exits 1 with.
+    /// The status (with its Further Meaning) is worded per PS3.4 2026a Table C.4-2
+    /// (C-MOVE) / C.4-3 (C-GET) via ``DIMSEServiceStatusText``, the counters under
+    /// their PS3.7 2026a Table 9.3-10 / 9.3-7 names.
+    public static func retrieveFinalResponse(_ result: RetrieveResult, service: DIMSEStatusService)
+        -> (lines: [String], failure: String?) {
+        var lines: [String] = []
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            lines.append("Failed SOP Instance UID List (0008,0058), \(result.failedSOPInstanceUIDs.count) UID(s):")
+            for uid in result.failedSOPInstanceUIDs { lines.append("  \(uid)") }
+        }
+        if result.isSuccess { return (lines, nil) }
+        let described = DIMSEServiceStatusText.describe(result.status, service: service)
+        let counts = DIMSEServiceStatusText.subOperationCounts(result.progress)
+        lines.append("Final \(service.rawValue) response: " + described + " — " + counts)
+        var text = "\(service.rawValue) final response " + described + " (" + counts + ")"
+        if !result.failedSOPInstanceUIDs.isEmpty {
+            text += "; Failed SOP Instance UID List (0008,0058): " + result.failedSOPInstanceUIDs.joined(separator: ", ")
+        }
+        return (lines, text)
     }
 
     /// C-GET completion summary.
@@ -276,14 +417,16 @@ public enum NetworkConsole {
         return out
     }
 
-    /// A compact study entry for the query phase of `dicom-qr`.
+    /// A compact study entry for the query phase of `dicom-qr`. `modality` is the
+    /// study's Modalities in Study (0008,0061) and is labelled so (PS3.6 2026a
+    /// Table 6-1; "Modality:" before 2026-10-01, D77).
     public static func qrStudyEntry(
         index: Int, patientName: String?, patientID: String?,
         studyDescription: String?, studyDate: String?, modality: String?, studyUID: String?
     ) -> String {
         var out = "  [\(index)] \(patientName ?? "Unknown") (ID: \(patientID ?? "N/A"))\n"
         out += "      Study: \(studyDescription ?? "No description")\n"
-        out += "      Date: \(studyDate ?? "N/A")  Modality: \(modality ?? "N/A")\n"
+        out += "      Date: \(studyDate ?? "N/A")  Modalities in Study: \(modality ?? "N/A")\n"
         if let uid = studyUID { out += "      UID: \(uid)\n" }
         out += "\n"
         return out
@@ -413,6 +556,27 @@ public enum NetworkConsole {
         if let v = item.scheduledStationAETitle           { out += mwlField("Station AE Title:", v) }
         if let v = item.scheduledStationName              { out += mwlField("Station Name:", v) }
         if let v = item.scheduledPerformingPhysicianName  { out += mwlField("Performing Physician:", v) }
+        if let v = item.scheduledProcedureStepLocation    { out += mwlField("SPS Location:", v) }
+        if let c = item.requestedProcedureCode {
+            out += mwlField("Requested Proc. Code:", "\(c.codeValue) (\(c.codingSchemeDesignator)) \(c.codeMeaning)")
+        }
+        for c in item.scheduledProtocolCodes {
+            out += mwlField("Protocol Code:", "\(c.codeValue) (\(c.codingSchemeDesignator)) \(c.codeMeaning)")
+        }
+        if let v = item.requestedProcedurePriority        { out += mwlField("Priority:", v) }
+        if let v = item.requestedContrastAgent            { out += mwlField("Contrast Agent:", v) }
+        if let v = item.preMedication                     { out += mwlField("Pre-Medication:", v) }
+        if let v = item.patientWeight                     { out += mwlField("Patient Weight (kg):", v) }
+        if let v = item.patientSize                       { out += mwlField("Patient Size (m):", v) }
+        if let v = item.pregnancyStatus                   { out += mwlField("Pregnancy Status:", "\(v)") }
+        if let v = item.medicalAlerts                     { out += mwlField("Medical Alerts:", v) }
+        if let v = item.allergies                         { out += mwlField("Allergies:", v) }
+        if let v = item.specialNeeds                      { out += mwlField("Special Needs:", v) }
+        if let v = item.patientState                      { out += mwlField("Patient State:", v) }
+        if let v = item.admissionID                       { out += mwlField("Admission ID:", v) }
+        if let v = item.currentPatientLocation            { out += mwlField("Patient Location:", v) }
+        if let v = item.requestingPhysician               { out += mwlField("Requesting Physician:", v) }
+        if let v = item.referencedStudies.first?.sopInstanceUID { out += mwlField("Referenced Study:", v) }
         if verbose {
             out += "  Raw Attributes:\n"
             for (tag, data) in item.attributes.sorted(by: { $0.key < $1.key }) {
@@ -474,6 +638,22 @@ public enum NetworkConsole {
         return out
     }
 
+    /// PS3.6 2026a Table 6-1 keyword → the abbreviated key `mwlJSON` emitted
+    /// before 2026-10-01 (still emitted, deprecated). Sequences are written as
+    /// arrays of item objects keyed by the item attributes' keywords.
+    public static let mwlJSONKeywordKeys: [(keyword: String, legacyKey: String)] = [
+        ("ScheduledProcedureStepStartDate", "SPSStartDate"),            // (0040,0002)
+        ("ScheduledProcedureStepStartTime", "SPSStartTime"),            // (0040,0003)
+        ("ScheduledProcedureStepStatus", "SPSStatus"),                  // (0040,0020)
+        ("ScheduledProcedureStepID", "SPSID"),                          // (0040,0009)
+        ("ScheduledProcedureStepDescription", "SPSDescription"),        // (0040,0007)
+        ("ScheduledProcedureStepLocation", "SPSLocation"),              // (0040,0011)
+        ("ScheduledPerformingPhysicianName", "ScheduledPerformingPhysician"), // (0040,0006)
+        ("RequestedProcedureCodeSequence", "RequestedProcedureCode"),   // (0032,1064)
+        ("ScheduledProtocolCodeSequence", "ScheduledProtocolCodes"),    // (0040,0008)
+        ("ReferencedStudySequence", "ReferencedStudySOPInstanceUID"),   // (0008,1110) > (0008,1150)/(0008,1155)
+    ]
+
     /// The worklist items as a pretty-printed JSON array. The keys (notably
     /// `StudyInstanceUID` / `SPSID` / `AccessionNumber`) are the contract the
     /// CLI-parity MWL comparator parses, so both sides emit them identically from here.
@@ -498,7 +678,49 @@ public enum NetworkConsole {
             if let v = item.scheduledProcedureStepStatus      { jsonItem["SPSStatus"] = v }
             if let v = item.scheduledProcedureStepID          { jsonItem["SPSID"] = v }
             if let v = item.scheduledProcedureStepDescription { jsonItem["SPSDescription"] = v }
+            if let v = item.scheduledProcedureStepLocation    { jsonItem["SPSLocation"] = v }
+            if let c = item.requestedProcedureCode {
+                jsonItem["RequestedProcedureCode"] = ["CodeValue": c.codeValue,
+                                                      "CodingSchemeDesignator": c.codingSchemeDesignator,
+                                                      "CodeMeaning": c.codeMeaning]
+            }
+            if !item.scheduledProtocolCodes.isEmpty {
+                jsonItem["ScheduledProtocolCodes"] = item.scheduledProtocolCodes.map {
+                    ["CodeValue": $0.codeValue, "CodingSchemeDesignator": $0.codingSchemeDesignator, "CodeMeaning": $0.codeMeaning]
+                }
+            }
+            if let v = item.requestedProcedurePriority        { jsonItem["RequestedProcedurePriority"] = v }
+            if let v = item.requestedContrastAgent            { jsonItem["RequestedContrastAgent"] = v }
+            if let v = item.preMedication                     { jsonItem["PreMedication"] = v }
+            if let v = item.patientWeight                     { jsonItem["PatientWeight"] = v }
+            if let v = item.patientSize                       { jsonItem["PatientSize"] = v }
+            if let v = item.pregnancyStatus                   { jsonItem["PregnancyStatus"] = Int(v) }
+            if let v = item.medicalAlerts                     { jsonItem["MedicalAlerts"] = v }
+            if let v = item.allergies                         { jsonItem["Allergies"] = v }
+            if let v = item.specialNeeds                      { jsonItem["SpecialNeeds"] = v }
+            if let v = item.patientState                      { jsonItem["PatientState"] = v }
+            if let v = item.admissionID                       { jsonItem["AdmissionID"] = v }
+            if let v = item.currentPatientLocation            { jsonItem["CurrentPatientLocation"] = v }
+            if let v = item.requestingPhysician               { jsonItem["RequestingPhysician"] = v }
+            if let v = item.referencedStudies.first?.sopInstanceUID { jsonItem["ReferencedStudySOPInstanceUID"] = v }
             if let v = item.scheduledPerformingPhysicianName  { jsonItem["ScheduledPerformingPhysician"] = v }
+            // P-MWL-JSON-KEYS: the same values under their PS3.6 2026a Table 6-1
+            // keywords. The ten abbreviated keys above are kept, with unchanged
+            // values, for existing parsers (deprecated; see dicom-mwl README).
+            for (keyword, legacy) in Self.mwlJSONKeywordKeys where jsonItem[legacy] != nil {
+                switch keyword {
+                case "RequestedProcedureCodeSequence":
+                    jsonItem[keyword] = [jsonItem[legacy]!]
+                case "ScheduledProtocolCodeSequence":
+                    jsonItem[keyword] = jsonItem[legacy]
+                case "ReferencedStudySequence":
+                    jsonItem[keyword] = item.referencedStudies.map {
+                        ["ReferencedSOPClassUID": $0.sopClassUID, "ReferencedSOPInstanceUID": $0.sopInstanceUID]
+                    }
+                default:
+                    jsonItem[keyword] = jsonItem[legacy]
+                }
+            }
             jsonItems.append(jsonItem)
         }
         let data = (try? JSONSerialization.data(withJSONObject: jsonItems,
@@ -650,22 +872,24 @@ public enum NetworkConsole {
             out += "  Code  : \(reason) — \(associateRejectReasonDescription(source: source, reason: reason))\n"
             out += "\n"
             // Actionable hints for the most common dcm4chee2 / legacy-PACS rejections.
+            // PS3.8 Table 9-21: source 1 reason 3 = calling-AE-title-not-recognized,
+            // reason 7 = called-AE-title-not-recognized.
             switch (source, reason) {
             case (.serviceUser, 3):
+                out += "  💡 Hint: The remote SCP does not recognise the Calling AE Title\n"
+                out += "           (\"\(callingAE)\"). Add it to the remote server's list of\n"
+                out += "           permitted calling AE titles, or change the Calling AE Title.\n"
+            case (.serviceUser, 7):
                 out += "  💡 Hint: The remote SCP does not recognise the Called AE Title\n"
                 out += "           (\"\(calledAE)\"). Register it in the remote AE Manager\n"
                 out += "           (e.g. dcm4chee AE Management → Add AE Title) or change the\n"
                 out += "           Called AE Title to match the server's configured AE.\n"
-            case (.serviceUser, 7):
-                out += "  💡 Hint: The remote SCP does not recognise the Calling AE Title\n"
-                out += "           (\"\(callingAE)\"). Add it to the remote server's list of\n"
-                out += "           permitted calling AE titles, or change the Calling AE Title.\n"
             case (.serviceUser, 2):
                 out += "  💡 Hint: The remote SCP reports the application context is not supported.\n"
                 out += "           Make sure the server has DICOM networking enabled.\n"
             case (.serviceProviderACSE, 2):
-                out += "  💡 Hint: Protocol version mismatch. Try switching to Implicit VR transfer\n"
-                out += "           syntax for legacy server compatibility.\n"
+                out += "  💡 Hint: The remote SCP does not support the DICOM UL Protocol-version\n"
+                out += "           sent in the A-ASSOCIATE-RQ (this client sends version 1).\n"
             case (.serviceProviderPresentation, 1):
                 out += "  💡 Hint: Server temporarily busy. Wait a moment and retry.\n"
             default:
@@ -771,41 +995,30 @@ public enum NetworkConsole {
 
     /// Translates an A-ASSOCIATE-RJ reason byte into a human-readable string.
     ///
-    /// Reference: PS3.8 Tables 9-20, 9-21, 9-22.
+    /// Delegates to ``AssociateRejectPDU/reasonDescription`` so the console and
+    /// the PDU share one copy of PS3.8 Table 9-21 (the result byte does not
+    /// affect the reason table).
+    ///
+    /// Reference: PS3.8 Table 9-21.
     public static func associateRejectReasonDescription(source: AssociateRejectSource, reason: UInt8) -> String {
-        switch source {
-        case .serviceUser:
-            switch reason {
-            case 1: return "No reason given"
-            case 2: return "Application context name not supported"
-            case 3: return "Called AE Title not recognised"
-            case 7: return "Calling AE Title not recognised"
-            default: return "Unknown reason"
-            }
-        case .serviceProviderACSE:
-            switch reason {
-            case 1: return "No reason given"
-            case 2: return "Protocol version not supported"
-            default: return "Unknown reason"
-            }
-        case .serviceProviderPresentation:
-            switch reason {
-            case 0: return "No reason given"
-            case 1: return "Temporary congestion"
-            case 2: return "Local limit exceeded"
-            default: return "Unknown reason"
-            }
-        }
+        AssociateRejectPDU(result: .rejectedPermanent, source: source, reason: reason).reasonDescription
     }
 
     // MARK: - Helpers
 
+    /// The Query/Retrieve Level (0008,0052) value of `level` — PATIENT, STUDY,
+    /// SERIES or IMAGE (PS3.4 2026a C.6.1.1.x, Table C.6.1-1). Before 2026-10-01
+    /// this printed lower-case names and "instance" for IMAGE (D74).
     public static func levelName(_ level: QueryLevel) -> String {
-        switch level {
-        case .patient: return "patient"
-        case .study:   return "study"
-        case .series:  return "series"
-        case .image:   return "instance"
-        }
+        level.rawValue
+    }
+
+    /// The Query/Retrieve Level value for a level label given as text: "Study",
+    /// "series", "Instance" and "IMAGE" print as STUDY, SERIES, IMAGE, IMAGE
+    /// (PS3.4 2026a Table C.6.1-1 has no INSTANCE level); anything else is kept.
+    public static func queryRetrieveLevelValue(_ label: String) -> String {
+        let upper = label.trimmingCharacters(in: .whitespaces).uppercased()
+        if upper == "INSTANCE" { return QueryLevel.image.rawValue }
+        return QueryLevel(rawValue: upper)?.rawValue ?? label
     }
 }

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — Segment subcommand: --segment-category / --segment-type values are checked against PS3.16 2026a CID 7150 / CID 7151 keyword tables (SegmentPropertyCodes.swift); --algorithm-version is Algorithm Version (111003, DCM), PS3.16 2026a TID 4019 row 2 (M), Algorithm Name (111001, DCM) / Segment Algorithm Name (0062,0009, PS3.3 Table C.8.20-4) is the model file name; dicom-sr / dicom-seg / enhance outputs written as PS3.10 files; the 46 options are otherwise plumbing
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -71,6 +72,17 @@ struct CommonOptions: ParsableArguments {
     
     @Option(name: .long, help: "Output performance metrics to file")
     var profileOutput: String?
+
+    @Option(name: .long, help: ArgumentHelp(
+        "Algorithm Version (111003, DCM) written in the dicom-sr output (PS3.16 TID 4019 row 2, M). Default: the model's CoreML version metadata, else \"unknown\"",
+        discussion: "Algorithm Name (111001, DCM) is the model file name."))
+    var algorithmVersion: String?
+
+    /// TID 4019 row 2 value: `--algorithm-version`, the model's metadata version, or "unknown"
+    func resolvedAlgorithmVersion(modelVersion: String?) -> String {
+        if let version = algorithmVersion?.trimmingCharacters(in: .whitespaces), !version.isEmpty { return version }
+        return modelVersion ?? AIDICOMOutputGenerator.unknownAlgorithmVersion
+    }
 }
 
 enum OutputFormat: String, ExpressibleByArgument, CaseIterable, Sendable {
@@ -137,12 +149,14 @@ struct Classify: ParsableCommand {
             let srDataSet = try AIDICOMOutputGenerator.createSRFromClassification(
                 predictions: predictions,
                 sourceDataSet: dataSet,
-                modelName: URL(fileURLWithPath: options.model).lastPathComponent
+                modelName: URL(fileURLWithPath: options.model).lastPathComponent,
+                algorithmVersion: options.resolvedAlgorithmVersion(modelVersion: engine.modelVersion),
+                frameIndex: options.frame
             )
             guard let outputPath = options.output else {
                 throw AIError.missingOutput("Output file required for DICOM-SR format")
             }
-            let srData = srDataSet.write()
+            let srData = try AIDICOMOutputGenerator.partTenFile(srDataSet)
             try srData.write(to: URL(fileURLWithPath: outputPath))
             output = "DICOM SR saved to \(outputPath)"
         } else {
@@ -178,6 +192,21 @@ struct Segment: ParsableCommand {
     
     @Option(name: .long, help: "Segmentation labels file (JSON with class names)")
     var labels: String?
+
+    @Option(name: .long, help: ArgumentHelp(
+        "Segmented Property Category (PS3.16 CID 7150) written for every segment of a dicom-seg output: a keyword or SCHEME:VALUE[:MEANING]. Default: tissue (85756007, SCT, \"Tissue\")",
+        discussion: "Keywords: \(SegmentPropertyCodes.keywordList(SegmentPropertyCodes.categories))"))
+    var segmentCategory: String = "tissue"
+
+    @Option(name: .long, help: ArgumentHelp(
+        "Segmented Property Type (PS3.16 CID 7151) written for every segment of a dicom-seg output: a keyword or SCHEME:VALUE[:MEANING]. Default: tissue (85756007, SCT, \"Tissue\")",
+        discussion: "Keywords: \(SegmentPropertyCodes.keywordList(SegmentPropertyCodes.types))"))
+    var segmentType: String = "tissue"
+
+    mutating func validate() throws {
+        _ = try SegmentPropertyCodes.parse(segmentCategory, from: SegmentPropertyCodes.categories, option: "--segment-category")
+        _ = try SegmentPropertyCodes.parse(segmentType, from: SegmentPropertyCodes.types, option: "--segment-type")
+    }
     
     mutating func run() throws {
         #if canImport(CoreML)
@@ -216,7 +245,10 @@ struct Segment: ParsableCommand {
             let segDICOM = try createDICOMSegmentation(
                 sourceDataSet: dataSet,
                 segmentationMask: segmentationMask,
-                labels: try loadLabels(from: labels)
+                labels: try loadLabels(from: labels),
+                modelName: URL(fileURLWithPath: options.model).lastPathComponent,
+                category: try SegmentPropertyCodes.parse(segmentCategory, from: SegmentPropertyCodes.categories, option: "--segment-category"),
+                type: try SegmentPropertyCodes.parse(segmentType, from: SegmentPropertyCodes.types, option: "--segment-type")
             )
             guard let outputPath = options.output else {
                 throw AIError.missingOutput("Output file required for DICOM-SEG format")
@@ -301,12 +333,14 @@ struct Detect: ParsableCommand {
             let srDataSet = try AIDICOMOutputGenerator.createSRFromDetections(
                 detections: detections,
                 sourceDataSet: dataSet,
-                modelName: URL(fileURLWithPath: options.model).lastPathComponent
+                modelName: URL(fileURLWithPath: options.model).lastPathComponent,
+                algorithmVersion: options.resolvedAlgorithmVersion(modelVersion: engine.modelVersion),
+                frameIndex: options.frame
             )
             guard let outputPath = options.output else {
                 throw AIError.missingOutput("Output file required for DICOM-SR format")
             }
-            let srData = srDataSet.write()
+            let srData = try AIDICOMOutputGenerator.partTenFile(srDataSet)
             try srData.write(to: URL(fileURLWithPath: outputPath))
             output = "DICOM SR saved to \(outputPath)"
         } else {
@@ -382,7 +416,8 @@ struct Enhance: ParsableCommand {
         let enhancedDataSet = try createEnhancedDICOM(
             sourceDataSet: dataSet,
             enhancedImage: enhancedImage,
-            frameIndex: options.frame
+            frameIndex: options.frame,
+            modelName: URL(fileURLWithPath: options.model).lastPathComponent
         )
         
         guard let outputPath = options.output else {
@@ -637,20 +672,30 @@ func formatBatchResultsAsCSV(_ results: [[String: Any]]) -> String {
     return csv
 }
 
-func createDICOMSegmentation(sourceDataSet: DataSet, segmentationMask: SegmentationMask, labels: [String]) throws -> Data {
+func createDICOMSegmentation(
+    sourceDataSet: DataSet,
+    segmentationMask: SegmentationMask,
+    labels: [String],
+    modelName: String = "AI Model",
+    category: CodedConcept = SegmentPropertyCodes.defaultCategory,
+    type: CodedConcept = SegmentPropertyCodes.defaultType
+) throws -> Data {
     return try AIDICOMOutputGenerator.createSegmentationObject(
         sourceDataSet: sourceDataSet,
         segmentationMask: segmentationMask,
         labels: labels,
-        modelName: "AI Model"
+        modelName: modelName,
+        category: category,
+        type: type
     )
 }
 
-func createEnhancedDICOM(sourceDataSet: DataSet, enhancedImage: ProcessedImage, frameIndex: Int) throws -> Data {
+func createEnhancedDICOM(sourceDataSet: DataSet, enhancedImage: ProcessedImage, frameIndex: Int, modelName: String) throws -> Data {
     return try AIDICOMOutputGenerator.createEnhancedDICOMFile(
         sourceDataSet: sourceDataSet,
         enhancedImage: enhancedImage,
-        frameIndex: frameIndex
+        frameIndex: frameIndex,
+        modelName: modelName
     )
 }
 

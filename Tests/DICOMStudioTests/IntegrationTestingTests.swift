@@ -70,10 +70,10 @@ struct IntegrationTestingModelTests {
         #expect(IntegrationTestToolCategory.allCases.count == 9)
     }
 
-    @Test("IntegrationTestToolCategory total tool count is 41")
+    @Test("IntegrationTestToolCategory total tool count is 42 (every Sources/dicom-* target)")
     func test_toolCategory_totalToolCount() {
         let total = IntegrationTestToolCategory.allCases.reduce(0) { $0 + $1.toolCount }
-        #expect(total == 41)
+        #expect(total == 42)
     }
 
     @Test("IntegrationTestToolCategory.fileInspection has 4 tools")
@@ -81,9 +81,9 @@ struct IntegrationTestingModelTests {
         #expect(IntegrationTestToolCategory.fileInspection.toolCount == 4)
     }
 
-    @Test("IntegrationTestToolCategory.networking has 14 tools")
+    @Test("IntegrationTestToolCategory.networking has 13 tools")
     func test_toolCategory_networking_toolCount() {
-        #expect(IntegrationTestToolCategory.networking.toolCount == 14)
+        #expect(IntegrationTestToolCategory.networking.toolCount == 13)
     }
 
     @Test("IntegrationTestToolCategory toolNames count matches toolCount")
@@ -535,9 +535,9 @@ struct IntegrationTestingHelpersTests {
 
     // MARK: - E2ETestHelpers
 
-    @Test("E2ETestHelpers totalToolCount is 41")
+    @Test("E2ETestHelpers totalToolCount is 42")
     func test_e2eHelpers_totalToolCount() {
-        #expect(E2ETestHelpers.totalToolCount == 41)
+        #expect(E2ETestHelpers.totalToolCount == 42)
     }
 
     @Test("E2ETestHelpers generateTestCases creates correct count for fileInspection")
@@ -550,7 +550,7 @@ struct IntegrationTestingHelpersTests {
     @Test("E2ETestHelpers generateTestCases creates correct count for networking")
     func test_e2eHelpers_generateTestCases_networking() {
         let cases = E2ETestHelpers.generateTestCases(for: .networking)
-        #expect(cases.count == 14)
+        #expect(cases.count == 13)
     }
 
     @Test("E2ETestHelpers generateTestCases all have pending status")
@@ -755,7 +755,7 @@ struct IntegrationTestingServiceTests {
         service.initializeTestSuites()
         let suites = service.getTestSuites()
         let totalTests = suites.reduce(0) { $0 + $1.totalCount }
-        #expect(totalTests == 41)
+        #expect(totalTests == 42)
     }
 
     @Test("Service runAllTests sets all to running")

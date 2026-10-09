@@ -59,44 +59,51 @@ final class AIInferenceResultTests: XCTestCase {
         let type = AIDetectionType.lungNodule
         let concept = type.concept
         
-        XCTAssertEqual(concept.codeValue, "M-03010")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+        // PS3.16 CID 6104
+        XCTAssertEqual(concept.codeValue, "27925004")
+        XCTAssertEqual(concept.codingSchemeDesignator, "SCT")
         XCTAssertEqual(concept.codeMeaning, "Nodule")
     }
-    
+
     func testMassType() {
         let type = AIDetectionType.mass
         let concept = type.concept
-        
-        XCTAssertEqual(concept.codeValue, "F-01796")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+
+        // PS3.16 2026a CID 6104 "Abnormal Opacity Finding or Feature": SCT | 4147007 | Mass
+        XCTAssertEqual(concept.codeValue, "4147007")
+        XCTAssertEqual(concept.codingSchemeDesignator, "SCT")
         XCTAssertEqual(concept.codeMeaning, "Mass")
     }
     
-    func testCalcificationType() {
-        let type = AIDetectionType.calcification
-        let concept = type.concept
-        
-        XCTAssertEqual(concept.codeValue, "F-61769")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+    func testCalcificationTypeIsPrivateCode() {
+        // PS3.16 2026a has no general "Calcification" concept in Table D-1 or any CID
+        // (only (309587003, SCT, "Calcification of breast") in CID 6054 and
+        // (129769006, SCT, "Calcification Cluster") in CID 6015), so the case is deprecated
+        // and emits the private scheme 99DICOMKIT (PS3.16 2026a Section 8: private schemes start with "99").
+        @available(*, deprecated) func legacy() -> CodedConcept { AIDetectionType.calcification.concept }
+        let concept = legacy()
+        XCTAssertEqual(concept.codeValue, "CALCIFICATION")
+        XCTAssertEqual(concept.codingSchemeDesignator, "99DICOMKIT")
         XCTAssertEqual(concept.codeMeaning, "Calcification")
+        XCTAssertNotEqual(concept.codingSchemeDesignator, "SRT")
     }
     
     func testLesionType() {
         let type = AIDetectionType.lesion
         let concept = type.concept
         
-        XCTAssertEqual(concept.codeValue, "M-03000")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+        // PS3.16 2026a CID 7159 "Lesion Segmentation Type": SCT | 52988006 | Lesion
+        XCTAssertEqual(concept.codeValue, "52988006")
+        XCTAssertEqual(concept.codingSchemeDesignator, "SCT")
         XCTAssertEqual(concept.codeMeaning, "Lesion")
     }
     
-    func testFractureType() {
-        let type = AIDetectionType.fracture
-        let concept = type.concept
-        
-        XCTAssertEqual(concept.codeValue, "M-12000")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+    func testFractureTypeIsPrivateCode() {
+        // PS3.16 2026a CID rows: only (46866001, SCT, "Fracture of lower limb") in CID 3205; no "Fracture".
+        @available(*, deprecated) func legacy() -> CodedConcept { AIDetectionType.fracture.concept }
+        let concept = legacy()
+        XCTAssertEqual(concept.codeValue, "FRACTURE")
+        XCTAssertEqual(concept.codingSchemeDesignator, "99DICOMKIT")
         XCTAssertEqual(concept.codeMeaning, "Fracture")
     }
     
@@ -104,17 +111,19 @@ final class AIInferenceResultTests: XCTestCase {
         let type = AIDetectionType.hemorrhage
         let concept = type.concept
         
-        XCTAssertEqual(concept.codeValue, "M-37000")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+        // PS3.16 2026a CID 7159 "Lesion Segmentation Type": SCT | 50960005 | Hemorrhage
+        XCTAssertEqual(concept.codeValue, "50960005")
+        XCTAssertEqual(concept.codingSchemeDesignator, "SCT")
         XCTAssertEqual(concept.codeMeaning, "Hemorrhage")
     }
     
-    func testPneumoniaType() {
-        let type = AIDetectionType.pneumonia
-        let concept = type.concept
-        
-        XCTAssertEqual(concept.codeValue, "M-40000")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+    func testPneumoniaTypeIsPrivateCode() {
+        // PS3.16 2026a Table D-1 and CIDs contain no "Pneumonia" or "Consolidation" concept;
+        // M-40000 (SRT) is (23583003, SCT, "Inflammation (morphologic abnormality)") per Table O-1.
+        @available(*, deprecated) func legacy() -> CodedConcept { AIDetectionType.pneumonia.concept }
+        let concept = legacy()
+        XCTAssertEqual(concept.codeValue, "PNEUMONIA")
+        XCTAssertEqual(concept.codingSchemeDesignator, "99DICOMKIT")
         XCTAssertEqual(concept.codeMeaning, "Pneumonia")
     }
     
@@ -122,18 +131,90 @@ final class AIInferenceResultTests: XCTestCase {
         let type = AIDetectionType.pulmonaryEmbolism
         let concept = type.concept
         
-        XCTAssertEqual(concept.codeValue, "D3-81004")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+        // PS3.16 2026a CID 6104 "Abnormal Opacity Finding or Feature": SCT | 59282003 | Pulmonary embolism
+        XCTAssertEqual(concept.codeValue, "59282003")
+        XCTAssertEqual(concept.codingSchemeDesignator, "SCT")
         XCTAssertEqual(concept.codeMeaning, "Pulmonary embolism")
     }
     
-    func testAnatomicalStructureType() {
-        let type = AIDetectionType.anatomicalStructure(name: "Liver")
+    func testAnatomicalStructureTypeTakesRealAnatomyCode() {
+        // PS3.16 2026a CID 4030 "CT, MR and PET Anatomy Imaged": SCT | 10200004 | Liver
+        let type = AIDetectionType.anatomicalStructure(AIAnatomicRegion.liver)
         let concept = type.concept
-        
-        XCTAssertEqual(concept.codeValue, "T-D0050")
-        XCTAssertEqual(concept.codingSchemeDesignator, "SRT")
+
+        XCTAssertEqual(type, .anatomy(AIAnatomicRegion.liver))
+        XCTAssertEqual(concept.codeValue, "10200004")
+        XCTAssertEqual(concept.codingSchemeDesignator, "SCT")
         XCTAssertEqual(concept.codeMeaning, "Liver")
+    }
+    
+    func testAnatomicalStructureNameIsPrivateCode() {
+        // (T-D0050, SRT) is (85756007, SCT, "Body tissue structure (body structure)") per PS3.16 2026a
+        // Table O-1 and never identified a named structure; the name-only overload is deprecated and
+        // emits the private 99DICOMKIT scheme.
+        @available(*, deprecated) func legacy() -> CodedConcept { AIDetectionType.anatomicalStructure(name: "Liver").concept }
+        let concept = legacy()
+        XCTAssertEqual(concept.codeValue, "ANATOMY")
+        XCTAssertEqual(concept.codingSchemeDesignator, "99DICOMKIT")
+        XCTAssertEqual(concept.codeMeaning, "Liver")
+        XCTAssertNotEqual(concept.codeValue, "T-D0050")
+    }
+    
+    func testAnatomicRegionConstantsMatchCIDRows() {
+        // PS3.16 2026a CID 4 "Anatomic Region" rows
+        XCTAssertEqual(AIAnatomicRegion.lung, CodedConcept(codeValue: "39607008", codingSchemeDesignator: "SCT", codeMeaning: "Lung"))
+        XCTAssertEqual(AIAnatomicRegion.ovary, CodedConcept(codeValue: "15497006", codingSchemeDesignator: "SCT", codeMeaning: "Ovary"))
+        XCTAssertEqual(AIAnatomicRegion.chest, CodedConcept(codeValue: "816094009", codingSchemeDesignator: "SCT", codeMeaning: "Chest"))
+        // CID 4030 "CT, MR and PET Anatomy Imaged" rows
+        XCTAssertEqual(AIAnatomicRegion.adrenalGland, CodedConcept(codeValue: "23451007", codingSchemeDesignator: "SCT", codeMeaning: "Adrenal gland"))
+        XCTAssertEqual(AIAnatomicRegion.brain, CodedConcept(codeValue: "12738006", codingSchemeDesignator: "SCT", codeMeaning: "Brain"))
+        XCTAssertEqual(AIAnatomicRegion.kidney, CodedConcept(codeValue: "64033007", codingSchemeDesignator: "SCT", codeMeaning: "Kidney"))
+        XCTAssertEqual(AIAnatomicRegion.liver, CodedConcept(codeValue: "10200004", codingSchemeDesignator: "SCT", codeMeaning: "Liver"))
+        XCTAssertEqual(AIAnatomicRegion.spleen, CodedConcept(codeValue: "78961009", codingSchemeDesignator: "SCT", codeMeaning: "Spleen"))
+        XCTAssertEqual(AIAnatomicRegion.thyroid, CodedConcept(codeValue: "69748006", codingSchemeDesignator: "SCT", codeMeaning: "Thyroid"))
+        XCTAssertEqual(AIAnatomicRegion.uterus, CodedConcept(codeValue: "35039007", codingSchemeDesignator: "SCT", codeMeaning: "Uterus"))
+        // CID 4031 "Common Anatomic Region" rows
+        XCTAssertEqual(AIAnatomicRegion.abdomen, CodedConcept(codeValue: "818981001", codingSchemeDesignator: "SCT", codeMeaning: "Abdomen"))
+        XCTAssertEqual(AIAnatomicRegion.abdomenAndPelvis, CodedConcept(codeValue: "818982008", codingSchemeDesignator: "SCT", codeMeaning: "Abdomen and Pelvis"))
+        XCTAssertEqual(AIAnatomicRegion.bladder, CodedConcept(codeValue: "89837001", codingSchemeDesignator: "SCT", codeMeaning: "Bladder"))
+        XCTAssertEqual(AIAnatomicRegion.breast, CodedConcept(codeValue: "76752008", codingSchemeDesignator: "SCT", codeMeaning: "Breast"))
+        XCTAssertEqual(AIAnatomicRegion.bronchus, CodedConcept(codeValue: "955009", codingSchemeDesignator: "SCT", codeMeaning: "Bronchus"))
+        XCTAssertEqual(AIAnatomicRegion.cervicalSpine, CodedConcept(codeValue: "122494005", codingSchemeDesignator: "SCT", codeMeaning: "Cervical spine"))
+        XCTAssertEqual(AIAnatomicRegion.colon, CodedConcept(codeValue: "71854001", codingSchemeDesignator: "SCT", codeMeaning: "Colon"))
+        XCTAssertEqual(AIAnatomicRegion.esophagus, CodedConcept(codeValue: "32849002", codingSchemeDesignator: "SCT", codeMeaning: "Esophagus"))
+        XCTAssertEqual(AIAnatomicRegion.femur, CodedConcept(codeValue: "71341001", codingSchemeDesignator: "SCT", codeMeaning: "Femur"))
+        XCTAssertEqual(AIAnatomicRegion.foot, CodedConcept(codeValue: "56459004", codingSchemeDesignator: "SCT", codeMeaning: "Foot"))
+        XCTAssertEqual(AIAnatomicRegion.gallbladder, CodedConcept(codeValue: "28231008", codingSchemeDesignator: "SCT", codeMeaning: "Gallbladder"))
+        XCTAssertEqual(AIAnatomicRegion.hand, CodedConcept(codeValue: "85562004", codingSchemeDesignator: "SCT", codeMeaning: "Hand"))
+        XCTAssertEqual(AIAnatomicRegion.head, CodedConcept(codeValue: "69536005", codingSchemeDesignator: "SCT", codeMeaning: "Head"))
+        XCTAssertEqual(AIAnatomicRegion.heart, CodedConcept(codeValue: "80891009", codingSchemeDesignator: "SCT", codeMeaning: "Heart"))
+        XCTAssertEqual(AIAnatomicRegion.hip, CodedConcept(codeValue: "29836001", codingSchemeDesignator: "SCT", codeMeaning: "Hip"))
+        XCTAssertEqual(AIAnatomicRegion.humerus, CodedConcept(codeValue: "85050009", codingSchemeDesignator: "SCT", codeMeaning: "Humerus"))
+        XCTAssertEqual(AIAnatomicRegion.knee, CodedConcept(codeValue: "72696002", codingSchemeDesignator: "SCT", codeMeaning: "Knee"))
+        XCTAssertEqual(AIAnatomicRegion.lumbarSpine, CodedConcept(codeValue: "122496007", codingSchemeDesignator: "SCT", codeMeaning: "Lumbar spine"))
+        XCTAssertEqual(AIAnatomicRegion.mediastinum, CodedConcept(codeValue: "72410000", codingSchemeDesignator: "SCT", codeMeaning: "Mediastinum"))
+        XCTAssertEqual(AIAnatomicRegion.neck, CodedConcept(codeValue: "45048000", codingSchemeDesignator: "SCT", codeMeaning: "Neck"))
+        XCTAssertEqual(AIAnatomicRegion.pancreas, CodedConcept(codeValue: "15776009", codingSchemeDesignator: "SCT", codeMeaning: "Pancreas"))
+        XCTAssertEqual(AIAnatomicRegion.pelvis, CodedConcept(codeValue: "816092008", codingSchemeDesignator: "SCT", codeMeaning: "Pelvis"))
+        XCTAssertEqual(AIAnatomicRegion.prostate, CodedConcept(codeValue: "41216001", codingSchemeDesignator: "SCT", codeMeaning: "Prostate"))
+        XCTAssertEqual(AIAnatomicRegion.rib, CodedConcept(codeValue: "113197003", codingSchemeDesignator: "SCT", codeMeaning: "Rib"))
+        XCTAssertEqual(AIAnatomicRegion.shoulder, CodedConcept(codeValue: "16982005", codingSchemeDesignator: "SCT", codeMeaning: "Shoulder"))
+        XCTAssertEqual(AIAnatomicRegion.skull, CodedConcept(codeValue: "89546000", codingSchemeDesignator: "SCT", codeMeaning: "Skull"))
+        XCTAssertEqual(AIAnatomicRegion.spine, CodedConcept(codeValue: "421060004", codingSchemeDesignator: "SCT", codeMeaning: "Spine"))
+        XCTAssertEqual(AIAnatomicRegion.stomach, CodedConcept(codeValue: "69695003", codingSchemeDesignator: "SCT", codeMeaning: "Stomach"))
+        XCTAssertEqual(AIAnatomicRegion.thoracicSpine, CodedConcept(codeValue: "122495006", codingSchemeDesignator: "SCT", codeMeaning: "Thoracic spine"))
+        XCTAssertEqual(AIAnatomicRegion.trachea, CodedConcept(codeValue: "44567001", codingSchemeDesignator: "SCT", codeMeaning: "Trachea"))
+    }
+    
+    func testPrivateCodingSchemeDesignatorStartsWith99() {
+        // PS3.16 2026a Section 8 "Coding Schemes": local or private Coding Schemes shall be identified
+        // by an alphanumeric identifier beginning with the characters "99" (HL7 v2 Table 0396).
+        XCTAssertEqual(DICOMKitPrivateCodingScheme.designator, "99DICOMKIT")
+        XCTAssertTrue(DICOMKitPrivateCodingScheme.designator.hasPrefix("99"))
+        XCTAssertLessThanOrEqual(DICOMKitPrivateCodingScheme.designator.count, 16)   // SH VR
+        let c = DICOMKitPrivateCodingScheme.concept("X", meaning: "x")
+        XCTAssertEqual(c.codingSchemeDesignator, "99DICOMKIT")
+        XCTAssertEqual(c.codeValue, "X")
     }
     
     func testCustomDetectionType() {
@@ -339,18 +420,66 @@ final class AIInferenceResultTests: XCTestCase {
         XCTAssertEqual(ConfidenceScore.toPercentageString(1.0), "100.0")
     }
     
-    func testConfidenceScoreToCodedConcept() {
-        let highConcept = ConfidenceScore.toCodedConcept(0.95)
-        XCTAssertEqual(highConcept.codeValue, "R-00339")
+    func testCertaintyOfFindingConceptMatchesTID4104Row12() {
+        // PS3.16 2026a TID 4104 "Chest CAD Single Image Finding" row 12:
+        //   HAS PROPERTIES | NUM | EV (111012, DCM, "Certainty of Finding") | UNITS = EV (%, UCUM, "Percent") | Value = 0 - 100
+        // and CID 6048 "CAD Operating Point Axis Label": DCM | 111012 | Certainty of Finding
+        XCTAssertEqual(ConfidenceScore.certaintyOfFindingConcept.codeValue, "111012")
+        XCTAssertEqual(ConfidenceScore.certaintyOfFindingConcept.codingSchemeDesignator, "DCM")
+        XCTAssertEqual(ConfidenceScore.certaintyOfFindingConcept.codeMeaning, "Certainty of Finding")
+        XCTAssertEqual(ConfidenceScore.percentUnits.codeValue, "%")
+        XCTAssertEqual(ConfidenceScore.percentUnits.codingSchemeDesignator, "UCUM")
+        XCTAssertEqual(ConfidenceScore.percentUnits.codeMeaning, "Percent")
+    }
+    
+    func testCertaintyOfFindingNumericContentItem() {
+        let item = ConfidenceScore.certaintyOfFinding(0.855)
+        XCTAssertEqual(item.valueType, .num)
+        XCTAssertEqual(item.conceptName, ConfidenceScore.certaintyOfFindingConcept)
+        XCTAssertEqual(item.measurementUnits, ConfidenceScore.percentUnits)
+        XCTAssertEqual(item.relationshipType, .hasProperties)   // TID 4104 row 12
+        XCTAssertEqual(item.numericValues.count, 1)
+        XCTAssertEqual(item.numericValues[0], 85.5, accuracy: 1e-9)
+        
+        // Value = 0 - 100: out-of-range scores are clamped
+        XCTAssertEqual(ConfidenceScore.certaintyOfFinding(1.5).numericValues[0], 100.0)
+        XCTAssertEqual(ConfidenceScore.certaintyOfFinding(-0.2).numericValues[0], 0.0)
+        XCTAssertEqual(ConfidenceScore.toPercent(1.0), 100.0)
+        XCTAssertEqual(ConfidenceScore.toPercent(0.0), 0.0)
+        
+        let contains = ConfidenceScore.certaintyOfFinding(0.5, relationshipType: .contains)
+        XCTAssertEqual(contains.relationshipType, .contains)
+    }
+    
+    func testConfidenceScoreToCodedConceptIsPrivateCode() {
+        // PS3.16 2026a Table O-1: R-00339 = (373067005, SCT, "No (qualifier value)"),
+        // R-00340 = (371857005, SCT, "Normal left ventricular systolic function and wall motion (finding)"),
+        // R-00341 = (373129009, SCT, "Normal overall cardiac contractility (finding)").
+        // None means a confidence level; the deprecated categorical API now emits 99DICOMKIT.
+        @available(*, deprecated) func legacy(_ s: Double) -> CodedConcept { ConfidenceScore.toCodedConcept(s) }
+        
+        let highConcept = legacy(0.95)
+        XCTAssertEqual(highConcept.codeValue, "CONF_HIGH")
+        XCTAssertEqual(highConcept.codingSchemeDesignator, "99DICOMKIT")
         XCTAssertEqual(highConcept.codeMeaning, "High confidence")
         
-        let mediumConcept = ConfidenceScore.toCodedConcept(0.80)
-        XCTAssertEqual(mediumConcept.codeValue, "R-00340")
+        let mediumConcept = legacy(0.80)
+        XCTAssertEqual(mediumConcept.codeValue, "CONF_MEDIUM")
+        XCTAssertEqual(mediumConcept.codingSchemeDesignator, "99DICOMKIT")
         XCTAssertEqual(mediumConcept.codeMeaning, "Medium confidence")
         
-        let lowConcept = ConfidenceScore.toCodedConcept(0.65)
-        XCTAssertEqual(lowConcept.codeValue, "R-00341")
+        let lowConcept = legacy(0.65)
+        XCTAssertEqual(lowConcept.codeValue, "CONF_LOW")
+        XCTAssertEqual(lowConcept.codingSchemeDesignator, "99DICOMKIT")
         XCTAssertEqual(lowConcept.codeMeaning, "Low confidence")
+        
+        for c in [highConcept, mediumConcept, lowConcept] {
+            XCTAssertFalse(["R-00339", "R-00340", "R-00341"].contains(c.codeValue))
+            XCTAssertNotEqual(c.codingSchemeDesignator, "SRT")
+        }
+        XCTAssertEqual(ConfidenceCategory.high.privateConcept, highConcept)
+        XCTAssertEqual(ConfidenceCategory.medium.privateConcept, mediumConcept)
+        XCTAssertEqual(ConfidenceCategory.low.privateConcept, lowConcept)
     }
     
     func testConfidenceScoreCategorize() {

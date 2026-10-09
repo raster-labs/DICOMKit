@@ -146,7 +146,7 @@ struct MeasurementQualifierTests {
     @Test("All qualifier cases exist")
     func testAllQualifierCases() {
         let cases = MeasurementQualifier.allCases
-        #expect(cases.count == 5)
+        #expect(cases.count == 12)
         #expect(cases.contains(.notANumber))
         #expect(cases.contains(.negativeInfinity))
         #expect(cases.contains(.positiveInfinity))

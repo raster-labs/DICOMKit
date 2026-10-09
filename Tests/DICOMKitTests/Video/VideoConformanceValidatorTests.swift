@@ -193,11 +193,24 @@ final class VideoConformanceValidatorTests: XCTestCase {
         )
         XCTAssertTrue(onMainLevelSyntax.isConformant, onMainLevelSyntax.report)
 
-        // Main Level content on the High Level syntax exceeds its ceiling.
+        // High Level content on the Main Level syntax exceeds its ceiling (the
+        // comparison used to run the wrong way and let it through).
         let mismatch = VideoConformanceValidator.validate(
+            stream: highLevel, transferSyntax: .mpeg2MainProfile
+        )
+        XCTAssertTrue(mismatch.violations.contains(.levelExceedsMaximum(
+            observed: "High", maximum: "Main", codec: .mpeg2, pictureFitsMaximum: false)),
+                      mismatch.report)
+
+        // Main Level is below the High Level ceiling: "An MPEG2 Main Profile / High Level
+        // decoder is able to decode bit streams conforming to lower levels" (PS3.5 2026a
+        // 8.2.6), so it is no level violation. (8.2.6 also fixes Rows/Columns at 720/1280
+        // or 1080/1920, which this validator does not check yet.)
+        let lower = VideoConformanceValidator.validate(
             stream: mainLevelContent, transferSyntax: .mpeg2MainProfileHighLevel
         )
-        XCTAssertFalse(mismatch.isConformant)
+        XCTAssertFalse(lower.violations.contains { if case .levelExceedsMaximum = $0 { return true }; return false },
+                       lower.report)
     }
 
     // MARK: - Chroma format

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — help names the hierarchy keys of PS3.4 2026a Tables C.6-2 / C.6-3 / C.6-4 (Study Instance UID (0020,000D), Series Instance UID (0020,000E), SOP Instance UID (0008,0018) are the unique keys) and the PS3.6 Table 6-1 names of the 8 attributes used for folder names and checks (Patient's Name, Study Description, Series Number, Modality, Series Description, Instance Number, Number of Series Related Instances, Number of Study Related Series); all match. Labels and JSON/CSV keys are printed by DICOMKit StudyReport (deferred, see DICOMCLI_STANDARD_IMPLEMENTATION.md)
 import Foundation
 import ArgumentParser
 import DICOMCore
@@ -12,6 +13,10 @@ struct DICOMStudy: ParsableCommand {
         discussion: """
             Manage DICOM studies with organization, summarization, validation, and statistics.
             Supports study/series organization, completeness checking, and comparison.
+
+            Files are grouped by Study Instance UID (0020,000D) and
+            Series Instance UID (0020,000E), the unique keys of the Study and Series
+            levels (PS3.4 C.6.1.1).
             
             Examples:
               dicom-study organize files/ --output organized/
@@ -40,7 +45,7 @@ extension DICOMStudy {
         @Option(name: .shortAndLong, help: "Output directory for organized files")
         var output: String
         
-        @Option(name: .long, help: "Naming pattern: 'descriptive' or 'uid' (default: descriptive)")
+        @Option(name: .long, help: "Folder naming: 'descriptive' = <Patient's Name>_<Study Description>_<last 8 characters of Study Instance UID>/<Series Number>_<Modality>_<Series Description>/<n>.dcm; 'uid' = <Study Instance UID>/<Series Instance UID>/<n>.dcm (default: descriptive)")
         var pattern: String = "descriptive"
         
         @Flag(name: .long, help: "Copy files instead of moving them")
@@ -77,7 +82,7 @@ extension DICOMStudy {
         @Argument(help: "Study directory or DICOM file")
         var path: String
         
-        @Option(name: .shortAndLong, help: "Output format: 'table', 'json', or 'csv' (default: table)")
+        @Option(name: .shortAndLong, help: "Output format: 'table', 'json', or 'csv' (default: table). CSV adds the PS3.6 keyword columns StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances; StudyUID, SeriesCount, InstanceCount are deprecated")
         var format: String = "table"
         
         @Flag(name: .shortAndLong, help: "Show verbose output with all metadata")
@@ -100,16 +105,19 @@ extension DICOMStudy {
 extension DICOMStudy {
     struct Check: ParsableCommand {
         static let configuration = CommandConfiguration(
-            abstract: "Check study completeness and detect missing slices"
+            abstract: "Check study completeness: series and instance counts, and gaps in Instance Number (0020,0013)",
+            discussion: """
+                A gap in Instance Number (0020,0013) within a series is reported as missing. This is a heuristic: PS3.3 Table C.7-9 defines Instance Number as "A number that identifies this image" (Type 2) and does not require consecutive numbering.
+                """
         )
         
         @Argument(help: "Study directory")
         var path: String
         
-        @Option(name: .long, help: "Expected number of series")
+        @Option(name: .long, help: "Expected number of series in the study (Number of Study Related Series)")
         var expectedSeries: Int?
         
-        @Option(name: .long, help: "Expected number of instances per series")
+        @Option(name: .long, help: "Expected number of instances in each series (Number of Series Related Instances)")
         var expectedInstances: Int?
         
         @Option(name: .long, help: "Output report file path")
@@ -146,7 +154,7 @@ extension DICOMStudy {
         @Flag(name: .long, help: "Show detailed statistics")
         var detailed: Bool = false
         
-        @Option(name: .shortAndLong, help: "Output format: 'text' or 'json' (default: text)")
+        @Option(name: .shortAndLong, help: "Output format: 'text' or 'json' (default: text). JSON adds PS3.6 keyword keys (StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances); the former keys are deprecated")
         var format: String = "text"
         
         mutating func run() throws {
@@ -175,7 +183,7 @@ extension DICOMStudy {
         @Argument(help: "Second study directory")
         var path2: String
         
-        @Option(name: .shortAndLong, help: "Output format: 'text' or 'json' (default: text)")
+        @Option(name: .shortAndLong, help: "Output format: 'text' or 'json' (default: text). JSON adds PS3.6 keyword keys (StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances); the former keys are deprecated")
         var format: String = "text"
         
         @Flag(name: .shortAndLong, help: "Show verbose comparison")

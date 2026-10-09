@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — SCOORD3D graphic types match PS3.3 2026a C.18.9.1.2; Referenced Frame of Reference UID per Table C.18.9-1; validation recurses into the Content Sequence (0040,A730) of every value type per PS3.3 2026a Table C.17-6 (D31)
 /// Comprehensive 3D SR Document Builder
 ///
 /// Provides a specialized fluent API for creating DICOM Comprehensive 3D SR documents.
@@ -1017,7 +1018,10 @@ public struct Comprehensive3DSRBuilder: Sendable {
             verificationFlag: verificationFlag,
             preliminaryFlag: preliminaryFlag,
             documentTitle: finalDocumentTitle,
-            rootContent: rootContent
+            rootContent: rootContent,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName
         )
     }
     
@@ -1054,10 +1058,9 @@ public struct Comprehensive3DSRBuilder: Sendable {
                 }
             }
             
-            // Recursively validate container children
-            if let container = item.asContainer {
-                try validateFrameOfReference(items: container.contentItems)
-            }
+            // Recursively validate children: a CONTAINER's, and the Content Sequence
+            // any other value type may carry (PS3.3 Table C.17-6)
+            try validateFrameOfReference(items: item.contentItems)
         }
     }
 }

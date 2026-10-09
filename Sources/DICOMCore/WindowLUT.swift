@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data of its own; the VOI LUT function it tabulates lives in WindowSettings. C1 classification confirmed.
+
 import Foundation
 
 /// A precomputed grayscale display table: raw stored sample → final 8-bit display byte.
@@ -58,6 +60,13 @@ extension WindowLUT {
         window: WindowSettings
     ) -> WindowLUT {
         WindowLUTCache.shared.lut(for: Parameters(descriptor: descriptor, window: window))
+    }
+
+    /// Whether a descriptor's cells can index a table: one or two bytes per cell
+    /// (256 or 65,536 entries). Wider cells (Bits Allocated 32) are evaluated per
+    /// pixel instead (D67).
+    public static func canTabulate(_ descriptor: PixelDataDescriptor) -> Bool {
+        (1...2).contains(descriptor.bytesPerSample)
     }
 
     /// Builds the table unconditionally, bypassing the cache.
@@ -129,11 +138,39 @@ extension WindowLUT {
                     }
 
                     // Clamp and convert to 8-bit
-                    out[rawValue] = UInt8(max(0, min(255, normalized * 255.0)))
+                    out[rawValue] = WindowLUT.displayByte(normalized)
                 }
             }
             return WindowLUT(table: table)
         }
+    }
+}
+
+// MARK: - Quantisation
+
+extension WindowLUT {
+    /// Slack added before the output is floored to a byte.
+    ///
+    /// PS3.3 C.11.2.1.2.1 assumes "a floating point calculation without integer
+    /// truncation … as long as the result is the same", and names c = 2^(n−1),
+    /// w = 2^n "a mathematical identity". Evaluated in `Double`, the exact integer
+    /// results of such windows come out a few ulps low (e.g. 0.99999999999999989 × 255
+    /// for x = 1), and a plain truncation then shows 32 of 256 8-bit values one level
+    /// dark (D63). The products here are at most 255, where an ulp is about 3e-14 and
+    /// an exact non-integer result lies at least 255 / (2 · 2^32) ≈ 3e-8 from the next
+    /// integer for any integral window up to 2^32 wide, so 1e-9 separates the two:
+    /// the byte is the floor of the exact value.
+    public static let quantisationTolerance = 1e-9
+
+    /// The display byte for a VOI / Presentation LUT output normalised to 0…1:
+    /// the floor of `normalized × 255`, clamped to 0…255, as exact arithmetic gives it.
+    ///
+    /// NEMA-verified: 2026a, checked 2026-09-30 — the identity window of PS3.3 2026a
+    /// C.11.2.1.2.1 renders every 8-, 12- and 16-bit input at the floor of its exact
+    /// value (Scripts/diff_renderkit.py, D63).
+    @inlinable
+    public static func displayByte(_ normalized: Double) -> UInt8 {
+        UInt8(max(0, min(255, normalized * 255.0 + quantisationTolerance)))
     }
 }
 

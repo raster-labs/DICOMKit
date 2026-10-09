@@ -1,3 +1,6 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — ADTS and LATM PIDs are read up to 2,000 frames for the Table 8.2.12-1 bit rate (PS3.5 2026a 8.2.12, D62); the MPEG-4_audio_extension_descriptor (tag 0x2E) syntax matches TSDuck's tsMPEG4AudioExtensionDescriptor.cpp and tsDID.h (ISO/IEC 13818-1 is not NEMA text)
+// NEMA-verified: 2026a, checked 2026-09-30 — MP3 frame headers walked for "CBR MPEG-1 LAYER III" (PS3.5 2026a 8.2.5, 8.2.12, verified by script); LATM/LOAS (stream_type 0x11) and raw MPEG-4 audio (0x1C) identified from the AudioSpecificConfig (ISO/IEC 14496-3, ISO/IEC 13818-1; out of DICOM scope) (D58)
+// NEMA-verified: 2026a, checked 2026-09-30 — transport stream syntax is ISO/IEC 13818-1 (out of scope); audio PIDs are identified for the PS3.5 2026a 8.2.5/8.2.12 check (Table 8.2.12-1 permits LPCM, AC-3, AAC, MP3 and MPEG-1 Layer II in MPEG-2 TS) (D46)
 //
 // TransportStreamScanner.swift
 // DICOMKit
@@ -17,6 +20,9 @@ import Foundation
 ///
 /// ``firstVideoPayload(_:)`` remains for the `--trust-input` path, which needs
 /// geometry for Rows and Columns but nothing else.
+///
+/// Audio PIDs are listed from the PMT, and the first frame of each is read for the
+/// parameters PS3.5 8.2.12 constrains (``audioTracks(_:)``).
 ///
 /// Reference: ISO/IEC 13818-1 Sections 2.4.3.2 (packet layer), 2.4.3.6 (PES)
 public enum TransportStreamScanner {
@@ -65,69 +71,10 @@ public enum TransportStreamScanner {
         /// 90 kHz ticks. Bounded: enough to recover a frame interval.
         public let presentationTimestamps: [UInt64]
         /// The audio PIDs, described from their first frames.
-        public let audio: [AudioStreamInfo]
+        public let audio: [VideoAudioTrack]
         /// The head of an MVC dependent-view sub-bitstream (stream_type 0x20),
         /// when the program carries one; its subset SPS reveals Stereo High.
         public let mvcSubBitstream: Data?
-    }
-
-    /// PMT stream types that carry audio, mapped to a reader for their format.
-    ///
-    /// Reference: ISO/IEC 13818-1 Table 2-34, ATSC A/52 Annex A, Blu-ray HDMV
-    private static func describeAudio(streamType: UInt8, descriptors: [UInt8], payload: Data) -> AudioStreamInfo? {
-        switch streamType {
-        case 0x03, 0x04:
-            return AudioHeaderParser.describeMPEGAudio(payload) ?? AudioStreamInfo(format: .mp3)
-        case 0x0F:
-            return AudioHeaderParser.describeADTS(payload) ?? AudioStreamInfo(format: .aac)
-        case 0x11, 0x1C:
-            return AudioStreamInfo(format: .aac)
-        case 0x80:
-            return AudioHeaderParser.describeHDMVLPCM(payload) ?? AudioStreamInfo(format: .lpcm)
-        case 0x81:
-            return AudioHeaderParser.describeAC3(payload) ?? AudioStreamInfo(format: .ac3)
-        case 0x87:
-            return AudioStreamInfo(format: .other("E-AC-3"))
-        case 0x82, 0x85, 0x86, 0x8A:
-            return AudioStreamInfo(format: .other("DTS"))
-        case 0x06:
-            // PES private data: audio only when a descriptor says so. Teletext
-            // and subtitles share this stream type and are not audio.
-            switch privateAudioKind(descriptors) {
-            case "AC-3": return AudioHeaderParser.describeAC3(payload) ?? AudioStreamInfo(format: .ac3)
-            case let name?: return AudioStreamInfo(format: name == "LPCM" ? .lpcm : .other(name))
-            case nil: return nil
-            }
-        default:
-            return nil
-        }
-    }
-
-    /// Names the audio format a stream_type 0x06 PID declares in its ES
-    /// descriptors, or nil when it is not audio.
-    private static func privateAudioKind(_ descriptors: [UInt8]) -> String? {
-        var offset = 0
-        while offset + 2 <= descriptors.count {
-            let tag = descriptors[offset]
-            let length = Int(descriptors[offset + 1])
-            let body = Array(descriptors[min(offset + 2, descriptors.count)..<min(offset + 2 + length, descriptors.count)])
-            switch tag {
-            case 0x6A: return "AC-3"
-            case 0x7A: return "E-AC-3"
-            case 0x7B: return "DTS"
-            case 0x05 where body.count >= 4:
-                switch String(bytes: body.prefix(4), encoding: .ascii) {
-                case "AC-3": return "AC-3"
-                case "EAC3": return "E-AC-3"
-                case "Opus": return "Opus"
-                case "BSSD": return "LPCM"
-                default: break
-                }
-            default: break
-            }
-            offset += 2 + length
-        }
-        return nil
     }
 
     /// Demultiplexes the first program's video PID and audio PIDs.
@@ -140,25 +87,17 @@ public enum TransportStreamScanner {
               let codec = videoStreamTypes[video.streamType]
         else { return nil }
 
-        let audioStreams = streams.filter {
-            describeAudio(streamType: $0.streamType, descriptors: $0.descriptors, payload: Data()) != nil
-        }
         let mvc = streams.first { $0.streamType == mvcSubBitstreamType }
 
         var budgets: [Int: Int] = [video.pid: Int.max]
-        for stream in audioStreams { budgets[stream.pid] = audioBudget }
         if let mvc = mvc { budgets[mvc.pid] = payloadBudget }
 
         let collected = collect(data, layout: layout, budgets: budgets, timestampPID: video.pid)
         guard let videoData = collected.payloads[video.pid], !videoData.isEmpty else { return nil }
 
-        let audio = audioStreams.compactMap { stream in
-            describeAudio(
-                streamType: stream.streamType,
-                descriptors: stream.descriptors,
-                payload: collected.payloads[stream.pid] ?? Data()
-            )
-        }
+        // Audio is described by `audioTracks(_:)`, which reads each PID's own head and walks
+        // MP3 / AAC frames for the bit rate checks of PS3.5 8.2.5 / 8.2.12.
+        let audio = audioTracks(data)
         return Demuxed(
             codec: codec,
             videoElementaryStream: videoData,
@@ -192,7 +131,6 @@ public enum TransportStreamScanner {
 
     /// How much of each audio PID to read: a few dozen frames is enough to
     /// judge a format, its rate and whether its bit rate is constant.
-    private static let audioBudget = 64 * 1024
 
     /// The leading elementary-stream bytes of the first video PID.
     ///
@@ -234,27 +172,29 @@ public enum TransportStreamScanner {
 
     // MARK: - PID Discovery
 
-    /// Finds the first video PID by reading the PAT, then the PMT it points to.
-    ///
-    /// Falls back to nil rather than guessing: encapsulating the wrong PID would
-    /// describe the object with another track's geometry.
-    private static func videoPID(_ data: Data, layout: Layout) -> (pid: Int, codec: VideoCodec)? {
-        for stream in programStreams(data, layout: layout) {
-            if let codec = videoStreamTypes[stream.streamType] { return (stream.pid, codec) }
-        }
-        return nil
-    }
-
     /// One elementary stream entry of a PMT.
-    private struct ProgramStream {
-        let pid: Int
+    private struct StreamEntry {
         let streamType: UInt8
-        /// The ES_info descriptors, raw.
-        let descriptors: [UInt8]
+        let pid: Int
+        /// The ES_info descriptors, as (tag, payload).
+        let descriptors: [(tag: UInt8, payload: [UInt8])]
+        /// The program_info descriptors of the PMT that lists it.
+        let programDescriptors: [(tag: UInt8, payload: [UInt8])]
+
+        /// format_identifier values of registration descriptors (tag 0x05,
+        /// ISO/IEC 13818-1 2.6.8) at stream or program level.
+        var registrations: Set<String> {
+            Set((descriptors + programDescriptors).compactMap { descriptor in
+                guard descriptor.tag == 0x05, descriptor.payload.count >= 4 else { return nil }
+                return String(bytes: descriptor.payload.prefix(4), encoding: .ascii)
+            })
+        }
+
+        func hasDescriptor(_ tag: UInt8) -> Bool { descriptors.contains { $0.tag == tag } }
     }
 
-    /// The elementary streams of the first program that has any.
-    private static func programStreams(_ data: Data, layout: Layout) -> [ProgramStream] {
+    /// Every elementary stream listed by the PMTs the PAT points to, in order.
+    private static func programStreams(_ data: Data, layout: Layout) -> [StreamEntry] {
         let pat = section(data, layout: layout, pid: 0x0000, tableID: 0x00)
         guard !pat.isEmpty else { return [] }
 
@@ -270,29 +210,193 @@ public enum TransportStreamScanner {
             offset += 4
         }
 
+        var entries: [StreamEntry] = []
         for pmtPID in pmtPIDs {
             let pmt = section(data, layout: layout, pid: pmtPID, tableID: 0x02)
             guard !pmt.isEmpty else { continue }
             // Skip the 12-byte header, then the program_info descriptors.
             guard pmt.count > 12 else { continue }
             let programInfoLength = ((Int(pmt[10]) & 0x0F) << 8) | Int(pmt[11])
+            let programDescriptors = descriptors(pmt, from: 12, length: programInfoLength)
             var entry = 12 + programInfoLength
-            var streams: [ProgramStream] = []
             while entry + 5 <= pmt.count - 4 {
                 let streamType = pmt[entry]
                 let pid = ((Int(pmt[entry + 1]) & 0x1F) << 8) | Int(pmt[entry + 2])
                 let esInfoLength = ((Int(pmt[entry + 3]) & 0x0F) << 8) | Int(pmt[entry + 4])
-                let descriptorEnd = min(entry + 5 + esInfoLength, pmt.count - 4)
-                streams.append(ProgramStream(
-                    pid: pid,
-                    streamType: streamType,
-                    descriptors: Array(pmt[(entry + 5)..<max(entry + 5, descriptorEnd)])
-                ))
+                entries.append(StreamEntry(
+                    streamType: streamType, pid: pid,
+                    descriptors: descriptors(pmt, from: entry + 5, length: esInfoLength),
+                    programDescriptors: programDescriptors))
                 entry += 5 + esInfoLength
             }
-            if !streams.isEmpty { return streams }
         }
-        return []
+        return entries
+    }
+
+    /// Splits a descriptor loop into (tag, payload) pairs.
+    private static func descriptors(
+        _ bytes: [UInt8], from start: Int, length: Int
+    ) -> [(tag: UInt8, payload: [UInt8])] {
+        var result: [(tag: UInt8, payload: [UInt8])] = []
+        var offset = start
+        let end = min(start + length, bytes.count)
+        while offset + 2 <= end {
+            let tag = bytes[offset]
+            let size = Int(bytes[offset + 1])
+            guard offset + 2 + size <= end else { break }
+            result.append((tag, Array(bytes[(offset + 2)..<(offset + 2 + size)])))
+            offset += 2 + size
+        }
+        return result
+    }
+
+    /// Finds the first video PID by reading the PAT, then the PMT it points to.
+    ///
+    /// Falls back to nil rather than guessing: encapsulating the wrong PID would
+    /// describe the object with another track's geometry.
+    private static func videoPID(_ data: Data, layout: Layout) -> (pid: Int, codec: VideoCodec)? {
+        for entry in programStreams(data, layout: layout) {
+            if let codec = videoStreamTypes[entry.streamType] { return (entry.pid, codec) }
+        }
+        return nil
+    }
+
+    // MARK: - Audio
+
+    /// How many bytes of each audio PID to read for its first frame header.
+    private static let audioPayloadBudget = 16 * 1024
+
+    /// How many bytes of an MP3 PID to read for the constant-bit-rate walk: enough
+    /// for ``AudioHeaderParser/maximumScannedFrames`` of the largest Layer III
+    /// frame (1,441 bytes: 320 kbit/s at 32 kHz), so the frame bound, not the byte
+    /// budget, ends the walk of a long stream; a short one is read whole.
+    private static let mp3ScanBudget = AudioHeaderParser.maximumScannedFrames * 1441 + 4
+
+    /// How many bytes of an AAC PID to read for the bit rate walk (D62): enough for
+    /// ``AudioHeaderParser/maximumScannedFrames`` of the largest ADTS frame or LOAS
+    /// element (13-bit lengths, 8,191 bytes plus a 3-byte LOAS header).
+    private static let aacScanBudget = AudioHeaderParser.maximumScannedFrames * 8194
+
+    /// The audio streams a transport stream's PMTs list, with the parameters
+    /// read from each stream's first frame where the format makes that simple.
+    ///
+    /// Identification follows the PMT stream_type (ISO/IEC 13818-1 Table 2-34):
+    /// 0x03 MPEG-1 audio and 0x04 MPEG-2 audio (layer from the frame header; for
+    /// Layer III every frame header is then walked for the CBR rule, see
+    /// ``AudioHeaderParser/scanMPEGAudioFrames(_:)``), 0x0F AAC with ADTS, 0x11
+    /// MPEG-4 audio in LATM/LOAS (ISO/IEC 14496-3 1.7; the AudioSpecificConfig of
+    /// its StreamMuxConfig, common case), 0x1C raw MPEG-4 audio (the
+    /// AudioSpecificConfig of an MPEG-4_audio_extension_descriptor, when present). Values from 0x80 are "User Private" in 13818-1
+    /// and are read as their registering systems define them: 0x81 AC-3 and 0x87
+    /// E-AC-3 (ATSC A/52 and A/53, also used by Blu-ray); and, only in a
+    /// stream carrying the "HDMV" registration descriptor (Blu-ray), 0x80 LPCM,
+    /// 0x82/0x85/0x86 DTS, 0x83 Dolby TrueHD, 0x84 E-AC-3. stream_type 0x06
+    /// (PES private data) is audio only with a DVB AC-3 (0x6A), enhanced AC-3
+    /// (0x7A), DTS (0x7B) or AAC (0x7C) descriptor (ETSI EN 300 468), or an
+    /// "AC-3", "EAC3", "Opus" or "BSSD" (SMPTE ST 302 LPCM) registration.
+    ///
+    /// - Returns: The audio tracks in PMT order; empty when there are none or the
+    ///   PAT/PMT cannot be read.
+    public static func audioTracks(_ data: Data) -> [VideoAudioTrack] {
+        guard let layout = packetLayout(data) else { return [] }
+        var seen: Set<Int> = []
+        var tracks: [VideoAudioTrack] = []
+        for entry in programStreams(data, layout: layout) where !seen.contains(entry.pid) {
+            guard let kind = audioKind(entry) else { continue }
+            seen.insert(entry.pid)
+            let tag = String(format: "stream_type 0x%02X", entry.streamType)
+            let bytes = payload(data, layout: layout, pid: entry.pid, budget: audioPayloadBudget)
+                .map { [UInt8]($0) } ?? []
+            var parsed: VideoAudioTrack?
+            switch kind {
+            case .mpegAudio:
+                parsed = AudioHeaderParser.findMPEGAudioHeader(bytes)?.track(codecTag: tag)
+                if parsed?.format == .mp3 {
+                    let stream = payload(data, layout: layout, pid: entry.pid, budget: mp3ScanBudget)
+                        .map { [UInt8]($0) } ?? []
+                    parsed = parsed?.with(bitRateScan: AudioHeaderParser.scanMPEGAudioFrames(stream))
+                }
+            case .latm:
+                parsed = AudioHeaderParser.findLATMConfig(bytes)
+                if parsed != nil {
+                    let (stream, complete) = aacStream(data, layout: layout, pid: entry.pid)
+                    parsed = parsed?.with(measuredBitRate:
+                        AudioHeaderParser.scanLATMBitRate(stream, complete: complete))
+                }
+            case .mpeg4Raw:
+                parsed = entry.descriptors.lazy.filter { $0.tag == 0x2E }
+                    .compactMap { AudioHeaderParser.mpeg4AudioExtensionDescriptor($0.payload) }.first
+            case .adts:
+                parsed = AudioHeaderParser.findADTSHeader(bytes)
+                if parsed != nil {
+                    let (stream, complete) = aacStream(data, layout: layout, pid: entry.pid)
+                    parsed = parsed?.with(measuredBitRate:
+                        AudioHeaderParser.scanADTSBitRate(stream, complete: complete))
+                }
+            case .ac3: parsed = AudioHeaderParser.findAC3Header(bytes)
+            case .hdmvLPCM: parsed = AudioHeaderParser.hdmvLPCM(bytes)
+            case .smpte302: parsed = AudioHeaderParser.smpte302(bytes)
+            case let .named(format):
+                parsed = VideoAudioTrack(format: format, codecTag: tag)
+            }
+            let fallback = VideoAudioTrack(format: kind.format, codecTag: tag)
+            tracks.append((parsed ?? fallback).with(codecTag: tag, pid: entry.pid))
+        }
+        return tracks
+    }
+
+    /// An AAC PID's elementary stream for the bit rate walk, and whether it was read
+    /// whole (the budget was not reached).
+    private static func aacStream(_ data: Data, layout: Layout, pid: Int) -> ([UInt8], Bool) {
+        let stream = payload(data, layout: layout, pid: pid, budget: aacScanBudget).map { [UInt8]($0) } ?? []
+        return (stream, stream.count < aacScanBudget)
+    }
+
+    /// How an audio stream is identified and read.
+    private enum AudioKind {
+        case mpegAudio, adts, ac3, hdmvLPCM, smpte302, latm, mpeg4Raw
+        /// Identified, but its header is not read (or it is not identifiable:
+        /// a nil format).
+        case named(VideoAudioTrack.Format?)
+
+        /// The format known from the PMT alone.
+        var format: VideoAudioTrack.Format? {
+            switch self {
+            case .mpegAudio: return nil  // Layer I, II or III: only the frame says
+            case .latm, .mpeg4Raw: return nil  // any MPEG-4 audio object type
+            case .adts: return .aac
+            case .ac3: return .ac3
+            case .hdmvLPCM, .smpte302: return .lpcm
+            case let .named(format): return format
+            }
+        }
+    }
+
+    /// The audio kind a PMT entry declares, or nil when it is not audio.
+    private static func audioKind(_ entry: StreamEntry) -> AudioKind? {
+        let registrations = entry.registrations
+        let isHDMV = registrations.contains("HDMV")
+        switch entry.streamType {
+        case 0x03, 0x04: return .mpegAudio
+        case 0x0F: return .adts
+        case 0x11: return .latm
+        case 0x1C: return .mpeg4Raw
+        case 0x81: return .ac3
+        case 0x87: return .named(.eac3)
+        case 0x80 where isHDMV: return .hdmvLPCM
+        case 0x82 where isHDMV, 0x85 where isHDMV, 0x86 where isHDMV: return .named(.dts)
+        case 0x83 where isHDMV: return .named(.trueHD)
+        case 0x84 where isHDMV: return .named(.eac3)
+        case 0x06:
+            if entry.hasDescriptor(0x6A) || registrations.contains("AC-3") { return .ac3 }
+            if entry.hasDescriptor(0x7A) || registrations.contains("EAC3") { return .named(.eac3) }
+            if entry.hasDescriptor(0x7B) { return .named(.dts) }
+            if entry.hasDescriptor(0x7C) { return .adts }
+            if registrations.contains("Opus") { return .named(.opus) }
+            if registrations.contains("BSSD") { return .smpte302 }
+            return nil
+        default: return nil
+        }
     }
 
     /// Reassembles one PSI section carrying the given table ID.
@@ -405,7 +509,9 @@ public enum TransportStreamScanner {
     }
 
     /// Concatenates the PES payloads of one PID, up to the byte budget.
-    private static func payload(_ data: Data, layout: Layout, pid targetPID: Int) -> Data? {
+    private static func payload(
+        _ data: Data, layout: Layout, pid targetPID: Int, budget: Int = payloadBudget
+    ) -> Data? {
         var payload = Data()
 
         forEachPacket(data, layout: layout) { packet in
@@ -429,7 +535,7 @@ public enum TransportStreamScanner {
             }
 
             payload.append(contentsOf: bytes)
-            return payload.count < payloadBudget
+            return payload.count < budget
         }
 
         return payload.isEmpty ? nil : payload

@@ -1,6 +1,8 @@
 // SecurityView.swift
 // DICOMStudio
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (UI state and layout; the profile picker shows AnonymizationProfile display names and `--profile <cliFlag>`, verified in SecurityModel.swift; no PS3.15 Annex E profile name or CID 7050 code is displayed)
+// NEMA-verified: 2026a, checked 2026-10-06 — the profile picker offers AnonymizationProfile.builderProfiles, PS3.15 Basic Application Level Confidentiality Profile first (default; P-STUDIO-ANON-PS315), the legacy lists labelled "not PS3.15"; the E.3 Option toggles show StudioAnonPS315.securityPanelOptions, whose 10 names are compared by script with PS3.15 2026a E.3.3–E.3.11
 // DICOM Studio — Security and privacy center view
 
 #if canImport(SwiftUI)
@@ -223,6 +225,9 @@ public struct SecurityView: View {
             VStack(alignment: .leading, spacing: 14) {
                 anonInputSection
                 anonProfileSection
+                if viewModel.anonProfile.isPS315 {
+                    anonPS315OptionsSection
+                }
                 anonOptionsSection
                 anonTagsSection
                 anonRunSection
@@ -283,7 +288,7 @@ public struct SecurityView: View {
                         .foregroundStyle(.secondary)
                 }
                 Picker("Profile", selection: $viewModel.anonProfile) {
-                    ForEach([AnonymizationProfile.basic, .clinicalTrial, .research], id: \.self) { p in
+                    ForEach(AnonymizationProfile.builderProfiles, id: \.self) { p in
                         Text(p.displayName).tag(p)
                     }
                 }
@@ -293,6 +298,37 @@ public struct SecurityView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// PS3.15 2026a E.3 Options for the Basic Profile (dicom-anon's `--retain-*` / `--clean-*`).
+    private var anonPS315OptionsSection: some View {
+        GroupBox {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("PS3.15 Annex E Options (E.3)")
+                    .font(.subheadline.bold())
+                ForEach(StudioAnonPS315.securityPanelOptions, id: \.flag) { option in
+                    Toggle(isOn: Binding(
+                        get: { viewModel.anonPS315Flags[keyPath: option.keyPath] },
+                        set: { viewModel.anonPS315Flags[keyPath: option.keyPath] = $0 })) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("\(option.flag)  \(option.name)")
+                                .font(.caption)
+                            Text("PS3.15 \(option.section)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityLabel(option.name)
+                }
+                Text("Modified Dates needs --shift-dates. Clean Pixel Data (E.3.1) and Clean Recognizable Visual Features (E.3.2) are in the CLI Workshop's dicom-anon form.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Divider()
+                Toggle("--allow-burned-in-phi  Write files whose pixels may still carry PHI", isOn: $viewModel.anonAllowBurnedInPHI)
+                    .accessibilityLabel("Allow burned-in PHI")
             }
         }
     }
@@ -827,7 +863,7 @@ struct NewAnonymizationJobSheet: View {
                 Section("Profile") {
                     Picker("Anonymization Profile", selection: $viewModel.selectedProfile) {
                         ForEach(AnonymizationProfile.allCases, id: \.self) { profile in
-                            Text(profile.rawValue).tag(profile)
+                            Text(profile.displayName).tag(profile)
                         }
                     }
                     .accessibilityLabel("Anonymization profile")

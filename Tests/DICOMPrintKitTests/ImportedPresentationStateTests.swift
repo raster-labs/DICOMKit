@@ -121,14 +121,8 @@ final class ImportedPresentationStateTests: XCTestCase {
                 studyInstanceUID: studyInstanceUID ?? studyUID),
             seriesInstanceUID: "1.2.3.4.5.99",
             seriesNumber: 99)
-        // The builder does not write these modules; the fixture states them
-        // the way the standard spells them (C.7.6.11, C.11.1).
-        dataSet.setString("RECTANGULAR", for: .shutterShape, vr: .CS)
-        dataSet.setString("50", for: .shutterLeftVerticalEdge, vr: .IS)
-        dataSet.setString("462", for: .shutterRightVerticalEdge, vr: .IS)
-        dataSet.setString("50", for: .shutterUpperHorizontalEdge, vr: .IS)
-        dataSet.setString("462", for: .shutterLowerHorizontalEdge, vr: .IS)
-        dataSet.setString("0", for: .shutterPresentationValue, vr: .US)
+        // The builder writes the Display Shutter module from the state (C.7.6.11);
+        // the Modality LUT the fixture states the way the standard spells it (C.11.1).
         dataSet.setString("2", for: .rescaleSlope, vr: .DS)
         dataSet.setString("-1000", for: .rescaleIntercept, vr: .DS)
         dataSet.setString(sopClassUID, for: .sopClassUID, vr: .UI)
@@ -275,7 +269,10 @@ final class ImportedPresentationStateTests: XCTestCase {
         XCTAssertEqual(ruler.points[0].x, 100.0 / 512, accuracy: 1e-9)
         XCTAssertEqual(ruler.points[0].y, 100.0 / 512, accuracy: 1e-9)
         XCTAssertEqual(ruler.points[1].x, 300.0 / 512, accuracy: 1e-9)
-        XCTAssertEqual(ruler.color, PrintOverlayColor(red: 0, green: 1, blue: 0))
+        // The layer colour travels as CIELab (0070,0401), a 16-bit encoding (C.10.7.1.1)
+        XCTAssertEqual(ruler.color.red, 0, accuracy: 0.01)
+        XCTAssertEqual(ruler.color.green, 1, accuracy: 0.01)
+        XCTAssertEqual(ruler.color.blue, 0, accuracy: 0.01)
         XCTAssertTrue(ruler.isLocked)
 
         let label = try XCTUnwrap(onA.first { $0.kind == .text })
@@ -304,7 +301,9 @@ final class ImportedPresentationStateTests: XCTestCase {
             stored.annotationsByFrame(forImage: imageA)[0]?.first { $0.kind == .shutter })
 
         XCTAssertEqual(shutter.points.count, 2)
-        XCTAssertEqual(shutter.points[0].x, 50.0 / 512, accuracy: 1e-9)
+        // Left edge 50 is a 1-based pixel position (PS3.3 Table C.7-17a) and
+        // pixel 50 is open, so the open region starts at its left edge, 49.
+        XCTAssertEqual(shutter.points[0].x, 49.0 / 512, accuracy: 1e-9)
         XCTAssertEqual(shutter.points[1].x, 462.0 / 512, accuracy: 1e-9)
         XCTAssertEqual(shutter.color, PrintOverlayColor(red: 0, green: 0, blue: 0))
     }

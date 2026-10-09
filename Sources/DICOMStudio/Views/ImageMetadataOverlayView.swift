@@ -36,10 +36,12 @@ public struct ImageMetadataOverlayView: View {
                 label: "Photometric",
                 value: viewModel.photometricLabel
             )
+            // The row shows the short label; the PS3.6 Table A-1 name is the tooltip.
             metadataRow(
                 label: "Transfer Syntax",
                 value: viewModel.transferSyntaxLabel
             )
+            .help(ImageMetadataHelpers.transferSyntaxStandardName(for: viewModel.transferSyntaxUID))
             metadataRow(
                 label: "Samples/Pixel",
                 value: ImageMetadataHelpers.samplesText(

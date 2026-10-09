@@ -1,3 +1,6 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — content tree rows (relationship, value type, concept name, nesting) per PS3.16 2026a Tables TID 1500, TID 1204, TID 1600/1601/1602, TID 1501, TID 1502 and TID 300; TID 1204 row 2 and TID 1501 row 7 nested in the parent CODE's Content Sequence per PS3.3 Table C.17-6 (D31); CID 7021 titles (126000-126003) per Table CID 7021; concept meanings per Table D-1.
+// NEMA-verified: 2026a, checked 2026-09-30 — P-MGC: TID 1501 rows 6-8 (row 8 Topographical modifier nested under the Finding Site), rows 10c/10d (SCOORD with its SELECTED FROM IMAGE child) and rows 11/11b; TID 300 rows 1/1b → TID 301 rows 2-7 and 13 → TID 320 rows 1, 3, 4 and 6 nested under the NUM; row, relationship, value type, concept name, VM and requirement compared by script against the PS3.16 2026a DocBook tables. TID 301 rows 8-12 and 14-19, TID 320 rows 2 and 5 (by-reference) and TID 1501 rows 3a, 5, 9-9d, 10f-10h are not written.
+// NEMA-verified: 2026a, checked 2026-10-01 — D199: root Content Template Sequence (DCMR, 1500) per PS3.3 2026a Table C.18.8-1; TID 1500 rows 3 (→ TID 1001 row 1 → TID 1002 rows 1-3 → TID 1003 rows 1-2 / TID 1004 rows 1-5), 6b and 12b and TID 1501 row 9b (→ TID 4019 rows 1, 2, 2b, 3, 4), row 6 MC "IF Row 10 and Row 12 are absent"; 14 concept meanings compared with PS3.16 2026a Table D-1; Patient's Birth Date / Sex and Referring Physician's Name passed to SRDocument (D198)
 /// TID 1500 Measurement Report Builder
 ///
 /// Provides a specialized fluent API for creating DICOM TID 1500 Measurement Report
@@ -147,6 +150,20 @@ public struct MeasurementReportBuilder: Sendable {
     
     /// Qualitative evaluations
     public private(set) var qualitativeEvaluations: [CodedConcept] = []
+    
+    /// Concept name of each entry in `qualitativeEvaluations`, by index.
+    public private(set) var qualitativeEvaluationConceptNames: [CodedConcept] = []
+
+    // MARK: - Observation Context and Algorithm Identification
+
+    /// TID 1500 row 3 → TID 1001 row 1 → TID 1002: the observers, in order
+    public private(set) var observers: [MeasurementReportObserver] = []
+
+    /// TID 1500 row 6b → TID 4019, under the Imaging Measurements container
+    public private(set) var imagingMeasurementsAlgorithm: CADAlgorithmIdentification?
+
+    /// TID 1500 row 12b → TID 4019, under the Qualitative Evaluations container
+    public private(set) var qualitativeEvaluationsAlgorithm: CADAlgorithmIdentification?
     
     // MARK: - Initialization
     
@@ -438,6 +455,8 @@ public struct MeasurementReportBuilder: Sendable {
     public func addMeasurementGroup(
         trackingIdentifier: String,
         trackingUID: String? = nil,
+        finding: CodedConcept? = nil,
+        findingSite: CodedConcept? = nil,
         @MeasurementGroupContentBuilder builder: () -> [MeasurementGroupContent]
     ) -> MeasurementReportBuilder {
         var copy = self
@@ -445,6 +464,8 @@ public struct MeasurementReportBuilder: Sendable {
         let group = MeasurementGroupData(
             trackingIdentifier: trackingIdentifier,
             trackingUID: trackingUID ?? UIDGenerator.generateUID().value,
+            finding: finding,
+            findingSite: findingSite,
             contents: contents
         )
         copy.measurementGroups.append(group)
@@ -472,11 +493,47 @@ public struct MeasurementReportBuilder: Sendable {
         value: CodedConcept
     ) -> MeasurementReportBuilder {
         var copy = self
-        // Store as a pair encoded in the evaluations array
         copy.qualitativeEvaluations.append(value)
+        copy.qualitativeEvaluationConceptNames.append(conceptName)
         return copy
     }
     
+    // MARK: - Observation Context (TID 1001) and Algorithm Identification (TID 4019)
+
+    /// Adds an observer: TID 1500 row 3 (HAS OBS CONTEXT, INCLUDE TID 1001) → TID 1001 row 1
+    /// → TID 1002 (rows 1-3 → TID 1003 Person or TID 1004 Device). Observers are written in
+    /// the order they are added, after TID 1204 and before Procedure reported (row 4).
+    /// - Parameter observer: A person or a device observer
+    /// - Returns: Updated builder
+    public func addObserver(_ observer: MeasurementReportObserver) -> MeasurementReportBuilder {
+        var copy = self
+        copy.observers.append(observer)
+        return copy
+    }
+
+    /// Sets TID 1500 row 6b: HAS CONCEPT MOD, INCLUDE TID 4019 (Algorithm Identification)
+    /// under the Imaging Measurements container. Row 6 is then written even with no
+    /// Measurement Group when the report has no Qualitative Evaluations (row 6 is MC "IF Row
+    /// 10 and Row 12 are absent").
+    /// - Parameter algorithm: TID 4019 rows 1 (Algorithm Name), 2 (Algorithm Version), 2b,
+    ///   3 and 4
+    /// - Returns: Updated builder
+    public func withAlgorithmIdentification(_ algorithm: CADAlgorithmIdentification) -> MeasurementReportBuilder {
+        var copy = self
+        copy.imagingMeasurementsAlgorithm = algorithm
+        return copy
+    }
+
+    /// Sets TID 1500 row 12b: HAS CONCEPT MOD, INCLUDE TID 4019 under the Qualitative
+    /// Evaluations container (written only when there are qualitative evaluations)
+    /// - Parameter algorithm: The algorithm that produced the qualitative evaluations
+    /// - Returns: Updated builder
+    public func withQualitativeEvaluationsAlgorithmIdentification(_ algorithm: CADAlgorithmIdentification) -> MeasurementReportBuilder {
+        var copy = self
+        copy.qualitativeEvaluationsAlgorithm = algorithm
+        return copy
+    }
+
     // MARK: - Build
     
     /// Builds the TID 1500 Measurement Report document
@@ -496,93 +553,82 @@ public struct MeasurementReportBuilder: Sendable {
         // Build content tree according to TID 1500 structure
         var rootContentItems: [AnyContentItem] = []
         
-        // Add Language of Content (Row 2 of TID 1500)
+        // TID 1500 row 2: HAS CONCEPT MOD, INCLUDE TID 1204.
+        // TID 1204 row 1: HAS CONCEPT MOD CODE (121049, DCM, "Language of Content Item and
+        // Descendants").
         if let language = languageOfContent {
-            rootContentItems.append(AnyContentItem(CodeContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "121049",
-                    codingSchemeDesignator: "DCM",
-                    codeMeaning: "Language of Content Item and Descendants"
-                ),
-                conceptCode: language,
-                relationshipType: .hasConceptMod
-            )))
-            
+            // TID 1204 row 2: ">" HAS CONCEPT MOD CODE (121046, DCM, "Country of Language"),
+            // a child of the language CODE item, in its Content Sequence (PS3.3 Table C.17-6).
+            // Until 2026-09-29 (D31) it was written as the next root-level item;
+            // `MeasurementReport` reads both placements.
+            var languageChildren: [AnyContentItem] = []
             if let country = countryOfLanguage {
-                rootContentItems.append(AnyContentItem(CodeContentItem(
-                    conceptName: CodedConcept(
-                        codeValue: "121046",
-                        codingSchemeDesignator: "DCM",
-                        codeMeaning: "Country of Language"
-                    ),
+                languageChildren.append(AnyContentItem(CodeContentItem(
+                    conceptName: CodedConcept.countryOfLanguage,
                     conceptCode: country,
                     relationshipType: .hasConceptMod
                 )))
             }
+            rootContentItems.append(AnyContentItem(CodeContentItem(
+                conceptName: CodedConcept.languageOfContentItemAndDescendants,
+                conceptCode: language,
+                relationshipType: .hasConceptMod,
+                contentItems: languageChildren
+            )))
         }
-        
-        // Add Procedure Reported (Row 4 of TID 1500)
+
+        // TID 1500 row 3: HAS OBS CONTEXT, INCLUDE TID 1001 → row 1 → TID 1002 per observer
+        for observer in observers {
+            rootContentItems.append(contentsOf: observer.observerContextItems())
+        }
+
+        // TID 1500 row 4: HAS CONCEPT MOD CODE (121058, DCM, "Procedure reported"), 1-n
         for procedure in proceduresReported {
             rootContentItems.append(AnyContentItem(CodeContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "121058",
-                    codingSchemeDesignator: "DCM",
-                    codeMeaning: "Procedure Reported"
-                ),
+                conceptName: Self.procedureReportedConcept,
                 conceptCode: procedure,
                 relationshipType: .hasConceptMod
             )))
         }
-        
-        // Add Image Library (Row 5 of TID 1500)
+
+        // TID 1500 row 5: CONTAINS, INCLUDE TID 1600 (Image Library)
         if !imageLibraryEntries.isEmpty {
-            let imageLibraryItems = buildImageLibraryItems()
-            let imageLibraryContainer = ContainerContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "111028",
-                    codingSchemeDesignator: "DCM",
-                    codeMeaning: "Image Library"
-                ),
-                continuityOfContent: .separate,
-                contentItems: imageLibraryItems,
-                relationshipType: .contains
-            )
-            rootContentItems.append(AnyContentItem(imageLibraryContainer))
+            rootContentItems.append(AnyContentItem(buildImageLibrary()))
         }
-        
-        // Add Imaging Measurements container (Row 6 of TID 1500)
-        if !measurementGroups.isEmpty {
+
+        // TID 1500 row 6: CONTAINS CONTAINER (126010, DCM, "Imaging Measurements");
+        // row 6b: ">>" HAS CONCEPT MOD, INCLUDE TID 4019; row 9: ">>" CONTAINS, INCLUDE
+        // TID 1501, 1-n. With an algorithm and no Qualitative Evaluations the container is
+        // written without groups, as row 6 is MC "IF Row 10 and Row 12 are absent".
+        if !measurementGroups.isEmpty || (imagingMeasurementsAlgorithm != nil && qualitativeEvaluations.isEmpty) {
+            let algorithmItems = imagingMeasurementsAlgorithm.map { Self.algorithmIdentificationItems($0) } ?? []
             let measurementGroupItems = buildMeasurementGroupItems()
             let imagingMeasurementsContainer = ContainerContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "126010",
-                    codingSchemeDesignator: "DCM",
-                    codeMeaning: "Imaging Measurements"
-                ),
+                conceptName: Self.imagingMeasurementsConcept,
                 continuityOfContent: .separate,
-                contentItems: measurementGroupItems,
+                contentItems: algorithmItems + measurementGroupItems,
                 relationshipType: .contains
             )
             rootContentItems.append(AnyContentItem(imagingMeasurementsContainer))
         }
-        
-        // Add Qualitative Evaluations container (Row 9 of TID 1500)
+
+        // TID 1500 row 12: CONTAINS CONTAINER (C0034375, UMLS, "Qualitative Evaluations");
+        // row 13: ">>" CONTAINS CODE, 1-n
         if !qualitativeEvaluations.isEmpty {
-            let evaluationItems = qualitativeEvaluations.map { evaluation in
+            let evaluationItems = qualitativeEvaluations.enumerated().map { index, evaluation in
                 AnyContentItem(CodeContentItem(
-                    conceptName: nil,
+                    conceptName: index < qualitativeEvaluationConceptNames.count
+                        ? qualitativeEvaluationConceptNames[index] : nil,
                     conceptCode: evaluation,
                     relationshipType: .contains
                 ))
             }
+            // Row 12b: ">>" HAS CONCEPT MOD, INCLUDE TID 4019
+            let algorithmItems = qualitativeEvaluationsAlgorithm.map { Self.algorithmIdentificationItems($0) } ?? []
             let evaluationsContainer = ContainerContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "C0034375",
-                    codingSchemeDesignator: "UMLS",
-                    codeMeaning: "Qualitative Evaluations"
-                ),
+                conceptName: Self.qualitativeEvaluationsConcept,
                 continuityOfContent: .separate,
-                contentItems: evaluationItems,
+                contentItems: algorithmItems + evaluationItems,
                 relationshipType: .contains
             )
             rootContentItems.append(AnyContentItem(evaluationsContainer))
@@ -591,11 +637,16 @@ public struct MeasurementReportBuilder: Sendable {
         // Determine document title (default to Imaging Measurement Report)
         let finalDocumentTitle = documentTitle ?? MeasurementReportDocumentTitle.imagingMeasurementReport
         
-        // Create the root container
+        // Create the root container (TID 1500 row 1). Content Template Sequence (0040,A504)
+        // with Mapping Resource DCMR and Template Identifier 1500: Type 1C, required when the
+        // content was built from a template (PS3.3 2026a Table C.18.8-1); written since
+        // 2026-10-01 (D199)
         let rootContent = ContainerContentItem(
             conceptName: finalDocumentTitle,
             continuityOfContent: .separate,
-            contentItems: rootContentItems
+            contentItems: rootContentItems,
+            templateIdentifier: Self.templateIdentifier,
+            mappingResource: "DCMR"
         )
         
         return SRDocument(
@@ -617,174 +668,283 @@ public struct MeasurementReportBuilder: Sendable {
             verificationFlag: verificationFlag,
             preliminaryFlag: preliminaryFlag,
             documentTitle: finalDocumentTitle,
-            rootContent: rootContent
+            rootContent: rootContent,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName
         )
     }
     
     // MARK: - Build Helpers
-    
-    /// Builds the image library content items
-    private func buildImageLibraryItems() -> [AnyContentItem] {
-        imageLibraryEntries.flatMap { entry -> [AnyContentItem] in
-            var items: [AnyContentItem] = []
-            
-            let imageRef = ImageReference(
-                sopClassUID: entry.sopClassUID,
-                sopInstanceUID: entry.sopInstanceUID,
-                frameNumbers: entry.frameNumbers
-            )
-            
-            items.append(AnyContentItem(ImageContentItem(
-                conceptName: nil,
-                imageReference: imageRef,
-                relationshipType: .contains
-            )))
-            
-            // Add acquisition context as sibling items (not nested)
-            if let modality = entry.modality {
-                items.append(AnyContentItem(CodeContentItem(
-                    conceptName: CodedConcept(
-                        codeValue: "121139",
-                        codingSchemeDesignator: "DCM",
-                        codeMeaning: "Modality"
-                    ),
-                    conceptCode: modality,
-                    relationshipType: .hasAcqContext
-                )))
-            }
-            
-            if let targetRegion = entry.targetRegion {
-                items.append(AnyContentItem(CodeContentItem(
-                    conceptName: CodedConcept(
-                        codeValue: "123014",
-                        codingSchemeDesignator: "DCM",
-                        codeMeaning: "Target Region"
-                    ),
-                    conceptCode: targetRegion,
-                    relationshipType: .hasAcqContext
-                )))
-            }
-            
-            if let laterality = entry.laterality {
-                items.append(AnyContentItem(CodeContentItem(
-                    conceptName: CodedConcept(
-                        codeValue: "111027",
-                        codingSchemeDesignator: "DCM",
-                        codeMeaning: "Image Laterality"
-                    ),
-                    conceptCode: laterality,
-                    relationshipType: .hasAcqContext
-                )))
-            }
-            
-            return items
+
+    /// Template Identifier (0040,DB00) of the root: TID 1500
+    public static let templateIdentifier = "1500"
+
+    /// TID 4019 rows 1 (TEXT Algorithm Name, M), 2 (TEXT Algorithm Version, M), 2b (TEXT
+    /// Algorithm Manufacturer), 3 (TEXT Algorithm Parameters, 1-n) and 4 (CODE Algorithm
+    /// Family), with the HAS CONCEPT MOD relationship of TID 1500 rows 6b, 10b and 12b and
+    /// TID 1501 row 9b. Concepts per PS3.16 2026a TID 4019 / Table D-1.
+    static func algorithmIdentificationItems(_ algorithm: CADAlgorithmIdentification) -> [AnyContentItem] {
+        func dcm(_ value: String, _ meaning: String) -> CodedConcept {
+            CodedConcept(codeValue: value, codingSchemeDesignator: "DCM", codeMeaning: meaning)
         }
+        var items: [AnyContentItem] = [
+            AnyContentItem(TextContentItem(conceptName: dcm("111001", "Algorithm Name"), textValue: algorithm.name, relationshipType: .hasConceptMod)),
+            AnyContentItem(TextContentItem(conceptName: dcm("111003", "Algorithm Version"), textValue: algorithm.version, relationshipType: .hasConceptMod)),
+        ]
+        if let manufacturer = algorithm.manufacturer {
+            items.append(AnyContentItem(TextContentItem(conceptName: dcm("122405", "Algorithm Manufacturer"), textValue: manufacturer, relationshipType: .hasConceptMod)))
+        }
+        for parameter in algorithm.parameters {
+            items.append(AnyContentItem(TextContentItem(conceptName: dcm("111002", "Algorithm Parameters"), textValue: parameter, relationshipType: .hasConceptMod)))
+        }
+        if let family = algorithm.family {
+            items.append(AnyContentItem(CodeContentItem(conceptName: dcm("111000", "Algorithm Family"), conceptCode: family, relationshipType: .hasConceptMod)))
+        }
+        return items
     }
     
-    /// Builds the measurement group content items
+    // MARK: Concept names (PS3.16 2026a Table D-1 meanings)
+
+    /// (121058, DCM, "Procedure reported") — TID 1500 row 4
+    static let procedureReportedConcept = CodedConcept(
+        codeValue: "121058", codingSchemeDesignator: "DCM", codeMeaning: "Procedure reported")
+    /// (111028, DCM, "Image Library") — TID 1600 row 1
+    static let imageLibraryConcept = CodedConcept(
+        codeValue: "111028", codingSchemeDesignator: "DCM", codeMeaning: "Image Library")
+    /// (126200, DCM, "Image Library Group") — TID 1600 row 2
+    static let imageLibraryGroupConcept = CodedConcept(
+        codeValue: "126200", codingSchemeDesignator: "DCM", codeMeaning: "Image Library Group")
+    /// (121139, DCM, "Modality") — TID 1602 row 1
+    static let modalityConcept = CodedConcept(
+        codeValue: "121139", codingSchemeDesignator: "DCM", codeMeaning: "Modality")
+    /// (123014, DCM, "Target Region") — TID 1602 row 2
+    static let targetRegionConcept = CodedConcept(
+        codeValue: "123014", codingSchemeDesignator: "DCM", codeMeaning: "Target Region")
+    /// (111027, DCM, "Image Laterality") — TID 1602 row 3
+    static let imageLateralityConcept = CodedConcept(
+        codeValue: "111027", codingSchemeDesignator: "DCM", codeMeaning: "Image Laterality")
+    /// (126010, DCM, "Imaging Measurements") — TID 1500 row 6
+    static let imagingMeasurementsConcept = CodedConcept(
+        codeValue: "126010", codingSchemeDesignator: "DCM", codeMeaning: "Imaging Measurements")
+    /// (C0034375, UMLS, "Qualitative Evaluations") — TID 1500 row 12
+    static let qualitativeEvaluationsConcept = CodedConcept(
+        codeValue: "C0034375", codingSchemeDesignator: "UMLS", codeMeaning: "Qualitative Evaluations")
+    /// (125007, DCM, "Measurement Group") — TID 1501 row 1
+    static let measurementGroupConcept = CodedConcept(
+        codeValue: "125007", codingSchemeDesignator: "DCM", codeMeaning: "Measurement Group")
+    /// (C67447, NCIt, "Activity Session") — TID 1501 row 1b
+    static let activitySessionConcept = CodedConcept(
+        codeValue: "C67447", codingSchemeDesignator: "NCIt", codeMeaning: "Activity Session")
+    /// (112039, DCM, "Tracking Identifier") — TID 1501 row 2
+    static let trackingIdentifierConcept = CodedConcept(
+        codeValue: "112039", codingSchemeDesignator: "DCM", codeMeaning: "Tracking Identifier")
+    /// (112040, DCM, "Tracking Unique Identifier") — TID 1501 row 3
+    static let trackingUniqueIdentifierConcept = CodedConcept(
+        codeValue: "112040", codingSchemeDesignator: "DCM", codeMeaning: "Tracking Unique Identifier")
+    /// (121071, DCM, "Finding") — TID 1501 row 3b
+    static let findingConcept = CodedConcept(
+        codeValue: "121071", codingSchemeDesignator: "DCM", codeMeaning: "Finding")
+    /// (C2348792, UMLS, "Time Point") — TID 1502 row 3 (TID 1501 row 4)
+    static let timePointConcept = CodedConcept(
+        codeValue: "C2348792", codingSchemeDesignator: "UMLS", codeMeaning: "Time Point")
+    /// (363698007, SCT, "Finding Site") — TID 1501 row 6
+    static let findingSiteConcept = CodedConcept(
+        codeValue: "363698007", codingSchemeDesignator: "SCT", codeMeaning: "Finding Site")
+    /// (272741003, SCT, "Laterality") — TID 1501 row 7
+    static let lateralityConcept = CodedConcept(
+        codeValue: "272741003", codingSchemeDesignator: "SCT", codeMeaning: "Laterality")
+    /// DT (106233006, SCT, "Topographical modifier") — TID 1501 row 8, TID 301 row 7
+    static let topographicalModifierConcept = CodedConcept(
+        codeValue: "106233006", codingSchemeDesignator: "SCT", codeMeaning: "Topographical modifier")
+    /// (370129005, SCT, "Measurement Method") — TID 301 row 3
+    static let measurementMethodConcept = CodedConcept(
+        codeValue: "370129005", codingSchemeDesignator: "SCT", codeMeaning: "Measurement Method")
+    /// (121401, DCM, "Derivation") — TID 301 row 4
+    static let derivationConcept = CodedConcept(
+        codeValue: "121401", codingSchemeDesignator: "DCM", codeMeaning: "Derivation")
+
+    /// A Finding Site CODE with its Laterality and Topographical modifier children: TID 1501
+    /// rows 6-8 and TID 301 rows 5-7 have the same shape (HAS CONCEPT MOD CODE (363698007,
+    /// SCT); ">" HAS CONCEPT MOD CODE (272741003, SCT), VM 1; ">" HAS CONCEPT MOD CODE DT
+    /// (106233006, SCT), VM 1). The children go in the site's Content Sequence (PS3.3 Table
+    /// C.17-6).
+    static func findingSiteItem(
+        _ site: CodedConcept,
+        laterality: CodedConcept?,
+        topographicalModifier: CodedConcept?
+    ) -> AnyContentItem {
+        var children: [AnyContentItem] = []
+        if let laterality {
+            children.append(AnyContentItem(CodeContentItem(
+                conceptName: lateralityConcept, conceptCode: laterality, relationshipType: .hasConceptMod)))
+        }
+        if let topographicalModifier {
+            children.append(AnyContentItem(CodeContentItem(
+                conceptName: topographicalModifierConcept, conceptCode: topographicalModifier,
+                relationshipType: .hasConceptMod)))
+        }
+        return AnyContentItem(CodeContentItem(
+            conceptName: findingSiteConcept,
+            conceptCode: site,
+            relationshipType: .hasConceptMod,
+            contentItems: children
+        ))
+    }
+
+    /// Builds the Image Library (PS3.16 TID 1600):
+    /// - row 1: CONTAINER (111028, DCM, "Image Library"), CONTAINS under the root;
+    /// - row 2: ">" CONTAINS CONTAINER (126200, DCM, "Image Library Group"), 1-n;
+    /// - row 3: ">>" HAS ACQ CONTEXT, INCLUDE TID 1602 (the descriptors shared by the group);
+    /// - row 4: ">>" CONTAINS, INCLUDE TID 1601 (row 1: IMAGE), 1-n.
+    ///
+    /// Entries that share the same Modality / Target Region / Image Laterality are placed
+    /// in one group and the descriptors are written once at group level (TID 1600 row 3),
+    /// so TID 1601 row 2 (the same descriptors as HAS ACQ CONTEXT children of each IMAGE,
+    /// U) is not used.
+    private func buildImageLibrary() -> ContainerContentItem {
+        struct Descriptors: Hashable {
+            let modality: CodedConcept?
+            let targetRegion: CodedConcept?
+            let laterality: CodedConcept?
+        }
+
+        var order: [Descriptors] = []
+        var members: [Descriptors: [ImageLibraryEntry]] = [:]
+        for entry in imageLibraryEntries {
+            let key = Descriptors(modality: entry.modality, targetRegion: entry.targetRegion, laterality: entry.laterality)
+            if members[key] == nil { order.append(key) }
+            members[key, default: []].append(entry)
+        }
+
+        let groups: [AnyContentItem] = order.map { key in
+            var groupItems: [AnyContentItem] = []
+
+            // TID 1600 row 3 → TID 1602 rows 1-3: HAS ACQ CONTEXT CODE
+            if let modality = key.modality {
+                groupItems.append(AnyContentItem(CodeContentItem(
+                    conceptName: Self.modalityConcept, conceptCode: modality, relationshipType: .hasAcqContext)))
+            }
+            if let targetRegion = key.targetRegion {
+                groupItems.append(AnyContentItem(CodeContentItem(
+                    conceptName: Self.targetRegionConcept, conceptCode: targetRegion, relationshipType: .hasAcqContext)))
+            }
+            if let laterality = key.laterality {
+                groupItems.append(AnyContentItem(CodeContentItem(
+                    conceptName: Self.imageLateralityConcept, conceptCode: laterality, relationshipType: .hasAcqContext)))
+            }
+
+            // TID 1600 row 4 → TID 1601 row 1: CONTAINS IMAGE (no concept name)
+            for entry in members[key] ?? [] {
+                groupItems.append(AnyContentItem(ImageContentItem(
+                    conceptName: nil,
+                    imageReference: ImageReference(
+                        sopClassUID: entry.sopClassUID,
+                        sopInstanceUID: entry.sopInstanceUID,
+                        frameNumbers: entry.frameNumbers
+                    ),
+                    relationshipType: .contains
+                )))
+            }
+
+            return AnyContentItem(ContainerContentItem(
+                conceptName: Self.imageLibraryGroupConcept,
+                continuityOfContent: .separate,
+                contentItems: groupItems,
+                relationshipType: .contains
+            ))
+        }
+
+        return ContainerContentItem(
+            conceptName: Self.imageLibraryConcept,
+            continuityOfContent: .separate,
+            contentItems: groups,
+            relationshipType: .contains
+        )
+    }
+
+    /// Builds the Measurement Group containers (PS3.16 TID 1501, included by TID 1500 row 9
+    /// with CONTAINS). Rows are written in template order:
+    /// - 1: CONTAINER (125007, DCM, "Measurement Group");
+    /// - 1b: HAS OBS CONTEXT TEXT (C67447, NCIt, "Activity Session");
+    /// - 2: HAS OBS CONTEXT TEXT (112039, DCM, "Tracking Identifier");
+    /// - 3: HAS OBS CONTEXT UIDREF (112040, DCM, "Tracking Unique Identifier");
+    /// - 3b: CONTAINS CODE (121071, DCM, "Finding");
+    /// - 4: HAS OBS CONTEXT, INCLUDE TID 1502 (row 3: TEXT (C2348792, UMLS, "Time Point"));
+    /// - 6: HAS CONCEPT MOD CODE (363698007, SCT, "Finding Site"), independent of row 3b;
+    /// - 7: ">>" HAS CONCEPT MOD CODE (272741003, SCT, "Laterality") — a child of the
+    ///   Finding Site CODE item, in its Content Sequence (PS3.3 Table C.17-6). Until
+    ///   2026-09-29 (D31) it was written as the next HAS CONCEPT MOD item of the group;
+    /// - 8: ">>" HAS CONCEPT MOD CODE DT (106233006, SCT, "Topographical modifier"), also a
+    ///   child of the Finding Site (P-MGC, 2026-09-30);
+    /// - 10, 10b-10e, 11, 11b, 12: the group's `contents` (see `MeasurementGroupContent`).
     private func buildMeasurementGroupItems() -> [AnyContentItem] {
         measurementGroups.map { group in
             var groupItems: [AnyContentItem] = []
-            
-            // Tracking Identifier (Row 2 of TID 1501)
-            groupItems.append(AnyContentItem(TextContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "112039",
-                    codingSchemeDesignator: "DCM",
-                    codeMeaning: "Tracking Identifier"
-                ),
-                textValue: group.trackingIdentifier,
-                relationshipType: .hasObsContext
-            )))
-            
-            // Tracking Unique Identifier (Row 3 of TID 1501)
-            groupItems.append(AnyContentItem(UIDRefContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "112040",
-                    codingSchemeDesignator: "DCM",
-                    codeMeaning: "Tracking Unique Identifier"
-                ),
-                uidValue: group.trackingUID,
-                relationshipType: .hasObsContext
-            )))
-            
-            // Activity Session (Row 4 of TID 1501)
+
+            // Row 1b
             if let activitySession = group.activitySession {
                 groupItems.append(AnyContentItem(TextContentItem(
-                    conceptName: CodedConcept(
-                        codeValue: "C67447",
-                        codingSchemeDesignator: "NCIt",
-                        codeMeaning: "Activity Session"
-                    ),
+                    conceptName: Self.activitySessionConcept,
                     textValue: activitySession,
                     relationshipType: .hasObsContext
                 )))
             }
-            
-            // Time Point (Row 5 of TID 1501)
+
+            // Row 2
+            groupItems.append(AnyContentItem(TextContentItem(
+                conceptName: Self.trackingIdentifierConcept,
+                textValue: group.trackingIdentifier,
+                relationshipType: .hasObsContext
+            )))
+
+            // Row 3
+            groupItems.append(AnyContentItem(UIDRefContentItem(
+                conceptName: Self.trackingUniqueIdentifierConcept,
+                uidValue: group.trackingUID,
+                relationshipType: .hasObsContext
+            )))
+
+            // Row 3b
+            if let finding = group.finding {
+                groupItems.append(AnyContentItem(CodeContentItem(
+                    conceptName: Self.findingConcept,
+                    conceptCode: finding,
+                    relationshipType: .contains
+                )))
+            }
+
+            // Row 4 → TID 1502 row 3
             if let timePoint = group.timePoint {
                 groupItems.append(AnyContentItem(TextContentItem(
-                    conceptName: CodedConcept(
-                        codeValue: "C2348792",
-                        codingSchemeDesignator: "UMLS",
-                        codeMeaning: "Time Point"
-                    ),
+                    conceptName: Self.timePointConcept,
                     textValue: timePoint,
                     relationshipType: .hasObsContext
                 )))
             }
-            
-            // Finding (Row 7 of TID 1501)
-            if let finding = group.finding {
-                groupItems.append(AnyContentItem(CodeContentItem(
-                    conceptName: CodedConcept(
-                        codeValue: "121071",
-                        codingSchemeDesignator: "DCM",
-                        codeMeaning: "Finding"
-                    ),
-                    conceptCode: finding,
-                    relationshipType: .contains
-                )))
-                
-                // Finding Site (Row 8 of TID 1501)
-                if let findingSite = group.findingSite {
-                    groupItems.append(AnyContentItem(CodeContentItem(
-                        conceptName: CodedConcept(
-                            codeValue: "363698007",
-                            codingSchemeDesignator: "SCT",
-                            codeMeaning: "Finding Site"
-                        ),
-                        conceptCode: findingSite,
-                        relationshipType: .hasConceptMod
-                    )))
-                    
-                    // Laterality (Row 9 of TID 1501)
-                    if let laterality = group.laterality {
-                        groupItems.append(AnyContentItem(CodeContentItem(
-                            conceptName: CodedConcept(
-                                codeValue: "272741003",
-                                codingSchemeDesignator: "SCT",
-                                codeMeaning: "Laterality"
-                            ),
-                            conceptCode: laterality,
-                            relationshipType: .hasConceptMod
-                        )))
-                    }
-                }
+
+            // Row 6, with rows 7 and 8 nested under it
+            if let findingSite = group.findingSite {
+                groupItems.append(Self.findingSiteItem(
+                    findingSite,
+                    laterality: group.laterality,
+                    topographicalModifier: group.topographicalModifier
+                ))
             }
-            
-            // Add measurements and other content from builder
+
+            // Row 9b → TID 4019
+            if let algorithm = group.algorithmIdentification {
+                groupItems.append(contentsOf: Self.algorithmIdentificationItems(algorithm))
+            }
+
+            // Rows 10-12
             for content in group.contents {
                 groupItems.append(content.toContentItem())
             }
-            
-            // Create the measurement group container
+
+            // Row 1
             return AnyContentItem(ContainerContentItem(
-                conceptName: CodedConcept(
-                    codeValue: "125007",
-                    codingSchemeDesignator: "DCM",
-                    codeMeaning: "Measurement Group"
-                ),
+                conceptName: Self.measurementGroupConcept,
                 continuityOfContent: .separate,
                 contentItems: groupItems,
                 relationshipType: .contains
@@ -830,35 +990,46 @@ public struct MeasurementReportBuilder: Sendable {
 
 // MARK: - Supporting Types
 
-/// Document title codes for measurement reports (CID 7021)
+/// Document title codes for measurement reports: the four rows of PS3.16 2026a
+/// CID 7021 Measurement Report Document Title (DCM 126000-126003).
 public enum MeasurementReportDocumentTitle {
-    /// Imaging Measurement Report (126000)
+    /// (126000, DCM, "Imaging Measurement Report")
     public static let imagingMeasurementReport = CodedConcept(
         codeValue: "126000",
         codingSchemeDesignator: "DCM",
         codeMeaning: "Imaging Measurement Report"
     )
-    
-    /// Lesion Measurement Report (126002)
-    public static let lesionMeasurementReport = CodedConcept(
+
+    /// (126001, DCM, "Oncology Measurement Report")
+    public static let oncologyMeasurementReport = CodedConcept(
+        codeValue: "126001",
+        codingSchemeDesignator: "DCM",
+        codeMeaning: "Oncology Measurement Report"
+    )
+
+    /// (126002, DCM, "Dynamic Contrast MR Measurement Report")
+    public static let dynamicContrastMRMeasurementReport = CodedConcept(
         codeValue: "126002",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Lesion Measurement Report"
+        codeMeaning: "Dynamic Contrast MR Measurement Report"
     )
-    
-    /// CT Perfusion Analysis Report (126003)
-    public static let ctPerfusionReport = CodedConcept(
-        codeValue: "126003",
-        codingSchemeDesignator: "DCM",
-        codeMeaning: "CT Perfusion Analysis Report"
-    )
-    
-    /// PET Measurement Report (126010)
+
+    /// (126003, DCM, "PET Measurement Report")
     public static let petMeasurementReport = CodedConcept(
-        codeValue: "126010",
+        codeValue: "126003",
         codingSchemeDesignator: "DCM",
         codeMeaning: "PET Measurement Report"
     )
+
+    /// Misnamed: DCM 126002 is "Dynamic Contrast MR Measurement Report" in CID 7021; there
+    /// is no "Lesion Measurement Report" title. The value is the correct CID 7021 concept.
+    @available(*, deprecated, renamed: "dynamicContrastMRMeasurementReport")
+    public static let lesionMeasurementReport = dynamicContrastMRMeasurementReport
+
+    /// Misnamed: DCM 126003 is "PET Measurement Report" in CID 7021; there is no
+    /// "CT Perfusion Analysis Report" title. The value is the correct CID 7021 concept.
+    @available(*, deprecated, renamed: "petMeasurementReport")
+    public static let ctPerfusionReport = petMeasurementReport
 }
 
 /// Entry in an image library (TID 320/1600)
@@ -919,11 +1090,20 @@ public struct MeasurementGroupData: Sendable {
     /// Optional finding site
     public var findingSite: CodedConcept?
     
-    /// Optional laterality
+    /// Optional laterality: TID 1501 row 7, written under the Finding Site
     public var laterality: CodedConcept?
+
+    /// Optional topographical modifier of the finding site: TID 1501 row 8, ">>" HAS CONCEPT
+    /// MOD CODE DT (106233006, SCT, "Topographical modifier") ($TargetSiteMod), written under
+    /// the Finding Site. Ignored when `findingSite` is nil, as it has no parent row then.
+    public var topographicalModifier: CodedConcept?
     
     /// Content items (measurements, coordinates, etc.)
     public let contents: [MeasurementGroupContent]
+
+    /// TID 1501 row 9b: HAS CONCEPT MOD, INCLUDE TID 4019 (Algorithm Identification) for
+    /// this group (added 2026-10-01, D199)
+    public var algorithmIdentification: CADAlgorithmIdentification?
     
     /// Creates a measurement group data structure
     public init(
@@ -934,6 +1114,7 @@ public struct MeasurementGroupData: Sendable {
         finding: CodedConcept? = nil,
         findingSite: CodedConcept? = nil,
         laterality: CodedConcept? = nil,
+        topographicalModifier: CodedConcept? = nil,
         contents: [MeasurementGroupContent] = []
     ) {
         self.trackingIdentifier = trackingIdentifier
@@ -943,33 +1124,67 @@ public struct MeasurementGroupData: Sendable {
         self.finding = finding
         self.findingSite = findingSite
         self.laterality = laterality
+        self.topographicalModifier = topographicalModifier
         self.contents = contents
     }
 }
 
-/// Content that can be added to a measurement group
-public enum MeasurementGroupContent: Sendable {
-    /// Numeric measurement
+/// Content that can be added to a measurement group: the rows of PS3.16 TID 1501 from row 10
+/// on, each written with CONTAINS as a direct child of the Measurement Group container.
+///
+/// `measurementWithContent`, `spatialCoordinatesOnImage` and
+/// `qualitativeEvaluationWithModifiers` were added on 2026-09-30 (P-MGC) so that the rows
+/// nested under a group item (TID 1501 rows 10d and 11b, TID 300 row 1b → TID 301 → TID 320)
+/// can be written in that item's Content Sequence (PS3.3 Table C.17-6). They are new cases of
+/// a public enum: a `switch` over this type without a `default` must handle them.
+public enum MeasurementGroupContent: Sendable, Equatable {
+    /// Numeric measurement: TID 1501 row 10 → TID 300 row 1, CONTAINS NUM, with no TID 301
+    /// children. Use `measurementWithContent` to add them.
     case measurement(conceptName: CodedConcept?, value: Double, units: CodedConcept?)
-    
+
     /// Multiple numeric values
     case measurements(conceptName: CodedConcept?, values: [Double], units: CodedConcept?)
-    
-    /// Qualitative evaluation
+
+    /// Qualitative evaluation: TID 1501 row 11, CONTAINS CODE ($QualType), with no row 11b
+    /// children. Use `qualitativeEvaluationWithModifiers` to add them.
     case qualitativeEvaluation(conceptName: CodedConcept?, value: CodedConcept)
-    
-    /// Image reference
+
+    /// Image reference: PS3.16 TID 1501 row 10b, ">" CONTAINS IMAGE ($ImagePurpose), a
+    /// direct child of the Measurement Group. Until 2026-09-29 this was written with
+    /// INFERRED FROM, a relationship TID 1501 does not define at group level. An image a
+    /// measurement was inferred from (TID 300 row 1b → TID 301 row 13 → TID 320 row 1) goes
+    /// under the NUM: use `measurementWithContent` with `MeasurementSource.image`.
     case imageReference(sopClassUID: String, sopInstanceUID: String, frameNumbers: [Int]?)
-    
-    /// 2D spatial coordinates
+
+    /// 2D spatial coordinates: TID 1501 row 10c, ">" CONTAINS SCOORD, written **without**
+    /// row 10d (">>" SELECTED FROM IMAGE, M), so the result does not conform to TID 1501 and
+    /// a TID 1500 template validation reports the missing row. Use
+    /// `spatialCoordinatesOnImage`, which writes row 10d. This case is kept for the SCOORD
+    /// items of existing documents that have no source image.
     case spatialCoordinates(conceptName: CodedConcept?, graphicType: GraphicType, graphicData: [Float])
-    
-    /// 3D spatial coordinates
+
+    /// 3D spatial coordinates: TID 1501 row 10e, ">" CONTAINS SCOORD3D ($ImagePurpose)
     case spatialCoordinates3D(conceptName: CodedConcept?, graphicType: GraphicType3D, graphicData: [Float], frameOfReferenceUID: String)
-    
-    /// Text value
+
+    /// Text value: TID 1501 row 12, CONTAINS TEXT ($QualType)
     case text(conceptName: CodedConcept?, value: String)
-    
+
+    /// A measurement with its children (P-MGC): TID 1501 row 10 → PS3.16 TID 300 row 1,
+    /// CONTAINS NUM ($Measurement, UNITS = $Units, VM 1, M), and TID 300 row 1b (">" INCLUDE
+    /// TID 301, M) written in the NUM's Content Sequence — see `MeasurementContent` for the
+    /// TID 301 rows. `conceptName` and `units` are required because TID 300 row 1 is M.
+    case measurementWithContent(conceptName: CodedConcept, value: Double, units: CodedConcept, content: MeasurementContent)
+
+    /// 2D spatial coordinates with their source image (P-MGC): TID 1501 row 10c, ">" CONTAINS
+    /// SCOORD ($ImagePurpose, VM 1-n, U), and row 10d, ">>" SELECTED FROM IMAGE (VM 1, M), in
+    /// the SCOORD's Content Sequence.
+    case spatialCoordinatesOnImage(conceptName: CodedConcept?, graphicType: GraphicType, graphicData: [Float], sourceImage: ImageReference)
+
+    /// A qualitative evaluation with its modifiers (P-MGC): TID 1501 row 11, ">" CONTAINS CODE
+    /// ($QualType = $QualValue), and row 11b, ">>" HAS CONCEPT MOD CODE ($QualModType =
+    /// $QualModValue, VM 1-n, U), in the CODE's Content Sequence.
+    case qualitativeEvaluationWithModifiers(conceptName: CodedConcept, value: CodedConcept, modifiers: [MeasurementConceptModifier])
+
     /// Converts this content to a content item
     func toContentItem() -> AnyContentItem {
         switch self {
@@ -980,7 +1195,7 @@ public enum MeasurementGroupContent: Sendable {
                 units: units,
                 relationshipType: .contains
             ))
-            
+
         case .measurements(let conceptName, let values, let units):
             return AnyContentItem(NumericContentItem(
                 conceptName: conceptName,
@@ -990,26 +1205,27 @@ public enum MeasurementGroupContent: Sendable {
                 qualifier: nil,
                 relationshipType: .contains
             ))
-            
+
         case .qualitativeEvaluation(let conceptName, let value):
             return AnyContentItem(CodeContentItem(
                 conceptName: conceptName,
                 conceptCode: value,
                 relationshipType: .contains
             ))
-            
+
         case .imageReference(let sopClassUID, let sopInstanceUID, let frameNumbers):
             let imageRef = ImageReference(
                 sopClassUID: sopClassUID,
                 sopInstanceUID: sopInstanceUID,
                 frameNumbers: frameNumbers
             )
+            // TID 1501 row 10b: CONTAINS IMAGE
             return AnyContentItem(ImageContentItem(
                 conceptName: nil,
                 imageReference: imageRef,
-                relationshipType: .inferredFrom
+                relationshipType: .contains
             ))
-            
+
         case .spatialCoordinates(let conceptName, let graphicType, let graphicData):
             return AnyContentItem(SpatialCoordinatesContentItem(
                 conceptName: conceptName,
@@ -1017,7 +1233,7 @@ public enum MeasurementGroupContent: Sendable {
                 graphicData: graphicData,
                 relationshipType: .contains
             ))
-            
+
         case .spatialCoordinates3D(let conceptName, let graphicType, let graphicData, let frameOfReferenceUID):
             return AnyContentItem(SpatialCoordinates3DContentItem(
                 conceptName: conceptName,
@@ -1026,14 +1242,198 @@ public enum MeasurementGroupContent: Sendable {
                 frameOfReferenceUID: frameOfReferenceUID,
                 relationshipType: .contains
             ))
-            
+
         case .text(let conceptName, let value):
             return AnyContentItem(TextContentItem(
                 conceptName: conceptName,
                 textValue: value,
                 relationshipType: .contains
             ))
+
+        case .measurementWithContent(let conceptName, let value, let units, let content):
+            // TID 300 row 1: NUM; row 1b → TID 301: its Content Sequence
+            return AnyContentItem(NumericContentItem(
+                conceptName: conceptName,
+                value: value,
+                units: units,
+                relationshipType: .contains,
+                contentItems: content.contentItems()
+            ))
+
+        case .spatialCoordinatesOnImage(let conceptName, let graphicType, let graphicData, let sourceImage):
+            // TID 1501 row 10c: SCOORD; row 10d: ">>" SELECTED FROM IMAGE, in its Content Sequence
+            return AnyContentItem(SpatialCoordinatesContentItem(
+                conceptName: conceptName,
+                graphicType: graphicType,
+                graphicData: graphicData,
+                relationshipType: .contains,
+                contentItems: [AnyContentItem(ImageContentItem(
+                    imageReference: sourceImage,
+                    relationshipType: .selectedFrom
+                ))]
+            ))
+
+        case .qualitativeEvaluationWithModifiers(let conceptName, let value, let modifiers):
+            // TID 1501 row 11: CODE; row 11b: ">>" HAS CONCEPT MOD CODE, in its Content Sequence
+            return AnyContentItem(CodeContentItem(
+                conceptName: conceptName,
+                conceptCode: value,
+                relationshipType: .contains,
+                contentItems: modifiers.map { $0.contentItem() }
+            ))
         }
+    }
+}
+
+// MARK: - TID 300 / 301 / 320 content of a measurement
+
+/// A coded concept modifier: a HAS CONCEPT MOD CODE item whose concept name and value are
+/// both codes. It is PS3.16 TID 301 row 2 ($ModType = $ModValue, VM 1-n) under a measurement,
+/// and TID 1501 row 11b ($QualModType = $QualModValue, VM 1-n) under a qualitative evaluation.
+public struct MeasurementConceptModifier: Sendable, Equatable, Hashable {
+    /// The modifier's concept name ($ModType or $QualModType)
+    public let conceptName: CodedConcept
+
+    /// The modifier's value ($ModValue or $QualModValue)
+    public let value: CodedConcept
+
+    /// Creates a concept modifier
+    public init(conceptName: CodedConcept, value: CodedConcept) {
+        self.conceptName = conceptName
+        self.value = value
+    }
+
+    func contentItem() -> AnyContentItem {
+        AnyContentItem(CodeContentItem(conceptName: conceptName, conceptCode: value, relationshipType: .hasConceptMod))
+    }
+}
+
+/// The anatomic location of a measurement: PS3.16 TID 301 row 5, HAS CONCEPT MOD CODE
+/// (363698007, SCT, "Finding Site") ($TargetSite, VM 1-n), with row 6 (">" HAS CONCEPT MOD
+/// CODE (272741003, SCT, "Laterality"), $TargetSiteLaterality, defaulting to DCID 244) and
+/// row 7 (">" HAS CONCEPT MOD CODE DT (106233006, SCT, "Topographical modifier"),
+/// $TargetSiteMod) in its Content Sequence.
+public struct MeasurementFindingSite: Sendable, Equatable, Hashable {
+    /// The finding site ($TargetSite)
+    public let site: CodedConcept
+
+    /// Laterality of the site (row 6)
+    public let laterality: CodedConcept?
+
+    /// Topographical modifier of the site (row 7)
+    public let topographicalModifier: CodedConcept?
+
+    /// Creates a finding site
+    public init(site: CodedConcept, laterality: CodedConcept? = nil, topographicalModifier: CodedConcept? = nil) {
+        self.site = site
+        self.laterality = laterality
+        self.topographicalModifier = topographicalModifier
+    }
+}
+
+/// An image or spatial coordinates a measurement was inferred from: one instance of PS3.16
+/// TID 320 "Image or Spatial Coordinates", included by TID 301 row 13 (VM 1-n,
+/// $Purpose = $ImagePurpose). TID 320 rows 1, 3 and 6 are mutually exclusive, so each instance
+/// is one of them. Rows 2 and 5 (R-INFERRED FROM, R-SELECTED FROM: by-reference relationships)
+/// are not written.
+public enum MeasurementSource: Sendable, Equatable, Hashable {
+    /// TID 320 row 1: INFERRED FROM IMAGE ($Purpose)
+    case image(purpose: CodedConcept?, image: ImageReference)
+
+    /// TID 320 row 3: INFERRED FROM SCOORD ($Purpose), with row 4: ">" SELECTED FROM IMAGE
+    /// in its Content Sequence. Row 4 is MC XOR row 5; row 5 is not written, so the image is
+    /// required.
+    case spatialCoordinates(purpose: CodedConcept?, graphicType: GraphicType, graphicData: [Float], sourceImage: ImageReference)
+
+    /// TID 320 row 6: INFERRED FROM SCOORD3D ($Purpose)
+    case spatialCoordinates3D(purpose: CodedConcept?, graphicType: GraphicType3D, graphicData: [Float], frameOfReferenceUID: String)
+
+    func contentItem() -> AnyContentItem {
+        switch self {
+        case .image(let purpose, let image):
+            return AnyContentItem(ImageContentItem(
+                conceptName: purpose, imageReference: image, relationshipType: .inferredFrom))
+        case .spatialCoordinates(let purpose, let graphicType, let graphicData, let sourceImage):
+            return AnyContentItem(SpatialCoordinatesContentItem(
+                conceptName: purpose,
+                graphicType: graphicType,
+                graphicData: graphicData,
+                relationshipType: .inferredFrom,
+                contentItems: [AnyContentItem(ImageContentItem(
+                    imageReference: sourceImage, relationshipType: .selectedFrom))]
+            ))
+        case .spatialCoordinates3D(let purpose, let graphicType, let graphicData, let frameOfReferenceUID):
+            return AnyContentItem(SpatialCoordinates3DContentItem(
+                conceptName: purpose,
+                graphicType: graphicType,
+                graphicData: graphicData,
+                frameOfReferenceUID: frameOfReferenceUID,
+                relationshipType: .inferredFrom
+            ))
+        }
+    }
+}
+
+/// The children of a measurement NUM: the rows of PS3.16 TID 301 "Measurement Content"
+/// (included by TID 300 row 1b) that the builder writes, in table order, in the NUM's Content
+/// Sequence (PS3.3 Table C.17-6). TID 301 rows 8-12 and 14-19 are not written.
+public struct MeasurementContent: Sendable, Equatable, Hashable {
+    /// Row 2: HAS CONCEPT MOD CODE ($ModType = $ModValue), VM 1-n
+    public var modifiers: [MeasurementConceptModifier]
+
+    /// Row 3: HAS CONCEPT MOD CODE (370129005, SCT, "Measurement Method") ($Method), VM 1
+    public var method: CodedConcept?
+
+    /// Row 4: HAS CONCEPT MOD CODE (121401, DCM, "Derivation") ($Derivation), VM 1
+    public var derivation: CodedConcept?
+
+    /// Rows 5-7: HAS CONCEPT MOD CODE (363698007, SCT, "Finding Site"), VM 1-n, each with its
+    /// Laterality and Topographical modifier
+    public var findingSites: [MeasurementFindingSite]
+
+    /// Row 13: INCLUDE TID 320, VM 1-n — the images and spatial coordinates the measurement
+    /// was inferred from
+    public var sources: [MeasurementSource]
+
+    /// Creates measurement content
+    public init(
+        modifiers: [MeasurementConceptModifier] = [],
+        method: CodedConcept? = nil,
+        derivation: CodedConcept? = nil,
+        findingSites: [MeasurementFindingSite] = [],
+        sources: [MeasurementSource] = []
+    ) {
+        self.modifiers = modifiers
+        self.method = method
+        self.derivation = derivation
+        self.findingSites = findingSites
+        self.sources = sources
+    }
+
+    /// Whether no TID 301 row is set
+    public var isEmpty: Bool {
+        modifiers.isEmpty && method == nil && derivation == nil && findingSites.isEmpty && sources.isEmpty
+    }
+
+    /// The TID 301 rows as content items, in table order
+    func contentItems() -> [AnyContentItem] {
+        var items = modifiers.map { $0.contentItem() }                                  // row 2
+        if let method {                                                                 // row 3
+            items.append(AnyContentItem(CodeContentItem(
+                conceptName: MeasurementReportBuilder.measurementMethodConcept,
+                conceptCode: method, relationshipType: .hasConceptMod)))
+        }
+        if let derivation {                                                             // row 4
+            items.append(AnyContentItem(CodeContentItem(
+                conceptName: MeasurementReportBuilder.derivationConcept,
+                conceptCode: derivation, relationshipType: .hasConceptMod)))
+        }
+        items += findingSites.map {                                                     // rows 5-7
+            MeasurementReportBuilder.findingSiteItem(
+                $0.site, laterality: $0.laterality, topographicalModifier: $0.topographicalModifier)
+        }
+        items += sources.map { $0.contentItem() }                                       // row 13
+        return items
     }
 }
 
@@ -1183,7 +1583,8 @@ public enum MeasurementGroupContentHelper {
         .imageReference(sopClassUID: sopClassUID, sopInstanceUID: sopInstanceUID, frameNumbers: frameNumbers)
     }
     
-    /// Creates 2D spatial coordinates
+    /// Creates 2D spatial coordinates without their source image. TID 1501 row 10d (SELECTED
+    /// FROM IMAGE, M) is then missing; prefer `coordinates(graphicType:graphicData:sourceImage:)`.
     /// - Parameters:
     ///   - graphicType: The type of graphic
     ///   - graphicData: The coordinate data
@@ -1193,5 +1594,70 @@ public enum MeasurementGroupContentHelper {
         graphicData: [Float]
     ) -> MeasurementGroupContent {
         .spatialCoordinates(conceptName: nil, graphicType: graphicType, graphicData: graphicData)
+    }
+
+    /// Creates 2D spatial coordinates with the image they were selected from: TID 1501 row 10c
+    /// (CONTAINS SCOORD) with row 10d (">>" SELECTED FROM IMAGE) as its child.
+    /// - Parameters:
+    ///   - graphicType: The type of graphic
+    ///   - graphicData: The coordinate data
+    ///   - sourceImage: The image the coordinates are selected from
+    /// - Returns: Measurement group content
+    public static func coordinates(
+        graphicType: GraphicType,
+        graphicData: [Float],
+        sourceImage: ImageReference
+    ) -> MeasurementGroupContent {
+        .spatialCoordinatesOnImage(conceptName: nil, graphicType: graphicType, graphicData: graphicData,
+                                   sourceImage: sourceImage)
+    }
+}
+
+
+// MARK: - Observer Context (TID 1002)
+
+/// One observer of a Measurement Report: TID 1500 row 3 → TID 1001 row 1 → TID 1002
+/// (PS3.16 2026a), every item HAS OBS CONTEXT at the root
+public enum MeasurementReportObserver: Sendable, Equatable {
+    /// TID 1002 row 2 → TID 1003: row 1 PNAME (121008, DCM, "Person Observer Name"), M;
+    /// row 2 TEXT (121009, DCM, "Person Observer's Organization Name"), U. TID 1002 row 1
+    /// (Observer Type) is left out, as it defaults to (121006, DCM, "Person").
+    case person(name: String, organizationName: String? = nil)
+
+    /// TID 1002 row 1 CODE (121005, DCM, "Observer Type") = (121007, DCM, "Device"), then
+    /// row 3 → TID 1004: row 1 UIDREF (121012, DCM, "Device Observer UID"), M; rows 2-5
+    /// TEXT (121013 Name, 121014 Manufacturer, 121015 Model Name, 121016 Serial Number), U
+    case device(uid: String, name: String? = nil, manufacturer: String? = nil, modelName: String? = nil, serialNumber: String? = nil)
+
+    /// The TID 1002 content items, relationship HAS OBS CONTEXT
+    func observerContextItems() -> [AnyContentItem] {
+        func dcm(_ value: String, _ meaning: String) -> CodedConcept {
+            CodedConcept(codeValue: value, codingSchemeDesignator: "DCM", codeMeaning: meaning)
+        }
+        func text(_ value: String, _ meaning: String, _ text: String) -> AnyContentItem {
+            AnyContentItem(TextContentItem(conceptName: dcm(value, meaning), textValue: text, relationshipType: .hasObsContext))
+        }
+        switch self {
+        case let .person(name, organizationName):
+            var items = [AnyContentItem(PersonNameContentItem(
+                conceptName: dcm("121008", "Person Observer Name"), personName: name, relationshipType: .hasObsContext))]
+            if let organizationName {
+                items.append(text("121009", "Person Observer's Organization Name", organizationName))
+            }
+            return items
+        case let .device(uid, name, manufacturer, modelName, serialNumber):
+            var items = [
+                AnyContentItem(CodeContentItem(
+                    conceptName: dcm("121005", "Observer Type"), conceptCode: dcm("121007", "Device"),
+                    relationshipType: .hasObsContext)),
+                AnyContentItem(UIDRefContentItem(
+                    conceptName: dcm("121012", "Device Observer UID"), uidValue: uid, relationshipType: .hasObsContext)),
+            ]
+            if let name { items.append(text("121013", "Device Observer Name", name)) }
+            if let manufacturer { items.append(text("121014", "Device Observer Manufacturer", manufacturer)) }
+            if let modelName { items.append(text("121015", "Device Observer Model Name", modelName)) }
+            if let serialNumber { items.append(text("121016", "Device Observer Serial Number", serialNumber)) }
+            return items
+        }
     }
 }

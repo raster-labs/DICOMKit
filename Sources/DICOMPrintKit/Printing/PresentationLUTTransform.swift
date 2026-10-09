@@ -1,12 +1,17 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Presentation LUT Shape IDENTITY/LIN OD per PS3.3 2026a C.11.4; Max Density (2010,0130) per PS3.6 Table 6-1 (C.11.4 text misprints it as 2010,1030); LIN OD transmission 10^-D per PS3.14 2026a 7.2 with La = 0; default densities are this toolkit's
 // PresentationLUTTransform.swift
 // DICOMPrintKit
 //
 // Applies a Presentation LUT to prepared print pixels.
 //
-// Reference: PS3.3 C.11.4 (hardcopy Presentation LUT Module). That module
-// enumerates IDENTITY and LIN OD only; INVERSE belongs to the softcopy module
-// C.11.6 and is not legal in a print context, so inversion is realised here in
-// the pixels instead — the same choice DCMTK makes with `--inverse-plut`.
+// Reference: PS3.3 C.11.4 (Presentation LUT Module, the hardcopy one). That
+// module enumerates IDENTITY and LIN OD only; INVERSE belongs to the softcopy
+// module C.11.6 and is not legal in a print context, so inversion is realised
+// here in the pixels instead — the same choice DCMTK makes with
+// `--inverse-plut`. LIN OD: "input to Presentation LUT is in linear optical
+// density over the range of Min Density (2010,0120) and Max Density" — the
+// 2026a text of C.11.4 prints that tag as (2010,1030), a misprint: PS3.6
+// Table 6-1 has Max Density (2010,0130).
 
 import Foundation
 import DICOMNetwork
@@ -19,8 +24,11 @@ import DICOMNetwork
 /// inversion, which is *defined* as happening before transmission.
 public enum PresentationLUTTransform {
 
-    /// Default film stock bounds in hundredths of OD, per PS3.3 C.13.3, used
-    /// when the film box does not state Min/Max Density.
+    /// Film stock bounds, in hundredths of OD (the unit PS3.3 Table C.13-3 gives
+    /// Min/Max Density), used when the film box does not state them. The
+    /// standard sets no default — a printer uses its own minimum and maximum
+    /// density — so 0.20 / 3.00 OD, ordinary clear-base film, is this
+    /// toolkit's choice.
     public static let defaultMinDensity = 20
     public static let defaultMaxDensity = 300
 
@@ -30,7 +38,7 @@ public enum PresentationLUTTransform {
     /// - Parameters:
     ///   - shape: the selected Presentation LUT option.
     ///   - minDensity: Min Density (2010,0120) in hundredths of OD.
-    ///   - maxDensity: Max Density (2010,1030) in hundredths of OD.
+    ///   - maxDensity: Max Density (2010,0130) in hundredths of OD.
     public static func curve(
         for shape: PresentationLUTShape?,
         minDensity: Int? = nil,

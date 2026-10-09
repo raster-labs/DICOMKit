@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-06 — --film-destination parsed by DICOMPrintKit FilmDestination(catalogToken:) (any BIN_i, PS3.3 Table C.13-1, D242); send option vocabularies text-diffed against PS3.3 2026a Tables C.13-1 (Print Priority 3, Medium Type 5, Film Destination MAGAZINE/PROCESSOR/BIN_i), C.13-3 (Film Size ID 12, Film Orientation 2, Magnification Type 4, Image Display Format 6 forms) and C.11-4 (Presentation LUT Shape 2): every term offered (MAMMO CLEAR FILM / MAMMO BLUE FILM added), BIN_i sent for every i >= 1 without leading zeros (P-BIN, DICOMNetwork.FilmDestination.bin(_:), 2026-10-01); Bits Stored 8/12 per Table C.13-5; Meta SOP Class and Printer SOP Instance UIDs per PS3.6 Table A-1; status/job N-GET attributes per PS3.6 Table 6-1 and PS3.3 Tables C.13-8/C.13-9
 import Foundation
 import ArgumentParser
 import DICOMCore
@@ -126,8 +127,15 @@ struct StatusCommand: ParsableCommand {
         commandName: "status",
         abstract: "Query DICOM printer status",
         discussion: """
-            Queries the status of a DICOM printer using the N-GET service.
-            Returns printer status, name, and capabilities.
+            Queries the Printer SOP Instance (1.2.840.10008.5.1.1.17) with N-GET
+            (PS3.4 H.4.6) and prints Printer Status (2110,0010: NORMAL, WARNING,
+            FAILURE), Printer Status Info (2110,0020), Printer Name (2110,0030),
+            Manufacturer (0008,0070) and Manufacturer's Model Name (0008,1090).
+
+            --format json keys each attribute by its PS3.6 keyword (PrinterStatus,
+            PrinterStatusInfo, PrinterName, Manufacturer, ManufacturerModelName).
+            The older keys status, statusInfo, name, manufacturer and model carry
+            the same values and are deprecated.
             
             Examples:
               dicom-print status pacs://192.168.1.100:11112 --aet WORKSTATION
@@ -168,8 +176,8 @@ struct StatusCommand: ParsableCommand {
         if verbose {
             fprintln("Querying printer status...")
             fprintln("  Host: \(serverInfo.host):\(serverInfo.port)")
-            fprintln("  Calling AE: \(aet)")
-            fprintln("  Called AE: \(calledAet)")
+            fprintln("  Calling AE Title: \(aet)")
+            fprintln("  Called AE Title: \(calledAet)")
             fprintln("")
         }
         
@@ -235,34 +243,34 @@ struct SendCommand: ParsableCommand {
     @Option(name: .long, help: "Remote Application Entity Title (default: ANY-SCP)")
     var calledAet: String = "ANY-SCP"
     
-    @Option(name: .long, help: "Number of copies (default: 1)")
+    @Option(name: .long, help: "Number of Copies (2000,0010), 1 or more (default: 1)")
     var copies: Int = 1
     
-    @Option(name: .long, help: "Film size: 8x10, 10x12, 10x14, 11x14, 11x17, 14x14, 14x17, a4, a3 (default: 14x17)")
+    @Option(name: .long, help: "Film Size ID (2010,0050), PS3.3 Table C.13-3; token (Defined Term, also accepted): \(FilmSizeOption.tokenList) (default: 14x17)")
     var filmSize: FilmSizeOption = .size14x17
     
-    @Option(name: .long, help: "Film orientation: portrait, landscape (default: portrait)")
+    @Option(name: .long, help: "Film Orientation (2010,0040): \(OrientationOption.tokenList) (default: portrait)")
     var orientation: OrientationOption = .portrait
     
-    @Option(name: .long, help: "Print priority: low, medium, high (default: medium)")
+    @Option(name: .long, help: "Print Priority (2000,0020), PS3.3 Table C.13-1: \(PrintPriorityOption.tokenList) (default: medium)")
     var priority: PrintPriorityOption = .medium
     
-    @Option(name: .long, help: "Image layout: a grid (1x1 to 4x5) or an Image Display Format ('ROW\\2,1,2', 'COL\\1,2' — quote it, the shell eats backslashes); auto if not specified")
+    @Option(name: .long, help: "Image Display Format (2010,0010): a grid RxC (1x1 to 4x5; R rows by C columns, sent as STANDARD\\C,R) or any PS3.3 Table C.13-3 form — STANDARD\\C,R, ROW\\R1,R2,..., COL\\C1,C2,..., SLIDE, SUPERSLIDE, CUSTOM\\i (quote it, the shell eats backslashes); auto if not specified")
     var layout: LayoutOption?
 
     @Option(name: .long, help: "Layout preset: single, comparison, grid, multi-phase (sets layout + film size + orientation; conflicts with --layout)")
     var template: TemplateOption?
 
-    @Option(name: .long, help: "Medium type: paper, clear-film, blue-film (default: paper)")
+    @Option(name: .long, help: "Medium Type (2000,0030), PS3.3 Table C.13-1: \(MediumOption.tokenList) (default: paper)")
     var medium: MediumOption = .paper
 
-    @Option(name: .long, help: "Magnification type: replicate, bilinear, cubic, none (default: replicate)")
+    @Option(name: .long, help: "Magnification Type (2010,0060): \(MagnificationOption.tokenList) (default: replicate)")
     var magnification: MagnificationOption = .replicate
 
-    @Option(name: .long, help: "Film destination: magazine, processor, bin-1, bin-2 (default: processor)")
+    @Option(name: .long, help: "Film Destination (2000,0040): \(FilmDestinationOption.tokenList) (default: processor). PS3.3 Table C.13-1 numbers sorter bins from 1 with no maximum; any bin-N / BIN_N is sent (no leading zeros)")
     var filmDestination: FilmDestinationOption = .processor
 
-    @Flag(name: .long, help: "Query printer status before printing; abort on FAILURE, warn on WARNING")
+    @Flag(name: .long, help: "N-GET Printer Status (2110,0010) before printing; abort on FAILURE, warn on WARNING")
     var checkStatus: Bool = false
 
     @Flag(name: .customLong("verify"), help: "Perform a C-ECHO connectivity check against the printer before printing")
@@ -271,7 +279,7 @@ struct SendCommand: ParsableCommand {
     @Option(name: .long, help: "Output format: text, json (json writes the result object to stdout; diagnostics stay on stderr)")
     var format: OutputFormat = .text
 
-    @Option(name: .long, help: "Color mode: grayscale, color (default: grayscale)")
+    @Option(name: .long, help: "Meta SOP Class negotiated: grayscale = Basic Grayscale Print Management Meta SOP Class (1.2.840.10008.5.1.1.9), color = Basic Color Print Management Meta SOP Class (1.2.840.10008.5.1.1.18) (default: grayscale)")
     var color: ColorModeOption = .grayscale
 
     @Option(name: .long, help: "1-based frame to print from multi-frame files (default: 1)")
@@ -289,10 +297,10 @@ struct SendCommand: ParsableCommand {
     @Option(name: .long, help: "Explicit VOI window width (requires --window-center)")
     var windowWidth: Double?
 
-    @Option(name: .long, help: "Grayscale output bit depth: 8 or 12 (default: 8). PS3.3 Table C.13-3 allows Bits Stored of 8 or 12 only; 12 sends 12-in-16 P-Values. A higher value is clamped, not refused.")
+    @Option(name: .long, help: "Grayscale output bit depth: 8 or 12 (default: 8). PS3.3 Table C.13-5 allows Bits Stored of 8 or 12 only; 12 sends 12-in-16 P-Values. A higher value is clamped, not refused.")
     var bitDepth: Int = 8
 
-    @Option(name: .long, help: "Presentation LUT shape: identity, inverse, lin-od (default: none)")
+    @Option(name: .long, help: "Presentation LUT Shape (2050,0020), PS3.3 Table C.11-4: \(PresentationLUTOption.tokenList) (default: none, no Presentation LUT is created)")
     var presentationLut: PresentationLUTOption?
 
     @Option(name: .long, help: ArgumentHelp(
@@ -300,10 +308,10 @@ struct SendCommand: ParsableCommand {
         discussion: PaletteOption.discussion))
     var palette: PaletteOption?
 
-    @Option(name: .long, help: "Annotation text to place on the film (repeatable; position is order given). Requires --annotation-format.")
+    @Option(name: .long, help: "Text String (2030,0020) of a Basic Annotation Box (repeatable; Annotation Position (2030,0010) is the order given). Requires --annotation-format.")
     var annotate: [String] = []
 
-    @Option(name: .long, help: "Printer-configured Annotation Display Format ID (required with --annotate)")
+    @Option(name: .long, help: "Annotation Display Format ID (2010,0030), defined in the printer's Conformance Statement (required with --annotate)")
     var annotationFormat: String?
 
     @Flag(name: .shortAndLong, help: "Recursively scan directories for DICOM files")
@@ -397,16 +405,20 @@ struct SendCommand: ParsableCommand {
             fprintln("DICOM Print Tool v\(toolVersion)")
             fprintln("=======================")
             fprintln("Server: \(serverInfo.host):\(serverInfo.port)")
-            fprintln("Calling AE: \(aet)")
-            fprintln("Called AE: \(calledAet)")
-            fprintln("Copies: \(copies)")
-            fprintln("Film Size: \(effectiveFilmSize.rawValue)")
-            fprintln("Orientation: \(effectiveOrientation.rawValue)")
-            fprintln("Priority: \(priority.printPriority.rawValue)")
-            fprintln("Medium: \(medium.mediumType.rawValue)")
+            fprintln("Calling AE Title: \(aet)")
+            fprintln("Called AE Title: \(calledAet)")
+            fprintln("Number of Copies: \(copies)")
+            fprintln("Film Size ID: \(effectiveFilmSize.rawValue)")
+            fprintln("Film Orientation: \(effectiveOrientation.rawValue)")
+            fprintln("Print Priority: \(priority.printPriority.rawValue)")
+            fprintln("Medium Type: \(medium.mediumType.wireValue)")
+            fprintln("Film Destination: \(filmDestination.filmDestination.rawValue)")
+            fprintln("Magnification Type: \(magnification.magnificationType.rawValue)")
             fprintln("Color Mode: \(color.printColorMode.rawValue)")
             if let presentationLut = presentationLut {
-                fprintln("Presentation LUT: \(presentationLut.shape.rawValue)")
+                // INVERSE sends no shape (PS3.3 C.11.4 has none); say so.
+                fprintln("Presentation LUT Shape: "
+                    + (presentationLut.shape.wireValue ?? "none sent, pixels inverted"))
             }
             if let palette = palette?.palette, !palette.isGrayscale {
                 // The UID when the standard defines one: it is the only durable
@@ -417,13 +429,13 @@ struct SendCommand: ParsableCommand {
                        + "grayscale film only.")
             }
             if !printAnnotations.isEmpty, let fmt = annotationFormat {
-                fprintln("Annotations: \(printAnnotations.count) (format \(fmt))")
+                fprintln("Annotations: \(printAnnotations.count) (Annotation Display Format ID \(fmt))")
             }
             if let template = template {
                 fprintln("Template: \(template.rawValue)")
             }
             if let layout = layout {
-                fprintln("Layout: \(layout.rawValue)")
+                fprintln("Image Display Format: \(layout.rawValue)")
             }
             if retries > 0 {
                 fprintln("Retries: \(retries)")
@@ -704,7 +716,15 @@ struct JobCommand: ParsableCommand {
         commandName: "job",
         abstract: "Query print job status",
         discussion: """
-            Queries the status of a print job using the N-GET service.
+            Queries a Print Job SOP Instance with N-GET (PS3.4 H.4.5) and prints
+            Execution Status (2100,0020: PENDING, PRINTING, DONE, FAILURE),
+            Execution Status Info (2100,0030) and Creation Date / Time
+            (2100,0040 / 2100,0050).
+
+            --format json keys each attribute by its PS3.6 keyword (ExecutionStatus,
+            ExecutionStatusInfo, CreationDate as YYYYMMDD, CreationTime as HHMMSS).
+            The older keys status, statusInfo and creationDate (ISO 8601) carry the
+            same values and are deprecated; jobUID stays.
             
             Examples:
               dicom-print job pacs://server:11112 --aet APP --job-id 1.2.840...
@@ -828,9 +848,9 @@ struct ListPrintersCommand: ParsableCommand {
             let defaultMark = printer.isDefault ? " (default)" : ""
             fprintln("[\(index + 1)] \(printer.name)\(defaultMark)")
             fprintln("    Host: \(printer.host):\(printer.port)")
-            fprintln("    Called AE: \(printer.calledAETitle)")
+            fprintln("    Called AE Title: \(printer.calledAETitle)")
             if let callingAE = printer.callingAETitle {
-                fprintln("    Calling AE: \(callingAE)")
+                fprintln("    Calling AE Title: \(callingAE)")
             }
             fprintln("    Color Mode: \(printer.colorMode)")
             fprintln("")
@@ -958,7 +978,42 @@ enum OutputFormat: String, ExpressibleByArgument {
     case json
 }
 
-enum FilmSizeOption: String, ExpressibleByArgument {
+// MARK: Standard-term options
+//
+// Each `send` option below stands for a PS3.3 attribute with Defined Terms or
+// Enumerated Values. The token ("14x17") is the tool's spelling; `standardTerm`
+// is what goes on the wire ("14INX17IN"). The term is accepted too, in any
+// case, so a value copied from a printer's Conformance Statement works as typed.
+
+/// An option whose tokens stand for the Defined Terms of one attribute.
+protocol StandardTermOption: ExpressibleByArgument, CaseIterable, RawRepresentable
+    where RawValue == String {
+    /// The value written to the attribute; `nil` when the token sends none.
+    var standardTerm: String? { get }
+}
+
+extension StandardTermOption {
+    /// The case for a token or a standard term, case-insensitively.
+    static func matching(_ argument: String) -> Self? {
+        let token = argument.lowercased()
+        if let match = allCases.first(where: { $0.rawValue == token }) { return match }
+        let term = argument.uppercased()
+        return allCases.first { $0.standardTerm == term }
+    }
+
+    /// Empty, so `--help` shows the `tokenList` the option's help spells out
+    /// rather than a second, term-less list.
+    static var allValueStrings: [String] { [] }
+
+    /// "8x10 = 8INX10IN, ..." — the token and the term it sends, for help text.
+    static var tokenList: String {
+        allCases.map { option in
+            option.standardTerm.map { "\(option.rawValue) = \($0)" } ?? option.rawValue
+        }.joined(separator: ", ")
+    }
+}
+
+enum FilmSizeOption: String, StandardTermOption {
     case size8x10 = "8x10"
     case size8_5x11 = "8.5x11"
     case size10x12 = "10x12"
@@ -988,9 +1043,17 @@ enum FilmSizeOption: String, ExpressibleByArgument {
         case .a3: return .a3
         }
     }
+
+    init?(argument: String) {
+        guard let match = Self.matching(argument) else { return nil }
+        self = match
+    }
+
+    /// Film Size ID (2010,0050), PS3.3 Table C.13-3.
+    var standardTerm: String? { filmSize.rawValue }
 }
 
-enum MagnificationOption: String, ExpressibleByArgument {
+enum MagnificationOption: String, StandardTermOption {
     case replicate
     case bilinear
     case cubic
@@ -1004,25 +1067,50 @@ enum MagnificationOption: String, ExpressibleByArgument {
         case .none: return MagnificationType.none
         }
     }
-}
 
-enum FilmDestinationOption: String, ExpressibleByArgument {
-    case magazine
-    case processor
-    case bin1 = "bin-1"
-    case bin2 = "bin-2"
-
-    var filmDestination: FilmDestination {
-        switch self {
-        case .magazine: return .magazine
-        case .processor: return .processor
-        case .bin1: return .bin1
-        case .bin2: return .bin2
-        }
+    init?(argument: String) {
+        guard let match = Self.matching(argument) else { return nil }
+        self = match
     }
+
+    /// Magnification Type (2010,0060), PS3.3 Table C.13-3.
+    var standardTerm: String? { magnificationType.rawValue }
 }
 
-enum OrientationOption: String, ExpressibleByArgument {
+/// `--film-destination`: magazine, processor or sorter bin N (P-BIN). PS3.3 2026a Table
+/// C.13-1 defines BIN_i "numbered sequentially starting from 1" with "no maximum" and no
+/// leading zeros, so every bin is accepted (formerly bin-1 / bin-2 only). Tokens and terms
+/// are matched case-insensitively: `bin-12` and `BIN_12` both send BIN_12.
+struct FilmDestinationOption: ExpressibleByArgument, Equatable, CustomStringConvertible {
+    let filmDestination: FilmDestination
+
+    static let magazine = FilmDestinationOption(filmDestination: .magazine)
+    static let processor = FilmDestinationOption(filmDestination: .processor)
+    static let bin1 = FilmDestinationOption(filmDestination: .bin(1))
+    static let bin2 = FilmDestinationOption(filmDestination: .bin(2))
+
+    init(filmDestination: FilmDestination) { self.filmDestination = filmDestination }
+
+    /// The token grammar is DICOMPrintKit's `FilmDestination(catalogToken:)` (D242).
+    init?(argument: String) {
+        guard let destination = FilmDestination(catalogToken: argument) else { return nil }
+        self.init(filmDestination: destination)
+    }
+
+    /// The tool's token: magazine, processor or bin-N.
+    var rawValue: String { filmDestination.catalogToken }
+
+    var description: String { rawValue }
+
+    /// Film Destination (2000,0040), PS3.3 Table C.13-1.
+    var standardTerm: String? { filmDestination.rawValue }
+
+    static var allValueStrings: [String] { [] }
+
+    static var tokenList: String { FilmDestination.catalogTokenList }
+}
+
+enum OrientationOption: String, StandardTermOption {
     case portrait
     case landscape
     
@@ -1032,9 +1120,17 @@ enum OrientationOption: String, ExpressibleByArgument {
         case .landscape: return .landscape
         }
     }
+
+    init?(argument: String) {
+        guard let match = Self.matching(argument) else { return nil }
+        self = match
+    }
+
+    /// Film Orientation (2010,0040), PS3.3 Table C.13-3.
+    var standardTerm: String? { orientation.rawValue }
 }
 
-enum PrintPriorityOption: String, ExpressibleByArgument {
+enum PrintPriorityOption: String, StandardTermOption {
     case low
     case medium
     case high
@@ -1046,6 +1142,14 @@ enum PrintPriorityOption: String, ExpressibleByArgument {
         case .high: return .high
         }
     }
+
+    init?(argument: String) {
+        guard let match = Self.matching(argument) else { return nil }
+        self = match
+    }
+
+    /// Print Priority (2000,0020), PS3.3 Table C.13-1: HIGH, MED, LOW.
+    var standardTerm: String? { printPriority.rawValue }
 }
 
 /// A `--layout` argument: a grid token from the shared catalogue ("2x3"), or an
@@ -1115,7 +1219,7 @@ struct PaletteOption: ExpressibleByArgument {
     }
 }
 
-enum PresentationLUTOption: String, ExpressibleByArgument {
+enum PresentationLUTOption: String, StandardTermOption {
     case identity
     case inverse
     case linOD = "lin-od"
@@ -1127,6 +1231,15 @@ enum PresentationLUTOption: String, ExpressibleByArgument {
         case .linOD: return .linearOpticalDensity
         }
     }
+
+    init?(argument: String) {
+        guard let match = Self.matching(argument) else { return nil }
+        self = match
+    }
+
+    /// Presentation LUT Shape (2050,0020), PS3.3 Table C.11-4: IDENTITY, LIN OD.
+    /// `inverse` sends no shape — the table has none — and inverts the pixels.
+    var standardTerm: String? { shape.wireValue }
 }
 
 enum TemplateOption: String, ExpressibleByArgument {
@@ -1147,18 +1260,30 @@ enum TemplateOption: String, ExpressibleByArgument {
     var printLayout: PrintLayout { preset.layout }
 }
 
-enum MediumOption: String, ExpressibleByArgument {
+enum MediumOption: String, StandardTermOption {
     case paper
     case clearFilm = "clear-film"
     case blueFilm = "blue-film"
-    
+    case mammoClearFilm = "mammo-clear-film"
+    case mammoBlueFilm = "mammo-blue-film"
+
     var mediumType: MediumType {
         switch self {
         case .paper: return .paper
         case .clearFilm: return .clearFilm
         case .blueFilm: return .blueFilm
+        case .mammoClearFilm: return .mammoClearFilm
+        case .mammoBlueFilm: return .mammoBlueFilm
         }
     }
+
+    init?(argument: String) {
+        guard let match = Self.matching(argument) else { return nil }
+        self = match
+    }
+
+    /// Medium Type (2000,0030), PS3.3 Table C.13-1.
+    var standardTerm: String? { mediumType.wireValue }
 }
 
 enum ColorModeOption: String, ExpressibleByArgument {

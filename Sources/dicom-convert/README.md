@@ -4,12 +4,12 @@ Convert DICOM files between transfer syntaxes and export pixel data to image for
 
 ## Features
 
-- **Transfer Syntax Conversion**: Convert between Explicit VR Little Endian, Implicit VR Little Endian, Explicit VR Big Endian, and DEFLATE
+- **Transfer Syntax Conversion**: native (Explicit / Implicit VR Little Endian, Explicit VR Big Endian, Deflated) and encapsulated (JPEG, JPEG-LS, JPEG 2000, HTJ2K, JPEG XL, RLE) targets
 - **Image Export**: Export DICOM pixel data to PNG, JPEG, or TIFF
 - **Window/Level Application**: Apply DICOM windowing during image export
 - **Batch Processing**: Convert entire directories recursively
 - **Private Tag Stripping**: Remove private tags during conversion
-- **Output Validation**: Verify converted files are valid DICOM
+- **Output Check**: `--validate` re-reads the written file as DICOM
 
 ## Usage
 
@@ -52,11 +52,8 @@ dicom-convert ct.dcm --output ct.png --apply-window --window-center 40 --window-
 ### Multi-frame Images
 
 ```bash
-# Export specific frame
-dicom-convert multiframe.dcm --output frame5.png --frame 5 --format png
-
-# Export all frames (outputs frame0.png, frame1.png, etc.)
-dicom-convert multiframe.dcm --output frames/ --format png
+# Export Frame number 5 (frames are numbered from 1, PS3.3 Table 10-3); the default is Frame number 1
+dicom-convert multiframe.dcm --output frame5.png --frame-number 5 --format png
 ```
 
 ### Batch Conversion
@@ -72,15 +69,16 @@ dicom-convert input_dir/ --output output_dir/ --transfer-syntax ExplicitVRLittle
 ## Options
 
 - `--output, -o <path>`: Output file or directory path (required)
-- `--transfer-syntax <syntax>`: Target transfer syntax (ExplicitVRLittleEndian, ImplicitVRLittleEndian, ExplicitVRBigEndian, DEFLATE)
+- `--transfer-syntax <syntax>`: Target transfer syntax: a name from `--help` (e.g. ExplicitVRLittleEndian, JPEG2000Lossy, HTJ2KLosslessOnly), a Transfer Syntax UID, or a PS3.6 Table A-1 keyword (e.g. JPEGBaseline8Bit, HTJ2KLosslessRPCL). Every Table A-1 keyword selects its Table A-1 UID. **Changed 2026-10-01:** `JPEG2000Lossless`, `HTJ2KLossless` and `JPEGXLLossless` now select .90 / .201 / .110 (a note is printed on stderr); the reversible encode into the general UIDs .91 / .203 / .112 they used to select is `JPEG2000Reversible`, `HTJ2KReversible`, `JPEGXLReversible` (or the kebab names `jpeg2000-lossless`, `htj2k-lossless`, `jpeg-xl-lossless`). A lossy target records Lossy Image Compression (0028,2110) "01", Ratio, Method and Image Type DERIVED (PS3.3 C.7.6.1.1.5)
 - `--format <format>`: Output format: png, jpeg, tiff, dicom (default: dicom)
-- `--quality <1-100>`: JPEG quality (default: 90)
+- `--quality <1-100>`: JPEG quality for `--format jpeg` (default: 90; values outside 1-100 are refused)
 - `--apply-window`: Apply window/level during export
-- `--window-center <value>`: Window center value
-- `--window-width <value>`: Window width value
-- `--frame <number>`: Export specific frame (0-indexed)
+- `--window-center <value>`: Window Center (0028,1050) for export
+- `--window-width <value>`: Window Width (0028,1051) for export; at least 1 (PS3.3 C.11.2.1.2.1)
+- `--frame-number <n>`: Export Frame number n; frames are numbered from 1 (PS3.3 Table 10-3)
+- `--frame <index>`: **Deprecated** 0-based index (`--frame 0` = Frame number 1); prints a deprecation note. Giving both `--frame` and `--frame-number` exits 1
 - `--recursive`: Process directories recursively
-- `--strip-private`: Remove private tags during conversion
+- `--strip-private`: Remove private (odd group) Data Elements of the top-level Data Set
 - `--validate`: Validate output after conversion
 - `--force`: Force parsing of files without DICM prefix
 
@@ -99,11 +97,12 @@ dicom-convert ct.dcm --output ct-bone.png --apply-window --window-center 300 --w
 dicom-convert ct.dcm --output ct-soft.png --apply-window --window-center 40 --window-width 400
 ```
 
-### Batch Anonymization
+### Strip Private Data Elements
 
 ```bash
-# Convert and strip private tags
-dicom-convert study/ --output anonymized/ --transfer-syntax ExplicitVRLittleEndian --recursive --strip-private
+# Convert and remove top-level private Data Elements (this is not de-identification:
+# use dicom-anon for the PS3.15 Annex E profile)
+dicom-convert study/ --output stripped/ --transfer-syntax ExplicitVRLittleEndian --recursive --strip-private
 ```
 
 ### Transfer Syntax Normalization
@@ -116,10 +115,8 @@ dicom-convert mixed_data/ --output normalized/ --transfer-syntax ExplicitVRLittl
 ## Exit Codes
 
 - `0`: Success
-- `1`: Validation error (invalid arguments)
-- `2`: File not found
-- `3`: Conversion error
-- `4`: Export error
+- `1`: Conversion or export failed — a single file, or any file of a directory run (each failed file is reported); also `--frame` given with `--frame-number`
+- `64`: Invalid arguments, or the input path does not exist
 
 ## Platform Support
 

@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — ViewModel for Archive Management feature (dicom-archive)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (dicom-archive command lines and
+// placeholder statistics).
 
 import Foundation
 import Observation

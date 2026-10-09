@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — no DICOM-standard data (container probing); a raw MPEG-2 video elementary stream (sequence header 00 00 01 B3) is recognised before the H.264/HEVC parameter-set search, so it is offered to the MPEG2 MP@ML / MP@HL syntaxes of PS3.5 2026a 8.2.5 / 8.2.6 (D179); audio tracks read from MP4 and MPEG-TS for the PS3.5 2026a 8.2.5/8.2.12 (Table 8.2.12-1) check, which VideoConformanceValidator.validateAudio applies (D46)
 //
 // VideoProbe.swift
 // DICOMKit
@@ -20,13 +21,22 @@ public struct VideoProbeResult: Sendable {
     /// How the frame count was obtained, which matters because one source is
     /// exact and the other is a scan.
     public let frameCountSource: FrameCountSource
-    /// The number of audio tracks.
+    /// The number of audio tracks: `soun` tracks in an MP4, audio PIDs in an
+    /// MPEG-TS (read only with `trustInput`, the one way a TS is probed).
     ///
-    /// Audio travels inside the encapsulated container, so it is carried into
-    /// the DICOM object along with the video; PS3.5 8.2.5 and 8.2.12 constrain it.
+    /// DICOM video may carry audio in the encapsulated bit stream (PS3.5 8.2.5,
+    /// 8.2.7-8.2.11, and 8.2.12 Table 8.2.12-1), so a non-zero count is not a
+    /// defect: `convert` keeps the tracks. Always 0 for an elementary stream,
+    /// which has no audio. Equal to `audioTracks.count`.
     public let audioTrackCount: Int
-    /// What each audio track says about itself, in container order.
-    public let audioTracks: [AudioStreamInfo]
+    /// The audio tracks with the parameters their container exposes, for the
+    /// PS3.5 8.2.5 / 8.2.12 check (``VideoConformanceValidator/validateAudio(tracks:container:transferSyntax:)``).
+    ///
+    /// A result built with the `audioTrackCount:` initializer holds that many
+    /// ``VideoAudioTrack/unidentified`` entries.
+    public let audioTracks: [VideoAudioTrack]
+    /// The audio tracks as plain stream descriptions (format, rate, channels, bit rate).
+    public var audioStreams: [AudioStreamInfo] { audioTracks.map(\.streamInfo) }
     /// The display rotation the container asks a player to apply, in degrees
     /// clockwise. DICOM cannot record it, so non-zero values are warned about.
     public let rotationDegrees: Int
@@ -47,6 +57,18 @@ public struct VideoProbeResult: Sendable {
     /// the container's, since the container's is derived from durations.
     public let frameRate: Double?
 
+    /// The MPEG-2 Program Stream / PES wrapping the elementary stream was read from
+    /// (PS3.5 2026a 8.2.5 / 8.2.6), when ``container`` is ``VideoContainer/mpegPS`` or
+    /// ``VideoContainer/mpegPES``; nil otherwise.
+    public let mpeg2SystemsLayer: MPEG2SystemsLayer?
+
+    /// The container as it should be named: ``VideoContainer/displayName`` (which names
+    /// the MPEG-2 systems layers by their PS3.5 8.2.5 wording, D237), or the systems
+    /// layer's name for a result built with ``VideoContainer/elementaryStream`` and a layer.
+    public var containerDisplayName: String {
+        mpeg2SystemsLayer?.displayName ?? container.displayName
+    }
+
     public init(
         container: VideoContainer,
         stream: VideoStreamInfo,
@@ -58,11 +80,33 @@ public struct VideoProbeResult: Sendable {
         audioTracks: [AudioStreamInfo] = [],
         rotationDegrees: Int = 0
     ) {
+        self.init(
+            container: container, stream: stream, frameCount: frameCount,
+            frameCountSource: frameCountSource,
+            audioTracks: audioTracks.isEmpty
+                ? Array(repeating: .unidentified, count: max(0, audioTrackCount))
+                : audioTracks.map(VideoAudioTrack.init),
+            suggestedTransferSyntax: suggestedTransferSyntax, frameRate: frameRate,
+            rotationDegrees: rotationDegrees)
+    }
+
+    public init(
+        container: VideoContainer,
+        stream: VideoStreamInfo,
+        frameCount: Int,
+        frameCountSource: FrameCountSource,
+        audioTracks: [VideoAudioTrack],
+        suggestedTransferSyntax: TransferSyntax?,
+        frameRate: Double?,
+        mpeg2SystemsLayer: MPEG2SystemsLayer? = nil,
+        rotationDegrees: Int = 0
+    ) {
+        self.mpeg2SystemsLayer = mpeg2SystemsLayer
         self.container = container
         self.stream = stream
         self.frameCount = frameCount
         self.frameCountSource = frameCountSource
-        self.audioTrackCount = max(audioTrackCount, audioTracks.count)
+        self.audioTrackCount = audioTracks.count
         self.audioTracks = audioTracks
         self.rotationDegrees = rotationDegrees
         self.suggestedTransferSyntax = suggestedTransferSyntax
@@ -199,6 +243,24 @@ public enum VideoProbe {
             if let result = probeTransportStream(data) { return result }
             guard trustInput else { throw VideoProbeError.transportStreamNotValidatable }
             return try probeTrustedTransportStream(data)
+        case .mpegPS, .mpegPES:
+            // MPEG-PS / MPEG-PES (PS3.5 2026a 8.2.5, 8.2.6): probe the video PES payloads;
+            // the payload encapsulated is still the systems stream as given.
+            guard let layer = MP4ContainerParser.mpeg2SystemsLayer(data),
+                  let elementary = MP4ContainerParser.mpeg2VideoElementaryStream(data) else {
+                throw VideoProbeError.noVideoTrack
+            }
+            let inner = try probeElementaryStream(elementary)
+            let audio = MP4ContainerParser.mpeg2AudioStreamIDs(data)
+            return VideoProbeResult(
+                container: container,
+                stream: inner.stream,
+                frameCount: inner.frameCount,
+                frameCountSource: inner.frameCountSource,
+                audioTracks: Array(repeating: .unidentified, count: audio.count),
+                suggestedTransferSyntax: inner.suggestedTransferSyntax,
+                frameRate: inner.frameRate,
+                mpeg2SystemsLayer: layer)
         case .elementaryStream:
             return try probeElementaryStream(data)
         case .unknown:
@@ -266,11 +328,10 @@ public enum VideoProbe {
             stream: resolved,
             frameCount: track.frameCount,
             frameCountSource: track.frameCount > 0 ? .sampleTable : .unavailable,
-            audioTrackCount: info.audioTrackCount,
+            audioTracks: info.audioTracks,
             suggestedTransferSyntax: VideoConformanceValidator.selectTransferSyntax(
                 for: resolved, payloadByteCount: data.count),
             frameRate: frameRate,
-            audioTracks: info.audioTracks,
             rotationDegrees: track.rotationDegrees
         )
     }
@@ -278,6 +339,14 @@ public enum VideoProbe {
     // MARK: - Elementary Streams
 
     private static func probeElementaryStream(_ data: Data) throws -> VideoProbeResult {
+        // An MPEG-2 video elementary stream starts with a sequence header, start code
+        // 00 00 01 B3 (ITU-T H.262 6.2.2.1). It is checked first: MPEG-2 slice start
+        // codes 0x07, 0x27, … read as H.264 NAL type 7 (SPS), so trying H.264 first
+        // reported a raw .m2v as H.264 with a nonsense profile and level.
+        if firstStartCodeValue(in: data) == 0xB3, let header = MPEG2Parser.parseSequenceHeader(data) {
+            return mpeg2ElementaryStreamResult(header: header, data: data)
+        }
+
         // Try each codec's parameter set in turn. Detection is by content, since
         // an extension is a claim rather than evidence.
         if let sps = H264Parser.parseFirstSPS(annexB: data) {
@@ -309,20 +378,41 @@ public enum VideoProbe {
         }
 
         if let header = MPEG2Parser.parseSequenceHeader(data) {
-            let stream = header.streamInfo
-            let count = MPEG2Parser.countFrames(data)
-            return VideoProbeResult(
-                container: .elementaryStream,
-                stream: stream,
-                frameCount: count,
-                frameCountSource: count > 0 ? .accessUnitScan : .unavailable,
-                audioTrackCount: 0,
-                suggestedTransferSyntax: VideoConformanceValidator.selectTransferSyntax(for: stream),
-                frameRate: stream.frameRate
-            )
+            return mpeg2ElementaryStreamResult(header: header, data: data)
         }
 
         throw VideoProbeError.unrecognizedFormat
+    }
+
+    private static func mpeg2ElementaryStreamResult(
+        header: MPEG2Parser.SequenceHeader,
+        data: Data
+    ) -> VideoProbeResult {
+        let stream = header.streamInfo
+        let count = MPEG2Parser.countFrames(data)
+        return VideoProbeResult(
+            container: .elementaryStream,
+            stream: stream,
+            frameCount: count,
+            frameCountSource: count > 0 ? .accessUnitScan : .unavailable,
+            audioTrackCount: 0,
+            suggestedTransferSyntax: VideoConformanceValidator.selectTransferSyntax(for: stream),
+            frameRate: stream.frameRate
+        )
+    }
+
+    /// The byte after the first 00 00 01 start-code prefix, or nil when there is none
+    /// in the first 1024 bytes.
+    static func firstStartCodeValue(in data: Data) -> UInt8? {
+        let bytes = data.prefix(1024)
+        var index = bytes.startIndex
+        while index + 3 < bytes.endIndex {
+            if bytes[index] == 0, bytes[index + 1] == 0, bytes[index + 2] == 1 {
+                return bytes[index + 3]
+            }
+            index += 1
+        }
+        return nil
     }
 
     // MARK: - Transport Streams
@@ -366,11 +456,10 @@ public enum VideoProbe {
             stream: stream,
             frameCount: frameCount,
             frameCountSource: frameCount > 0 ? .accessUnitScan : .unavailable,
-            audioTrackCount: demuxed.audio.count,
+            audioTracks: demuxed.audio,
             suggestedTransferSyntax: VideoConformanceValidator.selectTransferSyntax(
                 for: stream, payloadByteCount: data.count),
-            frameRate: frameRate,
-            audioTracks: demuxed.audio
+            frameRate: frameRate
         )
     }
 
@@ -384,6 +473,9 @@ public enum VideoProbe {
         // attributes: an object carrying zeroes is one no reader can display, so
         // "trusted" cannot extend to inventing a frame size. Only the conformance
         // checks are skipped, which is what the caller actually asked for.
+        // Audio PIDs are listed from the PMT; the check of their parameters is
+        // a warning, so it applies even to a stream taken on trust.
+        let audioTracks = TransportStreamScanner.audioTracks(data)
         if let payload = TransportStreamScanner.firstVideoPayload(data),
            let stream = elementaryStreamInfo(payload.data, codec: payload.codec) {
             return VideoProbeResult(
@@ -391,7 +483,7 @@ public enum VideoProbe {
                 stream: stream,
                 frameCount: 0,
                 frameCountSource: .unavailable,
-                audioTrackCount: 0,
+                audioTracks: audioTracks,
                 suggestedTransferSyntax: nil,
                 frameRate: stream.frameRate
             )
@@ -410,7 +502,7 @@ public enum VideoProbe {
             stream: unknownStream,
             frameCount: 0,
             frameCountSource: .unavailable,
-            audioTrackCount: 0,
+            audioTracks: audioTracks,
             suggestedTransferSyntax: nil,
             frameRate: nil
         )

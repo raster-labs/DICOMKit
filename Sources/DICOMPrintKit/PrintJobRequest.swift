@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Bits Stored 8/12 citation and validation message corrected to PS3.3 2026a Table C.13-5 (D23); Requested Image Size (2020,0030) DS rendering per PS3.5 Table 6.2-1; ROW/COL formats per C.13.3; no other standard data
 // PrintJobRequest.swift
 // DICOMPrintKit
 //
@@ -219,8 +220,8 @@ public struct PrintJobRequest: Sendable, Codable {
     public var windowSpace: PrintWindowSpace
     /// Grayscale output bit depth: 8 or 12.
     ///
-    /// PS3.3 Table C.13-3 enumerates Bits Stored as 8 or 12 for the Basic
-    /// Grayscale Image Box. 16 is still accepted here — earlier builds offered
+    /// PS3.3 Table C.13-5 enumerates Bits Stored as 8 or 12 for the Basic
+    /// Grayscale Image Sequence. 16 is still accepted here — earlier builds offered
     /// it and it survives in saved settings — but it is clamped to 12 before it
     /// reaches the wire, with a diagnostic, rather than producing an image box
     /// no conforming printer may accept.
@@ -341,16 +342,12 @@ public struct PrintJobRequest: Sendable, Codable {
         layoutSelection.imageDisplayFormat
     }
 
-    /// The DICOMKit-side color mode used by `ImagePreprocessor`.
+    /// The color mode used by `ImagePreprocessor`.
     ///
-    /// A distinct type from `DICOMNetwork.PrintColorMode`, mapped here so call
-    /// sites never have to disambiguate.
-    public var preprocessColorMode: DICOMKit.PrintColorMode {
-        switch colorMode {
-        case .grayscale: return .grayscale
-        case .color:     return .color
-        }
-    }
+    /// `DICOMKit.PrintColorMode` and `DICOMNetwork.PrintColorMode` are both
+    /// `DICOMCore.PrintColorMode` since D24 was closed, so this is `colorMode` itself;
+    /// kept so existing call sites keep compiling.
+    public var preprocessColorMode: DICOMKit.PrintColorMode { colorMode }
 
     /// The `PrintOptions` this request maps to for the Print SCU.
     public var printOptions: PrintOptions {
@@ -462,7 +459,7 @@ public struct PrintJobRequest: Sendable, Codable {
         // the deepest legal value and says so — see `preparationBitDepth`.
         guard [8, 12, 16].contains(bitDepth) else {
             throw PrintRequestError(
-                "--bit-depth must be 8 or 12 (PS3.3 Table C.13-3 enumerates Bits "
+                "--bit-depth must be 8 or 12 (PS3.3 Table C.13-5 enumerates Bits "
                 + "Stored as 8 or 12 for the Basic Grayscale Image Box)")
         }
         if raw && (windowSettings != nil || bitDepth != 8) {

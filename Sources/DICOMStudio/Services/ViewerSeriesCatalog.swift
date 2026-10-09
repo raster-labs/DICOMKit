@@ -7,6 +7,11 @@
 // on disk. Orientation is the one thing the library does not index; it is read
 // from one file per series afterwards and folded in, which is why a card can
 // briefly say "Orientation Unavailable" and then settle.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — plane label from Image Orientation (Patient) (0020,0037): slice normal
+// = row × column direction cosines in the patient (LPS) coordinate system (PS3.3 2026a C.7.6.2.1.1), dominant
+// component X→Sagittal, Y→Coronal, Z→Axial, anything more than ~32° off-axis left unlabelled; the plane names are
+// clinical convention, not standard terms.
 
 import Foundation
 import DICOMCore

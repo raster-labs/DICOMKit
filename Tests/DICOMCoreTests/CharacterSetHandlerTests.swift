@@ -811,16 +811,12 @@ struct CharacterSetHandlerTests {
     
     @Test("Encoding with multi-valued character set includes escape sequences")
     func testEncodingMultiValuedIncludesEscapeSequence() {
-        // ISO_IR 87 (Kanji) should get an escape sequence
-        let handler = CharacterSetHandler(characterSets: [.isoIR87, .isoIR6])
-        let text = "Test"
-        let encoded = handler.encode(text)
-        
-        // Should start with escape sequence ESC $ B (0x1B 0x24 0x42)
-        #expect(encoded.count > 3)
-        #expect(encoded[0] == 0x1B)
-        #expect(encoded[1] == 0x24)
-        #expect(encoded[2] == 0x42)
+        // JIS X 0208 is only allowed as Value 2..n (PS3.3 C.12.1.1.2): ASCII stays in
+        // ISO-IR 6, and the Kanji are wrapped in ESC $ B ... ESC ( B (PS3.5 Annex H).
+        let handler = CharacterSetHandler.from(specificCharacterSet: "\\ISO 2022 IR 87")
+        let encoded = handler.encode("Test山")
+        #expect(encoded == Data([0x54, 0x65, 0x73, 0x74, 0x1B, 0x24, 0x42, 0x3B, 0x33, 0x1B, 0x28, 0x42]))
+        #expect(handler.decode(encoded) == "Test山")
     }
     
     @Test("Encoding with UTF-8 does not include escape sequences")
@@ -891,5 +887,43 @@ struct CharacterSetHandlerTests {
         
         #expect(normalized.count > 0)
         #expect(normalized.contains("Hello"))
+    }
+
+    // MARK: - PS3.3 2026a C.12.1.1.2: each ISO-IR set decodes as its ISO 8859 part
+
+    @Test("Single-byte character sets decode their upper half, not as UTF-8 or Latin-1",
+          arguments: [
+            ("ISO_IR 109", [UInt8(0xA1)], "Ħ"),  // ISO 8859-3
+            ("ISO_IR 110", [0xA1], "Ą"),         // ISO 8859-4
+            ("ISO_IR 144", [0xB0], "А"),         // ISO 8859-5 (Cyrillic A)
+            ("ISO_IR 127", [0xC7], "ا"),         // ISO 8859-6
+            ("ISO_IR 126", [0xE1], "α"),         // ISO 8859-7
+            ("ISO_IR 138", [0xE0], "א"),         // ISO 8859-8
+            ("ISO_IR 148", [0xDD], "İ"),         // ISO 8859-9
+            ("ISO_IR 166", [0xA1], "ก"),         // TIS 620 / ISO 8859-11
+          ])
+    func testSingleByteCharacterSets(term: String, bytes: [UInt8], expected: String) {
+        let handler = CharacterSetHandler.from(specificCharacterSet: term)
+        #expect(handler.decode(Data([0x41] + bytes)) == "A" + expected)
+    }
+
+    @Test("ISO 2022 IR 149 (Korean) in G1 decodes as KS X 1001")
+    func testKoreanG1() {
+        let handler = CharacterSetHandler.from(specificCharacterSet: "\\ISO 2022 IR 149")
+        // ESC $ ) C designates KS X 1001 to G1; B0A1 is 가.
+        let data = Data([0x1B, 0x24, 0x29, 0x43, 0xB0, 0xA1])
+        #expect(handler.decode(data) == "가")
+    }
+
+    @Test("ISO 2022 escape into Greek G1 decodes ISO 8859-7")
+    func testGreekViaEscape() {
+        let handler = CharacterSetHandler.from(specificCharacterSet: "ISO 2022 IR 6\\ISO 2022 IR 126")
+        let data = Data([0x41, 0x1B, 0x2D, 0x46, 0xE1, 0xE2])  // "A", ESC - F, αβ
+        #expect(handler.decode(data) == "Aαβ")
+    }
+
+    @Test("ISO 2022 IR 6 is the default repertoire")
+    func testISO2022IR6() {
+        #expect(CharacterSetEncoding.from(definedTerm: "ISO 2022 IR 6") == .isoIR6)
     }
 }

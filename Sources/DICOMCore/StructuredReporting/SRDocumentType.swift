@@ -4,6 +4,11 @@
 ///
 /// Reference: PS3.4 Annex B - Storage SOP Class Definitions
 /// Reference: PS3.3 Section A.35 - Structured Reporting Document IODs
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — text-diffed against PS3.6 2026a Table A-1 (the
+/// 20 current SR Storage SOP Classes; the 4 retired "Trial" classes .88.1–.88.4 are recognised
+/// by `isSRDocument` only) and PS3.3 2026a A.35.1–A.35.23 (each IOD's Value Type constraints,
+/// which `allowedValueTypes` reproduces).
 
 /// DICOM Structured Report document types
 ///
@@ -95,6 +100,16 @@ public enum SRDocumentType: Sendable, Equatable, Hashable {
     /// Planned contrast/agent administration
     case plannedImagingAgentAdministrationSR
     
+    /// Procedure Log Storage
+    /// SOP Class UID: 1.2.840.10008.5.1.4.1.1.88.40
+    /// Time-stamped log of a procedure (PS3.3 A.35.7)
+    case procedureLog
+
+    /// Waveform Annotation SR Storage
+    /// SOP Class UID: 1.2.840.10008.5.1.4.1.1.88.77
+    /// Annotations of waveform segments by temporal coordinates (PS3.3 A.35.23)
+    case waveformAnnotationSR
+
     /// Performed Imaging Agent Administration SR Storage
     /// SOP Class UID: 1.2.840.10008.5.1.4.1.1.88.75
     /// Performed contrast/agent administration
@@ -141,6 +156,10 @@ public enum SRDocumentType: Sendable, Equatable, Hashable {
             return "1.2.840.10008.5.1.4.1.1.88.74"
         case .performedImagingAgentAdministrationSR:
             return "1.2.840.10008.5.1.4.1.1.88.75"
+        case .procedureLog:
+            return "1.2.840.10008.5.1.4.1.1.88.40"
+        case .waveformAnnotationSR:
+            return "1.2.840.10008.5.1.4.1.1.88.77"
         }
     }
     
@@ -183,57 +202,102 @@ public enum SRDocumentType: Sendable, Equatable, Hashable {
             return "Planned Imaging Agent Administration SR"
         case .performedImagingAgentAdministrationSR:
             return "Performed Imaging Agent Administration SR"
+        case .procedureLog:
+            return "Procedure Log"
+        case .waveformAnnotationSR:
+            return "Waveform Annotation SR"
         }
     }
     
     // MARK: - Content Item Type Constraints
     
-    /// Returns the allowed content item value types for this document type
+    /// The Value Types (0040,A040) an IOD permits in its Content Sequence.
+    ///
+    /// Each set is the Enumerated Values list of that IOD's Content Constraints in PS3.3 2026a
+    /// A.35, generated from the DocBook text. Extensible SR permits every Value Type.
     public var allowedValueTypes: Set<ContentItemValueType> {
         switch self {
         case .basicTextSR:
-            // Basic Text SR only supports TEXT, CODE, DATETIME, DATE, TIME, UIDREF, PNAME, COMPOSITE, IMAGE, CONTAINER
-            return [.text, .code, .datetime, .date, .time, .uidref, .pname, .composite, .image, .container]
-            
+            // PS3.3 A.35.1
+            return [.text, .code, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .container]
+
         case .enhancedSR:
-            // Enhanced SR adds NUM to Basic Text SR
-            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .container]
-            
-        case .comprehensiveSR, .extensibleSR:
-            // Comprehensive SR adds SCOORD and TCOORD
+            // PS3.3 A.35.2
             return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .tcoord, .container]
-            
+
+        case .comprehensiveSR:
+            // PS3.3 A.35.3
+            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .tcoord, .container]
+
         case .comprehensive3DSR:
-            // Comprehensive 3D SR adds SCOORD3D
+            // PS3.3 A.35.13
+            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .scoord3D, .tcoord, .container]
+
+        case .extensibleSR:
+            // PS3.3 A.35.15: any Value Type of Table C.17.3-7, including TABLE.
             return Set(ContentItemValueType.allCases)
-            
+
         case .keyObjectSelectionDocument:
-            // Key Object Selection has limited value types
-            return [.text, .code, .datetime, .uidref, .composite, .image, .container]
-            
-        case .mammographyCADSR, .chestCADSR, .colonCADSR:
-            // CAD SRs support most value types for detailing findings
-            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .scoord, .tcoord, .container]
-            
-        case .xRayRadiationDoseSR, .enhancedXRayRadiationDoseSR, .radiopharmaceuticalRadiationDoseSR, .patientRadiationDoseSR:
-            // Dose SRs support numeric measurements
-            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .container]
-            
+            // PS3.3 A.35.4
+            return [.text, .code, .uidref, .pname, .composite, .image, .waveform, .container]
+
+        case .mammographyCADSR:
+            // PS3.3 A.35.5
+            return [.text, .code, .num, .date, .time, .uidref, .pname, .composite, .image, .scoord, .container]
+
+        case .chestCADSR:
+            // PS3.3 A.35.6
+            return [.text, .code, .num, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .tcoord, .container]
+
+        case .colonCADSR:
+            // PS3.3 A.35.10, Table A.35.10-2: the targets of the relationship rows. TCOORD is listed
+            // only as a source (TCOORD SELECTED FROM) and no row admits it as a target, so it cannot
+            // occur; WAVEFORM is one of that row's targets.
+            return [.text, .code, .num, .date, .time, .uidref, .pname, .composite, .image, .waveform, .scoord, .scoord3D, .container]
+
+        case .xRayRadiationDoseSR:
+            // PS3.3 A.35.8
+            return [.text, .code, .num, .datetime, .uidref, .pname, .composite, .image, .container]
+
+        case .enhancedXRayRadiationDoseSR:
+            // PS3.3 A.35.22
+            return [.text, .code, .num, .datetime, .uidref, .pname, .composite, .image, .scoord3D, .container, .table]
+
+        case .radiopharmaceuticalRadiationDoseSR:
+            // PS3.3 A.35.14
+            return [.text, .code, .num, .datetime, .uidref, .pname, .container]
+
+        case .patientRadiationDoseSR:
+            // PS3.3 A.35.18
+            return [.text, .code, .num, .datetime, .uidref, .pname, .composite, .image, .container]
+
         case .acquisitionContextSR:
-            // Acquisition context supports various value types
-            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .container]
-            
+            // PS3.3 A.35.16
+            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .scoord3D, .container]
+
         case .simplifiedAdultEchoSR:
-            // Echo SR supports measurements and references
-            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .scoord, .container]
-            
+            // PS3.3 A.35.17
+            return [.text, .code, .num, .datetime, .uidref, .pname, .image, .waveform, .scoord, .tcoord, .container]
+
         case .implantationPlanSR:
-            // Implantation plan needs 3D coordinates
-            return Set(ContentItemValueType.allCases)
-            
-        case .plannedImagingAgentAdministrationSR, .performedImagingAgentAdministrationSR:
-            // Agent administration SRs
-            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .container]
+            // PS3.3 A.35.12
+            return [.text, .code, .num, .date, .uidref, .pname, .composite, .image, .container]
+
+        case .plannedImagingAgentAdministrationSR:
+            // PS3.3 A.35.19
+            return [.text, .code, .num, .datetime, .date, .uidref, .pname, .container]
+
+        case .performedImagingAgentAdministrationSR:
+            // PS3.3 A.35.20
+            return [.text, .code, .num, .datetime, .date, .uidref, .pname, .composite, .image, .waveform, .container]
+
+        case .procedureLog:
+            // PS3.3 A.35.7
+            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .composite, .image, .waveform, .container]
+
+        case .waveformAnnotationSR:
+            // PS3.3 A.35.23
+            return [.text, .code, .num, .datetime, .date, .time, .uidref, .pname, .waveform, .tcoord, .container]
         }
     }
     
@@ -267,13 +331,24 @@ public enum SRDocumentType: Sendable, Equatable, Hashable {
         case "1.2.840.10008.5.1.4.1.1.88.70": return .implantationPlanSR
         case "1.2.840.10008.5.1.4.1.1.88.74": return .plannedImagingAgentAdministrationSR
         case "1.2.840.10008.5.1.4.1.1.88.75": return .performedImagingAgentAdministrationSR
+        case "1.2.840.10008.5.1.4.1.1.88.40": return .procedureLog
+        case "1.2.840.10008.5.1.4.1.1.88.77": return .waveformAnnotationSR
         default: return nil
         }
     }
     
-    /// Returns whether the given SOP Class UID is a Structured Report
+    /// The retired "Trial" SR Storage SOP Classes of PS3.6 Table A-1 (.88.1–.88.4: Text,
+    /// Audio, Detail and Comprehensive SR Storage - Trial). Their IODs are no longer in PS3.3,
+    /// so they have no `SRDocumentType`, but a file carrying one is still a Structured Report.
+    public static let retiredTrialSOPClassUIDs: Set<String> = [
+        "1.2.840.10008.5.1.4.1.1.88.1", "1.2.840.10008.5.1.4.1.1.88.2",
+        "1.2.840.10008.5.1.4.1.1.88.3", "1.2.840.10008.5.1.4.1.1.88.4",
+    ]
+
+    /// Returns whether the given SOP Class UID is a Structured Report, including the
+    /// retired Trial SOP Classes.
     public static func isSRDocument(sopClassUID: String) -> Bool {
-        from(sopClassUID: sopClassUID) != nil
+        from(sopClassUID: sopClassUID) != nil || retiredTrialSOPClassUIDs.contains(sopClassUID)
     }
 }
 
@@ -300,7 +375,9 @@ extension SRDocumentType {
             SRDocumentType.simplifiedAdultEchoSR.sopClassUID,
             SRDocumentType.implantationPlanSR.sopClassUID,
             SRDocumentType.plannedImagingAgentAdministrationSR.sopClassUID,
-            SRDocumentType.performedImagingAgentAdministrationSR.sopClassUID
+            SRDocumentType.performedImagingAgentAdministrationSR.sopClassUID,
+            SRDocumentType.procedureLog.sopClassUID,
+            SRDocumentType.waveformAnnotationSR.sopClassUID
         ]
     }
 }

@@ -168,31 +168,17 @@ final class VideoConsoleParityTests: XCTestCase {
             sampleEntry: entry, frameCount: frameCount, duration: 300_000)])
     }
 
-    /// An AudioSampleEntry (ISO/IEC 14496-12 12.2.3) declaring 48 kHz stereo.
-    private func audioSampleEntry(format: String = "mp4a", sampleRate: UInt32 = 48_000) -> Data {
-        var payload = Data(repeating: 0, count: 6)
-        payload.appendBE16(1)                  // data_reference_index
-        payload.append(Data(repeating: 0, count: 8))
-        payload.appendBE16(2)                  // channelcount
-        payload.appendBE16(16)                 // samplesize
-        payload.appendBE32(0)                  // pre_defined + reserved
-        payload.appendBE32(sampleRate << 16)   // samplerate, 16.16
-        return box(format, payload)
-    }
-
-    /// The same clip carrying an audio track. PS3.5 8.2.12 permits AAC at
-    /// 48 kHz in stereo, so this one is carried.
-    private func h264MP4WithAudio(sampleRate: UInt32 = 48_000) -> Data {
+    /// The same clip carrying an audio track. DICOM video may carry audio
+    /// (PS3.5 8.2.7-8.2.12, Table 8.2.12-1 allows AAC, MP3 and MP2 in MP4).
+    private func h264MP4WithAudio() -> Data {
         let entry = visualSampleEntry(
             format: "avc1", width: 1920, height: 1080,
             extensions: avcC(sps: [Self.spsH264Unit], pps: [Data([0xEE, 0x3C, 0xB0])])
         )
         let video = videoTrack(sampleEntry: entry, frameCount: 300, duration: 300_000)
-        // 470 AAC frames of 1024 samples is ten seconds; at 1000 bytes each
-        // that is about 376 kbps, inside the 640 kbps ceiling.
         let audio = videoTrack(
-            sampleEntry: audioSampleEntry(sampleRate: sampleRate),
-            frameCount: 470, timescale: sampleRate, duration: sampleRate * 10, handler: "soun")
+            sampleEntry: box("mp4a", Data(repeating: 0, count: 28)),
+            frameCount: 400, duration: 300_000, handler: "soun")
         return mp4File(tracks: [video, audio])
     }
 
@@ -238,29 +224,28 @@ final class VideoConsoleParityTests: XCTestCase {
             Frame rate:       30.000 fps
             Frames:           300 (sampleTable)
             Transfer syntax:  1.2.840.10008.1.2.4.102
-                              MPEG-4 AVC/H.264 HP @ Level 4.1
+                              MPEG-4 AVC/H.264 High Profile / Level 4.1
 
             Conformance:      OK
             """)
     }
 
-    func testProbeReportDescribesAudioTracks() throws {
+    /// PS3.5 8.2.5-8.2.12 permit audio, and `convert` keeps it, so the report
+    /// names the tracks without calling them discarded or forbidden (D34).
+    func testProbeReportNamesCarriedAudioTracks() throws {
         let outcome = try VideoWorkflow.probe(bitstream: h264MP4WithAudio())
         XCTAssertEqual(outcome.exitCode, .success)
         XCTAssertTrue(outcome.output.contains(
-            "Audio:            AAC, 48 kHz, 2 ch, 376 kbps"),
-            "the report has to describe the audio it will carry: \(outcome.output)")
+            "Audio tracks:     1 (carried in the bit stream; not checked against PS3.5 8.2.5/8.2.12)"),
+            outcome.output)
+        XCTAssertFalse(outcome.output.contains("no audio"))
+        XCTAssertFalse(outcome.output.contains("discard"))
+        XCTAssertEqual(outcome.exitCode, .success, "audio is not a conformance defect")
     }
 
-    /// PS3.5 8.2.12 requires 48 kHz for AAC, so a 44.1 kHz track is rejected
-    /// with a remedy that copies the video untouched.
-    func testNonConformantAudioIsRejectedWithAnAudioOnlyRemedy() throws {
-        let outcome = try VideoWorkflow.probe(bitstream: h264MP4WithAudio(sampleRate: 44_100))
-        XCTAssertEqual(outcome.exitCode, .conformanceRejection)
-        XCTAssertTrue(outcome.output.contains(
-            "error: audio track 1 (AAC, 44.1 kHz, 2 ch, 376 kbps) is sampled at 44.1 kHz; "
-            + "AAC must be 48 kHz (PS3.5 8.2.12)"), outcome.output)
-        XCTAssertTrue(outcome.output.contains("-c:v copy -c:a aac -ar 48000"), outcome.output)
+    func testProbeReportHasNoAudioLineWithoutAudioTracks() throws {
+        let outcome = try VideoWorkflow.probe(bitstream: h264MP4())
+        XCTAssertFalse(outcome.output.contains("Audio tracks:"))
     }
 
     // MARK: - Default Type Notice
@@ -286,9 +271,54 @@ final class VideoConsoleParityTests: XCTestCase {
             bitstream: h264MP4WithAudio(), type: .endoscopic,
             typeWasExplicit: true, dryRun: true)
         XCTAssertEqual(outcome.output, """
-            note: carrying 1 audio track (AAC, 48 kHz, 2 ch, 376 kbps) inside the \
-            encapsulated bit stream, as PS3.5 8.2.5 and 8.2.12 permit.
+            warning: input has 1 audio track, kept in the bit stream; DICOMKit does not \
+            check it against PS3.5 8.2.5/8.2.12 or describe its channels in (003A,0300).
             """)
+    }
+
+    /// The payload is encapsulated unchanged, audio included (PS3.5 8.2.5-8.2.12
+    /// permit it), and the Cine Module then carries Multiplexed Audio Channels
+    /// Description Code Sequence (003A,0300): Type 2C, "Required if the Transfer
+    /// Syntax used to encode the Multi-frame Image contains multiplexed
+    /// (interleaved) audio channels", with "Zero or more Items" (PS3.3 Table C.7-13).
+    func testConvertKeepsAudioAndWritesAnEmptyAudioChannelsSequence() throws {
+        let input = h264MP4WithAudio()
+        let outcome = try VideoWorkflow.convert(
+            bitstream: input, type: .endoscopic, typeWasExplicit: true)
+        let dataSet = try XCTUnwrap(outcome.video).toDataSet()
+
+        let fragments = try XCTUnwrap(dataSet[.pixelData]?.encapsulatedFragments)
+        XCTAssertEqual(fragments.count, 1)
+        // A fragment is padded to even length, so compare the prefix.
+        XCTAssertEqual(fragments[0].prefix(input.count), input,
+                       "the audio track must not be stripped from the payload")
+
+        let audio = try XCTUnwrap(
+            dataSet[Tag(group: 0x003A, element: 0x0300)],
+            "(003A,0300) is required once the bit stream carries audio")
+        XCTAssertEqual(audio.vr, .SQ)
+        XCTAssertEqual(audio.sequenceItems?.count ?? 0, 0)
+
+        // The sequence survives encoding into a Part 10 file.
+        let reparsed = try DICOMFile.read(from: try XCTUnwrap(outcome.data))
+        XCTAssertNotNil(reparsed.dataSet[Tag(group: 0x003A, element: 0x0300)])
+    }
+
+    /// The deprecated name returns the corrected text rather than the old
+    /// "DICOM video has no audio, discarding" claim.
+    @available(*, deprecated)
+    func testDeprecatedAudioDiscardedLineForwardsToTheCorrectedText() {
+        XCTAssertEqual(VideoConsole.audioDiscardedLine(trackCount: 1),
+                       VideoConsole.audioCarriedLine(trackCount: 1))
+        XCTAssertFalse(VideoConsole.audioDiscardedLine(trackCount: 3).contains("no audio"))
+    }
+
+    /// Without audio the Type 2C condition is not met, so the sequence stays out.
+    func testConvertWithoutAudioOmitsTheAudioChannelsSequence() throws {
+        let outcome = try VideoWorkflow.convert(
+            bitstream: h264MP4(), type: .endoscopic, typeWasExplicit: true)
+        let dataSet = try XCTUnwrap(outcome.video).toDataSet()
+        XCTAssertNil(dataSet[Tag(group: 0x003A, element: 0x0300)])
     }
 
     // MARK: - Conformance Rejection
@@ -585,6 +615,7 @@ final class VideoConsoleParityTests: XCTestCase {
 
         XCTAssertEqual(element.length, 0xFFFF_FFFF, "encapsulated, not a native OB value")
         XCTAssertEqual(element.encapsulatedFragments?.count, 1)
+        // PS3.5 8.2.5 / 8.2.6: "The Basic Offset Table shall be empty (present but zero length)".
         XCTAssertEqual(element.encapsulatedOffsetTable, [])
     }
 
@@ -903,6 +934,10 @@ final class VideoConsoleParityTests: XCTestCase {
         XCTAssertEqual(VideoConsole.conformanceOKLine, "\nConformance:      OK")
         XCTAssertEqual(VideoConsole.batchConvertedLine(input: "a.mp4", output: "a.dcm"),
                        "a.mp4 -> a.dcm")
+        XCTAssertEqual(VideoConsole.audioCarriedLine(trackCount: 2), """
+            warning: input has 2 audio tracks, kept in the bit stream; DICOMKit does not \
+            check them against PS3.5 8.2.5/8.2.12 or describe their channels in (003A,0300).
+            """)
         XCTAssertEqual(
             VideoConsole.audioCarriedLine([AudioStreamInfo(format: .aac, sampleRate: 48_000, channels: 2)]),
             "note: carrying 1 audio track (AAC, 48 kHz, 2 ch) inside the encapsulated bit stream, "

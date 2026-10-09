@@ -190,7 +190,16 @@ public struct Workitem: Sendable, Equatable, Codable {
 
 /// UPS Procedure Step State
 ///
-/// Reference: PS3.4 Annex CC.2 - State Machine
+/// NEMA-verified: 2026a, checked 2026-09-28 — the 4 terms diffed against PS3.3 2026a C.30.1;
+/// transitions against PS3.4 Table CC.1.1-2 (an SCU may change SCHEDULED to IN PROGRESS and
+/// IN PROGRESS to COMPLETED or CANCELED; a SCHEDULED UPS is cancelled by the SCP on Request
+/// Cancel, CC.2.2.3, never by a Change State request, which Table CC.1.1-2 refuses with C310H).
+/// NEMA-verified: 2026a, checked 2026-10-06 — `changeStateTargets` / `changeStateTarget(optionValue:)`
+/// (lifted from dicom-wado, D255) against PS3.18 2026a 11.7.1.4 ("IN PROGRESS", "COMPLETED", or
+/// "CANCELED": 3/3) and PS3.4 2026a Table CC.1.1-2 (row "N-ACTION to Change State to SCHEDULED":
+/// C303H from every state, C307H from null — the refusal text names C303H).
+///
+/// Reference: PS3.4 Annex CC.1.1 - Unified Procedure Step States
 public enum UPSState: String, Sendable, Codable, CaseIterable {
     /// Workitem has been scheduled but not yet started
     case scheduled = "SCHEDULED"
@@ -214,11 +223,13 @@ public enum UPSState: String, Sendable, Codable, CaseIterable {
         }
     }
     
-    /// Returns the valid target states from this state
+    /// Returns the target states a Change State request may ask for from this state
+    /// (PS3.4 Table CC.1.1-2). SCHEDULED to CANCELED is not one of them: the origin server
+    /// performs that itself, through IN PROGRESS, when cancellation is requested (CC.2.2.3).
     public var validTransitions: [UPSState] {
         switch self {
         case .scheduled:
-            return [.inProgress, .canceled]
+            return [.inProgress]
         case .inProgress:
             return [.completed, .canceled]
         case .completed, .canceled:
@@ -232,15 +243,74 @@ public enum UPSState: String, Sendable, Codable, CaseIterable {
     public func canTransition(to targetState: UPSState) -> Bool {
         validTransitions.contains(targetState)
     }
+
+    // MARK: Change Workitem State targets (PS3.18 2026a 11.7.1.4; PS3.4 2026a Table CC.1.1-2)
+
+    /// The Procedure Step State values a Change Workitem State request may carry
+    /// (PS3.18 2026a 11.7.1.4: "IN PROGRESS", "COMPLETED", or "CANCELED"). SCHEDULED is not
+    /// one of them: PS3.4 2026a Table CC.1.1-2 answers "N-ACTION to Change State to SCHEDULED"
+    /// with C303H from every state (C307H when the instance does not exist). Shared by
+    /// dicom-wado and DICOM Studio (D255).
+    public static let changeStateTargets: [UPSState] = [.inProgress, .completed, .canceled]
+
+    /// Whether a Change Workitem State request may name this state (PS3.18 2026a 11.7.1.4).
+    public var isChangeStateTarget: Bool { UPSState.changeStateTargets.contains(self) }
+
+    /// The one refusal text both front ends print when a Change Workitem State request names
+    /// this state and PS3.18 2026a 11.7.1.4 does not allow it; nil for a target state.
+    public var changeStateRefusal: String? {
+        guard !isChangeStateTarget else { return nil }
+        return "\(rawValue) is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+            + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+            + "to SCHEDULED (C303H)"
+    }
+
+    /// The refusal text for a value that is not a PS3.3 Table C.30.1-1 state at all.
+    public static func unknownStateRefusal(_ raw: String) -> String {
+        "Invalid state: \(raw). Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, "
+            + "CANCELED (PS3.18 2026a 11.7.1.4)"
+    }
+
+    /// Parses an option or UI value: the PS3.3 Table C.30.1-1 Enumerated Value ("IN PROGRESS")
+    /// or the spellings IN_PROGRESS / INPROGRESS, case-insensitive, surrounding whitespace ignored.
+    public init?(optionValue raw: String) {
+        switch raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "_", with: " ") {
+        case "SCHEDULED":                  self = .scheduled
+        case "IN PROGRESS", "INPROGRESS":  self = .inProgress
+        case "COMPLETED":                  self = .completed
+        case "CANCELED":                   self = .canceled
+        default:                           return nil
+        }
+    }
+
+    /// The target state a Change Workitem State request sends, from an option or UI value.
+    /// PS3.18 2026a 11.7.1.4 allows only "IN PROGRESS", "COMPLETED" or "CANCELED"; PS3.4 2026a
+    /// Table CC.1.1-2 answers a change to SCHEDULED with C303H (or C307H). SCHEDULED and
+    /// unknown values throw a `DICOMwebOptionRefusal` of kind `.refused` (the CLI exits 1).
+    public static func changeStateTarget(optionValue raw: String) throws -> UPSState {
+        guard let state = UPSState(optionValue: raw) else {
+            throw DICOMwebOptionRefusal(.refused, unknownStateRefusal(raw))
+        }
+        if let refusal = state.changeStateRefusal {
+            throw DICOMwebOptionRefusal(.refused, refusal)
+        }
+        return state
+    }
 }
 
 // MARK: - UPSPriority
 
 /// UPS Scheduled Procedure Step Priority
 ///
-/// Reference: PS3.4 Annex CC.1.1
+/// PS3.3 C.30.2 defines HIGH, MEDIUM and LOW for Scheduled Procedure Step Priority
+/// (0074,1200); `STAT` is not a defined term (C.30.2: HIGH is "equivalent to a STAT
+/// request"), so `.stat` is deprecated and written as HIGH.
+///
+/// Reference: PS3.3 C.30.2 - Unified Procedure Step Scheduled Procedure Information Module
 public enum UPSPriority: String, Sendable, Codable, CaseIterable {
-    /// Highest priority - time critical
+    /// Not a defined term of PS3.3 C.30.2 ("HIGH is equivalent to a STAT request"); written as
+    /// HIGH on the wire by `dicomValue`. Use `.high`.
+    @available(*, deprecated, renamed: "high", message: "PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request")
     case stat = "STAT"
     
     /// Higher than routine priority
@@ -251,6 +321,15 @@ public enum UPSPriority: String, Sendable, Codable, CaseIterable {
     
     /// Lower than routine priority
     case low = "LOW"
+    
+    /// The defined terms of PS3.3 C.30.2 (the deprecated `stat` is not listed)
+    public static var allCases: [UPSPriority] { [.high, .medium, .low] }
+    
+    /// The Scheduled Procedure Step Priority (0074,1200) defined term of PS3.3 C.30.2 for this
+    /// case: HIGH, MEDIUM or LOW (the deprecated `stat` is written as HIGH).
+    public var dicomValue: String {
+        rawValue == "STAT" ? "HIGH" : rawValue
+    }
     
     /// Numeric priority value (lower number = higher priority)
     public var numericValue: Int {
@@ -593,7 +672,7 @@ extension Workitem {
         // Scheduled Procedure Step Priority (0074,1200) - VR: CS
         json[UPSTag.scheduledProcedureStepPriority] = [
             "vr": "CS",
-            "Value": [priority.rawValue]
+            "Value": [priority.dicomValue]
         ]
         
         // Input Readiness State (0040,4041) - VR: CS — required for Create (PS3.4 CC.2.5-3)
@@ -708,7 +787,7 @@ extension Workitem {
         
         // Comments on Scheduled Procedure Step (0040,0400) - VR: LT
         if let comments = comments {
-            json[UPSTag.commentsOnScheduledProcedureStep] = [
+            json[UPSTag.commentsOnTheScheduledProcedureStep] = [
                 "vr": "LT",
                 "Value": [comments]
             ]
@@ -788,7 +867,7 @@ extension Workitem {
             }
             if let desc = progress.progressDescription {
                 json[UPSTag.procedureStepProgressDescription] = [
-                    "vr": "LO",
+                    "vr": "ST",
                     "Value": [desc]
                 ]
             }
@@ -858,7 +937,7 @@ extension Workitem {
         // Scheduled Procedure Step Priority (0074,1200) - VR: CS - Required
         json[UPSTag.scheduledProcedureStepPriority] = [
             "vr": "CS",
-            "Value": [priority.rawValue]
+            "Value": [priority.dicomValue]
         ]
         
         // Procedure Step Label (0074,1204) - VR: LO - Required
@@ -947,7 +1026,7 @@ extension Workitem {
         
         // Comments on Scheduled Procedure Step (0040,0400) - VR: LT
         if let comments = comments {
-            json[UPSTag.commentsOnScheduledProcedureStep] = [
+            json[UPSTag.commentsOnTheScheduledProcedureStep] = [
                 "vr": "LT",
                 "Value": [comments]
             ]
@@ -1000,29 +1079,27 @@ extension Workitem {
             "Value": [["Alphabetic": pnValue]]
         ]
         
-        // Patient ID (0010,0020) - VR: LO - Type 1 (required, must have value)
-        if let pid = patientID, !pid.isEmpty {
-            json[UPSTag.patientID] = [
-                "vr": "LO",
-                "Value": [pid]
-            ]
-        }
+        // Patient ID (0010,0020) - VR: LO - Type 2 (PS3.4 Table CC.2.5-3: present, may be empty)
+        json[UPSTag.patientID] = Workitem.optionalValue("LO", patientID)
         
         // Patient's Birth Date (0010,0030) - VR: DA - Type 2
-        if let dob = patientBirthDate, !dob.isEmpty {
-            json[UPSTag.patientBirthDate] = [
-                "vr": "DA",
-                "Value": [dob]
-            ]
+        json[UPSTag.patientBirthDate] = Workitem.optionalValue("DA", patientBirthDate)
+        
+        // The remaining Type 2 attributes of the N-CREATE column of PS3.4 Table CC.2.5-3 that
+        // the model does not carry are sent empty, as the SCU shall provide them
+        for (tag, vr) in [(UPSTag.issuerOfPatientID, "LO"), (UPSTag.issuerOfPatientIDQualifiersSequence, "SQ"),
+                          (UPSTag.otherPatientIDsSequence, "SQ"), (UPSTag.admissionID, "LO"),
+                          (UPSTag.issuerOfAdmissionIDSequence, "SQ"), (UPSTag.admittingDiagnosesDescription, "LO"),
+                          (UPSTag.admittingDiagnosesCodeSequence, "SQ"), (UPSTag.scheduledProcessingParametersSequence, "SQ"),
+                          (UPSTag.procedureStepProgressInformationSequence, "SQ"),
+                          (UPSTag.unifiedProcedureStepPerformedProcedureSequence, "SQ")] where json[tag] == nil {
+            json[tag] = ["vr": vr]
         }
+        // Transaction UID (0008,1195) - Type 2, "shall be empty" at N-CREATE
+        json[UPSTag.transactionUID] = ["vr": "UI"]
         
         // Patient's Sex (0010,0040) - VR: CS - Type 2
-        if let sex = patientSex, !sex.isEmpty {
-            json[UPSTag.patientSex] = [
-                "vr": "CS",
-                "Value": [sex]
-            ]
-        }
+        json[UPSTag.patientSex] = Workitem.optionalValue("CS", patientSex)
         
         // Referenced Request Sequence (0040,A370) - VR: SQ - Type 1C
         // Contains Study Instance UID, Accession Number, etc.
@@ -1065,6 +1142,14 @@ extension Workitem {
         return dicomDTFormatter.string(from: date)
     }
     
+    /// A Type 2 attribute: the value when present, an empty attribute (`{"vr": …}`) otherwise
+    private static func optionalValue(_ vr: String, _ value: String?) -> [String: Any] {
+        if let value = value, !value.isEmpty {
+            return ["vr": vr, "Value": [value]]
+        }
+        return ["vr": vr]
+    }
+    
     /// Converts a ReferencedInstance to DICOM JSON
     private static func referencedInstanceToJSON(_ ref: ReferencedInstance) -> [String: Any] {
         var item: [String: Any] = [:]
@@ -1099,9 +1184,10 @@ extension Workitem {
             ]
         }
         if let name = performer.performerName {
+            // Human Performer's Name (0040,4037) is PN (PS3.6 Table 6-1)
             item[UPSTag.humanPerformerName] = [
-                "vr": "LO",
-                "Value": [name]
+                "vr": "PN",
+                "Value": [["Alphabetic": name]]
             ]
         }
         if let org = performer.performerOrganization {
@@ -1183,7 +1269,7 @@ extension Workitem {
         workitem.procedureStepLabel = extractString(from: json, tag: UPSTag.procedureStepLabel)
         workitem.worklistLabel = extractString(from: json, tag: UPSTag.worklistLabel)
         workitem.scheduledProcedureStepID = extractString(from: json, tag: UPSTag.scheduledProcedureStepID)
-        workitem.comments = extractString(from: json, tag: UPSTag.commentsOnScheduledProcedureStep)
+        workitem.comments = extractString(from: json, tag: UPSTag.commentsOnTheScheduledProcedureStep)
         
         // Transaction
         workitem.transactionUID = extractString(from: json, tag: UPSTag.transactionUID)
@@ -1317,7 +1403,7 @@ extension Workitem {
         }
         let performers = items.map { item -> HumanPerformer in
             let code = extractCodedEntry(from: item, tag: UPSTag.humanPerformerCodeSequence)
-            let name = extractString(from: item, tag: UPSTag.humanPerformerName)
+            let name = extractPersonName(from: item, tag: UPSTag.humanPerformerName)
             let org = extractString(from: item, tag: UPSTag.humanPerformerOrganization)
             return HumanPerformer(performerCode: code, performerName: name, performerOrganization: org)
         }
@@ -1348,26 +1434,34 @@ extension Workitem {
 // MARK: - DICOM Tags for UPS
 
 /// DICOM tags used for UPS (Unified Procedure Step)
+///
+/// NEMA-verified: 2026a, checked 2026-09-28 — all 56 tags and their keywords diffed against
+/// PS3.6 2026a Table 6-1 (Scripts/diff_web.py); the VR of every JSON literal written with
+/// them checked against the same table.
 public enum UPSTag {
     // SOP Common
     public static let sopClassUID = "00080016"
     public static let sopInstanceUID = "00080018"
     
-    // UPS Progress Information
+    // UPS Progress Information (PS3.3 C.30.1)
+    public static let procedureStepProgressInformationSequence = "00741002"
     public static let procedureStepProgress = "00741004"
     public static let procedureStepProgressDescription = "00741006"
+    public static let procedureStepCommunicationsURISequence = "00741008"
+    public static let contactURI = "0074100A"
+    public static let contactDisplayName = "0074100C"
+    public static let scheduledProcessingParametersSequence = "00741210"
     
     // UPS Relationship
     public static let scheduledWorkitemCodeSequence = "00404018"
-    public static let scheduledProcessingParametersSequence = "00741210"
     public static let scheduledStationNameCodeSequence = "00404025"
     public static let scheduledStationClassCodeSequence = "00404026"
     public static let scheduledStationGeographicLocationCodeSequence = "00404027"
     public static let scheduledHumanPerformersSequence = "00404034"
     public static let actualHumanPerformersSequence = "00404035"
-    public static let humanPerformerCodeSequence = "00404036"
+    public static let humanPerformerCodeSequence = "00404009"
     public static let humanPerformerName = "00404037"
-    public static let humanPerformerOrganization = "00404009"
+    public static let humanPerformerOrganization = "00404036"
     
     // UPS Scheduled Procedure Step
     public static let scheduledProcedureStepStartDateTime = "00404005"
@@ -1388,7 +1482,7 @@ public enum UPSTag {
     public static let inputReadinessState = "00404041"
     public static let procedureStepCancellationDateTime = "00404052"
     public static let reasonForCancellation = "00741238"
-    public static let procedureStepDiscontinuationReasonCodeSequence = "00741236"
+    public static let procedureStepDiscontinuationReasonCodeSequence = "0074100E"
     
     // Transaction
     public static let transactionUID = "00081195"
@@ -1401,7 +1495,7 @@ public enum UPSTag {
     public static let referencedSOPSequence = "00081199"
     public static let referencedSOPClassUID = "00081150"
     public static let referencedSOPInstanceUID = "00081155"
-    public static let retrieveURI = "00401002"
+    public static let retrieveURI = "0040E010"
     public static let typeOfInstances = "0040E020"
     
     // Study Reference
@@ -1422,13 +1516,23 @@ public enum UPSTag {
     public static let codeMeaning = "00080104"
     
     // Comments
+    /// Comments on the Scheduled Procedure Step (0040,0400); PS3.6 keyword CommentsOnTheScheduledProcedureStep
+    public static let commentsOnTheScheduledProcedureStep = "00400400"
+    @available(*, deprecated, renamed: "commentsOnTheScheduledProcedureStep")
     public static let commentsOnScheduledProcedureStep = "00400400"
     
-    // Patient
+    // Patient (UPS Relationship Module, PS3.3 C.30.4)
     public static let patientName = "00100010"
     public static let patientID = "00100020"
+    public static let issuerOfPatientID = "00100021"
+    public static let issuerOfPatientIDQualifiersSequence = "00100024"
+    public static let otherPatientIDsSequence = "00101002"
     public static let patientBirthDate = "00100030"
     public static let patientSex = "00100040"
+    public static let admissionID = "00380010"
+    public static let issuerOfAdmissionIDSequence = "00380014"
+    public static let admittingDiagnosesDescription = "00081080"
+    public static let admittingDiagnosesCodeSequence = "00081084"
     
     // Study
     public static let studyInstanceUID = "0020000D"

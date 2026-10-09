@@ -2,8 +2,10 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for the Security & Privacy Center (Milestone 11)
-// Reference: DICOM PS3.15 (Security and System Management Profiles)
-// Reference: HIPAA Security Rule §164.312
+// Reference: DICOM PS3.15 (Security and System Management Profiles): B.12 / B.13 (TLS), Annex E (de-identification), A.5 (audit)
+// Reference: HIPAA Security Rule §164.312 and 45 CFR §164.514(b)(2) are cited as law only; no profile here implements them
+// NEMA-verified: 2026a, checked 2026-10-05 — SecurityTLSMode is the app's own policy, not a PS3.15 profile: its minimum versions checked against PS3.15 2026a B.12 ("Servers and clients shall support TLS 1.2 and may support TLS 1.3"; BCP 195 / RFC 8996 prohibit TLS 1.0 and 1.1) — Development was "TLS 1.0", corrected to TLS 1.2; B.1-B.3 and B.9-B.11 are "Retired" in 2026a and are no longer cited; AnonymizationProfile legacy cases are fixed attribute lists (not PS3.15 Annex E; .ps315 added 2026-10-06, cliFlag names the legacy-* CLI profiles, fixed 2026-10-05) and the descriptions now state what the DICOMKit engine removes (basic 14, clinical trial 22, research 3 attributes) instead of "18 HIPAA direct identifiers"; TagAction, audit, access-control and session enums carry no DICOM-defined values; AnonHelpers.buildCommand mirrors dicom-anon's options
+// NEMA-verified: 2026a, checked 2026-10-06 — AnonymizationProfile.ps315 added (P-STUDIO-ANON-PS315): display name compared by script with the profile name of PS3.15 2026a Annex E (E.1, "Basic Application Level Confidentiality Profile"); it runs every row of Table E.1-1 through DICOMKit Anonymizer.deidentify with the E.3 Options (cliFlag "ps315" = dicom-anon's default); the legacy cases are labelled "not PS3.15"; the recorded attributes (0012,0062) / (0012,0063) / (0012,0064) named in the description are the PS3.15 E.1.1 ones; AnonHelpers.buildCommand emits the E.3 Option flags in AnonCLI.PS315Flags order
 
 import Foundation
 
@@ -39,8 +41,11 @@ public enum SecurityTab: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - TLS Mode
 
-/// TLS security mode for network connections.
-/// Reference: DICOM PS3.15 Annex B – Secure Transport Connection Profiles
+/// TLS security mode for network connections (the app's own policy; none of the modes is a
+/// PS3.15 Secure Transport Connection Profile).
+/// Reference: DICOM PS3.15 B.12 (BCP 195 RFC 8996, 9325) and B.13 (Modified BCP 195): TLS 1.2 shall be
+/// supported, TLS 1.3 may be; TLS 1.0 and 1.1 are prohibited by RFC 8996. Strict is stricter than
+/// B.12 (it refuses TLS 1.2); Development only relaxes certificate validation, never the version.
 public enum SecurityTLSMode: String, Sendable, Equatable, Hashable, CaseIterable {
     case strict      = "STRICT"
     case compatible  = "COMPATIBLE"
@@ -67,12 +72,13 @@ public enum SecurityTLSMode: String, Sendable, Equatable, Hashable, CaseIterable
     /// Whether self-signed certificates are accepted.
     public var allowsSelfSigned: Bool { self == .development }
 
-    /// Minimum TLS version string.
+    /// Minimum TLS version string. Never below TLS 1.2: PS3.15 B.12 (RFC 8996) prohibits TLS 1.0 / 1.1
+    /// in every profile, and Development only relaxes certificate validation.
     public var minimumTLSVersion: String {
         switch self {
         case .strict:      return "TLS 1.3"
         case .compatible:  return "TLS 1.2"
-        case .development: return "TLS 1.0"
+        case .development: return "TLS 1.2"
         }
     }
 
@@ -240,45 +246,71 @@ public extension SecurityCertificateStatus {
 
 // MARK: - Anonymization Profile
 
-/// Standard anonymization profile.
-/// Reference: DICOM PS3.15 Annex E – Attribute Confidentiality Profiles
+/// Anonymization profile of the Security Center.
+///
+/// `.ps315` (the default since 2026-10-06, P-STUDIO-ANON-PS315) is the PS3.15 2026a E.1 Basic
+/// Application Level Confidentiality Profile: every row of Table E.1-1 with the E.3 Options the
+/// operator selects, run by DICOMKit `Anonymizer.deidentify(file:options:)` exactly as dicom-anon
+/// `--profile ps315` runs it (DICOMKit `AnonCLI` for validation, notices and the E.1-1a report).
+/// The other cases are fixed attribute lists run by the DICOMKit `Anonymizer` (dicom-anon's
+/// deprecated `legacy-*` profiles); they are NOT PS3.15 Annex E profiles, and their display names
+/// say so. The lists are documented in `AnonymizationHelpers`.
+///
+/// Raw values are unchanged for the existing cases (`BASIC`, …); `.ps315` is new (`PS315`).
 public enum AnonymizationProfile: String, Sendable, Equatable, Hashable, CaseIterable {
+    /// PS3.15 Basic Application Level Confidentiality Profile (PS3.15 2026a E.1, Table E.1-1).
+    case ps315            = "PS315"
     case basic            = "BASIC"
     case clinicalTrial    = "CLINICAL_TRIAL"
     case research         = "RESEARCH"
     case hipaaeSafeHarbor = "HIPAA_SAFE_HARBOR"
     case custom           = "CUSTOM"
 
-    /// Human-readable display name.
+    /// The profiles the anonymization builder offers, PS3.15 first (the default).
+    public static let builderProfiles: [AnonymizationProfile] = [.ps315, .basic, .clinicalTrial, .research]
+
+    /// Whether this is the PS3.15 Annex E Basic Profile (runs `Anonymizer.deidentify`).
+    public var isPS315: Bool { self == .ps315 }
+
+    /// Human-readable display name. The PS3.15 name is the one PS3.15 2026a Annex E (E.1) gives; the
+    /// legacy lists are labelled as not PS3.15.
     public var displayName: String {
         switch self {
-        case .basic:            return "Basic (Remove Direct Identifiers)"
-        case .clinicalTrial:    return "Clinical Trial (Remove + Dates)"
-        case .research:         return "Research (Minimal Removal)"
-        case .hipaaeSafeHarbor: return "HIPAA Safe Harbor"
-        case .custom:           return "Custom Rules"
+        case .ps315:            return "PS3.15 Basic Application Level Confidentiality Profile"
+        case .basic:            return "Legacy Basic list (not PS3.15)"
+        case .clinicalTrial:    return "Legacy Clinical Trial list (not PS3.15)"
+        case .research:         return "Legacy Research list (not PS3.15)"
+        case .hipaaeSafeHarbor: return "HIPAA Safe Harbor (legacy Basic list, not PS3.15)"
+        case .custom:           return "Custom Rules (not PS3.15)"
         }
     }
 
-    /// CLI flag value for --profile (matches dicom-anon).
+    /// The dicom-anon `--profile` value that runs the same thing as this profile.
+    /// `.ps315` is `ps315`, the CLI default (its alias `basic` means the same since
+    /// 2026-10-01, P-ANON-PROFILE). The other cases are fixed attribute lists, not PS3.15
+    /// Annex E, so they map to the CLI's deprecated `legacy-*` names. HIPAA Safe Harbor and
+    /// Custom run the legacy basic list in the app (`SecurityViewModel.engineProfile`), so
+    /// they name the same flag.
     public var cliFlag: String {
         switch self {
-        case .basic:            return "basic"
-        case .clinicalTrial:    return "clinical-trial"
-        case .research:         return "research"
-        case .hipaaeSafeHarbor: return "basic"   // HIPAA Safe Harbor uses basic profile in CLI
-        case .custom:           return "basic"
+        case .ps315:            return "ps315"
+        case .basic:            return "legacy-basic"
+        case .clinicalTrial:    return "legacy-clinical-trial"
+        case .research:         return "legacy-research"
+        case .hipaaeSafeHarbor: return "legacy-basic"
+        case .custom:           return "legacy-basic"
         }
     }
 
     /// Short description.
     public var shortDescription: String {
         switch self {
-        case .basic:            return "Removes 18 HIPAA direct identifiers from DICOM metadata."
-        case .clinicalTrial:    return "Removes direct identifiers plus study/acquisition dates."
-        case .research:         return "Minimal removal: PatientName, PatientID, PatientBirthDate only."
-        case .hipaaeSafeHarbor: return "Applies HIPAA Safe Harbor de-identification (45 CFR §164.514(b)(2))."
-        case .custom:           return "Apply user-defined tag-level anonymization rules."
+        case .ps315:            return "PS3.15 Annex E: applies every row of Table E.1-1 (D dummy, Z zero length, X remove, U new UID, C clean) with the E.3 Options selected below, and records Patient Identity Removed (0012,0062), De-identification Method (0012,0063) and its Code Sequence (0012,0064). Same as dicom-anon --profile ps315."
+        case .basic:            return "Legacy list, not PS3.15 Annex E: removes 14 identifying attributes (patient names, IDs, birth date/time, comments; referring/performing physicians, operators; institution, station, device serial)."
+        case .clinicalTrial:    return "Legacy list, not PS3.15 Annex E: removes the 14 basic attributes plus the study/series/acquisition/content dates and times (22 attributes)."
+        case .research:         return "Legacy list, not PS3.15 Annex E: minimal removal of Patient's Name, Patient ID, Patient's Birth Date only."
+        case .hipaaeSafeHarbor: return "Runs the 14-attribute legacy basic list. Not a complete HIPAA Safe Harbor de-identification: 45 CFR §164.514(b)(2)(i) lists 18 identifier categories that need review of dates, free text and pixel data."
+        case .custom:           return "Apply user-defined tag-level anonymization rules (not PS3.15 Annex E)."
         }
     }
 }
@@ -412,7 +444,7 @@ public struct AnonymizationJob: Identifiable, Sendable, Equatable, Hashable {
     public init(
         id: UUID = UUID(),
         filePaths: [String] = [],
-        profile: AnonymizationProfile = .basic,
+        profile: AnonymizationProfile = .ps315,
         customRules: [AnonymizationTagRule] = [],
         status: AnonymizationStatus = .pending,
         totalFiles: Int = 0,
@@ -448,8 +480,8 @@ public struct AnonymizationJob: Identifiable, Sendable, Equatable, Hashable {
 
 // MARK: - Audit Event Type
 
-/// Type of auditable event.
-/// Reference: DICOM PS3.15 Annex A – Audit Trail Message Format Profile
+/// Type of auditable event (the app's own categories, not the DICOM audit message event IDs).
+/// Reference: DICOM PS3.15 A.5 – Audit Trail Message Format Profile
 public enum SecurityAuditEventType: String, Sendable, Equatable, Hashable, CaseIterable {
     case fileAccess        = "FILE_ACCESS"
     case fileModification  = "FILE_MODIFICATION"
@@ -506,8 +538,8 @@ public enum SecurityAuditEventType: String, Sendable, Equatable, Hashable, CaseI
 
 // MARK: - Audit Log Entry
 
-/// A single entry in the HIPAA-compliant audit log.
-/// Reference: DICOM PS3.15 Annex A.5 – DICOM Audit Messages
+/// A single entry in the app's audit log (not a PS3.15 A.5 audit message).
+/// Reference: DICOM PS3.15 A.5 – Audit Trail Message Format Profile
 public struct SecurityAuditEntry: Identifiable, Sendable, Equatable, Hashable {
     public let id: UUID
     /// Timestamp of the event.
@@ -877,12 +909,18 @@ public enum AnonHelpers: Sendable {
         backup: Bool,
         auditLogPath: String,
         force: Bool,
-        verbose: Bool
+        verbose: Bool,
+        ps315OptionFlags: [String] = [],
+        allowBurnedInPHI: Bool = false
     ) -> String {
         guard !inputPath.isEmpty else { return "dicom-anon <input>" }
         var cmd = "dicom-anon \"\(inputPath)\""
         if !outputPath.isEmpty { cmd += " --output \"\(outputPath)\"" }
-        if profile != .basic { cmd += " --profile \(profile.cliFlag)" }
+        // Always named, also for ps315 (the CLI default): the line states which profile ran.
+        cmd += " --profile \(profile.cliFlag)"
+        // PS3.15 2026a E.3 Option flags (DICOMKit AnonCLI.PS315Flags.setFlags spellings);
+        // dicom-anon accepts them only with --profile ps315.
+        for flag in ps315OptionFlags where !flag.isEmpty { cmd += " \(flag)" }
         if let days = shiftDates { cmd += " --shift-dates \(days)" }
         if regenerateUIDs { cmd += " --regenerate-uids" }
         for tag in removeTags  where !tag.isEmpty { cmd += " --remove \(tag)" }
@@ -893,6 +931,7 @@ public enum AnonHelpers: Sendable {
         if backup      { cmd += " --backup" }
         if !auditLogPath.isEmpty { cmd += " --audit-log \"\(auditLogPath)\"" }
         if force       { cmd += " --force" }
+        if allowBurnedInPHI { cmd += " --allow-burned-in-phi" }
         if verbose     { cmd += " --verbose" }
         return cmd
     }

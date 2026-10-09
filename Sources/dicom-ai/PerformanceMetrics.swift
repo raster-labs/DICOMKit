@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (inference timing and memory metrics)
 import Foundation
 
 #if canImport(CoreML)

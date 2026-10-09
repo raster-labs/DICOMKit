@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (ITU-T H.264 bitstream syntax, out of scope)
 //
 // H264Parser.swift
 // DICOMKit

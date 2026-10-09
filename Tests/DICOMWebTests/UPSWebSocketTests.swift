@@ -315,7 +315,7 @@ final class UPSWebSocketTests: XCTestCase {
         let json: [String: Any] = [
             "00001000": ["vr": "UI", "Value": ["1.2.3.4.5"]],
             "00081195": ["vr": "UI", "Value": ["1.2.3.4.6"]],
-            "00000100": ["vr": "US", "Value": [1]],    // Event Type ID = 1 → stateReport
+            "00001002": ["vr": "US", "Value": [1]],    // Event Type ID = 1 → stateReport
             "00741000": ["vr": "CS", "Value": ["IN PROGRESS"]]
         ]
         let data = try JSONSerialization.data(withJSONObject: json)
@@ -337,7 +337,7 @@ final class UPSWebSocketTests: XCTestCase {
         
         let json: [String: Any] = [
             "00001000": ["vr": "UI", "Value": ["1.2.3.4.5"]],
-            "00000100": ["vr": "US", "Value": [2]]    // Event Type ID = 2 → cancelRequested
+            "00001002": ["vr": "US", "Value": [2]]    // Event Type ID = 2 → cancelRequested
         ]
         let data = try JSONSerialization.data(withJSONObject: json)
         
@@ -357,7 +357,7 @@ final class UPSWebSocketTests: XCTestCase {
         
         let json: [String: Any] = [
             "00001000": ["vr": "UI", "Value": ["1.2.3.4.5"]],
-            "00000100": ["vr": "US", "Value": [3]]    // Event Type ID = 3 → progressReport
+            "00001002": ["vr": "US", "Value": [3]]    // Event Type ID = 3 → progressReport
         ]
         let data = try JSONSerialization.data(withJSONObject: json)
         
@@ -477,7 +477,7 @@ final class UPSWebSocketTests: XCTestCase {
         )
         
         let json: [String: Any] = [
-            "00000100": ["vr": "US", "Value": [1]]
+            "00001002": ["vr": "US", "Value": [1]]
         ]
         let data = try JSONSerialization.data(withJSONObject: json)
         

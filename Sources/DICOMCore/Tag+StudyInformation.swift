@@ -2,6 +2,7 @@
 ///
 /// Tags from Groups 0008, 0020, 0032 (Study Module)
 /// Reference: DICOM PS3.3 - Information Object Definitions
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - Study Identification
     
@@ -59,19 +60,28 @@ extension Tag {
     
     /// Physician(s) of Record (0008,1048)
     /// VR: PN, VM: 1-n
-    public static let physicianOfRecord = Tag(group: 0x0008, element: 0x1048)
+    public static let physiciansOfRecord = Tag(group: 0x0008, element: 0x1048)
     
     /// Physician(s) of Record Identification Sequence (0008,1049)
     /// VR: SQ, VM: 1
-    public static let physicianOfRecordIdentificationSequence = Tag(group: 0x0008, element: 0x1049)
+    public static let physiciansOfRecordIdentificationSequence = Tag(group: 0x0008, element: 0x1049)
     
     /// Name of Physician(s) Reading Study (0008,1060)
     /// VR: PN, VM: 1-n
-    public static let nameOfPhysicianReadingStudy = Tag(group: 0x0008, element: 0x1060)
+    public static let nameOfPhysiciansReadingStudy = Tag(group: 0x0008, element: 0x1060)
     
     /// Physician(s) Reading Study Identification Sequence (0008,1062)
     /// VR: SQ, VM: 1
-    public static let physicianReadingStudyIdentificationSequence = Tag(group: 0x0008, element: 0x1062)
+    public static let physiciansReadingStudyIdentificationSequence = Tag(group: 0x0008, element: 0x1062)
+    
+    @available(*, deprecated, renamed: "physiciansOfRecord")
+    public static let physicianOfRecord = Tag.physiciansOfRecord
+    @available(*, deprecated, renamed: "physiciansOfRecordIdentificationSequence")
+    public static let physicianOfRecordIdentificationSequence = Tag.physiciansOfRecordIdentificationSequence
+    @available(*, deprecated, renamed: "nameOfPhysiciansReadingStudy")
+    public static let nameOfPhysicianReadingStudy = Tag.nameOfPhysiciansReadingStudy
+    @available(*, deprecated, renamed: "physiciansReadingStudyIdentificationSequence")
+    public static let physicianReadingStudyIdentificationSequence = Tag.physiciansReadingStudyIdentificationSequence
     
     /// Requesting Service Code Sequence (0032,1034)
     /// VR: SQ, VM: 1

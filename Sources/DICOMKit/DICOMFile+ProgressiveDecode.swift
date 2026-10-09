@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — the JPEG 2000 / HTJ2K family is named through DICOMCore TransferSyntax constants verified in the DICOMCore pass; resolution levels are JPEG 2000, not DICOM
 import Foundation
 import DICOMCore
 

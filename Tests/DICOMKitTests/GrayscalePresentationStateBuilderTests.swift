@@ -320,7 +320,7 @@ final class GrayscalePresentationStateBuilderTests: XCTestCase {
             elements.append(DataElement(
                 tag: .textObjectSequence, vr: .SQ, length: 0, valueData: Data(),
                 sequenceItems: [SequenceItem(elements: [
-                    DataElement.string(tag: .unformattedTextValue, vr: .ST, value: "Legacy"),
+                    DataElement.string(tag: .textValue, vr: .ST, value: "Legacy"),
                     DataElement.string(
                         tag: .boundingBoxTopLeftHandCorner, vr: .DS, value: "1\\2"),
                     DataElement.string(
@@ -440,6 +440,230 @@ final class GrayscalePresentationStateBuilderTests: XCTestCase {
         XCTAssertEqual(ratio?.integerStringValues?.map(\.value), [1, 1])
     }
 
+    // MARK: - Displayed Area (PS3.3 Table C.10-4)
+
+    /// Every Type 1 attribute of the Displayed Area item: the two corners and
+    /// Presentation Size Mode, plus the 1C aspect ratio that stands in for a
+    /// spacing the builder does not know.
+    func test_build_writesDisplayedAreaType1Attributes() throws {
+        let dataSet = GrayscalePresentationStateBuilder().buildDataSet(
+            from: state(),
+            patient: context(),
+            seriesInstanceUID: "1.2.3.4.5.900",
+            seriesNumber: 900)
+
+        let item = try XCTUnwrap(dataSet[.displayedAreaSelectionSequence]?.sequenceItems?.first)
+        XCTAssertEqual(item[.displayedAreaTopLeftHandCorner]?.int32Values, [10, 20])
+        XCTAssertEqual(item[.displayedAreaBottomRightHandCorner]?.int32Values, [210, 220])
+        XCTAssertEqual(item.string(for: .presentationSizeMode), "SCALE TO FIT")
+        XCTAssertNotNil(item[.presentationPixelAspectRatio])
+        XCTAssertNil(item[.presentationPixelSpacing])
+        XCTAssertNil(item[.presentationPixelMagnificationRatio],
+                     "(0070,0103) is 1C on MAGNIFY only")
+    }
+
+    /// TRUE SIZE: Presentation Pixel Spacing (0070,0101) is required, row
+    /// spacing then column spacing, and the aspect ratio — "required if
+    /// Presentation Pixel Spacing is not present" — must then be absent.
+    func test_roundTrip_trueSize_carriesPixelSpacing() throws {
+        let area = DisplayedArea(
+            topLeft: (column: 1, row: 1), bottomRight: (column: 512, row: 512),
+            sizeMode: .trueSize, pixelSpacing: (row: 0.5, column: 0.25))
+        let dataSet = GrayscalePresentationStateBuilder().buildDataSet(
+            from: state(area: area),
+            patient: context(),
+            seriesInstanceUID: "1.2.3.4.5.900",
+            seriesNumber: 900)
+
+        let item = try XCTUnwrap(dataSet[.displayedAreaSelectionSequence]?.sequenceItems?.first)
+        XCTAssertEqual(item.string(for: .presentationSizeMode), "TRUE SIZE")
+        let spacing = try XCTUnwrap(item[.presentationPixelSpacing])
+        XCTAssertEqual(spacing.vr, .DS)
+        XCTAssertEqual(spacing.decimalStringValues?.map(\.value), [0.5, 0.25])
+        XCTAssertNil(item[.presentationPixelAspectRatio])
+
+        let parsed = try GrayscalePresentationStateParser().parse(dataSet: dataSet)
+        XCTAssertEqual(parsed.displayedArea?.sizeMode, .trueSize)
+        XCTAssertEqual(parsed.displayedArea?.pixelSpacing?.row, 0.5)
+        XCTAssertEqual(parsed.displayedArea?.pixelSpacing?.column, 0.25)
+        XCTAssertEqual(parsed.displayedArea?.verticalToHorizontalAspect, 2)
+    }
+
+    /// MAGNIFY: Presentation Pixel Magnification Ratio (0070,0103), FL, is
+    /// required; the aspect ratio the state names goes out as IS.
+    func test_roundTrip_magnify_carriesMagnificationRatioAndAspectRatio() throws {
+        let area = DisplayedArea(
+            topLeft: (column: 100, row: 100), bottomRight: (column: 300, row: 200),
+            sizeMode: .magnify, pixelAspectRatio: (vertical: 2, horizontal: 1),
+            magnificationRatio: 2.5)
+        let dataSet = GrayscalePresentationStateBuilder().buildDataSet(
+            from: state(area: area),
+            patient: context(),
+            seriesInstanceUID: "1.2.3.4.5.900",
+            seriesNumber: 900)
+
+        let item = try XCTUnwrap(dataSet[.displayedAreaSelectionSequence]?.sequenceItems?.first)
+        XCTAssertEqual(item.string(for: .presentationSizeMode), "MAGNIFY")
+        let ratio = try XCTUnwrap(item[.presentationPixelMagnificationRatio])
+        XCTAssertEqual(ratio.vr, .FL)
+        XCTAssertEqual(item[.presentationPixelAspectRatio]?.integerStringValues?.map(\.value), [2, 1])
+
+        let parsed = try GrayscalePresentationStateParser().parse(dataSet: dataSet)
+        XCTAssertEqual(parsed.displayedArea?.sizeMode, .magnify)
+        XCTAssertEqual(parsed.displayedArea?.magnificationRatio, 2.5)
+        XCTAssertEqual(parsed.displayedArea?.pixelAspectRatio?.vertical, 2)
+        XCTAssertEqual(parsed.displayedArea?.pixelAspectRatio?.horizontal, 1)
+    }
+
+    /// A TRUE SIZE area without a spacing cannot be written as TRUE SIZE — the
+    /// Type 1C value it requires does not exist — so the builder writes the
+    /// mode that needs nothing, and `validate` names the reason first.
+    func test_build_downgradesTrueSizeWithoutSpacingAndValidateSaysWhy() throws {
+        let area = DisplayedArea(
+            topLeft: (column: 1, row: 1), bottomRight: (column: 512, row: 512),
+            sizeMode: .trueSize)
+        XCTAssertThrowsError(try GrayscalePresentationStateBuilder().validate(state(area: area))) {
+            XCTAssertEqual(
+                $0 as? GrayscalePresentationStateBuilder.ValidationError,
+                .displayedArea(.trueSizeWithoutPixelSpacing))
+        }
+        XCTAssertThrowsError(try DisplayedArea(
+            topLeft: (column: 1, row: 1), bottomRight: (column: 2, row: 2),
+            sizeMode: .magnify).validate())
+
+        let dataSet = GrayscalePresentationStateBuilder().buildDataSet(
+            from: state(area: area),
+            patient: context(),
+            seriesInstanceUID: "1.2.3.4.5.900",
+            seriesNumber: 900)
+        let item = try XCTUnwrap(dataSet[.displayedAreaSelectionSequence]?.sequenceItems?.first)
+        XCTAssertEqual(item.string(for: .presentationSizeMode), "SCALE TO FIT")
+    }
+
+    /// Displayed Area Selection Sequence is Type 1. A state with no area still
+    /// produces one when the builder is told the image size — the whole image,
+    /// which is what the absence meant — and `validate` refuses when it is not.
+    func test_build_writesWholeImageDisplayedAreaFromImageSize() throws {
+        let builder = GrayscalePresentationStateBuilder()
+        XCTAssertThrowsError(try builder.validate(state(area: nil))) {
+            XCTAssertEqual(
+                $0 as? GrayscalePresentationStateBuilder.ValidationError, .missingDisplayedArea)
+        }
+        XCTAssertNoThrow(try builder.validate(state(area: nil), imageSize: (columns: 640, rows: 480)))
+
+        let dataSet = builder.buildDataSet(
+            from: state(area: nil),
+            patient: context(),
+            seriesInstanceUID: "1.2.3.4.5.900",
+            seriesNumber: 900,
+            imageSize: (columns: 640, rows: 480))
+        let parsed = try GrayscalePresentationStateParser().parse(dataSet: dataSet)
+        XCTAssertEqual(parsed.displayedArea?.topLeft.column, 1)
+        XCTAssertEqual(parsed.displayedArea?.topLeft.row, 1)
+        XCTAssertEqual(parsed.displayedArea?.bottomRight.column, 640)
+        XCTAssertEqual(parsed.displayedArea?.bottomRight.row, 480)
+        XCTAssertEqual(parsed.displayedArea?.sizeMode, .scaleToFit)
+    }
+
+    // MARK: - Graphic Annotation Units (PS3.3 Table C.10-5)
+
+    /// MATRIX is the third Enumerated Value of the units attributes; a graphic
+    /// and a text object drawn in Total Pixel Matrix space round trip as such.
+    func test_roundTrip_preservesMatrixUnits() throws {
+        XCTAssertEqual(AnnotationUnits.matrix.rawValue, "MATRIX")
+        XCTAssertEqual(AnnotationUnits.allCases.map(\.rawValue), ["PIXEL", "DISPLAY", "MATRIX"])
+
+        let wsiSOPClass = "1.2.840.10008.5.1.4.1.1.77.1.6"
+        let base = annotatedState()
+        let annotated = GrayscalePresentationState(
+            sopInstanceUID: base.sopInstanceUID,
+            referencedSeries: [
+                ReferencedSeries(
+                    seriesInstanceUID: "1.2.3.4.5.6",
+                    referencedImages: [ReferencedImage(sopClassUID: wsiSOPClass, sopInstanceUID: "1.2.3.4.5.6.1")])
+            ],
+            graphicLayers: base.graphicLayers,
+            graphicAnnotations: [
+                GraphicAnnotation(
+                    layer: "DRAWINGS",
+                    referencedImages: [ReferencedImage(sopClassUID: wsiSOPClass, sopInstanceUID: "1.2.3.4.5.6.1")],
+                    graphicObjects: [
+                        GraphicObject(type: .point, data: [40000.5, 30000.5], units: .matrix)
+                    ],
+                    textObjects: [
+                        TextObject(
+                            text: "Tumour",
+                            boundingBoxTopLeft: (column: 40000, row: 30000),
+                            boundingBoxBottomRight: (column: 41000, row: 30500),
+                            anchorPoint: (column: 40000.5, row: 30000.5),
+                            anchorPointVisible: true,
+                            boundingBoxUnits: .matrix,
+                            anchorPointUnits: .matrix)
+                    ])
+            ])
+
+        let dataSet = GrayscalePresentationStateBuilder().buildDataSet(
+            from: annotated,
+            patient: context(),
+            seriesInstanceUID: "1.2.3.4.5.900",
+            seriesNumber: 900)
+        let graphicItem = try XCTUnwrap(
+            dataSet[.graphicAnnotationSequence]?.sequenceItems?.first?[.graphicObjectSequence]?.sequenceItems?.first)
+        XCTAssertEqual(graphicItem.string(for: .graphicAnnotationUnits), "MATRIX")
+
+        let parsed = try GrayscalePresentationStateParser().parse(dataSet: dataSet)
+        let annotation = try XCTUnwrap(parsed.graphicAnnotations.first)
+        XCTAssertEqual(annotation.graphicObjects.first?.units, .matrix)
+        XCTAssertEqual(annotation.graphicObjects.first?.data, [40000.5, 30000.5])
+        XCTAssertEqual(annotation.textObjects.first?.boundingBoxUnits, .matrix)
+        XCTAssertEqual(annotation.textObjects.first?.anchorPointUnits, .matrix)
+        XCTAssertTrue(AnnotationUnits.matrix.isImageRelative)
+        XCTAssertFalse(AnnotationUnits.display.isImageRelative)
+    }
+
+    // MARK: - Shutter colour (PS3.3 Tables C.7-17a, C.11.12-1)
+
+    /// Shutter Presentation Color CIELab Value (0018,1624) is Type 1C only for
+    /// classes other than GSPS, so the grayscale builder leaves it out even
+    /// when the state names one; the parser still reads it from files that
+    /// carry it, three US values per C.10.7.1.1.
+    func test_gsps_omitsShutterColourButParserReadsIt() throws {
+        let colour = CIELabColor(sRGB: 65535, green: 0, blue: 0)
+        let shuttered = GrayscalePresentationState(
+            sopInstanceUID: "1.2.3.4.5.99.1",
+            referencedSeries: state().referencedSeries,
+            displayedArea: state().displayedArea,
+            shutters: [.rectangular(left: 10, right: 100, top: 10, bottom: 100, presentationValue: 0)],
+            shutterPresentationColor: colour)
+        var dataSet = GrayscalePresentationStateBuilder().buildDataSet(
+            from: shuttered,
+            patient: context(),
+            seriesInstanceUID: "1.2.3.4.5.900",
+            seriesNumber: 900)
+        let colourTag = Tag(group: 0x0018, element: 0x1624)
+        XCTAssertNil(dataSet[colourTag])
+        XCTAssertNil(try GrayscalePresentationStateParser().parse(dataSet: dataSet).shutterPresentationColor)
+
+        _ = dataSet.setIntegers(colour.encodedValues, for: colourTag)
+        XCTAssertEqual(dataSet[colourTag]?.vr, .US)
+        let parsed = try GrayscalePresentationStateParser().parse(dataSet: dataSet)
+        XCTAssertEqual(parsed.shutterPresentationColor, colour)
+        XCTAssertEqual(parsed.shutterPresentationColor?.sRGBValue.red, 65535)
+        XCTAssertLessThan(parsed.shutterPresentationColor?.sRGBValue.green ?? 65535, 300)
+    }
+
+    /// C.10.7.1.1: 0x8080 is a* = b* = 0 and L* scales over the full 16 bits.
+    func test_cieLabColor_encoding() {
+        XCTAssertEqual(CIELabColor.shutterBlack.encodedValues, [0, 0x8080, 0x8080])
+        XCTAssertEqual(CIELabColor(encodedValues: [65535, 0x8080, 0x8080]),
+                       CIELabColor(l: 65535, a: 0x8080, b: 0x8080))
+        XCTAssertNil(CIELabColor(encodedValues: [1, 2]))
+        let white = CIELabColor(sRGB: 65535, green: 65535, blue: 65535)
+        XCTAssertEqual(white.l, 65535)
+        XCTAssertEqual(white.a, 0x8080, accuracy: 2)
+        XCTAssertEqual(white.b, 0x8080, accuracy: 2)
+    }
+
     func test_build_writesImageRotationAsUS() throws {
         let dataSet = GrayscalePresentationStateBuilder().buildDataSet(
             from: state(spatial: SpatialTransformation(rotation: 90, horizontalFlip: false)),
@@ -471,10 +695,28 @@ final class GrayscalePresentationStateBuilderTests: XCTestCase {
 
     func test_build_writesGraphicLayerRecommendedValuesAsUS() throws {
         let item = try XCTUnwrap(annotatedDataSet()[.graphicLayerSequence]?.sequenceItems?.first)
-        let rgb = try XCTUnwrap(item[.graphicLayerRecommendedDisplayRGBValue])
 
-        XCTAssertEqual(rgb.vr, .US, "(0070,0067) is US")
-        XCTAssertEqual(rgb.uint16Values, [65535, 65535, 0])
+        // (0070,0067) Graphic Layer Recommended Display RGB Value is retired (PS3.6);
+        // the colour is written as (0070,0401) CIELab per PS3.3 C.10.7.1.1
+        XCTAssertNil(item[.graphicLayerRecommendedDisplayRGBValue])
+        let lab = try XCTUnwrap(item[DICOMCore.Tag(group: 0x0070, element: 0x0401)])
+        XCTAssertEqual(lab.vr, .US, "(0070,0401) is US")
+        let encoded = try XCTUnwrap(lab.uint16Values?.map(Int.init))
+        XCTAssertEqual(encoded.count, 3)
+
+        // The yellow the state carries comes back within 16-bit rounding
+        let rgb = try XCTUnwrap(GrayscalePresentationStateBuilder.rgb(fromCIELabEncoded: encoded))
+        XCTAssertEqual(rgb.red, 65535, accuracy: 300)
+        XCTAssertEqual(rgb.green, 65535, accuracy: 300)
+        XCTAssertEqual(rgb.blue, 0, accuracy: 300)
+    }
+
+    func test_cieLabEncoding_followsC10711() {
+        // C.10.7.1.1: L = 100 is 0xFFFF; a* = b* = 0 is 0x8080
+        XCTAssertEqual(GrayscalePresentationStateBuilder.cieLabEncoded(from: (red: 65535, green: 65535, blue: 65535)),
+                       [65535, 32896, 32896])
+        XCTAssertEqual(GrayscalePresentationStateBuilder.cieLabEncoded(from: (red: 0, green: 0, blue: 0)),
+                       [0, 32896, 32896])
     }
 
     func test_build_writesGraphicDataAsFL() throws {

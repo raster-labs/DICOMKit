@@ -133,13 +133,20 @@ final class ColorPresentationStateTests: XCTestCase {
     }
     
     func test_colorSpace_allCases() {
+        // ColorSpace is a display model, not the (0028,2002) Defined Terms of
+        // PS3.3 C.11.15.1.2; rec2020 and the three YBR cases were added after
+        // this suite was written.
         let allCases = ColorSpace.allCases
-        XCTAssertEqual(allCases.count, 6)
+        XCTAssertEqual(allCases.count, 10)
         XCTAssertTrue(allCases.contains(.sRGB))
         XCTAssertTrue(allCases.contains(.adobeRGB))
         XCTAssertTrue(allCases.contains(.displayP3))
         XCTAssertTrue(allCases.contains(.proPhotoRGB))
+        XCTAssertTrue(allCases.contains(.rec2020))
         XCTAssertTrue(allCases.contains(.genericRGB))
+        XCTAssertTrue(allCases.contains(.ybrFull))
+        XCTAssertTrue(allCases.contains(.ybrFull422))
+        XCTAssertTrue(allCases.contains(.ybrPartial420))
         XCTAssertTrue(allCases.contains(.custom))
     }
     

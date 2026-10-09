@@ -5,13 +5,15 @@ import Foundation
 /// Represents a time in DICOM format.
 /// Reference: DICOM PS3.5 Section 6.2 - TM Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the TM row of PS3.5 2026a Table 6.2-1 (HH, HHMM, HHMMSS, 1-6 fractional digits, SS up to 60 for a leap second, 14 bytes max; the doc comment said 16). The ACR-NEMA HH:MM:SS form is accepted on read only.
+///
 /// The TM format is a string of characters with format HHMMSS.FFFFFF where:
 /// - HH = hour (00-23)
 /// - MM = minute (00-59, optional)
 /// - SS = second (00-60, optional, 60 for leap second)
 /// - FFFFFF = fractional second (optional, 1-6 digits)
 ///
-/// Minimum format is HH, maximum is HHMMSS.FFFFFF (up to 16 characters)
+/// Minimum format is HH, maximum is HHMMSS.FFFFFF (14 bytes maximum per PS3.5 Table 6.2-1)
 ///
 /// Examples:
 /// - "14" = 2 PM
@@ -50,7 +52,7 @@ public struct DICOMTime: Sendable, Hashable {
     /// - HH (2 characters)
     /// - HHMM (4 characters)
     /// - HHMMSS (6 characters)
-    /// - HHMMSS.FFFFFF (up to 16 characters)
+    /// - HHMMSS.FFFFFF (13 characters; 14 bytes with padding)
     ///
     /// Also handles legacy formats with colons (HH:MM:SS).
     ///

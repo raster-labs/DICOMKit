@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (cache time-to-live and size limits only)
 /// Configuration for HTTP caching
 ///
 /// Configures how DICOMweb responses are cached for improved

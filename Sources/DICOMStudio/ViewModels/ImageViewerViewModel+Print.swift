@@ -6,6 +6,9 @@
 // The viewer owns the selection because marking is a viewing act: the user
 // scrolls the series, decides what belongs on film, and marks it. The print
 // sheet then consumes ``ImageViewerViewModel/printSelection`` in order.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the two tags read — Series Description (0008,103E) and Instance Number
+// (0020,0013) — checked against PS3.6 2026a Table 6-1 (names and tags match; Scripts/diff_studio_g6.py).
 
 import Foundation
 import DICOMKit

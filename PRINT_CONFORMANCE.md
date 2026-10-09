@@ -131,14 +131,14 @@ status (N-GET) on demand.
 |---|---|
 | Film Size ID (2010,0050) | 8INX10IN, 8_5INX11IN, 10INX12IN, 10INX14IN, 11INX14IN, 11INX17IN, 14INX14IN, 14INX17IN, 24CMX24CM, 24CMX30CM, A4, A3 |
 | Film Orientation (2010,0040) | PORTRAIT, LANDSCAPE |
-| Medium Type (2000,0030) | PAPER, CLEAR FILM, BLUE FILM, MAMMO CLEAR, MAMMO BLUE |
+| Medium Type (2000,0030) | PAPER, CLEAR FILM, BLUE FILM, MAMMO CLEAR FILM, MAMMO BLUE FILM (PS3.3 Table C.13-1; the SCP also reads the legacy MAMMO CLEAR / MAMMO BLUE as those terms) |
 | Film Destination (2000,0040) | MAGAZINE, PROCESSOR, BIN_1, BIN_2 |
 | Print Priority (2000,0020) | HIGH, MED, LOW |
 | Magnification Type (2010,0060) | NONE, REPLICATE, BILINEAR, CUBIC |
 | Trim (2010,0140) | YES, NO |
 | Polarity (2020,0020) | NORMAL, REVERSE |
 | Requested Decimate/Crop Behavior (2020,0040) | DECIMATE, CROP, FAIL |
-| Presentation LUT Shape (2050,0020) | IDENTITY, INVERSE, LIN OD |
+| Presentation LUT Shape (2050,0020) | IDENTITY, LIN OD (PS3.3 C.11.4); an inverted film is rendered into the pixels by the SCU, never sent as a shape |
 
 The SCP restricts Film Size ID and Medium Type to its configured sets and answers 0x0106
 for anything else.
@@ -160,12 +160,41 @@ the whole film box or image box when the attribute is merely present:
 | Item | SCU | SCP |
 |---|---|---|
 | Samples per Pixel | 1 (grayscale), 3 (color) | 1 or 3; 3 refused on the grayscale image box |
-| Bits Allocated / Stored | 8, or 16 allocated with 8–16 stored | 8 or 16 allocated |
+| Bits Allocated / Stored | 8/8, or 16 allocated with 12 stored (PS3.3 Table C.13-5); a request for 16 stored is clamped to 12; `--raw` frames outside Table C.13-5 are refused | 8 or 16 allocated; Bits Stored outside 8/12 clamped and logged |
 | Photometric Interpretation | MONOCHROME1/2, RGB | MONOCHROME1/2, RGB, YBR_FULL, YBR_FULL_422, YBR_PARTIAL_422 |
 | Encapsulated / compressed pixel data | No — native only | No — native only |
 
-Subsampled YBR (PS3.5 8.7.4, two pixels per four bytes) is accepted and unpacked by the
-SCP even though our own SCU converts to RGB before sending.
+Subsampled YBR (PS3.3 C.7.6.3.1.2, Y1 Y2 Cb Cr per pixel pair) is accepted and unpacked by the
+SCP even though Table C.13-5 enumerates only RGB for colour and our own SCU converts to RGB
+before sending.
+
+### 3.5 Image placement: Requested Image Size and Requested Decimate/Crop Behavior
+
+PS3.3 Table C.13-5 applies CROP "if the image rows or columns is greater than the available
+printable pixels in an Image Box", and Requested Image Size (2020,0030) "overrides the size that
+corresponds with optimal filling of the Image Box" — "optimal filling" itself is not defined.
+This implementation reads it as follows (decided 2026-09-29, P-CROP):
+
+| Received | SCP (emulator) composes | SCU sends it for |
+|---|---|---|
+| DECIMATE or absent, no size | the image fitted inside the box (aspect kept) | Fit to Film |
+| DECIMATE with a size | the requested width, never larger than the box | — |
+| CROP, no size | the image scaled to *cover* the box, the overflow cropped (optimal filling read as filling the box) | Fill to Film |
+| CROP with a size | the requested width, the overflow cropped | True Size (the width from the pixel spacing) |
+| FAIL | the requested size or 1:1; a box it does not fit is left empty and reported | — |
+
+A printer that reads "optimal filling" as *fit* prints a Fill to Film job fitted, uncropped;
+the print sheet's preview shows the emulator's reading.
+
+### 3.6 Rendering the composed sheet
+
+The emulator draws each film as one of three density mappings (`--density`):
+
+| Mapping | P-Values | LIN OD, Border/Empty densities |
+|---|---|---|
+| `paper` (default) | drawn as device grey, unchanged | LIN OD as transmitted luminance between Min and Max Density; numeric densities linear between them |
+| `film` | as `paper`, inverted (a film on a light-box) | as `paper`, inverted |
+| `gsdf` | laid down at the density the Grayscale Standard Display Function gives them (PS3.14 7.2 for film media, 7.3 for PAPER; Min/Max Density from the film box or 0.20/3.00 OD; L0/La the typical values of 7.2/7.3), shown as the sheet's luminance relative to its brightest, sRGB-encoded | taken as densities: L = La + L0·10^−D |
 
 ---
 

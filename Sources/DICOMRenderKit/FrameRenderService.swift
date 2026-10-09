@@ -3,6 +3,8 @@
 //
 // The one entry point callers use. Picks a backend, and guarantees an image comes
 // back if one can be produced at all.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — carries no DICOM-standard data (backend choice and CPU fallback; the fallback is what keeps YBR, auto-window and 32-bit cells on the CPU). C1 classification confirmed.
 
 import Foundation
 import DICOMCore

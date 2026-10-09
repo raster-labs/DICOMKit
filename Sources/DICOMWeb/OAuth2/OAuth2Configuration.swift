@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (OAuth2 / SMART on FHIR scopes, RFC 6749; not governed by DICOM)
 /// Configuration for OAuth2 authentication
 ///
 /// Supports multiple OAuth2 flows including client credentials, authorization code,

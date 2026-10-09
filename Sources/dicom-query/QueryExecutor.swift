@@ -1,6 +1,7 @@
 import Foundation
 import DICOMCore
 import DICOMNetwork
+// NEMA-verified: 2026a, checked 2026-10-01 — Information Model choice checked against PS3.4 2026a C.6.1 / C.6.2: PATIENT level → Patient Root (Table C.6.1-1), STUDY/SERIES/IMAGE → Study Root (Table C.6.2-1); the key tables themselves live in DICOMNetwork.DICOMQueryService.buildQueryKeys
 
 #if canImport(Network)
 

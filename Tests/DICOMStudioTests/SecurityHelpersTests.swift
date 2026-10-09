@@ -4,6 +4,7 @@
 import Testing
 @testable import DICOMStudio
 import Foundation
+import DICOMKit
 
 @Suite("Security Helpers Tests")
 struct SecurityHelpersTests {
@@ -136,21 +137,86 @@ struct SecurityHelpersTests {
 
     // MARK: - AnonymizationHelpers
 
-    @Test("AnonymizationHelpers hipaaDirectIdentifierTags contains 18 entries")
-    func testAnonymizationHelpersHIPAA18Identifiers() {
-        #expect(AnonymizationHelpers.hipaaDirectIdentifierTags.count == 18)
+    /// The DICOMKit `Anonymizer` `.basic` profile tags (Sources/DICOMKit/Anonymization/Anonymizer.swift
+    /// basicProfileTags), with their PS3.6 2026a Table 6-1 names.
+    static let engineBasicTags: [(String, String)] = [
+        ("0010,0010", "Patient's Name"), ("0010,0020", "Patient ID"), ("0010,0030", "Patient's Birth Date"),
+        ("0010,0032", "Patient's Birth Time"), ("0010,1000", "Other Patient IDs"), ("0010,1001", "Other Patient Names"),
+        ("0010,4000", "Patient Comments"), ("0008,0090", "Referring Physician's Name"),
+        ("0008,1050", "Performing Physician's Name"), ("0008,1070", "Operators' Name"), ("0008,0080", "Institution Name"),
+        ("0008,0081", "Institution Address"), ("0008,1010", "Station Name"), ("0018,1000", "Device Serial Number"),
+    ]
+
+    @Test("AnonymizationHelpers basic list is the 14-attribute DICOMKit basic profile with Table 6-1 names")
+    func testAnonymizationHelpersBasicListMatchesEngine() {
+        let list = AnonymizationHelpers.basicProfileTags   // was hipaaDirectIdentifierTags (P-STUDIO-ANON-TAGLIST-NAME)
+        #expect(list.count == 14)
+        #expect(list.map { $0.tag } == Self.engineBasicTags.map { $0.0 })
+        #expect(list.map { $0.name } == Self.engineBasicTags.map { $0.1 })
+        // the tags the former "18 HIPAA identifiers" list named but the engine never removed are gone
+        for gone in ["0010,0040", "0010,1010", "0010,1040", "0010,2160", "0010,21B0", "0008,0014", "0008,103E", "0032,1032"] {
+            #expect(!list.contains { $0.tag == gone }, "\(gone)")
+        }
     }
 
-    @Test("AnonymizationHelpers defaultRules basic returns 18 rules")
+    /// P-STUDIO-ANON-TAGLIST-NAME: each legacy basic attribute is a row of PS3.15 2026a Table E.1-1
+    /// (the engine's table is generated from the DocBook), yet the list is far short of the table.
+    @Test("basicProfileTags: 14 rows of PS3.15 2026a Table E.1-1, not the whole table")
+    func testBasicProfileTagsAreTableE11Rows() {
+        for (tag, _) in AnonymizationHelpers.basicProfileTags {
+            let parsed = Anonymizer.parseFlexibleTag(tag)
+            #expect(parsed.map { ConfidentialityProfile.table[$0] != nil } == true, "\(tag)")
+        }
+        #expect(ConfidentialityProfile.table.count > 600)
+    }
+
+    @Test("AnonymizationHelpers defaultRules basic returns the 14 engine rules")
     func testAnonymizationHelpersDefaultRulesBasic() {
         let rules = AnonymizationHelpers.defaultRules(for: .basic)
-        #expect(rules.count == 18)
+        #expect(rules.count == 14)
+        #expect(rules.allSatisfy { $0.action == .remove })
     }
 
-    @Test("AnonymizationHelpers defaultRules hipaa returns 18 rules")
+    @Test("AnonymizationHelpers defaultRules hipaa returns the same 14 rules as basic (same engine profile)")
     func testAnonymizationHelpersDefaultRulesHIPAA() {
         let rules = AnonymizationHelpers.defaultRules(for: .hipaaeSafeHarbor)
-        #expect(rules.count == 18)
+        #expect(rules.count == 14)
+        #expect(rules.map { $0.tag } == AnonymizationHelpers.defaultRules(for: .basic).map { $0.tag })
+    }
+
+    @Test("AnonymizationHelpers defaultRules clinicalTrial adds the 8 engine date/time tags")
+    func testAnonymizationHelpersDefaultRulesClinicalTrial() {
+        let rules = AnonymizationHelpers.defaultRules(for: .clinicalTrial)
+        #expect(rules.count == 22)
+        let dates = rules.dropFirst(14).map { $0.tag }
+        #expect(dates == ["0008,0020", "0008,0021", "0008,0022", "0008,0023", "0008,0030", "0008,0031", "0008,0032", "0008,0033"])
+        #expect(rules.first { $0.tag == "0008,0020" }?.tagName == "Study Date")
+    }
+
+    @Test("AnonymizationHelpers defaultRules ps315 is empty: the PS3.15 profile is the whole of Table E.1-1, not a remove list")
+    func testAnonymizationHelpersDefaultRulesPS315Empty() {
+        #expect(AnonymizationHelpers.defaultRules(for: .ps315).isEmpty)
+    }
+
+    /// The E.3 Options the Security panel offers: names as PS3.15 2026a E.3.3–E.3.11 give them
+    /// (compared by script with the DocBook section titles / E.3.6 text), flags as dicom-anon's.
+    @Test("Security panel PS3.15 E.3 Option toggles: 2026a names, dicom-anon flags, AnonCLI fields")
+    func testSecurityPanelOptionNames() {
+        let options = StudioAnonPS315.securityPanelOptions
+        #expect(options.map(\.name) == [
+            "Retain Longitudinal Temporal Information With Full Dates Option",
+            "Retain Longitudinal Temporal Information With Modified Dates Option",
+            "Retain Patient Characteristics Option", "Retain Device Identity Option",
+            "Retain UIDs Option", "Retain Safe Private Option", "Retain Institution Identity Option",
+            "Clean Graphics Option", "Clean Structured Content Option", "Clean Descriptors Option",
+        ])
+        #expect(options.map(\.section) == ["E.3.6", "E.3.6", "E.3.7", "E.3.8", "E.3.9", "E.3.10", "E.3.11", "E.3.3", "E.3.4", "E.3.5"])
+        // each toggle sets exactly the AnonCLI field whose command-line spelling is its flag
+        for option in options {
+            var flags = AnonCLI.PS315Flags()
+            flags[keyPath: option.keyPath] = true
+            #expect(flags.setFlags == [option.flag], "\(option.flag)")
+        }
     }
 
     @Test("AnonymizationHelpers defaultRules custom returns empty")

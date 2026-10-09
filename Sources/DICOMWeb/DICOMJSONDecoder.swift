@@ -4,7 +4,15 @@ import DICOMDictionary
 
 /// Decoder for converting JSON data to DICOM DataElements
 ///
-/// Implements the DICOM JSON Model as specified in PS3.18 Section F.
+/// Implements the DICOM JSON Model as specified in PS3.18 Annex F: each attribute object
+/// carries `vr` and at most one of `Value`, `BulkDataURI` or `InlineBinary` as siblings
+/// (F.2.2). The pre-2026 DICOMKit layout, which put `{"InlineBinary": …}` or
+/// `{"BulkDataURI": …}` inside the `Value` array, is still accepted on input.
+///
+/// NEMA-verified: 2026a, checked 2026-10-01 — a BulkDataURI goes to the optional bulkDataResolver (PS3.18 F.2.6, D113);
+/// checked 2026-09-28 — VR-to-JSON types diffed against PS3.18 2026a
+/// Table F.2.3-1 (34 / 34); layout, null values, AT format and PN component groups read
+/// against F.2.2-F.2.7; tests `DICOMJSONDecoderTests`, `DICOMJSONModelConformanceTests`.
 ///
 /// Reference: PS3.18 Annex F - DICOM JSON Model
 public struct DICOMJSONDecoder: Sendable {
@@ -19,19 +27,27 @@ public struct DICOMJSONDecoder: Sendable {
         /// Handler for fetching bulk data
         public let bulkDataHandler: (@Sendable (URL) async throws -> Data)?
         
+        /// Synchronous resolver for a `BulkDataURI` (PS3.18 F.2.6): returns the element's
+        /// Value Field, or nil when it cannot be retrieved — the element is then decoded with
+        /// an empty Value Field, as without a resolver. Called with the URI and the tag.
+        public let bulkDataResolver: (@Sendable (_ uri: String, _ tag: Tag) throws -> Data?)?
+        
         /// Creates decoding configuration
         /// - Parameters:
         ///   - allowMissingVR: Allow missing VR fields (default: false)
         ///   - fetchBulkData: Fetch bulk data automatically (default: false)
         ///   - bulkDataHandler: Handler for fetching bulk data
+        ///   - bulkDataResolver: Synchronous BulkDataURI resolver (default: none)
         public init(
             allowMissingVR: Bool = false,
             fetchBulkData: Bool = false,
-            bulkDataHandler: (@Sendable (URL) async throws -> Data)? = nil
+            bulkDataHandler: (@Sendable (URL) async throws -> Data)? = nil,
+            bulkDataResolver: (@Sendable (_ uri: String, _ tag: Tag) throws -> Data?)? = nil
         ) {
             self.allowMissingVR = allowMissingVR
             self.fetchBulkData = fetchBulkData
             self.bulkDataHandler = bulkDataHandler
+            self.bulkDataResolver = bulkDataResolver
         }
         
         /// Default configuration
@@ -126,6 +142,14 @@ public struct DICOMJSONDecoder: Sendable {
             throw DICOMwebError.missingRequiredField(field: "vr")
         }
         
+        // PS3.18 F.2.2: at most one of Value, BulkDataURI, InlineBinary, as siblings of vr
+        if let uriString = elementDict["BulkDataURI"] as? String {
+            return try decodeBulkData(tag: tag, vr: vr, uriString: uriString)
+        }
+        if let base64String = elementDict["InlineBinary"] as? String {
+            return try decodeInlineBinary(tag: tag, vr: vr, base64String: base64String)
+        }
+        
         // Get value
         let valueArray = elementDict["Value"] as? [Any]
         
@@ -160,10 +184,10 @@ public struct DICOMJSONDecoder: Sendable {
             return try decodeSequence(tag: tag, values: values)
         }
         
-        // Check for bulk data or inline binary
-        if let firstValue = values.first as? [String: Any] {
-            if let _ = firstValue["BulkDataURI"] as? String {
-                return try decodeBulkData(tag: tag, vr: vr, bulkDataDict: firstValue)
+        // Legacy DICOMKit layout (before the PS3.18 F.2.2 fix): the binary carrier inside "Value"
+        if let firstValue = values.first as? [String: Any], vr != .PN, vr != .SQ {
+            if let uriString = firstValue["BulkDataURI"] as? String {
+                return try decodeBulkData(tag: tag, vr: vr, uriString: uriString)
             }
             if let inlineBinary = firstValue["InlineBinary"] as? String {
                 return try decodeInlineBinary(tag: tag, vr: vr, base64String: inlineBinary)
@@ -216,11 +240,7 @@ public struct DICOMJSONDecoder: Sendable {
         )
     }
     
-    private func decodeBulkData(tag: Tag, vr: VR, bulkDataDict: [String: Any]) throws -> DataElement {
-        guard let uriString = bulkDataDict["BulkDataURI"] as? String else {
-            throw DICOMwebError.invalidBulkDataReference(uri: nil)
-        }
-        
+    private func decodeBulkData(tag: Tag, vr: VR, uriString: String) throws -> DataElement {
         guard URL(string: uriString) != nil else {
             throw DICOMwebError.invalidBulkDataReference(uri: uriString)
         }
@@ -229,6 +249,9 @@ public struct DICOMJSONDecoder: Sendable {
         // For now, store an empty data - actual fetching would be async
         // The caller can use the BulkDataReference to fetch later
         
+        if let resolver = configuration.bulkDataResolver, let data = try resolver(uriString, tag) {
+            return DataElement(tag: tag, vr: vr, length: UInt32(data.count), valueData: data)
+        }
         // Create a placeholder element
         return DataElement(tag: tag, vr: vr, length: 0, valueData: Data())
     }
@@ -245,7 +268,10 @@ public struct DICOMJSONDecoder: Sendable {
         var pnStrings: [String] = []
         
         for value in values {
-            if let pnDict = value as? [String: Any] {
+            if value is NSNull {
+                // F.2.5: an empty value of a multi-valued attribute is null
+                pnStrings.append("")
+            } else if let pnDict = value as? [String: Any] {
                 var components: [String] = []
                 
                 if let alphabetic = pnDict["Alphabetic"] as? String {
@@ -290,6 +316,9 @@ public struct DICOMJSONDecoder: Sendable {
                 return str
             } else if let num = value as? NSNumber {
                 return num.stringValue
+            } else if value is NSNull {
+                // F.2.5: an empty value of a multi-valued attribute is null
+                return ""
             }
             return nil
         }
@@ -314,6 +343,16 @@ public struct DICOMJSONDecoder: Sendable {
         var valueData = Data()
         
         for value in values {
+            // A null (F.2.5) has no binary encoding for a numeric VR; it is skipped.
+            if value is NSNull {
+                continue
+            }
+            // SV and UV may be a JSON Number or a String (PS3.18 Table F.2.3-1).
+            if vr == .SV || vr == .UV {
+                valueData.append(try encode64BitValue(value, vr: vr))
+                continue
+            }
+
             guard let number = value as? NSNumber else {
                 throw DICOMwebError.invalidVREncoding(vr: vr.rawValue, reason: "Expected numeric value")
             }
@@ -345,10 +384,34 @@ public struct DICOMJSONDecoder: Sendable {
         return DataElement(tag: tag, vr: vr, length: UInt32(valueData.count), valueData: valueData)
     }
     
+    /// Encodes one SV or UV JSON value (Number or decimal String) as 8 little-endian bytes.
+    private func encode64BitValue(_ value: Any, vr: VR) throws -> Data {
+        let bits: UInt64
+        if let string = value as? String {
+            let trimmed = string.trimmingCharacters(in: .whitespaces)
+            if vr == .SV, let v = Int64(trimmed) {
+                bits = UInt64(bitPattern: v)
+            } else if vr == .UV, let v = UInt64(trimmed) {
+                bits = v
+            } else {
+                throw DICOMwebError.invalidVREncoding(vr: vr.rawValue, reason: "Expected a 64-bit integer string")
+            }
+        } else if let number = value as? NSNumber {
+            bits = vr == .SV ? UInt64(bitPattern: number.int64Value) : number.uint64Value
+        } else {
+            throw DICOMwebError.invalidVREncoding(vr: vr.rawValue, reason: "Expected numeric value")
+        }
+        var littleEndian = bits.littleEndian
+        return Data(bytes: &littleEndian, count: MemoryLayout<UInt64>.size)
+    }
+
     private func decodeAttributeTag(tag: Tag, values: [Any]) throws -> DataElement {
         var valueData = Data()
         
         for value in values {
+            if value is NSNull {
+                continue
+            }
             guard let tagString = value as? String, tagString.count == 8 else {
                 throw DICOMwebError.invalidVREncoding(vr: "AT", reason: "Expected 8-character hex string")
             }
@@ -378,7 +441,7 @@ public struct DICOMJSONDecoder: Sendable {
     
     private func isNumericVR(_ vr: VR) -> Bool {
         switch vr {
-        case .FL, .FD, .SL, .SS, .UL, .US:
+        case .FL, .FD, .SL, .SS, .SV, .UL, .US, .UV:
             return true
         default:
             return false

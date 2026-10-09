@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Library persistence service
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (JSON persistence of the library index).
 
 import Foundation
 

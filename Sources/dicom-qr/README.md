@@ -92,20 +92,24 @@ dicom-qr resume --state retrieval.state
 
 ### Query Parameters
 
-- `--patient-name <name>`: Patient name (wildcards * and ? supported)
-- `--patient-id <id>`: Patient ID
-- `--study-date <date>`: Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)
-- `--study-uid <uid>`: Study Instance UID
-- `--accession-number <number>`: Accession Number
-- `--modality <modality>`: Modality (e.g., CT, MR, US)
-- `--study-description <desc>`: Study description (wildcards supported)
+All queries are Study Root, Query/Retrieve Level STUDY (PS3.4 2026a Table C.6-5):
+
+- `--patient-name <name>`: Patient's Name (0010,0010) — wildcards * and ? (PS3.4 C.2.2.2.4)
+- `--patient-id <id>`: Patient ID (0010,0020)
+- `--study-date <date>`: Study Date (0008,0020) — YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD, YYYYMMDD- (PS3.4 C.2.2.2.5)
+- `--study-uid <uid>`: Study Instance UID (0020,000D)
+- `--accession-number <number>`: Accession Number (0008,0050)
+- `--modality <modality>`: Modalities in Study (0008,0061), a PS3.3 C.7.3.1.1.1 Defined Term (e.g., CT, MR, US); `--strict-modality` rejects an unlisted value
+- `--study-description <desc>`: Study Description (0008,1030) — wildcards * and ?
 
 ### Retrieval Options
 
-- `--move-dest <aet>`: Move destination AE title (required for C-MOVE)
-- `--method <method>`: Retrieval method: c-move or c-get (default: c-move)
+- `--move-dest <aet>`: Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)
+- `--method <method>`: Retrieval method: c-move (Study Root Query/Retrieve Information Model - MOVE) or c-get (Study Root Query/Retrieve Information Model - GET) (default: c-move)
 - `--output, -o <path>`: Output directory for retrieved files (default: current directory)
-- `--hierarchical`: Organize files hierarchically (Patient/Study/Series)
+- `--hierarchical`: Organize C-GET output hierarchically (`<output>/<Study Instance UID>/`); C-MOVE output is stored by the move destination
+- `--transfer-syntax <name|uid>`: Requested transfer syntax for the C-GET storage presentation contexts; advisory for C-MOVE
+- `--priority <low|medium|high>`: Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ — LOW 0002H, MEDIUM 0000H, HIGH 0001H (PS3.7 2026a Tables 9.3-9 / 9.3-6; default: medium; also accepted by `resume`). Relational-retrieval is not offered: `dicom-qr` retrieves at STUDY level, where the Identifier already carries the level's Unique Key (use `dicom-retrieve --relational-retrieve` for series/instance retrieval by UID alone)
 
 ### Mode Selection (choose one)
 
@@ -117,8 +121,8 @@ dicom-qr resume --state retrieval.state
 
 - `--save-state <path>`: Save query/retrieval state to file
 - `--validate`: Validate retrieved files after download
-- `--parallel <n>`: Maximum concurrent retrievals (default: 1)
-- `--timeout <seconds>`: Connection timeout in seconds (default: 60)
+- `--parallel <n>`: Maximum concurrent retrievals (default: 1). Up to `n` studies are retrieved at once, each on its own association; the per-study `[i/N] Retrieving` / outcome lines are printed in study order once each batch of `n` finishes (with `1`, each line is printed before its retrieval starts). Must be at least 1
+- `--timeout <seconds>`: Connection timeout in seconds (default: 60; also accepted by `resume`)
 - `--verbose`: Show verbose output including detailed progress
 - `--aet <title>`: Local Application Entity Title (calling AE)
 - `--called-aet <title>`: Remote Application Entity Title (default: ANY-SCP)
@@ -226,6 +230,7 @@ State file structure:
       "patientID": "123456",
       "studyInstanceUID": "1.2.840.113619.2.xxx",
       "studyDate": "20240105",
+      "ModalitiesInStudy": "CT\\PR",
       "modality": "CT",
       "studyDescription": "CT CHEST W/CONTRAST"
     }
@@ -240,6 +245,13 @@ State file structure:
   "hierarchical": true
 }
 ```
+
+`ModalitiesInStudy` is the PS3.6 keyword of Modalities in Study (0008,0061), the
+STUDY-level value of PS3.4 Table C.6-5 (multiple values joined by `\`). The older
+`modality` key holds Modality (0008,0060), a Series-level attribute that is usually
+absent from a STUDY-level response; it is still written with the same value for older
+readers but is **deprecated** — read `ModalitiesInStudy`. State files written before
+this change lack `ModalitiesInStudy` and still load.
 
 ## Validation
 
@@ -260,6 +272,14 @@ Validation checks:
 - File can be read and parsed
 - Reports count of valid and invalid files
 
+## Exit Codes
+
+- `0` - Every selected study was retrieved: final C-MOVE/C-GET response Success (0000) with no failed sub-operations (PS3.4 C.4.2.2.1 / C.4.3.2.1)
+- `1` - At least one study failed (final response Warning, Failure or Cancel, a failed sub-operation, or a transport error) — the summary is still printed; also any other error
+- `64` - Usage error (no mode, several modes, C-MOVE without `--move-dest`, unknown method)
+
+A non-success final response is reported with the wording of PS3.4 2026a Table C.4-2 (C-MOVE) or C.4-3 (C-GET) and the PS3.7 sub-operation counter names.
+
 ## Error Handling
 
 The tool provides detailed error messages for common issues:
@@ -273,7 +293,7 @@ The tool provides detailed error messages for common issues:
 
 For large retrievals, consider:
 
-- Using `--parallel` to increase concurrent retrievals (use cautiously)
+- Using `--parallel <n>` (or `dicom-retrieve --uid-list --parallel`) for concurrent study retrieval (use cautiously)
 - Saving state files for checkpoint/resume capability
 - Using `--hierarchical` for better organization of retrieved files
 - Monitoring with `--verbose` to track progress
@@ -323,7 +343,8 @@ Examples:
 
 ## Limitations
 
-- Study-level queries and retrievals only (not patient, series, or instance level)
+- Study-level queries and retrievals only (Query/Retrieve Level STUDY; not PATIENT, SERIES or IMAGE)
+- Instance Availability (0008,0056) and Retrieve AE Title (0008,0054) returned by the query are not used: `resume` retrieves from the queried SCP
 - Interactive mode requires terminal input
 - State files are not encrypted (do not store in insecure locations)
 - Parallel retrievals may overwhelm some PACS servers

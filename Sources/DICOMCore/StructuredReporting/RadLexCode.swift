@@ -5,6 +5,8 @@
 ///
 /// Reference: PS3.16 - Content Mapping Resource
 /// Reference: RadLex.org - https://radlex.org/
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — RadLex is outside NEMA's scope, and none of the 70 RID codes here is used in any PS3.16 2026a context group (PS3.16 uses 75 other RadLex codes), so nothing in this file could be verified against the standard.
 
 /// A RadLex code with associated metadata
 ///

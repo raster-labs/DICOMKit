@@ -2,13 +2,14 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent hanging protocol matching helpers
+// NEMA-verified: 2026a, checked 2026-10-05 — the 4 Modality values of the built-in protocols (CT, MR, PT, CR) are PS3.3 2026a Table C.7-3 Defined Terms (4/4); match scoring, series filtering and layout labels are the app's own logic (not the C.23.3 Hanging Protocol Display Module selection semantics)
 
 import Foundation
 
 /// Platform-independent helpers for hanging protocol matching and layout.
 ///
-/// Implements protocol matching logic, priority selection, and layout
-/// calculations per DICOM PS3.3 C.23.
+/// Implements the app's protocol matching logic, priority selection, and layout
+/// calculations (a simplification of DICOM PS3.3 C.23).
 public enum HangingProtocolHelpers: Sendable {
 
     // MARK: - Protocol Matching

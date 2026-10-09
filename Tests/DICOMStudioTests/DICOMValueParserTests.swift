@@ -121,6 +121,15 @@ struct DICOMValueParserTests {
         #expect(DICOMValueParser.formatPersonName("") == "")
     }
 
+    @Test("PN component groups (PS3.5 6.2.1.2) are formatted separately and joined with =")
+    func testFormatPersonNameComponentGroups() {
+        // The PS3.5 6.2.1.1 example: alphabetic=ideographic=phonetic.
+        let result = DICOMValueParser.formatPersonName("Yamada^Tarou=山田^太郎=やまだ^たろう")
+        #expect(result == "Tarou Yamada = 太郎 山田 = たろう やまだ")
+        // A leading empty group (alphabetic absent) is skipped, not shown as an empty name.
+        #expect(DICOMValueParser.formatPersonName("=山田^太郎") == "太郎 山田")
+    }
+
     // MARK: - Decimal String (DS) Formatting
 
     @Test("Format integer decimal string")
@@ -191,6 +200,37 @@ struct DICOMValueParserTests {
     @Test("UTF-8 character set")
     func testCharacterSetUTF8() {
         #expect(DICOMValueParser.characterSetDescription("ISO_IR 192") == "Unicode (UTF-8)")
+    }
+
+    /// PS3.3 2026a Tables C.12-2, C.12-3, C.12-4 and C.12-5: every Defined Term of Specific
+    /// Character Set (0008,0005) has a description (none falls through to the raw term).
+    static let specificCharacterSetTerms = [
+        "ISO_IR 100", "ISO_IR 101", "ISO_IR 109", "ISO_IR 110", "ISO_IR 144", "ISO_IR 127",
+        "ISO_IR 126", "ISO_IR 138", "ISO_IR 148", "ISO_IR 203", "ISO_IR 13", "ISO_IR 166",
+        "ISO 2022 IR 6", "ISO 2022 IR 100", "ISO 2022 IR 101", "ISO 2022 IR 109", "ISO 2022 IR 110",
+        "ISO 2022 IR 144", "ISO 2022 IR 127", "ISO 2022 IR 126", "ISO 2022 IR 138", "ISO 2022 IR 148",
+        "ISO 2022 IR 203", "ISO 2022 IR 13", "ISO 2022 IR 166",
+        "ISO 2022 IR 87", "ISO 2022 IR 159", "ISO 2022 IR 149", "ISO 2022 IR 58",
+        "ISO_IR 192", "GB18030", "GBK",
+    ]
+
+    @Test("Every single-valued Specific Character Set Defined Term of PS3.3 2026a C.12-2/C.12-5 is described")
+    func testCharacterSetTablesC122AndC125() {
+        for term in ["ISO_IR 100", "ISO_IR 101", "ISO_IR 109", "ISO_IR 110", "ISO_IR 144", "ISO_IR 127",
+                     "ISO_IR 126", "ISO_IR 138", "ISO_IR 148", "ISO_IR 203", "ISO_IR 13", "ISO_IR 166",
+                     "ISO_IR 192", "GB18030", "GBK"] {
+            #expect(DICOMValueParser.characterSetDescription(term) != term, "\(term)")
+        }
+        #expect(DICOMValueParser.characterSetDescription("ISO_IR 203").hasPrefix("Latin-9"))
+        #expect(DICOMValueParser.characterSetDescription("GBK") == "Chinese (GBK)")
+    }
+
+    @Test("Code-extension terms of PS3.3 2026a C.12-3/C.12-4 the viewer describes")
+    func testCharacterSetTablesC123AndC124() {
+        for term in Self.specificCharacterSetTerms where term.hasPrefix("ISO 2022") {
+            #expect(DICOMValueParser.characterSetDescription(term) != term, "\(term)")
+        }
+        #expect(DICOMValueParser.characterSetDescription("ISO 2022 IR 58").hasPrefix("Simplified Chinese"))
     }
 
     @Test("Default character set")

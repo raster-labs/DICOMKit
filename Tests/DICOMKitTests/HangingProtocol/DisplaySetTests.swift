@@ -21,33 +21,41 @@ final class DisplaySetTests: XCTestCase {
         XCTAssertNil(displaySet.label)
         XCTAssertNil(displaySet.presentationGroup)
         XCTAssertNil(displaySet.presentationGroupDescription)
-        XCTAssertNil(displaySet.partialDataHandling)
         XCTAssertNil(displaySet.scrollingGroup)
         XCTAssertEqual(displaySet.imageBoxes.count, 0)
     }
-    
+
     func test_displaySet_initialization_withAllParameters() {
         let imageBox = ImageBox(number: 1, layoutType: .tiled, imageSetNumbers: [1, 2])
         let options = DisplayOptions(showGraphicAnnotations: true)
-        
+
         let displaySet = DisplaySet(
             number: 1,
             label: "Main Display",
             presentationGroup: 1,
             presentationGroupDescription: "Primary View",
-            partialDataHandling: "DISPLAY",
             scrollingGroup: 1,
             imageBoxes: [imageBox],
             displayOptions: options
         )
-        
+
         XCTAssertEqual(displaySet.number, 1)
         XCTAssertEqual(displaySet.label, "Main Display")
         XCTAssertEqual(displaySet.presentationGroup, 1)
         XCTAssertEqual(displaySet.presentationGroupDescription, "Primary View")
-        XCTAssertEqual(displaySet.partialDataHandling, "DISPLAY")
         XCTAssertEqual(displaySet.scrollingGroup, 1)
         XCTAssertEqual(displaySet.imageBoxes.count, 1)
+    }
+
+    /// PS3.3 2026a Table C.23.3-1: Partial Data Display Handling (0072,0208) Enumerated Values
+    func test_partialDataDisplayHandling_rawValues() {
+        XCTAssertEqual(PartialDataDisplayHandling.maintainLayout.rawValue, "MAINTAIN_LAYOUT")
+        XCTAssertEqual(PartialDataDisplayHandling.adaptLayout.rawValue, "ADAPT_LAYOUT")
+        XCTAssertNil(PartialDataDisplayHandling(rawValue: "DISPLAY"))
+
+        let hangingProtocol = HangingProtocol(name: "P", partialDataDisplayHandling: .adaptLayout)
+        XCTAssertEqual(hangingProtocol.partialDataDisplayHandling, .adaptLayout)
+        XCTAssertNil(HangingProtocol(name: "P").partialDataDisplayHandling)
     }
     
     func test_displaySet_multipleImageBoxes() {
@@ -81,6 +89,7 @@ final class DisplaySetTests: XCTestCase {
         XCTAssertNil(imageBox.synchronizationGroup)
         XCTAssertNil(imageBox.reformattingOperation)
         XCTAssertNil(imageBox.threeDRenderingType)
+        XCTAssertTrue(imageBox.threeDRenderingSubtypes.isEmpty)
     }
     
     func test_imageBox_stackLayout() {
@@ -105,10 +114,18 @@ final class DisplaySetTests: XCTestCase {
         XCTAssertEqual(imageBox.imageSetNumbers.count, 4)
     }
     
-    func test_imageBox_tiledAllLayout() {
+    func test_imageBox_cineLayout() {
+        let imageBox = ImageBox(number: 1, layoutType: .cine, cineRelativeToRealTime: 1.0)
+
+        XCTAssertEqual(imageBox.layoutType, .cine)
+    }
+
+    @available(*, deprecated)
+    func test_imageBox_tiledAllLayout_isWrittenAsTiled() {
         let imageBox = ImageBox(number: 1, layoutType: .tiledAll)
-        
+
         XCTAssertEqual(imageBox.layoutType, .tiledAll)
+        XCTAssertEqual(imageBox.layoutType.standardTerm, .tiled)
     }
     
     func test_imageBox_scrollSettings() {
@@ -141,100 +158,157 @@ final class DisplaySetTests: XCTestCase {
     }
     
     // MARK: - ImageBoxLayoutType Tests
-    
+
+    /// PS3.3 2026a Table C.23.3-1: Image Box Layout Type (0072,0304) Defined Terms
     func test_imageBoxLayoutType_rawValues() {
-        XCTAssertEqual(ImageBoxLayoutType.stack.rawValue, "STACK")
         XCTAssertEqual(ImageBoxLayoutType.tiled.rawValue, "TILED")
-        XCTAssertEqual(ImageBoxLayoutType.tiledAll.rawValue, "TILED_ALL")
+        XCTAssertEqual(ImageBoxLayoutType.stack.rawValue, "STACK")
+        XCTAssertEqual(ImageBoxLayoutType.cine.rawValue, "CINE")
+        XCTAssertEqual(ImageBoxLayoutType.processed.rawValue, "PROCESSED")
+        XCTAssertEqual(ImageBoxLayoutType.single.rawValue, "SINGLE")
     }
-    
+
     func test_imageBoxLayoutType_fromString() {
-        XCTAssertEqual(ImageBoxLayoutType(rawValue: "STACK"), .stack)
-        XCTAssertEqual(ImageBoxLayoutType(rawValue: "TILED"), .tiled)
-        XCTAssertEqual(ImageBoxLayoutType(rawValue: "TILED_ALL"), .tiledAll)
-        XCTAssertNil(ImageBoxLayoutType(rawValue: "INVALID"))
+        XCTAssertEqual(ImageBoxLayoutType.reading("TILED"), .tiled)
+        XCTAssertEqual(ImageBoxLayoutType.reading("STACK"), .stack)
+        XCTAssertEqual(ImageBoxLayoutType.reading("CINE"), .cine)
+        XCTAssertEqual(ImageBoxLayoutType.reading("PROCESSED"), .processed)
+        XCTAssertEqual(ImageBoxLayoutType.reading("SINGLE"), .single)
+        XCTAssertEqual(ImageBoxLayoutType.reading("TILED_ALL"), .tiled, "old DICOMKit spelling")
+        XCTAssertNil(ImageBoxLayoutType.reading("INVALID"))
     }
-    
+
     // MARK: - ScrollDirection Tests
-    
+
+    /// PS3.3 2026a Table C.23.3-1: Image Box Scroll Direction (0072,0310) Enumerated Values
     func test_scrollDirection_rawValues() {
         XCTAssertEqual(ScrollDirection.horizontal.rawValue, "HORIZONTAL")
         XCTAssertEqual(ScrollDirection.vertical.rawValue, "VERTICAL")
     }
-    
+
     // MARK: - ScrollType Tests
-    
+
+    /// PS3.3 2026a Table C.23.3-1: Image Box Small / Large Scroll Type (0072,0312 / 0316)
+    /// Enumerated Values PAGE, ROW_COLUMN, IMAGE
     func test_scrollType_rawValues() {
-        XCTAssertEqual(ScrollType.image.rawValue, "IMAGE")
-        XCTAssertEqual(ScrollType.fraction.rawValue, "FRACTION")
         XCTAssertEqual(ScrollType.page.rawValue, "PAGE")
+        XCTAssertEqual(ScrollType.rowColumn.rawValue, "ROW_COLUMN")
+        XCTAssertEqual(ScrollType.image.rawValue, "IMAGE")
     }
-    
+
     func test_scrollType_fromString() {
-        XCTAssertEqual(ScrollType(rawValue: "IMAGE"), .image)
-        XCTAssertEqual(ScrollType(rawValue: "FRACTION"), .fraction)
-        XCTAssertEqual(ScrollType(rawValue: "PAGE"), .page)
-        XCTAssertNil(ScrollType(rawValue: "INVALID"))
+        XCTAssertEqual(ScrollType.reading("PAGE"), .page)
+        XCTAssertEqual(ScrollType.reading("ROW_COLUMN"), .rowColumn)
+        XCTAssertEqual(ScrollType.reading("IMAGE"), .image)
+        XCTAssertEqual(ScrollType.reading("FRACTION"), .page, "old DICOMKit spelling")
+        XCTAssertNil(ScrollType.reading("INVALID"))
     }
-    
+
+    @available(*, deprecated)
+    func test_scrollType_fractionIsWrittenAsPage() {
+        XCTAssertEqual(ScrollType.fraction.standardTerm, .page)
+        XCTAssertEqual(ScrollType.rowColumn.standardTerm, .rowColumn)
+    }
+
     // MARK: - ReformattingOperation Tests
-    
+
+    /// PS3.3 2026a Table C.23.3-1: Reformatting Thickness / Interval required for SLAB or MPR,
+    /// Initial View Direction required for MPR or 3D_RENDERING
     func test_reformattingOperation_mpr() {
         let operation = ReformattingOperation(
             type: .mpr,
             thickness: 5.0,
             interval: 2.5,
-            initialViewDirection: "AXIAL"
+            initialViewPlane: .transverse
         )
-        
+
         XCTAssertEqual(operation.type, .mpr)
         XCTAssertEqual(operation.thickness, 5.0)
         XCTAssertEqual(operation.interval, 2.5)
-        XCTAssertEqual(operation.initialViewDirection, "AXIAL")
+        XCTAssertEqual(operation.initialViewPlane, .transverse)
     }
-    
-    func test_reformattingOperation_mip() {
-        let operation = ReformattingOperation(type: .mip, thickness: 10.0)
-        
-        XCTAssertEqual(operation.type, .mip)
+
+    func test_reformattingOperation_slab() {
+        let operation = ReformattingOperation(type: .slab, thickness: 10.0, interval: 10.0)
+
+        XCTAssertEqual(operation.type, .slab)
         XCTAssertEqual(operation.thickness, 10.0)
+        XCTAssertNil(operation.initialViewPlane)
     }
-    
-    func test_reformattingOperation_cpr() {
-        let operation = ReformattingOperation(type: .cpr)
-        
-        XCTAssertEqual(operation.type, .cpr)
-        XCTAssertNil(operation.thickness)
+
+    func test_reformattingOperation_threeDRendering() {
+        let operation = ReformattingOperation(type: .threeDRendering, initialViewPlane: .coronal)
+
+        XCTAssertEqual(operation.type, .threeDRendering)
+        XCTAssertEqual(operation.initialViewPlane, .coronal)
     }
-    
+
+    @available(*, deprecated)
+    func test_reformattingOperation_deprecatedViewDirectionMaps() {
+        let axial = ReformattingOperation(type: .mpr, initialViewDirection: "AXIAL")
+        XCTAssertEqual(axial.initialViewPlane, .transverse)
+        XCTAssertEqual(axial.initialViewDirection, "TRANSVERSE")
+
+        let unknown = ReformattingOperation(type: .mpr, initialViewDirection: "SIDEWAYS")
+        XCTAssertNil(unknown.initialViewPlane, "text that is no Defined Term is dropped")
+    }
+
     // MARK: - ReformattingType Tests
-    
-    func test_reformattingType_allValues() {
+
+    /// PS3.3 2026a Table C.23.3-1: Reformatting Operation Type (0072,0510) Defined Terms
+    func test_reformattingType_standardTerms() {
         XCTAssertEqual(ReformattingType.mpr.rawValue, "MPR")
-        XCTAssertEqual(ReformattingType.cpr.rawValue, "CPR")
-        XCTAssertEqual(ReformattingType.mip.rawValue, "MIP")
-        XCTAssertEqual(ReformattingType.minIP.rawValue, "MinIP")
-        XCTAssertEqual(ReformattingType.avgIP.rawValue, "AvgIP")
+        XCTAssertEqual(ReformattingType.threeDRendering.rawValue, "3D_RENDERING")
+        XCTAssertEqual(ReformattingType.slab.rawValue, "SLAB")
     }
-    
+
     func test_reformattingType_fromString() {
-        XCTAssertEqual(ReformattingType(rawValue: "MPR"), .mpr)
-        XCTAssertEqual(ReformattingType(rawValue: "MIP"), .mip)
-        XCTAssertEqual(ReformattingType(rawValue: "MinIP"), .minIP)
-        XCTAssertNil(ReformattingType(rawValue: "INVALID"))
+        XCTAssertEqual(ReformattingType.reading("MPR"), .mpr)
+        XCTAssertEqual(ReformattingType.reading("3D_RENDERING"), .threeDRendering)
+        XCTAssertEqual(ReformattingType.reading("SLAB"), .slab)
+        // Old DICOMKit spellings
+        XCTAssertEqual(ReformattingType.reading("CPR"), .mpr)
+        XCTAssertEqual(ReformattingType.reading("MIP"), .threeDRendering)
+        XCTAssertEqual(ReformattingType.reading("MinIP"), .threeDRendering)
+        XCTAssertEqual(ReformattingType.reading("AvgIP"), .threeDRendering)
+        XCTAssertNil(ReformattingType.reading("INVALID"))
     }
-    
+
+    /// MIP is a 3D Rendering Type (0072,0520) term; the projections become 3D_RENDERING
+    @available(*, deprecated)
+    func test_reformattingType_deprecatedCasesMap() {
+        XCTAssertEqual(ReformattingType.cpr.standardTerm, .mpr)
+        XCTAssertEqual(ReformattingType.mip.standardTerm, .threeDRendering)
+        XCTAssertEqual(ReformattingType.minIP.standardTerm, .threeDRendering)
+        XCTAssertEqual(ReformattingType.avgIP.standardTerm, .threeDRendering)
+
+        XCTAssertEqual(ReformattingType.mip.impliedRenderingType?.type, .mip)
+        XCTAssertEqual(ReformattingType.mip.impliedRenderingType?.subtypes, [])
+        XCTAssertEqual(ReformattingType.minIP.impliedRenderingType?.type, .volumeRendering)
+        XCTAssertEqual(ReformattingType.minIP.impliedRenderingType?.subtypes, ["MINIP"])
+        XCTAssertEqual(ReformattingType.avgIP.impliedRenderingType?.subtypes, ["AVGIP"])
+        XCTAssertNil(ReformattingType.mpr.impliedRenderingType)
+    }
+
     // MARK: - ThreeDRenderingType Tests
-    
+
+    /// PS3.3 2026a Table C.23.3-1: 3D Rendering Type (0072,0520) Defined Terms for Value 1
     func test_threeDRenderingType_allValues() {
-        XCTAssertEqual(ThreeDRenderingType.volumeRendering.rawValue, "VOLUME_RENDERING")
-        XCTAssertEqual(ThreeDRenderingType.surfaceRendering.rawValue, "SURFACE_RENDERING")
         XCTAssertEqual(ThreeDRenderingType.mip.rawValue, "MIP")
+        XCTAssertEqual(ThreeDRenderingType.surfaceRendering.rawValue, "SURFACE")
+        XCTAssertEqual(ThreeDRenderingType.volumeRendering.rawValue, "VOLUME")
     }
-    
+
+    func test_threeDRenderingSubtypes() {
+        // "Additional values may be used to identify implementation specific sub-types"
+        let box = ImageBox(number: 1, threeDRenderingType: .volumeRendering, threeDRenderingSubtypes: ["SHADED"])
+        XCTAssertEqual(box.threeDRenderingType, .volumeRendering)
+        XCTAssertEqual(box.threeDRenderingSubtypes, ["SHADED"])
+    }
+
     func test_threeDRenderingType_fromString() {
-        XCTAssertEqual(ThreeDRenderingType(rawValue: "VOLUME_RENDERING"), .volumeRendering)
-        XCTAssertEqual(ThreeDRenderingType(rawValue: "SURFACE_RENDERING"), .surfaceRendering)
+        XCTAssertEqual(ThreeDRenderingType(rawValue: "VOLUME"), .volumeRendering)
+        XCTAssertEqual(ThreeDRenderingType(rawValue: "SURFACE"), .surfaceRendering)
         XCTAssertEqual(ThreeDRenderingType(rawValue: "MIP"), .mip)
         XCTAssertNil(ThreeDRenderingType(rawValue: "INVALID"))
     }
@@ -256,6 +330,22 @@ final class DisplaySetTests: XCTestCase {
         XCTAssertNil(options.verticalJustification)
     }
     
+    /// PS3.3 2026a Table C.23.3-1: VOI Type (0072,0702) Defined Terms
+    func test_voiType_definedTerms() {
+        XCTAssertEqual(VOIType.lung.rawValue, "LUNG")
+        XCTAssertEqual(VOIType.mediastinum.rawValue, "MEDIASTINUM")
+        XCTAssertEqual(VOIType.abdomenPelvis.rawValue, "ABDO_PELVIS")
+        XCTAssertEqual(VOIType.liver.rawValue, "LIVER")
+        XCTAssertEqual(VOIType.softTissue.rawValue, "SOFT_TISSUE")
+        XCTAssertEqual(VOIType.bone.rawValue, "BONE")
+        XCTAssertEqual(VOIType.brain.rawValue, "BRAIN")
+        XCTAssertEqual(VOIType.posteriorFossa.rawValue, "POST_FOSSA")
+        XCTAssertEqual(VOIType.allCases.count, 8)
+
+        XCTAssertEqual(DisplayOptions(voiType: "LUNG").voiTypeTerm, .lung)
+        XCTAssertNil(DisplayOptions(voiType: "LINEAR").voiTypeTerm, "not a Defined Term, still carried as text")
+    }
+
     func test_displayOptions_initialization_allParameters() {
         let options = DisplayOptions(
             patientOrientation: "L\\P",
@@ -283,17 +373,25 @@ final class DisplaySetTests: XCTestCase {
     }
     
     // MARK: - Justification Tests
-    
+
+    /// PS3.3 2026a Table C.23.3-1: Display Set Horizontal Justification (0072,0717) LEFT CENTER RIGHT
     func test_justification_horizontalValues() {
         XCTAssertEqual(Justification.left.rawValue, "LEFT")
         XCTAssertEqual(Justification.center.rawValue, "CENTER")
         XCTAssertEqual(Justification.right.rawValue, "RIGHT")
+        XCTAssertTrue(Justification.left.isHorizontal)
+        XCTAssertTrue(Justification.center.isHorizontal)
+        XCTAssertFalse(Justification.top.isHorizontal)
     }
-    
+
+    /// PS3.3 2026a Table C.23.3-1: Display Set Vertical Justification (0072,0718) TOP CENTER BOTTOM
     func test_justification_verticalValues() {
         XCTAssertEqual(Justification.top.rawValue, "TOP")
         XCTAssertEqual(Justification.center.rawValue, "CENTER")
         XCTAssertEqual(Justification.bottom.rawValue, "BOTTOM")
+        XCTAssertTrue(Justification.bottom.isVertical)
+        XCTAssertTrue(Justification.center.isVertical)
+        XCTAssertFalse(Justification.right.isVertical)
     }
     
     func test_justification_fromString() {

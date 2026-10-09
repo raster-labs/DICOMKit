@@ -94,9 +94,10 @@ final class SpatialTransformationTests: XCTestCase {
     }
     
     func test_spatialTransformation_rotationRounding() {
-        // Non-standard angles should round to nearest 90-degree increment
-        // 45 degrees should round to 0 (45 + 45 = 90, divided by 90 = 1, times 90 = 90, but 45 is closer to 0)
-        // Actually: (45 + 45) / 90 * 90 = 90
+        // Image Rotation (0070,0042) has the Enumerated Values 0, 90, 180, 270
+        // and no negative values (PS3.3 2026a Table C.10-6). Other angles round
+        // to the nearest quarter turn, ties upward, and the result is always one
+        // of the four Enumerated Values.
         let transform1 = SpatialTransformation(rotation: 45)
         XCTAssertEqual(transform1.rotation, 90)  // Rounds to nearest 90
         
@@ -107,7 +108,15 @@ final class SpatialTransformationTests: XCTestCase {
         XCTAssertEqual(transform3.rotation, 270)  // Rounds to 270
         
         let transform4 = SpatialTransformation(rotation: 315)
-        XCTAssertEqual(transform4.rotation, 0)  // Rounds to 0 (360)
+        XCTAssertEqual(transform4.rotation, 0)  // Rounds to 0, not 360
+
+        let transform5 = SpatialTransformation(rotation: -135)
+        XCTAssertEqual(transform5.rotation, 270)  // -135 ≡ 225, not -90
+
+        for angle in stride(from: -720, through: 720, by: 15) {
+            XCTAssertTrue([0, 90, 180, 270].contains(SpatialTransformation(rotation: angle).rotation),
+                          "rotation \(angle) gave \(SpatialTransformation(rotation: angle).rotation)")
+        }
     }
     
     func test_spatialTransformation_horizontalFlip() {

@@ -10,6 +10,8 @@
 /// Reference: PS3.3 A.32.5 - Video Endoscopic Image IOD
 /// Reference: PS3.3 A.32.6 - Video Microscopic Image IOD
 /// Reference: PS3.3 A.32.7 - Video Photographic Image IOD
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
+/// NEMA-verified: 2026a, checked 2026-10-06 — re-diffed by script after merge 1416f7e2 (PR #217, DICOM 2026d video conformance) added Stereo Pairs Present (0022,0028): all 7 Tag constants (tag, name, VR, VM, not retired) match PS3.6 2026a Table 6-1, 7/7 (audit finding A7).
 extension Tag {
 
     // MARK: - Cine Module (PS3.3 C.7.6.5)

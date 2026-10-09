@@ -18,15 +18,18 @@ Hexadecimal dump utility with DICOM structure visualization for low-level debugg
 dicom-dump file.dcm
 ```
 
-Displays the entire file in hexadecimal format with tag annotations.
+Displays the file in hexadecimal format (the first 65,536 bytes unless `--length` is given).
+Add `--annotate` for tag annotations.
 
 ### Dump Specific Tag
 
 ```bash
 dicom-dump file.dcm --tag 7FE0,0010
+dicom-dump file.dcm --tag PixelData
 ```
 
-Displays only the specified tag (e.g., Pixel Data) with its raw bytes.
+Displays only the specified tag (e.g., Pixel Data) with its raw bytes. The tag is given as
+`GGGG,EEEE` or by its PS3.6 keyword (exact case, e.g. `PatientName`).
 
 ### Dump Byte Range
 
@@ -45,7 +48,7 @@ Dumps 512 bytes starting at offset 4096 (decimal format).
 ### Verbose Mode
 
 ```bash
-dicom-dump file.dcm --verbose
+dicom-dump file.dcm --annotate --verbose
 ```
 
 Shows detailed VR and length annotations for each tag.
@@ -82,13 +85,13 @@ Each line shows:
 
 ## Options
 
-- `--tag <TAG>`: Dump specific tag only (format: 0010,0010)
+- `--tag <TAG>`: Dump specific tag only (format: 0010,0010 or PS3.6 keyword, e.g. PatientName)
 - `--offset <OFFSET>`: Start offset in bytes (hex with 0x prefix or decimal)
-- `--length <LENGTH>`: Number of bytes to dump
-- `--bytes-per-line <N>`: Bytes per line (default: 16)
-- `--highlight <TAG>`: Highlight specific tag in output
+- `--length <LENGTH>`: Number of bytes to dump (0 or more; default: up to 65,536)
+- `--bytes-per-line <N>`: Bytes per line (at least 1; default: 16)
+- `--highlight <TAG>`: Highlight specific tag in output (0010,0010 or PS3.6 keyword)
 - `--no-color`: Disable ANSI color codes
-- `--annotate`: Show tag annotations (enabled by default)
+- `--annotate`: Show tag annotations (off by default)
 - `--force`: Force parsing of files without DICM prefix
 - `--verbose`: Show VR and length details in annotations
 
@@ -110,13 +113,15 @@ dicom-dump file.dcm --tag 7FE0,0010
 
 Find and inspect the raw pixel data bytes.
 
-### Inspecting Sequence Delimiters
+### Inspecting Sequences
 
 ```bash
-dicom-dump file.dcm --verbose
+dicom-dump file.dcm --annotate --verbose
 ```
 
-View sequence structure with detailed VR and length information.
+Shows each element's VR and length; a sequence of undefined length shows `Len=undefined`.
+The Item (FFFE,E000), Item Delimitation Item (FFFE,E00D) and Sequence Delimitation Item
+(FFFE,E0DD) of PS3.5 7.5 are stepped over, not labelled.
 
 ### Creating Debug Reports
 
@@ -159,6 +164,9 @@ Compare explicit vs implicit VR encoding.
 - Very large files may take time to process completely
 - Tag detection is heuristic-based and may not be 100% accurate for corrupted files
 - Implicit VR format has limited annotation support
+- Annotations and `--highlight` assume the dump starts at offset 0 (128-byte preamble + "DICM",
+  PS3.10 7.1); with `--offset` greater than 0 they are missing or misplaced
+- Elements inside defined-length Items are not annotated
 - Compressed transfer syntaxes show compressed data, not decompressed pixels
 
 ## Technical Details
@@ -170,7 +178,10 @@ The tool reads DICOM files using DICOMKit and performs low-level byte-by-byte an
 3. **File Meta Information**: Group 0002 tags (explicit VR)
 4. **Data Set**: Main DICOM tags (explicit or implicit VR depending on transfer syntax)
 
-Tag detection works by scanning for valid tag patterns (group/element pairs) followed by VR strings and length fields.
+Tag detection walks the stream element by element after the 132-byte preamble and prefix: when the
+two bytes after a tag are one of the 34 VR codes of PS3.5 Table 6.2-1 the element is read as Explicit
+VR (4-byte length for OB, OD, OF, OL, OV, OW, SQ, SV, UC, UN, UR, UT, UV per Table 7.1-1), otherwise
+as Implicit VR with the VR from the PS3.6 dictionary. Annotations print the PS3.6 keyword.
 
 ## See Also
 

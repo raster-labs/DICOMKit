@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — the 9 SOP Class UIDs checked against PS3.6 2026a Table A-1 and PS3.4 2026a Tables C.6.1.3-1 / C.6.2.3-1 (Scripts/diff_network.py): all registered, the 3 Patient/Study Only classes retired
 
 // MARK: - Query/Retrieve SOP Class UIDs - FIND
 

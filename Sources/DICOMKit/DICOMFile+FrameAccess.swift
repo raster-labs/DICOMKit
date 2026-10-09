@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.5 2026a A.4 Basic and Extended Offset Table frame location; (7FE0,0001) is OV (D19); Extended Offset Table Lengths are not read (recorded)
 import Foundation
 import DICOMCore
 
@@ -184,9 +185,8 @@ extension DICOMFile {
 
     /// Reads (7FE0,0001) Extended Offset Table values (64-bit LE), when present.
     ///
-    /// Note: the OV VR is not yet in the `VR` enum, so explicit-VR files carry
-    /// this element as UN — the byte layout (2 reserved + 32-bit length) is
-    /// identical, so `valueData` holds the table either way.
+    /// The element is OV (PS3.5 Table 6.2-1); a file that carries it as UN has the
+    /// same value layout, so `valueData` holds the table either way.
     func extendedOffsetTableValues() -> [UInt64]? {
         guard let element = dataSet[Tag.extendedOffsetTable],
               !element.valueData.isEmpty,

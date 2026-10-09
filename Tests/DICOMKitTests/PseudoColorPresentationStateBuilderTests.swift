@@ -41,6 +41,9 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
             sopClassUID: PseudoColorPresentationStateBuilder.sopClassUID,
             instanceNumber: 1,
             presentationLabel: "PET fused",
+            // Type 1 in Table C.11.10-1
+            presentationCreationDate: DICOMDate(year: 2026, month: 9, day: 29),
+            presentationCreationTime: DICOMTime(hour: 9, minute: 0, second: 0),
             referencedSeries: [
                 ReferencedSeries(
                     seriesInstanceUID: "1.2.3.4.5.6",
@@ -63,7 +66,10 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
             palette: palette,
             patient: context(),
             seriesInstanceUID: "1.2.3.4.5.900",
-            seriesNumber: 900)
+            seriesNumber: 900,
+            // The state records no area; the Type 1 Displayed Area (Table
+            // C.10-4) is derived from the image size.
+            imageSize: (columns: 512, rows: 512))
     }
 
     // MARK: - Identity
@@ -135,7 +141,8 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
         XCTAssertEqual(element.vr, .OB)
 
         let parsed = try ICCProfileParser.parse(element.valueData)
-        XCTAssertEqual(parsed.header.deviceClass, .displayDevice)
+        // PS3.3 C.11.15.1.1: the profile is an ICC Input Device profile ("scnr")
+        XCTAssertEqual(parsed.header.deviceClass, .inputDevice)
         XCTAssertEqual(parsed.header.dataColorSpace, .rgb)
         XCTAssertEqual(dataSet.string(for: .colorSpace), "SRGB")
     }
@@ -270,12 +277,12 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
         XCTAssertEqual(red[red.startIndex + 4095], entries[255].red)
     }
 
-    /// With a window, the table is *baked*: the palette's whole ramp lies
-    /// across the windowed slice of the stored range, flat first/last colours
-    /// either side — the picture the reader was actually looking at, and the
-    /// one Weasis (which indexes this table with raw stored pixels, before
-    /// any VOI) shows for it. Verified against Weasis's own rendering code.
-    func test_build_windowedDomain_bakesTheWindowIntoTheTable() throws {
+    /// With a window, the table is *not* baked: PS3.4 N.2 (Figure N.2-1)
+    /// applies the VOI LUT first and maps its full output range onto the
+    /// palette's whole input range, so the window goes out once, as Softcopy
+    /// VOI LUT, and the table carries the palette's ramp evenly over the
+    /// stored range — baking it as well double-windowed in a conforming viewer.
+    func test_build_windowedDomain_keepsTheWindowOutOfTheTable() throws {
         // Window 40±40 rescaled, intercept -1024 → stored 1024...1104.
         let dataSet = build(
             .hotIron,
@@ -287,16 +294,18 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
         let entries = PseudoColorPalette.hotIron.entries()
         let red = try XCTUnwrap(dataSet[.redPaletteColorLookupTableData]).valueData
         XCTAssertEqual(red.count, 4096)
-        // Below the window: the first colour, all the way.
+        // Evenly resampled: entry i is palette entry i / 16, window or not.
         XCTAssertEqual(red[red.startIndex], entries[0].red)
-        XCTAssertEqual(red[red.startIndex + 1024], entries[0].red)
-        // Above it: the last.
-        XCTAssertEqual(red[red.startIndex + 1105], entries[255].red)
+        XCTAssertEqual(red[red.startIndex + 1024], entries[64].red)
+        XCTAssertEqual(red[red.startIndex + 1064], entries[66].red)
         XCTAssertEqual(red[red.startIndex + 4095], entries[255].red)
-        // Across it: the middle of the window shows the middle of the ramp.
-        XCTAssertEqual(red[red.startIndex + 1064], entries[128].red)
 
-        // Baked is not the Annex B table, so no Annex B name.
+        // The window itself travels in the Softcopy VOI LUT Sequence (C.11.8).
+        let voi = try XCTUnwrap(dataSet[.softcopyVOILUTSequence]?.sequenceItems?.first)
+        XCTAssertEqual(voi.string(for: .windowCenter), "40")
+        XCTAssertEqual(voi.string(for: .windowWidth), "80")
+
+        // Resampled is not the Annex B table, so no Annex B name.
         XCTAssertNil(dataSet.string(for: .paletteColorLookupTableUID))
 
         // And it still comes back as the palette the reader chose.
@@ -306,9 +315,9 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
         XCTAssertFalse(match.inverted)
     }
 
-    /// The inverse view bakes the reversed palette — and recognition reports
+    /// The inverse view writes the reversed palette — and recognition reports
     /// both halves, or the restored view is a different picture.
-    func test_build_windowedInverse_bakesReversedAndIsRecognised() throws {
+    func test_build_windowedInverse_reversesTableAndIsRecognised() throws {
         let dataSet = build(
             .hotIron,
             domain: .init(
@@ -329,17 +338,19 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
         XCTAssertNil(
             build(.hotIron, domain: .init(bitsStored: 12, isSigned: false))
                 .string(for: .paletteColorLookupTableUID))
-        // A windowless 8-bit domain resolves to the exact Annex B table,
-        // which may keep its name; a windowed one is baked and may not.
+        // An 8-bit domain resolves to the exact Annex B table, which keeps
+        // its name — with or without a window, since the window is never
+        // baked into the table (PS3.4 N.2).
         XCTAssertEqual(
             build(.hotIron, domain: .init(bitsStored: 8, isSigned: false))
                 .string(for: .paletteColorLookupTableUID),
             "1.2.840.10008.1.5.1")
-        XCTAssertNil(
+        XCTAssertEqual(
             build(.hotIron, domain: .init(bitsStored: 8, isSigned: false),
                   voiLUT: .window(
                       center: 128, width: 128, explanation: nil, function: .linear))
-                .string(for: .paletteColorLookupTableUID))
+                .string(for: .paletteColorLookupTableUID),
+            "1.2.840.10008.1.5.1")
     }
 
     /// Signed pixels index from below zero, so the descriptor's first mapped
@@ -430,6 +441,41 @@ final class PseudoColorPresentationStateBuilderTests: XCTestCase {
         PseudoColorSoftcopyPresentationStateValidator().validate(
             dataSet: dataSet, errors: &errors, warnings: &warnings)
         XCTAssertTrue(errors.isEmpty, "\(errors.map(\.message))")
+    }
+
+    /// Table C.11.12-1: Shutter Presentation Color CIELab Value (0018,1624) is
+    /// required with a shutter in every class but GSPS — this one included. A
+    /// state that names no colour gets black; one that does keeps it.
+    func test_build_writesShutterPresentationColourWithShutters() throws {
+        let colourTag = Tag(group: 0x0018, element: 0x1624)
+        func build(colour: CIELabColor?, shutters: [DisplayShutter]) -> DataSet {
+            let base = state()
+            let shuttered = GrayscalePresentationState(
+                sopInstanceUID: base.sopInstanceUID,
+                sopClassUID: base.sopClassUID,
+                referencedSeries: base.referencedSeries,
+                voiLUT: base.voiLUT,
+                shutters: shutters,
+                shutterPresentationColor: colour)
+            return PseudoColorPresentationStateBuilder().buildDataSet(
+                from: shuttered, palette: .hotIron, patient: context(),
+                seriesInstanceUID: "1.2.3.4.5.900", seriesNumber: 900,
+                imageSize: (columns: 512, rows: 512))
+        }
+        let circle: DisplayShutter = .circular(centerColumn: 256, centerRow: 256, radius: 200, presentationValue: 0)
+
+        XCTAssertNil(build(colour: nil, shutters: [])[colourTag], "1C: absent without a shutter")
+
+        let defaulted = build(colour: nil, shutters: [circle])
+        XCTAssertEqual(defaulted[colourTag]?.vr, .US)
+        XCTAssertEqual(defaulted[colourTag]?.uint16Values, [0, 0x8080, 0x8080])
+
+        let named = CIELabColor(l: 40000, a: 0x9000, b: 0x7000)
+        let parsed = try GrayscalePresentationStateParser().parse(
+            dataSet: build(colour: named, shutters: [circle]))
+        XCTAssertEqual(parsed.shutterPresentationColor, named)
+        XCTAssertEqual(parsed.shutters, [circle])
+        XCTAssertEqual(parsed.displayedArea?.bottomRight.column, 512, "Type 1 area from the image size")
     }
 
     /// And a GSPS — no palette module — must fail that validator, or the

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — rendered an Extensible SR fixture using all 16 Value Types of PS3.3 2026a Table C.17.3-7 and all 7 Relationship Types of Table C.17.3-8 in text/json/markdown/html and diffed the printed labels by script: 75 matched, 0 wrong (value_type and relationship_type names, Completion/Verification/Preliminary Flag Enumerated Values and names of Table C.17-2 and PS3.6 Table 6-1, Content Template per Table C.18.8-1 titled as PS3.16 sect_TID_1500, document_type = PS3.6 Table A-1 name less " Storage" for 20 of 20 SR SOP Classes, DCM concept meanings = PS3.16 Table D-1, CODE values as (CV, CSD, "CM") per PS3.16 6.1 and Table 8.8-1a); before: 10 Value Types printed "[Content]", children of non-CONTAINER items were dropped, no value_type, flags or template were shown; WAVEFORM channels printed as (M,C) pairs per C.18.5.1.1 (D225)
 /// Report generation engine for DICOM SR documents
 ///
 /// Converts parsed SR documents into various output formats with support for
@@ -55,14 +56,25 @@ struct ReportTemplate {
         contentStyle: .detailed
     )
 
-    /// Resolve a template by name
+    /// The styling presets `--style` accepts, in help order.
+    static let all: [ReportTemplate] = [.default, .cardiology, .radiology, .oncology]
+
+    /// The preset with this name (case-insensitive), or nil.
+    static func named(_ name: String) -> ReportTemplate? {
+        let key = name.trimmingCharacters(in: .whitespaces).lowercased()
+        return all.first { $0.name == key }
+    }
+
+    /// Resolve a template by name; an unknown name falls back to `default`. The CLI refuses
+    /// unknown names before this is reached (`DICOMReport.resolveStyle`).
     static func resolve(name: String) -> ReportTemplate {
-        switch name.lowercased() {
-        case "cardiology": return .cardiology
-        case "radiology": return .radiology
-        case "oncology": return .oncology
-        default: return .default
-        }
+        named(name) ?? .default
+    }
+
+    /// The sections rendered for these options: `--no-include-summary` drops the summary
+    /// sections (Impressions, Recommendations); the content tree is still rendered in full.
+    func renderedSections(includeSummary: Bool) -> [ReportSection] {
+        includeSummary ? sections : sections.filter { !$0.isSummary }
     }
 }
 
@@ -80,6 +92,9 @@ enum ReportSection: String {
     case measurements = "measurements"
     case impressions = "impressions"
     case recommendations = "recommendations"
+
+    /// Summary sections, controlled by `--include-summary` / `--no-include-summary`.
+    var isSummary: Bool { self == .impressions || self == .recommendations }
 
     var displayName: String {
         switch self {
@@ -404,13 +419,16 @@ struct ReportGenerator {
         // Header
         output += "=" + String(repeating: "=", count: 78) + "\n"
         output += centerText(options.customTitle ?? document.documentTitle?.codeMeaning ?? "DICOM Structured Report", width: 80)
+        if let docType = document.documentType {
+            output += centerText(docType.description, width: 80)
+        }
         if resolvedTemplate.name != "default" {
             output += centerText("(\(resolvedTemplate.displayName))", width: 80)
         }
         output += "=" + String(repeating: "=", count: 78) + "\n\n"
 
         // Render sections in template-defined order
-        for section in resolvedTemplate.sections {
+        for section in resolvedTemplate.renderedSections(includeSummary: options.includeSummary) {
             output += renderTextSection(section)
         }
 
@@ -441,6 +459,9 @@ struct ReportGenerator {
             }
             if let accessionNumber = document.accessionNumber {
                 output += "\(language.localizedLabel("Accession Number")): \(accessionNumber)\n"
+            }
+            for line in documentStatusLines {
+                output += "\(line.label): \(line.value)\n"
             }
             output += "\n" + "-" + String(repeating: "-", count: 78) + "\n\n"
         case .findings, .cardiacFindings, .tumorAssessment:
@@ -493,37 +514,160 @@ struct ReportGenerator {
         // Value
         output += "\(indent)  \(formatContentValue(item))\n"
         
-        // Children (for containers)
-        if let container = item.asContainer {
-            for child in container.contentItems {
-                output += renderContentItem(child, indent: indent + "  ")
-            }
+        // Children: the Content Sequence (0040,A730) of any Value Type, not only CONTAINER
+        // (PS3.3 2026a Table C.17-6; e.g. NUM INFERRED FROM SCOORD, CODE HAS PROPERTIES)
+        for child in item.contentItems {
+            output += renderContentItem(child, indent: indent + "  ")
         }
         
         return output
     }
     
-    private func formatContentValue(_ item: AnyContentItem) -> String {
-        if let textItem = item.asText {
-            return textItem.textValue
-        } else if let numItem = item.asNumeric {
-            if let units = numItem.measurementUnits {
-                let value = numItem.numericValues.first ?? 0.0
-                return "\(value) \(units.codeMeaning)"
+    /// The printed value of a content item, for each of the 16 Value Types of PS3.3 2026a
+    /// Table C.17.3-7. Coded values print as (CV, CSD, "CM") (PS3.16 2026a 6.1, attributes of
+    /// PS3.3 Table 8.8-1a); NUM prints Numeric Value (0040,A30A) followed by the Code Meaning
+    /// (0008,0104) of Measurement Units Code Sequence (0040,08EA) (Table C.18.1-1, CID 82).
+    func formatContentValue(_ item: AnyContentItem) -> String {
+        switch item.valueType {
+        case .text:
+            return item.asText?.textValue ?? ""
+        case .num:
+            guard let numItem = item.asNumeric else { return "" }
+            var parts: [String] = []
+            if let first = numItem.numericValues.first {
+                parts.append(ReportGenerator.formatNumber(first))
+                if let units = numItem.measurementUnits {
+                    parts.append(units.codeMeaning)
+                }
             }
-            let value = numItem.numericValues.first ?? 0.0
-            return "\(value)"
-        } else if let codeItem = item.asCode {
-            return codeItem.conceptCode.codeMeaning
-        } else if let dateTimeItem = item.asDateTime {
-            return dateTimeItem.dateTimeValue
-        } else if let imageItem = item.asImage {
-            return "Image: \(imageItem.imageReference.sopReference.sopInstanceUID)"
-        } else if let containerItem = item.asContainer {
-            return "[\(containerItem.contentItems.count) items]"
-        } else {
-            return "[Content]"
+            if let qualifier = numItem.numericValueQualifier {
+                parts.append(ReportGenerator.codedEntry(qualifier.code.concept))
+            }
+            return parts.isEmpty ? "(no value)" : parts.joined(separator: " ")
+        case .code:
+            guard let codeItem = item.asCode else { return "" }
+            return ReportGenerator.codedEntry(codeItem.conceptCode)
+        case .datetime:
+            return item.asDateTime?.dateTimeValue ?? ""
+        case .date:
+            return item.asDate.map { formatDate($0.dateValue) } ?? ""
+        case .time:
+            return item.asTime?.timeValue ?? ""
+        case .uidref:
+            return item.asUIDRef?.uidValue ?? ""
+        case .pname:
+            return item.asPersonName?.personName ?? ""
+        case .composite:
+            guard let ref = item.asComposite?.referencedSOPSequence else { return "" }
+            return "Composite: \(ref.sopInstanceUID)"
+        case .image:
+            guard let imageItem = item.asImage else { return "" }
+            var text = "Image: \(imageItem.imageReference.sopReference.sopInstanceUID)"
+            if let frames = imageItem.imageReference.frameNumbers, !frames.isEmpty {
+                text += " frames \(frames.map(String.init).joined(separator: ","))"
+            }
+            return text
+        case .waveform:
+            guard let waveformItem = item.asWaveform else { return "" }
+            var text = "Waveform: \(waveformItem.waveformReference.sopReference.sopInstanceUID)"
+            // Referenced Waveform Channels (0040,A0B0): (M,C) = (Multiplex Group, Channel) pairs,
+            // C = 0 meaning every channel of group M (PS3.3 2026a C.18.5.1.1)
+            if let pairs = waveformItem.waveformReference.referencedChannels, !pairs.isEmpty {
+                text += " channels (M,C) " + pairs.map { "(\($0.multiplexGroup),\($0.channel))" }.joined(separator: " ")
+            }
+            return text
+        case .scoord:
+            guard let scoord = item.asSpatialCoordinates else { return "" }
+            let points = scoord.points.map { "(\(ReportGenerator.formatNumber(Double($0.column))),\(ReportGenerator.formatNumber(Double($0.row))))" }
+            return "\(scoord.graphicType.rawValue) \(points.joined(separator: " "))"
+        case .scoord3D:
+            guard let scoord3D = item.asSpatialCoordinates3D else { return "" }
+            let points = scoord3D.points.map {
+                "(\(ReportGenerator.formatNumber(Double($0.x))),\(ReportGenerator.formatNumber(Double($0.y))),\(ReportGenerator.formatNumber(Double($0.z))))"
+            }
+            var text = "\(scoord3D.graphicType.rawValue) \(points.joined(separator: " "))"
+            if let frameOfReference = scoord3D.frameOfReferenceUID {
+                text += " in \(frameOfReference)"
+            }
+            return text
+        case .tcoord:
+            guard let tcoord = item.asTemporalCoordinates else { return "" }
+            var values: [String] = []
+            if let positions = tcoord.referencedSamplePositions {
+                values = positions.map(String.init)
+            } else if let offsets = tcoord.referencedTimeOffsets {
+                values = offsets.map(ReportGenerator.formatNumber)
+            } else if let dateTimes = tcoord.referencedDateTime {
+                values = dateTimes
+            }
+            return "\(tcoord.temporalRangeType.rawValue) \(values.joined(separator: " "))"
+        case .container:
+            return "[\(item.asContainer?.contentItems.count ?? 0) items]"
+        case .table:
+            guard let table = item.asTable else { return "" }
+            return "Table: \(table.rows) rows x \(table.columns) columns"
         }
+    }
+
+    /// A coded entry as PS3.16 2026a Section 6.1 writes references to coded concepts:
+    /// (CV, CSD, "CM"), or (CV, CSD [CSV], "CM") when Coding Scheme Version is present.
+    /// CV is Code Value (0008,0100), else Long Code Value (0008,0119), else URN Code Value
+    /// (0008,0120) (PS3.3 2026a Table 8.8-1a).
+    static func codedEntry(_ concept: CodedConcept) -> String {
+        let value = !concept.codeValue.isEmpty ? concept.codeValue
+            : (concept.longCodeValue ?? concept.urnCodeValue ?? "")
+        var scheme = concept.codingSchemeDesignator
+        if let version = concept.codingSchemeVersion, !version.isEmpty {
+            scheme += " [\(version)]"
+        }
+        return "(\(value), \(scheme), \"\(concept.codeMeaning)\")"
+    }
+
+    /// A decimal without a spurious ".0" for whole numbers (12 rather than 12.0).
+    static func formatNumber(_ value: Double) -> String {
+        if value.isFinite, value == value.rounded(), abs(value) < 1e15 {
+            return String(Int64(value))
+        }
+        return "\(value)"
+    }
+
+    /// Template that describes the root CONTAINER: Content Template Sequence (0040,A504)
+    /// Mapping Resource (0008,0105) and Template Identifier (0040,DB00) (PS3.3 2026a
+    /// Table C.18.8-1), printed "TID <n> <PS3.16 title> (<Mapping Resource>)"; the title
+    /// comes from DICOMCore's TemplateRegistry, generated from PS3.16 2026a, for DCMR only.
+    var contentTemplateLabel: String? {
+        guard let identifier = document.rootContent.templateIdentifier?
+            .trimmingCharacters(in: .whitespaces), !identifier.isEmpty else { return nil }
+        let resource = document.rootContent.mappingResource?.trimmingCharacters(in: .whitespaces) ?? ""
+        var label = "TID \(identifier)"
+        if resource.isEmpty || resource == "DCMR", let tid = Int(identifier),
+           let template = TemplateRegistry.shared.template(tid: tid) {
+            label += " \(template.displayName)"
+        }
+        if !resource.isEmpty {
+            label += " (\(resource))"
+        }
+        return label
+    }
+
+    /// Document status attributes of the SR Document General Module (PS3.3 2026a Table C.17-2):
+    /// the Enumerated Values of Completion Flag (0040,A491), Verification Flag (0040,A493) and
+    /// Preliminary Flag (0040,A496), and the content template of the root CONTAINER.
+    var documentStatusLines: [(label: String, value: String)] {
+        var lines: [(label: String, value: String)] = []
+        if let flag = document.completionFlag {
+            lines.append(("Completion Flag", flag.rawValue))
+        }
+        if let flag = document.verificationFlag {
+            lines.append(("Verification Flag", flag.rawValue))
+        }
+        if let flag = document.preliminaryFlag {
+            lines.append(("Preliminary Flag", flag.rawValue))
+        }
+        if let template = contentTemplateLabel {
+            lines.append(("Content Template", template))
+        }
+        return lines
     }
     
     // MARK: - HTML Report
@@ -709,7 +853,7 @@ struct ReportGenerator {
         """
 
         // Render sections in template-defined order
-        for section in resolvedTemplate.sections {
+        for section in resolvedTemplate.renderedSections(includeSummary: options.includeSummary) {
             html += renderHTMLSection(section)
         }
 
@@ -803,6 +947,11 @@ struct ReportGenerator {
                             <tr><td>\(escapeHTML(language.localizedLabel("Accession Number"))):</td><td>\(escapeHTML(accessionNumber))</td></tr>
                 """
             }
+            for line in documentStatusLines {
+                html += """
+                            <tr><td>\(escapeHTML(line.label)):</td><td>\(escapeHTML(line.value))</td></tr>
+                """
+            }
             html += """
                         </table>
                     </div>
@@ -875,21 +1024,22 @@ struct ReportGenerator {
         
         if let name = item.conceptName {
             html += """
-                    <div class="item-name">\(name.codeMeaning)</div>
+                    <div class="item-name">\(escapeHTML(name.codeMeaning))</div>
             """
         }
         
         html += """
-                    <div class="item-value">\(formatContentValue(item))</div>
+                    <div class="item-value">\(escapeHTML(formatContentValue(item)))</div>
         """
         
         html += """
                 </div>
         """
         
-        // Recursively render children for containers
-        if let container = item.asContainer {
-            html += renderHTMLContentTree(container, level: level + 1)
+        // Children: the Content Sequence (0040,A730) of any Value Type, not only CONTAINER
+        // (PS3.3 2026a Table C.17-6; e.g. NUM INFERRED FROM SCOORD, CODE HAS PROPERTIES)
+        for child in item.contentItems {
+            html += renderHTMLContentItem(child, level: level + 1)
         }
         
         return html
@@ -909,7 +1059,15 @@ struct ReportGenerator {
                 "display_name": resolvedTemplate.displayName,
                 "sections": resolvedTemplate.sections.map { $0.rawValue }
             ],
+            "include_summary": options.includeSummary,
             "language": language.rawValue,
+            "completion_flag": document.completionFlag?.rawValue ?? "",
+            "verification_flag": document.verificationFlag?.rawValue ?? "",
+            "preliminary_flag": document.preliminaryFlag?.rawValue ?? "",
+            "content_template": [
+                "template_identifier": document.rootContent.templateIdentifier ?? "",
+                "mapping_resource": document.rootContent.mappingResource ?? ""
+            ],
             "patient": [
                 "name": document.patientName ?? "",
                 "id": document.patientID ?? ""
@@ -947,7 +1105,9 @@ struct ReportGenerator {
     
     private func serializeContentItem(_ item: AnyContentItem) -> [String: Any] {
         var dict: [String: Any] = [:]
-        
+
+        dict["value_type"] = item.valueType.rawValue
+
         if let relationshipType = item.relationshipType {
             dict["relationship_type"] = relationshipType.rawValue
         }
@@ -962,8 +1122,10 @@ struct ReportGenerator {
         
         dict["value"] = formatContentValue(item)
         
-        if let container = item.asContainer {
-            dict["children"] = serializeContentTree(container)
+        // Children: the Content Sequence (0040,A730) of any Value Type, not only CONTAINER
+        // (PS3.3 2026a Table C.17-6; e.g. NUM INFERRED FROM SCOORD, CODE HAS PROPERTIES)
+        if item.asContainer != nil || !item.contentItems.isEmpty {
+            dict["children"] = item.contentItems.map { serializeContentItem($0) }
         }
         
         return dict
@@ -987,7 +1149,7 @@ struct ReportGenerator {
         }
 
         // Render sections in template-defined order
-        for section in resolvedTemplate.sections {
+        for section in resolvedTemplate.renderedSections(includeSummary: options.includeSummary) {
             md += renderMarkdownSection(section)
         }
 
@@ -1035,6 +1197,9 @@ struct ReportGenerator {
             }
             if let accessionNumber = document.accessionNumber {
                 md += "- **\(language.localizedLabel("Accession Number")):** \(accessionNumber)\n"
+            }
+            for line in documentStatusLines {
+                md += "- **\(line.label):** \(line.value)\n"
             }
             md += "\n---\n\n"
         case .findings, .cardiacFindings, .tumorAssessment:
@@ -1086,9 +1251,10 @@ struct ReportGenerator {
             md += "\(indent)- \(formatContentValue(item))\n"
         }
         
-        // Children
-        if let container = item.asContainer {
-            md += renderMarkdownContentTree(container, level: level + 1)
+        // Children: the Content Sequence (0040,A730) of any Value Type, not only CONTAINER
+        // (PS3.3 2026a Table C.17-6; e.g. NUM INFERRED FROM SCOORD, CODE HAS PROPERTIES)
+        for child in item.contentItems {
+            md += renderMarkdownContentItem(child, level: level + 1)
         }
         
         return md
@@ -1134,7 +1300,7 @@ struct ReportGenerator {
                 let name = item.conceptName?.codeMeaning ?? "Measurement"
                 let value: String
                 if let firstValue = numItem.numericValues.first {
-                    value = String(firstValue)
+                    value = ReportGenerator.formatNumber(firstValue)
                 } else {
                     value = "N/A"
                 }
@@ -1142,10 +1308,8 @@ struct ReportGenerator {
                 measurements.append(ReportMeasurement(name: name, value: value, units: units))
             }
 
-            if let container = item.asContainer {
-                for child in container.contentItems {
-                    collectMeasurements(from: child)
-                }
+            for child in item.contentItems {
+                collectMeasurements(from: child)
             }
         }
 
@@ -1164,10 +1328,8 @@ struct ReportGenerator {
             if let imageItem = item.asImage {
                 images.append(imageItem)
             }
-            if let container = item.asContainer {
-                for child in container.contentItems {
-                    collect(from: child)
-                }
+            for child in item.contentItems {
+                collect(from: child)
             }
         }
 
@@ -1207,10 +1369,8 @@ struct ReportGenerator {
                     }
                 }
             }
-            if let container = item.asContainer {
-                for child in container.contentItems {
-                    searchContent(in: child)
-                }
+            for child in item.contentItems {
+                searchContent(in: child)
             }
         }
 

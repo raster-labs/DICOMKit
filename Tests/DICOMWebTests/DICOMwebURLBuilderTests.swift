@@ -150,11 +150,12 @@ struct DICOMwebURLBuilderTests {
         )
         
         let urlString = url.absoluteString
-        #expect(urlString.contains("windowcenter=40"))
-        #expect(urlString.contains("windowwidth=400"))
-        #expect(urlString.contains("columns=512"))
-        #expect(urlString.contains("rows=512"))
+        // PS3.18 8.3.5.1.3 / 8.3.5.1.4: window=center,width,function and viewport=vw,vh
+        #expect(urlString.contains("window=40,400,linear"))
+        #expect(urlString.contains("viewport=512,512"))
         #expect(urlString.contains("quality=80"))
+        #expect(!urlString.contains("windowcenter"))
+        #expect(!urlString.contains("columns"))
     }
     
     // MARK: - Initialization Tests

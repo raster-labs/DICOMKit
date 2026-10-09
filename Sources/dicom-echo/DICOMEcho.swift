@@ -2,6 +2,7 @@ import Foundation
 import ArgumentParser
 import DICOMCore
 import DICOMNetwork
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data of its own: every option is plumbing (host, port, AE Titles, count, timeout, stats, diagnose, verbose); the C-ECHO statuses it prints (PS3.7 2026a 9.1.5.1.4: 0000 Success, 0122 Refused: SOP Class not supported, 0210 Duplicate invocation, 0211 Unrecognized operation, 0212 Mistyped argument) are rendered by DICOMNetwork.DIMSEStatus; port 11112 is the registered DICOM port of PS3.8 2026a 9.1.1; AE Titles are PS3.5 Table 6.2-1 VR AE (16 bytes), checked by DICOMNetwork.AETitle
 
 @main
 struct DICOMEcho: AsyncParsableCommand {

@@ -5,6 +5,12 @@
 // Reference: DICOM PS3.10 (Media Storage and File Format)
 // Reference: DICOM PS3.18 Annex F (JSON Encoding of DICOM Data Sets)
 // Reference: DICOM PS3.19 Annex A (Native DICOM Model XML)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — tab, format, status and job enums carry no DICOM-standard values;
+// `TransferSyntaxConversionJob.targetDisplayName` takes its name from DICOMCore `SelectableEncoding` (PS3.6 2026a
+// Table A-1); `DICOMDIREntry` fields (Patient's Name, Patient ID, Study Date, Study Instance UID, Modality) are
+// PS3.3 2026a Table F.5-1/F.5-2/F.5-3 record keys; the PS3.18 Annex F, PS3.3 Annex F and A.45 citations name
+// existing clauses (PS3.19 not fetched, its citation not checked).
 
 import Foundation
 import DICOMCore

@@ -3,6 +3,7 @@ import Foundation
 import Network
 #if canImport(Security)
 import Security
+// NEMA-verified: 2026a, checked 2026-10-06 — compared with PS3.15 2026a Annex B (B.1–B.3 and B.9–B.11 retired; B.12 / B.13 live): the profile titles in SecureTransportConnectionProfile are the B.12 / B.13 section titles, the TLS versions of `.bcp195` / `.modifiedBCP195` follow B.12 (TLS 1.2 shall, 1.3 may and is attempted) and B.13 (TLS 1.2 or 1.3, 1.3 attempted), and the 9 TLSCipherSuite names are text-diffed against the B.13 TLS 1.3 list (3 of its 5) and TLS 1.2 required list (6 of its 10) — the remaining B.13 suites (CCM, CCM_8, Camellia, DHE) are not exposed by Security's tls_ciphersuite_t; citation to a non-existent PS3.8 Annex A removed (2026-09-28)
 #endif
 
 // MARK: - TLSConfiguration
@@ -12,8 +13,19 @@ import Security
 /// Provides comprehensive TLS settings including protocol version, certificate
 /// validation, and custom certificate configuration.
 ///
-/// Reference: PS3.15 - Security and System Management Profiles
-/// Reference: PS3.8 Annex A - DICOM Secure Transport Connection Profile
+/// Reference: PS3.15 Annex B.12 "BCP 195 RFC 8996, 9325 TLS Secure Transport Connection
+/// Profile" and B.13 "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection
+/// Profile" (PS3.15 2026a; the older B.1/B.3/B.9-B.11 profiles are retired). PS3.8 has no
+/// TLS annex: it defers the secure transport to the PS3.15 profiles (PS3.8 §9.1.1).
+///
+/// Conformance note: B.12 requires TLS 1.2 (TLS 1.3 optional, preferred when offered) and
+/// forbids NULL key exchange, cipher and hash; B.13 additionally restricts the cipher suites
+/// and key lengths. Use ``bcp195`` / ``modifiedBCP195`` (or ``profile(_:certificateValidation:clientIdentity:)``)
+/// for a configuration per profile: ``modifiedBCP195`` restricts the offered cipher suites to
+/// the B.13 suites Security exposes (``TLSCipherSuite``). `TLSConfiguration.default` meets the
+/// version rule of B.12; `.strict` pins TLS 1.3 and so is no B.12 configuration (B.12 requires
+/// TLS 1.2). The `tlsProtocol10` / `tlsProtocol11` options exist for legacy peers only — a
+/// connection using them conforms to no PS3.15 profile (RFC 8996 prohibits them).
 ///
 /// ## Usage
 ///
@@ -58,6 +70,10 @@ public struct TLSConfiguration: Sendable, Hashable {
     
     /// Optional client identity for mutual TLS authentication
     public let clientIdentity: ClientIdentity?
+
+    /// The cipher suites offered, in order; nil leaves the choice to Network.framework's
+    /// default set. ``modifiedBCP195`` sets the PS3.15 2026a B.13 suites Security exposes.
+    public let cipherSuites: [TLSCipherSuite]?
     
     // MARK: - Initialization
     
@@ -69,18 +85,21 @@ public struct TLSConfiguration: Sendable, Hashable {
     ///   - certificateValidation: Certificate validation mode (default: system trust store)
     ///   - applicationProtocols: ALPN protocols to advertise (default: none)
     ///   - clientIdentity: Client certificate for mutual TLS (default: none)
+    ///   - cipherSuites: Cipher suites to offer, in order (default: nil, Network.framework's set)
     public init(
         minimumVersion: TLSProtocolVersion = .tlsProtocol12,
         maximumVersion: TLSProtocolVersion? = nil,
         certificateValidation: CertificateValidation = .system,
         applicationProtocols: [String] = [],
-        clientIdentity: ClientIdentity? = nil
+        clientIdentity: ClientIdentity? = nil,
+        cipherSuites: [TLSCipherSuite]? = nil
     ) {
         self.minimumVersion = minimumVersion
         self.maximumVersion = maximumVersion
         self.certificateValidation = certificateValidation
         self.applicationProtocols = applicationProtocols
         self.clientIdentity = clientIdentity
+        self.cipherSuites = cipherSuites
     }
     
     // MARK: - Preset Configurations
@@ -99,6 +118,8 @@ public struct TLSConfiguration: Sendable, Hashable {
     ///
     /// Uses TLS 1.3 only with system trust store validation.
     /// Provides the highest level of security but may not work with older servers.
+    /// Not a B.12 configuration (B.12 requires TLS 1.2); a B.13 client may be TLS 1.3-only,
+    /// but ``modifiedBCP195`` is the B.13 configuration.
     public static let strict = TLSConfiguration(
         minimumVersion: .tlsProtocol13,
         maximumVersion: .tlsProtocol13,
@@ -117,6 +138,67 @@ public struct TLSConfiguration: Sendable, Hashable {
         certificateValidation: .disabled
     )
     
+    // MARK: - PS3.15 Secure Transport Connection Profiles
+
+    /// PS3.15 2026a B.12 "BCP 195 RFC 8996, 9325 TLS Secure Transport Connection Profile".
+    ///
+    /// TLS 1.2 minimum and no maximum: B.12 requires TLS 1.2, allows TLS 1.3, and requires a
+    /// client to attempt TLS 1.3 when supported — Network.framework offers TLS 1.3 first when
+    /// the maximum is open. System trust evaluation; no client certificate (B.12 makes mutual
+    /// authentication optional for clients — pass `clientIdentity` through
+    /// ``profile(_:certificateValidation:clientIdentity:)`` to use it).
+    ///
+    /// Not enforced here: B.12 defers the cipher-suite rules to BCP 195 (RFC 9325); this
+    /// configuration offers Network.framework's default suite set, which this package does not
+    /// filter (use ``modifiedBCP195`` for an explicit suite list).
+    public static let bcp195 = TLSConfiguration(
+        minimumVersion: .tlsProtocol12,
+        maximumVersion: nil,
+        certificateValidation: .system
+    )
+
+    /// PS3.15 2026a B.13 "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection Profile".
+    ///
+    /// TLS 1.2 minimum and no maximum (B.13: a client supports TLS 1.2 or 1.3 and attempts
+    /// TLS 1.3), system trust evaluation, and only the B.13 cipher suites that Security's
+    /// `tls_ciphersuite_t` can express (``TLSCipherSuite/modifiedBCP195``): the three TLS 1.3
+    /// suites AES-256-GCM, ChaCha20-Poly1305, AES-128-GCM, and six of the ten required TLS 1.2
+    /// suites (ECDHE with AES-GCM or ChaCha20-Poly1305).
+    ///
+    /// Not enforced here: the B.13 CCM / CCM_8, Camellia and DHE suites cannot be offered
+    /// (Security has no constant for them); the key-length rules (DHE ≥ 2048, ECDHE ≥ 256 bits)
+    /// and certificate rules (RSA ≥ 2048 / ECC ≥ 256 bits, SHA-256 or greater) are not checked by
+    /// this configuration beyond the system trust evaluation; the signature-algorithm list
+    /// cannot be set through Network.framework.
+    public static let modifiedBCP195 = TLSConfiguration(
+        minimumVersion: .tlsProtocol12,
+        maximumVersion: nil,
+        certificateValidation: .system,
+        cipherSuites: TLSCipherSuite.modifiedBCP195
+    )
+
+    /// The configuration for a PS3.15 2026a Annex B Secure Transport Connection Profile, with
+    /// the given certificate validation and optional client identity (mutual authentication).
+    public static func profile(
+        _ profile: SecureTransportConnectionProfile,
+        certificateValidation: CertificateValidation = .system,
+        clientIdentity: ClientIdentity? = nil
+    ) -> TLSConfiguration {
+        let base: TLSConfiguration
+        switch profile {
+        case .bcp195:         base = .bcp195
+        case .modifiedBCP195: base = .modifiedBCP195
+        }
+        return TLSConfiguration(
+            minimumVersion: base.minimumVersion,
+            maximumVersion: base.maximumVersion,
+            certificateValidation: certificateValidation,
+            applicationProtocols: base.applicationProtocols,
+            clientIdentity: clientIdentity,
+            cipherSuites: base.cipherSuites
+        )
+    }
+
     // MARK: - Network.framework Integration
     
     /// Creates NWProtocolTLS.Options for use with Network.framework
@@ -167,6 +249,15 @@ public struct TLSConfiguration: Sendable, Hashable {
             try configureCustomTrustRoots(trustRoots, options: secOptions)
         }
         
+        // Restrict the offered cipher suites when a list is given (B.13)
+        if let suites = cipherSuites {
+            for suite in suites {
+                if let value = tls_ciphersuite_t(rawValue: suite.rawValue) {
+                    sec_protocol_options_append_tls_ciphersuite(secOptions, value)
+                }
+            }
+        }
+
         // Configure ALPN protocols if specified
         for proto in applicationProtocols {
             sec_protocol_options_add_tls_application_protocol(
@@ -277,6 +368,74 @@ public struct TLSConfiguration: Sendable, Hashable {
             sec_protocol_options_set_local_identity(options, secIdentityRef)
         }
     }
+}
+
+// MARK: - Secure Transport Connection Profile
+
+/// The live PS3.15 2026a Annex B TLS Secure Transport Connection Profiles. B.1 (Basic TLS),
+/// B.2 (ISCL), B.3 (AES TLS) and B.9–B.11 (BCP 195, Non-Downgrading BCP 195, Extended BCP 195)
+/// are retired; the raw value is the profile's section title without the trailing
+/// "Secure Transport Connection Profile".
+public enum SecureTransportConnectionProfile: String, Sendable, Hashable, CaseIterable, Codable {
+    /// PS3.15 2026a B.12 "BCP 195 RFC 8996, 9325 TLS Secure Transport Connection Profile".
+    case bcp195 = "BCP 195 RFC 8996, 9325 TLS"
+    /// PS3.15 2026a B.13 "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection Profile".
+    case modifiedBCP195 = "Modified BCP 195 RFC 8996, 9325 TLS"
+
+    /// The PS3.15 2026a Annex B section of this profile.
+    public var section: String {
+        switch self {
+        case .bcp195:         return "B.12"
+        case .modifiedBCP195: return "B.13"
+        }
+    }
+
+    /// The profile's full title in PS3.15 2026a Annex B.
+    public var title: String { rawValue + " Secure Transport Connection Profile" }
+
+    /// The DICOMNetwork configuration for this profile (``TLSConfiguration/bcp195`` or
+    /// ``TLSConfiguration/modifiedBCP195``).
+    public var tlsConfiguration: TLSConfiguration {
+        switch self {
+        case .bcp195:         return .bcp195
+        case .modifiedBCP195: return .modifiedBCP195
+        }
+    }
+}
+
+// MARK: - TLS Cipher Suite
+
+/// TLS cipher suites that Security's `tls_ciphersuite_t` exposes and PS3.15 2026a B.13 permits,
+/// by IANA name (raw value: the IANA code point). Security has no constant for the B.13 CCM,
+/// CCM_8, Camellia or DHE suites, so they cannot be listed.
+public enum TLSCipherSuite: UInt16, Sendable, Hashable, CaseIterable, Codable {
+    /// TLS 1.3, B.13 list.
+    case TLS_AES_256_GCM_SHA384 = 0x1302
+    /// TLS 1.3, B.13 list.
+    case TLS_CHACHA20_POLY1305_SHA256 = 0x1303
+    /// TLS 1.3, B.13 list.
+    case TLS_AES_128_GCM_SHA256 = 0x1301
+    /// TLS 1.2, B.13 required list.
+    case TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 = 0xC02C
+    /// TLS 1.2, B.13 required list.
+    case TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 = 0xC030
+    /// TLS 1.2, B.13 required list.
+    case TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA9
+    /// TLS 1.2, B.13 required list.
+    case TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA8
+    /// TLS 1.2, B.13 required list.
+    case TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 = 0xC02F
+    /// TLS 1.2, B.13 required list.
+    case TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 = 0xC02B
+
+    /// The IANA name (identical to the PS3.15 2026a B.13 spelling).
+    public var ianaName: String { String(describing: self) }
+
+    /// Whether this is a TLS 1.3 suite (B.13's TLS 1.3 list) rather than a TLS 1.2 one.
+    public var isTLS13: Bool { rawValue >> 8 == 0x13 }
+
+    /// The suites ``TLSConfiguration/modifiedBCP195`` offers, in B.13's order (TLS 1.3, then TLS 1.2).
+    public static let modifiedBCP195: [TLSCipherSuite] = allCases
 }
 
 // MARK: - TLS Protocol Version

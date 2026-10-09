@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — grayscale pipeline against PS3.3 2026a C.11.1.1.2 (Rescale per frame), Table C.11-2b / C.11.2.1.2.1 / C.11.2.1.3 (3 VOI LUT Function Defined Terms LINEAR, LINEAR_EXACT, SIGMOID; LINEAR when absent; via DICOMCore WindowSettings), C.7.6.3.1.2 (MONOCHROME1 minimum shown white), Table C.9-2 (Overlay Origin 1\1 = upper left pixel, row\column; Overlay Data left to right, top to bottom) and Image Frame Origin "Frames are numbered from 1"; 10 info labels are PS3.6 2026a Table 6-1 names; frame labels say "Frame number N" (1-based, PS3.3 2026a Table 10-3; P-VIEWER-FRAME)
 /// Terminal rendering engine for DICOM images
 ///
 /// Provides ASCII art, ANSI color, and terminal graphics protocol
@@ -85,11 +86,19 @@ struct TerminalRenderer {
     ///
     /// Pixels are decoded through ``CodecRegistry`` so all registered codecs
     /// (J2K, HTJ2K, Part 2, JPEG-LS, RLE, …) are handled automatically.
+    ///
+    /// The grayscale pipeline is Modality LUT (Rescale Slope/Intercept, PS3.3
+    /// C.11.1.1.2) → VOI LUT function (C.11.2.1.2 / C.11.2.1.3: LINEAR unless VOI LUT
+    /// Function (0028,1056) or `voiFunction` says otherwise) → MONOCHROME1 inversion
+    /// ("The minimum sample value is intended to be displayed as white", C.7.6.3.1.2).
+    /// With `showOverlays`, overlay planes (60xx) are drawn white on top (C.9.2).
     func extractPixels(
         frame: Int = 0,
         windowCenter: Double? = nil,
         windowWidth: Double? = nil,
-        invert: Bool = false
+        invert: Bool = false,
+        voiFunction: VOILUTFunction? = nil,
+        showOverlays: Bool = false
     ) throws -> NormalizedImage {
         // Use DICOMFile.pixelData() which routes through CodecRegistry for all
         // compressed transfer syntaxes (J2K, HTJ2K, Part 2, JPEG-LS, RLE …)
@@ -110,50 +119,56 @@ struct TerminalRenderer {
             throw ViewerError.frameNotAvailable(frame)
         }
 
-        // Determine window/level
-        let wc: Double
-        let ww: Double
+        // Modality LUT: Rescale Slope / Intercept of this frame (C.11.1.1.2).
+        let slope = dataSet.rescaleSlope(frameIndex: frame)
+        let intercept = dataSet.rescaleIntercept(frameIndex: frame)
 
+        // VOI: the window is in Modality LUT output units (C.11.2.1.2).
+        let window: WindowSettings
         if let center = windowCenter, let width = windowWidth {
-            wc = center
-            ww = width
-        } else if let settings = dataSet.windowSettings() {
-            wc = settings.center
-            ww = settings.width
+            window = WindowSettings(center: center, width: width, function: voiFunction ?? .linear)
+        } else if let settings = dataSet.windowSettings(frameIndex: frame) {
+            window = voiFunction.map {
+                WindowSettings(center: settings.center, width: settings.width,
+                               explanation: settings.explanation, function: $0)
+            } ?? settings
         } else {
-            // Auto-window from pixel data range
+            // Auto-window over the frame's rescaled range.
+            let low: Double, high: Double
             if let range = pixelData.pixelRange(forFrame: frame) {
-                let minVal = Double(range.min)
-                let maxVal = Double(range.max)
-                wc = (minVal + maxVal) / 2.0
-                ww = max(maxVal - minVal, 1.0)
+                low = Double(range.min); high = Double(range.max)
             } else {
-                wc = Double(1 << (descriptor.bitsStored - 1))
-                ww = Double(1 << descriptor.bitsStored)
+                let bits = max(1, descriptor.bitsStored)
+                low = descriptor.isSigned ? -Double(1 << (bits - 1)) : 0
+                high = descriptor.isSigned ? Double(1 << (bits - 1)) - 1 : Double(1 << bits) - 1
             }
+            let a = slope * low + intercept, b = slope * high + intercept
+            window = WindowSettings(center: (a + b) / 2.0, width: max(abs(b - a), 1.0),
+                                    function: voiFunction ?? .linearExact)
         }
 
         if verbose {
-            print("Window Center: \(wc), Window Width: \(ww)")
+            print("Window Center: \(window.center), Window Width: \(window.width), VOI LUT Function: \(window.function.rawValue)")
             print("Image size: \(columns)x\(rows)")
         }
 
-        // Apply rescale slope/intercept and window/level
-        let slope = dataSet.rescaleSlope()
-        let intercept = dataSet.rescaleIntercept()
-
-        let minValue = wc - ww / 2.0
-        let maxValue = wc + ww / 2.0
+        let monochrome1 = (dataSet.string(for: .photometricInterpretation) ?? "")
+            .trimmingCharacters(in: .whitespaces).uppercased() == "MONOCHROME1"
+        let flip = monochrome1 != invert
 
         var normalized = [Double](repeating: 0.0, count: values.count)
         for i in 0..<values.count {
             let rescaled = slope * Double(values[i]) + intercept
-            var value = (rescaled - minValue) / (maxValue - minValue)
-            value = max(0.0, min(1.0, value))
-            if invert {
+            var value = max(0.0, min(1.0, window.apply(to: rescaled)))
+            if flip {
                 value = 1.0 - value
             }
             normalized[i] = value
+        }
+
+        if showOverlays {
+            TerminalRenderer.burnOverlays(OverlayPlaneRenderer.planes(in: dataSet), frame: frame,
+                                          into: &normalized, rows: rows, columns: columns)
         }
 
         return NormalizedImage(
@@ -163,6 +178,31 @@ struct TerminalRenderer {
             originalRows: rows,
             originalColumns: columns
         )
+    }
+
+    // MARK: - Overlay Planes (PS3.3 C.9.2)
+
+    /// Draws every overlay plane that applies to `frame` (0-based) as white.
+    ///
+    /// Overlay Origin (60xx,0050) is "row\column" and "The upper left pixel of the
+    /// image has the coordinate 1\1" (Table C.9-2); Image Frame Origin (60xx,0051)
+    /// numbers frames from 1.
+    static func burnOverlays(_ planes: [OverlayPlane], frame: Int, into pixels: inout [Double],
+                             rows: Int, columns: Int) {
+        for plane in planes where plane.applies(toImageFrame: frame) {
+            let overlayFrame = plane.frameCount <= 1 ? 0 : max(0, frame - (plane.imageFrameOrigin - 1))
+            for r in 0..<plane.rows {
+                let row = plane.originRow - 1 + r
+                guard row >= 0, row < rows else { continue }
+                for c in 0..<plane.columns {
+                    let column = plane.originColumn - 1 + c
+                    guard column >= 0, column < columns else { continue }
+                    if plane.isSet(row: r, column: c, frame: overlayFrame) {
+                        pixels[row * columns + column] = 1.0
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Image Scaling
@@ -422,23 +462,24 @@ struct TerminalRenderer {
     func generateInfoOverlay() -> String {
         var info = ""
 
+        // Labels are the PS3.6 2026a Table 6-1 attribute names.
         // Patient Information
         if let name = dataSet.string(for: .patientName) {
-            info += "Patient: \(name)\n"
+            info += "Patient's Name: \(name)\n"
         }
         if let id = dataSet.string(for: .patientID) {
-            info += "ID: \(id)\n"
+            info += "Patient ID: \(id)\n"
         }
         if let sex = dataSet.string(for: .patientSex) {
-            info += "Sex: \(sex)\n"
+            info += "Patient's Sex: \(sex)\n"
         }
 
         // Study Information
         if let desc = dataSet.string(for: .studyDescription) {
-            info += "Study: \(desc)\n"
+            info += "Study Description: \(desc)\n"
         }
         if let date = dataSet.string(for: .studyDate) {
-            info += "Date: \(date)\n"
+            info += "Study Date: \(date)\n"
         }
         if let modality = dataSet.string(for: .modality) {
             info += "Modality: \(modality)\n"
@@ -447,19 +488,27 @@ struct TerminalRenderer {
         // Image Information
         if let rows = dataSet.uint16(for: .rows),
            let cols = dataSet.uint16(for: .columns) {
-            info += "Size: \(cols)x\(rows)\n"
+            info += "Rows x Columns: \(rows)x\(cols)\n"
         }
-        if let bits = dataSet.uint16(for: Tag(group: 0x0028, element: 0x0101)) {
+        if let bits = dataSet.uint16(for: .bitsStored) {
             info += "Bits Stored: \(bits)\n"
         }
-        if let frames = dataSet.string(for: Tag(group: 0x0028, element: 0x0008)) {
-            info += "Frames: \(frames.trimmingCharacters(in: .whitespaces))\n"
+        if let frames = dataSet.string(for: .numberOfFrames) {
+            info += "Number of Frames: \(frames.trimmingCharacters(in: .whitespaces))\n"
         }
         if let ws = dataSet.windowSettings() {
-            info += "W/L: \(Int(ws.center))/\(Int(ws.width))\n"
+            info += "Window Center: \(TerminalRenderer.formatted(ws.center))\n"
+            info += "Window Width: \(TerminalRenderer.formatted(ws.width))\n"
+            if dataSet[.voiLUTFunction] != nil {
+                info += "VOI LUT Function: \(ws.function.rawValue)\n"
+            }
         }
 
         return info
+    }
+
+    static func formatted(_ value: Double) -> String {
+        value == value.rounded() && abs(value) < 1e15 ? String(Int(value)) : String(value)
     }
 
     /// Get total number of frames
@@ -532,7 +581,12 @@ struct TerminalRenderer {
         mode: DisplayMode,
         terminalSize: TerminalSize,
         quality: AsciiQuality = .high,
-        colorDepth: ANSIColorDepth = .truecolor
+        colorDepth: ANSIColorDepth = .truecolor,
+        windowCenter: Double? = nil,
+        windowWidth: Double? = nil,
+        invert: Bool = false,
+        voiFunction: VOILUTFunction? = nil,
+        showOverlays: Bool = false
     ) throws -> String {
         guard !frames.isEmpty else { return "" }
 
@@ -552,7 +606,9 @@ struct TerminalRenderer {
                 let idx = row * gridCols + col
                 if idx < totalFrames {
                     let frameIdx = frames[idx]
-                    if let image = try? extractPixels(frame: frameIdx) {
+                    if let image = try? extractPixels(frame: frameIdx, windowCenter: windowCenter,
+                                                      windowWidth: windowWidth, invert: invert,
+                                                      voiFunction: voiFunction, showOverlays: showOverlays) {
                         let scaled = TerminalRenderer.scaleImage(image, toWidth: thumbWidth, toHeight: thumbHeight)
                         thumbnails.append(scaled)
                     }
@@ -597,7 +653,10 @@ struct TerminalRenderer {
             for (i, _) in thumbnails.enumerated() {
                 let idx = row * gridCols + i
                 if idx < totalFrames {
-                    let label = "Frame \(frames[idx])"
+                    // Frame Numbers start at 1 (PS3.3 C.9.2 Image Frame Origin, Referenced Frame Number).
+                    // "Frame number N" (PS3.3 Table 10-3); the bare number when the thumbnail is narrower.
+                    let full = "Frame number \(frames[idx] + 1)"
+                    let label = full.count <= thumbWidth ? full : "\(frames[idx] + 1)"
                     let padding = max(0, thumbWidth - label.count)
                     if i > 0 { output += "|" }
                     output += String(repeating: " ", count: padding / 2) + label
@@ -634,7 +693,7 @@ enum ViewerError: Error, CustomStringConvertible {
         case .invalidDimensions(let rows, let cols):
             return "Invalid image dimensions: \(cols)x\(rows)"
         case .frameNotAvailable(let frame):
-            return "Frame \(frame) is not available"
+            return "Frame number \(frame + 1) is not available"
         case .fileNotFound(let path):
             return "File not found: \(path)"
         case .unsupportedMode(let mode):

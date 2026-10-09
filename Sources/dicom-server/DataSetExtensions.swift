@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — the VR of every element the C-FIND responses write comes from DICOMKit's data dictionary (PS3.6 2026a Table 6-1); the former hand-written switch had 6 of 19 tags wrong (Patient ID, Patient's Name, Study ID, Accession Number, Study Description, Series Description written as CS instead of LO / PN / SH / SH / LO / LO)
 import Foundation
 import DICOMCore
 import DICOMKit
@@ -5,38 +6,15 @@ import DICOMKit
 // MARK: - DataSet Helper Extension
 
 extension DataSet {
-    /// Convenience method to set a string value for a tag
+    /// Sets a string value for a tag, with the VR that PS3.6 Table 6-1 gives the tag.
+    ///
+    /// The VR is taken from DICOMKit's data dictionary (`setStringFromDictionary`), so a
+    /// call site cannot pick one that disagrees with the standard. Padding follows
+    /// PS3.5 6.2 (NUL for UI, space for the other string VRs). A tag the dictionary does
+    /// not know (private) falls back to LO.
     mutating func set(string value: String, for tag: Tag) {
-        // For UI (UID) tags
-        if tag == .studyInstanceUID || tag == .seriesInstanceUID || 
-           tag == .sopInstanceUID || tag == .sopClassUID {
-            let paddedValue = value.padding(toLength: (value.count % 2 == 0) ? value.count : value.count + 1, withPad: "\0", startingAt: 0)
-            let data = paddedValue.data(using: .utf8) ?? Data()
-            let element = DataElement(tag: tag, vr: .UI, length: UInt32(data.count), valueData: data)
-            self[tag] = element
-            return
+        if !setStringFromDictionary(value, for: tag) {
+            setString(value, for: tag, vr: .LO)
         }
-        
-        // Determine VR for other tags
-        let vr: VR
-        switch tag {
-        case .patientID, .patientName, .studyID, .accessionNumber,
-             .studyDescription, .seriesDescription, .modality:
-            vr = .CS // Code String for most identifiers
-        case .studyDate, .seriesDate, .contentDate:
-            vr = .DA // Date
-        case .studyTime, .seriesTime, .contentTime:
-            vr = .TM // Time
-        case .instanceNumber, .seriesNumber:
-            vr = .IS // Integer String
-        default:
-            vr = .LO // Long String as fallback
-        }
-        
-        // For other strings, pad to even length with space
-        let paddedValue = value.padding(toLength: (value.count % 2 == 0) ? value.count : value.count + 1, withPad: " ", startingAt: 0)
-        let data = paddedValue.data(using: .utf8) ?? Data()
-        let element = DataElement(tag: tag, vr: vr, length: UInt32(data.count), valueData: data)
-        self[tag] = element
     }
 }

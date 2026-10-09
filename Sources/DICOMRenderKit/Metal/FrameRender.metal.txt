@@ -27,6 +27,8 @@
 //     quantisation an `r8Unorm` texture write would introduce. The plan proposed
 //     a texture view for the output; a buffer is simpler and strictly more exact,
 //     and M5 can add a view when it needs one for display.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — compute kernels do no floating point; samples assembled one byte or low | high << 8 (PS3.5 2026a 8.1.1, 8.2), planar configuration 0/1 per PS3.3 C.7.6.3.1.3, every value from the CPU's DICOMCore table; desaturate weights = C.7.6.3.1.2 YBR_FULL Y row (Scripts/diff_renderkit.py). Not scanned by check_nema_markers.py (Swift only).
 
 #include <metal_stdlib>
 using namespace metal;

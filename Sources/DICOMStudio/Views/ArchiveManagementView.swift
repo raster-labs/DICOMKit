@@ -3,6 +3,9 @@
 //
 // DICOM Studio — Archive Management view (dicom-archive)
 // Reference: DICOM PS3.10 (Media Storage and File Format)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (layout; the modality field is
+// `ModalityPicker`, verified with G2).
 
 #if canImport(SwiftUI)
 import SwiftUI
@@ -264,9 +267,10 @@ public struct ArchiveManagementView: View {
                         TextField("Study date (YYYYMMDD or range)", text: $viewModel.searchQuery.studyDate)
                             .textFieldStyle(.roundedBorder)
                             .accessibilityLabel("Study date filter")
-                        TextField("Modality (CT, MR, …)", text: $viewModel.searchQuery.modality)
-                            .textFieldStyle(.roundedBorder)
-                            .accessibilityLabel("Modality filter")
+                        ModalityPicker("Modality",
+                                       selection: $viewModel.searchQuery.modality,
+                                       includeAnyOption: true,
+                                       anyOptionLabel: "Any modality")
                         TextField("Accession number", text: $viewModel.searchQuery.accessionNumber)
                             .textFieldStyle(.roundedBorder)
                             .accessibilityLabel("Accession number filter")

@@ -121,7 +121,25 @@ struct PixelDataErrorTests {
         
         #expect(error.description.contains(uid))
         #expect(error.explanation.contains("not currently supported"))
-        #expect(error.transferSyntaxName == "JPEG-LS Lossless")
+        #expect(error.transferSyntaxName == "JPEG-LS Lossless Image Compression")
+    }
+
+    @Test("unsupportedTransferSyntax explanation names the syntax and lists what this build decodes")
+    func testUnsupportedTransferSyntaxExplanationIsRegistryDriven() {
+        let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.80")
+        #expect(error.explanation.contains("(JPEG-LS Lossless Image Compression)"))
+        #expect(error.explanation.contains("This build can decode: "))
+        // The list is derived from the registry, not typed in: every registered
+        // decoder's display name must appear.
+        for uid in CodecRegistry.shared.supportedTransferSyntaxes {
+            if let name = TransferSyntax.from(uid: uid)?.displayName {
+                #expect(error.explanation.contains(name), "missing \(name)")
+            }
+        }
+        // An unknown UID has no name to show after it.
+        let unknown = PixelDataError.unsupportedTransferSyntax("1.2.3.4")
+        #expect(unknown.explanation.contains("'1.2.3.4' which is not currently supported"))
+        #expect(unknown.transferSyntaxName == nil)
     }
     
     @Test("frameExtractionFailed error includes frame index")
@@ -146,43 +164,43 @@ struct PixelDataErrorTests {
     @Test("transferSyntaxName returns correct name for JPEG-LS Lossless")
     func testTransferSyntaxNameJPEGLSLossless() {
         let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.80")
-        #expect(error.transferSyntaxName == "JPEG-LS Lossless")
+        #expect(error.transferSyntaxName == "JPEG-LS Lossless Image Compression")
     }
     
     @Test("transferSyntaxName returns correct name for JPEG-LS Near-Lossless")
     func testTransferSyntaxNameJPEGLSNearLossless() {
         let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.81")
-        #expect(error.transferSyntaxName == "JPEG-LS Near-Lossless")
+        #expect(error.transferSyntaxName == "JPEG-LS Lossy (Near-Lossless) Image Compression")
     }
     
     @Test("transferSyntaxName returns correct name for JPEG 2000 Part 2 Lossless Only")
     func testTransferSyntaxNameJPEG2000Part2Lossless() {
         let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.92")
-        #expect(error.transferSyntaxName == "JPEG 2000 Part 2 Multi-component Lossless Only")
+        #expect(error.transferSyntaxName == "JPEG 2000 Part 2 Multi-component Image Compression (Lossless Only)")
     }
 
     @Test("transferSyntaxName returns correct name for JPEG 2000 Part 2 Lossy")
     func testTransferSyntaxNameJPEG2000Part2Lossy() {
         let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.93")
-        #expect(error.transferSyntaxName == "JPEG 2000 Part 2 Multi-component Lossy")
+        #expect(error.transferSyntaxName == "JPEG 2000 Part 2 Multi-component Image Compression")
     }
 
     @Test("transferSyntaxName returns correct name for HTJ2K Lossless Only")
     func testTransferSyntaxNameHTJPEG2000Lossless() {
         let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.201")
-        #expect(error.transferSyntaxName == "HTJ2K Lossless Only")
+        #expect(error.transferSyntaxName == "High-Throughput JPEG 2000 Image Compression (Lossless Only)")
     }
 
     @Test("transferSyntaxName returns correct name for HTJ2K Lossless Only (RPCL)")
     func testTransferSyntaxNameHTJPEG2000RPCL() {
         let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.202")
-        #expect(error.transferSyntaxName == "HTJ2K Lossless Only (RPCL)")
+        #expect(error.transferSyntaxName == "High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)")
     }
 
     @Test("transferSyntaxName returns correct name for HTJ2K Lossy")
     func testTransferSyntaxNameHTJPEG2000Lossy() {
         let error = PixelDataError.unsupportedTransferSyntax("1.2.840.10008.1.2.4.203")
-        #expect(error.transferSyntaxName == "HTJ2K Lossy")
+        #expect(error.transferSyntaxName == "High-Throughput JPEG 2000 Image Compression")
     }
     
     @Test("transferSyntaxName returns nil for unknown UID")

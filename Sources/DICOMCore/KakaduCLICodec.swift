@@ -7,6 +7,7 @@
 //
 // Requires the Kakadu SDK installed locally (commercial license).
 // Probed paths: $PATH, /usr/local/bin/kdu_expand, /opt/homebrew/bin/kdu_expand.
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (external Kakadu CLI wrapper). C1 classification confirmed.
 
 #if os(macOS)
 import Foundation

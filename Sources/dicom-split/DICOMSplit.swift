@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — help names checked by script: 9 SOP Class names quoted in full and 2 abbreviated lists (Enhanced CT/MR/PET/XA/XRF, Legacy Converted Enhanced CT/MR/PET) against PS3.6 2026a Table A-1, 7 attribute names/tags (Instance Number, Stack ID, In-Stack Position Number, Temporal Position Index, Series Instance UID, Shared/Per-Frame Functional Groups Sequence) against Table 6-1; --frame-numbers takes Frame numbers from 1 (PS3.3 C.7.6.16.1.2 "Frames are implicitly numbered starting from 1"), the 0-based --frames is deprecated (P-SPLIT-1); verbose progress labels say Frame number N; Explicit VR Little Endian per Table A-1
 import Foundation
 import ArgumentParser
 import DICOMCore
@@ -10,29 +11,39 @@ struct DICOMSplit: AsyncParsableCommand {
         commandName: "dicom-split",
         abstract: "Extract individual frames from multi-frame DICOM files",
         discussion: """
-            Extracts individual frames from multi-frame DICOM files. Enhanced CT/MR/PET/XA/XRF
-            and Legacy Converted objects become classic single-frame instances (CT/MR/PET/XA/XRF
-            Image Storage) with their Shared and Per-frame Functional Groups flattened to the top
-            level; US Multi-frame and Multi-frame Secondary Capture become US/SC Image Storage
-            with cine vectors resolved; NM, XA/RF, RT, Breast Tomosynthesis, X-Ray 3D, OPT,
-            Enhanced US Volume and similar keep their SOP Class with one frame per instance.
-            Compressed sources keep their transfer syntax frame by frame. Supports output as
-            DICOM files or common image formats (PNG, JPEG, TIFF).
+            Extracts individual frames from multi-frame DICOM files. Enhanced
+            CT/MR/PET/XA/XRF and Legacy Converted Enhanced CT/MR/PET Image Storage
+            objects become single-frame CT Image Storage, MR Image Storage, Positron
+            Emission Tomography Image Storage, X-Ray Angiographic Image Storage or X-Ray
+            Radiofluoroscopic Image Storage instances, with the Shared and Per-Frame
+            Functional Groups Sequences flattened to the top level; Ultrasound
+            Multi-frame Image Storage and the Multi-frame Secondary Capture classes
+            become Ultrasound Image Storage / Secondary Capture Image Storage with the
+            cine vectors resolved; Nuclear Medicine, X-Ray Angiographic, X-Ray
+            Radiofluoroscopic, RT Image, Breast Tomosynthesis, X-Ray 3D, Ophthalmic
+            Tomography, Enhanced US Volume and similar keep their SOP Class with one
+            frame per instance. Encapsulated (compressed) sources keep their transfer
+            syntax frame by frame. Supports output as DICOM files or common image
+            formats (PNG, JPEG, TIFF).
+
+            --frame-numbers takes Frame numbers, numbered from 1 (PS3.3 C.7.6.16.1.2:
+            "Frames are implicitly numbered starting from 1"). The 0-based --frames
+            (index 0 is Frame number 1) is deprecated.
 
             Examples:
               # Extract all frames to DICOM files (Enhanced CT -> CT Image Storage)
               dicom-split multiframe.dcm --output frames/
 
-              # Extract specific frames
-              dicom-split multiframe.dcm --frames 1,5,10-15 --output selected/
+              # Extract Frame numbers 2, 6 and 11-16
+              dicom-split multiframe.dcm --frame-numbers 2,6,11-16 --output selected/
 
-              # Keep the Enhanced SOP class, one series per stack
+              # Keep the Enhanced SOP Class, one series per Stack ID
               dicom-split enhanced-mr.dcm --target same --split-by stack --output stacks/
 
               # Decode a JPEG 2000 multi-frame to native pixels while splitting
               dicom-split j2k-multiframe.dcm --pixel-handling decode --output native/
 
-              # Split a Segmentation into concatenation parts of 25 frames
+              # Split a Segmentation into Concatenation parts of 25 frames
               dicom-split seg.dcm --frames-per 25 --output parts/
 
               # Extract as PNG images with windowing
@@ -58,7 +69,10 @@ struct DICOMSplit: AsyncParsableCommand {
     @Option(name: .long, help: "Output directory for extracted frames")
     var output: String = "."
     
-    @Option(name: .long, help: "Frame numbers to extract (e.g., '1,3,5-10')")
+    @Option(name: .long, help: "Frames to extract by Frame number, numbered from 1 (PS3.3 C.7.6.16.1.2), e.g. '1,3,5-10' (default: all)")
+    var frameNumbers: String?
+
+    @Option(name: .long, help: "deprecated: 0-based index; use --frame-numbers")
     var frames: String?
     
     @Option(name: .long, help: "Output format: dicom, png, jpeg, tiff (default: dicom)")
@@ -73,25 +87,25 @@ struct DICOMSplit: AsyncParsableCommand {
     @Option(name: .long, help: ArgumentHelp(SplitConsole.windowWidthHelp))
     var windowWidth: Double?
     
-    @Option(name: .long, help: "Naming pattern for output files (variables: {number}, {number:04d}, {instance}, {stack}, {modality}, {series})")
+    @Option(name: .long, help: "Naming pattern for output files (variables: {number} / {number:04d} = 0-based frame index, {instance} = Instance Number, {stack} = Stack ID, {modality}, {series} = Series Number)")
     var pattern: String?
 
-    @Option(name: .long, help: "SOP class of the extracted frames: auto (classic when one exists), same, classic (default: auto)")
+    @Option(name: .long, help: "SOP Class of the extracted frames: auto (the single-frame class when one exists, e.g. Enhanced CT Image Storage -> CT Image Storage), same (keep the source SOP Class), classic (require a single-frame class) (default: auto)")
     var target: SplitTargetPolicy = .auto
 
-    @Option(name: .long, help: "Compressed sources: preserve the transfer syntax per frame, or decode to native (default: preserve)")
+    @Option(name: .long, help: "Encapsulated (compressed) sources: preserve the transfer syntax per frame, or decode to Explicit VR Little Endian (default: preserve)")
     var pixelHandling: MultiframePixelHandling = .preserve
 
-    @Option(name: .long, help: "Private functional groups: flatten, keep, drop (default: flatten)")
+    @Option(name: .long, help: "Private Sequences in the Shared / Per-Frame Functional Groups Sequence items: flatten, keep, drop (default: flatten)")
     var privateGroups: PrivateFunctionalGroupPolicy = .flatten
 
-    @Option(name: .long, help: "Instance Number of the frames: frame, instack, original (default: frame)")
+    @Option(name: .long, help: "Instance Number (0020,0013) of the frames: frame (the 1-based Frame number), instack (In-Stack Position Number (0020,9057)), original (keep the source value) (default: frame)")
     var instanceNumber: SplitInstanceNumbering = .frame
 
-    @Option(name: .long, help: "Write one series per: none, stack, temporal (default: none)")
+    @Option(name: .long, help: "Write one series per: none, stack (Stack ID (0020,9056)), temporal (Temporal Position Index (0020,9128)) (default: none)")
     var splitBy: SplitSeriesGrouping = .none
 
-    @Flag(name: .long, help: "Mint a new Series Instance UID for the extracted frames")
+    @Flag(name: .long, help: "Mint a new Series Instance UID (0020,000E) for the extracted frames")
     var newSeries: Bool = false
 
     @Option(name: .long, help: ArgumentHelp(SplitConsole.framesPerHelp))
@@ -106,7 +120,29 @@ struct DICOMSplit: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Show verbose output")
     var verbose: Bool = false
 
+    mutating func validate() throws {
+        // P-SPLIT-1: both spellings at once is refused with exit 1 (not a usage error).
+        if frames != nil && frameNumbers != nil {
+            throw SplitFrameSelectionConflict()
+        }
+    }
+
+    /// The 0-based frame indices selected by --frame-numbers (1-based) or the deprecated
+    /// --frames (0-based); nil selects every frame.
+    func selectedFrameIndices() throws -> Set<Int>? {
+        do {
+            if let frameNumbers { return try SplitConsole.parseFrameNumberSelection(frameNumbers) }
+            if let frames { return try SplitConsole.parseFrameSelection(frames) }
+            return nil
+        } catch let e as SplitConsole.FrameSelectionError {
+            throw ValidationError(e.description)
+        }
+    }
+
     mutating func run() async throws {
+        if frames != nil {
+            fprintln(SplitConsole.framesDeprecatedLine)
+        }
         // Validate input
         guard FileManager.default.fileExists(atPath: input) else {
             throw ValidationError(SplitConsole.inputNotFoundMessage(path: input))
@@ -134,7 +170,7 @@ struct DICOMSplit: AsyncParsableCommand {
             for line in SplitConsole.headerLines(
                 input: input, output: output, format: format, frames: frames,
                 applyWindow: applyWindow, windowCenter: windowCenter, windowWidth: windowWidth,
-                options: options
+                options: options, frameNumbers: frameNumbers
             ) {
                 fprintln(line)
             }
@@ -155,10 +191,7 @@ struct DICOMSplit: AsyncParsableCommand {
 
         // Parse frame ranges through the shared parser (one copy of the grammar
         // and its error text for both surfaces).
-        let frameIndices = try frames.map { spec -> Set<Int> in
-            do { return try SplitConsole.parseFrameSelection(spec) }
-            catch let e as SplitConsole.FrameSelectionError { throw ValidationError(e.description) }
-        }
+        let frameIndices = try selectedFrameIndices()
 
         // Process files
         var isDirectory: ObjCBool = false
@@ -205,6 +238,13 @@ extension MultiframePixelHandling: ExpressibleByArgument {}
 extension PrivateFunctionalGroupPolicy: ExpressibleByArgument {}
 extension SplitInstanceNumbering: ExpressibleByArgument {}
 extension SplitSeriesGrouping: ExpressibleByArgument {}
+
+/// `--frames` and `--frame-numbers` given together. Not a `ValidationError`, so the command
+/// exits 1 with this message.
+struct SplitFrameSelectionConflict: LocalizedError, CustomStringConvertible {
+    var description: String { SplitConsole.framesAndFrameNumbersConflictMessage }
+    var errorDescription: String? { description }
+}
 
 /// Prints to stderr
 private func fprintln(_ message: String) {

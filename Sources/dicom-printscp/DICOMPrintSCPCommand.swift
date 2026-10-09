@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (ArgumentParser shell, output-format enum, console routing, error type)
 //
 // DICOMPrintSCPCommand.swift
 // dicom-printscp

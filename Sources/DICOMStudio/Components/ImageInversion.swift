@@ -3,6 +3,8 @@
 //
 // DICOM Studio — displaying a frame inverted.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (a CoreGraphics difference blend that inverts a rendered frame; the reader's inversion is applied after the Presentation LUT the photometric implies, PS3.3 2026a C.7.6.3.1.2)
+//
 // The pixel renderer has no invert option and negating the VOI window is not
 // equivalent (it clips differently once Rescale Slope/Intercept or a signed
 // representation are involved), so inversion is applied to the rendered frame.

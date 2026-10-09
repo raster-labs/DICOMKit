@@ -2,6 +2,7 @@ import Foundation
 
 #if canImport(Network)
 import Network
+// NEMA-verified: 2026a, checked 2026-09-28 — PDU header read per PS3.8 2026a §9.3.1 (big-endian length); the negotiated maximum length applies to P-DATA-TF only (Annex D.1)
 
 /// Thread-safe wrapper for continuation to handle one-shot resumption
 private final class ContinuationResumeOnce<T: Sendable, E: Error>: @unchecked Sendable {
@@ -260,7 +261,7 @@ public final class DICOMConnection: @unchecked Sendable {
     /// - Parameters:
     ///   - host: The remote host address (IP or hostname)
     ///   - port: The remote port number (default: 104)
-    ///   - maxPDUSize: Maximum PDU size for receiving (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size for receiving (default: 64 KB (`defaultMaxPDUSize`))
     ///   - timeout: Connection timeout in seconds (default: 30)
     ///   - tlsEnabled: Whether to use TLS encryption (default: false)
     @available(
@@ -299,7 +300,7 @@ public final class DICOMConnection: @unchecked Sendable {
     /// - Parameters:
     ///   - host: The remote host address (IP or hostname)
     ///   - port: The remote port number (default: 104)
-    ///   - maxPDUSize: Maximum PDU size for receiving (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size for receiving (default: 64 KB (`defaultMaxPDUSize`))
     ///   - timeout: Connection timeout in seconds (default: 30)
     ///   - tlsConfiguration: TLS configuration for secure connections (nil for plain TCP)
     /// - Throws: `TLSConfigurationError` if TLS configuration is invalid
@@ -570,12 +571,10 @@ public final class DICOMConnection: @unchecked Sendable {
         
         // First, read the PDU header (6 bytes)
         let headerData = try await receive(length: 6)
-        let (_, pduLength) = try PDUDecoder.readHeader(from: headerData)
+        let (pduType, pduLength) = try PDUDecoder.readHeader(from: headerData)
         
-        // Validate PDU length
-        guard pduLength <= maxPDUSize else {
-            throw DICOMNetworkError.pduTooLarge(received: pduLength, maximum: maxPDUSize)
-        }
+        // Validate PDU length (PS3.8 Annex D.1: the limit applies to P-DATA-TF only)
+        try checkPDULength(type: pduType, length: pduLength, maxPDUSize: maxPDUSize)
         
         // Read the remaining PDU data
         let bodyData = try await receive(length: Int(pduLength))

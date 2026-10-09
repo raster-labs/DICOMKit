@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — all ten Waveform Sample Interpretation terms, bit widths and signedness per PS3.3 2026a Table C.10-10; Waveform Originality per C.10.9.1.3; Waveform Identification Type 1 attributes per Table C.10-8; the 17 waveform storage SOP Class UIDs per PS3.6 Table A-1 and their Modality per A.34.2-A.34.18 content constraints
 //
 // Waveform.swift
 // DICOMKit
@@ -15,24 +16,32 @@ import DICOMCore
 /// hemodynamic waveforms, and audio data. Each waveform contains one or more
 /// multiplex groups, each with one or more channels sharing a common sampling frequency.
 ///
-/// Supported SOP Classes:
-/// - 12-Lead ECG Waveform Storage (1.2.840.10008.5.1.4.1.1.9.1.1)
+/// Supported SOP Classes (PS3.6 Table A-1):
+/// - 12-lead ECG Waveform Storage (1.2.840.10008.5.1.4.1.1.9.1.1)
 /// - General ECG Waveform Storage (1.2.840.10008.5.1.4.1.1.9.1.2)
 /// - Ambulatory ECG Waveform Storage (1.2.840.10008.5.1.4.1.1.9.1.3)
+/// - General 32-bit ECG Waveform Storage (1.2.840.10008.5.1.4.1.1.9.1.4)
 /// - Hemodynamic Waveform Storage (1.2.840.10008.5.1.4.1.1.9.2.1)
 /// - Cardiac Electrophysiology Waveform Storage (1.2.840.10008.5.1.4.1.1.9.3.1)
 /// - Basic Voice Audio Waveform Storage (1.2.840.10008.5.1.4.1.1.9.4.1)
 /// - General Audio Waveform Storage (1.2.840.10008.5.1.4.1.1.9.4.2)
 /// - Arterial Pulse Waveform Storage (1.2.840.10008.5.1.4.1.1.9.5.1)
 /// - Respiratory Waveform Storage (1.2.840.10008.5.1.4.1.1.9.6.1)
+/// - Multi-channel Respiratory Waveform Storage (1.2.840.10008.5.1.4.1.1.9.6.2)
+/// - Routine Scalp Electroencephalogram Waveform Storage (1.2.840.10008.5.1.4.1.1.9.7.1)
+/// - Electromyogram Waveform Storage (1.2.840.10008.5.1.4.1.1.9.7.2)
+/// - Electrooculogram Waveform Storage (1.2.840.10008.5.1.4.1.1.9.7.3)
+/// - Sleep Electroencephalogram Waveform Storage (1.2.840.10008.5.1.4.1.1.9.7.4)
+/// - Body Position Waveform Storage (1.2.840.10008.5.1.4.1.1.9.8.1)
 ///
 /// Reference: PS3.3 A.34 - Waveform IODs
+/// Reference: PS3.3 C.10.8 - Waveform Identification Module
 /// Reference: PS3.3 C.10.9 - Waveform Module
 public struct Waveform: Sendable {
 
     // MARK: - SOP Class UIDs
 
-    /// 12-Lead ECG Waveform Storage
+    /// 12-lead ECG Waveform Storage
     public static let twelveLeadECGStorageUID = "1.2.840.10008.5.1.4.1.1.9.1.1"
 
     /// General ECG Waveform Storage
@@ -40,6 +49,9 @@ public struct Waveform: Sendable {
 
     /// Ambulatory ECG Waveform Storage
     public static let ambulatoryECGStorageUID = "1.2.840.10008.5.1.4.1.1.9.1.3"
+
+    /// General 32-bit ECG Waveform Storage (PS3.3 A.34.18)
+    public static let general32BitECGStorageUID = "1.2.840.10008.5.1.4.1.1.9.1.4"
 
     /// Hemodynamic Waveform Storage
     public static let hemodynamicWaveformStorageUID = "1.2.840.10008.5.1.4.1.1.9.2.1"
@@ -58,6 +70,24 @@ public struct Waveform: Sendable {
 
     /// Respiratory Waveform Storage
     public static let respiratoryWaveformStorageUID = "1.2.840.10008.5.1.4.1.1.9.6.1"
+
+    /// Multi-channel Respiratory Waveform Storage (PS3.3 A.34.16)
+    public static let multichannelRespiratoryWaveformStorageUID = "1.2.840.10008.5.1.4.1.1.9.6.2"
+
+    /// Routine Scalp Electroencephalogram Waveform Storage (PS3.3 A.34.12)
+    public static let routineScalpEEGStorageUID = "1.2.840.10008.5.1.4.1.1.9.7.1"
+
+    /// Electromyogram Waveform Storage (PS3.3 A.34.13)
+    public static let electromyogramStorageUID = "1.2.840.10008.5.1.4.1.1.9.7.2"
+
+    /// Electrooculogram Waveform Storage (PS3.3 A.34.14)
+    public static let electrooculogramStorageUID = "1.2.840.10008.5.1.4.1.1.9.7.3"
+
+    /// Sleep Electroencephalogram Waveform Storage (PS3.3 A.34.15)
+    public static let sleepEEGStorageUID = "1.2.840.10008.5.1.4.1.1.9.7.4"
+
+    /// Body Position Waveform Storage (PS3.3 A.34.17)
+    public static let bodyPositionWaveformStorageUID = "1.2.840.10008.5.1.4.1.1.9.8.1"
 
     // MARK: - Identification
 
@@ -103,6 +133,11 @@ public struct Waveform: Sendable {
     /// Content Time
     public let contentTime: DICOMTime?
 
+    /// Acquisition DateTime (0008,002A) — Type 1 in the Waveform Identification
+    /// Module (PS3.3 Table C.10-8): the start of the acquisition, and the reference
+    /// timestamp for Multiplex Group Time Offset (0018,1068).
+    public let acquisitionDateTime: DICOMDateTime?
+
     // MARK: - Waveform Data
 
     /// Multiplex groups containing the waveform data
@@ -127,6 +162,7 @@ public struct Waveform: Sendable {
         seriesNumber: Int? = nil,
         contentDate: DICOMDate? = nil,
         contentTime: DICOMTime? = nil,
+        acquisitionDateTime: DICOMDateTime? = nil,
         multiplexGroups: [WaveformMultiplexGroup] = [],
         annotations: [WaveformAnnotation] = []
     ) {
@@ -142,6 +178,7 @@ public struct Waveform: Sendable {
         self.seriesNumber = seriesNumber
         self.contentDate = contentDate
         self.contentTime = contentTime
+        self.acquisitionDateTime = acquisitionDateTime
         self.multiplexGroups = multiplexGroups
         self.annotations = annotations
     }
@@ -165,16 +202,33 @@ public struct Waveform: Sendable {
 // MARK: - Waveform Type
 
 /// Type of waveform based on SOP Class UID
+///
+/// Reference: PS3.6 Table A-1 (SOP Class UIDs); PS3.3 A.34.2 – A.34.18 (IOD content
+/// constraints, which fix the Modality for each IOD).
 public enum WaveformType: String, Sendable, CaseIterable {
     case twelveLeadECG
     case generalECG
     case ambulatoryECG
+    /// General 32-bit ECG IOD (PS3.3 A.34.18)
+    case general32BitECG
     case hemodynamic
     case cardiacElectrophysiology
     case basicVoiceAudio
     case generalAudio
     case arterialPulse
     case respiratoryWaveform
+    /// Multi-channel Respiratory Waveform IOD (PS3.3 A.34.16)
+    case multichannelRespiratory
+    /// Routine Scalp Electroencephalogram IOD (PS3.3 A.34.12)
+    case routineScalpEEG
+    /// Electromyogram IOD (PS3.3 A.34.13)
+    case electromyogram
+    /// Electrooculogram IOD (PS3.3 A.34.14)
+    case electrooculogram
+    /// Sleep Electroencephalogram IOD (PS3.3 A.34.15)
+    case sleepEEG
+    /// Body Position Waveform IOD (PS3.3 A.34.17)
+    case bodyPosition
     case unknown
 
     /// Creates a waveform type from a SOP Class UID
@@ -186,6 +240,8 @@ public enum WaveformType: String, Sendable, CaseIterable {
             self = .generalECG
         case Waveform.ambulatoryECGStorageUID:
             self = .ambulatoryECG
+        case Waveform.general32BitECGStorageUID:
+            self = .general32BitECG
         case Waveform.hemodynamicWaveformStorageUID:
             self = .hemodynamic
         case Waveform.cardiacElectrophysiologyStorageUID:
@@ -198,6 +254,18 @@ public enum WaveformType: String, Sendable, CaseIterable {
             self = .arterialPulse
         case Waveform.respiratoryWaveformStorageUID:
             self = .respiratoryWaveform
+        case Waveform.multichannelRespiratoryWaveformStorageUID:
+            self = .multichannelRespiratory
+        case Waveform.routineScalpEEGStorageUID:
+            self = .routineScalpEEG
+        case Waveform.electromyogramStorageUID:
+            self = .electromyogram
+        case Waveform.electrooculogramStorageUID:
+            self = .electrooculogram
+        case Waveform.sleepEEGStorageUID:
+            self = .sleepEEG
+        case Waveform.bodyPositionWaveformStorageUID:
+            self = .bodyPosition
         default:
             self = .unknown
         }
@@ -209,13 +277,48 @@ public enum WaveformType: String, Sendable, CaseIterable {
         case .twelveLeadECG: return Waveform.twelveLeadECGStorageUID
         case .generalECG: return Waveform.generalECGStorageUID
         case .ambulatoryECG: return Waveform.ambulatoryECGStorageUID
+        case .general32BitECG: return Waveform.general32BitECGStorageUID
         case .hemodynamic: return Waveform.hemodynamicWaveformStorageUID
         case .cardiacElectrophysiology: return Waveform.cardiacElectrophysiologyStorageUID
         case .basicVoiceAudio: return Waveform.basicVoiceAudioStorageUID
         case .generalAudio: return Waveform.generalAudioStorageUID
         case .arterialPulse: return Waveform.arterialPulseWaveformStorageUID
         case .respiratoryWaveform: return Waveform.respiratoryWaveformStorageUID
+        case .multichannelRespiratory: return Waveform.multichannelRespiratoryWaveformStorageUID
+        case .routineScalpEEG: return Waveform.routineScalpEEGStorageUID
+        case .electromyogram: return Waveform.electromyogramStorageUID
+        case .electrooculogram: return Waveform.electrooculogramStorageUID
+        case .sleepEEG: return Waveform.sleepEEGStorageUID
+        case .bodyPosition: return Waveform.bodyPositionWaveformStorageUID
         case .unknown: return ""
+        }
+    }
+
+    /// The Modality (0008,0060) value the IOD's content constraints require
+    /// (PS3.3 A.34.2 – A.34.18: "The Value of Modality (0008,0060) shall be …").
+    /// `nil` for `.unknown`.
+    public var modality: Modality? {
+        switch self {
+        case .twelveLeadECG, .generalECG, .ambulatoryECG, .general32BitECG:
+            return .ecg                          // A.34.3.4.1, A.34.4.4.1, A.34.5.4.1, A.34.18.4.1
+        case .hemodynamic, .arterialPulse:
+            return .hd                           // A.34.6.4.1, A.34.8.4.1 "HD (hemodynamic waveform)"
+        case .cardiacElectrophysiology:
+            return .eps                          // A.34.7.4.1
+        case .basicVoiceAudio, .generalAudio:
+            return .au                           // A.34.2.4.1, A.34.10.4.1 "AU (audio)"
+        case .respiratoryWaveform, .multichannelRespiratory:
+            return .resp                         // A.34.9.4.1, A.34.16.4.1
+        case .routineScalpEEG, .sleepEEG:
+            return .eeg                          // A.34.12.4.1, A.34.15.4.1
+        case .electromyogram:
+            return .emg                          // A.34.13.4.1
+        case .electrooculogram:
+            return .eog                          // A.34.14.4.1
+        case .bodyPosition:
+            return .pos                          // A.34.17.4.1
+        case .unknown:
+            return nil
         }
     }
 
@@ -225,12 +328,19 @@ public enum WaveformType: String, Sendable, CaseIterable {
         case .twelveLeadECG: return "12-Lead ECG"
         case .generalECG: return "General ECG"
         case .ambulatoryECG: return "Ambulatory ECG"
+        case .general32BitECG: return "General 32-bit ECG"
         case .hemodynamic: return "Hemodynamic"
         case .cardiacElectrophysiology: return "Cardiac Electrophysiology"
         case .basicVoiceAudio: return "Basic Voice Audio"
         case .generalAudio: return "General Audio"
         case .arterialPulse: return "Arterial Pulse"
         case .respiratoryWaveform: return "Respiratory"
+        case .multichannelRespiratory: return "Multi-channel Respiratory"
+        case .routineScalpEEG: return "Routine Scalp EEG"
+        case .electromyogram: return "Electromyogram"
+        case .electrooculogram: return "Electrooculogram"
+        case .sleepEEG: return "Sleep EEG"
+        case .bodyPosition: return "Body Position"
         case .unknown: return "Unknown"
         }
     }
@@ -249,13 +359,14 @@ public struct WaveformMultiplexGroup: Sendable {
     /// Number of samples per channel
     public let numberOfSamples: Int
 
-    /// Number of bits allocated per sample (8 or 16)
+    /// Waveform Bits Allocated (5400,1004) — 8, 16, 32 or 64 (PS3.3 Table C.10-10)
     public let waveformBitsAllocated: UInt16
 
-    /// Number of bits stored per sample
+    /// Waveform Bits Stored (003A,021A) — significant bits per sample, written into
+    /// every Channel Definition Sequence Item (Type 1, PS3.3 Table C.10-9)
     public let waveformBitsStored: UInt16
 
-    /// Sample interpretation (signed or unsigned)
+    /// Waveform Sample Interpretation (5400,1006)
     public let waveformSampleInterpretation: WaveformSampleInterpretation
 
     /// Channel definitions
@@ -264,16 +375,18 @@ public struct WaveformMultiplexGroup: Sendable {
     /// Raw waveform data (interleaved channel samples)
     public let waveformData: Data
 
-    /// Waveform originality (ORIGINAL or DERIVED)
+    /// Waveform Originality (003A,0004) — ORIGINAL or DERIVED (Type 1, PS3.3 C.10.9.1.3)
     public let originality: WaveformOriginality?
 
     /// Multiplex group label
     public let multiplexGroupLabel: String?
 
-    /// Multiplex group time offset in seconds
+    /// Multiplex Group Time Offset (0018,1068) in milliseconds from Acquisition
+    /// DateTime (PS3.3 C.10.9.1.1)
     public let multiplexGroupTimeOffset: Double?
 
-    /// Trigger time offset in seconds
+    /// Trigger Time Offset (0018,1069) in milliseconds from the synchronization
+    /// trigger to the first sample (PS3.3 Table C.10-9)
     public let triggerTimeOffset: Double?
 
     /// Creates a WaveformMultiplexGroup
@@ -323,20 +436,25 @@ public struct WaveformMultiplexGroup: Sendable {
             let byteOffset = (sampleIndex * channelCount + channelIndex) * bytesPerSample
             guard byteOffset + bytesPerSample <= waveformData.count else { break }
 
+            // Samples are little-endian integers of Waveform Bits Allocated bits, sign
+            // extended to the highest bit when Bits Stored < Bits Allocated
+            // (PS3.3 C.10.9.1.7), so a full-width read gives the value directly.
+            // MB/AB (G.711 companded) samples are returned as their raw code.
+            var bits: UInt64 = 0
+            for i in 0..<bytesPerSample {
+                bits |= UInt64(waveformData[byteOffset + i]) << (8 * UInt64(i))
+            }
             let rawValue: Double
-            switch (waveformBitsAllocated, waveformSampleInterpretation) {
-            case (8, .unsignedInteger):
-                rawValue = Double(waveformData[byteOffset])
-            case (8, .signedInteger):
-                rawValue = Double(Int8(bitPattern: waveformData[byteOffset]))
-            case (16, .unsignedInteger):
-                let value = UInt16(waveformData[byteOffset]) | (UInt16(waveformData[byteOffset + 1]) << 8)
-                rawValue = Double(value)
-            case (16, .signedInteger):
-                let value = UInt16(waveformData[byteOffset]) | (UInt16(waveformData[byteOffset + 1]) << 8)
-                rawValue = Double(Int16(bitPattern: value))
-            default:
-                rawValue = 0
+            if waveformSampleInterpretation.isSigned {
+                switch bytesPerSample {
+                case 1: rawValue = Double(Int8(truncatingIfNeeded: bits))
+                case 2: rawValue = Double(Int16(truncatingIfNeeded: bits))
+                case 4: rawValue = Double(Int32(truncatingIfNeeded: bits))
+                case 8: rawValue = Double(Int64(bitPattern: bits))
+                default: rawValue = 0
+                }
+            } else {
+                rawValue = Double(bits)
             }
 
             // Apply channel sensitivity and baseline correction
@@ -513,49 +631,105 @@ public struct WaveformAnnotation: Sendable {
 
 // MARK: - Supporting Types
 
-/// Sample interpretation for waveform data
+/// Waveform Sample Interpretation (5400,1006)
 ///
-/// Reference: PS3.3 C.10.9.1.4 - Waveform Sample Interpretation
-public enum WaveformSampleInterpretation: String, Sendable {
-    /// Unsigned 8-bit or 16-bit integer
-    case unsignedInteger = "SB"
-    /// Signed 8-bit or 16-bit integer
-    case signedInteger = "SS"
-    /// Unsigned byte (8-bit)
-    case unsignedByte = "UB"
-    /// Signed short (16-bit)
-    case signedShort = "US"
-    /// Mu-law compressed audio
+/// Reference: PS3.3 C.10.9.1.5, Table C.10-10 - Waveform Bits Allocated and Waveform Sample
+/// Interpretation. The Defined Terms, and the Waveform Bits Allocated each one pairs with:
+///
+/// | Bits Allocated | Term | Meaning |
+/// |---|---|---|
+/// | 8  | SB | signed 8 bit linear |
+/// | 8  | UB | unsigned 8 bit linear |
+/// | 8  | MB | 8 bit mu-law (ITU-T G.711) |
+/// | 8  | AB | 8 bit A-law (ITU-T G.711) |
+/// | 16 | SS | signed 16 bit linear |
+/// | 16 | US | unsigned 16 bit linear |
+/// | 32 | SL | signed 32 bit linear |
+/// | 32 | UL | unsigned 32 bit linear |
+/// | 64 | SV | signed 64 bit linear |
+/// | 64 | UV | unsigned 64 bit linear |
+///
+/// The case names carry the bit width because the earlier names contradicted the table
+/// (`unsignedInteger` was the raw value SB, *signed* 8 bit; `signedShort` was US, *unsigned*
+/// 16 bit). Those names remain as deprecated aliases of the correctly named cases.
+public enum WaveformSampleInterpretation: String, Sendable, CaseIterable {
+    /// SB: signed 8 bit linear
+    case signed8 = "SB"
+    /// UB: unsigned 8 bit linear
+    case unsigned8 = "UB"
+    /// MB: 8 bit mu-law (ITU-T Recommendation G.711)
     case muLaw = "MB"
-    /// A-law compressed audio
+    /// AB: 8 bit A-law (ITU-T Recommendation G.711)
     case aLaw = "AB"
+    /// SS: signed 16 bit linear
+    case signed16 = "SS"
+    /// US: unsigned 16 bit linear
+    case unsigned16 = "US"
+    /// SL: signed 32 bit linear
+    case signed32 = "SL"
+    /// UL: unsigned 32 bit linear
+    case unsigned32 = "UL"
+    /// SV: signed 64 bit linear
+    case signed64 = "SV"
+    /// UV: unsigned 64 bit linear
+    case unsigned64 = "UV"
 
-    /// Creates from a DICOM code string value
+    // MARK: Deprecated names (raw values unchanged; see Table C.10-10)
+
+    /// Raw value SB, which Table C.10-10 defines as *signed* 8 bit linear.
+    @available(*, deprecated, renamed: "signed8")
+    public static var unsignedInteger: WaveformSampleInterpretation { .signed8 }
+
+    /// Raw value SS, signed 16 bit linear.
+    @available(*, deprecated, renamed: "signed16")
+    public static var signedInteger: WaveformSampleInterpretation { .signed16 }
+
+    /// Raw value UB, unsigned 8 bit linear.
+    @available(*, deprecated, renamed: "unsigned8")
+    public static var unsignedByte: WaveformSampleInterpretation { .unsigned8 }
+
+    /// Raw value US, which Table C.10-10 defines as *unsigned* 16 bit linear.
+    @available(*, deprecated, renamed: "unsigned16")
+    public static var signedShort: WaveformSampleInterpretation { .unsigned16 }
+
+    /// Creates from a DICOM code string value (surrounding spaces ignored)
     public init?(dicomValue: String) {
-        let trimmed = dicomValue.trimmingCharacters(in: .whitespaces)
-        switch trimmed {
-        case "SB": self = .unsignedInteger
-        case "SS": self = .signedInteger
-        case "UB": self = .unsignedByte
-        case "US": self = .signedShort
-        case "MB": self = .muLaw
-        case "AB": self = .aLaw
-        default: return nil
+        self.init(rawValue: dicomValue.trimmingCharacters(in: .whitespaces))
+    }
+
+    /// Whether this interpretation represents signed values (PS3.3 Table C.10-10).
+    /// The companded terms MB and AB are not linear integers and are reported as unsigned.
+    public var isSigned: Bool {
+        switch self {
+        case .signed8, .signed16, .signed32, .signed64: return true
+        case .unsigned8, .unsigned16, .unsigned32, .unsigned64, .muLaw, .aLaw: return false
         }
     }
 
-    /// Whether this interpretation represents signed values
-    public var isSigned: Bool {
+    /// Whether the samples are linear integers (false for the G.711 companded terms MB and AB)
+    public var isLinear: Bool {
         switch self {
-        case .signedInteger, .signedShort: return true
-        case .unsignedInteger, .unsignedByte, .muLaw, .aLaw: return false
+        case .muLaw, .aLaw: return false
+        default: return true
+        }
+    }
+
+    /// The Waveform Bits Allocated (5400,1004) Defined Term this interpretation pairs
+    /// with in PS3.3 Table C.10-10
+    public var bitsAllocated: UInt16 {
+        switch self {
+        case .signed8, .unsigned8, .muLaw, .aLaw: return 8
+        case .signed16, .unsigned16: return 16
+        case .signed32, .unsigned32: return 32
+        case .signed64, .unsigned64: return 64
         }
     }
 }
 
-/// Waveform originality
+/// Waveform Originality (003A,0004), Type 1: ORIGINAL if the samples are the original
+/// or source data, DERIVED if derived from the sample data of other waveforms.
 ///
-/// Reference: PS3.3 C.10.9.1.2 - Waveform Originality
+/// Reference: PS3.3 C.10.9.1.3 - Waveform Originality
 public enum WaveformOriginality: String, Sendable {
     case original = "ORIGINAL"
     case derived = "DERIVED"
@@ -576,7 +750,7 @@ public enum WaveformOriginality: String, Sendable {
 
 /// Coded concept used in waveform channel source and annotations
 ///
-/// Reference: PS3.3 Section 8 - Code Sequence Macro
+/// Reference: PS3.3 Section 8.8 - Standard Attribute Sets for Code Sequence Attributes (Table 8.8-1)
 public struct WaveformCodedConcept: Sendable, Equatable {
     /// Code Value (0008,0100)
     public let codeValue: String

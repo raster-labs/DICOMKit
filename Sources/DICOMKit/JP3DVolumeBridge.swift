@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Instance Number read as IS per PS3.6 2026a Table 6-1; Pixel Data VR rule per PS3.5 8.1.1; the JP3D UIDs are private
+// NEMA-verified: 2026a, checked 2026-10-01 — makeVolume sorts and spaces slices by Image Position (Patient) projected on the normal of Image Orientation (Patient) per PS3.3 2026a C.7.6.2.1.1 (D205); makeVolume records the first slice's Image Position (Patient) as the volume origin and makeDICOMSeries steps from it along the template's Image Orientation (Patient) normal (Equation C.7.6.2.1-1), writing Image Orientation (Patient), Pixel Spacing and Slice Location (Table C.7-10, C.7.6.2.1.2) (D224)
 import Foundation
 import DICOMCore
 import J2KCore
@@ -46,8 +48,9 @@ public enum JP3DVolumeBridge: Sendable {
 
     /// Creates a `J2KVolume` from a sorted series of single-frame DICOM files.
     ///
-    /// Files are sorted by `SliceLocation` (0020,1041) or `ImagePositionPatient` (0020,0032)
-    /// Z-component. Validates that all slices share the same rows, columns, bits allocated,
+    /// Files are sorted by `ImagePositionPatient` (0020,0032) projected on the slice normal of
+    /// `ImageOrientationPatient` (0020,0037) (PS3.3 C.7.6.2.1.1), or its Z-component when the
+    /// orientation is absent, then `SliceLocation` (0020,1041), then Instance Number. Validates that all slices share the same rows, columns, bits allocated,
     /// and samples per pixel.
     ///
     /// - Parameter series: Array of `DICOMFile` instances forming a volume.
@@ -150,6 +153,9 @@ public enum JP3DVolumeBridge: Sendable {
             data: voxelData
         )
 
+        // Origin: Image Position (Patient) of the first slice in stacking order, the centre
+        // of the first voxel (PS3.3 2026a C.7.6.2.1.1)
+        let origin = extractImagePosition(from: ref)
         return J2KVolume(
             width: Int(cols),
             height: Int(rows),
@@ -157,7 +163,10 @@ public enum JP3DVolumeBridge: Sendable {
             components: [component],
             spacingX: pixelSpacingCol,
             spacingY: pixelSpacingRow,
-            spacingZ: spacing
+            spacingZ: spacing,
+            originX: origin.x,
+            originY: origin.y,
+            originZ: origin.z
         )
     }
 
@@ -167,6 +176,14 @@ public enum JP3DVolumeBridge: Sendable {
     ///
     /// Uses `template` as the basis for DICOM metadata. Each slice gets a new
     /// `SOPInstanceUID` while preserving the `SeriesInstanceUID`.
+    ///
+    /// Geometry (PS3.3 2026a C.7.6.2.1.1, Table C.7-10): slice `i` is at the volume origin
+    /// plus `i · spacingZ` along the normal of the template's Image Orientation (Patient)
+    /// (row cosine × column cosine, Equation C.7.6.2.1-1). A template without Image
+    /// Orientation (Patient) gets 1\0\0\0\1\0, the axial orientation the z-only stacking
+    /// assumes, so Image Position and Image Orientation (Patient) are always written
+    /// together. Pixel Spacing, Rows and Columns come from the volume, Slice Location is
+    /// the position along the normal (C.7.6.2.1.2).
     ///
     /// - Parameters:
     ///   - volume: The decoded `J2KVolume`.
@@ -187,6 +204,15 @@ public enum JP3DVolumeBridge: Sendable {
         let component = volume.components[0]
         let bytesPerPixel = (component.bitDepth + 7) / 8
         let bytesPerSlice = component.width * component.height * bytesPerPixel
+
+        // Stacking direction: the template's orientation, else axial
+        let templateNormal = sliceNormal(of: template.dataSet)
+        let orientation = templateNormal == nil
+            ? [1.0, 0, 0, 0, 1, 0]
+            : (decimals(template.dataSet, .imageOrientationPatient) ?? [1.0, 0, 0, 0, 1, 0])
+        let normal = templateNormal ?? [0, 0, 1]
+        let origin = [volume.originX, volume.originY, volume.originZ]
+        let ds6 = JP3DVolumeDocument.decimalString
 
         // Preserve the series UID from template
         let seriesUID = template.dataSet.string(for: .seriesInstanceUID)
@@ -224,17 +250,20 @@ public enum JP3DVolumeBridge: Sendable {
                 value: String(sliceIndex + 1)
             )
 
-            // Set image position
-            if volume.spacingZ > 0 {
-                let z = volume.originZ + Double(sliceIndex) * volume.spacingZ
-                ds[.imagePositionPatient] = DataElement.string(
-                    tag: .imagePositionPatient, vr: .DS,
-                    value: "\(volume.originX)\\\(volume.originY)\\\(z)"
-                )
-                ds[.sliceLocation] = DataElement.string(
-                    tag: .sliceLocation, vr: .DS,
-                    value: String(z)
-                )
+            // Image Plane geometry (PS3.3 2026a C.7.6.2.1.1, Table C.7-10)
+            ds.setUInt16(UInt16(clamping: component.height), for: .rows)
+            ds.setUInt16(UInt16(clamping: component.width), for: .columns)
+            if volume.spacingX > 0, volume.spacingY > 0 {
+                // Pixel Spacing is row spacing \ column spacing
+                ds.setString("\(ds6(volume.spacingY))\\\(ds6(volume.spacingX))", for: .pixelSpacing, vr: .DS)
+            }
+            if volume.spacingZ > 0 || volume.depth == 1 {
+                let position = JP3DVolumeDocument.slicePosition(
+                    origin: origin, orientation: orientation, spacing: max(0, volume.spacingZ), index: sliceIndex)
+                ds.setString(position.map(ds6).joined(separator: "\\"), for: .imagePositionPatient, vr: .DS)
+                ds.setString(orientation.map(ds6).joined(separator: "\\"), for: .imageOrientationPatient, vr: .DS)
+                let along = position[0] * normal[0] + position[1] * normal[1] + position[2] * normal[2]
+                ds.setString(ds6(along), for: .sliceLocation, vr: .DS)
             }
 
             // Set number of frames to 1
@@ -279,20 +308,63 @@ public enum JP3DVolumeBridge: Sendable {
 
     // MARK: - Private Helpers
 
+    // MARK: - Slice geometry (PS3.3 2026a C.7.6.2.1.1)
+
+    /// The numeric values of a DS attribute
+    static func decimals(_ ds: DataSet, _ tag: Tag) -> [Double]? {
+        guard let value = ds.string(for: tag) else { return nil }
+        let parts = value.split(separator: "\\").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+        return parts.isEmpty ? nil : parts
+    }
+
+    /// The unit normal of the image plane: the cross product of the row and column direction
+    /// cosines of Image Orientation (Patient) (0020,0037) (PS3.3 2026a C.7.6.2.1.1), or nil
+    /// when the attribute is absent or degenerate
+    static func sliceNormal(of ds: DataSet) -> [Double]? {
+        guard let iop = decimals(ds, .imageOrientationPatient), iop.count == 6 else { return nil }
+        let r = Array(iop[0..<3]), c = Array(iop[3..<6])
+        let n = [r[1] * c[2] - r[2] * c[1], r[2] * c[0] - r[0] * c[2], r[0] * c[1] - r[1] * c[0]]
+        let length = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).squareRoot()
+        guard length > 1e-6 else { return nil }
+        return n.map { $0 / length }
+    }
+
+    /// The position of a slice along the stacking axis: Image Position (Patient) projected on
+    /// the slice normal when Image Orientation (Patient) is known (so that sagittal, coronal
+    /// and oblique stacks sort and space correctly), else its z coordinate, else Slice
+    /// Location (0020,1041)
+    static func stackPosition(of ds: DataSet, normal: [Double]?) -> Double? {
+        if let ipp = decimals(ds, .imagePositionPatient), ipp.count >= 3 {
+            guard let n = normal else { return ipp[2] }
+            return ipp[0] * n[0] + ipp[1] * n[1] + ipp[2] * n[2]
+        }
+        if let sl = decimals(ds, .sliceLocation)?.first { return sl }
+        return nil
+    }
+
+    /// The series in the voxel order `makeVolume` stacks it: ascending position along the
+    /// slice normal of the first file (Image Orientation (Patient)), falling back to the z
+    /// coordinate, Slice Location and Instance Number
+    static func sortedForVolume(_ series: [DICOMFile]) throws -> [DICOMFile] {
+        try sortBySlicePosition(series)
+    }
+
+    /// Distance between adjacent slices of a sorted series along the slice normal; 1.0 when
+    /// it cannot be computed. Throws when the spacing is not uniform (1 % tolerance).
+    static func uniformSliceSpacing(_ sorted: [DICOMFile]) throws -> Double {
+        try computeSliceSpacing(sorted)
+    }
+
     private static func sortBySlicePosition(_ series: [DICOMFile]) throws -> [DICOMFile] {
-        // Try ImagePositionPatient Z first, then SliceLocation, then InstanceNumber
+        // Image Position (Patient) along the slice normal first, then Slice Location, then
+        // Instance Number
+        let normal = series.first.flatMap { sliceNormal(of: $0.dataSet) }
         let withPositions: [(file: DICOMFile, position: Double)] = series.compactMap { file in
             let ds = file.dataSet
-            if let ipp = ds.string(for: .imagePositionPatient) {
-                let parts = ipp.split(separator: "\\")
-                if parts.count >= 3, let z = Double(parts[2]) {
-                    return (file, z)
-                }
+            if let position = stackPosition(of: ds, normal: normal) {
+                return (file, position)
             }
-            if let sl = ds.string(for: .sliceLocation), let z = Double(sl) {
-                return (file, z)
-            }
-            if let inst = ds.uint16(for: .instanceNumber) {
+            if let inst = ds.string(for: .instanceNumber).flatMap({ Int($0.trimmingCharacters(in: .whitespaces)) }) {
                 return (file, Double(inst))
             }
             return nil
@@ -308,15 +380,8 @@ public enum JP3DVolumeBridge: Sendable {
     private static func computeSliceSpacing(_ sorted: [DICOMFile]) throws -> Double {
         guard sorted.count > 1 else { return 1.0 }
 
-        let positions: [Double] = sorted.compactMap { file in
-            let ds = file.dataSet
-            if let ipp = ds.string(for: .imagePositionPatient) {
-                let parts = ipp.split(separator: "\\")
-                if parts.count >= 3, let z = Double(parts[2]) { return z }
-            }
-            if let sl = ds.string(for: .sliceLocation), let z = Double(sl) { return z }
-            return nil
-        }
+        let normal = sliceNormal(of: sorted[0].dataSet)
+        let positions: [Double] = sorted.compactMap { stackPosition(of: $0.dataSet, normal: normal) }
 
         guard positions.count == sorted.count else { return 1.0 }
 

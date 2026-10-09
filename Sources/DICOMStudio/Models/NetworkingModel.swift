@@ -6,8 +6,21 @@
 // Reference: DICOM PS3.7 (Message Exchange)
 // Reference: DICOM PS3.8 (Network Communication)
 // Reference: DICOM PS3.15 (Security and System Management)
+// NEMA-verified: 2026a, checked 2026-10-06 — the print settings are DICOMNetwork's enums (P-STUDIO-PRINT-ENUMS):
+// PrintPriority / PrintMediumType / PrintFilmSize are deprecated aliases of DICOMNetwork.PrintPriority / MediumType /
+// FilmSize, whose raw values were diffed by script against PS3.3 2026a Table C.13-1 (Print Priority HIGH/MED/LOW 3/3;
+// Medium Type PAPER, CLEAR FILM, BLUE FILM, MAMMO CLEAR FILM, MAMMO BLUE FILM 5/5 — the two MAMMO terms are now
+// offered) and Table C.13-3 (Film Size ID 12/12; Image Display Format STANDARD\C,R: the 8 FilmLayout values match,
+// columns first); NetworkPrintJobState (formerly PrintJobStatus) is the app's job state re-spelled with the Table C.13-8
+// Execution Status terms PENDING/PRINTING/DONE/FAILURE; MPPSStatus against PS3.3 C.4.14 (IN PROGRESS/COMPLETED/
+// DISCONTINUED); NetworkQueryLevel against PS3.4 Table C.6.1-1 (4 of 4); default port 11112 is the PS3.8 9.1.1
+// registered port. TLSMode offers the live PS3.15 2026a Annex B profiles B.12 "BCP 195 RFC 8996, 9325 TLS" and B.13
+// "Modified BCP 195 RFC 8996, 9325 TLS" (titles diffed by script; B.1–B.3 and B.9–B.11 retired) and maps them onto
+// DICOMNetwork's TLSConfiguration.bcp195 / .modifiedBCP195 (P-STUDIO-TLS-PROFILES; TLS_1_2 / TLS_1_3 decode to them);
+// TransferPriority orders the app's queue and is not the DIMSE Priority (0000,0700).
 
 import Foundation
+import DICOMNetwork
 
 // MARK: - Navigation Tab
 
@@ -56,21 +69,60 @@ public enum NetworkingTab: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - TLS Mode
 
-/// TLS mode for DICOM connections.
-/// Reference: DICOM PS3.15 Annex B - Secure Transport Connection Profiles
+/// TLS mode for DICOM (DIMSE) connections: no TLS, one of the live PS3.15 2026a Annex B TLS
+/// Secure Transport Connection Profiles, or mutual TLS under B.12.
+///
+/// Reference: DICOM PS3.15 2026a Annex B — B.12 "BCP 195 RFC 8996, 9325 TLS Secure Transport
+/// Connection Profile" and B.13 "Modified BCP 195 RFC 8996, 9325 TLS Secure Transport Connection
+/// Profile" (B.1–B.3 and B.9–B.11 are retired). ``tlsConfiguration(certificateValidation:clientIdentity:)``
+/// gives the DICOMNetwork `TLSConfiguration` per profile; what that configuration cannot enforce
+/// (B.13's CCM / Camellia / DHE suites, key-length and certificate rules) is listed on
+/// `TLSConfiguration.bcp195` / `.modifiedBCP195`.
+///
+/// The former cases `tls12` ("TLS_1_2") and `tls13` ("TLS_1_3") pinned a TLS version, which a
+/// profile forbids (B.12 requires TLS 1.2 and attempts 1.3); they are deprecated aliases of
+/// ``bcp195`` and ``modifiedBCP195`` (B.13 allows a TLS 1.3-only client), and a stored
+/// "TLS_1_2" / "TLS_1_3" decodes to those cases.
 public enum TLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
-    case none  = "NONE"
-    case tls12 = "TLS_1_2"
-    case tls13 = "TLS_1_3"
-    case mtls  = "MTLS"
+    /// No TLS (plain DICOM Upper Layer).
+    case none           = "NONE"
+    /// PS3.15 2026a B.12 BCP 195 RFC 8996, 9325 TLS.
+    case bcp195         = "BCP195"
+    /// PS3.15 2026a B.13 Modified BCP 195 RFC 8996, 9325 TLS.
+    case modifiedBCP195 = "MODIFIED_BCP195"
+    /// B.12 with a client certificate (bi-directional mutual authentication, which B.12 servers
+    /// shall support and clients are encouraged to use).
+    case mtls           = "MTLS"
+
+    /// Pinned TLS 1.2; no PS3.15 profile pins a version.
+    @available(*, deprecated, renamed: "bcp195",
+               message: "PS3.15 2026a B.12 (BCP 195) requires TLS 1.2 and attempts TLS 1.3; no profile pins TLS 1.2")
+    public static var tls12: TLSMode { .bcp195 }
+
+    /// Pinned TLS 1.3; the nearest profile is B.13, which allows a TLS 1.3-only client.
+    @available(*, deprecated, renamed: "modifiedBCP195",
+               message: "PS3.15 2026a B.13 (Modified BCP 195) is the profile that allows a TLS 1.3-only client")
+    public static var tls13: TLSMode { .modifiedBCP195 }
+
+    /// Accepts the current raw values and the retired "TLS_1_2" / "TLS_1_3" (stored profiles
+    /// decode to ``bcp195`` / ``modifiedBCP195``).
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "NONE":                       self = .none
+        case "BCP195", "TLS_1_2":          self = .bcp195
+        case "MODIFIED_BCP195", "TLS_1_3": self = .modifiedBCP195
+        case "MTLS":                       self = .mtls
+        default:                           return nil
+        }
+    }
 
     /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .none:  return "No TLS"
-        case .tls12: return "TLS 1.2"
-        case .tls13: return "TLS 1.3"
-        case .mtls:  return "mTLS (Mutual)"
+        case .none:           return "No TLS"
+        case .bcp195:         return "BCP 195 TLS (PS3.15 B.12)"
+        case .modifiedBCP195: return "Modified BCP 195 TLS (PS3.15 B.13)"
+        case .mtls:           return "mTLS (Mutual, B.12)"
         }
     }
 
@@ -79,6 +131,29 @@ public enum TLSMode: String, Sendable, Equatable, Hashable, CaseIterable, Codabl
 
     /// Whether mutual TLS is required.
     public var requiresClientCertificate: Bool { self == .mtls }
+
+    /// The PS3.15 2026a Annex B profile this mode applies; nil for ``none``.
+    public var profile: SecureTransportConnectionProfile? {
+        switch self {
+        case .none:           return nil
+        case .bcp195, .mtls:  return .bcp195
+        case .modifiedBCP195: return .modifiedBCP195
+        }
+    }
+
+    /// The DICOMNetwork TLS configuration for this mode (`TLSConfiguration.profile(_:…)` of
+    /// ``profile``); nil for ``none``. The client identity is used for ``mtls``.
+    public func tlsConfiguration(
+        certificateValidation: CertificateValidation = .system,
+        clientIdentity: ClientIdentity? = nil
+    ) -> TLSConfiguration? {
+        guard let profile else { return nil }
+        return TLSConfiguration.profile(
+            profile,
+            certificateValidation: certificateValidation,
+            clientIdentity: self == .mtls ? clientIdentity : nil
+        )
+    }
 }
 
 // MARK: - Server Connection Status
@@ -801,9 +876,14 @@ public struct MWLFilter: Sendable, Equatable {
 // MARK: - MPPS Status
 
 /// Status of a Modality Performed Procedure Step.
-/// Reference: DICOM PS3.4 Annex F – Modality Performed Procedure Step SOP Class
+///
+/// The raw values are the Performed Procedure Step Status (0040,0252) terms of
+/// PS3.3 C.4.14: IN PROGRESS, COMPLETED, DISCONTINUED (the term has a space, not
+/// an underscore). `DICOMNetwork.MPPSStatus` carries the same three; the panel
+/// shows the raw value.
+/// Reference: DICOM PS3.4 Annex F – Modality Performed Procedure Step SOP Class; PS3.3 C.4.14
 public enum MPPSStatus: String, Sendable, Equatable, Hashable, CaseIterable {
-    case inProgress    = "IN_PROGRESS"
+    case inProgress    = "IN PROGRESS"
     case completed     = "COMPLETED"
     case discontinued  = "DISCONTINUED"
 
@@ -902,44 +982,67 @@ public struct MPPSItem: Sendable, Identifiable, Equatable, Hashable {
 
 // MARK: - Print Priority
 
-/// Print priority for DICOM print operations.
-/// Reference: DICOM PS3.3 C.13.1 – Film Session Module
-public enum PrintPriority: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
-    case high   = "HIGH"
-    case med    = "MED"
-    case low    = "LOW"
+/// Print Priority (2000,0020) — `DICOMNetwork.PrintPriority` (P-STUDIO-PRINT-ENUMS, D22).
+/// Reference: DICOM PS3.3 2026a C.13.1 – Film Session Module, Table C.13-1 (HIGH, MED, LOW).
+/// The Studio enum duplicated DICOMNetwork's with the same raw values, so stored values decode
+/// unchanged; the Studio case `.med` is a deprecated alias of `.medium`.
+@available(*, deprecated, renamed: "DICOMNetwork.PrintPriority",
+           message: "Use DICOMNetwork.PrintPriority (same PS3.3 Table C.13-1 raw values)")
+public typealias PrintPriority = DICOMNetwork.PrintPriority
 
+extension DICOMNetwork.PrintPriority {
+    /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .high: return "High"
-        case .med:  return "Medium"
-        case .low:  return "Low"
+        case .high:   return "High"
+        case .medium: return "Medium"
+        case .low:    return "Low"
         }
     }
+
+    /// The former Studio case name for MED.
+    @available(*, deprecated, renamed: "medium")
+    public static var med: DICOMNetwork.PrintPriority { .medium }
 }
 
 // MARK: - Print Medium Type
 
-/// Film/paper medium type for DICOM print.
-/// Reference: DICOM PS3.3 C.13.1 – Film Session Module, Tag (2000,0030)
-public enum PrintMediumType: String, Sendable, Equatable, Hashable, CaseIterable {
-    case paper      = "PAPER"
-    case clearFilm  = "CLEAR FILM"
-    case bluFilm    = "BLU-RAY"
+/// Medium Type (2000,0030) — `DICOMNetwork.MediumType` (P-STUDIO-PRINT-ENUMS, D22).
+/// Reference: DICOM PS3.3 2026a C.13.1 – Film Session Module, Table C.13-1 Defined Terms:
+/// PAPER, CLEAR FILM, BLUE FILM, MAMMO CLEAR FILM, MAMMO BLUE FILM. The Studio enum offered
+/// only the first three; the pickers now list all five (`MediumType.allCases`). Raw values are
+/// unchanged; the Studio case `.bluFilm` is a deprecated alias of `.blueFilm`.
+@available(*, deprecated, renamed: "DICOMNetwork.MediumType",
+           message: "Use DICOMNetwork.MediumType (all five PS3.3 Table C.13-1 Defined Terms)")
+public typealias PrintMediumType = DICOMNetwork.MediumType
 
+extension DICOMNetwork.MediumType {
+    /// Human-readable display name of the Defined Term this case writes (`wireValue`).
     public var displayName: String {
-        switch self {
-        case .paper:     return "Paper"
-        case .clearFilm: return "Clear Film"
-        case .bluFilm:   return "Blu-ray"
+        switch wireValue {
+        case "PAPER":            return "Paper"
+        case "CLEAR FILM":       return "Clear Film"
+        case "BLUE FILM":        return "Blue Film"
+        case "MAMMO CLEAR FILM": return "Mammo Clear Film"
+        case "MAMMO BLUE FILM":  return "Mammo Blue Film"
+        default:                 return wireValue
         }
     }
+
+    /// The former Studio case name for BLUE FILM.
+    @available(*, deprecated, renamed: "blueFilm")
+    public static var bluFilm: DICOMNetwork.MediumType { .blueFilm }
 }
 
 // MARK: - Film Layout
 
 /// Standard film box image display formats.
-/// Reference: DICOM PS3.3 C.13.3 – Film Box Module, Tag (2010,0010)
+/// Reference: DICOM PS3.3 C.13.3 – Film Box Module, Image Display Format (2010,0010), Table C.13-3
+///
+/// `STANDARD\C,R`: C columns of image boxes, then R rows — columns first. Each
+/// raw value is `STANDARD\\\(columns),\(rows)` of its own `columns` / `rows`, and
+/// `cellCount` is their product. The Networking print panel hands the layout to
+/// `DICOMPrintService.printImages(layout:)` as a `PrintLayout(rows:columns:)`.
 public enum FilmLayout: String, Sendable, Equatable, Hashable, CaseIterable {
     case standard1x1 = "STANDARD\\1,1"
     case standard1x2 = "STANDARD\\1,2"
@@ -1008,48 +1111,71 @@ public enum FilmLayout: String, Sendable, Equatable, Hashable, CaseIterable {
 
 // MARK: - Print Film Size
 
-/// Standard film size identifiers for DICOM print.
-/// Reference: DICOM PS3.3 C.13.6 – Film Size ID, Tag (2010,0050)
-public enum PrintFilmSize: String, Sendable, Equatable, Hashable, CaseIterable {
-    case size8x10    = "8INX10IN"
-    case size8_5x11  = "8_5INX11IN"
-    case size10x12   = "10INX12IN"
-    case size10x14   = "10INX14IN"
-    case size11x14   = "11INX14IN"
-    case size11x17   = "11INX17IN"
-    case size14x14   = "14INX14IN"
-    case size14x17   = "14INX17IN"
-    case size24x24cm = "24CMX24CM"
-    case size24x30cm = "24CMX30CM"
-    case a4          = "A4"
-    case a3          = "A3"
+/// Film Size ID (2010,0050) — `DICOMNetwork.FilmSize` (P-STUDIO-PRINT-ENUMS, D22).
+/// Reference: DICOM PS3.3 2026a C.13.3 – Film Box Module, Table C.13-3 (12 Defined Terms).
+/// The Studio enum had the same 12 raw values; its case names are deprecated aliases below.
+@available(*, deprecated, renamed: "DICOMNetwork.FilmSize",
+           message: "Use DICOMNetwork.FilmSize (same PS3.3 Table C.13-3 raw values)")
+public typealias PrintFilmSize = DICOMNetwork.FilmSize
 
+extension DICOMNetwork.FilmSize {
+    /// Human-readable display name.
     public var displayName: String {
         switch self {
-        case .size8x10:   return "8\" × 10\""
-        case .size8_5x11: return "8.5\" × 11\""
-        case .size10x12:  return "10\" × 12\""
-        case .size10x14:  return "10\" × 14\""
-        case .size11x14:  return "11\" × 14\""
-        case .size11x17:  return "11\" × 17\""
-        case .size14x14:  return "14\" × 14\""
-        case .size14x17:  return "14\" × 17\""
-        case .size24x24cm: return "24 × 24 cm"
-        case .size24x30cm: return "24 × 30 cm"
-        case .a4:          return "A4"
-        case .a3:          return "A3"
+        case .size8InX10In:   return "8\" × 10\""
+        case .size8_5InX11In: return "8.5\" × 11\""
+        case .size10InX12In:  return "10\" × 12\""
+        case .size10InX14In:  return "10\" × 14\""
+        case .size11InX14In:  return "11\" × 14\""
+        case .size11InX17In:  return "11\" × 17\""
+        case .size14InX14In:  return "14\" × 14\""
+        case .size14InX17In:  return "14\" × 17\""
+        case .size24CmX24Cm:  return "24 × 24 cm"
+        case .size24CmX30Cm:  return "24 × 30 cm"
+        case .a4:             return "A4"
+        case .a3:             return "A3"
         }
     }
+
+    // The former Studio case names.
+    @available(*, deprecated, renamed: "size8InX10In")
+    public static var size8x10: DICOMNetwork.FilmSize { .size8InX10In }
+    @available(*, deprecated, renamed: "size8_5InX11In")
+    public static var size8_5x11: DICOMNetwork.FilmSize { .size8_5InX11In }
+    @available(*, deprecated, renamed: "size10InX12In")
+    public static var size10x12: DICOMNetwork.FilmSize { .size10InX12In }
+    @available(*, deprecated, renamed: "size10InX14In")
+    public static var size10x14: DICOMNetwork.FilmSize { .size10InX14In }
+    @available(*, deprecated, renamed: "size11InX14In")
+    public static var size11x14: DICOMNetwork.FilmSize { .size11InX14In }
+    @available(*, deprecated, renamed: "size11InX17In")
+    public static var size11x17: DICOMNetwork.FilmSize { .size11InX17In }
+    @available(*, deprecated, renamed: "size14InX14In")
+    public static var size14x14: DICOMNetwork.FilmSize { .size14InX14In }
+    @available(*, deprecated, renamed: "size14InX17In")
+    public static var size14x17: DICOMNetwork.FilmSize { .size14InX17In }
+    @available(*, deprecated, renamed: "size24CmX24Cm")
+    public static var size24x24cm: DICOMNetwork.FilmSize { .size24CmX24Cm }
+    @available(*, deprecated, renamed: "size24CmX30Cm")
+    public static var size24x30cm: DICOMNetwork.FilmSize { .size24CmX30Cm }
 }
 
-// MARK: - Print Job Status
+// MARK: - Network Print Job State
 
-/// Status of a DICOM print job.
-public enum PrintJobStatus: String, Sendable, Equatable, Hashable {
+/// State of a print job, as the Networking panel tracks it (formerly `PrintJobStatus`).
+///
+/// This is the app's own job state — set from the SCU's result, never read off the wire, and
+/// not the Print Job SOP Class's Execution Status (DICOMNetwork's `PrintJobStatus` carries
+/// that) — but it is shown as its raw value, so the values are the Execution Status
+/// (2100,0020) terms of PS3.3 2026a C.13.8 Table C.13-8: PENDING, PRINTING, DONE, FAILURE.
+/// `completed` carried `COMPLETED` and `failed` carried `FAILED`, which are not Execution
+/// Status terms (D22); the case names are kept.
+/// Reference: DICOM PS3.3 C.13.8 – Print Job Module
+public enum NetworkPrintJobState: String, Sendable, Equatable, Hashable {
     case pending   = "PENDING"
     case printing  = "PRINTING"
-    case completed = "COMPLETED"
-    case failed    = "FAILED"
+    case completed = "DONE"
+    case failed    = "FAILURE"
 
     public var displayName: String {
         switch self {
@@ -1070,6 +1196,11 @@ public enum PrintJobStatus: String, Sendable, Equatable, Hashable {
     }
 }
 
+/// The former name of ``NetworkPrintJobState`` (P-STUDIO-PRINT-ENUMS): renamed so it does not
+/// read as the Print Job SOP Class's Execution Status (DICOMNetwork's `PrintJobStatus`).
+@available(*, deprecated, renamed: "NetworkPrintJobState")
+public typealias PrintJobStatus = NetworkPrintJobState
+
 // MARK: - Print Job
 
 /// A DICOM print job encompassing a Film Session and Film Boxes.
@@ -1084,13 +1215,13 @@ public struct PrintJob: Sendable, Identifiable, Equatable {
     /// Number of copies.
     public var numberOfCopies: Int
     /// Print priority.
-    public var priority: PrintPriority
+    public var priority: DICOMNetwork.PrintPriority
     /// Medium type.
-    public var mediumType: PrintMediumType
+    public var mediumType: MediumType
     /// Film layout.
     public var filmLayout: FilmLayout
     /// Film size.
-    public var filmSize: PrintFilmSize
+    public var filmSize: FilmSize
     /// SOP Instance UIDs of images placed in the film.
     public var imageSopInstanceUIDs: [String]
     /// File paths of DICOM images selected for printing.
@@ -1098,7 +1229,7 @@ public struct PrintJob: Sendable, Identifiable, Equatable {
     /// Security-scoped bookmark data for each image file (macOS sandbox).
     public var imageBookmarks: [Data]
     /// Job status.
-    public var status: PrintJobStatus
+    public var status: NetworkPrintJobState
     /// Error message if failed.
     public var errorMessage: String?
     /// When the job was created.
@@ -1111,14 +1242,14 @@ public struct PrintJob: Sendable, Identifiable, Equatable {
         label: String,
         printerServerProfileID: UUID,
         numberOfCopies: Int = 1,
-        priority: PrintPriority = .med,
-        mediumType: PrintMediumType = .paper,
+        priority: DICOMNetwork.PrintPriority = .medium,
+        mediumType: MediumType = .paper,
         filmLayout: FilmLayout = .standard2x2,
-        filmSize: PrintFilmSize = .size14x17,
+        filmSize: FilmSize = .size14InX17In,
         imageSopInstanceUIDs: [String] = [],
         imageFilePaths: [String] = [],
         imageBookmarks: [Data] = [],
-        status: PrintJobStatus = .pending,
+        status: NetworkPrintJobState = .pending,
         errorMessage: String? = nil,
         createdDate: Date = Date(),
         completedDate: Date? = nil

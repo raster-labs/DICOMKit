@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (ETag / 304 cache keyed on the Accept header); media type names in PS3.18 2026a 8.7.3.5
 /// Middleware for server-side HTTP response caching
 ///
 /// Provides server-side caching for DICOMweb responses with ETag-based

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — sheet size of all 12 Film Size ID terms diffed against PS3.3 2026a Table C.13-3 (10INX14IN corrected to 257 x 364 mm as the table states); Image Display Format layouts and COL column-major numbering per C.13.3 and C.13.5.1; CROP without a size read as filling the box (P-CROP, PRINT_CONFORMANCE.md 3.5)
 //
 // FilmGeometry.swift
 // DICOMPrintKit
@@ -8,7 +9,8 @@
 // Deliberately free of CoreGraphics so the layout maths is testable anywhere
 // and independent of the rasterizer that consumes it.
 //
-// Reference: PS3.3 C.13.3 (Film Box Module), C.13.6 (Film Size ID).
+// Reference: PS3.3 C.13.3 (Basic Film Box Presentation Module): Film Size ID
+// (2010,0050) and Image Display Format (2010,0010) are both defined there.
 //
 
 import Foundation
@@ -60,15 +62,18 @@ public struct FilmSheet: Sendable, Equatable {
 
     /// The nominal portrait size of a Film Size ID, in millimetres.
     ///
-    /// Imperial sizes are the exact inch conversions (1 in = 25.4 mm); the
-    /// metric and ISO sizes are their standard dimensions.
+    /// Imperial sizes are the exact inch conversions (1 in = 25.4 mm) and the
+    /// metric and ISO sizes their stated dimensions — except 10INX14IN, which
+    /// PS3.3 Table C.13-3 says "corresponds with 25.7CMX36.4CM" (the JIS B4
+    /// sheet sold as 10×14), not 254 × 355.6 mm. A4 (210 × 297) and A3
+    /// (297 × 420) are as the same row states them.
     public static func portraitSizeMillimeters(for filmSize: FilmSize) -> (width: Double, height: Double) {
         func inches(_ w: Double, _ h: Double) -> (Double, Double) { (w * 25.4, h * 25.4) }
         switch filmSize {
         case .size8InX10In:    return inches(8, 10)
         case .size8_5InX11In:  return inches(8.5, 11)
         case .size10InX12In:   return inches(10, 12)
-        case .size10InX14In:   return inches(10, 14)
+        case .size10InX14In:   return (257, 364)
         case .size11InX14In:   return inches(11, 14)
         case .size11InX17In:   return inches(11, 17)
         case .size14InX14In:   return inches(14, 14)
@@ -332,11 +337,19 @@ public enum FilmImageFitter {
                 sourceX: 0, sourceY: 0, sourceWidth: imageWidth, sourceHeight: imageHeight)
 
         case .crop:
-            // Print at the requested size when one was asked for — PS3.4 H.4.3:
-            // CROP means "at the requested size, cropping what does not fit" —
-            // and fill the cell when none was. Either way the overflow is
-            // cropped, with the crop window placed by alignment so "top" keeps
-            // the top of the anatomy.
+            // Print at the requested size when one was asked for — Requested
+            // Image Size "overrides the size that corresponds with optimal
+            // filling of the Image Box", and CROP deletes the rows and columns
+            // that then exceed it (PS3.3 Table C.13-5) — and fill the cell when
+            // none was. Either way the overflow is cropped, with the crop
+            // window placed by alignment so "top" keeps the top of the anatomy.
+            //
+            // The no-size case is this toolkit's reading: C.13-5 applies CROP
+            // only "if the image rows or columns is greater than the available
+            // printable pixels" at the size of "optimal filling", which it does
+            // not define. "Optimal filling" is read as filling the box, which
+            // is what the "Fill to Film" mode sends CROP for (decided
+            // 2026-09-29, P-CROP; PRINT_CONFORMANCE.md 3.5).
             let scale: Double
             if let requested = requestedPixels, requested > 0 {
                 scale = requested / imageWidth

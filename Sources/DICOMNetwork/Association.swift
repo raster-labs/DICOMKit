@@ -40,7 +40,7 @@ public struct AssociationConfiguration: Sendable, Hashable {
     /// and should be stopped when the response is received. If the timer expires,
     /// the association is aborted.
     ///
-    /// Reference: PS3.8 Section 9.1.1 - ARTIM Timer
+    /// Reference: PS3.8 Section 9.1.5 - ARTIM Timer
     ///
     /// Set to `nil` to disable the ARTIM timer (not recommended for production).
     /// Default is 30 seconds.
@@ -76,7 +76,7 @@ public struct AssociationConfiguration: Sendable, Hashable {
     ///   - calledAETitle: Remote AE title
     ///   - host: Remote host address
     ///   - port: Remote port (default: 104)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - timeout: Connection timeout (default: 30 seconds)
@@ -120,7 +120,7 @@ public struct AssociationConfiguration: Sendable, Hashable {
     ///   - calledAETitle: Remote AE title
     ///   - host: Remote host address
     ///   - port: Remote port (default: 104)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - timeout: Connection timeout (default: 30 seconds)
@@ -161,7 +161,8 @@ public struct NegotiatedAssociation: Sendable {
     /// The accepted presentation contexts
     public let acceptedPresentationContexts: [AcceptedPresentationContext]
     
-    /// The negotiated maximum PDU size (minimum of local and remote)
+    /// The negotiated maximum PDU size (minimum of local and remote; a peer
+    /// value of 0 means unlimited, PS3.8 Annex D.1, and the local value is used)
     public let maxPDUSize: UInt32
     
     /// Remote implementation class UID
@@ -178,11 +179,17 @@ public struct NegotiatedAssociation: Sendable {
     /// The raw A-ASSOCIATE-AC PDU
     public let acceptPDU: AssociateAcceptPDU
     
+    /// Role selections proposed in the A-ASSOCIATE-RQ
+    public let proposedRoleSelections: [SCPSCURoleSelection]
+    
     /// Creates negotiated association info
-    init(acceptPDU: AssociateAcceptPDU, localMaxPDUSize: UInt32) {
+    init(acceptPDU: AssociateAcceptPDU, localMaxPDUSize: UInt32,
+         proposedRoleSelections: [SCPSCURoleSelection] = []) {
         self.acceptPDU = acceptPDU
+        self.proposedRoleSelections = proposedRoleSelections
         self.acceptedPresentationContexts = acceptPDU.presentationContexts
-        self.maxPDUSize = min(localMaxPDUSize, acceptPDU.maxPDUSize)
+        // PS3.8 Annex D.1: 0 from the peer means "no maximum length is specified"
+        self.maxPDUSize = negotiatedMaxPDUSize(local: localMaxPDUSize, remote: acceptPDU.maxPDUSize)
         self.remoteImplementationClassUID = acceptPDU.implementationClassUID
         self.remoteImplementationVersionName = acceptPDU.implementationVersionName
         self.userIdentityServerResponse = acceptPDU.userIdentityServerResponse
@@ -205,10 +212,33 @@ public struct NegotiatedAssociation: Sendable {
     public func isContextAccepted(_ contextID: UInt8) -> Bool {
         acceptedPresentationContexts.contains { $0.id == contextID && $0.isAccepted }
     }
+    
+    /// The roles in effect for a SOP Class after SCP/SCU Role Selection
+    /// Negotiation (PS3.7 D.3.3.4). Without a negotiated answer the default
+    /// roles apply: this side is SCU only.
+    public func negotiatedRoles(for sopClassUID: String) -> NegotiatedRoles {
+        NegotiatedRoles.resolve(
+            proposed: proposedRoleSelections,
+            accepted: acceptPDU.roleSelections,
+            sopClassUID: sopClassUID
+        )
+    }
+    
+    /// Whether this side (the requestor) was granted the SCP role for a SOP Class
+    public func isSCPRoleAccepted(for sopClassUID: String) -> Bool {
+        negotiatedRoles(for: sopClassUID).requestorIsSCP
+    }
+
+    /// The acceptor's SOP Class Extended Negotiation answer for a SOP Class
+    /// (PS3.7 D.3.3.5), or nil when it returned none (Service Class default).
+    public func acceptedExtendedNegotiation(for sopClassUID: String) -> SOPClassExtendedNegotiation? {
+        acceptPDU.extendedNegotiation(for: sopClassUID)
+    }
 }
 
 #if canImport(Network)
 import Network
+// NEMA-verified: 2026a, checked 2026-09-28 — release, abort and ARTIM behaviour compared with PS3.8 2026a Table 9-10 (AR-2/AR-4 on A-RELEASE-RQ, AR-8/AR-9/AR-3 on collision, AA-1 on local timeout) and §7.2.2; maximum length per Annex D.1 (0 = unlimited); 2026-10-01: request(…extendedNegotiations:) proposes PS3.7 D.3.3.5 sub-items
 
 /// DICOM Association for Service Class User (SCU) operations
 ///
@@ -321,9 +351,30 @@ public final class Association: @unchecked Sendable {
     /// - Throws: `DICOMNetworkError.connectionFailed` if connection fails
     /// - Throws: `DICOMNetworkError.associationRejected` if association is rejected
     /// - Throws: `DICOMNetworkError.artimTimerExpired` if ARTIM timer expires
-    public func request(presentationContexts: [PresentationContext]) async throws
-        -> NegotiatedAssociation
-    {
+    ///   - roleSelections: SCP/SCU Role Selections to propose (PS3.7 D.3.3.4).
+    ///     Required when this side must receive requests on the association,
+    ///     e.g. C-STORE sub-operations of a C-GET.
+    ///   - extendedNegotiations: SOP Class Extended Negotiation sub-items to
+    ///     propose (PS3.7 D.3.3.5), e.g. relational-retrieval for a Query/Retrieve
+    ///     SOP Class (PS3.4 C.5.2.1). The acceptor's answers are in
+    ///     `NegotiatedAssociation.acceptPDU.extendedNegotiations`.
+    public func request(
+        presentationContexts: [PresentationContext],
+        roleSelections: [SCPSCURoleSelection] = []
+    ) async throws -> NegotiatedAssociation {
+        try await request(presentationContexts: presentationContexts,
+                          roleSelections: roleSelections,
+                          extendedNegotiations: [])
+    }
+
+    /// Requests an association proposing SOP Class Extended Negotiation
+    /// sub-items as well (PS3.7 D.3.3.5; added 2026-10-01). See
+    /// ``request(presentationContexts:roleSelections:)``.
+    public func request(
+        presentationContexts: [PresentationContext],
+        roleSelections: [SCPSCURoleSelection] = [],
+        extendedNegotiations: [SOPClassExtendedNegotiation]
+    ) async throws -> NegotiatedAssociation {
         // Ensure we're in idle state
         guard state == .idle else {
             throw DICOMNetworkError.invalidState(
@@ -353,7 +404,9 @@ public final class Association: @unchecked Sendable {
             maxPDUSize: configuration.maxPDUSize,
             implementationClassUID: configuration.implementationClassUID,
             implementationVersionName: configuration.implementationVersionName,
-            userIdentity: configuration.userIdentity
+            userIdentity: configuration.userIdentity,
+            roleSelections: roleSelections,
+            extendedNegotiations: extendedNegotiations
         )
         
         if Task.isCancelled {
@@ -376,12 +429,7 @@ public final class Association: @unchecked Sendable {
         do {
             responsePDU = try await receiveWithARTIMTimer(conn: conn)
         } catch let error as DICOMNetworkError where error.isARTIMExpired {
-            _ = stateMachine.handleEvent(.artimTimerExpired)
-            // Send abort and close connection
-            let abortPDU = AbortPDU(source: .serviceProvider, reason: AbortReason.notSpecified.rawValue)
-            try? await conn.send(pdu: abortPDU)
-            conn.abort()
-            _ = stateMachine.handleEvent(.transportConnectionClosed)
+            try await abortOnARTIMExpiry(conn: conn)
             throw error
         }
         
@@ -397,7 +445,8 @@ public final class Association: @unchecked Sendable {
             
             let negotiatedAssoc = NegotiatedAssociation(
                 acceptPDU: acceptPDU,
-                localMaxPDUSize: configuration.maxPDUSize
+                localMaxPDUSize: configuration.maxPDUSize,
+                proposedRoleSelections: roleSelections
             )
             self.negotiated = negotiatedAssoc
             return negotiatedAssoc
@@ -492,7 +541,16 @@ public final class Association: @unchecked Sendable {
             return dataPDU
 
         case _ as ReleaseRequestPDU:
+            // PS3.8 Table 9-10: Sta6 + A-RELEASE-RQ PDU → AR-2 (issue A-RELEASE
+            // indication) → Sta8. There is no application-level consumer for the
+            // indication here, so the local A-RELEASE response is issued at once:
+            // AR-4 (send A-RELEASE-RP, start ARTIM) → Sta13, then the transport
+            // is closed: AR-5 → Sta1.
             _ = stateMachine.handleEvent(.releaseRequestReceived)
+            try? await conn.send(pdu: ReleaseResponsePDU())
+            _ = stateMachine.handleEvent(.releaseResponseSent)
+            await conn.disconnect()
+            _ = stateMachine.handleEvent(.transportConnectionClosed)
             throw DICOMNetworkError.connectionClosed
 
         case let abortPDU as AbortPDU:
@@ -538,20 +596,18 @@ public final class Association: @unchecked Sendable {
             do {
                 responsePDU = try await receiveWithARTIMTimer(conn: conn)
             } catch let error as DICOMNetworkError where error.isARTIMExpired {
-                _ = stateMachine.handleEvent(.artimTimerExpired)
-                // Send abort and close connection
-                let abortPDU = AbortPDU(source: .serviceProvider, reason: AbortReason.notSpecified.rawValue)
-                try? await conn.send(pdu: abortPDU)
-                conn.abort()
-                _ = stateMachine.handleEvent(.transportConnectionClosed)
+                try await abortOnARTIMExpiry(conn: conn)
                 throw error
             }
 
             // P-DATA arriving in the release window (e.g. a late N-EVENT-REPORT
-            // pushed by a Print SCP) is legal — the acceptor may keep sending
-            // until it responds to the release. PS3.8 §7.2: the requestor
-            // discards such messages and keeps waiting for A-RELEASE-RP.
-            if responsePDU is DataTransferPDU {
+            // pushed by a Print SCP) is legal: PS3.8 §7.2.2 lets the acceptor
+            // keep issuing P-DATA requests until it responds to the release, and
+            // Table 9-10 Sta7 + P-DATA-TF → AR-6 "issue P-DATA indication".
+            // release() has no consumer for that indication, so this
+            // implementation discards it and keeps waiting for A-RELEASE-RP.
+            if let dataPDU = responsePDU as? DataTransferPDU {
+                _ = stateMachine.handleEvent(.dataTransferReceived(dataPDU))
                 continue
             }
             break
@@ -571,12 +627,45 @@ public final class Association: @unchecked Sendable {
             )
 
         case _ as ReleaseRequestPDU:
-            // Release collision - both sides requested release simultaneously
+            // Release collision - both sides requested release simultaneously.
+            // PS3.8 Table 9-10 (requestor side): Sta7 + A-RELEASE-RQ PDU → AR-8
+            // (issue A-RELEASE indication) → Sta9; local A-RELEASE response →
+            // AR-9 (send A-RELEASE-RP) → Sta11; Sta11 + A-RELEASE-RP PDU → AR-3
+            // (issue A-RELEASE confirmation, close transport) → Sta1.
             _ = stateMachine.handleEvent(.releaseRequestReceived)
-            // As the requestor, we send our response and close
             let releaseResponse = ReleaseResponsePDU()
-            try? await conn.send(pdu: releaseResponse)
-            await conn.disconnect()
+            try await conn.send(pdu: releaseResponse)
+            _ = stateMachine.handleEvent(.releaseResponseSent)
+
+            let collisionPDU: any PDU
+            do {
+                collisionPDU = try await receiveWithARTIMTimer(conn: conn)
+            } catch let error as DICOMNetworkError where error.isARTIMExpired {
+                try await abortOnARTIMExpiry(conn: conn)
+                throw error
+            }
+
+            switch collisionPDU {
+            case _ as ReleaseResponsePDU:
+                _ = stateMachine.handleEvent(.releaseResponseReceived)
+                await conn.disconnect()
+
+            case let abortPDU as AbortPDU:
+                _ = stateMachine.handleEvent(.abortReceived(abortPDU))
+                await conn.disconnect()
+                throw DICOMNetworkError.associationAborted(
+                    source: abortPDU.source,
+                    reason: abortPDU.reason
+                )
+
+            default:
+                // Table 9-10: any other PDU in Sta11 → AA-8
+                try await performAbort(reason: .unexpectedPDU)
+                throw DICOMNetworkError.unexpectedPDUType(
+                    expected: .releaseResponse,
+                    received: collisionPDU.pduType
+                )
+            }
 
         default:
             try await performAbort(reason: .unexpectedPDU)
@@ -598,12 +687,28 @@ public final class Association: @unchecked Sendable {
     
     // MARK: - Private Methods
     
+    /// Finishes an ARTIM expiry after `receiveWithARTIMTimer` has sent the
+    /// A-ABORT: closes the transport and returns the state machine to Sta1.
+    private func abortOnARTIMExpiry(conn: DICOMConnection) async throws {
+        conn.abort()
+        _ = stateMachine.handleEvent(.transportConnectionClosed)
+    }
+    
     private func performAbort(reason: AbortReason) async throws {
         guard let conn = connection else {
             return
         }
         
-        let abortPDU = AbortPDU(source: .serviceUser, reason: reason)
+        // PS3.8 Table 9-26: a plain user abort is sent with source 0
+        // (service-user) and reason 0; a protocol reason (unexpected PDU,
+        // invalid parameter, ...) belongs to the UL service-provider (source 2),
+        // as in Table 9-9 AA-8.
+        let abortPDU: AbortPDU
+        if reason == .notSpecified {
+            abortPDU = AbortPDU(source: .serviceUser, reason: 0)
+        } else {
+            abortPDU = AbortPDU(source: .serviceProvider, reason: reason)
+        }
         try? await conn.send(pdu: abortPDU)
         _ = stateMachine.handleEvent(.abortSent)
         
@@ -614,7 +719,13 @@ public final class Association: @unchecked Sendable {
     /// Receives a PDU with ARTIM timer protection
     ///
     /// If artimTimeout is configured and the timer expires before receiving a PDU,
-    /// throws `DICOMNetworkError.artimTimerExpired`.
+    /// sends an A-ABORT and throws `DICOMNetworkError.artimTimerExpired`.
+    ///
+    /// PS3.8 Table 9-10 defines ARTIM expiry (AA-2) only in Sta2 and Sta13; a
+    /// local timeout in Sta5/Sta7/Sta11 is handled as a local A-ABORT request
+    /// primitive (Table 9-9 AA-1): A-ABORT with service-user source, reason 0
+    /// (Table 9-26). The A-ABORT is sent before the pending receive is
+    /// cancelled, because cancelling it tears the transport down.
     ///
     /// - Parameter conn: The connection to receive from
     /// - Returns: The received PDU
@@ -644,13 +755,17 @@ public final class Association: @unchecked Sendable {
                 throw DICOMNetworkError.artimTimerExpired
             }
             
-            // Cancel the other task
-            group.cancelAll()
-            
             switch result {
             case .pdu(let pdu):
+                // Cancel the timer task
+                group.cancelAll()
                 return pdu
             case .timerExpired:
+                // AA-1: send A-ABORT (service-user, reason 0) while the
+                // transport is still open, then cancel the pending receive
+                _ = self.stateMachine.handleEvent(.artimTimerExpired)
+                try? await conn.send(pdu: AbortPDU(source: .serviceUser, reason: 0))
+                group.cancelAll()
                 throw DICOMNetworkError.artimTimerExpired
             }
         }

@@ -31,7 +31,9 @@ final class WaveformParseRegressionTests: XCTestCase {
         }
 
         let channels = leads.map {
-            WaveformChannel(channelLabel: $0, channelSensitivity: 0.001, channelSensitivityCorrectionFactor: 1.0)
+            WaveformChannel(channelLabel: $0,
+                            channelSource: WaveformCodedConcept(codeValue: $0, codingSchemeDesignator: "99DICOMKIT", codeMeaning: $0),
+                            channelSensitivity: 0.001, channelSensitivityCorrectionFactor: 1.0)
         }
 
         // buildDataSet() encodes the acquisition + channel-definition attributes with
@@ -45,7 +47,7 @@ final class WaveformParseRegressionTests: XCTestCase {
         .addMultiplexGroup(
             samplingFrequency: 500.0,
             bitsAllocated: 16,
-            sampleInterpretation: .signedInteger,
+            sampleInterpretation: .signed16,
             channels: channels,
             waveformData: waveformData,
             originality: .original,

@@ -17,7 +17,11 @@ import Foundation
 ///     .limit(10)
 /// ```
 ///
-/// Reference: PS3.18 Section 10.6 - QIDO-RS
+/// NEMA-verified: 2026a, checked 2026-09-28 — the 20 tags of `QIDOQueryAttribute` diffed against
+/// PS3.18 2026a Table 10.6.1-5 (all present) and PS3.6 Table 6-1; search parameter names
+/// against Table 8.3.4-1; date/time range syntax per PS3.4 C.2.2.2.5.
+///
+/// Reference: PS3.18 Section 10.6 - Search Transaction (QIDO-RS)
 public struct QIDOQuery: Sendable, Equatable {
     
     // MARK: - Properties
@@ -226,6 +230,32 @@ public struct QIDOQuery: Sendable, Equatable {
         return with(parameter: QIDOQueryAttribute.performedProcedureStepStartDate, value: value)
     }
     
+    /// Filter by Performed Procedure Step Start Time (0040,0245)
+    ///
+    /// - Parameter value: Time in HHMMSS format, or a range HHMMSS-HHMMSS
+    /// - Returns: Updated query
+    public func performedProcedureStepStartTime(_ value: String) -> QIDOQuery {
+        return with(parameter: QIDOQueryAttribute.performedProcedureStepStartTime, value: value)
+    }
+
+    /// Filter by Scheduled Procedure Step ID inside Request Attributes Sequence
+    /// (0040,0275.0040,0009) — PS3.18 8.3.4.1 sequence-attribute matching.
+    ///
+    /// - Parameter value: Scheduled Procedure Step ID
+    /// - Returns: Updated query
+    public func scheduledProcedureStepID(_ value: String) -> QIDOQuery {
+        return with(parameter: "\(QIDOQueryAttribute.requestAttributesSequence).\(QIDOQueryAttribute.scheduledProcedureStepID)", value: value)
+    }
+
+    /// Filter by Requested Procedure ID inside Request Attributes Sequence
+    /// (0040,0275.0040,1001).
+    ///
+    /// - Parameter value: Requested Procedure ID
+    /// - Returns: Updated query
+    public func requestedProcedureID(_ value: String) -> QIDOQuery {
+        return with(parameter: "\(QIDOQueryAttribute.requestAttributesSequence).\(QIDOQueryAttribute.requestedProcedureID)", value: value)
+    }
+
     /// Filter by Body Part Examined (0018,0015)
     ///
     /// - Parameter value: Body part code
@@ -469,6 +499,19 @@ public enum QIDOQueryAttribute {
     
     /// Performed Procedure Step Start Date (0040,0244)
     public static let performedProcedureStepStartDate = "00400244"
+
+    /// Performed Procedure Step Start Time (0040,0245)
+    public static let performedProcedureStepStartTime = "00400245"
+
+    /// Request Attributes Sequence (0040,0275) — carries Scheduled Procedure Step ID
+    /// and Requested Procedure ID (PS3.18 Table 10.6.1-5 series-level keys)
+    public static let requestAttributesSequence = "00400275"
+
+    /// Scheduled Procedure Step ID (0040,0009) — inside Request Attributes Sequence
+    public static let scheduledProcedureStepID = "00400009"
+
+    /// Requested Procedure ID (0040,1001) — inside Request Attributes Sequence
+    public static let requestedProcedureID = "00401001"
     
     /// Number of Series Related Instances (0020,1209)
     public static let numberOfSeriesRelatedInstances = "00201209"
@@ -529,12 +572,15 @@ extension QIDOQuery {
     
     /// Creates a query for finding studies by modality
     ///
+    /// Matches Modalities in Study (0008,0061), the study-level key of PS3.18 Table 10.6.1-5;
+    /// Modality (0008,0060) is a series-level key.
+    ///
     /// - Parameters:
     ///   - modality: Modality code (e.g., "CT", "MR")
     ///   - limit: Optional result limit
     /// - Returns: Configured query
     public static func studiesByModality(_ modality: String, limit: Int? = nil) -> QIDOQuery {
-        var query = QIDOQuery().modality(modality)
+        var query = QIDOQuery().modalitiesInStudy(modality)
         if let limit = limit {
             query = query.limit(limit)
         }

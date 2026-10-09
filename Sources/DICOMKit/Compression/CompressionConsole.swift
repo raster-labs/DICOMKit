@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — transfer syntax names via DICOMCore; ratio lines in the N:1 form of PS3.3 2026a C.7.6.1.1.5.2 and the "Samples per Pixel" label of PS3.6 2026a Table 6-1 (0028,0002) (D183)
+// NEMA-verified: 2026a, checked 2026-10-06 — NativeTargetSyntax (lifted from dicom-compress, D267): the 4 targets are the PS3.6 2026a Table A-1 rows 1.2.840.10008.1.2.1 Explicit VR Little Endian, 1.2.840.10008.1.2 Implicit VR Little Endian, 1.2.840.10008.1.2.1.99 Deflated Explicit VR Little Endian, 1.2.840.10008.1.2.2 Explicit VR Big Endian (Retired) (dumped by script), i.e. the native encodings of PS3.5 2026a A.1, A.2, A.5 and the retired A.3; every other Table A-1 Transfer Syntax the engine names is encapsulated and refused
 // CompressionConsole.swift
 // DICOMKit
 //
@@ -79,13 +81,20 @@ public enum CompressionConsole {
 
     // MARK: - Phase ratio/time lines (shared)
 
-    /// Shared "<Phase> ratio: N.N%" builder — the output size relative to the input
-    /// size for a phase (below 100% = smaller; above = larger). `phase` is
-    /// "Compression" or "Decompression". Returns "" when `inputSize` is 0.
+    /// Shared "<Phase> ratio: …" builder, written as a ratio in the form PS3.3 2026a
+    /// C.7.6.1.1.5.2 uses for Lossy Image Compression Ratio (0028,2112): "the numerator of an
+    /// implicit ratio in which the denominator is always one", e.g. "30:1" (D183; was the output
+    /// size as a percentage of the input). A compression phase prints uncompressed : compressed
+    /// = input / output ":1"; a decompression phase prints "1:" output / input (the input is the
+    /// compressed side). Sizes are whole-file byte counts. Returns "" when either size is 0.
     private static func ratioLine(phase: String, inputSize: Int, outputSize: Int) -> String {
-        guard inputSize > 0 else { return "" }
-        let ratio = Double(outputSize) / Double(inputSize) * 100.0
-        return "\(phase) ratio: \(String(format: "%.1f%%", ratio))\n"
+        guard inputSize > 0, outputSize > 0 else { return "" }
+        if phase == "Decompression" {
+            let ratio = Double(outputSize) / Double(inputSize)
+            return "\(phase) ratio: 1:\(String(format: "%.2f", ratio))\n"
+        }
+        let ratio = Double(inputSize) / Double(outputSize)
+        return "\(phase) ratio: \(String(format: "%.2f", ratio)):1\n"
     }
 
     /// Shared "<Phase> time:  <elapsed>" builder. The trailing double space aligns the
@@ -173,8 +182,8 @@ public enum CompressionConsole {
         "Compressed: \(input) → \(output)\n"
     }
 
-    /// Size-ratio line for the compression phase: output size relative to input size
-    /// (below 100% = smaller). Returns "" when `inputSize` is 0.
+    /// Ratio line for the compression phase: input size / output size as "N:1" (PS3.3 2026a
+    /// C.7.6.1.1.5.2 notation). Returns "" when a size is 0.
     public static func compressRatioLine(inputSize: Int, outputSize: Int) -> String {
         ratioLine(phase: "Compression", inputSize: inputSize, outputSize: outputSize)
     }
@@ -236,9 +245,8 @@ public enum CompressionConsole {
         "Decompressed: \(input) → \(output)\n"
     }
 
-    /// Size-expansion ratio line for a decompress run: the uncompressed output
-    /// relative to the compressed input (above 100% = larger). Returns "" when
-    /// `inputSize` is 0.
+    /// Ratio line for a decompress run: compressed input : uncompressed output as "1:N"
+    /// (PS3.3 2026a C.7.6.1.1.5.2 notation, compressed side first). Returns "" when a size is 0.
     public static func decompressRatioLine(inputSize: Int, outputSize: Int) -> String {
         ratioLine(phase: "Decompression", inputSize: inputSize, outputSize: outputSize)
     }
@@ -320,7 +328,7 @@ public enum CompressionConsole {
         }
         if let ba = info.bitsAllocated { lines.append("Bits Allocated: \(ba)") }
         if let bs = info.bitsStored { lines.append("Bits Stored: \(bs)") }
-        if let spp = info.samplesPerPixel { lines.append("Samples Per Pixel: \(spp)") }
+        if let spp = info.samplesPerPixel { lines.append("Samples per Pixel: \(spp)") }
         if let pi = info.photometricInterpretation { lines.append("Photometric Interpretation: \(pi)") }
         if let nf = info.numberOfFrames { lines.append("Number of Frames: \(nf)") }
         return lines.joined(separator: "\n") + "\n"
@@ -351,11 +359,33 @@ public enum CompressionConsole {
         if let v = info.samplesPerPixel { dict["samplesPerPixel"] = Int(v) }
         if let v = info.photometricInterpretation { dict["photometricInterpretation"] = v }
         if let v = info.numberOfFrames { dict["numberOfFrames"] = v }
+        // PS3.6 2026a Table 6-1 keyword keys (P-COMPRESS-JSON), next to the camelCase keys
+        // above, which are deprecated but keep their old values. Numbers stay numbers; Number
+        // of Frames (IS) is a JSON number when it parses (PS3.18 F.2.3, Table F.2.3-1), else its string.
+        for (keyword, value) in infoKeywordFields(info) { dict[keyword] = value }
         let jsonData = try JSONSerialization.data(
             withJSONObject: dict,
             options: [.prettyPrinted, .sortedKeys]
         )
         return (String(data: jsonData, encoding: .utf8) ?? "") + "\n"
+    }
+
+    /// The PS3.6 2026a Table 6-1 keyword → value pairs of `info --json` (only the present
+    /// ones): TransferSyntaxUID (0002,0010), Rows (0028,0010), Columns (0028,0011),
+    /// BitsAllocated (0028,0100), BitsStored (0028,0101), SamplesPerPixel (0028,0002),
+    /// PhotometricInterpretation (0028,0004), NumberOfFrames (0028,0008),
+    /// LossyImageCompression (0028,2110).
+    public static func infoKeywordFields(_ info: CompressionInfo) -> [String: Any] {
+        var fields: [String: Any] = ["TransferSyntaxUID": info.transferSyntaxUID]
+        if let v = info.rows { fields["Rows"] = Int(v) }
+        if let v = info.columns { fields["Columns"] = Int(v) }
+        if let v = info.bitsAllocated { fields["BitsAllocated"] = Int(v) }
+        if let v = info.bitsStored { fields["BitsStored"] = Int(v) }
+        if let v = info.samplesPerPixel { fields["SamplesPerPixel"] = Int(v) }
+        if let v = info.photometricInterpretation { fields["PhotometricInterpretation"] = v }
+        if let v = info.numberOfFrames { fields["NumberOfFrames"] = Int(v) ?? v as Any }
+        if let v = info.lossyImageCompression, !v.isEmpty { fields["LossyImageCompression"] = v }
+        return fields
     }
 
     /// The `info` read-failure line. The CLI prints the raw error value, not
@@ -397,5 +427,44 @@ public enum CompressionConsole {
         }
         let data = try JSONSerialization.data(withJSONObject: items, options: [.prettyPrinted])
         return (String(data: data, encoding: .utf8) ?? "") + "\n"
+    }
+
+    // MARK: - Decompress / batch --syntax targets (shared; D267)
+
+    /// The `--syntax` values of `dicom-compress decompress` and `batch --decompress`: only the
+    /// native (non-encapsulated) Transfer Syntaxes, because decompression writes native Pixel
+    /// Data — PS3.5 2026a A.1 Implicit VR Little Endian, A.2 Explicit VR Little Endian, A.5
+    /// Deflated Explicit VR Little Endian, and the retired A.3 Explicit VR Big Endian (UIDs per
+    /// PS3.6 2026a Table A-1). Every encapsulated codec name is refused with the text below
+    /// (P-COMPRESS-SYNTAX); the CLI and the DICOMStudio Workshop share it.
+    public enum NativeTargetSyntax {
+        public static let accepted: [(name: String, syntax: TransferSyntax)] = [
+            ("explicit-le", .explicitVRLittleEndian),
+            ("implicit-le", .implicitVRLittleEndian),
+            ("deflate", .deflatedExplicitVRLittleEndian),
+            ("explicit-be", .explicitVRBigEndian),
+        ]
+
+        /// A refused `--syntax` value. Not an ArgumentParser `ValidationError`, so the command
+        /// exits 1 (not 64).
+        public struct Refused: LocalizedError, CustomStringConvertible {
+            public let description: String
+            public var errorDescription: String? { description }
+            public init(description: String) { self.description = description }
+        }
+
+        /// The Transfer Syntax a `--syntax` value names (case-insensitive), or a ``Refused``
+        /// error: one text for an encapsulated codec name, another for an unknown value.
+        public static func resolve(_ name: String) throws -> TransferSyntax {
+            let lower = name.trimmingCharacters(in: .whitespaces).lowercased()
+            if let hit = accepted.first(where: { $0.name == lower }) { return hit.syntax }
+            let allowed = accepted.map(\.name).joined(separator: ", ")
+            if let codec = CompressionManager.transferSyntax(for: lower) {
+                throw Refused(description: "--syntax \(name) names \(codec.uid), an encapsulated (compressed) "
+                    + "Transfer Syntax (PS3.6 2026a Table A-1); decompression writes native Pixel Data "
+                    + "(PS3.5 2026a A.1, A.2, A.5). Native targets: \(allowed). To compress, use `compress --codec`.")
+            }
+            throw Refused(description: "Unknown syntax '\(name)'. Native targets: \(allowed)")
+        }
     }
 }

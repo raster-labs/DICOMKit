@@ -61,6 +61,19 @@ final class WaveformTests: XCTestCase {
         XCTAssertEqual(type, .respiratoryWaveform)
     }
 
+    /// PS3.6 2026a Table A-1 — the waveform storage SOP Classes added since the first pass
+    func test_waveformType_newerStorageClasses_fromSOPClassUID() {
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.1.4"), .general32BitECG)
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.6.2"), .multichannelRespiratory)
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.7.1"), .routineScalpEEG)
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.7.2"), .electromyogram)
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.7.3"), .electrooculogram)
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.7.4"), .sleepEEG)
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.8.1"), .bodyPosition)
+        // Waveform Presentation State Storage is not a waveform IOD
+        XCTAssertEqual(WaveformType(sopClassUID: "1.2.840.10008.5.1.4.1.1.9.100.1"), .unknown)
+    }
+
     func test_waveformType_unknown_fromInvalidUID() {
         let type = WaveformType(sopClassUID: "1.2.3.4.5")
         XCTAssertEqual(type, .unknown)
@@ -77,23 +90,83 @@ final class WaveformTests: XCTestCase {
 
     // MARK: - WaveformSampleInterpretation Tests
 
-    func test_sampleInterpretation_fromDICOMValue() {
-        XCTAssertEqual(WaveformSampleInterpretation(dicomValue: "SB"), .unsignedInteger)
-        XCTAssertEqual(WaveformSampleInterpretation(dicomValue: "SS"), .signedInteger)
-        XCTAssertEqual(WaveformSampleInterpretation(dicomValue: "UB"), .unsignedByte)
-        XCTAssertEqual(WaveformSampleInterpretation(dicomValue: "US"), .signedShort)
-        XCTAssertEqual(WaveformSampleInterpretation(dicomValue: "MB"), .muLaw)
-        XCTAssertEqual(WaveformSampleInterpretation(dicomValue: "AB"), .aLaw)
+    /// PS3.3 2026a Table C.10-10 — Waveform Bits Allocated and Waveform Sample Interpretation.
+    /// Every Defined Term with its raw value, bit width and signedness.
+    func test_sampleInterpretation_tableC10_10_allTerms() {
+        let expected: [(WaveformSampleInterpretation, String, UInt16, Bool)] = [
+            (.signed8,    "SB",  8, true),   // signed 8 bit linear
+            (.unsigned8,  "UB",  8, false),  // unsigned 8 bit linear
+            (.muLaw,      "MB",  8, false),  // 8 bit mu-law (ITU-T G.711)
+            (.aLaw,       "AB",  8, false),  // 8 bit A-law (ITU-T G.711)
+            (.signed16,   "SS", 16, true),   // signed 16 bit linear
+            (.unsigned16, "US", 16, false),  // unsigned 16 bit linear
+            (.signed32,   "SL", 32, true),   // signed 32 bit linear
+            (.unsigned32, "UL", 32, false),  // unsigned 32 bit linear
+            (.signed64,   "SV", 64, true),   // signed 64 bit linear
+            (.unsigned64, "UV", 64, false),  // unsigned 64 bit linear
+        ]
+        XCTAssertEqual(WaveformSampleInterpretation.allCases.count, expected.count,
+                       "Table C.10-10 has exactly ten Sample Interpretation terms")
+        for (term, raw, bits, signed) in expected {
+            XCTAssertEqual(term.rawValue, raw)
+            XCTAssertEqual(WaveformSampleInterpretation(dicomValue: raw), term)
+            XCTAssertEqual(WaveformSampleInterpretation(dicomValue: " \(raw) "), term, "surrounding spaces are ignored")
+            XCTAssertEqual(term.bitsAllocated, bits, "\(raw) pairs with Waveform Bits Allocated \(bits)")
+            XCTAssertEqual(term.isSigned, signed, "\(raw) signedness")
+        }
+        XCTAssertFalse(WaveformSampleInterpretation.muLaw.isLinear)
+        XCTAssertFalse(WaveformSampleInterpretation.aLaw.isLinear)
+        XCTAssertTrue(WaveformSampleInterpretation.signed16.isLinear)
         XCTAssertNil(WaveformSampleInterpretation(dicomValue: "XX"))
     }
 
-    func test_sampleInterpretation_isSigned() {
-        XCTAssertFalse(WaveformSampleInterpretation.unsignedInteger.isSigned)
-        XCTAssertTrue(WaveformSampleInterpretation.signedInteger.isSigned)
-        XCTAssertFalse(WaveformSampleInterpretation.unsignedByte.isSigned)
-        XCTAssertTrue(WaveformSampleInterpretation.signedShort.isSigned)
-        XCTAssertFalse(WaveformSampleInterpretation.muLaw.isSigned)
-        XCTAssertFalse(WaveformSampleInterpretation.aLaw.isSigned)
+    @available(*, deprecated)
+    func test_sampleInterpretation_deprecatedNamesKeepTheirRawValues() {
+        // The old names contradicted Table C.10-10; each still maps to the case with the
+        // same raw value, so existing callers keep writing the same term.
+        XCTAssertEqual(WaveformSampleInterpretation.unsignedInteger, .signed8)        // was "SB"
+        XCTAssertEqual(WaveformSampleInterpretation.signedInteger, .signed16)         // was "SS"
+        XCTAssertEqual(WaveformSampleInterpretation.unsignedByte, .unsigned8)         // was "UB"
+        XCTAssertEqual(WaveformSampleInterpretation.signedShort, .unsigned16)         // was "US"
+        XCTAssertTrue(WaveformSampleInterpretation.unsignedInteger.isSigned, "raw value SB is signed 8 bit linear")
+        XCTAssertFalse(WaveformSampleInterpretation.signedShort.isSigned, "raw value US is unsigned 16 bit linear")
+    }
+
+    func test_multiplexGroup_channelSamples_signed32_and_unsigned32() {
+        // SL / UL: 32 bit linear (Table C.10-10, Waveform Bits Allocated 32)
+        var data = Data()
+        for value in [Int32(-70000), Int32(70000)] {
+            var v = value.littleEndian
+            data.append(Data(bytes: &v, count: 4))
+        }
+        let signedGroup = WaveformMultiplexGroup(
+            samplingFrequency: 1.0, numberOfSamples: 2,
+            waveformBitsAllocated: 32, waveformBitsStored: 32,
+            waveformSampleInterpretation: .signed32,
+            channels: [WaveformChannel()], waveformData: data)
+        XCTAssertEqual(signedGroup.channelSamples(at: 0), [-70000.0, 70000.0])
+
+        let unsignedGroup = WaveformMultiplexGroup(
+            samplingFrequency: 1.0, numberOfSamples: 2,
+            waveformBitsAllocated: 32, waveformBitsStored: 32,
+            waveformSampleInterpretation: .unsigned32,
+            channels: [WaveformChannel()], waveformData: data)
+        XCTAssertEqual(unsignedGroup.channelSamples(at: 0), [Double(UInt32(bitPattern: -70000)), 70000.0])
+    }
+
+    func test_multiplexGroup_channelSamples_signed64() {
+        // SV: signed 64 bit linear (Table C.10-10, Waveform Bits Allocated 64)
+        var data = Data()
+        for value in [Int64(-5_000_000_000), Int64(3)] {
+            var v = value.littleEndian
+            data.append(Data(bytes: &v, count: 8))
+        }
+        let group = WaveformMultiplexGroup(
+            samplingFrequency: 1.0, numberOfSamples: 2,
+            waveformBitsAllocated: 64, waveformBitsStored: 64,
+            waveformSampleInterpretation: .signed64,
+            channels: [WaveformChannel()], waveformData: data)
+        XCTAssertEqual(group.channelSamples(at: 0), [-5_000_000_000.0, 3.0])
     }
 
     // MARK: - WaveformOriginality Tests
@@ -152,7 +225,7 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 5000,
             waveformBitsAllocated: 16,
             waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
+            waveformSampleInterpretation: .signed16,
             channels: [],
             waveformData: Data()
         )
@@ -165,7 +238,7 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 5000,
             waveformBitsAllocated: 16,
             waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
+            waveformSampleInterpretation: .signed16,
             channels: [],
             waveformData: Data()
         )
@@ -192,7 +265,7 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 3,
             waveformBitsAllocated: 16,
             waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
+            waveformSampleInterpretation: .signed16,
             channels: [channel0, channel1],
             waveformData: data
         )
@@ -224,7 +297,7 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 4,
             waveformBitsAllocated: 16,
             waveformBitsStored: 16,
-            waveformSampleInterpretation: .unsignedInteger,
+            waveformSampleInterpretation: .unsigned16,
             channels: [channel],
             waveformData: data
         )
@@ -247,7 +320,7 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 4,
             waveformBitsAllocated: 8,
             waveformBitsStored: 8,
-            waveformSampleInterpretation: .signedInteger,
+            waveformSampleInterpretation: .signed8,
             channels: [channel],
             waveformData: data
         )
@@ -270,7 +343,7 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 3,
             waveformBitsAllocated: 8,
             waveformBitsStored: 8,
-            waveformSampleInterpretation: .unsignedInteger,
+            waveformSampleInterpretation: .unsigned8,
             channels: [channel],
             waveformData: data
         )
@@ -288,8 +361,8 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 10,
             waveformBitsAllocated: 16,
             waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
-            channels: [WaveformChannel()],
+            waveformSampleInterpretation: .signed16,
+            channels: [WaveformChannel(channelSource: WaveformCodedConcept(codeValue: "5.6.3-9-1", codingSchemeDesignator: "SCPECG", codeMeaning: "Lead I"))],
             waveformData: Data(count: 20)
         )
 
@@ -318,7 +391,7 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 2,
             waveformBitsAllocated: 16,
             waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
+            waveformSampleInterpretation: .signed16,
             channels: [channel],
             waveformData: data
         )
@@ -335,14 +408,14 @@ final class WaveformTests: XCTestCase {
         let group1 = WaveformMultiplexGroup(
             samplingFrequency: 500.0, numberOfSamples: 100,
             waveformBitsAllocated: 16, waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
+            waveformSampleInterpretation: .signed16,
             channels: [WaveformChannel(), WaveformChannel(), WaveformChannel()],
             waveformData: Data()
         )
         let group2 = WaveformMultiplexGroup(
             samplingFrequency: 250.0, numberOfSamples: 50,
             waveformBitsAllocated: 16, waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
+            waveformSampleInterpretation: .signed16,
             channels: [WaveformChannel(), WaveformChannel()],
             waveformData: Data()
         )
@@ -383,7 +456,7 @@ final class WaveformTests: XCTestCase {
         .addMultiplexGroup(
             samplingFrequency: 500.0,
             bitsAllocated: 16,
-            sampleInterpretation: .signedInteger,
+            sampleInterpretation: .signed16,
             channels: [
                 WaveformChannel(
                     channelLabel: "Lead I",
@@ -435,7 +508,7 @@ final class WaveformTests: XCTestCase {
         )
         .addMultiplexGroup(
             samplingFrequency: 500.0,
-            channels: [WaveformChannel(channelLabel: "Lead I")],
+            channels: [WaveformChannel(channelLabel: "Lead I", channelSource: WaveformCodedConcept(codeValue: "5.6.3-9-1", codingSchemeDesignator: "SCPECG", codeMeaning: "Lead I"))],
             waveformData: waveformData
         )
         .addTextAnnotation(text: "Normal sinus rhythm", groupNumber: 1)
@@ -468,7 +541,7 @@ final class WaveformTests: XCTestCase {
         .setSOPInstanceUID("1.2.3.4.5.6.7")
         .addMultiplexGroup(
             samplingFrequency: 100.0,
-            channels: [WaveformChannel()],
+            channels: [WaveformChannel(channelSource: WaveformCodedConcept(codeValue: "5.6.3-9-1", codingSchemeDesignator: "SCPECG", codeMeaning: "Lead I"))],
             waveformData: data
         )
         .build()
@@ -477,19 +550,28 @@ final class WaveformTests: XCTestCase {
         XCTAssertEqual(waveform.modality, "HD")
     }
 
+    /// PS3.3 2026a A.34.x.4.1 content constraints: "The Value of Modality (0008,0060) shall be …"
     func test_builder_defaultModality_forDifferentTypes() throws {
         let testCases: [(WaveformType, String)] = [
-            (.twelveLeadECG, "ECG"),
-            (.generalECG, "ECG"),
-            (.ambulatoryECG, "ECG"),
-            (.hemodynamic, "HD"),
-            (.cardiacElectrophysiology, "EPS"),
-            (.basicVoiceAudio, "AU"),
-            (.generalAudio, "AU"),
-            (.arterialPulse, "HD"),
-            (.respiratoryWaveform, "RESP"),
+            (.twelveLeadECG, "ECG"),               // A.34.3
+            (.generalECG, "ECG"),                  // A.34.4
+            (.ambulatoryECG, "ECG"),               // A.34.5
+            (.general32BitECG, "ECG"),             // A.34.18
+            (.hemodynamic, "HD"),                  // A.34.6
+            (.cardiacElectrophysiology, "EPS"),    // A.34.7
+            (.basicVoiceAudio, "AU"),              // A.34.2
+            (.generalAudio, "AU"),                 // A.34.10
+            (.arterialPulse, "HD"),                // A.34.8
+            (.respiratoryWaveform, "RESP"),        // A.34.9
+            (.multichannelRespiratory, "RESP"),    // A.34.16
+            (.routineScalpEEG, "EEG"),             // A.34.12
+            (.electromyogram, "EMG"),              // A.34.13
+            (.electrooculogram, "EOG"),            // A.34.14
+            (.sleepEEG, "EEG"),                    // A.34.15
+            (.bodyPosition, "POS"),                // A.34.17
             (.unknown, "OT"),
         ]
+        XCTAssertEqual(testCases.count, WaveformType.allCases.count, "every WaveformType has a pinned Modality")
 
         for (waveformType, expectedModality) in testCases {
             var data = Data()
@@ -503,7 +585,7 @@ final class WaveformTests: XCTestCase {
             )
             .addMultiplexGroup(
                 samplingFrequency: 100.0,
-                channels: [WaveformChannel()],
+                channels: [WaveformChannel(channelSource: WaveformCodedConcept(codeValue: "5.6.3-9-1", codingSchemeDesignator: "SCPECG", codeMeaning: "Lead I"))],
                 waveformData: data
             )
             .build()
@@ -556,7 +638,7 @@ final class WaveformTests: XCTestCase {
         .addMultiplexGroup(
             samplingFrequency: 500.0,
             bitsAllocated: 16,
-            sampleInterpretation: .signedInteger,
+            sampleInterpretation: .signed16,
             channels: [leadI, leadII],
             waveformData: waveformData,
             originality: .original,
@@ -600,7 +682,7 @@ final class WaveformTests: XCTestCase {
         )
         .addMultiplexGroup(
             samplingFrequency: 500.0,
-            channels: [WaveformChannel(channelLabel: "Lead I")],
+            channels: [WaveformChannel(channelLabel: "Lead I", channelSource: WaveformCodedConcept(codeValue: "5.6.3-9-1", codingSchemeDesignator: "SCPECG", codeMeaning: "Lead I"))],
             waveformData: data
         )
         .buildDataSet()
@@ -715,7 +797,7 @@ final class WaveformTests: XCTestCase {
         .setPatientName("Test^Patient")
         .addMultiplexGroup(
             samplingFrequency: 500.0,
-            channels: [WaveformChannel(channelLabel: "Lead I")],
+            channels: [WaveformChannel(channelLabel: "Lead I", channelSource: WaveformCodedConcept(codeValue: "5.6.3-9-1", codingSchemeDesignator: "SCPECG", codeMeaning: "Lead I"))],
             waveformData: waveformData
         )
         .buildDataSet()
@@ -754,6 +836,7 @@ final class WaveformTests: XCTestCase {
         let channels = leadNames.map { name in
             WaveformChannel(
                 channelLabel: name,
+                channelSource: WaveformCodedConcept(codeValue: name, codingSchemeDesignator: "99DICOMKIT", codeMeaning: name),
                 channelSensitivity: 0.001,
                 channelSensitivityCorrectionFactor: 1.0
             )
@@ -767,7 +850,7 @@ final class WaveformTests: XCTestCase {
         .addMultiplexGroup(
             samplingFrequency: 500.0,
             bitsAllocated: 16,
-            sampleInterpretation: .signedInteger,
+            sampleInterpretation: .signed16,
             channels: channels,
             waveformData: waveformData,
             originality: .original
@@ -793,8 +876,8 @@ final class WaveformTests: XCTestCase {
             numberOfSamples: 100,
             waveformBitsAllocated: 16,
             waveformBitsStored: 16,
-            waveformSampleInterpretation: .signedInteger,
-            channels: [WaveformChannel(channelLabel: "Ch1")],
+            waveformSampleInterpretation: .signed16,
+            channels: [WaveformChannel(channelLabel: "Ch1", channelSource: WaveformCodedConcept(codeValue: "5.6.3-9-1", codingSchemeDesignator: "SCPECG", codeMeaning: "Lead I"))],
             waveformData: Data(count: 200)
         )
 
@@ -808,5 +891,143 @@ final class WaveformTests: XCTestCase {
 
         XCTAssertEqual(waveform.multiplexGroups.count, 1)
         XCTAssertEqual(waveform.multiplexGroups[0].samplingFrequency, 250.0)
+    }
+
+    // MARK: - Type 1 attribute coverage (PS3.3 2026a Tables C.10-8 and C.10-9)
+
+    private func ecgChannel(_ label: String, sensitivity: Double? = nil) -> WaveformChannel {
+        WaveformChannel(
+            channelLabel: label,
+            channelSource: WaveformCodedConcept(codeValue: label, codingSchemeDesignator: "99DICOMKIT", codeMeaning: label),
+            channelSensitivity: sensitivity)
+    }
+
+    func test_builder_writesEveryType1AttributeOfWaveformModule() throws {
+        var samples = Data()
+        for value in [Int16(1), Int16(-2), Int16(3), Int16(-4)] {
+            var v = value.littleEndian
+            samples.append(Data(bytes: &v, count: 2))
+        }
+        let dataSet = try WaveformBuilder(
+            waveformType: .generalECG,
+            studyInstanceUID: "1.2.3",
+            seriesInstanceUID: "1.2.3.4")
+        .addMultiplexGroup(
+            samplingFrequency: 500.0,
+            bitsAllocated: 16,
+            sampleInterpretation: .signed16,
+            bitsStored: 12,
+            channels: [ecgChannel("Lead I", sensitivity: 0.001), ecgChannel("Lead II")],
+            waveformData: samples,
+            originality: nil)
+        .buildDataSet()
+
+        // Table C.10-8 Waveform Identification Module, all Type 1
+        XCTAssertEqual(dataSet.string(for: .instanceNumber), "1", "Instance Number (0020,0013) defaults to 1")
+        XCTAssertNotNil(dataSet.date(for: .contentDate), "Content Date (0008,0023)")
+        XCTAssertNotNil(dataSet.time(for: .contentTime), "Content Time (0008,0033)")
+        XCTAssertNotNil(dataSet.dateTime(for: .acquisitionDateTime), "Acquisition DateTime (0008,002A)")
+        XCTAssertEqual(dataSet[.acquisitionDateTime]?.vr, .DT)
+
+        // Table C.10-9 Waveform Module, Waveform Sequence Item, Type 1
+        let group = try XCTUnwrap(dataSet.sequence(for: .waveformSequence)?.first)
+        XCTAssertEqual(group.string(for: .waveformOriginality), "ORIGINAL", "Waveform Originality (003A,0004) is Type 1; nil is written as ORIGINAL")
+        XCTAssertEqual(group[.numberOfWaveformChannels]?.uint16Value, 2)
+        XCTAssertEqual(group[.numberOfWaveformSamples]?.uint32Value, 2)
+        XCTAssertEqual(group.string(for: .samplingFrequency), "500.0")
+        XCTAssertEqual(group[.waveformBitsAllocated]?.uint16Value, 16)
+        XCTAssertEqual(group.string(for: .waveformSampleInterpretation), "SS")
+        XCTAssertEqual(group[.waveformData]?.valueData, samples, "Waveform Data (5400,1010)")
+        XCTAssertEqual(group[.waveformData]?.vr, .OW)
+
+        // Channel Definition Sequence Items, Type 1 and 1C
+        let channels = try XCTUnwrap(group[.channelDefinitionSequence]?.sequenceItems)
+        XCTAssertEqual(channels.count, 2)
+        for channel in channels {
+            XCTAssertEqual(channel[.waveformBitsStored]?.uint16Value, 12, "Waveform Bits Stored (003A,021A) is Type 1")
+            let source = try XCTUnwrap(channel[.channelSourceSequence]?.sequenceItems, "Channel Source Sequence (003A,0208) is Type 1")
+            XCTAssertEqual(source.count, 1, "only a single Item shall be included")
+            XCTAssertNotNil(source[0].string(for: .codeValue))
+            XCTAssertEqual(channel.string(for: .channelSampleSkew), "0",
+                           "one of Channel Time Skew / Channel Sample Skew is required (each 1C)")
+        }
+        // Channel Sensitivity present => Correction Factor and Baseline are required (1C)
+        XCTAssertEqual(channels[0].string(for: .channelSensitivity), "0.001")
+        XCTAssertEqual(channels[0].string(for: .channelSensitivityCorrectionFactor), "1")
+        XCTAssertEqual(channels[0].string(for: .channelBaseline), "0")
+        XCTAssertNil(channels[1].string(for: .channelSensitivityCorrectionFactor))
+
+        // And the parser reads Bits Stored from the Channel Definition Item
+        let parsed = try WaveformParser.parse(from: dataSet)
+        XCTAssertEqual(parsed.multiplexGroups[0].waveformBitsStored, 12)
+        XCTAssertEqual(parsed.multiplexGroups[0].originality, .original)
+        XCTAssertEqual(parsed.instanceNumber, 1)
+        XCTAssertNotNil(parsed.acquisitionDateTime)
+    }
+
+    func test_builder_throwsWithoutChannelSource() {
+        var samples = Data()
+        var v: Int16 = 1
+        samples.append(Data(bytes: &v, count: 2))
+        let builder = WaveformBuilder(waveformType: .generalECG, studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4")
+            .addMultiplexGroup(samplingFrequency: 500.0, channels: [WaveformChannel(channelLabel: "Lead I")], waveformData: samples)
+        XCTAssertThrowsError(try builder.build(), "Channel Source Sequence (003A,0208) is Type 1")
+    }
+
+    func test_builder_keepsExplicitIdentificationAttributes() throws {
+        var samples = Data()
+        var v: Int16 = 1
+        samples.append(Data(bytes: &v, count: 2))
+        let acquired = DICOMDateTime(year: 2026, month: 9, day: 29, hour: 8, minute: 30, second: 5)
+        let waveform = try WaveformBuilder(waveformType: .generalECG, studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4")
+            .setInstanceNumber(7)
+            .setContentDate(DICOMDate(year: 2026, month: 9, day: 29))
+            .setContentTime(DICOMTime(hour: 8, minute: 30, second: 5))
+            .setAcquisitionDateTime(acquired)
+            .addMultiplexGroup(samplingFrequency: 500.0, channels: [ecgChannel("Lead I")], waveformData: samples)
+            .build()
+        XCTAssertEqual(waveform.instanceNumber, 7)
+        XCTAssertEqual(waveform.acquisitionDateTime?.dicomString, acquired.dicomString)
+
+        let parsed = try WaveformParser.parse(from: waveform.toDataSet())
+        XCTAssertEqual(parsed.instanceNumber, 7)
+        XCTAssertEqual(parsed.contentDate?.dicomString, "20260929")
+        XCTAssertEqual(parsed.acquisitionDateTime?.dicomString, acquired.dicomString)
+    }
+
+    func test_referencedSamplePositions_writtenAndReadAsUL() throws {
+        // PS3.6 Table 6-1: (0040,A132) Referenced Sample Positions, VR UL, VM 1-n
+        var samples = Data()
+        var v: Int16 = 1
+        samples.append(Data(bytes: &v, count: 2))
+        let positions: [UInt32] = [1, 70000, 4_000_000_000]
+        let dataSet = try WaveformBuilder(waveformType: .generalECG, studyInstanceUID: "1.2.3", seriesInstanceUID: "1.2.3.4")
+            .addMultiplexGroup(samplingFrequency: 500.0, channels: [ecgChannel("Lead I")], waveformData: samples)
+            .addTextAnnotation(text: "QRS", temporalRange: .multipoint, samplePositions: positions)
+            .buildDataSet()
+
+        let item = try XCTUnwrap(dataSet.sequence(for: .waveformAnnotationSequence)?.first)
+        let element = try XCTUnwrap(item[.referencedSamplePositions])
+        XCTAssertEqual(element.vr, .UL)
+        XCTAssertEqual(element.valueData.count, positions.count * 4)
+
+        let parsed = try WaveformParser.parse(from: dataSet)
+        XCTAssertEqual(parsed.annotations.first?.referencedSamplePositions, positions,
+                       "values above 65535 survive only when read as 32-bit UL")
+    }
+
+    func test_referencedSamplePositions_legacyUSFallback() throws {
+        var dataSet = DataSet()
+        dataSet.setString(Waveform.generalECGStorageUID, for: .sopClassUID, vr: .UI)
+        dataSet.setString("1.2.3", for: .sopInstanceUID, vr: .UI)
+        dataSet.setString("1.2.3.4", for: .studyInstanceUID, vr: .UI)
+        dataSet.setString("1.2.3.4.5", for: .seriesInstanceUID, vr: .UI)
+        let legacy = SequenceItem(elements: [
+            DataElement.string(tag: .unformattedTextValue, vr: .ST, value: "R"),
+            DataElement.uint16s(tag: .referencedSamplePositions, values: [3, 9]),
+        ])
+        dataSet.setSequence([legacy], for: .waveformAnnotationSequence)
+        let parsed = try WaveformParser.parse(from: dataSet)
+        XCTAssertEqual(parsed.annotations.first?.referencedSamplePositions, [3, 9])
     }
 }

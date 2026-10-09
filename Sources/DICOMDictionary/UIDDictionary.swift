@@ -1,362 +1,62 @@
 /// Standard DICOM UID Dictionary
 ///
-/// Provides lookup for standard DICOM UIDs including Transfer Syntaxes and SOP Classes.
+/// Provides lookup for every UID registered in PS3.6 Table A-1: Transfer Syntaxes,
+/// SOP Classes, Meta SOP Classes, Well-known SOP Instances, Coding Schemes,
+/// Application Context Names, Service Classes, LDAP OIDs and the rest.
 /// Reference: DICOM PS3.6 2026a - Registry of DICOM unique identifiers (UIDs)
+///
+/// The entries themselves are in `UIDDictionaryEntries.swift`, generated from the
+/// PS3.6 DocBook by `Scripts/generate_uid_dictionary.py`.
+///
+/// NEMA-verified: 2026a, checked 2026-09-28 — lookup API only; the 465 registry rows
+/// are generated (see UIDDictionaryEntries.swift). The two entries in
+/// `unregisteredEntries` are the Fragmentable HEVC syntaxes that DICOMCore supports
+/// by decision (DICOMCore report P2); no PS3.6 edition (2023b, 2026a, 2026d checked)
+/// registers them, and they carry `registered: false`.
 public struct UIDDictionary {
-    
+    /// UIDs that DICOMKit supports but PS3.6 does not register. They are kept so
+    /// that a file written with them can still be named; `registered` is `false`.
+    public static let unregisteredEntries: [UIDEntry] = [
+        UIDEntry(uid: "1.2.840.10008.1.2.4.107.1",
+                 name: "Fragmentable HEVC/H.265 Main Profile / Level 5.1 (not registered in PS3.6)",
+                 keyword: "HEVCMP51F", type: .transferSyntax, registered: false),
+        UIDEntry(uid: "1.2.840.10008.1.2.4.108.1",
+                 name: "Fragmentable HEVC/H.265 Main 10 Profile / Level 5.1 (not registered in PS3.6)",
+                 keyword: "HEVCM10P51F", type: .transferSyntax, registered: false),
+    ]
+
     private static let entries: [String: UIDEntry] = {
-        var dict: [String: UIDEntry] = [:]
-        
-        // Transfer Syntax UIDs - Uncompressed
-        dict["1.2.840.10008.1.2"] = UIDEntry(
-            uid: "1.2.840.10008.1.2",
-            name: "Implicit VR Little Endian",
-            keyword: "ImplicitVRLittleEndian",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.1",
-            name: "Explicit VR Little Endian",
-            keyword: "ExplicitVRLittleEndian",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.1.99"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.1.99",
-            name: "Deflated Explicit VR Little Endian",
-            keyword: "DeflatedExplicitVRLittleEndian",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.2"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.2",
-            name: "Explicit VR Big Endian",
-            keyword: "ExplicitVRBigEndian",
-            type: .transferSyntax
-        )
-        
-        // Transfer Syntax UIDs - JPEG
-        dict["1.2.840.10008.1.2.4.50"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.50",
-            name: "JPEG Baseline (Process 1)",
-            keyword: "JPEGBaseline8Bit",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.51"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.51",
-            name: "JPEG Extended (Process 2 & 4)",
-            keyword: "JPEGExtended12Bit",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.57"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.57",
-            name: "JPEG Lossless, Non-Hierarchical (Process 14)",
-            keyword: "JPEGLossless",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.70"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.70",
-            name: "JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14, Selection Value 1)",
-            keyword: "JPEGLosslessSV1",
-            type: .transferSyntax
-        )
-        
-        // Transfer Syntax UIDs - JPEG 2000
-        dict["1.2.840.10008.1.2.4.90"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.90",
-            name: "JPEG 2000 Image Compression (Lossless Only)",
-            keyword: "JPEG2000Lossless",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.91"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.91",
-            name: "JPEG 2000 Image Compression",
-            keyword: "JPEG2000",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.92"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.92",
-            name: "JPEG 2000 Part 2 Multi-component Image Compression (Lossless Only)",
-            keyword: "JPEG2000Part2MultiComponentLossless",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.93"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.93",
-            name: "JPEG 2000 Part 2 Multi-component Image Compression",
-            keyword: "JPEG2000Part2MultiComponent",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.201"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.201",
-            name: "High-Throughput JPEG 2000 Image Compression (Lossless Only)",
-            keyword: "HTJ2KLossless",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.202"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.202",
-            name: "High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)",
-            keyword: "HTJ2KLosslessRPCL",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.203"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.203",
-            name: "High-Throughput JPEG 2000 Image Compression",
-            keyword: "HTJ2K",
-            type: .transferSyntax
-        )
-
-        // Transfer Syntax UIDs - RLE
-        dict["1.2.840.10008.1.2.5"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.5",
-            name: "RLE Lossless",
-            keyword: "RLELossless",
-            type: .transferSyntax
-        )
-        
-        // Transfer Syntax UIDs - Video
-        dict["1.2.840.10008.1.2.4.100"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.100",
-            name: "MPEG2 Main Profile / Main Level",
-            keyword: "MPEG2MPML",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.101"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.101",
-            name: "MPEG2 Main Profile / High Level",
-            keyword: "MPEG2MPHL",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.102"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.102",
-            name: "MPEG-4 AVC/H.264 High Profile / Level 4.1",
-            keyword: "MPEG4HP41",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.103"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.103",
-            name: "MPEG-4 AVC/H.264 BD-compatible High Profile / Level 4.1",
-            keyword: "MPEG4HP41BD",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.107"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.107",
-            name: "HEVC/H.265 Main Profile / Level 5.1",
-            keyword: "HEVCMP51",
-            type: .transferSyntax
-        )
-        
-        dict["1.2.840.10008.1.2.4.108"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.108",
-            name: "HEVC/H.265 Main 10 Profile / Level 5.1",
-            keyword: "HEVCM10P51",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.104"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.104",
-            name: "MPEG-4 AVC/H.264 High Profile / Level 4.2 For 2D Video",
-            keyword: "MPEG4HP422D",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.105"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.105",
-            name: "MPEG-4 AVC/H.264 High Profile / Level 4.2 For 3D Video",
-            keyword: "MPEG4HP423D",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.106"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.106",
-            name: "MPEG-4 AVC/H.264 Stereo High Profile / Level 4.2",
-            keyword: "MPEG4HP42STEREO",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.100.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.100.1",
-            name: "Fragmentable MPEG2 Main Profile / Main Level",
-            keyword: "MPEG2MPMLF",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.101.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.101.1",
-            name: "Fragmentable MPEG2 Main Profile / High Level",
-            keyword: "MPEG2MPHLF",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.102.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.102.1",
-            name: "Fragmentable MPEG-4 AVC/H.264 High Profile / Level 4.1",
-            keyword: "MPEG4HP41F",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.103.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.103.1",
-            name: "Fragmentable MPEG-4 AVC/H.264 BD-compatible High Profile / Level 4.1",
-            keyword: "MPEG4HP41BDF",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.104.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.104.1",
-            name: "Fragmentable MPEG-4 AVC/H.264 High Profile / Level 4.2 For 2D Video",
-            keyword: "MPEG4HP422DF",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.105.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.105.1",
-            name: "Fragmentable MPEG-4 AVC/H.264 High Profile / Level 4.2 For 3D Video",
-            keyword: "MPEG4HP423DF",
-            type: .transferSyntax
-        )
-
-        dict["1.2.840.10008.1.2.4.106.1"] = UIDEntry(
-            uid: "1.2.840.10008.1.2.4.106.1",
-            name: "Fragmentable MPEG-4 AVC/H.264 Stereo High Profile / Level 4.2",
-            keyword: "MPEG4HP42STEREOF",
-            type: .transferSyntax
-        )
-        
-        // Common SOP Class UIDs
-        dict["1.2.840.10008.5.1.4.1.1.2"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.2",
-            name: "CT Image Storage",
-            keyword: "CTImageStorage",
-            type: .sopClass
-        )
-        
-        dict["1.2.840.10008.5.1.4.1.1.4"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.4",
-            name: "MR Image Storage",
-            keyword: "MRImageStorage",
-            type: .sopClass
-        )
-        
-        dict["1.2.840.10008.5.1.4.1.1.7"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.7",
-            name: "Secondary Capture Image Storage",
-            keyword: "SecondaryCaptureImageStorage",
-            type: .sopClass
-        )
-        
-        dict["1.2.840.10008.5.1.4.1.1.1"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.1",
-            name: "Computed Radiography Image Storage",
-            keyword: "ComputedRadiographyImageStorage",
-            type: .sopClass
-        )
-        
-        dict["1.2.840.10008.5.1.4.1.1.6.1"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.6.1",
-            name: "Ultrasound Image Storage",
-            keyword: "UltrasoundImageStorage",
-            type: .sopClass
-        )
-        
-        dict["1.2.840.10008.5.1.4.1.1.128"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.128",
-            name: "Positron Emission Tomography Image Storage",
-            keyword: "PositronEmissionTomographyImageStorage",
-            type: .sopClass
-        )
-        
-        // Visible Light (still image) SOP Class UIDs
-        dict["1.2.840.10008.5.1.4.1.1.77.1.1"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.77.1.1",
-            name: "VL Endoscopic Image Storage",
-            keyword: "VLEndoscopicImageStorage",
-            type: .sopClass
-        )
-
-        dict["1.2.840.10008.5.1.4.1.1.77.1.2"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.77.1.2",
-            name: "VL Microscopic Image Storage",
-            keyword: "VLMicroscopicImageStorage",
-            type: .sopClass
-        )
-
-        dict["1.2.840.10008.5.1.4.1.1.77.1.3"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.77.1.3",
-            name: "VL Slide-Coordinates Microscopic Image Storage",
-            keyword: "VLSlideCoordinatesMicroscopicImageStorage",
-            type: .sopClass
-        )
-
-        dict["1.2.840.10008.5.1.4.1.1.77.1.4"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.77.1.4",
-            name: "VL Photographic Image Storage",
-            keyword: "VLPhotographicImageStorage",
-            type: .sopClass
-        )
-
-        // Video SOP Class UIDs
-        dict["1.2.840.10008.5.1.4.1.1.77.1.1.1"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.77.1.1.1",
-            name: "Video Endoscopic Image Storage",
-            keyword: "VideoEndoscopicImageStorage",
-            type: .sopClass
-        )
-        
-        dict["1.2.840.10008.5.1.4.1.1.77.1.2.1"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.77.1.2.1",
-            name: "Video Microscopic Image Storage",
-            keyword: "VideoMicroscopicImageStorage",
-            type: .sopClass
-        )
-        
-        dict["1.2.840.10008.5.1.4.1.1.77.1.4.1"] = UIDEntry(
-            uid: "1.2.840.10008.5.1.4.1.1.77.1.4.1",
-            name: "Video Photographic Image Storage",
-            keyword: "VideoPhotographicImageStorage",
-            type: .sopClass
-        )
-        
+        var dict = [String: UIDEntry](minimumCapacity: registryEntries.count + unregisteredEntries.count)
+        for entry in registryEntries { dict[entry.uid] = entry }
+        for entry in unregisteredEntries where dict[entry.uid] == nil { dict[entry.uid] = entry }
         return dict
     }()
-    
+
     /// Looks up a UID entry by UID value
     /// - Parameter uid: The UID to look up
     /// - Returns: The UID entry, or nil if not found
     public static func lookup(uid: String) -> UIDEntry? {
         return entries[uid]
     }
-    
+
     /// Looks up a UID entry by keyword
     /// - Parameter keyword: The keyword to look up
     /// - Returns: The UID entry, or nil if not found
     public static func lookup(keyword: String) -> UIDEntry? {
+        guard !keyword.isEmpty else { return nil }
         return entries.values.first { $0.keyword == keyword }
     }
-    
-    /// All registered UID entries
+
+    /// All UID entries (registered and unregistered), sorted by UID
     public static var allEntries: [UIDEntry] {
         return Array(entries.values).sorted { $0.uid < $1.uid }
     }
-    
+
     /// Transfer Syntax UIDs only
     public static var transferSyntaxes: [UIDEntry] {
         return entries.values.filter { $0.type == .transferSyntax }.sorted { $0.uid < $1.uid }
     }
-    
+
     /// SOP Class UIDs only
     public static var sopClasses: [UIDEntry] {
         return entries.values.filter { $0.type == .sopClass }.sorted { $0.uid < $1.uid }

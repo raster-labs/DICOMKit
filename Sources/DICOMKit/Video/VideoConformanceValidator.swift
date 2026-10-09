@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — profile, level and BD flag of every video transfer syntax diffed by Scripts/diff_kit.py against the PS3.6 2026a Table A-1 names; BD formats per PS3.5 Table 8-4; MPEG-2 level ceiling compared as a level_identification (smaller is higher: MP@ML rejects High / High 1440); container rejection cites PS3.5 8.2.7-8.2.11 (H.264/HEVC only, D177); MPEG2 MP@HL Rows/Columns 720x1280 or 1080x1920 and aspect_ratio_information 0011 per PS3.5 2026a 8.2.6, MP@H-14 not offered .101 (D226); MPEG2 frame rate / maximum Rows x Columns per PS3.5 2026a Table 8-1 (2 rows), Table 8-2 (4 frame rates), Table 8-3 (1080 rows at 25 / 30 only), diffed by Scripts/diff_kit.py mpeg2-frame-rates (D238)
 //
 // VideoConformanceValidator.swift
 // DICOMKit
@@ -74,17 +75,29 @@ public enum VideoConformanceViolation: Sendable, Hashable {
     /// The frame count is not positive.
     case invalidFrameCount(observed: Int)
 
+    /// MPEG2 Main Profile / High Level geometry outside PS3.5 2026a 8.2.6: "Rows (0028,0010)
+    /// shall be either 720 or 1080", "Columns (0028,0011) shall be 1280 if Rows is 720, or
+    /// shall be 1920 if Rows is 1080".
+    case mpeg2HighLevelGeometryNotPermitted(rows: Int, columns: Int)
+
+    /// MPEG2 Main Profile / High Level `aspect_ratio_information` other than 0011 (16:9),
+    /// PS3.5 2026a 8.2.6: "The value of MPEG2 aspect_ratio_information shall be 0011".
+    case mpeg2AspectRatioNotPermitted(observed: Int)
+
+    /// MPEG2 frame rate outside PS3.5 2026a Table 8-1 (Main Level: 25, or 30 / 29.97) or
+    /// Table 8-2 (High Level: 25, 30 / 29.97, 50, 60 / 59.94), or, at High Level with
+    /// Rows 1080, other than 25 or 30 / 29.97 (8.2.6 Note 4, Table 8-3).
+    /// `maximumLevel` is "Main" or "High".
+    case mpeg2FrameRateNotPermitted(frameRate: Double, rows: Int, columns: Int, maximumLevel: String)
+
+    /// MPEG2 Main Profile / Main Level Rows / Columns above the maximum PS3.5 2026a
+    /// Table 8-1 gives for the frame rate (525-line NTSC 30: 480 x 720; 625-line PAL 25: 576 x 720).
+    case mpeg2MainLevelGeometryExceedsMaximum(
+        rows: Int, columns: Int, frameRate: Double, maximumRows: Int, maximumColumns: Int)
+
     /// The resolution and frame rate combination is not in the BD-compatible
     /// table of PS3.5 Table 8-4.
     case notBluRayCompatible(width: Int, height: Int, frameRate: Double, isProgressive: Bool)
-
-    /// An MPEG-2 picture size or frame rate outside PS3.5 Table 8-1 (Main
-    /// Level) or 8.2.6 / Table 8-2 (High Level).
-    case mpeg2FormatNotPermitted(detail: String, transferSyntax: String, isHighLevel: Bool)
-
-    /// MPEG-2 Main Profile / High Level with a display aspect ratio other than
-    /// 16:9 (`aspect_ratio_information` 0011, PS3.5 8.2.6).
-    case mpeg2AspectRatioNotPermitted(observed: Int)
 
     /// The "For 3D Video" transfer syntax without a frame packing arrangement
     /// SEI (PS3.5 Table 8-8).
@@ -167,14 +180,40 @@ public enum VideoConformanceViolation: Sendable, Hashable {
                 \(width)x\(height) at \(String(format: "%.3f", frameRate)) fps \
                 (\(scan)) is not in the BD-compatible table of PS3.5 Table 8-4
                 """
-        case let .mpeg2FormatNotPermitted(detail, transferSyntax, isHighLevel):
-            let source = isHighLevel ? "PS3.5 8.2.6 and Table 8-2" : "PS3.5 Table 8-1"
-            return "\(detail), which transfer syntax \(transferSyntax) does not permit (\(source))"
-        case let .mpeg2AspectRatioNotPermitted(observed):
+        case let .mpeg2HighLevelGeometryNotPermitted(rows, columns):
             return """
-                aspect_ratio_information \(observed) (\(Self.mpeg2AspectName(observed))) \
-                is not permitted; MPEG-2 Main Profile / High Level requires 0011 \
-                (16:9) (PS3.5 8.2.6)
+                \(columns)x\(rows) is not permitted for MPEG2 Main Profile / High Level: Rows \
+                shall be 720 or 1080, Columns 1280 if Rows is 720 or 1920 if Rows is 1080 \
+                (PS3.5 8.2.6)
+                """
+        case let .mpeg2AspectRatioNotPermitted(observed):
+            let bits = String(observed, radix: 2)
+            return """
+                MPEG2 aspect_ratio_information is \(String(repeating: "0", count: max(0, 4 - bits.count)) + bits); \
+                MPEG2 Main Profile / High Level requires 0011, a 16:9 display aspect ratio (PS3.5 8.2.6)
+                """
+        case let .mpeg2FrameRateNotPermitted(frameRate, rows, columns, maximumLevel):
+            let rate = String(format: "%.3f", frameRate)
+            if maximumLevel == "High" {
+                if rows == 1080 {
+                    return """
+                        \(columns)x\(rows) at \(rate) fps is not permitted for MPEG2 Main Profile / High Level: \
+                        at 1080 rows the frame rate shall be 25 or 30 (29.97) (PS3.5 8.2.6, Table 8-3)
+                        """
+                }
+                return """
+                    \(rate) fps is not permitted for MPEG2 Main Profile / High Level: the frame rate \
+                    shall be 25, 30 (29.97), 50 or 60 (59.94) (PS3.5 Table 8-2)
+                    """
+            }
+            return """
+                \(rate) fps is not permitted for MPEG2 Main Profile / Main Level: the frame rate \
+                shall be 30 (29.97, 525-line NTSC) or 25 (625-line PAL) (PS3.5 Table 8-1)
+                """
+        case let .mpeg2MainLevelGeometryExceedsMaximum(rows, columns, frameRate, maximumRows, maximumColumns):
+            return """
+                \(columns)x\(rows) at \(String(format: "%.3f", frameRate)) fps exceeds the MPEG2 Main Profile / \
+                Main Level maximum of \(maximumColumns)x\(maximumRows) for that frame rate (PS3.5 Table 8-1)
                 """
         case let .framePackingRequired(transferSyntax):
             return """
@@ -197,9 +236,9 @@ public enum VideoConformanceViolation: Sendable, Hashable {
                 """
         case let .containerNotPermitted(observed):
             return """
-                \(observed) is not a permitted container; the video bit stream \
-                shall be in an MPEG-2 Transport Stream or MP4 container \
-                (PS3.5 8.2.7)
+                \(observed) is not a permitted container; an H.264 or HEVC video \
+                bit stream shall be in an MPEG-2 Transport Stream or MP4 container \
+                (PS3.5 8.2.7-8.2.11)
                 """
         }
     }
@@ -251,17 +290,6 @@ public enum VideoConformanceViolation: Sendable, Hashable {
                 Use transfer syntax 1.2.840.10008.1.2.4.102 (H.264 HP@4.1) or \
                 1.2.840.10008.1.2.4.104 (HP@4.2) instead of the BD-compatible UID.
                 """
-        case let .mpeg2FormatNotPermitted(_, _, isHighLevel):
-            return Remedy.lines([
-                isHighLevel
-                    ? "Re-encode at 1920x1080 or 1280x720, 16:9, 25-60 fps:"
-                    : "Re-encode within 720x576 at 25 fps or 720x480 at 30 fps:",
-                isHighLevel ? Remedy.mpeg2HighLevel : Remedy.mpeg2MainLevel,
-                "or convert to H.264, which has no fixed picture sizes:",
-                Remedy.h264(level: "4.2", filter: Remedy.fitWithin1080p),
-            ])
-        case .mpeg2AspectRatioNotPermitted:
-            return Remedy.mpeg2HighLevel
         case .framePackingRequired:
             return """
                 Use transfer syntax 1.2.840.10008.1.2.4.104 for 2D video, or encode the \
@@ -282,6 +310,22 @@ public enum VideoConformanceViolation: Sendable, Hashable {
             return "Use the fragmentable transfer syntax: --transfer-syntax \(alternative)"
         case .containerNotPermitted:
             return "ffmpeg -i input.mov -map 0:v:0 -map '0:a?' -c copy output.mp4"
+        case .mpeg2HighLevelGeometryNotPermitted, .mpeg2AspectRatioNotPermitted:
+            return """
+                ffmpeg -i input -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1" \
+                -aspect 16:9 -c:v mpeg2video -profile:v main -level:v high fixed.mpg
+                """
+        case let .mpeg2FrameRateNotPermitted(_, rows, _, maximumLevel):
+            if maximumLevel == "High" {
+                let rate = rows == 1080 ? "25" : "50"
+                return "ffmpeg -i input -r \(rate) -aspect 16:9 -c:v mpeg2video -profile:v main -level:v high fixed.mpg"
+            }
+            return "ffmpeg -i input -r 25 -vf scale=720:576 -c:v mpeg2video -profile:v main -level:v main fixed.mpg"
+        case .mpeg2MainLevelGeometryExceedsMaximum:
+            return """
+                ffmpeg -i input -vf "scale=720:576:force_original_aspect_ratio=decrease,pad=720:576:(ow-iw)/2:(oh-ih)/2" \
+                -r 25 -c:v mpeg2video -profile:v main -level:v main fixed.mpg
+                """
         case .codecNotSupported, .codecMismatch, .dimensionMismatch, .invalidFrameCount:
             return nil
         }
@@ -542,6 +586,70 @@ public enum VideoConformanceValidator {
         }
     }
 
+    // MARK: - MPEG2 Frame Rates (PS3.5 2026a Tables 8-1, 8-2, 8-3)
+
+    /// A row of PS3.5 2026a Table 8-1 "MPEG2 Main Profile / Main Level Image Transfer Syntax
+    /// Rows and Columns Attributes".
+    public struct MPEG2MainLevelFormat: Sendable, Equatable {
+        public let videoType: String
+        /// The nominal frame rate; 30 also admits 30/1.001 (Table 8-1 Note 4).
+        public let frameRate: Double
+        public let maximumRows: Int
+        public let maximumColumns: Int
+    }
+
+    /// PS3.5 2026a Table 8-1 (checked by Scripts/diff_kit.py, check "mpeg2-frame-rates").
+    public static let mpeg2MainLevelFormats: [MPEG2MainLevelFormat] = [
+        MPEG2MainLevelFormat(videoType: "525-line NTSC", frameRate: 30, maximumRows: 480, maximumColumns: 720),
+        MPEG2MainLevelFormat(videoType: "625-line PAL", frameRate: 25, maximumRows: 576, maximumColumns: 720),
+    ]
+
+    /// PS3.5 2026a Table 8-2 "MPEG2 Main Profile / High Level Image Transfer Syntax Frame Rate
+    /// Attributes": video type and nominal frame rate; 30 and 60 also admit 30/1.001 and
+    /// 60/1.001 (8.2.6 Note 2).
+    public static let mpeg2HighLevelFrameRates: [(videoType: String, frameRate: Double)] = [
+        (videoType: "30 Hz HD", frameRate: 30),
+        (videoType: "25 Hz HD", frameRate: 25),
+        (videoType: "60 Hz HD", frameRate: 60),
+        (videoType: "50 Hz HD", frameRate: 50),
+    ]
+
+    /// Nominal frame rates PS3.5 2026a Table 8-3 lists for Rows 1080 / Columns 1920 (progressive
+    /// or interlaced); 8.2.6 Note 4: "Frame rates of 50 Hz and 60 Hz (progressive) at the maximum
+    /// resolution of 1080 by 1920 are not supported by Main Profile / High Level".
+    public static let mpeg2HighLevel1080FrameRates: [Double] = [25, 30]
+
+    /// Whether an observed frame rate is the nominal one, or 1/1.001 of a nominal 30 or 60
+    /// (PS3.5 2026a 8.2.5 Note 4, 8.2.6 Note 2).
+    static func mpeg2FrameRate(_ observed: Double, matches nominal: Double) -> Bool {
+        if abs(observed - nominal) < 0.01 { return true }
+        return (nominal == 30 || nominal == 60) && abs(observed - nominal / 1.001) < 0.01
+    }
+
+    /// The Table 8-1 / 8-2 / 8-3 violations of an MPEG2 stream, or none when the frame rate is
+    /// unknown. `highLevel` selects MP@HL (Tables 8-2, 8-3) over MP@ML (Table 8-1).
+    static func mpeg2FrameRateViolations(
+        frameRate: Double?, rows: Int, columns: Int, highLevel: Bool
+    ) -> [VideoConformanceViolation] {
+        guard let rate = frameRate, rate > 0 else { return [] }
+        if highLevel {
+            let permitted = rows == 1080
+                ? mpeg2HighLevel1080FrameRates
+                : mpeg2HighLevelFrameRates.map(\.frameRate)
+            if permitted.contains(where: { mpeg2FrameRate(rate, matches: $0) }) { return [] }
+            return [.mpeg2FrameRateNotPermitted(frameRate: rate, rows: rows, columns: columns, maximumLevel: "High")]
+        }
+        guard let format = mpeg2MainLevelFormats.first(where: { mpeg2FrameRate(rate, matches: $0.frameRate) }) else {
+            return [.mpeg2FrameRateNotPermitted(frameRate: rate, rows: rows, columns: columns, maximumLevel: "Main")]
+        }
+        if rows > format.maximumRows || columns > format.maximumColumns {
+            return [.mpeg2MainLevelGeometryExceedsMaximum(
+                rows: rows, columns: columns, frameRate: rate,
+                maximumRows: format.maximumRows, maximumColumns: format.maximumColumns)]
+        }
+        return []
+    }
+
     // MARK: - Validation
 
     /// The largest fragment PS3.5 allows: an Item's length is a 32-bit value and
@@ -603,7 +711,18 @@ public enum VideoConformanceValidator {
         // level - what the stream actually codes must fit the ceiling too.
         switch stream.codec {
         case .mpeg2:
-            violations += mpeg2Violations(stream, constraints: constraints, transferSyntax: transferSyntax)
+            // MPEG-2 codes levels as descending identifiers (ISO/IEC 13818-2 Table 8-11: High 4,
+            // High 1440 6, Main 8, Low 10), so a higher level is a *smaller* identifier and the
+            // comparison inverts. Rows, Columns, frame rate and aspect ratio are checked below
+            // against PS3.5 2026a Tables 8-1 to 8-3.
+            if stream.levelTimesTen != 0, stream.levelTimesTen < constraints.maximumLevelTimesTen {
+                violations.append(.levelExceedsMaximum(
+                    observed: VideoStreamInfo.mpeg2LevelName(stream.levelTimesTen),
+                    maximum: VideoStreamInfo.mpeg2LevelName(constraints.maximumLevelTimesTen),
+                    codec: .mpeg2,
+                    pictureFitsMaximum: false
+                ))
+            }
         case .h264, .h265:
             let excesses = VideoLevelLimits.excesses(
                 of: stream, levelTimesTen: constraints.maximumLevelTimesTen)
@@ -662,6 +781,32 @@ public enum VideoConformanceValidator {
             ))
         }
 
+        // MPEG2 MP@HL (PS3.5 2026a 8.2.6): Rows 720 with Columns 1280, or Rows 1080 with
+        // Columns 1920, and aspect_ratio_information 0011 (16:9). A Main Level stream offered
+        // under .101 passes the level ceiling (a decoder of a higher level decodes it) but
+        // not this geometry rule.
+        if stream.codec == .mpeg2, constraints.maximumLevelTimesTen == 4 {
+            let rows = declaredRows ?? stream.height
+            let columns = declaredColumns ?? stream.width
+            if !((rows == 720 && columns == 1280) || (rows == 1080 && columns == 1920)) {
+                violations.append(.mpeg2HighLevelGeometryNotPermitted(rows: rows, columns: columns))
+            }
+            if let aspect = stream.mpeg2AspectRatioInformation, aspect != 0b0011 {
+                violations.append(.mpeg2AspectRatioNotPermitted(observed: aspect))
+            }
+        }
+
+        // MPEG2 frame rate / geometry (PS3.5 2026a Table 8-1 for MP@ML; Table 8-2, 8.2.6
+        // Note 4 and Table 8-3 for MP@HL): "Rows, Columns, Cine Rate and Frame Time ... shall be
+        // consistent with the limitations of Main Profile / Main Level" / "High Level".
+        if stream.codec == .mpeg2 {
+            violations += mpeg2FrameRateViolations(
+                frameRate: stream.frameRate,
+                rows: declaredRows ?? stream.height,
+                columns: declaredColumns ?? stream.width,
+                highLevel: constraints.maximumLevelTimesTen == 4)
+        }
+
         // Frame count must be positive.
         if let frames = numberOfFrames, frames < 1 {
             violations.append(.invalidFrameCount(observed: frames))
@@ -700,9 +845,9 @@ public enum VideoConformanceValidator {
         return VideoConformanceResult(violations: violations)
     }
 
-    /// Validates everything PS3.5 constrains about an input: the container, the
-    /// video bit stream, any audio interleaved with it, and whether the payload
-    /// fits the fragmentation the transfer syntax allows.
+    /// Validates what PS3.5 constrains about an input: the container, the video bit
+    /// stream, any audio interleaved with it (PS3.5 8.2.5, 8.2.12), and whether the
+    /// payload fits the fragmentation the transfer syntax allows.
     ///
     /// - Parameters:
     ///   - probe: The probed input.
@@ -715,7 +860,7 @@ public enum VideoConformanceValidator {
     ) -> VideoConformanceResult {
         var violations: [VideoConformanceViolation] = []
 
-        if !probe.container.isPermittedByDICOM {
+        if !probe.container.isPermittedByDICOM(for: probe.stream.codec) {
             violations.append(.containerNotPermitted(observed: probe.container.displayName))
         }
 
@@ -725,14 +870,18 @@ public enum VideoConformanceValidator {
             numberOfFrames: probe.frameCount
         ).violations
 
-        for (index, audio) in probe.audioTracks.enumerated() {
-            for problem in VideoAudioRules.problems(
-                with: audio, videoCodec: probe.stream.codec, container: probe.container
-            ) {
+        // Audio interleaved with the video "shall follow the constraints" of PS3.5 8.2.12 (AVC,
+        // HEVC) or 8.2.5 (MPEG-2), so a track known to break them makes the object non-conformant.
+        // Only known violations count: a value the container does not state is reported as "not
+        // checked" by `validateAudio`, never as a violation.
+        let audio = validateAudio(
+            tracks: probe.audioTracks, container: probe.container, transferSyntax: transferSyntax)
+        for check in audio.tracks {
+            for violation in check.violations {
                 violations.append(.audioNotPermitted(
-                    track: index + 1,
-                    summary: audio.summary,
-                    problem: problem,
+                    track: check.trackNumber,
+                    summary: check.track.summary,
+                    problem: violation.message,
                     videoCodec: probe.stream.codec
                 ))
             }
@@ -748,67 +897,6 @@ public enum VideoConformanceValidator {
         }
 
         return VideoConformanceResult(violations: violations)
-    }
-
-    /// The MPEG-2 rules: level ceiling, then the picture size, frame rate and
-    /// aspect ratio tables of PS3.5 8.2.5 and 8.2.6.
-    private static func mpeg2Violations(
-        _ stream: VideoStreamInfo,
-        constraints: Constraints,
-        transferSyntax: TransferSyntax
-    ) -> [VideoConformanceViolation] {
-        var violations: [VideoConformanceViolation] = []
-
-        // Level identifiers *descend* as levels rise (High is 4, Main is 8, Low
-        // is 10), so a numerically smaller identifier is the higher level.
-        let level = stream.levelTimesTen
-        if level != 0, level < constraints.maximumLevelTimesTen {
-            violations.append(.levelExceedsMaximum(
-                observed: mpeg2LevelName(level),
-                maximum: mpeg2LevelName(constraints.maximumLevelTimesTen),
-                codec: .mpeg2,
-                pictureFitsMaximum: false
-            ))
-        }
-
-        let width = stream.width
-        let height = stream.height
-        let rate = stream.frameRate
-        let rateText = rate.map { String(format: "%.3f", $0) + " fps" } ?? "an undeclared frame rate"
-        let isHighLevel = constraints.maximumLevelTimesTen == 4
-        func reject(_ detail: String) {
-            violations.append(.mpeg2FormatNotPermitted(
-                detail: detail, transferSyntax: transferSyntax.uid, isHighLevel: isHighLevel))
-        }
-
-        if isHighLevel {
-            // Rows 720 or 1080, with Columns 1280 or 1920 to match.
-            let geometryOK = (height == 720 && width == 1280) || (height == 1080 && width == 1920)
-            if !geometryOK {
-                reject("\(width)x\(height) is neither 1280x720 nor 1920x1080")
-            }
-            if let rate = rate {
-                let permitted: [Double] = [25, 30000.0 / 1001.0, 30, 50, 60000.0 / 1001.0, 60]
-                if !permitted.contains(where: { abs($0 - rate) < 0.01 }) {
-                    reject("a frame rate of \(rateText) is not 25, 29.97, 30, 50, 59.94 or 60")
-                } else if height == 1080, stream.isProgressive, rate > 30.01 {
-                    reject("1920x1080 progressive at \(rateText) exceeds Main Profile / High Level")
-                }
-            }
-            if let aspect = stream.mpeg2AspectRatioInformation, aspect != 3 {
-                violations.append(.mpeg2AspectRatioNotPermitted(observed: aspect))
-            }
-        } else {
-            // Table 8-1: 720 columns, and 576 rows at 25 Hz or 480 at 30 Hz.
-            let maxRows = (rate ?? 25) > 25.01 ? 480 : 576
-            if width > 720 || height > maxRows {
-                reject("\(width)x\(height) at \(rateText) exceeds 720x\(maxRows)")
-            }
-            if let rate = rate, rate > 30.01 {
-                reject("a frame rate of \(rateText) exceeds 30 fps")
-            }
-        }
-        return violations
     }
 
     // MARK: - Transfer Syntax Selection
@@ -903,14 +991,4 @@ public enum VideoConformanceValidator {
         "\(levelTimesTen / 10).\(levelTimesTen % 10)"
     }
 
-    /// Names an MPEG-2 level identifier, per ITU-T H.262 Table 8-11.
-    private static func mpeg2LevelName(_ identifier: Int) -> String {
-        switch identifier {
-        case 10: return "Low"
-        case 8: return "Main"
-        case 6: return "High 1440"
-        case 4: return "High"
-        default: return "level \(identifier)"
-        }
-    }
 }

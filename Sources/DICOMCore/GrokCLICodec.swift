@@ -7,6 +7,7 @@
 //
 // Install: brew install grok-image-compression
 // Probed paths: $PATH, /opt/homebrew/bin/grk_decompress, /usr/local/bin/grk_decompress.
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (external Grok CLI wrapper). C1 classification confirmed.
 
 #if os(macOS)
 import Foundation

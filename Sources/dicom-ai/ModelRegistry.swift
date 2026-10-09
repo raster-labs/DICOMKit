@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (local CoreML model registry: names, versions, paths, tags in a JSON file)
 import Foundation
 
 #if canImport(CoreML)

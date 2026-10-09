@@ -309,8 +309,8 @@ final class DICOMDcmdirTests: XCTestCase {
     func testDirectoryProfileTypes() throws {
         let profiles: [DICOMDIRProfile] = [
             .standardGeneralCD,
-            .standardGeneralDVD,
-            .standardGeneralUSB
+            .standardGeneralDVDJPEG,   // STD-GEN-DVD-JPEG, PS3.11 2026a Table H.1-1
+            .standardGeneralUSBJPEG    // STD-GEN-USB-JPEG, PS3.11 2026a Table J.1-1
         ]
         
         for profile in profiles {

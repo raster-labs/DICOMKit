@@ -293,4 +293,212 @@ final class RTDoseTests: XCTestCase {
         XCTAssertEqual(dose.dvhData[1].referencedROINumber, 2)
         XCTAssertEqual(dose.dvhData[1].meanDose, 45.0)
     }
+
+    // MARK: - 2026a term enums (PS3.3 Tables C.8-39, C.8-40)
+
+    func test_doseUnits_rawValues() {
+        XCTAssertEqual(DoseUnits.allCases.map(\.rawValue), ["GY", "RELATIVE", "CODED"])
+    }
+
+    func test_doseType_rawValues() {
+        XCTAssertEqual(DoseType.allCases.map(\.rawValue), ["PHYSICAL", "EFFECTIVE", "ERROR", "CODED"])
+    }
+
+    func test_doseSummationType_rawValues() {
+        XCTAssertEqual(DoseSummationType.allCases.map(\.rawValue), [
+            "PLAN", "MULTI_PLAN", "PLAN_OVERVIEW", "FRACTION", "BEAM", "BRACHY",
+            "FRACTION_SESSION", "BEAM_SESSION", "BRACHY_SESSION", "CONTROL_POINT", "RECORD"
+        ])
+    }
+
+    func test_tissueHeterogeneityCorrection_rawValues() {
+        XCTAssertEqual(TissueHeterogeneityCorrection.allCases.map(\.rawValue), ["IMAGE", "ROI_OVERRIDE", "WATER"])
+    }
+
+    func test_dvhType_and_volumeUnits_rawValues() {
+        XCTAssertEqual(DVHType.allCases.map(\.rawValue), ["DIFFERENTIAL", "CUMULATIVE", "NATURAL"])
+        XCTAssertEqual(DVHVolumeUnits.allCases.map(\.rawValue), ["CM3", "PERCENT", "PER_U"])
+    }
+
+    func test_rtDose_typedAccessors_deriveFromStrings() {
+        let dose = RTDose(
+            sopInstanceUID: "1.2.3",
+            summationType: "BEAM_SESSION",
+            type: "EFFECTIVE",
+            units: "RELATIVE",
+            rows: 1, columns: 1, numberOfFrames: 1,
+            doseGridScaling: 1.0,
+            tissueHeterogeneityCorrection: "WATER"
+        )
+        XCTAssertEqual(dose.doseSummationType, .beamSession)
+        XCTAssertEqual(dose.doseType, .effective)
+        XCTAssertEqual(dose.doseUnits, .relative)
+        XCTAssertEqual(dose.tissueHeterogeneityCorrections, [.water])
+
+        let empty = RTDose(sopInstanceUID: "1.2.3", rows: 1, columns: 1, numberOfFrames: 1, doseGridScaling: 1.0)
+        XCTAssertNil(empty.doseSummationType)
+        XCTAssertNil(empty.doseType)
+        XCTAssertNil(empty.doseUnits)
+        XCTAssertEqual(empty.tissueHeterogeneityCorrections, [])
+    }
+
+    func test_dvhData_typedAccessors() {
+        let dvh = DVHData(type: "DIFFERENTIAL", doseUnits: "GY", doseType: "ERROR", volumeUnits: "CM3")
+        XCTAssertEqual(dvh.dvhType, .differential)
+        XCTAssertEqual(dvh.doseUnitsTerm, .gray)
+        XCTAssertEqual(dvh.doseTypeTerm, .error)
+        XCTAssertEqual(dvh.dvhVolumeUnits, .cubicCentimeters)
+        XCTAssertNil(DVHData(type: "HISTOGRAM").dvhType)
+    }
+}
+
+// MARK: - RTDoseParserTests
+//
+// Round-trip tests for the RT Dose Module (PS3.3 2026a Table C.8-39) and RT DVH Module
+// (Table C.8-40) terms through RTDoseParser. Lives in this file because the DICOMKitTests
+// target in Package.swift enumerates its RadiationTherapy sources explicitly.
+final class RTDoseParserTests: XCTestCase {
+
+    // MARK: - Helpers
+
+    private func cs(_ tag: Tag, _ value: String) -> DataElement {
+        DataElement(tag: tag, vr: .CS, length: UInt32(value.count), valueData: value.data(using: .ascii)!)
+    }
+
+    private func ds(_ tag: Tag, _ value: String) -> DataElement {
+        DataElement(tag: tag, vr: .DS, length: UInt32(value.count), valueData: value.data(using: .ascii)!)
+    }
+
+    private func integerString(_ tag: Tag, _ value: Int) -> DataElement {
+        let s = String(value)
+        return DataElement(tag: tag, vr: .IS, length: UInt32(s.count), valueData: s.data(using: .ascii)!)
+    }
+
+    private func us(_ tag: Tag, _ value: UInt16) -> DataElement {
+        DataElement(tag: tag, vr: .US, length: 2, valueData: Data([UInt8(value & 0xFF), UInt8(value >> 8)]))
+    }
+
+    private func sequence(_ tag: Tag, _ items: [SequenceItem]) -> DataElement {
+        DataElement(tag: tag, vr: .SQ, length: 0xFFFFFFFF, valueData: Data(), sequenceItems: items)
+    }
+
+    /// Minimal RT Dose: SOP UIDs, Rows, Columns, Dose Grid Scaling plus the given term values.
+    private func makeDose(units: String, type: String, summation: String,
+                          heterogeneity: String? = nil, dvhItems: [SequenceItem] = []) -> [Tag: DataElement] {
+        var elements: [Tag: DataElement] = [:]
+        elements[.sopInstanceUID] = DataElement(tag: .sopInstanceUID, vr: .UI, length: 9, valueData: "1.2.3.4.5".data(using: .ascii)!)
+        elements[.sopClassUID] = DataElement(tag: .sopClassUID, vr: .UI, length: 29, valueData: "1.2.840.10008.5.1.4.1.1.481.2".data(using: .ascii)!)
+        elements[.rows] = us(.rows, 4)
+        elements[.columns] = us(.columns, 4)
+        elements[.doseGridScaling] = ds(.doseGridScaling, "0.001")
+        elements[.doseUnits] = cs(.doseUnits, units)
+        elements[.doseType] = cs(.doseType, type)
+        elements[.doseSummationType] = cs(.doseSummationType, summation)
+        if let heterogeneity {
+            elements[.tissueHeterogeneityCorrection] = cs(.tissueHeterogeneityCorrection, heterogeneity)
+        }
+        if !dvhItems.isEmpty {
+            elements[.dvhSequence] = sequence(.dvhSequence, dvhItems)
+        }
+        return elements
+    }
+
+    // MARK: - RT Dose Module terms (Table C.8-39)
+
+    func test_parse_doseTerms_GY_PHYSICAL_PLAN() throws {
+        let dataSet = DataSet(elements: Array(makeDose(units: "GY", type: "PHYSICAL", summation: "PLAN").values))
+        let dose = try RTDoseParser.parse(from: dataSet)
+
+        XCTAssertEqual(dose.units, "GY")
+        XCTAssertEqual(dose.doseUnits, .gray)
+        XCTAssertEqual(dose.type, "PHYSICAL")
+        XCTAssertEqual(dose.doseType, .physical)
+        XCTAssertEqual(dose.summationType, "PLAN")
+        XCTAssertEqual(dose.doseSummationType, .plan)
+    }
+
+    func test_parse_doseTerms_CODED_ERROR_PLAN_OVERVIEW() throws {
+        let dataSet = DataSet(elements: Array(makeDose(units: "CODED", type: "ERROR", summation: "PLAN_OVERVIEW").values))
+        let dose = try RTDoseParser.parse(from: dataSet)
+
+        XCTAssertEqual(dose.doseUnits, .coded)
+        XCTAssertEqual(dose.doseType, .error)
+        XCTAssertEqual(dose.doseSummationType, .planOverview)
+    }
+
+    /// Every Dose Summation Type Defined Term of Table C.8-39 round-trips through the parser.
+    func test_parse_allDoseSummationTypes() throws {
+        for term in DoseSummationType.allCases {
+            let dataSet = DataSet(elements: Array(makeDose(units: "RELATIVE", type: "EFFECTIVE", summation: term.rawValue).values))
+            let dose = try RTDoseParser.parse(from: dataSet)
+            XCTAssertEqual(dose.doseSummationType, term, term.rawValue)
+            XCTAssertEqual(dose.doseUnits, .relative)
+            XCTAssertEqual(dose.doseType, .effective)
+        }
+    }
+
+    /// Non-standard strings are kept verbatim; the typed accessors return nil.
+    func test_parse_nonStandardDoseTerms() throws {
+        let dataSet = DataSet(elements: Array(makeDose(units: "CGY", type: "BIOLOGICAL", summation: "SUM").values))
+        let dose = try RTDoseParser.parse(from: dataSet)
+
+        XCTAssertEqual(dose.units, "CGY")
+        XCTAssertNil(dose.doseUnits)
+        XCTAssertEqual(dose.type, "BIOLOGICAL")
+        XCTAssertNil(dose.doseType)
+        XCTAssertEqual(dose.summationType, "SUM")
+        XCTAssertNil(dose.doseSummationType)
+    }
+
+    /// Tissue Heterogeneity Correction (3004,0014) is multi-valued (VM 1-3).
+    func test_parse_tissueHeterogeneityCorrection_multiValued() throws {
+        let dataSet = DataSet(elements: Array(makeDose(units: "GY", type: "PHYSICAL", summation: "BEAM",
+                                                       heterogeneity: "IMAGE\\ROI_OVERRIDE").values))
+        let dose = try RTDoseParser.parse(from: dataSet)
+
+        XCTAssertEqual(dose.tissueHeterogeneityCorrection, "IMAGE\\ROI_OVERRIDE")
+        XCTAssertEqual(dose.tissueHeterogeneityCorrections, [.image, .roiOverride])
+    }
+
+    // MARK: - RT DVH Module terms (Table C.8-40)
+
+    func test_parse_dvhSequence_terms() throws {
+        var dvh: [Tag: DataElement] = [:]
+        dvh[.dvhType] = cs(.dvhType, "CUMULATIVE")
+        dvh[.doseUnits] = cs(.doseUnits, "GY")
+        dvh[.doseType] = cs(.doseType, "PHYSICAL")
+        // DVH Volume Units (3004,0054) has no Tag constant in DICOMCore yet; the parser reads it by number
+        dvh[Tag(group: 0x3004, element: 0x0054)] = cs(Tag(group: 0x3004, element: 0x0054), "PER_U")
+        dvh[.dvhData] = ds(.dvhData, "0\\100\\1\\50\\2\\0")
+
+        let dataSet = DataSet(elements: Array(makeDose(units: "GY", type: "PHYSICAL", summation: "PLAN",
+                                                       dvhItems: [SequenceItem(elements: dvh)]).values))
+        let dose = try RTDoseParser.parse(from: dataSet)
+
+        XCTAssertEqual(dose.dvhData.count, 1)
+        let parsed = dose.dvhData[0]
+        XCTAssertEqual(parsed.type, "CUMULATIVE")
+        XCTAssertEqual(parsed.dvhType, .cumulative)
+        XCTAssertEqual(parsed.doseUnitsTerm, .gray)
+        XCTAssertEqual(parsed.doseTypeTerm, .physical)
+        XCTAssertEqual(parsed.volumeUnits, "PER_U")
+        XCTAssertEqual(parsed.dvhVolumeUnits, .perU)
+        XCTAssertEqual(parsed.data.count, 3)
+        XCTAssertEqual(parsed.data[1].dose, 1)
+        XCTAssertEqual(parsed.data[1].volume, 50)
+    }
+
+    func test_parse_dvhSequence_allTypesAndVolumeUnits() throws {
+        let volumeTag = Tag(group: 0x3004, element: 0x0054)
+        for (dvhType, volumeUnits) in zip(DVHType.allCases, DVHVolumeUnits.allCases) {
+            var dvh: [Tag: DataElement] = [:]
+            dvh[.dvhType] = cs(.dvhType, dvhType.rawValue)
+            dvh[volumeTag] = cs(volumeTag, volumeUnits.rawValue)
+            let dataSet = DataSet(elements: Array(makeDose(units: "GY", type: "PHYSICAL", summation: "PLAN",
+                                                           dvhItems: [SequenceItem(elements: dvh)]).values))
+            let dose = try RTDoseParser.parse(from: dataSet)
+            XCTAssertEqual(dose.dvhData[0].dvhType, dvhType, dvhType.rawValue)
+            XCTAssertEqual(dose.dvhData[0].dvhVolumeUnits, volumeUnits, volumeUnits.rawValue)
+        }
+    }
 }

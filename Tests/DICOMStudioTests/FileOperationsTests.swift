@@ -456,14 +456,21 @@ struct FileOperationsHelpersTests {
         #expect(DICOMFileDropHelpers.validateMagicBytes(data) == .validWithoutPreamble)
     }
 
-    @Test("DICOMFileDropHelpers.symbolName returns 'lungs' for CT")
+    // symbolName previously carried its own icon switch, which disagreed with
+    // ModalityMapping (CT was "lungs" here and "cylinder.split.1x2" there).
+    // The 2026a adoption made ModalityMapping the one icon map; these now
+    // assert the two entry points agree rather than pinning the old values.
+
+    @Test("DICOMFileDropHelpers.symbolName agrees with ModalityMapping for CT")
     func test_fileDropHelpers_symbolName_CT() {
-        #expect(DICOMFileDropHelpers.symbolName(for: "CT") == "lungs")
+        #expect(DICOMFileDropHelpers.symbolName(for: "CT")
+                == ModalityMapping.systemImage(for: "CT"))
     }
 
-    @Test("DICOMFileDropHelpers.symbolName returns 'waveform.path' for US")
+    @Test("DICOMFileDropHelpers.symbolName agrees with ModalityMapping for US")
     func test_fileDropHelpers_symbolName_US() {
-        #expect(DICOMFileDropHelpers.symbolName(for: "US") == "waveform.path")
+        #expect(DICOMFileDropHelpers.symbolName(for: "US")
+                == ModalityMapping.systemImage(for: "US"))
     }
 
     @Test("DICOMFileDropHelpers.symbolName returns default for unknown modality")
@@ -688,6 +695,21 @@ struct FileOperationsHelpersTests {
     @Test("FileValidationHelpers.isUnusualTransferSyntax returns true for unknown UID")
     func test_fileValidationHelpers_isUnusualTransferSyntax_unknownUID_true() {
         #expect(FileValidationHelpers.isUnusualTransferSyntax("9.9.9.9") == true)
+    }
+
+    @Test("FileValidationHelpers common syntaxes are the 13 PS3.6 2026a Table A-1 UIDs named in the source")
+    func test_fileValidationHelpers_commonSyntaxes_pinned() {
+        let common = ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.2",
+                      "1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51", "1.2.840.10008.1.2.4.57",
+                      "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91",
+                      "1.2.840.10008.1.2.4.201", "1.2.840.10008.1.2.4.202", "1.2.840.10008.1.2.4.203",
+                      "1.2.840.10008.1.2.5"]
+        for uid in common {
+            #expect(FileValidationHelpers.isUnusualTransferSyntax(uid) == false, "\(uid)")
+        }
+        // Registered but not in the list: JPEG XL Lossless (.110) and JPEG-LS Lossless (.80).
+        #expect(FileValidationHelpers.isUnusualTransferSyntax("1.2.840.10008.1.2.4.110") == true)
+        #expect(FileValidationHelpers.isUnusualTransferSyntax("1.2.840.10008.1.2.4.80") == true)
     }
 
     @Test("FileValidationHelpers.imageDimensions returns nil for zero rows")

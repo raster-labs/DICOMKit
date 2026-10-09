@@ -5,6 +5,8 @@ import Foundation
 /// Represents a date and time in DICOM format.
 /// Reference: DICOM PS3.5 Section 6.2 - DT Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the DT row of PS3.5 2026a Table 6.2-1 (YYYY first, trailing null components, 1-6 fractional digits, &ZZXX offset, 26 bytes max). Not enforced on read: the offset range -1200 to +1400 (`parseTimezone` accepts up to -1400) and the ban on -0000; both are accepted leniently.
+///
 /// The DT format is a concatenated date-time string: YYYYMMDDHHMMSS.FFFFFF&ZZXX where:
 /// - YYYYMMDD = date in DA format
 /// - HHMMSS.FFFFFF = time in TM format (optional)

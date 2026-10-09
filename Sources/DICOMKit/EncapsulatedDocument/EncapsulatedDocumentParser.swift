@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — Encapsulated Document module reads per PS3.3 2026a C.24.2; the document is cut to Encapsulated Document Length (0042,0015) "not including any trailing padding" (Table C.24-2) (D181)
 //
 // EncapsulatedDocumentParser.swift
 // DICOMKit
@@ -50,7 +51,7 @@ public struct EncapsulatedDocumentParser {
         guard let documentElement = dataSet[.encapsulatedDocument] else {
             throw DICOMError.parsingFailed("Missing or empty Encapsulated Document data")
         }
-        let documentData = documentElement.valueData
+        let documentData = documentStream(documentElement.valueData, in: dataSet)
         guard !documentData.isEmpty else {
             throw DICOMError.parsingFailed("Missing or empty Encapsulated Document data")
         }
@@ -108,6 +109,22 @@ public struct EncapsulatedDocumentParser {
             hl7InstanceIdentifier: hl7InstanceIdentifier,
             sourceInstances: sourceInstances
         )
+    }
+
+    /// Encapsulated Document Length (0042,0015), UL (PS3.6 2026a Table 6-1).
+    static let encapsulatedDocumentLengthTag = Tag(group: 0x0042, element: 0x0015)
+
+    /// The document stream without the padding byte DICOM adds to an odd-length value:
+    /// Encapsulated Document Length (0042,0015) is "the length of the Encapsulated
+    /// Document stream, not including any trailing padding added for encapsulation as a
+    /// DICOM object. If present, shall be equal to the Value Length if even, or one less
+    /// than the Value Length if odd" (PS3.3 2026a Table C.24-2). Without it (Type 3) the
+    /// value is returned as stored; a length that is neither the value length nor one
+    /// less is ignored.
+    public static func documentStream(_ value: Data, in dataSet: DataSet) -> Data {
+        guard let length = dataSet.uint32(for: encapsulatedDocumentLengthTag).map(Int.init),
+              length == value.count - 1 else { return value }
+        return value.prefix(length)
     }
 
     // MARK: - Private Helpers

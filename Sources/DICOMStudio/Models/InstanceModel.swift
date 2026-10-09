@@ -2,6 +2,10 @@
 // DICOMStudio
 //
 // DICOM Studio — Instance-level metadata model
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — fields mirror PS3.6 2026a Table 6-1 attributes (SOP Instance UID, SOP
+// Class UID, Series Instance UID, Instance Number, Transfer Syntax UID, Rows, Columns, Bits Allocated, Number of
+// Frames, Photometric Interpretation); no standard values carried.
 
 import Foundation
 

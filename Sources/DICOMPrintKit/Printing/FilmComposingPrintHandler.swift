@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — default Printer Status NORMAL checked against PS3.3 2026a Table C.13-9; otherwise SCP-to-composer glue
 //
 // FilmComposingPrintHandler.swift
 // DICOMPrintKit

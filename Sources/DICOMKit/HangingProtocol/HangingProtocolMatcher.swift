@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Filter-by Operator semantics (RANGE_INCL, RANGE_EXCL, GREATER/LESS_(OR_EQUAL|THAN), MEMBER_OF, NOT_MEMBER_OF), Filter-by Attribute Presence, Image Set Selector Usage Flag and IMAGE_PLANE classification per PS3.3 2026a Tables C.23.1-1, C.23.3-1 and C.23.3.1.1; level order over Table C.23.1-1 Hanging Protocol Level; Filter Operations Sequence (0072,0400) items applied per display set in item order (C.23.3.1.1), absent usage flag = MATCH per Table C.23.3-1
 //
 // HangingProtocolMatcher.swift
 // DICOMKit
@@ -91,7 +92,7 @@ public actor HangingProtocolMatcher {
             matches.append(`protocol`)
         }
         
-        // Sort by priority: USER > GROUP > SITE
+        // Sort by priority: SINGLE_USER > USER_GROUP > SITE > MANUFACTURER
         matches.sort { lhs, rhs in
             priorityValue(for: lhs.level) > priorityValue(for: rhs.level)
         }
@@ -124,9 +125,10 @@ public actor HangingProtocolMatcher {
     
     private func priorityValue(for level: HangingProtocolLevel) -> Int {
         switch level {
-        case .user: return 3
-        case .group: return 2
-        case .site: return 1
+        case .user: return 4
+        case .group: return 3
+        case .site: return 2
+        case .manufacturer: return 1
         }
     }
 }
@@ -203,83 +205,152 @@ public struct ImageSetMatcher {
     
     /// Check if an instance matches the image set selectors
     ///
+    /// Every selector must match. A selector matches when the image's
+    /// attribute equals any one of its values (PS3.3 C.23.1.1.2); a selector
+    /// that carries a deprecated filter attribute is evaluated as that filter.
+    ///
     /// - Parameter instance: Instance information to match
     /// - Returns: true if the instance matches all selectors
     public func matches(instance: InstanceInfo) -> Bool {
-        for selector in imageSet.selectors {
-            let matchResult = evaluateSelector(selector, instance: instance)
-            
-            switch selector.usageFlag {
-            case .match:
-                guard matchResult else { return false }
-            case .noMatch:
-                guard !matchResult else { return false }
-            }
-        }
-        
-        return true
+        imageSet.selectors.allSatisfy { Self.evaluate($0, instance: instance) }
     }
-    
-    private func evaluateSelector(
-        _ selector: ImageSetSelector,
-        instance: InstanceInfo
-    ) -> Bool {
-        guard let value = instance.attributes[selector.attribute] else {
-            // Attribute not present
-            if let op = selector.operator {
-                return op == .notPresent
+
+    /// Check if an instance belongs to the image set and passes the Filter
+    /// Operations Sequence (0072,0400) of a display set that shows it.
+    /// Filters apply in item order, each on the output of the previous one
+    /// (an AND, PS3.3 C.23.3.1.1).
+    public func matches(instance: InstanceInfo, filteredBy displaySet: DisplaySet) -> Bool {
+        matches(instance: instance)
+            && displaySet.filterOperations.allSatisfy { Self.evaluate($0, instance: instance) }
+    }
+
+    /// Evaluates one selector against an instance (see `evaluate(_:)` on
+    /// `Criterion`).
+    static func evaluate(_ selector: ImageSetSelector, instance: InstanceInfo) -> Bool {
+        Criterion(
+            attribute: selector.attribute,
+            valueNumber: selector.valueNumber,
+            filterByCategory: selector.legacyFilterByCategory,
+            presence: selector.legacyAttributePresence ?? selector.legacyOperator?.presenceTerm,
+            operator: selector.legacyOperator,
+            values: selector.values,
+            usageFlag: selector.usageFlag
+        ).evaluate(instance)
+    }
+
+    /// Evaluates one Filter Operations Sequence item against an instance.
+    /// An absent Image Set Selector Usage Flag means MATCH (PS3.3 Table
+    /// C.23.3-1).
+    static func evaluate(_ filter: FilterOperation, instance: InstanceInfo) -> Bool {
+        Criterion(
+            attribute: filter.attribute,
+            valueNumber: filter.valueNumber,
+            filterByCategory: filter.filterByCategory,
+            presence: filter.attributePresence ?? filter.operator?.presenceTerm,
+            operator: filter.operator,
+            values: filter.values,
+            usageFlag: filter.usageFlag ?? .match
+        ).evaluate(instance)
+    }
+
+    /// The comparison shared by selectors and filter operations.
+    ///
+    /// - Filter-by Attribute Presence (0072,0404) decides on presence alone.
+    /// - Filter-by Category IMAGE_PLANE compares the plane computed from
+    ///   Image Orientation (Patient) with the `ImagePlane` terms
+    ///   (PS3.3 C.23.3.1.1).
+    /// - When the attribute is not available in the instance, the Image Set
+    ///   Selector Usage Flag (0072,0024) decides: MATCH "consider the image to
+    ///   be a match anyway", NO_MATCH "do not consider the image to be a
+    ///   match" (PS3.3 Table C.23.1-1).
+    /// - Otherwise the Filter-by Operator (0072,0406) of Table C.23.3-1 is
+    ///   applied; no operator means MEMBER_OF (equal to one of the values).
+    private struct Criterion {
+        let attribute: Tag?
+        let valueNumber: Int?
+        let filterByCategory: FilterByCategory?
+        let presence: FilterByAttributePresence?
+        let `operator`: FilterOperator?
+        let values: [String]
+        let usageFlag: SelectorUsageFlag
+
+        func evaluate(_ instance: InstanceInfo) -> Bool {
+            let imageValues = self.imageValues(instance)
+
+            if let presence {
+                switch presence {
+                case .present: return imageValues != nil
+                case .notPresent: return imageValues == nil
+                }
             }
-            return false
-        }
-        
-        // If operator specifies presence check
-        if let op = selector.operator {
+
+            guard let imageValues, !imageValues.isEmpty else {
+                return usageFlag == .match
+            }
+
+            let selectorValues = values.map { $0.trimmingCharacters(in: .whitespaces) }
+            let op = `operator`?.standardTerm ?? .memberOf
+
             switch op {
-            case .present:
-                return true
-            case .notPresent:
-                return false
+            case .memberOf:
+                guard !selectorValues.isEmpty else { return true }
+                return imageValues.contains { matchesText($0, selectorValues: selectorValues) }
+            case .notMemberOf:
+                return !imageValues.contains { matchesText($0, selectorValues: selectorValues) }
+            case .rangeInclusive, .rangeExclusive:
+                // Two selector values, the first less than or equal to the second
+                guard selectorValues.count >= 2,
+                      let low = Double(selectorValues[0]), let high = Double(selectorValues[1]),
+                      low <= high else { return false }
+                let numbers = imageValues.compactMap(Double.init)
+                guard numbers.count == imageValues.count else { return false }
+                if op == .rangeInclusive {
+                    return numbers.allSatisfy { $0 >= low && $0 <= high }
+                }
+                return numbers.allSatisfy { $0 < low || $0 > high }
+            case .greaterThan, .greaterThanOrEqual, .lessThan, .lessThanOrEqual:
+                guard let bound = selectorValues.first.flatMap(Double.init) else { return false }
+                let numbers = imageValues.compactMap(Double.init)
+                guard numbers.count == imageValues.count else { return false }
+                switch op {
+                case .greaterThan: return numbers.allSatisfy { $0 > bound }
+                case .greaterThanOrEqual: return numbers.allSatisfy { $0 >= bound }
+                case .lessThan: return numbers.allSatisfy { $0 < bound }
+                default: return numbers.allSatisfy { $0 <= bound }
+                }
             default:
-                break
+                return false
             }
         }
-        
-        // Check against selector values
-        for selectorValue in selector.values {
-            if matchesValue(value, selectorValue: selectorValue, operator: selector.operator) {
-                return true
+
+        /// The instance values compared: the image plane for the IMAGE_PLANE
+        /// category, otherwise the attribute's values, restricted to Selector
+        /// Value Number (0072,0028) when that is greater than zero. nil when
+        /// the attribute (or the selected value) is not available.
+        private func imageValues(_ instance: InstanceInfo) -> [String]? {
+            if filterByCategory == .imagePlane {
+                guard let orientation = instance.attributes[.imageOrientationPatient] else { return nil }
+                let cosines = orientation.split(separator: "\\").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+                return ImagePlane(imageOrientationPatient: cosines).map { [$0.rawValue] }
             }
+            guard let attribute, let raw = instance.attributes[attribute] else { return nil }
+            let values = raw.split(separator: "\\", omittingEmptySubsequences: false)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+            if let number = valueNumber, number > 0 {
+                guard number <= values.count else { return nil }
+                return [values[number - 1]]
+            }
+            return values
         }
-        
-        return selector.values.isEmpty
-    }
-    
-    private func matchesValue(
-        _ value: String,
-        selectorValue: String,
-        operator: FilterOperator?
-    ) -> Bool {
-        guard let op = `operator` else {
-            return value == selectorValue
-        }
-        
-        switch op {
-        case .equal:
-            return value == selectorValue
-        case .notEqual:
-            return value != selectorValue
-        case .lessThan:
-            return value < selectorValue
-        case .lessThanOrEqual:
-            return value <= selectorValue
-        case .greaterThan:
-            return value > selectorValue
-        case .greaterThanOrEqual:
-            return value >= selectorValue
-        case .contains:
-            return value.contains(selectorValue)
-        case .present, .notPresent:
-            return true
+
+        /// Exact match, with the deprecated CONTAINS operator keeping its
+        /// substring behaviour (PS3.3 C.23.1.1.3 leaves partial matching of
+        /// text implementation dependent).
+        private func matchesText(_ value: String, selectorValues: [String]) -> Bool {
+            if `operator`?.rawValue == "CONTAINS" {
+                return selectorValues.contains { value.contains($0) }
+            }
+            return selectorValues.contains(value)
         }
     }
 }
@@ -325,7 +396,14 @@ public struct InstanceInfo: Sendable {
         if let sliceLocation = dataSet.string(for: .sliceLocation) {
             attrs[.sliceLocation] = sliceLocation
         }
-        
+        if let modality = dataSet.string(for: .modality) {
+            attrs[.modality] = modality
+        }
+        // Image Orientation (Patient) feeds the IMAGE_PLANE filter category
+        if let orientation = dataSet[.imageOrientationPatient]?.stringValues, !orientation.isEmpty {
+            attrs[.imageOrientationPatient] = orientation.joined(separator: "\\")
+        }
+
         self.attributes = attrs
     }
 }

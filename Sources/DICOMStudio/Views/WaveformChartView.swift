@@ -3,6 +3,7 @@
 //
 // DICOM Studio — Waveform (ECG / hemodynamic / EP / audio) tracing display
 // Reference: DICOM PS3.3 C.10.9 (Waveform Module), A.34 (Waveform IODs)
+// NEMA-verified: 2026a, checked 2026-10-05 — citations checked against PS3.3 2026a section titles; carries no DICOM-standard data (the 1 mm / 5 mm grid, paper and monitor themes, and the Hz / s metadata labels are display conventions; channel data comes from DICOMKit's waveform decoder)
 
 #if canImport(SwiftUI)
 import SwiftUI

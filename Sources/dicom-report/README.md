@@ -143,6 +143,13 @@ Output structure:
 {
   "document_type": "Enhanced SR",
   "title": "Clinical Report",
+  "completion_flag": "COMPLETE",
+  "verification_flag": "VERIFIED",
+  "preliminary_flag": "FINAL",
+  "content_template": {
+    "template_identifier": "2000",
+    "mapping_resource": "DCMR"
+  },
   "patient": {
     "name": "DOE^JOHN",
     "id": "12345678"
@@ -155,13 +162,14 @@ Output structure:
   "content_item_count": 15,
   "content": [
     {
+      "value_type": "CONTAINER",
       "relationship_type": "CONTAINS",
       "concept_name": {
         "code_value": "121070",
         "coding_scheme": "DCM",
         "code_meaning": "Findings"
       },
-      "value": "[Content]",
+      "value": "[0 items]",
       "children": []
     }
   ],
@@ -183,12 +191,14 @@ Output structure:
 | `--format` / `-f` | Output format (text, html, json, markdown, pdf) | text |
 | `--embed-images` | Embed images from referenced instances | false |
 | `--image-dir` | Directory containing referenced image files | - |
-| `--template` | Report template (default, cardiology, radiology, oncology) | default |
+| `--style` | Styling preset: default, cardiology, radiology, oncology (section order, colours). Not a PS3.16 SR template; an unknown value is refused (exit 1) | default |
+| `--template` | **Deprecated** alias of `--style` (prints a note; giving both is refused) | — |
 | `--title` | Custom report title (overrides SR title) | - |
 | `--logo` | Path to hospital logo for branding | - |
 | `--footer` | Custom footer text | - |
 | `--include-measurements` | Include measurement tables | true |
-| `--include-summary` | Include finding summaries | true |
+| `--include-summary` / `--no-include-summary` | Include the summary sections (Impressions, Recommendations) in text, HTML and Markdown; the content tree is always rendered. JSON reports the setting as `include_summary` | true |
+| `--language` | Section-heading language (en, es, fr, de) | en |
 | `--force` | Force parsing files without DICM prefix | false |
 | `--verbose` | Verbose output for debugging | false |
 
@@ -200,8 +210,22 @@ Output structure:
 - **Comprehensive 3D SR** (1.2.840.10008.5.1.4.1.1.88.34)
 - **Mammography CAD SR** (1.2.840.10008.5.1.4.1.1.88.50)
 - **Chest CAD SR** (1.2.840.10008.5.1.4.1.1.88.65)
-- **Key Object Selection** (1.2.840.10008.5.1.4.1.1.88.59)
-- **Measurement Report** (Template ID 1500)
+- **Key Object Selection Document** (1.2.840.10008.5.1.4.1.1.88.59)
+- **Extensible SR** (1.2.840.10008.5.1.4.1.1.88.35) and the other SR Storage SOP Classes of PS3.6 Table A-1
+- Any root template, e.g. TID 1500 Measurement Report (shown from Content Template Sequence)
+
+## How content is printed (PS3.3 / PS3.16 2026a)
+
+- `value_type` (JSON): the Value Type names of PS3.3 Table C.17.3-7 (TEXT, NUM, CODE, DATETIME, DATE,
+  TIME, UIDREF, PNAME, COMPOSITE, IMAGE, WAVEFORM, SCOORD, SCOORD3D, TCOORD, CONTAINER, TABLE);
+  `relationship_type`: the Relationship Types of Table C.17.3-8.
+- CODE values print as `(CV, CSD, "CM")`, the notation of PS3.16 Section 6.1.
+- NUM values print the Numeric Value followed by the Code Meaning of the Measurement Units Code
+  Sequence (UCUM, CID 82).
+- The header lists Completion Flag, Verification Flag and Preliminary Flag (PS3.3 Table C.17-2) and the
+  root Content Template (TID and Mapping Resource, Table C.18.8-1).
+- Children are rendered under every content item that has them (e.g. NUM INFERRED FROM SCOORD), not
+  only under CONTAINERs.
 
 ## Error Handling
 
@@ -290,7 +314,7 @@ Memory usage scales linearly with SR content size.
 
 - **PDF Generation**: Not yet implemented. Use HTML or Markdown and convert with external tools.
 - **Image Embedding**: Placeholder only. Images not yet embedded in HTML/PDF.
-- **Templates**: Template system partially implemented. All templates use the same base format.
+- **Styles**: `--style` presets change section order and colours. SR templates (PS3.16 TIDs) are not chosen by an option: the root template is read from the document's Content Template Sequence (0040,A504) and shown.
 
 ### Planned Features (Future Releases)
 

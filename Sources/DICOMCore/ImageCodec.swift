@@ -369,6 +369,7 @@ extension ImageCodec {
 ///
 /// Provides access to codecs for different transfer syntaxes.
 /// Uses platform-native codecs when available.
+/// NEMA-verified: 2026a, checked 2026-09-25 — every registry key is a `TransferSyntax` UID (PS3.6 2026a Table A-1); the lossless-only syntaxes get decoders that refuse lossy codestreams, as their PS3.5 2026a A.4 definitions require. Quality and configuration types carry no standard data.
 public struct CodecRegistry: Sendable {
     /// Shared codec registry instance
     public static let shared = CodecRegistry()

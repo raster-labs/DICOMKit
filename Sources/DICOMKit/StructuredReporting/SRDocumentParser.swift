@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — SR Document Series / General Module attributes per PS3.3 2026a Tables C.17-1 and C.17-2 (incl. Verifying Observer Sequence (0040,A073) Items); Code Sequence Macro reading (one of Code Value / Long Code Value / URN Code Value, Coding Scheme Designator 1C) per Table 8.8-1a; TABLE cells per Table C.18.10-1; SCOORD3D (3006,0024) per Table C.18.9-1; content module tags per PS3.6 Table 6-1; the NUM qualifier gap is recorded; Content Sequence (0040,A730) read under every value type per Table C.17-6 (D31)
+// NEMA-verified: 2026a, checked 2026-10-01 — NUM: an empty Measured Value Sequence (Type 2, zero or one Item, PS3.3 2026a Table C.18.1-1 / C.18.1) stays without a value (D194) and Numeric Value Qualifier Code Sequence (0040,A301) is read against CID 42 = CID 43 + CID 44, 12 codes compared (D195); Referenced Waveform Channels (0040,A0B0) read as (M,C) pairs per C.18.5.1.1 (D196); Type 2 Patient's Birth Date / Sex (Table C.7-1), Referring Physician's Name / Study ID (Table C.7-3) and Manufacturer (Table C.7-8) read, zero length as unknown (D198)
 /// DICOM Structured Reporting Document Parser
 ///
 /// Parses DICOM SR data sets into the content item tree model.
@@ -104,15 +106,22 @@ public struct SRDocumentParser: Sendable {
         let sopClassUID = try extractRequiredString(from: dataSet, tag: .sopClassUID, description: "SOP Class UID")
         let sopInstanceUID = try extractRequiredString(from: dataSet, tag: .sopInstanceUID, description: "SOP Instance UID")
         
-        // Extract optional patient information
-        let patientID = dataSet.string(for: .patientID)
-        let patientName = dataSet.string(for: .patientName)
+        // Patient Module (PS3.3 2026a Table C.7-1) and General Study Module (Table C.7-3):
+        // the Type 2 attributes are read as nil when absent or zero length (value unknown)
+        let patientID = type2String(dataSet, .patientID)
+        let patientName = type2String(dataSet, .patientName)
+        let patientBirthDate = type2String(dataSet, .patientBirthDate)
+        let patientSex = type2String(dataSet, .patientSex)
         
-        // Extract optional study information
         let studyInstanceUID = dataSet.string(for: .studyInstanceUID)
-        let studyDate = dataSet.string(for: .studyDate)
-        let studyTime = dataSet.string(for: .studyTime)
-        let accessionNumber = dataSet.string(for: .accessionNumber)
+        let studyDate = type2String(dataSet, .studyDate)
+        let studyTime = type2String(dataSet, .studyTime)
+        let accessionNumber = type2String(dataSet, .accessionNumber)
+        let referringPhysicianName = type2String(dataSet, .referringPhysicianName)
+        let studyID = type2String(dataSet, .studyID)
+
+        // General Equipment Module (Table C.7-8): Manufacturer (0008,0070), Type 2
+        let manufacturer = type2String(dataSet, .manufacturer)
         
         // Extract optional series information
         let seriesInstanceUID = dataSet.string(for: .seriesInstanceUID)
@@ -128,6 +137,9 @@ public struct SRDocumentParser: Sendable {
         let completionFlag = dataSet.string(for: .completionFlag).flatMap { CompletionFlag(rawValue: $0) }
         let verificationFlag = dataSet.string(for: .verificationFlag).flatMap { VerificationFlag(rawValue: $0) }
         let preliminaryFlag = dataSet.string(for: .preliminaryFlag).flatMap { PreliminaryFlag(rawValue: $0) }
+
+        // Verifying Observer Sequence (0040,A073), Type 1C (PS3.3 Table C.17-2)
+        let verifyingObservers = parseVerifyingObservers(from: dataSet)
         
         // Parse document title from Concept Name Code Sequence
         let documentTitle = try? parseCodedConcept(from: dataSet, tag: .conceptNameCodeSequence)
@@ -153,9 +165,42 @@ public struct SRDocumentParser: Sendable {
             completionFlag: completionFlag,
             verificationFlag: verificationFlag,
             preliminaryFlag: preliminaryFlag,
+            verifyingObservers: verifyingObservers,
             documentTitle: documentTitle,
-            rootContent: rootContent
+            rootContent: rootContent,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName,
+            studyID: studyID,
+            manufacturer: manufacturer
         )
+    }
+
+    /// The value of a Type 2 attribute, or nil when it is absent or zero length
+    private func type2String(_ dataSet: DataSet, _ tag: Tag) -> String? {
+        guard let value = dataSet.string(for: tag), !value.isEmpty else { return nil }
+        return value
+    }
+
+    /// Reads the Verifying Observer Sequence (0040,A073) Items (PS3.3 2026a Table C.17-2)
+    ///
+    /// Verifying Observer Name (0040,A075), Verifying Organization (0040,A027) and
+    /// Verification DateTime (0040,A030) are Type 1; an Item that lacks one is read with an
+    /// empty value rather than dropped, so the document is reported as it was received
+    /// (and `SRDocumentSerializer` refuses to write it back unchanged). The Verifying
+    /// Observer Identification Code Sequence (0040,A088) is Type 2 with zero or one Item.
+    private func parseVerifyingObservers(from dataSet: DataSet) -> [VerifyingObserver] {
+        guard let items = dataSet.sequence(for: .verifyingObserverSequence) else {
+            return []
+        }
+        return items.map { item in
+            VerifyingObserver(
+                name: item.string(for: .verifyingObserverName) ?? "",
+                identificationCode: (try? parseCodedConceptFromItem(item, tag: .verifyingObserverIdentificationCodeSequence)) ?? nil,
+                organization: item.string(for: .verifyingOrganization) ?? "",
+                verificationDateTime: item.string(for: .verificationDateTime) ?? ""
+            )
+        }
     }
     
     // MARK: - Content Parsing
@@ -233,6 +278,29 @@ public struct SRDocumentParser: Sendable {
         let observationUID = item.string(for: .observationUID)
         
         // Parse based on value type
+        guard let parsed = try parseValue(of: valueType, from: item, conceptName: conceptName, relationshipType: relationshipType, observationDateTime: observationDateTime, observationUID: observationUID, depth: depth) else {
+            return nil
+        }
+
+        // Content Sequence (0040,A730) of a non-CONTAINER item: PS3.3 Table C.17-6 gives
+        // every content item one, so children under a CODE, NUM, IMAGE, SCOORD, ... item are
+        // read as its children. CONTAINER reads its own in parseContainerContentItem.
+        if valueType != .container, let contentSequence = item[.contentSequence]?.sequenceItems, !contentSequence.isEmpty {
+            return parsed.withContentItems(try parseContentSequence(contentSequence, depth: depth + 1))
+        }
+        return parsed
+    }
+
+    /// Parses the value of a content item of the given value type
+    private func parseValue(
+        of valueType: ContentItemValueType,
+        from item: SequenceItem,
+        conceptName: CodedConcept?,
+        relationshipType: RelationshipType?,
+        observationDateTime: String?,
+        observationUID: String?,
+        depth: Int
+    ) throws -> AnyContentItem? {
         switch valueType {
         case .text:
             return try parseTextContentItem(from: item, conceptName: conceptName, relationshipType: relationshipType, observationDateTime: observationDateTime, observationUID: observationUID)
@@ -278,7 +346,77 @@ public struct SRDocumentParser: Sendable {
             
         case .container:
             return try parseContainerContentItem(from: item, conceptName: conceptName, relationshipType: relationshipType, observationDateTime: observationDateTime, observationUID: observationUID, depth: depth)
+
+        case .table:
+            return try parseTableContentItem(from: item, conceptName: conceptName, relationshipType: relationshipType, observationDateTime: observationDateTime, observationUID: observationUID)
         }
+    }
+
+    // MARK: - Table Content Item (PS3.3 C.18.10)
+
+    private func parseTableContentItem(
+        from item: SequenceItem,
+        conceptName: CodedConcept?,
+        relationshipType: RelationshipType?,
+        observationDateTime: String?,
+        observationUID: String?
+    ) throws -> AnyContentItem {
+        guard let table = item[.tabulatedValuesSequence]?.sequenceItems?.first else {
+            throw ParseError.missingRequiredAttribute(tag: "(0040,A801)", description: "Tabulated Values Sequence")
+        }
+        let rows = Int(table[.numberOfTableRows]?.uint32Value ?? 0)
+        let columns = Int(table[.numberOfTableColumns]?.uint32Value ?? 0)
+        let rowDefs = try (table[.tableRowDefinitionSequence]?.sequenceItems ?? []).map { try parseAxisDefinition($0, numberTag: .tableRowNumber) }
+        let colDefs = try (table[.tableColumnDefinitionSequence]?.sequenceItems ?? []).map { try parseAxisDefinition($0, numberTag: .tableColumnNumber) }
+        let cells = try (table[.cellValuesSequence]?.sequenceItems ?? []).map(parseCell)
+        return AnyContentItem(TableContentItem(
+            conceptName: conceptName, rows: rows, columns: columns,
+            rowDefinitions: rowDefs, columnDefinitions: colDefs, cells: cells,
+            relationshipType: relationshipType, observationDateTime: observationDateTime, observationUID: observationUID))
+    }
+
+    private func parseAxisDefinition(_ item: SequenceItem, numberTag: Tag) throws -> TableContentItem.TableAxisDefinition {
+        guard let concept = try parseCodedConceptFromItem(item, tag: .conceptNameCodeSequence) else {
+            throw ParseError.missingRequiredAttribute(tag: "(0040,A043)", description: "Concept Name Code Sequence in table axis definition")
+        }
+        return TableContentItem.TableAxisDefinition(
+            index: item[numberTag]?.uint32Value.map(Int.init),
+            concept: concept,
+            units: try parseCodedConceptFromItem(item, tag: .measurementUnitsCodeSequence))
+    }
+
+    private func parseCell(_ item: SequenceItem) throws -> TableContentItem.TableCell {
+        let value: TableContentItem.TableCellValue
+        if let ids = item[.referencedContentItemIdentifier]?.uint32Values {
+            value = .contentItemReference(ids.map(Int.init))
+        } else if let codeItems = item[.conceptCodeSequence]?.sequenceItems, !codeItems.isEmpty {
+            value = .code(codeItems.compactMap { parseCodedConceptFromSequenceItem($0) })
+        } else if let vr = item.string(for: .selectorAttributeVR)?.trimmingCharacters(in: .whitespaces) {
+            switch vr {
+            case "UC": value = .text(item[.selectorUCValue]?.stringValues ?? [])
+            case "DS": value = .decimal(item[.selectorDSValue]?.decimalStringValues?.map(\.value) ?? [])
+            case "DT": value = .dateTime(item[.selectorDTValue]?.stringValues ?? [])
+            case "FD": value = .floatingPoint(item[.selectorFDValue]?.float64Values ?? [])
+            case "FL": value = .floatingPoint(item[.selectorFLValue]?.float32Values?.map(Double.init) ?? [])
+            case "IS": value = .integer(item[.selectorISValue]?.integerStringValues?.map { Int64($0.value) } ?? [])
+            case "SL": value = .integer(item[.selectorSLValue]?.int32Values?.map(Int64.init) ?? [])
+            case "SS": value = .integer(item[.selectorSSValue]?.int16Values?.map(Int64.init) ?? [])
+            case "UL": value = .integer(item[.selectorULValue]?.uint32Values?.map(Int64.init) ?? [])
+            case "US": value = .integer(item[.selectorUSValue]?.uint16Values?.map(Int64.init) ?? [])
+            case "SV": value = .integer(item[.selectorSVValue]?.int64Values ?? [])
+            case "UV": value = .integer(item[.selectorUVValue]?.uint64Values?.map { Int64(clamping: $0) } ?? [])
+            default:
+                throw ParseError.unknownValueType("TABLE cell Selector Attribute VR \(vr)")
+            }
+        } else {
+            value = .absent
+        }
+        return TableContentItem.TableCell(
+            row: item[.tableRowNumber]?.uint32Value.map(Int.init),
+            column: item[.tableColumnNumber]?.uint32Value.map(Int.init),
+            value: value,
+            units: try parseCodedConceptFromItem(item, tag: .measurementUnitsCodeSequence),
+            qualifier: try parseCodedConceptFromItem(item, tag: .numericValueQualifierCodeSequence))
     }
     
     // MARK: - Value Type Specific Parsers
@@ -367,17 +505,24 @@ public struct SRDocumentParser: Sendable {
             measurementUnits = try? parseCodedConceptFromItem(item, tag: .measurementUnitsCodeSequence)
         }
         
-        // If no values found, use 0.0 as placeholder in lenient mode
-        if numericValues.isEmpty && configuration.validationLevel != .strict {
-            numericValues = [0.0]
-        }
+        // An empty Measured Value Sequence (0040,A300) is allowed: Type 2, "Zero or one
+        // Item" (PS3.3 2026a Table C.18.1-1), and C.18.1 says it "may be empty to convey the
+        // concept of a measurement whose value is unknown or missing, or a measurement or
+        // calculation failure". The value stays absent (`numericValues` empty, `value` nil);
+        // until 2026-10-01 (D194) the lenient parser fabricated 0.0.
+
+        // Numeric Value Qualifier Code Sequence (0040,A301), Type 1C: "Required if Measured
+        // Value Sequence (0040,A300) is empty", one Item from CID 42 (CIDs 43 and 44).
+        // Read since 2026-10-01 (D195); a code outside CID 42 leaves the qualifier nil.
+        let qualifier = (try? parseCodedConceptFromItem(item, tag: .numericValueQualifierCodeSequence))
+            .flatMap { NumericValueQualifier(code: $0) }
         
         return AnyContentItem(NumericContentItem(
             conceptName: conceptName,
             values: numericValues,
             units: measurementUnits,
             floatingPointValues: floatingPointValues,
-            qualifier: nil,
+            qualifier: qualifier,
             relationshipType: relationshipType,
             observationDateTime: observationDateTime,
             observationUID: observationUID
@@ -584,18 +729,20 @@ public struct SRDocumentParser: Sendable {
             ))
         }
         
-        // Parse channel numbers if present (from Referenced Waveform Channels)
-        // Tag (0040,A0B0) - Referenced Waveform Channels is US VM: 2-2n
-        var channelNumbers: [Int]?
-        if let refSOPSeq = item[.referencedSOPSequence]?.sequenceItems?.first {
-            let referencedWaveformChannels = Tag(group: 0x0040, element: 0xA0B0)
-            if let channelData = refSOPSeq[referencedWaveformChannels]?.uint16Values {
-                // Each pair is (multiplex group, channel number), extract channel numbers
-                channelNumbers = stride(from: 1, to: channelData.count, by: 2).map { Int(channelData[$0]) }
+        // Referenced Waveform Channels (0040,A0B0), US, VM 2-2n, Type 1C (PS3.3 2026a
+        // Table C.18.5-1): (M,C) pairs of Multiplex Group Number and Channel Number
+        // (C.18.5.1.1). Both halves are kept in `referencedChannels`; `channelNumbers` keeps
+        // the C values as before.
+        var referencedChannels: [WaveformChannelReference]?
+        if let refSOPSeq = item[.referencedSOPSequence]?.sequenceItems?.first,
+           let channelData = refSOPSeq[SRDocumentSerializer.referencedWaveformChannelsTag]?.uint16Values,
+           channelData.count >= 2 {
+            referencedChannels = stride(from: 0, to: channelData.count - 1, by: 2).map {
+                WaveformChannelReference(multiplexGroup: Int(channelData[$0]), channel: Int(channelData[$0 + 1]))
             }
         }
         
-        let waveformRef = WaveformReference(sopReference: sopRef, channelNumbers: channelNumbers)
+        let waveformRef = WaveformReference(sopReference: sopRef, referencedChannels: referencedChannels)
         
         return AnyContentItem(WaveformContentItem(
             conceptName: conceptName,
@@ -673,9 +820,11 @@ public struct SRDocumentParser: Sendable {
         let graphicDataTag = Tag(group: 0x0070, element: 0x0022)
         let graphicData = item[graphicDataTag]?.float32Values ?? []
         
-        // Parse Referenced Frame of Reference UID (0020,0052)
-        let frameOfRefTag = Tag(group: 0x0020, element: 0x0052)
-        let frameOfReferenceUID = item.string(for: frameOfRefTag)
+        // Referenced Frame of Reference UID (3006,0024), Type 1 of the 3D Spatial
+        // Coordinates Macro (PS3.3 Table C.18.9-1); (0020,0052) is what this serializer
+        // wrote before the 2026a check and is still read.
+        let frameOfReferenceUID = item.string(for: .referencedFrameOfReferenceUID)
+            ?? item.string(for: Tag(group: 0x0020, element: 0x0052))
         
         return AnyContentItem(SpatialCoordinates3DContentItem(
             conceptName: conceptName,
@@ -818,57 +967,43 @@ public struct SRDocumentParser: Sendable {
     }
     
     /// Parses a coded concept from a sequence item containing code attributes
+    ///
+    /// PS3.3 Table 8.8-1a: exactly one of Code Value (0008,0100), Long Code Value
+    /// (0008,0119) or URN Code Value (0008,0120) is present; Code Meaning (0008,0104) is
+    /// Type 1; Coding Scheme Designator (0008,0102) is Type 1C, required with Code Value or
+    /// Long Code Value and optional with URN Code Value. The parser mirrors
+    /// `SRDocumentSerializer`: `codeValue` holds the Code Value, or "" when the identifier
+    /// is a Long or URN Code Value, and Items that (against the macro) carry more than one
+    /// identifier keep all of them.
     private func parseCodedConceptFromSequenceItem(_ item: SequenceItem) -> CodedConcept? {
-        // Get Code Value (0008,0100)
-        guard let codeValue = item.string(for: .codeValue) else {
-            // Try Long Code Value (0008,0119) if Code Value is missing
-            guard let longCodeValue = item.string(for: .longCodeValue) else {
-                // Try URN Code Value (0008,0120) if Long Code Value is also missing
-                guard let urnCodeValue = item.string(for: .urnCodeValue) else {
-                    return nil
-                }
-                // URN Code Value case
-                guard let codingSchemeDesignator = item.string(for: .codingSchemeDesignator),
-                      let codeMeaning = item.string(for: .codeMeaning) else {
-                    return nil
-                }
-                return CodedConcept(
-                    codeValue: "",
-                    codingSchemeDesignator: codingSchemeDesignator,
-                    codeMeaning: codeMeaning,
-                    codingSchemeVersion: item.string(for: .codingSchemeVersion),
-                    longCodeValue: nil,
-                    urnCodeValue: urnCodeValue
-                )
-            }
-            // Long Code Value case
-            guard let codingSchemeDesignator = item.string(for: .codingSchemeDesignator),
-                  let codeMeaning = item.string(for: .codeMeaning) else {
-                return nil
-            }
-            return CodedConcept(
-                codeValue: "",
-                codingSchemeDesignator: codingSchemeDesignator,
-                codeMeaning: codeMeaning,
-                codingSchemeVersion: item.string(for: .codingSchemeVersion),
-                longCodeValue: longCodeValue,
-                urnCodeValue: nil
-            )
-        }
-        
-        // Standard case with Code Value
-        guard let codingSchemeDesignator = item.string(for: .codingSchemeDesignator),
-              let codeMeaning = item.string(for: .codeMeaning) else {
+        let codeValue = item.string(for: .codeValue)
+        let longCodeValue = item.string(for: .longCodeValue)
+        let urnCodeValue = item.string(for: .urnCodeValue)
+
+        // At least one identifier must be present
+        guard codeValue != nil || longCodeValue != nil || urnCodeValue != nil else {
             return nil
         }
-        
+
+        // Code Meaning is Type 1
+        guard let codeMeaning = item.string(for: .codeMeaning) else {
+            return nil
+        }
+
+        // Coding Scheme Designator: required unless the identifier is a URN Code Value alone
+        let designator = item.string(for: .codingSchemeDesignator)
+        let identifiedByURNOnly = codeValue == nil && longCodeValue == nil && urnCodeValue != nil
+        guard let codingSchemeDesignator = designator ?? (identifiedByURNOnly ? "" : nil) else {
+            return nil
+        }
+
         return CodedConcept(
-            codeValue: codeValue,
+            codeValue: codeValue ?? "",
             codingSchemeDesignator: codingSchemeDesignator,
             codeMeaning: codeMeaning,
             codingSchemeVersion: item.string(for: .codingSchemeVersion),
-            longCodeValue: item.string(for: .longCodeValue),
-            urnCodeValue: item.string(for: .urnCodeValue)
+            longCodeValue: longCodeValue,
+            urnCodeValue: urnCodeValue
         )
     }
     

@@ -2,6 +2,7 @@
 // DICOMCore — GPU_RENDERING_PLAN.md milestone M2b
 //
 // Page-aligned storage for decoded pixel data, so a GPU can read it in place.
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (page-aligned allocation for GPU upload). C1 classification confirmed.
 
 import Foundation
 

@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent presentation state transformation helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `applyLinearVOI` thresholds and ramp are the C.11.2.1.2.1 pseudo-code verbatim (upper bound was c + w/2, the text has c − 0.5 + (w−1)/2: corrected; w ≥ 1 enforced); `applySigmoidVOI` and `applyLinearExactVOI` match the C.11.2.1.3.1 / C.11.2.1.3.2 pseudo-code; `applyVOILUT` dispatches on the three C.11.2 VOI LUT Function terms LINEAR / LINEAR_EXACT / SIGMOID; `applyPresentationLUT` INVERSE = maximum − output (C.11.6.1.2); `rotationAngle` yields the four C.10.6 Image Rotation values and `transformPoint` now rotates before it flips, as Table C.10-6 orders it (flip was applied first: corrected); `applyGSPSPipeline`'s /4095 fallback when no VOI is given is a display convenience the standard does not define (PS3.4 N.2.1.3 makes an absent VOI the identity) and is documented as such; checked by Scripts/diff_studio_g2_viewer.py
 
 import Foundation
 
@@ -13,29 +15,41 @@ public enum PresentationStateHelpers: Sendable {
 
     // MARK: - VOI LUT
 
-    /// Applies a linear VOI LUT transformation to a pixel value.
+    /// Applies the LINEAR VOI LUT function to a pixel value.
     ///
-    /// Per DICOM PS3.3 C.11.2.1.2.1, the linear function maps pixel values
-    /// to output values using window center and width.
+    /// The pseudo-code of PS3.3 C.11.2.1.2.1, with ymin = 0 and ymax = 1:
+    ///
+    ///     if (x <= c - 0.5 - (w-1)/2), then y = ymin
+    ///     else if (x > c - 0.5 + (w-1)/2), then y = ymax
+    ///     else y = ((x - (c - 0.5)) / (w-1) + 0.5) * (ymax - ymin) + ymin
+    ///
+    /// "Window Width (0028,1051) shall always be greater than or equal to 1";
+    /// a width of exactly 1 is the threshold at c − 0.5 and never reaches the
+    /// ramp, so there is no division by zero. The upper threshold is one unit
+    /// below `c + w/2` — a window of 1–100 maps 100 to ymax, not past it.
     ///
     /// - Parameters:
-    ///   - pixelValue: Input pixel value.
-    ///   - center: Window center.
-    ///   - width: Window width (must be > 0).
+    ///   - pixelValue: Input value `x` — the output of the Modality LUT.
+    ///   - center: Window Center `c`.
+    ///   - width: Window Width `w` (≥ 1; anything smaller yields 0).
     /// - Returns: Output value in range [0, 1].
     public static func applyLinearVOI(pixelValue: Double, center: Double, width: Double) -> Double {
-        guard width > 0 else { return 0.0 }
+        let x = pixelValue, c = center, w = width
+        guard w >= 1 else { return 0.0 }
 
-        if pixelValue <= center - width / 2.0 {
+        if x <= c - 0.5 - (w - 1) / 2 {
             return 0.0
-        } else if pixelValue > center + width / 2.0 {
+        } else if x > c - 0.5 + (w - 1) / 2 {
             return 1.0
         } else {
-            return (pixelValue - (center - 0.5)) / (width - 1.0) + 0.5
+            return (x - (c - 0.5)) / (w - 1) + 0.5
         }
     }
 
-    /// Applies a sigmoid VOI LUT transformation to a pixel value.
+    /// Applies the SIGMOID VOI LUT function to a pixel value.
+    ///
+    /// PS3.3 C.11.2.1.3.1: y = (ymax − ymin) / (1 + exp(−4 (x − c) / w)) + ymin,
+    /// with w > 0.
     ///
     /// - Parameters:
     ///   - pixelValue: Input pixel value.
@@ -48,7 +62,13 @@ public enum PresentationStateHelpers: Sendable {
         return 1.0 / (1.0 + exp(exponent))
     }
 
-    /// Applies a linear-exact VOI LUT transformation.
+    /// Applies the LINEAR_EXACT VOI LUT function.
+    ///
+    /// The pseudo-code of PS3.3 C.11.2.1.3.2, with w > 0:
+    ///
+    ///     if (x <= c - w/2), then y = ymin
+    ///     else if (x > c + w/2), then y = ymax
+    ///     else y = ((x - c) / w + 0.5) * (ymax - ymin) + ymin
     ///
     /// - Parameters:
     ///   - pixelValue: Input pixel value.
@@ -68,6 +88,10 @@ public enum PresentationStateHelpers: Sendable {
     }
 
     /// Selects and applies the appropriate VOI LUT function.
+    ///
+    /// The three Defined Terms of VOI LUT Function (0028,1056), PS3.3 C.11.2:
+    /// LINEAR (also when the Attribute is absent, C.11.2.1.3), LINEAR_EXACT
+    /// and SIGMOID.
     ///
     /// - Parameters:
     ///   - pixelValue: Input pixel value.
@@ -102,6 +126,10 @@ public enum PresentationStateHelpers: Sendable {
 
     /// Applies a Presentation LUT shape transformation.
     ///
+    /// PS3.3 C.11.6.1.2: INVERSE "shall mean the same as a Value of IDENTITY,
+    /// except that the minimum output value shall convey the meaning of the
+    /// maximum available luminance", i.e. P-Value = maximum value − output value.
+    ///
     /// - Parameters:
     ///   - value: Input value in range [0, 1].
     ///   - shape: Presentation LUT shape.
@@ -118,6 +146,9 @@ public enum PresentationStateHelpers: Sendable {
     // MARK: - Spatial Transformations
 
     /// Computes rotation angle in degrees for a spatial transformation.
+    ///
+    /// One of the four Image Rotation (0070,0042) Enumerated Values 0, 90, 180,
+    /// 270 (PS3.3 C.10.6): clockwise, "before any Image Horizontal Flip".
     ///
     /// - Parameter transformation: The spatial transformation type.
     /// - Returns: Rotation angle in degrees.
@@ -154,6 +185,14 @@ public enum PresentationStateHelpers: Sendable {
 
     /// Transforms a point by a spatial transformation.
     ///
+    /// In the order PS3.3 Table C.10-6 states: Image Rotation (0070,0042) turns
+    /// the image clockwise "before any Image Horizontal Flip (0070,0041) is
+    /// applied", and the flip then mirrors the *rotated* image "such that the
+    /// left side of the image becomes the right side". A quarter turn swaps
+    /// the sides, so the flip is about the rotated width. The vertical flip,
+    /// which C.10.6 has no value for (it is ROTATE_180 + FLIP_H), is kept as
+    /// a mirror about the height.
+    ///
     /// - Parameters:
     ///   - point: Input point.
     ///   - transformation: Spatial transformation to apply.
@@ -169,30 +208,30 @@ public enum PresentationStateHelpers: Sendable {
         var x = point.x
         var y = point.y
 
-        // Apply flip first
-        if isFlippedHorizontally(transformation) {
-            x = imageWidth - x
-        }
-        if isFlippedVertically(transformation) {
-            y = imageHeight - y
+        // Rotation first (clockwise), as Table C.10-6 orders it.
+        var rotatedWidth = imageWidth
+        var rotatedHeight = imageHeight
+        switch rotationAngle(for: transformation) {
+        case 90:
+            (x, y) = (imageHeight - y, x)
+            (rotatedWidth, rotatedHeight) = (imageHeight, imageWidth)
+        case 180:
+            (x, y) = (imageWidth - x, imageHeight - y)
+        case 270:
+            (x, y) = (y, imageWidth - x)
+            (rotatedWidth, rotatedHeight) = (imageHeight, imageWidth)
+        default:
+            break
         }
 
-        // Apply rotation
-        let angle = rotationAngle(for: transformation)
-        switch angle {
-        case 90:
-            let newX = imageHeight - y
-            let newY = x
-            return AnnotationPoint(x: newX, y: newY)
-        case 180:
-            return AnnotationPoint(x: imageWidth - x, y: imageHeight - y)
-        case 270:
-            let newX = y
-            let newY = imageWidth - x
-            return AnnotationPoint(x: newX, y: newY)
-        default:
-            return AnnotationPoint(x: x, y: y)
+        // Then the flip, about the rotated image's edges.
+        if isFlippedHorizontally(transformation) {
+            x = rotatedWidth - x
         }
+        if isFlippedVertically(transformation) {
+            y = rotatedHeight - y
+        }
+        return AnnotationPoint(x: x, y: y)
     }
 
     // MARK: - Full Pipeline
@@ -223,7 +262,10 @@ public enum PresentationStateHelpers: Sendable {
         if let voi = voiLUT {
             value = applyVOILUT(pixelValue: value, transform: voi)
         } else {
-            // Normalize to [0, 1] if no VOI LUT
+            // No VOI in the state means the identity (PS3.4 N.2.1.3), whose
+            // output range the standard leaves to the Modality LUT; this
+            // helper has to land in [0, 1], so a 12-bit range is assumed. A
+            // display convenience, not a value the standard defines.
             value = max(0.0, min(1.0, value / 4095.0))
         }
 

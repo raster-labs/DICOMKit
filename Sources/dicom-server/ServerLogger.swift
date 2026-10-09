@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (log levels, timestamps, file output)
 import Foundation
 
 /// Log level for server logging

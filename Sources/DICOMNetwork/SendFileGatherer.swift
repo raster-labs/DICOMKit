@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — the "DICM" prefix at offset 128 compared with PS3.10 2026a §7.1 (128-byte preamble then the 4-byte prefix): match; no other standard data
 
 /// Expands C-STORE path arguments into the concrete list of DICOM files to send.
 ///

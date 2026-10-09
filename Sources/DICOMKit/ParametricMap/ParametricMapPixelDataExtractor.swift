@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — float pixel data per PS3.5 2026a 8.1.1 (findings recorded)
 //
 // ParametricMapPixelDataExtractor.swift
 // DICOMKit

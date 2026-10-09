@@ -3,6 +3,8 @@
 //
 // ViewModel for the JP3D volumetric comparison viewer.
 // Uses JP3DCodec (true 3D wavelet compression), NOT J2KSwiftCodec (per-frame 2D).
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (JP3D bench state); PSNR uses 2^bitsAllocated − 1 as the peak, window defaults are UI values
 
 import Foundation
 import Observation
@@ -291,7 +293,9 @@ public final class JP3DComparisonViewModel {
             let decoded = DICOMVolume(
                 width: volume.width, height: volume.height, depth: volume.depth,
                 bitsAllocated: volume.bitsAllocated, bitsStored: volume.bitsStored,
+                highBit: volume.highBit,
                 isSigned: volume.isSigned,
+                photometricInterpretation: volume.photometricInterpretation,
                 spacingX: volume.spacingX, spacingY: volume.spacingY, spacingZ: volume.spacingZ,
                 originX: volume.originX, originY: volume.originY, originZ: volume.originZ,
                 pixelData: decodedData,

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.5 2026a A.5: the data set is one raw DEFLATE stream and the File Meta Information is not deflated; strict end-of-stream handling recorded
 import Foundation
 #if canImport(Compression)
 import Compression

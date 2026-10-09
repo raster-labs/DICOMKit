@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (connection pooling)
 /// Configuration for HTTP connection pooling
 ///
 /// Controls connection lifecycle, limits, and behavior for HTTP/2 multiplexing

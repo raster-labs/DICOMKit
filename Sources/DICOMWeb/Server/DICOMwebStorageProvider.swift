@@ -2,12 +2,13 @@ import Foundation
 import DICOMCore
 import DICOMKit
 
+// NEMA-verified: 2026a, checked 2026-09-28 — the 3 tags (0020,0010), (0008,0016), (0018,0015) and the DA/TM range syntax read against PS3.6 2026a Table 6-1 and PS3.4 C.2.2.2.5; the delete operations are a DICOMKit extension, PS3.18 defines no Delete Transaction for studies
 /// Deletion mode for DICOM instances
 ///
 /// Defines whether instances should be permanently deleted or soft-deleted
 /// (marked as deleted but retained in storage).
 ///
-/// Reference: PS3.18 Section 6.7 - Delete Transaction
+/// Not a PS3.18 transaction: the standard defines no deletion of studies, series or instances
 public enum DeletionMode: String, Sendable, Codable {
     /// Permanent deletion - instance is physically removed from storage
     case permanent
@@ -269,6 +270,15 @@ public struct StorageQuery: Sendable {
     
     /// Referring physician name
     public var referringPhysicianName: String?
+
+    /// Study ID (0020,0010)
+    public var studyID: String?
+
+    /// SOP Class UID (0008,0016) — instance-level match
+    public var sopClassUID: String?
+
+    /// Body Part Examined (0018,0015) — series-level match
+    public var bodyPartExamined: String?
     
     /// Pagination: offset
     public var offset: Int
@@ -301,8 +311,14 @@ public struct StorageQuery: Sendable {
         offset: Int = 0,
         limit: Int = 100,
         fuzzyMatching: Bool = false,
-        customParameters: [String: String] = [:]
+        customParameters: [String: String] = [:],
+        studyID: String? = nil,
+        sopClassUID: String? = nil,
+        bodyPartExamined: String? = nil
     ) {
+        self.studyID = studyID
+        self.sopClassUID = sopClassUID
+        self.bodyPartExamined = bodyPartExamined
         self.patientName = patientName
         self.patientID = patientID
         self.studyDate = studyDate
@@ -339,6 +355,45 @@ public struct StorageQuery: Sendable {
         public init(start: Date?, end: Date?) {
             self.start = start
             self.end = end
+        }
+
+        /// Parses a DICOM DA/TM matching value (PS3.4 C.2.2.2.5): `YYYYMMDD`,
+        /// `YYYYMMDD-YYYYMMDD`, `YYYYMMDD-`, `-YYYYMMDD` (and the HHMMSS forms
+        /// when `format` is "HHmmss"). Returns nil for anything unparsable.
+        public init?(dicomValue: String, format: String = "yyyyMMdd") {
+            let formatter = DateFormatter()
+            formatter.dateFormat = format
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "UTC")
+            func parse(_ s: Substring) -> Date? {
+                let trimmed = s.trimmingCharacters(in: .whitespaces)
+                let digits = String(trimmed.prefix(format.count))
+                return digits.isEmpty ? nil : formatter.date(from: digits)
+            }
+            let value = dicomValue.trimmingCharacters(in: .whitespaces)
+            guard !value.isEmpty else { return nil }
+            if let dash = value.firstIndex(of: "-") {
+                let lo = value[value.startIndex..<dash]
+                let hi = value[value.index(after: dash)...]
+                let start = lo.isEmpty ? nil : parse(lo)
+                let end = hi.isEmpty ? nil : parse(hi)
+                if (!lo.isEmpty && start == nil) || (!hi.isEmpty && end == nil) { return nil }
+                if start == nil && end == nil { return nil }
+                self.init(start: start, end: end)
+            } else {
+                guard let date = parse(value[...]) else { return nil }
+                self.init(date: date)
+            }
+        }
+
+        /// True when `dicomValue` (a stored DA/TM string) falls inside the range.
+        public func contains(dicomValue: String?, format: String = "yyyyMMdd") -> Bool {
+            guard let dicomValue, let point = DateRange(dicomValue: dicomValue, format: format)?.start else {
+                return false
+            }
+            if let start, point < start { return false }
+            if let end, point > end { return false }
+            return true
         }
     }
 }

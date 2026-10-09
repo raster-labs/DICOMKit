@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Spatial Transformation per PS3.3 2026a C.10.6 (rotate then horizontal flip; citation corrected from C.10.10), Displayed Area 1-based corners and SCALE TO FIT per Table C.10-4, Presentation LUT IDENTITY/INVERSE per C.11.6 with MONOCHROME1 folded per PS3.4 N.2
 // ViewerPresentationStateBridge.swift
 // DICOMPrintKit
 //
@@ -13,9 +14,14 @@
 // decide what a restored view can promise:
 //
 //   * GSPS rotation is one of 0/90/180/270 and its flip is *horizontal only*
-//     (PS3.3 C.10.10). The viewer allows a free angle and both flips, so a
-//     vertical flip is written as a 180° rotation plus a horizontal one, which
-//     is the same picture.
+//     (PS3.3 C.10.6: rotate clockwise first, then flip). The viewer allows a
+//     free angle and both flips, so a vertical flip is written as a 180°
+//     rotation plus a horizontal one, which is the same picture.
+//   * The viewer's "inverted" is relative to how the image's own Photometric
+//     Interpretation displays it; a presentation state's Presentation LUT is
+//     not, because PS3.4 N.2 has the viewer ignore MONOCHROME1/MONOCHROME2 in
+//     the referenced image. So for a MONOCHROME1 image the upright view is
+//     INVERSE and the inverted one IDENTITY — both directions fold it.
 //   * Displayed Area is a rectangle of source pixels, not a zoom factor. It is
 //     therefore independent of the viewport it was saved from — the same state
 //     restores correctly into a different window size, which is the behaviour
@@ -77,6 +83,10 @@ public enum ViewerPresentationStateBridge {
     ///     pixel rectangle Displayed Area is defined as.
     ///   - imageHeight: Ditto.
     ///   - covers: Whether the picture is drawn covering the viewport.
+    ///   - photometricInterpretation: The image's Photometric Interpretation
+    ///     (0028,0004). MONOCHROME1 turns the viewer's inversion into the
+    ///     Presentation LUT that shows the same picture once the viewer ignores
+    ///     the photometric (PS3.4 N.2). `nil` keeps the MONOCHROME2 reading.
     public static func capture(
         presentation: ViewerPresentation,
         windowCenter: Double?,
@@ -84,7 +94,8 @@ public enum ViewerPresentationStateBridge {
         windowExplanation: String? = nil,
         imageWidth: Int,
         imageHeight: Int,
-        covers: Bool = false
+        covers: Bool = false,
+        photometricInterpretation: String? = nil
     ) -> CapturedDisplay {
         var captured = CapturedDisplay()
 
@@ -110,9 +121,20 @@ public enum ViewerPresentationStateBridge {
                 sizeMode: .scaleToFit)
         }
 
-        captured.presentationLUT = presentation.invert ? .inverse : .identity
+        // PS3.4 N.2: the image's MONOCHROME1 is ignored under a presentation
+        // state, so a MONOCHROME1 image shown the way its photometric says
+        // (lowest value white) is an INVERSE state, and inverting it again on
+        // screen is IDENTITY.
+        let inverse = presentation.invert != isMonochrome1(photometricInterpretation)
+        captured.presentationLUT = inverse ? .inverse : .identity
 
         return captured
+    }
+
+    /// Whether a Photometric Interpretation is MONOCHROME1 (lowest value white).
+    static func isMonochrome1(_ photometricInterpretation: String?) -> Bool {
+        photometricInterpretation?
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")).uppercased() == "MONOCHROME1"
     }
 
     /// Folds the viewer's free rotation and two flips into what GSPS can say.
@@ -219,13 +241,17 @@ public enum ViewerPresentationStateBridge {
     ///     need not be the one it was saved from.
     ///   - viewportHeight: Ditto.
     ///   - covers: Whether the picture is drawn covering the viewport.
+    ///   - photometricInterpretation: The image's Photometric Interpretation,
+    ///     folded back out of the Presentation LUT exactly as ``capture`` folds
+    ///     it in. `nil` keeps the MONOCHROME2 reading.
     public static func restore(
         _ state: GrayscalePresentationState,
         imageWidth: Int,
         imageHeight: Int,
         viewportWidth: Double,
         viewportHeight: Double,
-        covers: Bool = false
+        covers: Bool = false,
+        photometricInterpretation: String? = nil
     ) -> RestoredDisplay {
         var restored = RestoredDisplay()
 
@@ -244,9 +270,12 @@ public enum ViewerPresentationStateBridge {
             restored.flipHorizontal = spatial.horizontalFlip
         }
 
-        if case .inverse? = state.presentationLUT {
-            restored.invert = true
-        }
+        // An absent Presentation LUT is IDENTITY (the module is M in GSPS and
+        // its shape defaults to no translation); the photometric folds out as
+        // it folded in.
+        var inverse = false
+        if case .inverse? = state.presentationLUT { inverse = true }
+        restored.invert = inverse != isMonochrome1(photometricInterpretation)
 
         if let area = state.displayedArea {
             let (zoom, panX, panY) = zoomAndPan(

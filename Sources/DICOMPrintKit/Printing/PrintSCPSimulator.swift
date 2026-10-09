@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — film box built with the job's own Image Display Format (PS3.3 2026a C.13.3, C.13.5.1; was the bounding STANDARD grid); image box SOP class per PS3.6 Table A-1 (1.2.840.10008.5.1.1.4 / .4.1, resolved in DICOMNetwork)
 //
 // PrintSCPSimulator.swift
 // DICOMPrintKit
@@ -114,9 +115,15 @@ public struct PrintSCPSimulator: Sendable {
                     image: imageIndex < indices.upperBound ? images[imageIndex].descriptor : nil)
             }
 
+            // The job's own Image Display Format, not the grid that bounds
+            // it: a ROW\ or COL\ film has fewer boxes than its bounding grid,
+            // and the format defines the boxes (PS3.3 C.13.3) and their
+            // numbering (C.13.5.1). Composed from the
+            // grid, a `ROW\1,2` film came out as `STANDARD\2,2` — four cells
+            // for three images, laid out as the printer would never lay them.
             let filmBox = FilmBox(
                 sopInstanceUID: UIDGenerator.generateSOPInstanceUID().value,
-                imageDisplayFormat: layout.imageDisplayFormat,
+                imageDisplayFormat: plan.displayFormat.raw,
                 filmOrientation: plan.filmOrientation,
                 filmSizeID: plan.filmSize,
                 magnificationType: request.magnificationType,

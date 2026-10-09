@@ -1,3 +1,6 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — audio notes per PS3.5 2026a 8.2.5/8.2.12 (verified by script): bits per sample of compressed audio stated as not in the bit stream, MP3 complementary channels as not identified, CBR violations of "CBR MPEG-1 LAYER III" (D58)
+// NEMA-verified: 2026a, checked 2026-09-30 — SOP Class names match PS3.6 2026a Table A-1; audio messages per PS3.5 2026a 8.2.5-8.2.12 and Table 8.2.12-1 (per-track violations of the constraints VideoConformanceValidator.audioConstraints extracts; audio kept, never stripped) and PS3.3 Table C.7-13 (003A,0300) Type 2C "Zero or more Items", Channel Source from PS3.16 CID 3000 (D34, D46)
+// NEMA-verified: 2026a, checked 2026-10-01 — VideoConsole.Help: 16 attribute names diffed by script against PS3.6 2026a Tables 6-1/7-1 (15 matched; "Patient's Name" fixed); modality help per PS3.3 2026a A.32.5.4.1/A.32.6.4.1/A.32.7.4.1 (ES/GM/XC); input help per PS3.5 8.2.7-8.2.11 container rule and the 8.2.5/8.2.6 MPEG-2 containers incl. MPEG-PS / MPEG-PES (D227); help strings only, no public member changed
 //
 // VideoConsole.swift
 // DICOMKit
@@ -208,10 +211,10 @@ public enum VideoConsole {
     /// Help text of the options, single-sourced so the CLI's `@Option(help:)`,
     /// the Workshop's form help, and the invalid-value lines agree.
     public enum Help {
-        public static let input = "Input video file (MP4, MOV, TS, or a raw elementary stream)"
+        public static let input = "Input video file: H.264/HEVC in an MP4 or MPEG-2 Transport Stream container (PS3.5 8.2.7-8.2.11); MPEG-2 video in MP4, an MPEG-2 Program Stream, PES or elementary stream (8.2.5, 8.2.6: container not constrained); MOV is probed but not converted"
         public static let output = "Output DICOM file path"
         public static let type = "Video type: endoscopic, microscopic or photographic"
-        public static let transferSyntax = "Transfer Syntax UID (auto-detected by default)"
+        public static let transferSyntax = "Transfer Syntax UID (auto-detected by default): an MPEG2, MPEG-4 AVC/H.264 or HEVC/H.265 UID of PS3.6 Table A-1"
         public static let frameRate = "Override the probed frame rate (validated)"
         public static let instanceNumber = "Instance Number (default: 1)"
         public static let seriesNumber = "Series Number (default: 1)"
@@ -230,7 +233,7 @@ public enum VideoConsole {
         public static let continueOnError = "Skip failures and convert the rest"
         public static let batchForce = "Overwrite existing output files"
         public static let verbose = "Show the reasoning behind each step"
-        public static let patientName = "Patient Name, in DICOM caret form (e.g. Doe^Jane)"
+        public static let patientName = "Patient's Name, in DICOM caret form (e.g. Doe^Jane)"
         public static let patientID = "Patient ID"
         public static let patientBirthDate = "Patient's Birth Date (YYYYMMDD)"
         public static let patientSex = "Patient's Sex (M, F or O)"
@@ -240,7 +243,7 @@ public enum VideoConsole {
         public static let studyID = "Study ID"
         public static let referringPhysician = "Referring Physician's Name"
         public static let seriesDescription = "Series Description"
-        public static let modality = "Modality (overrides the video type's default)"
+        public static let modality = "Modality (overrides the video type's default; PS3.3 A.32.5-A.32.7 require ES endoscopic, GM microscopic, XC photographic)"
         public static let manufacturer = "Manufacturer"
         public static let institutionName = "Institution Name"
     }
@@ -256,7 +259,7 @@ public enum VideoConsole {
         transferSyntax: TransferSyntax?
     ) -> String {
         var lines: [String] = []
-        lines.append("Container:        \(probe.container.displayName)")
+        lines.append("Container:        \(probe.containerDisplayName)")
         lines.append("Codec:            \(probe.stream.codec.displayName)")
         if probe.stream.codec != .unknown {
             lines.append("Profile:          \(probe.stream.profileName)")
@@ -272,12 +275,21 @@ public enum VideoConsole {
             lines.append("Frame rate:       not declared")
         }
         lines.append("Frames:           \(probe.frameCount) (\(probe.frameCountSource.rawValue))")
-        if probe.audioTracks.count == 1 {
-            lines.append("Audio:            \(probe.audioTracks[0].summary)")
-        } else {
-            for (index, audio) in probe.audioTracks.enumerated() {
-                lines.append("Audio \(index + 1):".padding(toLength: 18, withPad: " ", startingAt: 0)
-                             + audio.summary)
+        // Audio is permitted in DICOM video (PS3.5 8.2.5-8.2.12, Table 8.2.12-1)
+        // and `convert` keeps it in the bit stream; what DICOMKit cannot yet do
+        // is check its format against those constraints.
+        if probe.audioTrackCount > 0 {
+            if probe.audioTracks.allSatisfy({ $0.format == nil }) {
+                lines.append("Audio tracks:     \(probe.audioTrackCount) \(audioTrackNote)")
+            } else {
+                lines.append("Audio tracks:     \(probe.audioTrackCount) (carried in the bit stream)")
+                for (index, track) in probe.audioTracks.enumerated() {
+                    let label = "Audio track \(index + 1):"
+                    let padded = label.count < 18
+                        ? label + String(repeating: " ", count: 18 - label.count)
+                        : label + " "
+                    lines.append(padded + track.summary)
+                }
             }
         }
         if probe.rotationDegrees != 0 {
@@ -439,6 +451,37 @@ public enum VideoConsole {
         "\(name): series \(seriesNumber), instance \(instanceNumber), \(transferSyntaxUID)"
     }
 
+    /// The qualifier after the probe report's audio track count.
+    ///
+    /// DICOM video may carry audio: PS3.5 8.2.5 (MPEG2, applied to MP@HL by
+    /// 8.2.6) says "Any audio components present within the MPEG bit stream shall
+    /// comply with the following restrictions" (CBR MP3), and 8.2.7-8.2.11 (H.264,
+    /// HEVC) say "Any audio components included in the data container shall follow
+    /// the constraints detailed in" 8.2.12, whose Table 8.2.12-1 allows AAC, MP3
+    /// and MPEG-1 Audio Layer II in MP4 (plus LPCM and AC-3 in MPEG-2 TS).
+    public static let audioTrackNote =
+        "(carried in the bit stream; not checked against PS3.5 8.2.5/8.2.12)"
+
+    /// The warning emitted when the input has audio tracks whose format could not
+    /// be identified (``audioCheckLines(_:channelsDescribed:sourceGiven:)`` is
+    /// used once any format is known).
+    ///
+    /// The audio is not removed: `convert` encapsulates the payload unchanged,
+    /// which PS3.5 8.2.5-8.2.12 permit. The warning names the library's
+    /// limitations instead — it does not check the audio against the codec, sample
+    /// rate and channel constraints of PS3.5 8.2.5 / 8.2.12 (Table 8.2.12-1), and
+    /// it writes Multiplexed Audio Channels Description Code Sequence (003A,0300)
+    /// with no Items (Type 2C, "Zero or more Items", PS3.3 Table C.7-13) because it
+    /// does not read the channel layout.
+    public static func audioCarriedLine(trackCount: Int) -> String {
+        warningLine("""
+            input has \(trackCount) audio track\(trackCount == 1 ? "" : "s"), \
+            kept in the bit stream; DICOMKit does not check \(trackCount == 1 ? "it" : "them") \
+            against PS3.5 8.2.5/8.2.12 or describe \(trackCount == 1 ? "its" : "their") channels \
+            in (003A,0300).
+            """)
+    }
+
     /// The note emitted when audio is carried into the object.
     ///
     /// The payload is encapsulated unchanged, so its audio travels with it.
@@ -467,6 +510,103 @@ public enum VideoConsole {
             """)
     }
 
+    /// The notices for the audio tracks of a conversion, after checking them
+    /// against PS3.5 8.2.5 (MPEG2) or 8.2.12 (H.264, HEVC) for its transfer
+    /// syntax.
+    ///
+    /// When no track's format could be identified this is exactly
+    /// ``audioCarriedLine(trackCount:)``. Otherwise, per track: one warning per
+    /// known violation; a note listing the constraints that could not be checked;
+    /// or a note that the track meets the section; then one note per
+    /// ``VideoAudioTrackCheck/notes`` entry (bits per sample of compressed audio,
+    /// which no bit stream carries; MP3 complementary channels, not identified). Then, unless channels were
+    /// described, a note that (003A,0300) has no Items. The audio is never
+    /// removed or re-encoded, whatever the verdict.
+    ///
+    /// - Parameters:
+    ///   - result: ``VideoConformanceValidator/validateAudio(tracks:container:transferSyntax:)``.
+    ///   - channelsDescribed: Whether (003A,0300) carries Items.
+    ///   - sourceGiven: Whether the caller named a Channel Source, so a missing
+    ///     description is down to the channel layout rather than the source.
+    public static func audioCheckLines(
+        _ result: VideoAudioConformanceResult,
+        channelsDescribed: Bool = false,
+        sourceGiven: Bool = false
+    ) -> [String] {
+        guard !result.tracks.isEmpty else { return [] }
+        if result.tracks.allSatisfy({ $0.track.format == nil }) {
+            return [audioCarriedLine(trackCount: result.tracks.count)]
+        }
+        var lines: [String] = []
+        for check in result.tracks {
+            let label = "audio track \(check.trackNumber) (\(check.track.summary))"
+            guard check.track.format != nil else {
+                lines.append(warningLine(
+                    "\(label): format not identified; not checked against \(result.section)."))
+                continue
+            }
+            for violation in check.violations {
+                lines.append(audioViolationLine(label: label, violation: violation))
+            }
+            if !check.notChecked.isEmpty {
+                let list = check.notChecked.map(\.rawValue).joined(separator: ", ")
+                lines.append(noteLine("\(label): not checked against \(result.section): \(list)."))
+            } else if check.violations.isEmpty {
+                let qualifier = check.notes.isEmpty ? "" : " as far as the bit stream shows"
+                lines.append(noteLine("\(label) meets \(result.section)\(qualifier)."))
+            }
+            // Why a constraint cannot be read, or stays not checked (D58).
+            for note in check.notes {
+                lines.append(noteLine("\(label): \(note.message)."))
+            }
+        }
+        if !channelsDescribed {
+            lines.append(sourceGiven ? audioChannelLayoutUndescribedLine : audioChannelsUndescribedLine)
+        }
+        return lines
+    }
+
+    /// One audio violation as a warning: the audio is kept, so it is not an error.
+    public static func audioViolationLine(label: String, violation: VideoAudioViolation) -> String {
+        warningLine("\(label): \(violation.message); the audio is kept unchanged.")
+    }
+
+    /// Why (003A,0300) has no Items even though the audio was identified.
+    public static let audioChannelsUndescribedLine = noteLine("""
+        Multiplexed Audio Channels Description Code Sequence (003A,0300) has no Items: \
+        each Item needs a Channel Source code (PS3.16 CID 3000) that the container does not record.
+        """)
+
+    /// Why (003A,0300) has no Items although a Channel Source was given: some
+    /// track is not one mono or stereo signal, which is all Channel Mode
+    /// (003A,0302) can express (Enumerated Values MONO, STEREO), or its channel
+    /// count is unknown.
+    /// The refusal when per-track Channel Sources do not fit the audio tracks
+    /// (``VideoWorkflow/validateAudioChannelSources(for:metadata:)``).
+    public static func audioChannelSourceCountLine(given: Int, tracks: Int) -> String {
+        errorLine("""
+            --audio-channel-source given \(given) times, but the input has \(tracks) audio \
+            track\(tracks == 1 ? "" : "s"): give it once (for every track) or once per track, in order \
+            (PS3.3 Table C.7-13: one Multiplexed Audio Channels Description Code Sequence (003A,0300) \
+            Item per channel, each with its own Channel Source Sequence (003A,0208)).
+            """)
+    }
+
+    public static let audioChannelLayoutUndescribedLine = noteLine("""
+        Multiplexed Audio Channels Description Code Sequence (003A,0300) has no Items: \
+        Channel Mode (003A,0302) is MONO or STEREO, and not every audio track is known to be one of those.
+        """)
+
+    /// The warning formerly emitted when audio tracks were said to be dropped.
+    ///
+    /// Its text claimed "DICOM video has no audio, discarding", which is wrong
+    /// twice: PS3.5 8.2.5-8.2.12 permit audio, and `convert` never removed it.
+    /// It now returns ``audioCarriedLine(trackCount:)``.
+    @available(*, deprecated, renamed: "audioCarriedLine(trackCount:)", message: "Audio is permitted in DICOM video (PS3.5 2026a 8.2.5-8.2.12, Table 8.2.12-1) and is kept in the bit stream; use audioCarriedLine(trackCount:)")
+    public static func audioDiscardedLine(trackCount: Int) -> String {
+        audioCarriedLine(trackCount: trackCount)
+    }
+
     /// The `probe` conformance verdict lines.
     public static let conformanceOKLine = "\nConformance:      OK"
     public static let noCarryingSyntaxVerdictLine =
@@ -491,7 +631,7 @@ public enum VideoConsole {
     public static func extractSummary(_ extracted: ExtractedVideo) -> String {
         """
         Codec:            \(extracted.codec.displayName)
-        Container:        \(extracted.container.displayName)
+        Container:        \(extracted.containerDisplayName)
         Transfer syntax:  \(extracted.transferSyntax.uid)
         """
     }

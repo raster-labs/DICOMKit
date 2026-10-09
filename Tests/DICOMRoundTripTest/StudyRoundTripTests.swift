@@ -261,8 +261,8 @@ final class StudyRoundTripTests: XCTestCase {
 
         // Rendered text carries the counts.
         let text = try StudyReport.renderStats(stats, detailed: true, format: "text")
-        XCTAssertTrue(text.contains("Series Count: 2"))
-        XCTAssertTrue(text.contains("Total Instances: 3"))
+        XCTAssertTrue(text.contains("Number of Study Related Series: 2"))
+        XCTAssertTrue(text.contains("Number of Study Related Instances: 3"))
     }
 
     // Oracle: detailed=false yields an empty instancesPerSeries array (per source).

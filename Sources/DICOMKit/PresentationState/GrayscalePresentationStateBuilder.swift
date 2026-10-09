@@ -1,7 +1,8 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a Table A.33.1-1 modules: Modality LUT (C.11.1), LUT sequences (C.11.6, C.11.8), Display Shutter and Presentation State Shutter (Tables C.7-17a, C.11.12-1), Displayed Area 1C attributes (Table C.10-4), conditional Graphic Filled (Table C.10-5), CIELab layer colour (C.10.7.1.1), Content Creator's Name Type 3 (Table 10.9.3-1 via Table 10-12, written zero length when unknown; wording D222, 2026-10-01); Compound Graphic Sequence and Text/Line/Fill Style Sequence Macros written with their 1C conditions per Tables C.10-5, C.10-5a/5b/5c (D39, 2026-09-29); Unformatted Text Value control characters per Table C.10-5
 // GrayscalePresentationStateBuilder.swift
 // DICOMKit
 //
-// Writes a Grayscale Softcopy Presentation State (PS3.3 A.34.1) — the standard
+// Writes a Grayscale Softcopy Presentation State (PS3.3 A.33.1) — the standard
 // object that records *how* an image was being looked at, without touching the
 // image itself.
 //
@@ -30,7 +31,7 @@ public struct GrayscalePresentationStateBuilder: Sendable {
     public static let sopClassUID = "1.2.840.10008.5.1.4.1.1.11.1"
 
     /// Modality of a presentation state series — fixed by PS3.3 C.11.10.
-    public static let modality = "PR"
+    public static let modality = Modality.pr.rawValue
 
     public init() {}
 
@@ -48,12 +49,20 @@ public struct GrayscalePresentationStateBuilder: Sendable {
     ///   - seriesInstanceUID: The series the object belongs to. Callers that
     ///     group several states together pass the same UID for each.
     ///   - seriesNumber: Series Number of that series.
+    ///   - imageSize: Columns and rows of the referenced image. The Displayed
+    ///     Area Module is mandatory (Table A.33.1-1) and its selection sequence
+    ///     Type 1 (Table C.10-4); when the state records no area and the size
+    ///     is known, the whole image (1\1 to columns\rows, SCALE TO FIT) is
+    ///     written, which is what the absence meant to the viewer. Without
+    ///     either, the sequence is left out and ``validate(_:imageSize:)``
+    ///     says so.
     /// - Returns: A data set carrying the full GSPS IOD.
     public func buildDataSet(
         from state: GrayscalePresentationState,
         patient: PresentationStatePatientContext,
         seriesInstanceUID: String,
-        seriesNumber: Int
+        seriesNumber: Int,
+        imageSize: (columns: Int, rows: Int)? = nil
     ) -> DataSet {
         var dataSet = DataSet()
 
@@ -120,12 +129,33 @@ public struct GrayscalePresentationStateBuilder: Sendable {
         if let creationTime = state.presentationCreationTime {
             dataSet.setString(creationTime.dicomString, for: .presentationCreationTime, vr: .TM)
         }
-        if let creator = state.presentationCreatorsName {
-            dataSet.setString(creator.dicomString, for: .contentCreatorName, vr: .PN)
-        }
+        // Content Creator's Name is Type 3 (PS3.3 2026a Table 10.9.3-1, included by Table 10-12);
+        // written zero length when unknown, which PS3.5 2026a 7.4.5 permits for Type 3.
+        dataSet.setString(state.presentationCreatorsName?.dicomString ?? "", for: .contentCreatorName, vr: .PN)
 
         // MARK: Presentation State Relationship
         dataSet[.referencedSeriesSequence] = Self.referencedSeriesElement(state.referencedSeries)
+
+        // MARK: Modality LUT (C.11.1)
+        //
+        // PS3.4 N.2.1.1: a viewer applies only the Modality LUT carried by the
+        // presentation state and never the image's own; a window written in
+        // rescaled units without one is applied to stored values.
+        switch state.modalityLUT {
+        case .rescale(let slope, let intercept, let type)?:
+            dataSet.setString(Self.decimalString(intercept), for: .rescaleIntercept, vr: .DS)
+            dataSet.setString(Self.decimalString(slope), for: .rescaleSlope, vr: .DS)
+            dataSet.setString(type ?? "US", for: .rescaleType, vr: .LO)   // Type 1C with the intercept
+        case .lut(let lut)?:
+            dataSet[.modalityLUTSequence] = Self.sequence(
+                tag: .modalityLUTSequence,
+                items: [Self.lutItem(lut, extra: [
+                    // Modality LUT Type (0028,3004), Type 1; "US" is the unspecified type
+                    DataElement.string(tag: Tag(group: 0x0028, element: 0x3004), vr: .LO, value: "US")
+                ])])
+        case nil:
+            break
+        }
 
         // MARK: Display transformations
         if let voiLUT = state.voiLUT {
@@ -137,9 +167,19 @@ public struct GrayscalePresentationStateBuilder: Sendable {
             dataSet.setInteger(spatial.rotation, for: .imageRotation)
             dataSet.setString(spatial.horizontalFlip ? "Y" : "N", for: .imageHorizontalFlip, vr: .CS)
         }
-        if let area = state.displayedArea {
+        if let area = Self.displayedArea(of: state, imageSize: imageSize) {
             dataSet[.displayedAreaSelectionSequence] = Self.displayedAreaElement(area)
         }
+
+        // MARK: Display Shutter (C.7.6.11, C.11.12)
+        //
+        // Shutter Presentation Color CIELab Value (0018,1624) is not written
+        // here: Table C.11.12-1 requires it only "if the SOP Class is other
+        // than Grayscale Softcopy Presentation State Storage", and a 1C
+        // element whose condition fails shall be absent (PS3.5 7.4.2). The
+        // Pseudo-Color and Color builders add it with
+        // `applyShutterPresentationColor`.
+        Self.applyShutters(state.shutters, to: &dataSet)
 
         // MARK: Annotations
         //
@@ -164,13 +204,178 @@ public struct GrayscalePresentationStateBuilder: Sendable {
             dataSet.setString("INVERSE", for: .presentationLUTShape, vr: .CS)
         case .identity, .none:
             dataSet.setString("IDENTITY", for: .presentationLUTShape, vr: .CS)
-        case .lut:
-            // A table-valued presentation LUT is not something this builder
-            // composes; falling back to IDENTITY keeps the object conformant.
-            dataSet.setString("IDENTITY", for: .presentationLUTShape, vr: .CS)
+        case .lut(let lut):
+            // C.11.6: a table is carried in the Presentation LUT Sequence and
+            // the Shape is then absent; replacing it with IDENTITY would change
+            // what the state shows.
+            dataSet[.presentationLUTSequence] = Self.sequence(
+                tag: .presentationLUTSequence, items: [Self.lutItem(lut)])
         }
 
         return dataSet
+    }
+
+    // MARK: - Validation
+
+    /// What keeps a state from being written as a conformant object.
+    public enum ValidationError: Error, Sendable, Equatable, CustomStringConvertible {
+        /// No Displayed Area and no image size to derive one from: the Type 1
+        /// Displayed Area Selection Sequence (Table C.10-4) would be absent.
+        case missingDisplayedArea
+        /// The Displayed Area breaks a Table C.10-4 Type 1C condition.
+        case displayedArea(DisplayedArea.ConformanceError)
+        /// Presentation State Relationship (Table C.11.11-1b): Referenced Series
+        /// Sequence and each item's Referenced Image Sequence are Type 1 with
+        /// one or more items.
+        case missingReferencedImages
+        /// A Compound Graphic Sequence item that breaks Table C.10-5 /
+        /// C.10.5.1.3 (D39).
+        case compoundGraphic(String)
+
+        public var description: String {
+            switch self {
+            case .missingDisplayedArea:
+                return "Displayed Area Selection Sequence (0070,005A) is Type 1 (PS3.3 Table C.10-4); give the state a displayedArea or the builder an imageSize"
+            case .displayedArea(let error):
+                return error.description
+            case .missingReferencedImages:
+                return "Referenced Series Sequence (0008,1115) needs at least one series with at least one image (PS3.3 Table C.11.11-1b)"
+            case .compoundGraphic(let problem):
+                return problem
+            }
+        }
+    }
+
+    /// Checks the conditions ``buildDataSet(from:patient:seriesInstanceUID:seriesNumber:imageSize:)``
+    /// cannot satisfy on its own. The build itself never throws — the viewer's
+    /// save path must not fail on a state it could show — so callers that want
+    /// a conformance guarantee call this first.
+    public func validate(
+        _ state: GrayscalePresentationState,
+        imageSize: (columns: Int, rows: Int)? = nil
+    ) throws {
+        guard let area = Self.displayedArea(of: state, imageSize: imageSize) else {
+            throw ValidationError.missingDisplayedArea
+        }
+        do {
+            try area.validate()
+        } catch let error as DisplayedArea.ConformanceError {
+            throw ValidationError.displayedArea(error)
+        }
+        guard state.referencedSeries.contains(where: { !$0.referencedImages.isEmpty }) else {
+            throw ValidationError.missingReferencedImages
+        }
+        if let problem = Self.compoundGraphicProblems(state.graphicAnnotations).first {
+            throw ValidationError.compoundGraphic(problem)
+        }
+    }
+
+    /// Compound graphics that break Table C.10-5 / C.10.5.1.3: point counts,
+    /// AXIS ticks, rotation range, duplicate Compound Graphic Instance IDs, and a
+    /// compound graphic without its alternate rendering (C.10.5.1.3.1).
+    static func compoundGraphicProblems(_ annotations: [GraphicAnnotation]) -> [String] {
+        var problems: [String] = []
+        var seen = Set<Int>()
+        for annotation in annotations {
+            let linked = Set(annotation.graphicObjects.compactMap(\.compoundGraphicInstanceID)
+                + annotation.textObjects.compactMap(\.compoundGraphicInstanceID))
+            for graphic in annotation.compoundGraphics {
+                problems += graphic.conformanceProblems
+                if !seen.insert(graphic.instanceID).inserted {
+                    problems.append("Compound Graphic Instance ID \(graphic.instanceID) is not unique (C.10.5.1.3.1)")
+                }
+                if !linked.contains(graphic.instanceID) {
+                    problems.append("Compound graphic \(graphic.instanceID) has no alternate rendering in the Graphic or Text Object Sequence (C.10.5.1.3.1)")
+                }
+            }
+        }
+        return problems
+    }
+
+    /// The area that goes out: the state's own, or the whole image when the
+    /// state has none and the size is known.
+    static func displayedArea(
+        of state: GrayscalePresentationState,
+        imageSize: (columns: Int, rows: Int)?
+    ) -> DisplayedArea? {
+        if let area = state.displayedArea { return area }
+        guard let size = imageSize, size.columns > 0, size.rows > 0 else { return nil }
+        // Table C.10-4: corners are column\row relative to the origin 1\1.
+        return DisplayedArea(
+            topLeft: (column: 1, row: 1),
+            bottomRight: (column: size.columns, row: size.rows),
+            sizeMode: .scaleToFit)
+    }
+
+    // MARK: - LUT and shutter encoding
+
+    /// One item of a Modality, VOI or Presentation LUT Sequence: LUT Descriptor
+    /// (entries, first mapped value, bits per entry; 65536 entries are written as 0
+    /// per C.11.1.1), LUT Data as 16-bit words, and the explanation when there is one.
+    private static func lutItem(_ lut: LUTData, extra: [DataElement] = []) -> SequenceItem {
+        let entries = lut.numberOfEntries >= 65536 ? 0 : lut.numberOfEntries
+        var words = Data(capacity: lut.data.count * 2)
+        for value in lut.data {
+            let word = UInt16(truncatingIfNeeded: value)
+            words.append(UInt8(word & 0xFF))
+            words.append(UInt8(word >> 8))
+        }
+        var elements: [DataElement] = [
+            Self.integers([entries, lut.firstValueMapped & 0xFFFF, lut.bitsPerEntry], for: .lutDescriptor),
+            DataElement(tag: .lutData, vr: .OW, length: UInt32(words.count), valueData: words),
+        ]
+        if let explanation = lut.explanation {
+            elements.append(DataElement.string(tag: .lutExplanation, vr: .LO, value: explanation))
+        }
+        return SequenceItem(elements: elements + extra)
+    }
+
+    /// Display Shutter module (C.7.6.11): geometry is row/column with origin 1,1;
+    /// (0018,1610) and (0018,1620) are written row first.
+    private static func applyShutters(_ shutters: [DisplayShutter], to dataSet: inout DataSet) {
+        var shapes: [String] = []
+        for shutter in shutters {
+            switch shutter {
+            case .rectangular(let left, let right, let top, let bottom, _):
+                shapes.append("RECTANGULAR")
+                dataSet.setInteger(left, for: .shutterLeftVerticalEdge)
+                dataSet.setInteger(right, for: .shutterRightVerticalEdge)
+                dataSet.setInteger(top, for: .shutterUpperHorizontalEdge)
+                dataSet.setInteger(bottom, for: .shutterLowerHorizontalEdge)
+            case .circular(let column, let row, let radius, _):
+                shapes.append("CIRCULAR")
+                _ = dataSet.setIntegers([row, column], for: .centerOfCircularShutter)
+                dataSet.setInteger(radius, for: .radiusOfCircularShutter)
+            case .polygonal(let vertices, _):
+                shapes.append("POLYGONAL")
+                _ = dataSet.setIntegers(vertices.flatMap { [$0.row, $0.column] },
+                                        for: .verticesOfThePolygonalShutter)
+            case .bitmap:
+                // Bitmap Display Shutter (C.7.6.15) needs the overlay plane as well
+                continue
+            }
+        }
+        guard !shapes.isEmpty else { return }
+        dataSet.setString(shapes.joined(separator: "\\"), for: .shutterShape, vr: .CS)
+        // Shutter Presentation Value (0018,1622) is Type 1C in C.11.12: a P-Value
+        dataSet.setInteger(shutters.first?.presentationValue ?? 0, for: .shutterPresentationValue)
+    }
+
+    /// Shutter Presentation Color CIELab Value (0018,1624), three US values
+    /// encoded per C.10.7.1.1. Table C.11.12-1: Type 1C, "Required if the
+    /// Display Shutter Module or Bitmap Display Shutter Module is present and
+    /// the SOP Class is other than Grayscale Softcopy Presentation State
+    /// Storage" — so the colour builders call this after the shutters are
+    /// written, and it writes nothing when no shutter shape went out. A state
+    /// with shutters but no colour gets ``CIELabColor/shutterBlack``, the
+    /// colour of the P-Value 0 the monochrome attribute defaults to.
+    static func applyShutterPresentationColor(
+        _ color: CIELabColor?, to dataSet: inout DataSet
+    ) {
+        guard dataSet[.shutterShape] != nil else { return }
+        _ = dataSet.setIntegers(
+            (color ?? .shutterBlack).encodedValues,
+            for: Tag(group: 0x0018, element: 0x1624))
     }
 
     // MARK: - Sequences
@@ -207,26 +412,48 @@ public struct GrayscalePresentationStateBuilder: Sendable {
         return sequence(tag: .referencedSeriesSequence, items: items)
     }
 
+    /// One Displayed Area Selection Sequence item per Table C.10-4.
+    ///
+    /// The Type 1C attributes follow the table's conditions exactly, and PS3.5
+    /// 7.4.2 (a 1C element whose condition is not met shall be absent):
+    /// * Presentation Pixel Spacing (0070,0101) — required for TRUE SIZE, may be
+    ///   present otherwise; written whenever the state has it.
+    /// * Presentation Pixel Aspect Ratio (0070,0102) — required if the spacing
+    ///   is not present; then the state's ratio or 1\1, the square pixels the
+    ///   viewer assumes. Not written next to a spacing.
+    /// * Presentation Pixel Magnification Ratio (0070,0103) — required for
+    ///   MAGNIFY; written whenever the state has it.
+    /// A TRUE SIZE area without a spacing, or a MAGNIFY area without a ratio,
+    /// cannot be written truthfully — the required value does not exist — so
+    /// the mode goes out as SCALE TO FIT, the mode whose meaning needs neither.
+    /// ``validate(_:imageSize:)`` reports that downgrade before it happens.
     private static func displayedAreaElement(_ area: DisplayedArea) -> DataElement {
-        // Encodings come from the dictionary (SL here). The parser accepts the
-        // IS form older builds wrote, so existing states still read back.
-        let item = SequenceItem(elements: [
+        // Encodings come from the dictionary (SL for the corners, DS, IS, FL).
+        // The parser accepts the IS corners older builds wrote.
+        let sizeMode: PresentationSizeMode = (try? area.validate()) == nil
+            ? .scaleToFit : area.sizeMode
+        var elements: [DataElement] = [
             Self.integers([area.topLeft.column, area.topLeft.row],
                           for: .displayedAreaTopLeftHandCorner),
             Self.integers([area.bottomRight.column, area.bottomRight.row],
                           for: .displayedAreaBottomRightHandCorner),
             DataElement.string(
-                tag: .presentationSizeMode, vr: .CS, value: area.sizeMode.rawValue),
-            // Type 1C: C.10.4 requires one of Presentation Pixel Spacing
-            // (0070,0101) or Presentation Pixel Aspect Ratio (0070,0102) in
-            // every item — dcmpschk fails the object outright when both are
-            // absent. Physical spacing is not something this builder knows, so
-            // the aspect ratio is written instead: 1\\1, the square pixels the
-            // viewer already assumes when it composes the displayed area.
-            DataElement.string(
-                tag: .presentationPixelAspectRatio, vr: .IS, value: "1\\1")
-        ])
-        return sequence(tag: .displayedAreaSelectionSequence, items: [item])
+                tag: .presentationSizeMode, vr: .CS, value: sizeMode.rawValue),
+        ]
+        if let spacing = area.pixelSpacing {
+            // Row spacing then column spacing (Table C.10-4, 10.7.1.3)
+            elements.append(Self.reals([spacing.row, spacing.column],
+                                       for: .presentationPixelSpacing))
+        } else {
+            let ratio = area.pixelAspectRatio ?? (vertical: 1, horizontal: 1)
+            elements.append(Self.integers([ratio.vertical, ratio.horizontal],
+                                          for: .presentationPixelAspectRatio))
+        }
+        if let magnification = area.magnificationRatio {
+            elements.append(Self.reals([magnification],
+                                       for: .presentationPixelMagnificationRatio))
+        }
+        return sequence(tag: .displayedAreaSelectionSequence, items: [SequenceItem(elements: elements)])
     }
 
     private static func applyVOILUT(_ voiLUT: VOILUT, to dataSet: inout DataSet) {
@@ -272,10 +499,14 @@ public struct GrayscalePresentationStateBuilder: Sendable {
             if function != .linear {
                 dataSet.setString(function.rawValue, for: .voiLUTFunction, vr: .CS)
             }
-        case .lut:
-            // Table-valued VOI LUTs are carried by the source image, not
-            // composed here.
-            break
+        case .lut(let lut):
+            // A table lives in the VOI LUT Sequence inside the Softcopy VOI LUT
+            // Sequence item (C.11.8); dropping it would change the shown contrast.
+            let item = SequenceItem(elements: [
+                sequence(tag: .voiLUTSequence, items: [Self.lutItem(lut)])
+            ])
+            dataSet[.softcopyVOILUTSequence] = sequence(
+                tag: .softcopyVOILUTSequence, items: [item])
         }
     }
 
@@ -295,13 +526,50 @@ public struct GrayscalePresentationStateBuilder: Sendable {
                     [grayscale], for: .graphicLayerRecommendedDisplayGrayscaleValue))
             }
             if let rgb = layer.recommendedRGBValue {
+                // (0070,0067) Graphic Layer Recommended Display RGB Value is retired;
+                // C.10.7 replaced it with the CIELab value (0070,0401), encoded per
+                // C.10.7.1.1: L* over 0...0xFFFF, a* and b* offset so 0x8080 is 0.
                 elements.append(Self.integers(
-                    [rgb.red, rgb.green, rgb.blue],
-                    for: .graphicLayerRecommendedDisplayRGBValue))
+                    Self.cieLabEncoded(from: rgb),
+                    for: Tag(group: 0x0070, element: 0x0401)))
             }
             return SequenceItem(elements: elements)
         }
         return sequence(tag: .graphicLayerSequence, items: items)
+    }
+
+    /// The three unsigned shorts of a Graphic Layer Recommended Display CIELab
+    /// Value (C.10.7.1.1) for a 16-bit-per-channel sRGB colour.
+    static func cieLabEncoded(from rgb: (red: Int, green: Int, blue: Int)) -> [Int] {
+        let linear = (
+            red: ColorTransform.sRGBToLinear(Double(rgb.red) / 65535),
+            green: ColorTransform.sRGBToLinear(Double(rgb.green) / 65535),
+            blue: ColorTransform.sRGBToLinear(Double(rgb.blue) / 65535))
+        let lab = ColorTransform.rgbToLAB(linear)
+        return [lab.l / 100 * 65535, (lab.a + 128) * 257, (lab.b + 128) * 257]
+            .map { min(65535, max(0, Int($0.rounded()))) }
+    }
+
+    /// The inverse of ``cieLabEncoded(from:)``, for reading (0070,0401) back.
+    static func rgb(fromCIELabEncoded encoded: [Int]) -> (red: Int, green: Int, blue: Int)? {
+        guard encoded.count == 3 else { return nil }
+        let l = Double(encoded[0]) / 65535 * 100
+        let a = Double(encoded[1]) / 257 - 128
+        let b = Double(encoded[2]) / 257 - 128
+        // CIELab -> XYZ (same D65 reference as ColorTransform.xyzToLAB) -> linear RGB -> sRGB
+        let fy = (l + 16) / 116
+        let fx = fy + a / 500
+        let fz = fy - b / 200
+        func finv(_ t: Double) -> Double {
+            let delta = 6.0 / 29.0
+            return t > delta ? t * t * t : 3 * delta * delta * (t - 4.0 / 29.0)
+        }
+        let xyz = (x: 0.95047 * finv(fx), y: 1.0 * finv(fy), z: 1.08883 * finv(fz))
+        let linear = ColorTransform.xyzToRGB(xyz)
+        func channel(_ v: Double) -> Int {
+            min(65535, max(0, Int((ColorTransform.linearToSRGB(v) * 65535).rounded())))
+        }
+        return (red: channel(linear.red), green: channel(linear.green), blue: channel(linear.blue))
     }
 
     private static func graphicAnnotationElement(
@@ -339,6 +607,10 @@ public struct GrayscalePresentationStateBuilder: Sendable {
                 let textItems = annotation.textObjects.map(textObjectItem)
                 elements.append(sequence(tag: .textObjectSequence, items: textItems))
             }
+            if !annotation.compoundGraphics.isEmpty {
+                let compoundItems = annotation.compoundGraphics.map(compoundGraphicItem)
+                elements.append(sequence(tag: .compoundGraphicSequence, items: compoundItems))
+            }
 
             return SequenceItem(elements: elements)
         }
@@ -346,7 +618,7 @@ public struct GrayscalePresentationStateBuilder: Sendable {
     }
 
     private static func graphicObjectItem(_ object: GraphicObject) -> SequenceItem {
-        SequenceItem(elements: [
+        var elements: [DataElement] = [
             DataElement.string(
                 tag: .graphicAnnotationUnits, vr: .CS, value: object.units.rawValue),
             // Always 2: Graphic Data here is (column, row) pairs.
@@ -354,9 +626,202 @@ public struct GrayscalePresentationStateBuilder: Sendable {
             Self.integers([object.pointCount], for: .numberOfGraphicPoints),
             Self.reals(object.data, for: .graphicData),
             DataElement.string(tag: .graphicType, vr: .CS, value: object.type.rawValue),
-            DataElement.string(
-                tag: .graphicFilled, vr: .CS, value: object.filled ? "Y" : "N")
-        ])
+        ]
+        // Graphic Filled (0070,0024) is Type 1C (C.10.5): only for CIRCLE, ELLIPSE, or
+        // a POLYLINE / INTERPOLATED whose first point is also its last. PS3.5 7.4.2:
+        // a 1C element whose condition is not met shall not be present.
+        let d = object.data
+        let closed = object.type == .circle || object.type == .ellipse
+            || ((object.type == .polyline || object.type == .interpolated)
+                && d.count >= 4 && d[0] == d[d.count - 2] && d[1] == d[d.count - 1])
+        if closed {
+            elements.append(DataElement.string(
+                tag: .graphicFilled, vr: .CS, value: object.filled ? "Y" : "N"))
+        }
+        if let lineStyle = object.lineStyle {
+            elements.append(Self.lineStyleElement(lineStyle))
+        }
+        if let fillStyle = object.fillStyle {
+            elements.append(Self.fillStyleElement(fillStyle))
+        }
+        if let id = object.compoundGraphicInstanceID {
+            elements.append(Self.integers([id], for: .compoundGraphicInstanceID))
+        }
+        if let group = object.graphicGroupID {
+            elements.append(Self.integers([group], for: .graphicGroupID))
+        }
+        return SequenceItem(elements: elements)
+    }
+
+    // MARK: Compound graphics and styles (Tables C.10-5, C.10-5a/5b/5c; D39)
+
+    private static func compoundGraphicItem(_ graphic: CompoundGraphic) -> SequenceItem {
+        var elements: [DataElement] = [
+            Self.integers([graphic.instanceID], for: .compoundGraphicInstanceID),
+            DataElement.string(tag: .compoundGraphicUnits, vr: .CS, value: graphic.units.rawValue),
+            Self.integers([2], for: .graphicDimensions),
+            Self.integers([graphic.data.count / 2], for: .numberOfGraphicPoints),
+            Self.reals(graphic.data, for: .graphicData),
+            DataElement.string(tag: .compoundGraphicType, vr: .CS, value: graphic.type.rawValue),
+        ]
+        if let textStyle = graphic.textStyle {
+            elements.append(Self.textStyleElement(textStyle, hasBoundingBox: false))
+        }
+        if let lineStyle = graphic.lineStyle {
+            elements.append(Self.lineStyleElement(lineStyle))
+        }
+        if let angle = graphic.rotationAngle {
+            elements.append(Self.reals([angle], for: .rotationAngle))
+        }
+        // Rotation Point: 1C with a Rotation Angle, or for CUTLINE / INFINITELINE.
+        let needsRotationPoint = graphic.rotationAngle != nil
+            || graphic.type == .cutline || graphic.type == .infiniteline
+        if needsRotationPoint {
+            let point = graphic.rotationPoint ?? graphic.points.first ?? GraphicPoint(column: 0, row: 0)
+            elements.append(Self.reals([point.column, point.row], for: .rotationPoint))
+        }
+        // Gap Length: 1C for CUTLINE, INFINITELINE and CROSSHAIR (DISPLAY units).
+        if [.cutline, .infiniteline, .crosshair].contains(graphic.type) {
+            elements.append(Self.reals([graphic.gapLength ?? 0], for: .gapLength))
+        }
+        // Diameter of Visibility: 1C for CROSSHAIR.
+        if graphic.type == .crosshair {
+            elements.append(Self.reals([graphic.diameterOfVisibility ?? 1], for: .diameterOfVisibility))
+        }
+        // Major Ticks Sequence: 1C for AXIS (validate() reports fewer than two).
+        if graphic.type == .axis {
+            let ticks = graphic.majorTicks.map { tick in
+                SequenceItem(elements: [
+                    Self.reals([tick.position], for: .tickPosition),
+                    DataElement.string(tag: .tickLabel, vr: .SH, value: tick.label)
+                ])
+            }
+            elements.append(sequence(tag: .majorTicksSequence, items: ticks))
+        }
+        // Tick Alignment, Tick Label Alignment, Show Tick Label: 1C for RULER,
+        // AXIS and CROSSHAIR.
+        if [.ruler, .axis, .crosshair].contains(graphic.type) {
+            elements.append(DataElement.string(
+                tag: .tickAlignment, vr: .CS, value: (graphic.tickAlignment ?? .center).rawValue))
+            elements.append(DataElement.string(
+                tag: .tickLabelAlignment, vr: .CS, value: (graphic.tickLabelAlignment ?? .bottom).rawValue))
+            elements.append(DataElement.string(
+                tag: .showTickLabel, vr: .CS, value: (graphic.showTickLabel ?? true) ? "Y" : "N"))
+        }
+        // Graphic Filled: 1C for RECTANGLE and ELLIPSE; Fill Style 1C when filled.
+        if graphic.type == .rectangle || graphic.type == .ellipse {
+            elements.append(DataElement.string(
+                tag: .graphicFilled, vr: .CS, value: graphic.filled ? "Y" : "N"))
+            if graphic.filled {
+                let fill = graphic.fillStyle
+                    ?? FillStyle(onColor: graphic.lineStyle?.onColor ?? GraphicShadow.black)
+                elements.append(Self.fillStyleElement(fill))
+            }
+        }
+        if let group = graphic.graphicGroupID {
+            elements.append(Self.integers([group], for: .graphicGroupID))
+        }
+        return SequenceItem(elements: elements)
+    }
+
+    private static func cieLab(_ color: CIELabColor, for tag: Tag) -> DataElement {
+        Self.integers([color.l, color.a, color.b], for: tag)
+    }
+
+    /// The shadow attributes. In the Text Style macro the four companions are
+    /// 1C "Required if Shadow Style is not OFF"; in the Line Style macro they
+    /// are Type 1 (`always`).
+    private static func shadowElements(_ shadow: GraphicShadow, always: Bool) -> [DataElement] {
+        var elements = [DataElement.string(tag: .shadowStyle, vr: .CS, value: shadow.style.rawValue)]
+        if always || shadow.style != .off {
+            elements.append(Self.reals([shadow.offsetX], for: .shadowOffsetX))
+            elements.append(Self.reals([shadow.offsetY], for: .shadowOffsetY))
+            elements.append(Self.cieLab(shadow.color, for: .shadowColorCIELabValue))
+            elements.append(Self.reals([shadow.opacity], for: .shadowOpacity))
+        }
+        return elements
+    }
+
+    private static func textStyleElement(_ style: TextStyle, hasBoundingBox: Bool) -> DataElement {
+        var elements: [DataElement] = []
+        if let font = style.fontName {
+            elements.append(DataElement.string(tag: .fontName, vr: .LO, value: font))
+            elements.append(DataElement.string(
+                tag: .fontNameType, vr: .CS, value: style.fontNameType ?? "ISO_32000"))
+        }
+        elements.append(DataElement.string(tag: .cssFontName, vr: .LO, value: style.cssFontName))
+        elements.append(Self.cieLab(style.color, for: .textColorCIELabValue))
+        // Horizontal/Vertical Alignment: 1C, required with a bounding box.
+        if hasBoundingBox || style.horizontalAlignment != nil {
+            elements.append(DataElement.string(
+                tag: .horizontalAlignment, vr: .CS,
+                value: (style.horizontalAlignment ?? .left).rawValue))
+        }
+        if hasBoundingBox || style.verticalAlignment != nil {
+            elements.append(DataElement.string(
+                tag: .verticalAlignment, vr: .CS,
+                value: (style.verticalAlignment ?? .top).rawValue))
+        }
+        elements += Self.shadowElements(style.shadow, always: false)
+        elements.append(DataElement.string(tag: .underlined, vr: .CS, value: style.underlined ? "Y" : "N"))
+        elements.append(DataElement.string(tag: .bold, vr: .CS, value: style.bold ? "Y" : "N"))
+        elements.append(DataElement.string(tag: .italic, vr: .CS, value: style.italic ? "Y" : "N"))
+        return sequence(tag: .textStyleSequence, items: [SequenceItem(elements: elements)])
+    }
+
+    private static func lineStyleElement(_ style: LineStyle) -> DataElement {
+        var elements: [DataElement] = [Self.cieLab(style.onColor, for: .patternOnColorCIELabValue)]
+        if let off = style.offColor {
+            elements.append(Self.cieLab(off, for: .patternOffColorCIELabValue))
+        }
+        elements.append(Self.reals([style.onOpacity], for: .patternOnOpacity))
+        if let offOpacity = style.offOpacity {
+            elements.append(Self.reals([offOpacity], for: .patternOffOpacity))
+        }
+        elements.append(Self.reals([style.thickness], for: .lineThickness))
+        elements.append(DataElement.string(tag: .lineDashingStyle, vr: .CS, value: style.dashing.rawValue))
+        // Line Pattern: 1C, required when DASHED.
+        if style.dashing == .dashed {
+            elements.append(Self.integers([Int(style.pattern ?? 0xFF00_FF00)], for: .linePattern))
+        }
+        elements += Self.shadowElements(style.shadow, always: true)
+        return sequence(tag: .lineStyleSequence, items: [SequenceItem(elements: elements)])
+    }
+
+    private static func fillStyleElement(_ style: FillStyle) -> DataElement {
+        var elements: [DataElement] = [Self.cieLab(style.onColor, for: .patternOnColorCIELabValue)]
+        if let off = style.offColor {
+            elements.append(Self.cieLab(off, for: .patternOffColorCIELabValue))
+        }
+        elements.append(Self.reals([style.onOpacity], for: .patternOnOpacity))
+        elements.append(Self.reals([style.offOpacity], for: .patternOffOpacity))
+        elements.append(DataElement.string(tag: .fillMode, vr: .CS, value: style.mode.rawValue))
+        // Fill Pattern: 1C, 128 bytes, required when STIPPELED.
+        if style.mode == .stippled {
+            var pattern = style.pattern ?? Data(repeating: 0xAA, count: 128)
+            if pattern.count != 128 {
+                pattern = Data(pattern.prefix(128)) + Data(repeating: 0, count: max(0, 128 - pattern.count))
+            }
+            elements.append(DataElement(
+                tag: .fillPattern, vr: .OB, length: UInt32(pattern.count), valueData: pattern))
+        }
+        return sequence(tag: .fillStyleSequence, items: [SequenceItem(elements: elements)])
+    }
+
+    /// Unformatted Text Value (0070,0006): "multiple lines separated by CR LF,
+    /// but otherwise no format control characters (such as horizontal or
+    /// vertical tab and form feed)" (Table C.10-5). Other control characters
+    /// become spaces; a bare LF or CR becomes CR LF.
+    static func unformattedText(_ text: String) -> String {
+        let lines = text.replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .split(separator: "\n", omittingEmptySubsequences: false)
+        return lines.map { line in
+            String(line.map { character -> Character in
+                character.unicodeScalars.contains { $0.properties.generalCategory == .control }
+                    ? " " : character
+            })
+        }.joined(separator: "\r\n")
     }
 
     private static func textObjectItem(_ text: TextObject) -> SequenceItem {
@@ -365,7 +830,7 @@ public struct GrayscalePresentationStateBuilder: Sendable {
                 tag: .boundingBoxAnnotationUnits, vr: .CS,
                 value: text.boundingBoxUnits.rawValue),
             DataElement.string(
-                tag: .textObjectUnformattedTextValue, vr: .ST, value: text.text),
+                tag: .unformattedTextValue, vr: .ST, value: Self.unformattedText(text.text)),
             Self.reals([text.boundingBoxTopLeft.column, text.boundingBoxTopLeft.row],
                        for: .boundingBoxTopLeftHandCorner),
             Self.reals([text.boundingBoxBottomRight.column, text.boundingBoxBottomRight.row],
@@ -383,6 +848,22 @@ public struct GrayscalePresentationStateBuilder: Sendable {
             elements.append(DataElement.string(
                 tag: .anchorPointAnnotationUnits, vr: .CS,
                 value: text.anchorPointUnits.rawValue))
+        }
+        if let style = text.textStyle {
+            // Horizontal Alignment overrides Bounding Box Text Horizontal
+            // Justification (Table C.10-5a), so the two are kept equal.
+            if let horizontal = style.horizontalAlignment,
+               let index = elements.firstIndex(where: { $0.tag == .boundingBoxTextHorizontalJustification }) {
+                elements[index] = DataElement.string(
+                    tag: .boundingBoxTextHorizontalJustification, vr: .CS, value: horizontal.rawValue)
+            }
+            elements.append(Self.textStyleElement(style, hasBoundingBox: true))
+        }
+        if let id = text.compoundGraphicInstanceID {
+            elements.append(Self.integers([id], for: .compoundGraphicInstanceID))
+        }
+        if let group = text.graphicGroupID {
+            elements.append(Self.integers([group], for: .graphicGroupID))
         }
         return SequenceItem(elements: elements)
     }

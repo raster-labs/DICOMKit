@@ -10,17 +10,21 @@ A lightweight DICOM PACS server supporting C-ECHO, C-FIND, C-STORE, C-MOVE, and 
 
 ### DICOM Services (Phase A+B+C Complete)
 - **C-ECHO**: Verification service for testing connectivity ✅
-- **C-FIND**: Query service supporting Patient, Study, Series, and Instance levels ✅
+- **C-FIND**: Query service supporting the PATIENT, STUDY, SERIES and IMAGE Query/Retrieve Levels (PS3.4 Tables C.6.1-1 / C.6.2-1) ✅
+  - Matching per PS3.4 C.2.2.2: Single Value (case-sensitive except PN), List of UID, Universal, Wild Card (AE, CS, LO, LT, PN, SH, ST, UC, UR, UT only) and DA/TM Range Matching
+  - All Required/Unique keys of Tables C.6-1..C.6-5 (Patient's Name, Patient ID, Study Date/Time, Accession Number, Study ID, Study/Series/SOP Instance UID, Modality, Series Number, Instance Number); responses carry the requested keys, Query/Retrieve Level and Retrieve AE Title (C.4.1.1.3.2)
+  - A missing Query/Retrieve Level (0008,0052) is refused with A900 (Tables C.4-1..C.4-3)
 - **C-STORE**: Storage service with automatic file organization and metadata indexing ✅
+  - Files are DICOM Part 10 (PS3.10 7.1): preamble, "DICM", File Meta Information with the negotiated Transfer Syntax UID, then the data set as received
+  - Accepts every Storage SOP Class of PS3.4 Table B.5-1 in Explicit VR Little Endian, Implicit VR Little Endian or Explicit VR Big Endian (Retired)
 - **C-MOVE**: Retrieval service for moving DICOM instances to remote destinations ✅
-  - Full network transfer implementation using DICOMNetwork's StorageService
-  - Destination AE lookup from configuration
-  - Support for host:port:aeTitle destination string format
-  - Error handling and status tracking
+  - C-STORE sub-operations on a new association using DICOMNetwork's storage SCU
+  - Destinations from `--move-destination AE=host:port` or the configuration file (`knownDestinations`); a value of the form host:port:aeTitle is also accepted
+  - An unknown Move Destination is refused with A801 "Refused: Move Destination unknown" (PS3.4 Table C.4-2)
 - **C-GET**: Direct retrieval service for streaming DICOM instances ✅
-  - Full C-STORE sub-operations on same association
-  - DICOM file parsing and dataset extraction
-  - Presentation context management
+  - C-STORE sub-operations on the same association, each C-STORE-RSP awaited and counted as Completed / Warning / Failed (PS3.4 C.4.3.3.1); C-CANCEL-RQ honoured
+  - Needs the SCU to propose the SCP role for each Storage SOP Class (SCP/SCU Role Selection, PS3.7 D.3.3.4); a sub-operation without such a context fails
+  - Uncompressed transfer syntaxes are converted to the one the SCU's context accepted
 
 ### Production Features (Phase D.1 Complete) ✅
 - **Structured Logging System**
@@ -45,7 +49,7 @@ A lightweight DICOM PACS server supporting C-ECHO, C-FIND, C-STORE, C-MOVE, and 
 ### Server Features
 - Configurable Application Entity Title
 - Access control with AE Title whitelist/blacklist
-- Query/Retrieve at all levels (Patient, Study, Series, Instance)
+- Query/Retrieve at all levels (PATIENT, STUDY, SERIES, IMAGE)
 - Multi-threaded connection handling (Phase B)
 - Support for multiple transfer syntaxes
 - Comprehensive logging
@@ -170,9 +174,12 @@ dicom-server stop --port 11112
 - `--database-url`: Database connection string
 - `--config`: Configuration file path (JSON format)
 - `--max-connections`: Maximum concurrent connections (default: 10)
-- `--max-pdu-size`: Maximum PDU size in bytes (default: 16384)
+- `--max-pdu-size`: Maximum Length the server announces in the A-ASSOCIATE-AC, in bytes (default: 16384); outgoing P-DATA is fragmented to the peer's Maximum Length (PS3.8 D.1)
 - `--allowed-ae`: Allowed calling AE titles (comma-separated)
 - `--blocked-ae`: Blocked calling AE titles (comma-separated)
+- `--move-destination`: C-MOVE destination as `AE=host:port` (repeatable)
+
+AE titles (`--aet`, `--allowed-ae`, `--blocked-ae`, `--move-destination`) must be valid VR AE values: 1-16 characters, no backslash or control characters (PS3.5 Table 6.2-1).
 - `--tls`: Enable TLS/SSL
 - `--verbose, -v`: Verbose logging
 
@@ -305,13 +312,10 @@ The server is organized into several key components:
 
 ## Testing
 
-Run tests:
+Run tests (target `dicom-serverTests`, including a loopback C-ECHO / C-STORE / C-FIND / C-GET / C-MOVE test against DICOMNetwork's SCUs):
 ```bash
-swift test --filter DICOMServerTests
+swift test --filter dicom_serverTests
 ```
-
-**Current test coverage**: 35 tests (Phase A+B+C)  
-**Target for Phase D completion**: 50+ tests
 
 ## References
 

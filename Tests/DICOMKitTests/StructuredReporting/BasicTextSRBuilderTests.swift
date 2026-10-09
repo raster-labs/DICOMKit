@@ -642,8 +642,19 @@ struct BasicTextSRBuilderTests {
         #expect(CodedConcept.impression.codeMeaning == "Impression")
         #expect(CodedConcept.clinicalHistory.codeMeaning == "History")
         #expect(CodedConcept.conclusion.codeMeaning == "Conclusion")
-        #expect(CodedConcept.recommendation.codeMeaning == "Recommendation")
+        #expect(CodedConcept.recommendation.codeMeaning == "Recommendations")   // (121074, DCM) in Table D-1
         #expect(CodedConcept.procedureDescription.codeMeaning == "Procedure Description")
-        #expect(CodedConcept.comparison.codeMeaning == "Comparison")
+        #expect(CodedConcept.comparison.codeMeaning == "Comparison to previous studies")
+    }
+
+    @Test("Comparison section concept is (111424, DCM) per PS3.16 2026a CID 6052 / TID 3318 row 1")
+    func testComparisonConceptPinnedToStandard() {
+        // PS3.16 2026a Table D-1 / CID 6052 "Breast Imaging Report Section Title":
+        //   DCM | 111424 | Comparison to previous studies
+        // 121071 (the former value) is "Finding" in Table D-1.
+        #expect(CodedConcept.comparison.codeValue == "111424")
+        #expect(CodedConcept.comparison.codingSchemeDesignator == "DCM")
+        #expect(CodedConcept.comparison.codeMeaning == "Comparison to previous studies")
+        #expect(CodedConcept.comparison.codeValue != "121071")
     }
 }

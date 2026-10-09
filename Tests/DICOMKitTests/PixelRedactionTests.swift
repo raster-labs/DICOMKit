@@ -286,4 +286,38 @@ final class PixelRedactionTests: XCTestCase {
         XCTAssertTrue(result.tags.allSatisfy { $0.group != 0x6000 },
             "overlay planes are burned in by renderers, so they must go too")
     }
+
+    // MARK: - Clean Recognizable Visual Features Option (PS3.15 2026a E.3.2, D159)
+
+    /// The operator's regions are blanked on every frame; (0028,0302) = NO and 113102 are
+    /// written; Burned In Annotation and 113101 are not claimed.
+    func testRecognizableVisualFeaturesBlanksTheOperatorRegionsAndRecords113102() throws {
+        let ds = imageDataSet(rows: 8, columns: 8, frames: 3)
+        let (out, outcome) = try PixelRedactor().redactRecognizableVisualFeatures(
+            fileData: try fileBytes(ds), regions: [.init(x: 0, y: 0, width: 8, height: 2)])
+        XCTAssertEqual(outcome.frameCount, 3)
+        let after = try pixels(of: out)
+        for frame in 0..<3 {
+            XCTAssertEqual(after[frame * 64], 0, "frame \(frame) blanked")
+            XCTAssertEqual(after[frame * 64 + 16], 200, "frame \(frame) outside the region untouched")
+        }
+        let result = try DICOMFile.read(from: out).dataSet
+        XCTAssertEqual(result.string(for: .recognizableVisualFeatures), "NO", "PS3.15 E.3.2")
+        XCTAssertNil(result[.burnedInAnnotation], "no claim about burned-in text")
+        let codes = (result.sequence(for: Tag(group: 0x0012, element: 0x0064)) ?? []).compactMap {
+            $0.string(for: Tag(group: 0x0008, element: 0x0100))
+        }
+        XCTAssertEqual(codes, ["113102"])
+        XCTAssertEqual(result.sequence(for: Tag(group: 0x0012, element: 0x0064))?.first?.string(for: .codeMeaning),
+                       "Clean Recognizable Visual Features Option")
+    }
+
+    /// No region: no pixels change, so nothing may be claimed (refusal, not pass-through).
+    func testRecognizableVisualFeaturesWithoutRegionsIsRefused() throws {
+        XCTAssertThrowsError(try PixelRedactor().redactRecognizableVisualFeatures(
+            fileData: try fileBytes(imageDataSet()), regions: [])) { error in
+            XCTAssertEqual(error as? PixelRedactionError, .noRecognizableVisualFeatureRegions)
+            XCTAssertTrue(error.localizedDescription.contains("PS3.15 E.3.2"))
+        }
+    }
 }

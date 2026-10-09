@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — reads 13 attributes (Study/Series/SOP Instance UID, Study Date, Study Time, Study Description, Patient's Name, Patient ID, Accession Number, Series Number, Series Description, Modality, Instance Number) and groups by the Q/R unique keys of PS3.4 2026a Tables C.6-2 / C.6-3 / C.6-4; the 11 text labels are PS3.6 2026a Table 6-1 names (Study Instance UID, Study Date, Patient's Name, Patient ID, Study Description, Series Number, Modality, Series Description, Number of Study Related Series / Instances, Number of Series Related Instances); a file without Series Instance UID or SOP Instance UID (Type 1, PS3.3 Tables C.7-5a, C.12-1) is reported as skipped, not merged
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -85,6 +86,13 @@ public struct InstanceMetadata: Codable, Sendable {
     }
 }
 
+/// `dicom-study stats` result.
+///
+/// JSON (P-STUDY-1, approved 2026-10-01): besides the original keys the encoding carries the
+/// PS3.6 2026a Table 6-1 keywords `StudyInstanceUID` (0020,000D), `NumberOfStudyRelatedSeries`
+/// (0020,1206), `NumberOfStudyRelatedInstances` (0020,1208) and `ModalitiesInStudy` (0008,0061).
+/// The original keys `studyUID`, `seriesCount`, `totalInstances` keep their values and are
+/// deprecated. Decoding reads the original keys.
 public struct Statistics: Codable, Sendable {
     public let studyUID: String
     public let seriesCount: Int
@@ -93,8 +101,40 @@ public struct Statistics: Codable, Sendable {
     public let averageSizePerInstance: Int64
     public let modalityCounts: [String: Int]
     public let instancesPerSeries: [Int]
+
+    enum CodingKeys: String, CodingKey {
+        case studyUID, seriesCount, totalInstances, totalSizeBytes, averageSizePerInstance
+        case modalityCounts, instancesPerSeries
+    }
+
+    /// PS3.6 Table 6-1 keyword keys written next to the original ones.
+    enum KeywordKeys: String, CodingKey {
+        case StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances, ModalitiesInStudy
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(studyUID, forKey: .studyUID)
+        try c.encode(seriesCount, forKey: .seriesCount)
+        try c.encode(totalInstances, forKey: .totalInstances)
+        try c.encode(totalSizeBytes, forKey: .totalSizeBytes)
+        try c.encode(averageSizePerInstance, forKey: .averageSizePerInstance)
+        try c.encode(modalityCounts, forKey: .modalityCounts)
+        try c.encode(instancesPerSeries, forKey: .instancesPerSeries)
+        var k = encoder.container(keyedBy: KeywordKeys.self)
+        try k.encode(studyUID, forKey: .StudyInstanceUID)
+        try k.encode(seriesCount, forKey: .NumberOfStudyRelatedSeries)
+        try k.encode(totalInstances, forKey: .NumberOfStudyRelatedInstances)
+        try k.encode(modalityCounts.keys.sorted(), forKey: .ModalitiesInStudy)
+    }
 }
 
+/// `dicom-study compare` result.
+///
+/// JSON (P-STUDY-1): besides the original keys the encoding carries `study1` and `study2`
+/// objects keyed by the PS3.6 2026a Table 6-1 keywords `StudyInstanceUID`,
+/// `NumberOfStudyRelatedSeries`, `NumberOfStudyRelatedInstances`. The original `study1UID`,
+/// `study1SeriesCount`, `study1InstanceCount` (and `study2…`) keys are deprecated.
 public struct StudyComparison: Codable, Sendable {
     public let study1UID: String
     public let study2UID: String
@@ -106,12 +146,82 @@ public struct StudyComparison: Codable, Sendable {
     public let onlyInStudy1Count: Int
     public let onlyInStudy2Count: Int
     public let seriesDifferences: [SeriesDifference]
+
+    enum CodingKeys: String, CodingKey {
+        case study1UID, study2UID, study1SeriesCount, study2SeriesCount, study1InstanceCount, study2InstanceCount
+        case commonSeriesCount, onlyInStudy1Count, onlyInStudy2Count, seriesDifferences
+    }
+
+    enum StudyKeys: String, CodingKey { case study1, study2 }
+
+    enum KeywordKeys: String, CodingKey {
+        case StudyInstanceUID, NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(study1UID, forKey: .study1UID)
+        try c.encode(study2UID, forKey: .study2UID)
+        try c.encode(study1SeriesCount, forKey: .study1SeriesCount)
+        try c.encode(study2SeriesCount, forKey: .study2SeriesCount)
+        try c.encode(study1InstanceCount, forKey: .study1InstanceCount)
+        try c.encode(study2InstanceCount, forKey: .study2InstanceCount)
+        try c.encode(commonSeriesCount, forKey: .commonSeriesCount)
+        try c.encode(onlyInStudy1Count, forKey: .onlyInStudy1Count)
+        try c.encode(onlyInStudy2Count, forKey: .onlyInStudy2Count)
+        try c.encode(seriesDifferences, forKey: .seriesDifferences)
+        var studies = encoder.container(keyedBy: StudyKeys.self)
+        var s1 = studies.nestedContainer(keyedBy: KeywordKeys.self, forKey: .study1)
+        try s1.encode(study1UID, forKey: .StudyInstanceUID)
+        try s1.encode(study1SeriesCount, forKey: .NumberOfStudyRelatedSeries)
+        try s1.encode(study1InstanceCount, forKey: .NumberOfStudyRelatedInstances)
+        var s2 = studies.nestedContainer(keyedBy: KeywordKeys.self, forKey: .study2)
+        try s2.encode(study2UID, forKey: .StudyInstanceUID)
+        try s2.encode(study2SeriesCount, forKey: .NumberOfStudyRelatedSeries)
+        try s2.encode(study2InstanceCount, forKey: .NumberOfStudyRelatedInstances)
+    }
 }
 
+/// One series whose instance count differs between the two studies. JSON (P-STUDY-1) adds the
+/// PS3.6 keyword `SeriesInstanceUID` next to the deprecated `seriesUID`.
 public struct SeriesDifference: Codable, Sendable {
     public let seriesUID: String
     public let instanceCountStudy1: Int
     public let instanceCountStudy2: Int
+
+    enum CodingKeys: String, CodingKey { case seriesUID, instanceCountStudy1, instanceCountStudy2 }
+    enum KeywordKeys: String, CodingKey { case SeriesInstanceUID }
+
+    public func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(seriesUID, forKey: .seriesUID)
+        try c.encode(instanceCountStudy1, forKey: .instanceCountStudy1)
+        try c.encode(instanceCountStudy2, forKey: .instanceCountStudy2)
+        var k = encoder.container(keyedBy: KeywordKeys.self)
+        try k.encode(seriesUID, forKey: .SeriesInstanceUID)
+    }
+}
+
+/// A DICOM file the scanner left out, with the reason.
+public struct StudySkippedFile: Error, Sendable, Equatable {
+    public let path: String
+    public let reason: String
+
+    public init(path: String, reason: String) {
+        self.path = path
+        self.reason = reason
+    }
+}
+
+/// ``StudyScanner/scan(at:)`` result: the studies and the files that could not be placed.
+public struct StudyScanResult: Sendable {
+    public let studies: [StudyMetadata]
+    public let skipped: [StudySkippedFile]
+
+    public init(studies: [StudyMetadata], skipped: [StudySkippedFile]) {
+        self.studies = studies
+        self.skipped = skipped
+    }
 }
 
 // MARK: - Scanner
@@ -120,19 +230,32 @@ public enum StudyScanner {
 
     /// Scans a directory (or single file) into per-study metadata, merging series
     /// across files. Series within each study are sorted by UID for deterministic
-    /// output; studies are sorted by UID.
+    /// output; studies are sorted by UID. Files that cannot be grouped are left out;
+    /// ``scan(at:)`` also returns them with the reason.
     public static func scanStudies(at path: String) -> [StudyMetadata] {
+        scan(at: path).studies
+    }
+
+    /// Scans like ``scanStudies(at:)`` and also reports every DICOM file that was left out:
+    /// unreadable, or without Study Instance UID (0020,000D), Series Instance UID (0020,000E) or
+    /// SOP Instance UID (0008,0018). Those are Type 1 (PS3.3 2026a Tables C.7-3, C.7-5a, C.12-1)
+    /// and are the Q/R unique keys of PS3.4 Tables C.6-2 / C.6-3 / C.6-4, so a file without one
+    /// cannot be placed in the hierarchy; it is reported instead of being merged under a
+    /// placeholder series.
+    public static func scan(at path: String) -> StudyScanResult {
         let fm = FileManager.default
         var isDir: ObjCBool = false
-        guard fm.fileExists(atPath: path, isDirectory: &isDir) else { return [] }
+        guard fm.fileExists(atPath: path, isDirectory: &isDir) else { return StudyScanResult(studies: [], skipped: []) }
 
-        if !isDir.boolValue {
-            return scanFile(path).map { [sortSeries($0)] } ?? []
-        }
-
+        let paths = isDir.boolValue ? collectDICOMFiles(at: path) : [path]
         var dict: [String: StudyMetadata] = [:]
-        for filePath in collectDICOMFiles(at: path) {
-            guard let fileStudy = scanFile(filePath) else { continue }
+        var skipped: [StudySkippedFile] = []
+        for filePath in paths {
+            let fileStudy: StudyMetadata
+            switch scanFile(filePath) {
+            case .success(let study): fileStudy = study
+            case .failure(let skip): skipped.append(skip); continue
+            }
             let uid = fileStudy.studyInstanceUID
             if var existing = dict[uid] {
                 for newSeries in fileStudy.series {
@@ -147,7 +270,8 @@ public enum StudyScanner {
                 dict[uid] = fileStudy
             }
         }
-        return dict.values.map(sortSeries).sorted { $0.studyInstanceUID < $1.studyInstanceUID }
+        let studies = dict.values.map(sortSeries).sorted { $0.studyInstanceUID < $1.studyInstanceUID }
+        return StudyScanResult(studies: studies, skipped: skipped)
     }
 
     private static func sortSeries(_ study: StudyMetadata) -> StudyMetadata {
@@ -156,13 +280,25 @@ public enum StudyScanner {
         return copy
     }
 
-    private static func scanFile(_ filePath: String) -> StudyMetadata? {
+    private static func scanFile(_ filePath: String) -> Result<StudyMetadata, StudySkippedFile> {
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: filePath)),
-              let file = try? DICOMFile.read(from: data) else { return nil }
+              let file = try? DICOMFile.read(from: data) else {
+            return .failure(StudySkippedFile(path: filePath, reason: "not a readable DICOM file"))
+        }
         let ds = file.dataSet
-        guard let studyUID = ds.string(for: Tag.studyInstanceUID) else { return nil }
-        let seriesUID = ds.string(for: Tag.seriesInstanceUID) ?? "UNKNOWN"
-        let sopUID = ds.string(for: Tag.sopInstanceUID) ?? "UNKNOWN"
+        func uid(_ tag: Tag) -> String? {
+            guard let v = ds.string(for: tag), !v.isEmpty else { return nil }
+            return v
+        }
+        guard let studyUID = uid(Tag.studyInstanceUID) else {
+            return .failure(StudySkippedFile(path: filePath, reason: "no Study Instance UID (0020,000D)"))
+        }
+        guard let seriesUID = uid(Tag.seriesInstanceUID) else {
+            return .failure(StudySkippedFile(path: filePath, reason: "no Series Instance UID (0020,000E)"))
+        }
+        guard let sopUID = uid(Tag.sopInstanceUID) else {
+            return .failure(StudySkippedFile(path: filePath, reason: "no SOP Instance UID (0008,0018)"))
+        }
         let size = ((try? FileManager.default.attributesOfItem(atPath: filePath))?[.size] as? Int64) ?? 0
         let inst = InstanceMetadata(
             sopInstanceUID: sopUID,
@@ -174,7 +310,7 @@ public enum StudyScanner {
             seriesDescription: ds.string(for: Tag.seriesDescription),
             modality: ds.string(for: Tag.modality),
             instances: [inst])
-        return StudyMetadata(
+        return .success(StudyMetadata(
             studyInstanceUID: studyUID,
             studyDate: ds.string(for: Tag.studyDate),
             studyTime: ds.string(for: Tag.studyTime),
@@ -182,7 +318,7 @@ public enum StudyScanner {
             patientName: ds.string(for: Tag.patientName),
             patientID: ds.string(for: Tag.patientID),
             accessionNumber: ds.string(for: Tag.accessionNumber),
-            series: [series])
+            series: [series]))
     }
 
     /// Recursively collects DICOM file paths under a directory (sorted).
@@ -224,28 +360,32 @@ public enum StudyReport {
             let data = try enc.encode(studies)
             out += (String(data: data, encoding: .utf8) ?? "") + "\n"
         case "csv":
-            out += "StudyUID,StudyDate,PatientName,PatientID,SeriesCount,InstanceCount\n"
+            // P-STUDY-1: the PS3.6 Table 6-1 keyword columns StudyInstanceUID,
+            // NumberOfStudyRelatedSeries, NumberOfStudyRelatedInstances are appended; the
+            // original StudyUID, SeriesCount, InstanceCount columns keep their place (deprecated).
+            out += "StudyUID,StudyDate,PatientName,PatientID,SeriesCount,InstanceCount,StudyInstanceUID,NumberOfStudyRelatedSeries,NumberOfStudyRelatedInstances\n"
             for st in studies {
-                out += "\(st.studyInstanceUID),\(st.studyDate ?? ""),\(st.patientName ?? ""),\(st.patientID ?? ""),\(st.series.count),\(st.totalInstances)\n"
+                out += "\(st.studyInstanceUID),\(st.studyDate ?? ""),\(st.patientName ?? ""),\(st.patientID ?? ""),\(st.series.count),\(st.totalInstances),\(st.studyInstanceUID),\(st.series.count),\(st.totalInstances)\n"
             }
         case "table":
             for st in studies {
                 out += "═══════════════════════════════════════════════════════════════\n"
-                out += "Study UID: \(st.studyInstanceUID)\n"
+                // Labels: PS3.6 2026a Table 6-1 attribute names.
+                out += "Study Instance UID: \(st.studyInstanceUID)\n"
                 if let v = st.studyDate { out += "Study Date: \(v)\n" }
-                if let v = st.patientName { out += "Patient Name: \(v)\n" }
+                if let v = st.patientName { out += "Patient's Name: \(v)\n" }
                 if let v = st.patientID { out += "Patient ID: \(v)\n" }
-                if let v = st.studyDescription { out += "Description: \(v)\n" }
-                out += "Series Count: \(st.series.count)\n"
-                out += "Total Instances: \(st.totalInstances)\n"
+                if let v = st.studyDescription { out += "Study Description: \(v)\n" }
+                out += "Number of Study Related Series: \(st.series.count)\n"
+                out += "Number of Study Related Instances: \(st.totalInstances)\n"
                 if verbose {
                     out += "\nSeries:\n"
                     for (idx, se) in st.series.enumerated() {
                         out += "  [\(idx + 1)] \(se.seriesInstanceUID)\n"
-                        if let v = se.seriesNumber { out += "      Number: \(v)\n" }
+                        if let v = se.seriesNumber { out += "      Series Number: \(v)\n" }
                         if let v = se.modality { out += "      Modality: \(v)\n" }
-                        if let v = se.seriesDescription { out += "      Description: \(v)\n" }
-                        out += "      Instances: \(se.instances.count)\n"
+                        if let v = se.seriesDescription { out += "      Series Description: \(v)\n" }
+                        out += "      Number of Series Related Instances: \(se.instances.count)\n"
                     }
                 }
                 out += "\n"
@@ -285,9 +425,9 @@ public enum StudyReport {
         out += "═══════════════════════════════════════════════════════════════\n"
         out += "Study Statistics\n"
         out += "═══════════════════════════════════════════════════════════════\n"
-        out += "Study UID: \(stats.studyUID)\n"
-        out += "Series Count: \(stats.seriesCount)\n"
-        out += "Total Instances: \(stats.totalInstances)\n"
+        out += "Study Instance UID: \(stats.studyUID)\n"
+        out += "Number of Study Related Series: \(stats.seriesCount)\n"
+        out += "Number of Study Related Instances: \(stats.totalInstances)\n"
         out += "Total Size: \(formatBytes(stats.totalSizeBytes))\n"
         out += "Avg Size/Instance: \(formatBytes(stats.averageSizePerInstance))\n"
         out += "\nModalities:\n"

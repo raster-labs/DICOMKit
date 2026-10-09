@@ -43,6 +43,32 @@ public let storageCommitmentSuccessEventTypeID: UInt16 = 1
 /// Reference: PS3.4 Table J.3-2
 public let storageCommitmentFailureEventTypeID: UInt16 = 2
 
+// MARK: - Storage Commitment Failure Reasons
+
+/// Failure Reason (0008,1197) values for the Failed SOP Sequence of a
+/// Storage Commitment N-EVENT-REPORT.
+///
+/// Reference: PS3.4 Table J.3-3
+public enum StorageCommitmentFailureReason {
+    /// Processing failure (0110H): a general failure in processing the operation
+    public static let processingFailure: UInt16 = 0x0110
+    /// No such object instance (0112H): one or more of the elements in the
+    /// Referenced SOP Instance UID were not available
+    public static let noSuchObjectInstance: UInt16 = 0x0112
+    /// Resource limitation (0213H): the SCP does not currently have enough
+    /// resources to store the requested SOP Instance(s)
+    public static let resourceLimitation: UInt16 = 0x0213
+    /// Referenced SOP Class not supported (0122H)
+    public static let referencedSOPClassNotSupported: UInt16 = 0x0122
+    /// Class/Instance conflict (0119H): the SOP Class of an element in the
+    /// Referenced SOP Instance UID did not correspond to the SOP Class registered
+    /// for this SOP Instance UID at the SCP
+    public static let classInstanceConflict: UInt16 = 0x0119
+    /// Duplicate transaction UID (0131H): the Transaction UID of the Storage
+    /// Commitment Request is already in use
+    public static let duplicateTransactionUID: UInt16 = 0x0131
+}
+
 // MARK: - SOP Reference
 
 /// A reference to a stored SOP Instance
@@ -122,7 +148,7 @@ public struct FailedSOPReference: Sendable, Hashable {
         case 0x0119:
             return "Class/Instance conflict"
         case 0x0131:
-            return "Duplicate SOP Instance"
+            return "Duplicate transaction UID"
         default:
             return "Unknown failure reason (0x\(String(format: "%04X", failureReason)))"
         }
@@ -157,7 +183,14 @@ public struct CommitmentRequest: Sendable, Hashable {
     
     /// The remote AE title that received the request
     public let remoteAETitle: String
-    
+
+    /// The commitment result, if the SCP delivered it on the same association
+    /// the request was sent on (PS3.4 J.3.3)
+    ///
+    /// When nil, the result will arrive on a separate association opened by the
+    /// SCP; use `StorageCommitmentService.waitForCommitment(request:timeout:listener:)`.
+    public let result: CommitmentResult?
+
     /// Creates a commitment request
     ///
     /// - Parameters:
@@ -165,16 +198,19 @@ public struct CommitmentRequest: Sendable, Hashable {
     ///   - references: The SOP references to commit
     ///   - timestamp: The timestamp (default: now)
     ///   - remoteAETitle: The remote AE title
+    ///   - result: The result if it was received on the same association (default: nil)
     public init(
         transactionUID: String,
         references: [SOPReference],
         timestamp: Date = Date(),
-        remoteAETitle: String
+        remoteAETitle: String,
+        result: CommitmentResult? = nil
     ) {
         self.transactionUID = transactionUID
         self.references = references
         self.timestamp = timestamp
         self.remoteAETitle = remoteAETitle
+        self.result = result
     }
 }
 
@@ -288,24 +324,40 @@ public struct StorageCommitmentConfiguration: Sendable, Hashable {
     /// Configures how commitment requests should be retried on transient failures.
     /// Default is `RetryPolicy.default` which provides exponential backoff with jitter.
     public let retryPolicy: RetryPolicy
-    
+
+    /// Whether to propose the SCP role for the Storage Commitment Push Model SOP
+    /// Class so the SCP may deliver the N-EVENT-REPORT on the same association
+    /// (PS3.4 J.3.3, PS3.7 D.3.3.4). Default: true.
+    public let allowSameAssociationEventReport: Bool
+
+    /// How long to keep the association open waiting for a same-association
+    /// N-EVENT-REPORT after the N-ACTION-RSP, in seconds (default: 30).
+    ///
+    /// Only used when the SCP granted the SCP role. When it expires the request
+    /// falls back to the `CommitmentNotificationListener` path.
+    public let sameAssociationEventReportTimeout: TimeInterval
+
     /// Default Implementation Class UID for DICOMKit
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.1"
-    
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
+
     /// Default Implementation Version Name for DICOMKit
     public static let defaultImplementationVersionName = "DICOMKIT_001"
-    
+
     /// Creates a storage commitment configuration
     ///
     /// - Parameters:
     ///   - callingAETitle: The local AE title
     ///   - calledAETitle: The remote AE title
     ///   - timeout: Connection timeout in seconds (default: 60)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - userIdentity: User identity for authentication (optional)
     ///   - retryPolicy: Retry policy for commitment requests (default: .default)
+    ///   - allowSameAssociationEventReport: Propose the SCP role so the result may
+    ///     be delivered on the same association (default: true)
+    ///   - sameAssociationEventReportTimeout: Seconds to wait for a same-association
+    ///     N-EVENT-REPORT (default: 30)
     public init(
         callingAETitle: AETitle,
         calledAETitle: AETitle,
@@ -314,7 +366,9 @@ public struct StorageCommitmentConfiguration: Sendable, Hashable {
         implementationClassUID: String = defaultImplementationClassUID,
         implementationVersionName: String? = defaultImplementationVersionName,
         userIdentity: UserIdentity? = nil,
-        retryPolicy: RetryPolicy = .default
+        retryPolicy: RetryPolicy = .default,
+        allowSameAssociationEventReport: Bool = true,
+        sameAssociationEventReportTimeout: TimeInterval = 30
     ) {
         self.callingAETitle = callingAETitle
         self.calledAETitle = calledAETitle
@@ -324,6 +378,8 @@ public struct StorageCommitmentConfiguration: Sendable, Hashable {
         self.implementationVersionName = implementationVersionName
         self.userIdentity = userIdentity
         self.retryPolicy = retryPolicy
+        self.allowSameAssociationEventReport = allowSameAssociationEventReport
+        self.sameAssociationEventReportTimeout = sameAssociationEventReportTimeout
     }
 }
 
@@ -358,7 +414,7 @@ public struct CommitmentNotificationListenerConfiguration: Sendable, Hashable {
     public let callingAEWhitelist: Set<String>?
     
     /// Default Implementation Class UID for DICOMKit Commitment Listener
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.4"
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
     
     /// Default Implementation Version Name for DICOMKit Commitment Listener
     public static let defaultImplementationVersionName = "DICOMKIT_CMTLSN"
@@ -368,7 +424,7 @@ public struct CommitmentNotificationListenerConfiguration: Sendable, Hashable {
     /// - Parameters:
     ///   - aeTitle: The local AE title
     ///   - port: The port to listen on (default: 11113)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - maxConcurrentAssociations: Maximum concurrent associations (default: 5)
@@ -546,41 +602,77 @@ public enum StorageCommitmentService {
             ]
         )
         
+        // Propose both roles for the commitment SOP Class: SCU to send the
+        // N-ACTION, SCP to receive the N-EVENT-REPORT on this association
+        // (PS3.4 J.3.3, PS3.7 D.3.3.4).
+        let roleSelections: [SCPSCURoleSelection] = configuration.allowSameAssociationEventReport
+            ? [.both(storageCommitmentPushModelSOPClassUID)]
+            : []
+
         do {
             // Establish association
-            let negotiated = try await association.request(presentationContexts: [presentationContext])
-            
+            let negotiated = try await association.request(
+                presentationContexts: [presentationContext],
+                roleSelections: roleSelections
+            )
+
             // Verify that Storage Commitment was accepted
             guard negotiated.isContextAccepted(1) else {
                 try await association.abort()
                 throw DICOMNetworkError.sopClassNotSupported(storageCommitmentPushModelSOPClassUID)
             }
-            
+
+            let transferSyntaxUID = negotiated.acceptedTransferSyntax(forContextID: 1)
+                ?? explicitVRLittleEndianTransferSyntaxUID
+            let mayReceiveOnSameAssociation = negotiated.isSCPRoleAccepted(for: storageCommitmentPushModelSOPClassUID)
+
             // Perform the N-ACTION request
-            let response = try await performNAction(
+            let exchange = try await performNAction(
                 association: association,
                 presentationContextID: 1,
                 maxPDUSize: negotiated.maxPDUSize,
-                transactionUID: transactionUID,
-                references: references
-            )
-            
-            // Check response status
-            guard response.status.isSuccess else {
-                try await association.abort()
-                throw DICOMNetworkError.queryFailed(response.status)
-            }
-            
-            // Release association gracefully
-            try await association.release()
-            
-            // Return the commitment request
-            return CommitmentRequest(
+                transferSyntaxUID: transferSyntaxUID,
                 transactionUID: transactionUID,
                 references: references,
                 remoteAETitle: configuration.calledAETitle.value
             )
-            
+
+            // Check response status
+            guard exchange.response.status.isSuccess else {
+                try await association.abort()
+                throw DICOMNetworkError.queryFailed(exchange.response.status)
+            }
+
+            // The SCP may deliver the result on this association only when it
+            // granted us the SCP role; otherwise it will open its own association
+            // to our notification listener.
+            var result = exchange.earlyResult
+            if result == nil && mayReceiveOnSameAssociation {
+                result = try await awaitSameAssociationEventReport(
+                    association: association,
+                    maxPDUSize: negotiated.maxPDUSize,
+                    transferSyntaxUID: transferSyntaxUID,
+                    transactionUID: transactionUID,
+                    remoteAETitle: configuration.calledAETitle.value,
+                    timeout: configuration.sameAssociationEventReportTimeout
+                )
+            }
+
+            // Release association gracefully (unless the wait already closed it)
+            if association.state == .established {
+                try await association.release()
+            } else {
+                try? await association.abort()
+            }
+
+            // Return the commitment request
+            return CommitmentRequest(
+                transactionUID: transactionUID,
+                references: references,
+                remoteAETitle: configuration.calledAETitle.value,
+                result: result
+            )
+
         } catch {
             // Attempt to abort on error
             try? await association.abort()
@@ -634,7 +726,11 @@ public enum StorageCommitmentService {
         timeout: Duration,
         listener: CommitmentNotificationListener
     ) async throws -> CommitmentResult {
-        try await listener.waitForResult(transactionUID: request.transactionUID, timeout: timeout)
+        // Already delivered on the N-ACTION association
+        if let result = request.result {
+            return result
+        }
+        return try await listener.waitForResult(transactionUID: request.transactionUID, timeout: timeout)
     }
     
     /// Parses a commitment result from an N-EVENT-REPORT data set
@@ -646,26 +742,34 @@ public enum StorageCommitmentService {
     ///   - eventTypeID: The event type ID (1 = success, 2 = failures exist)
     ///   - dataSet: The data set containing commitment results
     ///   - remoteAETitle: The AE title of the sender
+    ///   - transferSyntaxUID: The negotiated transfer syntax the data set is encoded
+    ///     in. When nil the VR encoding is detected heuristically.
     /// - Returns: The parsed commitment result
     /// - Throws: `DICOMNetworkError.decodingFailed` if parsing fails
     public static func parseCommitmentResult(
         eventTypeID: UInt16,
         dataSet: Data,
-        remoteAETitle: String
+        remoteAETitle: String,
+        transferSyntaxUID: String? = nil
     ) throws -> CommitmentResult {
+        typealias Codec = StorageCommitmentDataSetCodec
+        let explicit: Bool? = transferSyntaxUID.map { Codec.isExplicitVR(transferSyntaxUID: $0) }
+
         // Parse Transaction UID (0008,1195)
-        guard let transactionUID = extractUIValue(from: dataSet, tag: Tag(group: 0x0008, element: 0x1195)) else {
+        guard let transactionUID = Codec.extractUIValue(
+            from: dataSet, tag: Tag(group: 0x0008, element: 0x1195), explicit: explicit) else {
             throw DICOMNetworkError.decodingFailed("Missing Transaction UID in commitment result")
         }
-        
+
         var committedReferences: [SOPReference] = []
         var failedReferences: [FailedSOPReference] = []
-        
+
         // Parse Referenced SOP Sequence (0008,1199) - committed instances
-        if let sequenceItems = extractSequenceItems(from: dataSet, tag: Tag(group: 0x0008, element: 0x1199)) {
+        if let sequenceItems = Codec.extractSequenceItems(
+            from: dataSet, tag: Tag(group: 0x0008, element: 0x1199), explicit: explicit) {
             for item in sequenceItems {
-                if let sopClassUID = extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1150)),
-                   let sopInstanceUID = extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1155)) {
+                if let sopClassUID = Codec.extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1150), explicit: explicit),
+                   let sopInstanceUID = Codec.extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1155), explicit: explicit) {
                     committedReferences.append(SOPReference(
                         sopClassUID: sopClassUID,
                         sopInstanceUID: sopInstanceUID
@@ -673,13 +777,15 @@ public enum StorageCommitmentService {
                 }
             }
         }
-        
+
         // Parse Failed SOP Sequence (0008,1198) - failed instances
-        if let sequenceItems = extractSequenceItems(from: dataSet, tag: Tag(group: 0x0008, element: 0x1198)) {
+        if let sequenceItems = Codec.extractSequenceItems(
+            from: dataSet, tag: Tag(group: 0x0008, element: 0x1198), explicit: explicit) {
             for item in sequenceItems {
-                if let sopClassUID = extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1150)),
-                   let sopInstanceUID = extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1155)) {
-                    let failureReason = extractUSValue(from: item, tag: Tag(group: 0x0008, element: 0x1197)) ?? 0x0110
+                if let sopClassUID = Codec.extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1150), explicit: explicit),
+                   let sopInstanceUID = Codec.extractUIValue(from: item, tag: Tag(group: 0x0008, element: 0x1155), explicit: explicit) {
+                    let failureReason = Codec.extractUSValue(from: item, tag: Tag(group: 0x0008, element: 0x1197), explicit: explicit)
+                        ?? StorageCommitmentFailureReason.processingFailure
                     failedReferences.append(FailedSOPReference(
                         reference: SOPReference(
                             sopClassUID: sopClassUID,
@@ -701,18 +807,176 @@ public enum StorageCommitmentService {
     
     // MARK: - Private Helpers
     
+    /// Builds the data set for a storage commitment request
+    ///
+    /// - Parameters:
+    ///   - transactionUID: The Transaction UID (0008,1195)
+    ///   - references: The Referenced SOP Sequence (0008,1199) items
+    ///   - transferSyntaxUID: The negotiated transfer syntax of the presentation
+    ///     context the data set will be sent on (PS3.8 7.6 / PS3.5 7.1)
+    static func buildCommitmentRequestDataSet(
+        transactionUID: String,
+        references: [SOPReference],
+        transferSyntaxUID: String = explicitVRLittleEndianTransferSyntaxUID
+    ) -> Data {
+        let explicit = StorageCommitmentDataSetCodec.isExplicitVR(transferSyntaxUID: transferSyntaxUID)
+        var dataSet = Data()
+        
+        // Transaction UID (0008,1195) - UI
+        dataSet.append(StorageCommitmentDataSetCodec.encodeUI(
+            tag: Tag(group: 0x0008, element: 0x1195), value: transactionUID, explicit: explicit))
+        
+        // Referenced SOP Sequence (0008,1199) - SQ
+        let items = references.map { reference -> Data in
+            var itemData = Data()
+            itemData.append(StorageCommitmentDataSetCodec.encodeUI(
+                tag: Tag(group: 0x0008, element: 0x1150), value: reference.sopClassUID, explicit: explicit))
+            itemData.append(StorageCommitmentDataSetCodec.encodeUI(
+                tag: Tag(group: 0x0008, element: 0x1155), value: reference.sopInstanceUID, explicit: explicit))
+            return itemData
+        }
+        dataSet.append(StorageCommitmentDataSetCodec.encodeSequence(
+            tag: Tag(group: 0x0008, element: 0x1199), items: items, explicit: explicit))
+        
+        return dataSet
+    }
+    
+    /// Builds the data set for a storage commitment result (N-EVENT-REPORT)
+    ///
+    /// Shared by the Storage Commitment SCP (same-association and reverse-association
+    /// delivery) so the encoding always follows the negotiated transfer syntax.
+    ///
+    /// Reference: PS3.4 Table J.3-3
+    static func buildCommitmentResultDataSet(
+        _ result: CommitmentResult,
+        transferSyntaxUID: String = explicitVRLittleEndianTransferSyntaxUID
+    ) -> Data {
+        let explicit = StorageCommitmentDataSetCodec.isExplicitVR(transferSyntaxUID: transferSyntaxUID)
+        var data = Data()
+        
+        // Transaction UID (0008,1195)
+        data.append(StorageCommitmentDataSetCodec.encodeUI(
+            tag: Tag(group: 0x0008, element: 0x1195), value: result.transactionUID, explicit: explicit))
+        
+        // Referenced SOP Sequence (0008,1199) - committed references
+        if !result.committedReferences.isEmpty {
+            let items = result.committedReferences.map { ref -> Data in
+                var itemData = Data()
+                itemData.append(StorageCommitmentDataSetCodec.encodeUI(
+                    tag: Tag(group: 0x0008, element: 0x1150), value: ref.sopClassUID, explicit: explicit))
+                itemData.append(StorageCommitmentDataSetCodec.encodeUI(
+                    tag: Tag(group: 0x0008, element: 0x1155), value: ref.sopInstanceUID, explicit: explicit))
+                return itemData
+            }
+            data.append(StorageCommitmentDataSetCodec.encodeSequence(
+                tag: Tag(group: 0x0008, element: 0x1199), items: items, explicit: explicit))
+        }
+        
+        // Failed SOP Sequence (0008,1198) - failed references
+        if !result.failedReferences.isEmpty {
+            let items = result.failedReferences.map { failedRef -> Data in
+                var itemData = Data()
+                itemData.append(StorageCommitmentDataSetCodec.encodeUI(
+                    tag: Tag(group: 0x0008, element: 0x1150), value: failedRef.reference.sopClassUID, explicit: explicit))
+                itemData.append(StorageCommitmentDataSetCodec.encodeUI(
+                    tag: Tag(group: 0x0008, element: 0x1155), value: failedRef.reference.sopInstanceUID, explicit: explicit))
+                // Failure Reason (0008,1197)
+                itemData.append(StorageCommitmentDataSetCodec.encodeUS(
+                    tag: Tag(group: 0x0008, element: 0x1197), value: failedRef.failureReason, explicit: explicit))
+                return itemData
+            }
+            data.append(StorageCommitmentDataSetCodec.encodeSequence(
+                tag: Tag(group: 0x0008, element: 0x1198), items: items, explicit: explicit))
+        }
+        
+        return data
+    }
+    
+    /// Parses an N-EVENT-REPORT-RQ carrying a commitment result and answers it
+    /// with an N-EVENT-REPORT-RSP on the given association.
+    ///
+    /// Used by the SCU when the SCP delivers the result on the same association
+    /// it received the N-ACTION on (PS3.4 J.3.3). The response echoes the
+    /// Affected SOP Class/Instance UIDs and the Event Type ID and carries the
+    /// Message ID Being Responded To (PS3.7 10.1.1).
+    ///
+    /// - Returns: The parsed result, or nil if the data set could not be parsed
+    ///   (a failure status is then sent to the SCP).
+    static func answerSameAssociationEventReport(
+        _ message: AssembledMessage,
+        association: Association,
+        maxPDUSize: UInt32,
+        transferSyntaxUID: String,
+        remoteAETitle: String
+    ) async throws -> CommitmentResult? {
+        let commandSet = message.commandSet
+        let messageID = commandSet.messageID ?? 0
+        let eventTypeID = commandSet.eventTypeID ?? storageCommitmentSuccessEventTypeID
+        let affectedSOPClassUID = commandSet.affectedSOPClassUID ?? storageCommitmentPushModelSOPClassUID
+        let affectedSOPInstanceUID = commandSet.affectedSOPInstanceUID ?? storageCommitmentPushModelSOPInstanceUID
+        
+        var result: CommitmentResult? = nil
+        if let dataSet = message.dataSet {
+            result = try? parseCommitmentResult(
+                eventTypeID: eventTypeID,
+                dataSet: dataSet,
+                remoteAETitle: remoteAETitle,
+                transferSyntaxUID: transferSyntaxUID
+            )
+        }
+        
+        let response = NEventReportResponse(
+            messageIDBeingRespondedTo: messageID,
+            affectedSOPClassUID: affectedSOPClassUID,
+            affectedSOPInstanceUID: affectedSOPInstanceUID,
+            eventTypeID: eventTypeID,
+            status: result != nil ? .success : .failedUnableToProcess,
+            hasDataSet: false,
+            presentationContextID: message.presentationContextID
+        )
+        
+        let fragmenter = MessageFragmenter(maxPDUSize: maxPDUSize)
+        let pdus = fragmenter.fragmentMessage(
+            commandSet: response.commandSet,
+            dataSet: nil,
+            presentationContextID: message.presentationContextID
+        )
+        for pdu in pdus {
+            for pdv in pdu.presentationDataValues {
+                try await association.send(pdv: pdv)
+            }
+        }
+        
+        return result
+    }
+    
+    /// Outcome of the N-ACTION exchange
+    struct NActionExchange {
+        /// The N-ACTION-RSP
+        let response: NActionResponse
+        /// A commitment result that arrived on the same association before the
+        /// N-ACTION-RSP (permitted by PS3.4 J.3.3)
+        let earlyResult: CommitmentResult?
+    }
+    
     /// Performs the N-ACTION request/response exchange
-    private static func performNAction(
+    ///
+    /// An N-EVENT-REPORT-RQ that arrives before the N-ACTION-RSP is answered and
+    /// returned as `earlyResult`.
+    static func performNAction(
         association: Association,
         presentationContextID: UInt8,
         maxPDUSize: UInt32,
+        transferSyntaxUID: String,
         transactionUID: String,
-        references: [SOPReference]
-    ) async throws -> NActionResponse {
-        // Build the action data set
+        references: [SOPReference],
+        remoteAETitle: String
+    ) async throws -> NActionExchange {
+        // Build the action data set in the negotiated transfer syntax
         let actionDataSet = buildCommitmentRequestDataSet(
             transactionUID: transactionUID,
-            references: references
+            references: references,
+            transferSyntaxUID: transferSyntaxUID
         )
         
         // Create N-ACTION request
@@ -742,330 +1006,399 @@ public enum StorageCommitmentService {
         
         // Receive response
         let assembler = MessageAssembler()
+        var earlyResult: CommitmentResult? = nil
         
         while true {
             let responsePDU = try await association.receive()
             
-            if let message = try assembler.addPDVs(from: responsePDU) {
-                guard message.command == .nActionResponse else {
-                    throw DICOMNetworkError.decodingFailed(
-                        "Expected N-ACTION-RSP, got \(message.command?.description ?? "unknown")"
-                    )
+            guard let message = try assembler.addPDVs(from: responsePDU) else { continue }
+            
+            switch message.command {
+            case .nActionResponse:
+                return NActionExchange(
+                    response: NActionResponse(commandSet: message.commandSet, presentationContextID: presentationContextID),
+                    earlyResult: earlyResult
+                )
+            case .nEventReportRequest:
+                // The SCP may report the result before answering the N-ACTION
+                let result = try await answerSameAssociationEventReport(
+                    message,
+                    association: association,
+                    maxPDUSize: maxPDUSize,
+                    transferSyntaxUID: transferSyntaxUID,
+                    remoteAETitle: remoteAETitle
+                )
+                if let result, result.transactionUID == transactionUID {
+                    earlyResult = result
                 }
-                return NActionResponse(commandSet: message.commandSet, presentationContextID: presentationContextID)
+            default:
+                throw DICOMNetworkError.decodingFailed(
+                    "Expected N-ACTION-RSP, got \(message.command?.description ?? "unknown")"
+                )
             }
         }
     }
     
-    /// Builds the data set for a storage commitment request
-    private static func buildCommitmentRequestDataSet(
-        transactionUID: String,
-        references: [SOPReference]
-    ) -> Data {
-        var dataSet = Data()
-        
-        // Transaction UID (0008,1195) - UI
-        dataSet.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1195), value: transactionUID))
-        
-        // Referenced SOP Sequence (0008,1199) - SQ
-        let referencedSOPSequenceTag = Tag(group: 0x0008, element: 0x1199)
-        var sequenceData = Data()
-        
-        for reference in references {
-            var itemData = Data()
-            
-            // Referenced SOP Class UID (0008,1150) - UI
-            itemData.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1150), value: reference.sopClassUID))
-            
-            // Referenced SOP Instance UID (0008,1155) - UI
-            itemData.append(encodeUIElement(tag: Tag(group: 0x0008, element: 0x1155), value: reference.sopInstanceUID))
-            
-            // Encode item
-            sequenceData.append(encodeSequenceItem(itemData))
-        }
-        
-        // Append sequence delimiter
-        sequenceData.append(encodeSequenceDelimiter())
-        
-        // Encode sequence element with undefined length
-        dataSet.append(encodeSequenceElement(tag: referencedSOPSequenceTag, content: sequenceData))
-        
-        return dataSet
+    /// Outcome of waiting for a same-association N-EVENT-REPORT
+    private enum SameAssociationWaitOutcome {
+        case received(CommitmentResult?)
+        case timedOut
     }
     
-    /// Encodes a UI element in Explicit VR Little Endian
-    private static func encodeUIElement(tag: Tag, value: String) -> Data {
-        var data = Data()
+    /// Waits for the N-EVENT-REPORT-RQ on the association the N-ACTION was sent on
+    ///
+    /// Only meaningful when the SCP granted the SCU the SCP role for the Storage
+    /// Commitment Push Model SOP Class. On timeout the association is aborted
+    /// (the pending read holds the socket, so a graceful release is not possible)
+    /// and nil is returned so the caller can fall back to the notification listener.
+    ///
+    /// - Returns: The result, or nil if it did not arrive within `timeout`
+    static func awaitSameAssociationEventReport(
+        association: Association,
+        maxPDUSize: UInt32,
+        transferSyntaxUID: String,
+        transactionUID: String,
+        remoteAETitle: String,
+        timeout: TimeInterval
+    ) async throws -> CommitmentResult? {
+        let assembler = MessageAssembler()
         
-        // Tag (4 bytes, little endian)
-        var group = tag.group.littleEndian
-        var element = tag.element.littleEndian
-        data.append(Data(bytes: &group, count: 2))
-        data.append(Data(bytes: &element, count: 2))
-        
-        // VR (2 bytes)
-        data.append(contentsOf: "UI".utf8)
-        
-        // Pad value to even length
+        return await withThrowingTaskGroup(of: SameAssociationWaitOutcome.self) { group in
+            group.addTask {
+                while true {
+                    let pdu = try await association.receive()
+                    guard let message = try assembler.addPDVs(from: pdu) else { continue }
+                    guard message.command == .nEventReportRequest else { continue }
+                    
+                    let result = try await answerSameAssociationEventReport(
+                        message,
+                        association: association,
+                        maxPDUSize: maxPDUSize,
+                        transferSyntaxUID: transferSyntaxUID,
+                        remoteAETitle: remoteAETitle
+                    )
+                    if let result, result.transactionUID != transactionUID {
+                        continue // A result for another transaction; keep waiting
+                    }
+                    return .received(result)
+                }
+            }
+            group.addTask {
+                try await Task.sleep(for: .seconds(timeout))
+                return .timedOut
+            }
+            
+            let outcome: SameAssociationWaitOutcome
+            do {
+                outcome = try await group.next() ?? .timedOut
+            } catch {
+                // The read failed (peer released or aborted, or the connection dropped)
+                group.cancelAll()
+                while let _ = try? await group.next() {}
+                return nil
+            }
+            
+            switch outcome {
+            case .received(let result):
+                group.cancelAll()
+                while let _ = try? await group.next() {}
+                return result
+            case .timedOut:
+                // Unblock the pending read by aborting; the listener path takes over.
+                try? await association.abort()
+                group.cancelAll()
+                while let _ = try? await group.next() {}
+                return nil
+            }
+        }
+    }
+}
+
+// MARK: - Storage Commitment Data Set Codec
+
+/// Minimal DICOM data set encoder/decoder for the Storage Commitment data sets
+///
+/// Encodes and decodes the handful of elements used by N-ACTION (request) and
+/// N-EVENT-REPORT (result) data sets in either Implicit VR Little Endian or
+/// Explicit VR Little Endian, as negotiated for the presentation context.
+///
+/// Reference: PS3.5 Section 7.1 - Data Element Structure
+/// Reference: PS3.8 Section 7.6 - Transfer syntax of the data set
+enum StorageCommitmentDataSetCodec {
+    
+    /// Whether a transfer syntax uses explicit VR encoding
+    ///
+    /// Implicit VR Little Endian is the only implicit VR transfer syntax; every
+    /// other transfer syntax the service negotiates is Explicit VR Little Endian.
+    static func isExplicitVR(transferSyntaxUID: String) -> Bool {
+        transferSyntaxUID != implicitVRLittleEndianTransferSyntaxUID
+    }
+    
+    // MARK: Encoding
+    
+    /// Encodes a UI element
+    static func encodeUI(tag: Tag, value: String, explicit: Bool) -> Data {
         var valueData = value.data(using: .ascii) ?? Data()
         if valueData.count % 2 != 0 {
-            valueData.append(0x00)
+            valueData.append(0x00) // UI pads with NULL
         }
-        
-        // Length (2 bytes for UI)
-        var length = UInt16(valueData.count).littleEndian
-        data.append(Data(bytes: &length, count: 2))
-        
-        // Value
-        data.append(valueData)
-        
+        return encodeElement(tag: tag, vr: .UI, value: valueData, explicit: explicit)
+    }
+    
+    /// Encodes a US element
+    static func encodeUS(tag: Tag, value: UInt16, explicit: Bool) -> Data {
+        encodeElement(tag: tag, vr: .US, value: le16(value), explicit: explicit)
+    }
+    
+    /// Encodes an element with a defined length
+    static func encodeElement(tag: Tag, vr: VR, value: Data, explicit: Bool) -> Data {
+        var data = encodeTag(tag)
+        if explicit {
+            data.append(vr.rawValue.data(using: .ascii) ?? Data([0x55, 0x4E]))
+            if vr.uses32BitLength {
+                data.append(contentsOf: [0x00, 0x00]) // reserved
+                data.append(le32(UInt32(value.count)))
+            } else {
+                data.append(le16(UInt16(value.count)))
+            }
+        } else {
+            data.append(le32(UInt32(value.count)))
+        }
+        data.append(value)
         return data
     }
     
-    /// Encodes a sequence item
-    private static func encodeSequenceItem(_ itemData: Data) -> Data {
-        var data = Data()
-        
-        // Item tag (FFFE,E000)
-        data.append(contentsOf: [0xFE, 0xFF, 0x00, 0xE0])
-        
-        // Item length (4 bytes, little endian)
-        var length = UInt32(itemData.count).littleEndian
-        data.append(Data(bytes: &length, count: 4))
-        
-        // Item data
+    /// Encodes a sequence with undefined length; each item has an explicit
+    /// length and the sequence ends with a Sequence Delimitation Item.
+    static func encodeSequence(tag: Tag, items: [Data], explicit: Bool) -> Data {
+        var data = encodeTag(tag)
+        if explicit {
+            data.append(contentsOf: [0x53, 0x51]) // "SQ"
+            data.append(contentsOf: [0x00, 0x00]) // reserved
+        }
+        data.append(le32(0xFFFFFFFF)) // undefined length
+        for item in items {
+            data.append(encodeSequenceItem(item))
+        }
+        data.append(encodeSequenceDelimiter())
+        return data
+    }
+    
+    /// Encodes a sequence item (FFFE,E000) with an explicit length
+    static func encodeSequenceItem(_ itemData: Data) -> Data {
+        var data = Data([0xFE, 0xFF, 0x00, 0xE0])
+        data.append(le32(UInt32(itemData.count)))
         data.append(itemData)
-        
         return data
     }
     
-    /// Encodes a sequence delimiter
-    private static func encodeSequenceDelimiter() -> Data {
-        var data = Data()
-        
-        // Sequence delimitation item (FFFE,E0DD)
-        data.append(contentsOf: [0xFE, 0xFF, 0xDD, 0xE0])
-        
-        // Length (always 0)
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
-        
+    /// Encodes a Sequence Delimitation Item (FFFE,E0DD)
+    static func encodeSequenceDelimiter() -> Data {
+        Data([0xFE, 0xFF, 0xDD, 0xE0, 0x00, 0x00, 0x00, 0x00])
+    }
+    
+    private static func encodeTag(_ tag: Tag) -> Data {
+        var data = le16(tag.group)
+        data.append(le16(tag.element))
         return data
     }
     
-    /// Encodes a sequence element with undefined length
-    private static func encodeSequenceElement(tag: Tag, content: Data) -> Data {
-        var data = Data()
-        
-        // Tag (4 bytes, little endian)
-        var group = tag.group.littleEndian
-        var element = tag.element.littleEndian
-        data.append(Data(bytes: &group, count: 2))
-        data.append(Data(bytes: &element, count: 2))
-        
-        // VR (2 bytes)
-        data.append(contentsOf: "SQ".utf8)
-        
-        // Reserved (2 bytes)
-        data.append(contentsOf: [0x00, 0x00])
-        
-        // Undefined length (4 bytes)
-        data.append(contentsOf: [0xFF, 0xFF, 0xFF, 0xFF])
-        
-        // Sequence content
-        data.append(content)
-        
-        return data
+    private static func le16(_ v: UInt16) -> Data {
+        Data([UInt8(v & 0xFF), UInt8(v >> 8)])
     }
     
-    /// Extracts a UI value from data at a specific tag
-    private static func extractUIValue(from data: Data, tag: Tag) -> String? {
-        var offset = 0
+    private static func le32(_ v: UInt32) -> Data {
+        Data([UInt8(v & 0xFF), UInt8((v >> 8) & 0xFF),
+              UInt8((v >> 16) & 0xFF), UInt8((v >> 24) & 0xFF)])
+    }
+    
+    // MARK: Decoding
+    
+    /// A decoded element header
+    struct ElementHeader {
+        let group: UInt16
+        let element: UInt16
+        /// Value length; 0xFFFFFFFF for undefined length
+        let length: Int
+        /// Offset of the first value byte
+        let valueOffset: Int
         
-        while offset + 8 <= data.count {
-            let group = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-            let element = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-            offset += 4
-            
-            // Check for explicit VR
-            let byte0 = data[offset]
-            let byte1 = data[offset + 1]
-            let possibleVR = String(bytes: [byte0, byte1], encoding: .ascii) ?? ""
-            
-            let length: Int
-            if possibleVR == "UI" || possibleVR == "SH" || possibleVR == "LO" ||
-               possibleVR == "CS" || possibleVR == "AE" || possibleVR == "DA" ||
-               possibleVR == "TM" || possibleVR == "DS" || possibleVR == "IS" ||
-               possibleVR == "PN" || possibleVR == "AS" || possibleVR == "DT" ||
-               possibleVR == "ST" || possibleVR == "LT" {
-                // Short VR - 2 byte VR + 2 byte length
-                length = Int(UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8))
-                offset += 4
-            } else if possibleVR == "OB" || possibleVR == "OW" || possibleVR == "OF" ||
-                      possibleVR == "SQ" || possibleVR == "UC" || possibleVR == "UR" ||
-                      possibleVR == "UT" || possibleVR == "UN" {
-                // Long VR - 2 byte VR + 2 byte reserved + 4 byte length
-                offset += 4
-                length = Int(UInt32(data[offset]) |
-                            (UInt32(data[offset + 1]) << 8) |
-                            (UInt32(data[offset + 2]) << 16) |
-                            (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            } else {
-                // Implicit VR - 4 byte length
-                length = Int(UInt32(data[offset]) |
-                            (UInt32(data[offset + 1]) << 8) |
-                            (UInt32(data[offset + 2]) << 16) |
-                            (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            }
-            
-            if group == tag.group && element == tag.element {
-                // Found the tag
-                if length > 0 && offset + length <= data.count {
-                    let valueData = data.subdata(in: offset..<(offset + length))
-                    return String(data: valueData, encoding: .ascii)?
-                        .trimmingCharacters(in: CharacterSet(charactersIn: " \0"))
-                }
-                return nil
-            }
-            
-            // Skip value
-            if length > 0 && length != 0xFFFFFFFF {
-                offset += length
-            }
+        var isUndefinedLength: Bool { length == 0xFFFFFFFF }
+    }
+    
+    /// Reads the element header at `offset`
+    ///
+    /// - Parameter explicit: true for Explicit VR, false for Implicit VR, nil to
+    ///   detect the encoding from the two bytes following the tag (the legacy
+    ///   behaviour used when the transfer syntax is unknown).
+    static func readHeader(from data: Data, at offset: Int, explicit: Bool?) -> ElementHeader? {
+        guard offset + 8 <= data.count else { return nil }
+        let group = readUInt16(data, offset)
+        let element = readUInt16(data, offset + 2)
+        
+        // Item / delimiter tags never carry a VR (PS3.5 7.5)
+        if group == 0xFFFE {
+            return ElementHeader(group: group, element: element,
+                                 length: Int(readUInt32(data, offset + 4)), valueOffset: offset + 8)
         }
         
+        let hasVR: Bool
+        if let explicit {
+            hasVR = explicit
+        } else {
+            hasVR = looksLikeVR(data[offset + 4], data[offset + 5])
+        }
+        
+        guard hasVR else {
+            return ElementHeader(group: group, element: element,
+                                 length: Int(readUInt32(data, offset + 4)), valueOffset: offset + 8)
+        }
+        
+        let vrString = String(bytes: [data[offset + 4], data[offset + 5]], encoding: .ascii) ?? ""
+        let vr = VR(rawValue: vrString)
+        if vr?.uses32BitLength ?? false {
+            // 2 byte VR + 2 reserved + 4 byte length
+            guard offset + 12 <= data.count else { return nil }
+            return ElementHeader(group: group, element: element,
+                                 length: Int(readUInt32(data, offset + 8)), valueOffset: offset + 12)
+        }
+        // 2 byte VR + 2 byte length
+        return ElementHeader(group: group, element: element,
+                             length: Int(readUInt16(data, offset + 6)), valueOffset: offset + 8)
+    }
+    
+    /// Extracts the value bytes of the first top-level element with the given tag
+    static func extractValue(from data: Data, tag: Tag, explicit: Bool?) -> Data? {
+        var offset = 0
+        while let header = readHeader(from: data, at: offset, explicit: explicit) {
+            if header.group == tag.group && header.element == tag.element {
+                guard !header.isUndefinedLength,
+                      header.valueOffset + header.length <= data.count else { return nil }
+                return data.subdata(in: header.valueOffset..<(header.valueOffset + header.length))
+            }
+            offset = endOfElement(header, in: data, explicit: explicit)
+        }
         return nil
     }
     
-    /// Extracts a US (unsigned short) value from data at a specific tag
-    private static func extractUSValue(from data: Data, tag: Tag) -> UInt16? {
-        var offset = 0
-        
-        while offset + 8 <= data.count {
-            let group = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-            let element = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-            offset += 4
-            
-            let byte0 = data[offset]
-            let byte1 = data[offset + 1]
-            let possibleVR = String(bytes: [byte0, byte1], encoding: .ascii) ?? ""
-            
-            let length: Int
-            if possibleVR == "US" || possibleVR == "SS" || possibleVR == "AT" {
-                length = Int(UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8))
-                offset += 4
-            } else {
-                length = Int(UInt32(data[offset]) |
-                            (UInt32(data[offset + 1]) << 8) |
-                            (UInt32(data[offset + 2]) << 16) |
-                            (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            }
-            
-            if group == tag.group && element == tag.element {
-                if offset + 2 <= data.count {
-                    return UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-                }
-                return nil
-            }
-            
-            if length > 0 && length != 0xFFFFFFFF {
-                offset += length
-            }
+    /// Extracts a UI value (trailing NULL/space padding removed)
+    static func extractUIValue(from data: Data, tag: Tag, explicit: Bool? = nil) -> String? {
+        guard let value = extractValue(from: data, tag: tag, explicit: explicit), !value.isEmpty else {
+            return nil
         }
-        
-        return nil
+        return String(data: value, encoding: .ascii)?
+            .trimmingCharacters(in: CharacterSet(charactersIn: " \0"))
     }
     
-    /// Extracts sequence items from data at a specific tag
-    private static func extractSequenceItems(from data: Data, tag: Tag) -> [Data]? {
+    /// Extracts a US value
+    static func extractUSValue(from data: Data, tag: Tag, explicit: Bool? = nil) -> UInt16? {
+        guard let value = extractValue(from: data, tag: tag, explicit: explicit), value.count >= 2 else {
+            return nil
+        }
+        return readUInt16(value, value.startIndex)
+    }
+    
+    /// Extracts the items of the first top-level sequence with the given tag
+    ///
+    /// Handles both defined and undefined sequence lengths and both defined and
+    /// undefined item lengths.
+    static func extractSequenceItems(from data: Data, tag: Tag, explicit: Bool? = nil) -> [Data]? {
         var offset = 0
-        
-        // Find the sequence tag
-        while offset + 8 <= data.count {
-            let group = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-            let element = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-            offset += 4
-            
-            let byte0 = data[offset]
-            let byte1 = data[offset + 1]
-            let possibleVR = String(bytes: [byte0, byte1], encoding: .ascii) ?? ""
-            
-            var sequenceLength: Int = 0
-            if possibleVR == "SQ" {
-                // Explicit VR SQ
-                offset += 4 // Skip VR and reserved
-                sequenceLength = Int(UInt32(data[offset]) |
-                                    (UInt32(data[offset + 1]) << 8) |
-                                    (UInt32(data[offset + 2]) << 16) |
-                                    (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            } else {
-                // Implicit VR
-                sequenceLength = Int(UInt32(data[offset]) |
-                                    (UInt32(data[offset + 1]) << 8) |
-                                    (UInt32(data[offset + 2]) << 16) |
-                                    (UInt32(data[offset + 3]) << 24))
-                offset += 4
-            }
-            
-            if group == tag.group && element == tag.element {
-                // Found the sequence - extract items
+        while let header = readHeader(from: data, at: offset, explicit: explicit) {
+            if header.group == tag.group && header.element == tag.element {
                 var items: [Data] = []
-                let sequenceEnd = sequenceLength == 0xFFFFFFFF ? data.count : offset + sequenceLength
+                var cursor = header.valueOffset
+                let sequenceEnd = header.isUndefinedLength
+                    ? data.count
+                    : min(data.count, header.valueOffset + header.length)
                 
-                while offset < sequenceEnd && offset + 8 <= data.count {
-                    let itemGroup = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-                    let itemElement = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
+                while cursor + 8 <= sequenceEnd {
+                    let itemGroup = readUInt16(data, cursor)
+                    let itemElement = readUInt16(data, cursor + 2)
+                    guard itemGroup == 0xFFFE else { break }
+                    if itemElement == 0xE0DD { break } // Sequence Delimitation Item
+                    guard itemElement == 0xE000 else { break }
                     
-                    if itemGroup == 0xFFFE && itemElement == 0xE000 {
-                        // Item start
-                        let itemLength = Int(UInt32(data[offset + 4]) |
-                                            (UInt32(data[offset + 5]) << 8) |
-                                            (UInt32(data[offset + 6]) << 16) |
-                                            (UInt32(data[offset + 7]) << 24))
-                        offset += 8
-                        
-                        if itemLength == 0xFFFFFFFF {
-                            // Undefined length item - find delimiter
-                            let itemStart = offset
-                            while offset + 8 <= data.count {
-                                let delimGroup = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
-                                let delimElement = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
-                                if delimGroup == 0xFFFE && delimElement == 0xE00D {
-                                    items.append(data.subdata(in: itemStart..<offset))
-                                    offset += 8
-                                    break
-                                }
-                                offset += 1
-                            }
-                        } else if offset + itemLength <= data.count {
-                            items.append(data.subdata(in: offset..<(offset + itemLength)))
-                            offset += itemLength
-                        }
-                    } else if itemGroup == 0xFFFE && itemElement == 0xE0DD {
-                        // Sequence delimiter
-                        break
+                    let itemLength = Int(readUInt32(data, cursor + 4))
+                    let itemStart = cursor + 8
+                    if itemLength == 0xFFFFFFFF {
+                        let itemEnd = endOfUndefinedLengthItem(in: data, from: itemStart, explicit: explicit)
+                        let contentEnd = max(itemStart, itemEnd - 8)
+                        items.append(data.subdata(in: itemStart..<contentEnd))
+                        cursor = itemEnd
+                    } else if itemStart + itemLength <= data.count {
+                        items.append(data.subdata(in: itemStart..<(itemStart + itemLength)))
+                        cursor = itemStart + itemLength
                     } else {
                         break
                     }
                 }
-                
                 return items.isEmpty ? nil : items
             }
-            
-            // Skip to next element
-            if sequenceLength > 0 && sequenceLength != 0xFFFFFFFF {
-                offset += sequenceLength
+            offset = endOfElement(header, in: data, explicit: explicit)
+        }
+        return nil
+    }
+    
+    // MARK: Walking helpers
+    
+    /// Offset just past an element (skipping undefined-length sequences properly)
+    private static func endOfElement(_ header: ElementHeader, in data: Data, explicit: Bool?) -> Int {
+        if header.isUndefinedLength {
+            return endOfUndefinedLengthSequence(in: data, from: header.valueOffset, explicit: explicit)
+        }
+        return header.valueOffset + header.length
+    }
+    
+    /// Offset just past the Sequence Delimitation Item of an undefined-length sequence
+    private static func endOfUndefinedLengthSequence(in data: Data, from start: Int, explicit: Bool?) -> Int {
+        var cursor = start
+        while cursor + 8 <= data.count {
+            let group = readUInt16(data, cursor)
+            let element = readUInt16(data, cursor + 2)
+            let length = Int(readUInt32(data, cursor + 4))
+            guard group == 0xFFFE else { return data.count }
+            if element == 0xE0DD { return cursor + 8 }
+            guard element == 0xE000 else { return data.count }
+            if length == 0xFFFFFFFF {
+                cursor = endOfUndefinedLengthItem(in: data, from: cursor + 8, explicit: explicit)
+            } else {
+                cursor += 8 + length
             }
         }
-        
-        return nil
+        return data.count
+    }
+    
+    /// Offset just past the Item Delimitation Item of an undefined-length item
+    private static func endOfUndefinedLengthItem(in data: Data, from start: Int, explicit: Bool?) -> Int {
+        var cursor = start
+        while let header = readHeader(from: data, at: cursor, explicit: explicit) {
+            if header.group == 0xFFFE && header.element == 0xE00D {
+                return header.valueOffset
+            }
+            cursor = endOfElement(header, in: data, explicit: explicit)
+        }
+        return data.count
+    }
+    
+    private static func looksLikeVR(_ b0: UInt8, _ b1: UInt8) -> Bool {
+        guard (0x41...0x5A).contains(b0), (0x41...0x5A).contains(b1) else { return false }
+        let vrString = String(bytes: [b0, b1], encoding: .ascii) ?? ""
+        return VR(rawValue: vrString) != nil
+    }
+    
+    private static func readUInt16(_ data: Data, _ offset: Int) -> UInt16 {
+        UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
+    }
+    
+    private static func readUInt32(_ data: Data, _ offset: Int) -> UInt32 {
+        UInt32(data[offset]) | (UInt32(data[offset + 1]) << 8) |
+        (UInt32(data[offset + 2]) << 16) | (UInt32(data[offset + 3]) << 24)
     }
 }
 
 import Network
+// NEMA-verified: 2026a, checked 2026-09-28 — Push Model UIDs per PS3.4 2026a J.3.4/J.3.5, action/event information per Tables J.3-1/J.3-2, failure reasons per PS3.3 C.14.1.1 (Scripts/diff_network.py: 6 of 6); listener answers every N-EVENT-REPORT-RQ (J.3.3.1.3); PDU length per PS3.8 §9.3.1 (D13)
 
 // MARK: - Commitment Notification Listener
 
@@ -1367,19 +1700,23 @@ actor CommitmentListenerAssociation {
     func start() async {
         connection.start(queue: .global(qos: .userInitiated))
         
-        // Wait for connection to be ready
+        // Wait for connection to be ready. Guard the resume so a terminal
+        // transition right after `.ready` cannot resume the continuation twice
+        // (a trap that surfaced once the loopback tests got past association
+        // establishment, see D13).
+        let resumed = ListenerResumeFlag()
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             connection.stateUpdateHandler = { state in
                 switch state {
-                case .ready:
-                    continuation.resume()
-                case .failed, .cancelled:
+                case .ready, .failed, .cancelled:
+                    guard resumed.trySet() else { return }
                     continuation.resume()
                 default:
                     break
                 }
             }
         }
+        connection.stateUpdateHandler = nil
         
         guard connection.state == .ready else {
             await completionHandler(self)
@@ -1415,15 +1752,29 @@ actor CommitmentListenerAssociation {
         
         callingAETitle = associateRequest.callingAETitle.value
         calledAETitle = associateRequest.calledAETitle.value
-        maxPDUSize = min(associateRequest.maxPDUSize, configuration.maxPDUSize)
+        // PS3.8 Annex D.1: 0 from the peer means "no maximum length is specified"
+        maxPDUSize = negotiatedMaxPDUSize(local: configuration.maxPDUSize, remote: associateRequest.maxPDUSize)
+        
+        // PS3.8 Table 9-11: only bit 0 of Protocol-version is tested; reject
+        // with source 2 (ACSE), reason 2 (protocol-version-not-supported)
+        guard associateRequest.isProtocolVersionSupported else {
+            await eventHandler(.associationRejected(callingAE: callingAETitle, reason: "Protocol version not supported"))
+            let rejectPDU = AssociateRejectPDU(
+                result: .rejectedPermanent,
+                source: .serviceProviderACSE,
+                reason: 2 // Protocol version not supported
+            )
+            try await sendPDU(rejectPDU)
+            return
+        }
         
         // Check if calling AE is allowed
         if !configuration.isCallingAEAllowed(callingAETitle) {
             await eventHandler(.associationRejected(callingAE: callingAETitle, reason: "AE not allowed"))
             let rejectPDU = AssociateRejectPDU(
                 result: .rejectedPermanent,
-                source: .serviceProviderACSE,
-                reason: 3 // Calling AE Title not recognized
+                source: .serviceUser,
+                reason: 3 // PS3.8 Table 9-21: calling-AE-title-not-recognized
             )
             try await sendPDU(rejectPDU)
             return
@@ -1434,9 +1785,12 @@ actor CommitmentListenerAssociation {
         
         if acceptedContexts.isEmpty {
             await eventHandler(.associationRejected(callingAE: callingAETitle, reason: "No supported presentation contexts"))
+            // PS3.8 Table 9-21: "no presentation context acceptable" is not a
+            // UL-provider condition, so reject as service-user, reason 1
+            // (no-reason-given).
             let rejectPDU = AssociateRejectPDU(
                 result: .rejectedPermanent,
-                source: .serviceProviderPresentation,
+                source: .serviceUser,
                 reason: 1 // No reason given
             )
             try await sendPDU(rejectPDU)
@@ -1518,6 +1872,18 @@ actor CommitmentListenerAssociation {
             }
         }
         
+        // Answer the proposed SCP/SCU Role Selections (PS3.7 D.3.3.4.2). The
+        // reverse-association requester (the commitment SCP) proposes the SCP
+        // role for the commitment class so it may send N-EVENT-REPORT; we grant
+        // it. Strict peers treat a missing answer as "default roles" and abort.
+        let acceptedSOPClasses = Set(request.presentationContexts
+            .filter { acceptedContexts[$0.id] != nil }
+            .map { $0.abstractSyntax })
+        let roleSelections = request.roleSelections.acceptorResponse(
+            acceptSCURoleFor: { acceptedSOPClasses.contains($0) },
+            acceptSCPRoleFor: { acceptedSOPClasses.contains($0) }
+        )
+
         return AssociateAcceptPDU(
             calledAETitle: request.calledAETitle,
             callingAETitle: request.callingAETitle,
@@ -1525,7 +1891,8 @@ actor CommitmentListenerAssociation {
             presentationContexts: acceptedPresentationContexts,
             maxPDUSize: maxPDUSize,
             implementationClassUID: configuration.implementationClassUID,
-            implementationVersionName: configuration.implementationVersionName
+            implementationVersionName: configuration.implementationVersionName,
+            roleSelections: roleSelections
         )
     }
     
@@ -1548,53 +1915,48 @@ actor CommitmentListenerAssociation {
     private func processNEventReportRequest(_ message: AssembledMessage) async throws {
         let commandSet = message.commandSet
         
-        guard let eventTypeID = commandSet.eventTypeID else {
-            throw DICOMNetworkError.decodingFailed("Missing Event Type ID in N-EVENT-REPORT")
-        }
-        
+        let eventTypeID = commandSet.eventTypeID
         let messageID = commandSet.messageID ?? 0
         let affectedSOPClassUID = commandSet.affectedSOPClassUID ?? storageCommitmentPushModelSOPClassUID
         let affectedSOPInstanceUID = commandSet.affectedSOPInstanceUID ?? storageCommitmentPushModelSOPInstanceUID
         
-        // Parse the commitment result from the data set
-        if let dataSet = message.dataSet {
+        // PS3.4 J.3.3.1.3: the SCU shall always return the N-EVENT-REPORT
+        // response status. Success when the result parsed; otherwise
+        // Processing Failure (0110H, PS3.7 §10.1.1.1.8), including a missing
+        // Event Type ID or a missing/undecodable data set.
+        var status: DIMSEStatus = .failedUnableToProcess
+        
+        // Parse the commitment result from the data set, in the transfer
+        // syntax negotiated for the presentation context it arrived on
+        let transferSyntaxUID = acceptedContexts[message.presentationContextID]
+        if let eventTypeID, let dataSet = message.dataSet {
             do {
                 let result = try StorageCommitmentService.parseCommitmentResult(
                     eventTypeID: eventTypeID,
                     dataSet: dataSet,
-                    remoteAETitle: callingAETitle
+                    remoteAETitle: callingAETitle,
+                    transferSyntaxUID: transferSyntaxUID
                 )
                 
                 // Deliver the result
                 await resultHandler(result)
-                
-                // Send success response
-                let response = NEventReportResponse(
-                    messageIDBeingRespondedTo: messageID,
-                    affectedSOPClassUID: affectedSOPClassUID,
-                    affectedSOPInstanceUID: affectedSOPInstanceUID,
-                    eventTypeID: eventTypeID,
-                    status: .success,
-                    hasDataSet: false,
-                    presentationContextID: message.presentationContextID
-                )
-                
-                try await sendNEventReportResponse(response)
+                status = .success
             } catch {
-                // Send error response
-                let response = NEventReportResponse(
-                    messageIDBeingRespondedTo: messageID,
-                    affectedSOPClassUID: affectedSOPClassUID,
-                    affectedSOPInstanceUID: affectedSOPInstanceUID,
-                    eventTypeID: eventTypeID,
-                    status: .failedUnableToProcess,
-                    hasDataSet: false,
-                    presentationContextID: message.presentationContextID
-                )
-                
-                try await sendNEventReportResponse(response)
+                status = .failedUnableToProcess
             }
         }
+                
+        let response = NEventReportResponse(
+            messageIDBeingRespondedTo: messageID,
+            affectedSOPClassUID: affectedSOPClassUID,
+            affectedSOPInstanceUID: affectedSOPInstanceUID,
+            eventTypeID: eventTypeID,
+            status: status,
+            hasDataSet: false,
+            presentationContextID: message.presentationContextID
+        )
+                
+        try await sendNEventReportResponse(response)
     }
     
     private func sendNEventReportResponse(_ response: NEventReportResponse) async throws {
@@ -1612,24 +1974,46 @@ actor CommitmentListenerAssociation {
     
     // MARK: - PDU I/O
     
+    /// Receives exactly one PDU (6-byte header, then the body), so that back-to-back
+    /// PDUs in one TCP segment (e.g. P-DATA-TF followed by A-RELEASE-RQ) are not lost.
     private func receivePDU() async throws -> any PDU {
-        return try await withCheckedThrowingContinuation { continuation in
-            connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { data, _, _, error in
+        let headerData = try await receive(length: 6)
+        guard headerData.count == 6 else {
+            throw DICOMNetworkError.connectionClosed
+        }
+
+        // PDU-length is a big-endian unsigned 32-bit number (PS3.8 §9.3.1, Table 9-11
+        // bytes 3-6). This used to be read little-endian, so a 259-byte A-ASSOCIATE-RQ
+        // was taken for a 50 MB PDU and the read only returned when the peer gave up
+        // (the two "ARTIM" failures of D13 in the DICOMCore report).
+        let (pduType, declaredLength) = try PDUDecoder.readHeader(from: headerData)
+        // PS3.8 Annex D.1: the negotiated limit applies to P-DATA-TF only
+        try checkPDULength(type: pduType, length: declaredLength, maxPDUSize: configuration.maxPDUSize)
+        let pduLength = Int(declaredLength)
+
+        var fullData = headerData
+        if pduLength > 0 {
+            let bodyData = try await receive(length: pduLength)
+            guard bodyData.count == pduLength else {
+                throw DICOMNetworkError.connectionClosed
+            }
+            fullData.append(bodyData)
+        }
+
+        return try PDUDecoder.decode(from: fullData)
+    }
+
+    private func receive(length: Int) async throws -> Data {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
+            connection.receive(minimumIncompleteLength: length, maximumLength: length) { content, _, isComplete, error in
                 if let error = error {
                     continuation.resume(throwing: DICOMNetworkError.connectionFailed(error.localizedDescription))
-                    return
-                }
-                
-                guard let data = data, !data.isEmpty else {
+                } else if let data = content, !data.isEmpty {
+                    continuation.resume(returning: data)
+                } else if isComplete {
                     continuation.resume(throwing: DICOMNetworkError.connectionClosed)
-                    return
-                }
-                
-                do {
-                    let pdu = try PDUDecoder.decode(from: data)
-                    continuation.resume(returning: pdu)
-                } catch {
-                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: Data())
                 }
             }
         }
@@ -1651,3 +2035,16 @@ actor CommitmentListenerAssociation {
 }
 
 #endif
+
+/// A set-once flag so an `NWConnection` state handler resumes its continuation
+/// exactly once (a terminal transition right after `.ready` must not resume twice).
+private final class ListenerResumeFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var isSet = false
+    func trySet() -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        if isSet { return false }
+        isSet = true
+        return true
+    }
+}

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — RT Plan Geometry per PS3.3 2026a Table C.8-45; Dose Reference Structure Type and Dose Reference Type per Table C.8-46; Fraction Pattern (LT) per Table C.8-49 and PS3.6; Application Setup Type per Table C.8-51
 //
 // RTPlan.swift
 // DICOMKit
@@ -16,9 +17,9 @@ import DICOMCore
 /// radiation delivery systems during patient treatment.
 ///
 /// Reference: PS3.3 A.20 - RT Plan IOD
-/// Reference: PS3.3 C.8.8.14 - RT General Plan Module
-/// Reference: PS3.3 C.8.8.15 - RT Prescription Module
-/// Reference: PS3.3 C.8.8.16 - RT Fraction Scheme Module
+/// Reference: PS3.3 C.8.8.9 - RT General Plan Module
+/// Reference: PS3.3 C.8.8.10 - RT Prescription Module
+/// Reference: PS3.3 C.8.8.13 - RT Fraction Scheme Module
 public struct RTPlan: Sendable {
     
     // MARK: - Plan Identification
@@ -44,8 +45,14 @@ public struct RTPlan: Sendable {
     /// RT Plan Time
     public let time: DICOMTime?
     
-    /// RT Plan Geometry (PATIENT or TREATMENT_DEVICE)
+    /// RT Plan Geometry (300A,000C) as written in the data set.
+    /// Standard values: PATIENT, TREATMENT_DEVICE (see ``RTPlanGeometry``, PS3.3 Table C.8-45).
     public let geometry: String?
+
+    /// RT Plan Geometry (300A,000C) as a standard value, `nil` when absent or non-standard.
+    public var planGeometry: RTPlanGeometry? {
+        geometry.flatMap(RTPlanGeometry.init(rawValue:))
+    }
     
     // MARK: - Referenced Structure Set
     
@@ -131,29 +138,101 @@ public struct RTPlan: Sendable {
     }
 }
 
+// MARK: - Plan Terms
+
+/// RT Plan Geometry (300A,000C) Enumerated Values.
+///
+/// Reference: PS3.3 C.8.8.9 RT General Plan Module, Table C.8-45 and C.8.8.9.1
+public enum RTPlanGeometry: String, Sendable, Hashable, CaseIterable {
+    /// RT Structure Set exists (Referenced Structure Set Sequence (300C,0060) is required)
+    case patient = "PATIENT"
+
+    /// RT Structure Set does not exist; plan defined with respect to the IEC FIXED Coordinate System
+    case treatmentDevice = "TREATMENT_DEVICE"
+}
+
+/// Dose Reference Structure Type (300A,0014) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.10 RT Prescription Module, Table C.8-46
+public enum DoseReferenceStructureType: String, Sendable, Hashable, CaseIterable {
+    /// dose reference point specified as ROI
+    case point = "POINT"
+
+    /// dose reference volume specified as ROI
+    case volume = "VOLUME"
+
+    /// point specified by Dose Reference Point Coordinates (300A,0018)
+    case coordinates = "COORDINATES"
+
+    /// dose reference clinical site
+    case site = "SITE"
+}
+
+/// Dose Reference Type (300A,0020) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.10 RT Prescription Module, Table C.8-46
+public enum DoseReferenceType: String, Sendable, Hashable, CaseIterable {
+    /// treatment target (corresponding to GTV, PTV, or CTV in ICRU Report 50)
+    case target = "TARGET"
+
+    /// Organ at Risk (as defined in ICRU Report 50)
+    case organAtRisk = "ORGAN_AT_RISK"
+}
+
+/// Application Setup Type (300A,0232) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.15 RT Brachy Application Setups Module, Table C.8-51
+public enum BrachyApplicationSetupType: String, Sendable, Hashable, CaseIterable {
+    case fletcherSuit = "FLETCHER_SUIT"
+    case delclos = "DELCLOS"
+    case bloedorn = "BLOEDORN"
+    case joslinFlynn = "JOSLIN_FLYNN"
+    case chandigarh = "CHANDIGARH"
+    case manchester = "MANCHESTER"
+    case henschke = "HENSCHKE"
+    case nasopharyngeal = "NASOPHARYNGEAL"
+    case oesophageal = "OESOPHAGEAL"
+    case endobronchial = "ENDOBRONCHIAL"
+    case syedNeblett = "SYED_NEBLETT"
+    case endorectal = "ENDORECTAL"
+    case perineal = "PERINEAL"
+}
+
 // MARK: - DoseReference
 
 /// Dose Reference
 ///
 /// Specifies a dose reference point or volume used for prescription and planning.
 ///
-/// Reference: PS3.3 C.8.8.15 - RT Prescription Module
+/// Reference: PS3.3 C.8.8.10 - RT Prescription Module, Table C.8-46
 public struct DoseReference: Sendable, Identifiable {
-    
+
     /// Dose Reference Number (unique within plan)
     public let number: Int
-    
+
     /// Dose Reference UID
     public let uid: String?
-    
-    /// Dose Reference Structure Type (POINT, VOLUME, COORDINATES, SITE)
+
+    /// Dose Reference Structure Type (300A,0014) as written in the data set.
+    /// Standard terms: POINT, VOLUME, COORDINATES, SITE (see ``DoseReferenceStructureType``, PS3.3 Table C.8-46).
     public let structureType: String?
-    
+
+    /// Dose Reference Structure Type (300A,0014) as a standard term, `nil` when absent or non-standard.
+    public var structureTypeTerm: DoseReferenceStructureType? {
+        structureType.flatMap(DoseReferenceStructureType.init(rawValue:))
+    }
+
     /// Dose Reference Description
     public let description: String?
-    
-    /// Dose Reference Type (TARGET, ORGAN_AT_RISK)
+
+    /// Dose Reference Type (300A,0020) as written in the data set.
+    /// Standard terms: TARGET, ORGAN_AT_RISK (see ``DoseReferenceType``, PS3.3 Table C.8-46).
     public let type: String?
+
+    /// Dose Reference Type (300A,0020) as a standard term, `nil` when absent or non-standard.
+    public var doseReferenceType: DoseReferenceType? {
+        type.flatMap(DoseReferenceType.init(rawValue:))
+    }
     
     /// Target Prescription Dose (Gy)
     public let targetPrescriptionDose: Double?
@@ -210,25 +289,28 @@ public struct DoseReference: Sendable, Identifiable {
 ///
 /// Defines a group of treatment fractions with the same beam configuration.
 ///
-/// Reference: PS3.3 C.8.8.16 - RT Fraction Scheme Module
+/// Reference: PS3.3 C.8.8.13 - RT Fraction Scheme Module, Table C.8-49
 public struct FractionGroup: Sendable, Identifiable {
-    
+
     /// Fraction Group Number
     public let number: Int
-    
+
     /// Fraction Group Description
     public let description: String?
-    
-    /// Number of Fractions Planned
+
+    /// Number of Fractions Planned (300A,0078)
     public let numberOfFractionsPlanned: Int?
-    
-    /// Number of Fractions Per Day
+
+    /// Number of Fraction Pattern Digits Per Day (300A,0079): number of digits in
+    /// Fraction Pattern (300A,007B) used to represent one day.
     public let numberOfFractionsPerDay: Int?
-    
-    /// Repeat Fraction Cycle Length (days)
+
+    /// Repeat Fraction Cycle Length (300A,007A): number of weeks needed to describe the treatment pattern.
     public let repeatFractionCycleLength: Int?
-    
-    /// Fraction Pattern
+
+    /// Fraction Pattern (300A,007B), VR LT (PS3.6): string of 0's (no treatment) and 1's (treatment)
+    /// describing the treatment pattern. Length is 7 x Number of Fraction Pattern Digits Per Day x
+    /// Repeat Fraction Cycle Length; the pattern starts on a Monday.
     public let fractionPattern: String?
     
     /// Number of Beams
@@ -278,25 +360,32 @@ public struct FractionGroup: Sendable, Identifiable {
 ///
 /// Defines a brachytherapy applicator setup with source positions and dwell times.
 ///
-/// Reference: PS3.3 C.8.8.23 - RT Brachy Application Setups Module
+/// Reference: PS3.3 C.8.8.15 - RT Brachy Application Setups Module, Table C.8-51
 public struct BrachyApplicationSetup: Sendable, Identifiable {
-    
+
     /// Application Setup Number
     public let number: Int
-    
-    /// Application Setup Type (MANUAL, HDR, LDR, PDR)
+
+    /// Application Setup Type (300A,0232) as written in the data set.
+    /// Standard terms: see ``BrachyApplicationSetupType`` (PS3.3 Table C.8-51). Note that MANUAL, HDR,
+    /// MDR, LDR and PDR are values of Brachy Treatment Type (300A,0202), not of this Attribute.
     public let type: String?
-    
+
+    /// Application Setup Type (300A,0232) as a standard term, `nil` when absent or non-standard.
+    public var setupType: BrachyApplicationSetupType? {
+        type.flatMap(BrachyApplicationSetupType.init(rawValue:))
+    }
+
     /// Application Setup Name
     public let name: String?
-    
+
     /// Application Setup Manufacturer
     public let manufacturer: String?
-    
+
     /// Template Name
     public let templateName: String?
-    
-    /// Template Type (CUSTOM, STANDARD)
+
+    /// Template Type (300A,0242): user-defined type for Template Device (free text, no Defined Terms)
     public let templateType: String?
     
     /// Total Reference Air Kerma (Gy)
@@ -336,7 +425,7 @@ public struct BrachyApplicationSetup: Sendable, Identifiable {
 ///
 /// Defines a single source channel with control points.
 ///
-/// Reference: PS3.3 C.8.8.23 - RT Brachy Application Setups Module
+/// Reference: PS3.3 C.8.8.15 - RT Brachy Application Setups Module
 public struct BrachyChannel: Sendable {
     
     /// Channel Number
@@ -386,7 +475,7 @@ public struct BrachyChannel: Sendable {
 ///
 /// Defines source position and dwell time at a specific location.
 ///
-/// Reference: PS3.3 C.8.8.23 - RT Brachy Application Setups Module
+/// Reference: PS3.3 C.8.8.15 - RT Brachy Application Setups Module
 public struct BrachyControlPoint: Sendable {
     
     /// Control Point Index

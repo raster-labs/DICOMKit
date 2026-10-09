@@ -35,7 +35,7 @@ enum AnonymizationProfile {
             .patientComments,
             .referringPhysicianName,
             .performingPhysicianName,
-            .operatorName,
+            .operatorsName,
             .institutionName,
             .institutionAddress,
             .stationName,

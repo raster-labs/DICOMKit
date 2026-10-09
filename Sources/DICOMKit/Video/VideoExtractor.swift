@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — one fragment per frame per PS3.5 2026a A.4 and 8.2.x
 //
 // VideoExtractor.swift
 // DICOMKit
@@ -55,6 +56,13 @@ public struct ExtractedVideo: Sendable {
     /// The number of fragments the payload was split across.
     public let fragmentCount: Int
 
+    /// The container as it should be named: ``VideoContainer/displayName``, which names
+    /// an MPEG-2 Program Stream / PES by its PS3.5 8.2.5 wording (``VideoContainer/mpegPS``,
+    /// ``VideoContainer/mpegPES``, D237).
+    public var containerDisplayName: String {
+        container.displayName
+    }
+
     /// The file extension that suits this payload.
     ///
     /// The payload retains the container it was encapsulated with, so the
@@ -64,6 +72,8 @@ public struct ExtractedVideo: Sendable {
         case .mp4: return "mp4"
         case .quickTime: return "mov"
         case .mpegTS: return "ts"
+        // MPEG-PS / MPEG-PES (PS3.5 2026a 8.2.5, 8.2.6)
+        case .mpegPS, .mpegPES: return "mpg"
         case .elementaryStream, .unknown:
             switch codec {
             case .h264: return "264"

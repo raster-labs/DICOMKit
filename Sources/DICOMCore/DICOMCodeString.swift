@@ -5,6 +5,8 @@ import Foundation
 /// Represents a DICOM Code String used for coded values in DICOM data elements.
 /// Reference: DICOM PS3.5 Section 6.2 - CS Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the CS row of PS3.5 2026a Table 6.2-1 (uppercase, digits, SPACE, underscore; 16 bytes max). The Query "Empty Value Matching" form is out of scope for this type.
+///
 /// A Code String is a string of characters with leading or trailing spaces
 /// (20H) being non-significant. The value shall contain only uppercase characters,
 /// digits 0-9, the SPACE character, and the underscore character.

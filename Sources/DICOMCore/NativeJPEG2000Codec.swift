@@ -14,6 +14,7 @@ import UniformTypeIdentifiers
 /// - Note: Deprecated in favour of ``J2KSwiftCodec`` and ``HTJ2KCodec``,
 ///   which use J2KSwift for cross-platform, higher-fidelity JPEG 2000 support.
 @available(*, deprecated, renamed: "J2KSwiftCodec", message: "Use J2KSwiftCodec or HTJ2KCodec instead. NativeJPEG2000Codec relies on Apple ImageIO which has known 12-bit grayscale limitations.")
+/// NEMA-verified: 2026a, checked 2026-09-25 — the two UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1) and the J2C-codestream requirement is PS3.5 2026a A.4.4. `canEncode` (8 or 16 allocated) is a subset of Table 8.2.4-1, which allows up to 40 bits; an ImageIO limit, not a standard claim.
 public struct NativeJPEG2000Codec: ImageCodec, ImageEncoder, Sendable {
     /// Supported JPEG 2000 transfer syntaxes for decoding
     public static let supportedTransferSyntaxes: [String] = [

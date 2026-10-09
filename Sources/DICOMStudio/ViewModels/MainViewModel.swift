@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Main application ViewModel
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (navigation, service wiring and viewer
+// hand-off).
 
 import Foundation
 import Observation

@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — A-ASSOCIATE-AC layout compared with PS3.8 2026a Tables 9-17..9-20 (a Transfer Syntax sub-item is now present in every Presentation Context item, Table 9-18) and PS3.7 Tables D.3-2/D.3-4 (length limits enforced); 2026-10-01: SOP Class Extended Negotiation answers (56H) per PS3.7 Table D.3-11 / D.3.3.5
 
 /// A-ASSOCIATE-AC PDU (Association Accept)
 ///
@@ -40,6 +41,19 @@ public struct AssociateAcceptPDU: PDU, Sendable, Hashable {
     /// Reference: PS3.7 Section D.3.3.7.2 - Server Response
     public let userIdentityServerResponse: UserIdentityServerResponse?
     
+    /// SCP/SCU Role Selections granted by the acceptor (optional)
+    ///
+    /// Per PS3.7 D.3.3.4.2 the acceptor answers each proposed role selection;
+    /// a missing answer means the default roles apply for that SOP Class.
+    public let roleSelections: [SCPSCURoleSelection]
+
+    /// SOP Class Extended Negotiation answers of the acceptor (optional)
+    ///
+    /// Per PS3.7 D.3.3.5 the acceptor returns the sub-item only for SOP Classes
+    /// whose extended negotiation was offered; a missing answer means the
+    /// Service Class default applies.
+    public let extendedNegotiations: [SOPClassExtendedNegotiation]
+    
     /// Creates an A-ASSOCIATE-AC PDU
     public init(
         protocolVersion: UInt16 = 1,
@@ -50,7 +64,32 @@ public struct AssociateAcceptPDU: PDU, Sendable, Hashable {
         maxPDUSize: UInt32,
         implementationClassUID: String,
         implementationVersionName: String? = nil,
-        userIdentityServerResponse: UserIdentityServerResponse? = nil
+        userIdentityServerResponse: UserIdentityServerResponse? = nil,
+        roleSelections: [SCPSCURoleSelection] = []
+    ) {
+        self.init(
+            protocolVersion: protocolVersion, calledAETitle: calledAETitle, callingAETitle: callingAETitle,
+            applicationContextName: applicationContextName, presentationContexts: presentationContexts,
+            maxPDUSize: maxPDUSize, implementationClassUID: implementationClassUID,
+            implementationVersionName: implementationVersionName,
+            userIdentityServerResponse: userIdentityServerResponse,
+            roleSelections: roleSelections, extendedNegotiations: [])
+    }
+
+    /// Creates an A-ASSOCIATE-AC PDU answering SOP Class Extended Negotiation
+    /// sub-items (PS3.7 D.3.3.5, Table D.3-11; added 2026-10-01).
+    public init(
+        protocolVersion: UInt16 = 1,
+        calledAETitle: AETitle,
+        callingAETitle: AETitle,
+        applicationContextName: String = AssociateRequestPDU.dicomApplicationContextName,
+        presentationContexts: [AcceptedPresentationContext],
+        maxPDUSize: UInt32,
+        implementationClassUID: String,
+        implementationVersionName: String? = nil,
+        userIdentityServerResponse: UserIdentityServerResponse? = nil,
+        roleSelections: [SCPSCURoleSelection] = [],
+        extendedNegotiations: [SOPClassExtendedNegotiation]
     ) {
         self.protocolVersion = protocolVersion
         self.calledAETitle = calledAETitle
@@ -61,12 +100,21 @@ public struct AssociateAcceptPDU: PDU, Sendable, Hashable {
         self.implementationClassUID = implementationClassUID
         self.implementationVersionName = implementationVersionName
         self.userIdentityServerResponse = userIdentityServerResponse
+        self.roleSelections = roleSelections
+        self.extendedNegotiations = extendedNegotiations
     }
     
     /// Encodes the PDU for network transmission
     ///
+    /// - Throws: `DICOMNetworkError.encodingFailed` if the Implementation
+    ///   Class UID exceeds 64 bytes (PS3.5 UI) or the Implementation Version
+    ///   Name is not 1-16 characters (PS3.7 Table D.3-4)
+    ///
     /// Reference: PS3.8 Section 9.3.3
     public func encode() throws -> Data {
+        try validateImplementationSubItems(
+            classUID: implementationClassUID, versionName: implementationVersionName)
+        
         var data = Data()
         
         // Build the PDU variable field first
@@ -139,19 +187,20 @@ public struct AssociateAcceptPDU: PDU, Sendable, Hashable {
         content.append(context.result.rawValue)  // Result/Reason
         content.append(0x00)  // Reserved
         
-        // Transfer Syntax Sub-Item (only if accepted)
-        if let transferSyntax = context.transferSyntax {
-            var subItem = Data()
-            subItem.append(0x40)  // Sub-Item Type
-            subItem.append(0x00)  // Reserved
-            
-            let tsData = Data(transferSyntax.utf8)
-            let tsLength = UInt16(tsData.count)
-            subItem.append(contentsOf: withUnsafeBytes(of: tsLength.bigEndian) { Array($0) })
-            subItem.append(tsData)
-            
-            content.append(subItem)
-        }
+        // Transfer Syntax Sub-Item: PS3.8 Table 9-18 requires exactly one in
+        // every Presentation Context item. When the Result/Reason is not
+        // acceptance the sub-item "shall not be significant", so a rejected
+        // context carries an empty-name sub-item (item-length 0).
+        var subItem = Data()
+        subItem.append(0x40)  // Sub-Item Type
+        subItem.append(0x00)  // Reserved
+        
+        let tsData = Data((context.transferSyntax ?? "").utf8)
+        let tsLength = UInt16(tsData.count)
+        subItem.append(contentsOf: withUnsafeBytes(of: tsLength.bigEndian) { Array($0) })
+        subItem.append(tsData)
+        
+        content.append(subItem)
         
         // Item Type (0x21 for Presentation Context AC)
         item.append(0x21)
@@ -201,6 +250,16 @@ public struct AssociateAcceptPDU: PDU, Sendable, Hashable {
             subItems.append(versionSubItem)
         }
         
+        // SCP/SCU Role Selection Sub-Items (optional, PS3.7 D.3.3.4.2)
+        for role in roleSelections {
+            subItems.append(role.encode())
+        }
+
+        // SOP Class Extended Negotiation Sub-Items (optional, PS3.7 D.3.3.5)
+        for negotiation in extendedNegotiations {
+            subItems.append(negotiation.encode())
+        }
+        
         // User Identity Server Response Sub-Item (optional)
         if let serverResponse = userIdentityServerResponse {
             subItems.append(serverResponse.encode())
@@ -214,6 +273,16 @@ public struct AssociateAcceptPDU: PDU, Sendable, Hashable {
         item.append(subItems)
         
         return item
+    }
+    
+    /// The SOP Class Extended Negotiation answer for a SOP Class, if the acceptor sent one
+    public func extendedNegotiation(for sopClassUID: String) -> SOPClassExtendedNegotiation? {
+        extendedNegotiations.first { $0.sopClassUID == sopClassUID }
+    }
+
+    /// The role selection answer for a SOP Class, if the acceptor sent one
+    public func roleSelection(for sopClassUID: String) -> SCPSCURoleSelection? {
+        roleSelections.first { $0.sopClassUID == sopClassUID }
     }
     
     /// Gets the accepted transfer syntax for a given presentation context ID

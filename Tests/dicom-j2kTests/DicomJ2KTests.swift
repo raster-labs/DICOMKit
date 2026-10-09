@@ -91,7 +91,7 @@ struct TransferSyntaxLabelTests {
     @Test("JPEG 2000 Lossless label is correct")
     func testJ2KLosslessLabel() {
         let label = tsLabel("1.2.840.10008.1.2.4.90")
-        #expect(label.contains("JPEG 2000 Lossless"))
+        #expect(label.contains("JPEG 2000 Image Compression (Lossless Only)"))  // PS3.6 Table A-1 (D176)
         #expect(label.contains("1.2.840.10008.1.2.4.90"))
     }
 
@@ -106,21 +106,21 @@ struct TransferSyntaxLabelTests {
     @Test("HTJ2K Lossless Only label is correct")
     func testHTJ2KLosslessLabel() {
         let label = tsLabel("1.2.840.10008.1.2.4.201")
-        #expect(label.contains("HTJ2K Lossless Only"))
+        #expect(label.contains("High-Throughput JPEG 2000 Image Compression (Lossless Only)"))
         #expect(label.contains("1.2.840.10008.1.2.4.201"))
     }
 
     @Test("HTJ2K Lossless Only (RPCL) label is correct")
     func testHTJ2KRPCLLabel() {
         let label = tsLabel("1.2.840.10008.1.2.4.202")
-        #expect(label.contains("HTJ2K Lossless Only (RPCL)"))
+        #expect(label.contains("High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)"))
         #expect(label.contains("1.2.840.10008.1.2.4.202"))
     }
 
     @Test("HTJ2K (general) label is correct")
     func testHTJ2KLossyLabel() {
         let label = tsLabel("1.2.840.10008.1.2.4.203")
-        #expect(label.contains("HTJ2K"))
+        #expect(label.contains("High-Throughput JPEG 2000 Image Compression"))
         #expect(label.contains("1.2.840.10008.1.2.4.203"))
         #expect(!label.contains("Lossless"))
     }

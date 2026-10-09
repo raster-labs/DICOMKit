@@ -3,6 +3,8 @@
 //
 // DICOM Studio — the decoded frames behind a re-render.
 //
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (decoded-pixel cache; the Palette Color LUT it keeps per file is read by DICOMKit)
+//
 // Windowing, zooming or panning a film cell changes how a frame is *shown*, not
 // which frame it is. Without this, every mouse delta re-read the file from disk
 // and re-decoded its pixels — for a JPEG 2000 CT that is tens of milliseconds

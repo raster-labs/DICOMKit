@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (HL7 MLLP-style listener and a TCP stub on --listen-port that does not implement the PS3.8 Upper Layer, D-DICOM-GATEWAY-2); listen --forward builds no template-less data set and reports the PS3.3 2026a Table A.8-1 reason from GatewayOutputRules (D214)
 import Foundation
 import DICOMKit
 import DICOMCore
@@ -210,34 +211,13 @@ actor HL7Listener {
         }
     }
     
+    /// D214: no template-less data set is built (P-GATEWAY-SC, PS3.3 Table A.8-1) and nothing
+    /// is sent (D103); each message gets a one-line stderr note saying so. A real forward
+    /// must take a template, as hl7-to-dicom does, before it converts anything.
     private func forwardToPACS(hl7Message: HL7Message, destination: String) async throws {
-        // Convert HL7 to DICOM and forward to PACS
-        let converter = HL7ToDICOMConverter()
-        let _ = try converter.convert(hl7Message: hl7Message, templateFile: nil)
-        
-        if verbose {
-            print("  Converting HL7 to DICOM for forwarding")
-        }
-        
-        // Parse PACS destination
-        // Format: pacs://host:port or dimse://host:port
-        guard let url = URL(string: destination) else {
-            throw GatewayError.invalidInput("Invalid destination URL: \(destination)")
-        }
-        
-        guard let host = url.host, let port = url.port else {
-            throw GatewayError.invalidInput("Invalid PACS destination format")
-        }
-        
-        if verbose {
-            print("  Forwarding to PACS: \(host):\(port)")
-        }
-        
-        // Note: Actual PACS forwarding would use DICOMNetwork C-STORE
-        // For now, just log that we would forward
-        if verbose {
-            print("  ✓ Would forward to \(host):\(port) (C-STORE not implemented in listener)")
-        }
+        let note = try GatewayOutputRules.listenerForwardSkipMessage(
+            messageType: hl7Message.messageType.rawValue, destination: destination)
+        FileHandle.standardError.write(Data("  \(note)\n".utf8))
     }
 }
 

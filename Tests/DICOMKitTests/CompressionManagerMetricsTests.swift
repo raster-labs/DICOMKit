@@ -77,7 +77,7 @@ final class CompressionManagerMetricsTests: XCTestCase {
         let expectedIntermediate = try mgr.decompressData(j2k, syntax: .explicitVRLittleEndian).count
         XCTAssertEqual(m.intermediateSize, expectedIntermediate)
         XCTAssertGreaterThan(m.intermediateSize ?? 0, 0)
-        XCTAssertEqual(m.sourceTransferSyntaxName, "JPEG 2000 Lossless Only")
+        XCTAssertEqual(m.sourceTransferSyntaxName, "JPEG 2000 Image Compression (Lossless Only)")  // PS3.6 Table A-1 (D176)
 
         // Output really is JPEG-LS encapsulated.
         let f = try DICOMFile.read(from: out)

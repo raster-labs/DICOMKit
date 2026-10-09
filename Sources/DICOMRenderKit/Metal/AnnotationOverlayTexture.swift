@@ -3,6 +3,8 @@
 //
 // A reader's drawn text and arrows, rasterized to a texture the display
 // shader composites over a `DisplayFrameTexture`.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — carries no DICOM-standard data (a texture wrapper). C1 classification confirmed.
 
 import Foundation
 

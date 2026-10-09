@@ -308,7 +308,6 @@ func example5_applySpatialTransformations() throws {
     let gspsURL = URL(fileURLWithPath: "/path/to/presentation/state.dcm")
     let gspsFile = try DICOMFile.read(from: gspsURL)
     
-    // Parse Display Shutter Sequence (0018,0060)
     // Parse Rotation (0070,0042)
     let rotation = gspsFile.dataSet.uint16(for: Tag(0x0070, 0x0042)) ?? 0
     

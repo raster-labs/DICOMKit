@@ -215,3 +215,41 @@ struct CodingSchemeDesignatorSchemeExtensionTests {
         #expect(sctScheme?.name == "SNOMED Clinical Terms")
     }
 }
+
+// MARK: - PS3.16 2026a Table 8-1
+
+@Suite("CodingScheme registry vs PS3.16 2026a Table 8-1")
+struct CodingSchemeTable81Tests {
+
+    /// (constant, designator, Coding Scheme UID) as PS3.16 2026a Table 8-1 lists them.
+    private static let table81: [(CodingScheme, String, String)] = [
+        (.dicom, "DCM", "1.2.840.10008.2.16.4"),
+        (.snomedCT, "SCT", "2.16.840.1.113883.6.96"),
+        (.snomedRT, "SRT", "2.16.840.1.113883.6.96"),
+        (.loinc, "LN", "2.16.840.1.113883.6.1"),
+        (.radlex, "RADLEX", "2.16.840.1.113883.6.256"),
+        (.ucum, "UCUM", "2.16.840.1.113883.6.8"),
+        (.fma, "FMA", "2.16.840.1.113883.6.119"),
+        (.icd10, "I10", "2.16.840.1.113883.6.3"),
+        (.icd10CM, "I10C", "2.16.840.1.113883.6.90"),
+        (.icd10PCS, "I10P", "2.16.840.1.113883.6.4"),
+        (.nciThesaurus, "NCIt", "2.16.840.1.113883.3.26.1.1"),
+        (.umls, "UMLS", "2.16.840.1.113883.6.86"),
+        (.acr, "ACR", "2.16.840.1.113883.6.76"),
+    ]
+
+    @Test("Designator and UID match Table 8-1", arguments: table81)
+    func testDesignatorAndUID(entry: (CodingScheme, String, String)) {
+        let (scheme, designator, uid) = entry
+        #expect(scheme.designator == designator)
+        #expect(scheme.uid == uid)
+        #expect(CodingSchemeRegistry.shared.scheme(forDesignator: designator)?.uid == uid)
+    }
+
+    @Test("ICD-10 and ICD-10-CM are distinct schemes")
+    func testICD10Distinct() {
+        #expect(CodingScheme.icd10.designator != CodingScheme.icd10CM.designator)
+        #expect(CodingSchemeDesignator.ICD10.rawValue == "I10")
+        #expect(CodingSchemeDesignator.ICD10CM.rawValue == "I10C")
+    }
+}

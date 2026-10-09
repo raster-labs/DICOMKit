@@ -3,6 +3,7 @@
 
 import Testing
 @testable import DICOMStudio
+import DICOMCore
 import Foundation
 
 @Suite("Data Exchange Helpers Tests")
@@ -196,6 +197,25 @@ struct DataExchangeHelpersTests {
         for entry in TransferSyntaxHelpers.wellKnownSyntaxes {
             #expect(!entry.displayName.isEmpty)
         }
+    }
+
+    @Test("TransferSyntaxHelpers wellKnownSyntaxes displayName is the PS3.6 2026a Table A-1 UID Name")
+    func testTransferSyntaxHelpersWellKnownDisplayNamesAreTableA1() {
+        let a1: [String: String] = [
+            "1.2.840.10008.1.2": "Implicit VR Little Endian: Default Transfer Syntax for DICOM",
+            "1.2.840.10008.1.2.1": "Explicit VR Little Endian",
+            "1.2.840.10008.1.2.2": "Explicit VR Big Endian (Retired)",
+            "1.2.840.10008.1.2.4.50": "JPEG Baseline (Process 1): Default Transfer Syntax for Lossy JPEG 8 Bit Image Compression",
+            "1.2.840.10008.1.2.4.70": "JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1]): Default Transfer Syntax for Lossless JPEG Image Compression",
+            "1.2.840.10008.1.2.4.80": "JPEG-LS Lossless Image Compression",
+            "1.2.840.10008.1.2.4.90": "JPEG 2000 Image Compression (Lossless Only)",
+            "1.2.840.10008.1.2.5": "RLE Lossless",
+        ]
+        for entry in TransferSyntaxHelpers.wellKnownSyntaxes {
+            #expect(entry.displayName == a1[entry.uid], "\(entry.uid)")
+            #expect(entry.displayName == TransferSyntax.from(uid: entry.uid)?.displayName, "\(entry.uid)")
+        }
+        #expect(Set(a1.keys) == Set(TransferSyntaxHelpers.wellKnownSyntaxes.map(\.uid)))
     }
 
     @Test("TransferSyntaxHelpers wellKnownSyntaxes ids equal uids")

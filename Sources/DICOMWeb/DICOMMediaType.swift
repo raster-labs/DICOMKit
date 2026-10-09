@@ -3,7 +3,14 @@ import Foundation
 /// Media types used in DICOMweb communications
 ///
 /// Defines the standard media types for DICOM data exchange over HTTP.
-/// Reference: PS3.18 Section 6 - Media Types and Transfer Syntaxes
+///
+/// NEMA-verified: 2026a, checked 2026-09-28 — media type names diffed against PS3.18 2026a
+/// 8.7.3.5 (dicom-media-type grammar), Tables 8.7.3-3, 8.7.3-5 and 8.7.4-1 (19 names);
+/// `bulkDataMediaType(forTransferSyntax:)` diffed row by row against Table 8.7.3-5 and
+/// 8.7.3-4; the 13 transfer syntax UIDs registered in PS3.6 Table A-1; parameter quoting
+/// per 8.7.1 / RFC 2045.
+///
+/// Reference: PS3.18 Section 8.7.3 - DICOM Media Type Sets
 public struct DICOMMediaType: Sendable, Hashable, CustomStringConvertible {
     /// The type component (e.g., "application", "image")
     public let type: String
@@ -31,14 +38,20 @@ public struct DICOMMediaType: Sendable, Hashable, CustomStringConvertible {
     public var description: String {
         var result = "\(type)/\(subtype)"
         for (key, value) in parameters.sorted(by: { $0.key < $1.key }) {
-            if value.contains(" ") || value.contains(";") || value.contains("\"") {
-                result += "; \(key)=\"\(value)\""
+            // RFC 2045 §5.1: a value containing a tspecial or a space must be a quoted-string,
+            // so `type=application/dicom` is written `type="application/dicom"` (PS3.18 8.7.1)
+            if value.isEmpty || value.contains(where: { Self.tspecials.contains($0) || $0 == " " }) {
+                let escaped = value.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
+                result += "; \(key)=\"\(escaped)\""
             } else {
                 result += "; \(key)=\(value)"
             }
         }
         return result
     }
+    
+    /// RFC 2045 §5.1 tspecials: characters that force a parameter value to be quoted
+    private static let tspecials: Set<Character> = ["(", ")", "<", ">", "@", ",", ";", ":", "\\", "\"", "/", "[", "]", "?", "="]
     
     /// Parses a media type string
     /// - Parameter string: The media type string (e.g., "application/dicom+json; charset=utf-8")
@@ -105,21 +118,24 @@ extension DICOMMediaType {
     // MARK: - DICOM Application Types
     
     /// DICOM Part 10 file format
-    /// Reference: PS3.18 Section 6.1.1.8
+    /// Reference: PS3.18 Section 8.7.3.1 - Instance Media Types
     public static let dicom = DICOMMediaType(type: "application", subtype: "dicom")
     
     /// DICOM JSON representation
-    /// Reference: PS3.18 Section 6.1.1.1
+    /// Reference: PS3.18 Section 8.7.3.2, Table 8.7.3-3 - Metadata Media Types
     public static let dicomJSON = DICOMMediaType(type: "application", subtype: "dicom+json")
     
     /// DICOM XML representation
-    /// Reference: PS3.18 Section 6.1.1.2
+    /// Reference: PS3.18 Section 8.7.3.2, Table 8.7.3-3 - Metadata Media Types
     public static let dicomXML = DICOMMediaType(type: "application", subtype: "dicom+xml")
     
-    /// Generic binary data (bulk data)
+    /// Uncompressed bulk data (PS3.18 Table 8.7.3-4)
     public static let octetStream = DICOMMediaType(type: "application", subtype: "octet-stream")
     
-    /// JSON format
+    /// Deflated Image Frame Compression bulk data (PS3.18 Table 8.7.3-5)
+    public static let xDeflate = DICOMMediaType(type: "application", subtype: "x-deflate")
+    
+    /// Plain JSON; not a DICOM media type (used for the non-standard `/capabilities` document)
     public static let json = DICOMMediaType(type: "application", subtype: "json")
     
     // MARK: - Image Types
@@ -135,6 +151,15 @@ extension DICOMMediaType {
     
     /// JPEG 2000 image format
     public static let jp2 = DICOMMediaType(type: "image", subtype: "jp2")
+    
+    /// JPEG 2000 Part 2 multi-component bulk data (PS3.18 Table 8.7.3-5)
+    public static let jpx = DICOMMediaType(type: "image", subtype: "jpx")
+    
+    /// JPEG XL (PS3.18 Tables 8.7.3-5 and 8.7.4-1)
+    public static let jxl = DICOMMediaType(type: "image", subtype: "jxl")
+    
+    /// RLE Lossless bulk data (PS3.18 Table 8.7.3-5; the experimental image/x-dicom-rle is retired)
+    public static let dicomRLE = DICOMMediaType(type: "image", subtype: "dicom-rle")
 
     /// HTJ2K codestream media type
     public static let jph = DICOMMediaType(type: "image", subtype: "jph")
@@ -159,7 +184,7 @@ extension DICOMMediaType {
     // MARK: - Multipart Types
     
     /// Multipart related for bundling multiple parts
-    /// Reference: PS3.18 Section 8
+    /// Reference: PS3.18 Section 8.7.1 - Multipart Media Types
     public static let multipartRelated = DICOMMediaType(type: "multipart", subtype: "related")
     
     // MARK: - Factory Methods
@@ -180,6 +205,45 @@ extension DICOMMediaType {
         return multipartRelated
             .withParameter("boundary", value: boundary)
             .withParameter("type", value: type.description)
+    }
+    
+    /// The bulk data media type of a transfer syntax (PS3.18 Tables 8.7.3-4 and 8.7.3-5):
+    /// `application/octet-stream` for the uncompressed syntaxes, a compressed bulk data media
+    /// type for the encapsulated ones, nil for a transfer syntax the tables do not list.
+    ///
+    /// Frames and other pixel data resources are requested with these types
+    /// (Table 10.4.4-1), never with `application/dicom`.
+    public static func bulkDataMediaType(forTransferSyntax uid: String) -> DICOMMediaType? {
+        switch uid {
+        case "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1.98":
+            return .octetStream
+        case "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51", "1.2.840.10008.1.2.4.57":
+            return .jpeg
+        case "1.2.840.10008.1.2.8.1":
+            return .xDeflate
+        case "1.2.840.10008.1.2.5":
+            return .dicomRLE
+        case "1.2.840.10008.1.2.4.80", "1.2.840.10008.1.2.4.81":
+            return .jpegLS
+        case "1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91":
+            return .jp2
+        case "1.2.840.10008.1.2.4.92", "1.2.840.10008.1.2.4.93":
+            return .jpx
+        case "1.2.840.10008.1.2.4.201", "1.2.840.10008.1.2.4.202", "1.2.840.10008.1.2.4.203":
+            return .jphc
+        case "1.2.840.10008.1.2.4.110", "1.2.840.10008.1.2.4.111", "1.2.840.10008.1.2.4.112":
+            return .jxl
+        case "1.2.840.10008.1.2.4.100", "1.2.840.10008.1.2.4.100.1", "1.2.840.10008.1.2.4.101", "1.2.840.10008.1.2.4.101.1":
+            return .mpeg
+        case "1.2.840.10008.1.2.4.102", "1.2.840.10008.1.2.4.102.1", "1.2.840.10008.1.2.4.103", "1.2.840.10008.1.2.4.103.1",
+             "1.2.840.10008.1.2.4.104", "1.2.840.10008.1.2.4.104.1", "1.2.840.10008.1.2.4.105", "1.2.840.10008.1.2.4.105.1",
+             "1.2.840.10008.1.2.4.106", "1.2.840.10008.1.2.4.106.1":
+            return .mp4
+        case "1.2.840.10008.1.2.4.107", "1.2.840.10008.1.2.4.108":
+            return .h265
+        default:
+            return nil
+        }
     }
 }
 

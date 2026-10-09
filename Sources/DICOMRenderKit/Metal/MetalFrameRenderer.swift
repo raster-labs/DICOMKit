@@ -4,6 +4,8 @@
 // The GPU backend. Wraps the decoded frame without copying it, dispatches a
 // compute kernel over a byte table built on the CPU, and hands the shader's own
 // output memory straight to CoreGraphics — no upload, no readback.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — Pixel Cells wider than two bytes are declined (PS3.5 2026a 8.1.1; were read as their low 16 bits); tables are the CPU's own DICOMCore builders; planar offsets per C.7.6.3.1.3; YBR stays on the CPU (C.7.6.3.1.2); parameter blocks match the kernels field for field; monochrome frames index the request's grey table (the N.2 chain, P-PIPELINE) and colour output carries the ICC Profile's colour space (C.11.15.1.1, P-ICC) (Scripts/diff_renderkit.py).
 
 import Foundation
 import DICOMCore
@@ -128,6 +130,7 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
               let box = output.box else { return nil }
         return (DisplayFrameTexture(texture: texture,
                                     isGrayscale: output.isGrayscale,
+                                    colorSpace: output.isGrayscale ? nil : request.outputColorSpace,
                                     retaining: box),
                 image)
     }
@@ -135,11 +138,12 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
     private func render(_ request: FrameRenderRequest, as destination: Destination) -> RenderOutput? {
         switch request.family {
         case .monochrome:
-            // No window means "auto-window from this frame's pixel range", which
-            // requires a full scan of the pixels the CPU renderer already does.
-            // Reproducing that scan here would be a second implementation of a
-            // policy decision, so the CPU keeps it.
-            guard let window = request.window else { return nil }
+            // The table the CPU indexes too: the stored-unit window's `WindowLUT`, or
+            // the PS3.4 N.2 chain's table (P-PIPELINE). No VOI means "auto-window from
+            // this frame's pixel range", which requires a full scan of the pixels the
+            // CPU renderer already does. Reproducing that scan here would be a second
+            // implementation of a policy decision, so the CPU keeps it (`nil` here).
+            guard let lut = request.greyTable else { return nil }
             // A pseudo-colour palette recolours the windowed level, so the two
             // tables fold into one raw-sample → RGB lookup and the frame goes
             // through the palette kernel instead. Same dispatch, same tables'
@@ -147,13 +151,10 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
             // frame come off the GPU in colour without a shader that knows about
             // palettes.
             if let palette = request.effectivePseudoColorPalette {
-                let lut = PaletteDisplayLUT.make(
-                    window: WindowLUT.grayscale(
-                        descriptor: request.pixelData.descriptor, window: window),
-                    entries: palette.entries())
-                return renderPalette(request, lut: lut, destination: destination)
+                let colours = PaletteDisplayLUT.make(window: lut, entries: palette.entries())
+                return renderPalette(request, lut: colours, destination: destination)
             }
-            return renderMonochrome(request, window: window, destination: destination)
+            return renderMonochrome(request, lut: lut, destination: destination)
         case .palette:
             // A reader's ramp over a frame that already carries colours is a
             // pass over the finished frame's luminance, which no kernel here
@@ -199,7 +200,7 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
     }
 
     private func renderMonochrome(
-        _ request: FrameRenderRequest, window: WindowSettings, destination: Destination
+        _ request: FrameRenderRequest, lut: WindowLUT, destination: Destination
     ) -> RenderOutput? {
         let descriptor = request.pixelData.descriptor
         guard let geometry = FrameGeometry(
@@ -208,9 +209,8 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
         ) else { return nil }
 
         // The same table the CPU renderer uses — built by the same code, from the
-        // same WindowSettings.apply. This is what makes GPU output bit-identical
-        // rather than merely close.
-        let lut = WindowLUT.grayscale(descriptor: descriptor, window: window)
+        // same WindowSettings.apply (or the same GrayscaleDisplayPipeline). This is
+        // what makes GPU output bit-identical rather than merely close.
         let stride = rowStride(pixelWidth: geometry.width, bytesPerPixel: 1, destination: destination)
 
         var params = MonochromeParams(
@@ -393,7 +393,12 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
             let descriptor = request.pixelData.descriptor
             let width = descriptor.columns
             let height = descriptor.rows
-            guard width > 0, height > 0, descriptor.bytesPerSample >= 1 else { return nil }
+            // The kernels assemble a sample from one or two bytes, and the tables
+            // have 256 or 65,536 entries. A Pixel Cell is Bits Allocated wide
+            // (PS3.5 8.1.1), so a 32-bit cell read as its low two bytes would be a
+            // different value. Declined: such frames go to the CPU.
+            guard width > 0, height > 0,
+                  (1...2).contains(descriptor.bytesPerSample) else { return nil }
 
             let pixelCount = width * height
             let frameByteCount = descriptor.bytesPerFrame
@@ -499,7 +504,8 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
         guard let image = makeImage(
             box: box, byteCount: outputByteCount,
             width: geometry.width, height: geometry.height,
-            bytesPerRow: bytesPerRow, isGrayscale: isGrayscale
+            bytesPerRow: bytesPerRow, isGrayscale: isGrayscale,
+            colorSpace: isGrayscale ? nil : request.outputColorSpace
         ) else {
             return nil
         }
@@ -533,7 +539,8 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
     /// is released — which is the only moment it is provably safe to reuse.
     private func makeImage(
         box: OutputBufferBox, byteCount: Int,
-        width: Int, height: Int, bytesPerRow: Int, isGrayscale: Bool
+        width: Int, height: Int, bytesPerRow: Int, isGrayscale: Bool,
+        colorSpace: CGColorSpace? = nil
     ) -> CGImage? {
         let info = Unmanaged.passRetained(box).toOpaque()
 
@@ -556,7 +563,9 @@ public final class MetalFrameRenderer: FrameRenderBackend, @unchecked Sendable {
             bitsPerComponent: 8,
             bitsPerPixel: isGrayscale ? 8 : 32,
             bytesPerRow: bytesPerRow,
-            space: isGrayscale ? CGColorSpaceCreateDeviceGray() : CGColorSpaceCreateDeviceRGB(),
+            // The ICC Profile's space for colour output when the request has one
+            // (PS3.3 C.11.15.1.1, P-ICC); Device RGB / Gray otherwise.
+            space: isGrayscale ? CGColorSpaceCreateDeviceGray() : (colorSpace ?? CGColorSpaceCreateDeviceRGB()),
             bitmapInfo: CGBitmapInfo(rawValue: isGrayscale
                                      ? CGImageAlphaInfo.none.rawValue
                                      : CGImageAlphaInfo.noneSkipLast.rawValue),

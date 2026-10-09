@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — the 10 attributes written (Patient ID, Issuer of Patient ID, Patient's Name, Birth Date, Sex, Study Description, Modality, Study Date/Time, Study Instance UID, Accession Number) use the PS3.6 2026a Table 6-1 VRs; values pass through DICOMValueMapping (PN, DA, TM, M/F/O, UID, SH/LO lengths per PS3.5 Table 6.2-1 and PS3.3 Table C.7-1); generated UIDs and File Meta under DICOMKit's own root (PS3.5 9.1; the former 1.2.826.0.1.3680043.10.<n> literals were other organisations' arcs); 1 UID literal (Secondary Capture Image Storage) matches PS3.6 Table A-1. The output is not a complete SC Image IOD (D-DICOM-GATEWAY-1)
 import Foundation
 import DICOMKit
 import DICOMCore
@@ -41,26 +42,33 @@ class HL7ToDICOMConverter {
     // MARK: - Population Methods
     
     private func populatePatientInfo(dicomFile: inout DICOMFile, pid: HL7Segment) throws {
-        // Patient ID (PID-3)
-        if let patientID = pid[2] {
+        // Patient ID (PID-3, CX): the ID component goes to Patient ID (LO), the assigning
+        // authority to Issuer of Patient ID (0010,0021) — PS3.3 Table C.7-1.
+        if let cx = pid[2] {
+            let (patientID, issuer) = DICOMValueMapping.patientID(fromHL7CX: cx)
+            warnIfTooLong(patientID, max: DICOMValueMapping.longStringMaxLength, attribute: "Patient ID (0010,0020)", vr: "LO")
             try setElement(&dicomFile, tag: .patientID, value: patientID, vr: .LO)
+            if let issuer {
+                try setElement(&dicomFile, tag: .issuerOfPatientID, value: issuer, vr: .LO)
+            }
         }
         
-        // Patient Name (PID-5)
+        // Patient Name (PID-5, XPN) -> PN, PS3.5 6.2.1 component order
         if let hl7Name = pid[4] {
-            let dicomName = convertHL7NameToDICOM(hl7Name)
+            let dicomName = DICOMValueMapping.personName(fromHL7XPN: hl7Name)
             try setElement(&dicomFile, tag: .patientName, value: dicomName, vr: .PN)
         }
         
-        // Date of Birth (PID-7)
+        // Date of Birth (PID-7). DA is YYYYMMDD only; a reduced-precision HL7 date gives the
+        // empty value (Patient's Birth Date is Type 2).
         if let dob = pid[6] {
-            let dicomDate = convertHL7DateToDICOM(dob)
+            let dicomDate = DICOMValueMapping.date(fromHL7: dob) ?? ""
             try setElement(&dicomFile, tag: .patientBirthDate, value: dicomDate, vr: .DA)
         }
         
-        // Sex (PID-8)
+        // Sex (PID-8) -> M, F, O or empty (PS3.3 Table C.7-1)
         if let sex = pid[7] {
-            let dicomSex = mapHL7SexToDICOM(sex)
+            let dicomSex = DICOMValueMapping.patientSex(fromHL7: sex)
             try setElement(&dicomFile, tag: .patientSex, value: dicomSex, vr: .CS)
         }
     }
@@ -72,33 +80,41 @@ class HL7ToDICOMConverter {
             let components = serviceID.split(separator: "^")
             if components.count >= 2 {
                 try setElement(&dicomFile, tag: .studyDescription, value: String(components[1]), vr: .LO)
-                try setElement(&dicomFile, tag: .modality, value: String(components[0]), vr: .CS)
+                // Normalize the inbound code: an HL7 feed is an external system
+                // and commonly sends a spelling ("MRI", "PET") rather than the
+                // DICOM defined term. An unrecognized code is kept as sent —
+                // private codes are legal — but uppercased and trimmed to CS form.
+                let raw = String(components[0])
+                let modality = Modality.normalized(raw) ?? Modality(unchecked: raw)
+                try setElement(&dicomFile, tag: .modality, value: modality.rawValue, vr: .CS)
             }
         }
         
         // Study Date/Time (OBR-7)
         if let observationDateTime = obr[6] {
-            let (date, time) = splitHL7DateTime(observationDateTime)
-            if !date.isEmpty {
+            if let date = DICOMValueMapping.date(fromHL7: observationDateTime) {
                 try setElement(&dicomFile, tag: .studyDate, value: date, vr: .DA)
             }
-            if !time.isEmpty {
+            if let time = DICOMValueMapping.time(fromHL7: observationDateTime) {
                 try setElement(&dicomFile, tag: .studyTime, value: time, vr: .TM)
             }
         }
         
         // Filler Order Number -> Study Instance UID (OBR-3)
-        if let fillerOrderNumber = obr[2], !fillerOrderNumber.isEmpty {
-            // If it looks like a UID, use it; otherwise generate one
-            if isValidUID(fillerOrderNumber) {
+        if let filler = obr[2] {
+            // Used only when it is a UID per PS3.5 9.1; otherwise the generated one stays
+            let fillerOrderNumber = DICOMValueMapping.entityIdentifier(fromHL7EI: filler)
+            if DICOMValueMapping.isValidUID(fillerOrderNumber) {
                 try setElement(&dicomFile, tag: .studyInstanceUID, value: fillerOrderNumber, vr: .UI)
             }
         }
     }
     
     private func populateOrderInfo(dicomFile: inout DICOMFile, orc: HL7Segment) throws {
-        // Accession Number (ORC-2)
-        if let accessionNumber = orc[1] {
+        // Accession Number (ORC-2, EI): the entity identifier; SH allows 16 characters
+        if let placer = orc[1] {
+            let accessionNumber = DICOMValueMapping.entityIdentifier(fromHL7EI: placer)
+            warnIfTooLong(accessionNumber, max: DICOMValueMapping.shortStringMaxLength, attribute: "Accession Number (0008,0050)", vr: "SH")
             try setElement(&dicomFile, tag: .accessionNumber, value: accessionNumber, vr: .SH)
         }
     }
@@ -106,38 +122,21 @@ class HL7ToDICOMConverter {
     // MARK: - Helper Methods
     
     private func createBasicDICOMFile() throws -> DICOMFile {
-        // Create a minimal Secondary Capture image as template
-        var dataset = DataSet()
-        var fileMetaInformation = DataSet()
-        
-        // File Meta Information
+        // A minimal Secondary Capture Image Storage data set. UIDs come from DICOMKit's
+        // UIDGenerator and the File Meta Information from DICOMFile.create, both under the
+        // library's own root (PS3.5 9.1); the former literals sat under other
+        // organisations' arcs of 1.2.826.0.1.3680043.10.
         let sopClassUID = "1.2.840.10008.5.1.4.1.1.7" // Secondary Capture Image Storage
-        let sopInstanceUID = generateUID()
+        let sopInstanceUID = UIDGenerator.generateSOPInstanceUID().value
         
-        // SOP Class UID - Transfer Syntax UID (Explicit VR Little Endian)
-        fileMetaInformation.setString("1.2.840.10008.1.2.1", for: .transferSyntaxUID, vr: .UI)
-        fileMetaInformation.setString(sopClassUID, for: .mediaStorageSOPClassUID, vr: .UI)
-        fileMetaInformation.setString(sopInstanceUID, for: .mediaStorageSOPInstanceUID, vr: .UI)
-        fileMetaInformation.setString("1.2.826.0.1.3680043.10.1078", for: .implementationClassUID, vr: .UI)
-        fileMetaInformation.setString("DICOMKit_1.0", for: .implementationVersionName, vr: .SH)
-        
-        // Main dataset
-        // SOP Class UID
+        var dataset = DataSet()
         dataset.setString(sopClassUID, for: .sopClassUID, vr: .UI)
-        
-        // SOP Instance UID
         dataset.setString(sopInstanceUID, for: .sopInstanceUID, vr: .UI)
+        dataset.setString(UIDGenerator.generateStudyInstanceUID().value, for: .studyInstanceUID, vr: .UI)
+        dataset.setString(UIDGenerator.generateSeriesInstanceUID().value, for: .seriesInstanceUID, vr: .UI)
+        dataset.setString(Modality.ot.rawValue, for: .modality, vr: .CS)
         
-        // Study Instance UID
-        dataset.setString(generateUID(), for: .studyInstanceUID, vr: .UI)
-        
-        // Series Instance UID
-        dataset.setString(generateUID(), for: .seriesInstanceUID, vr: .UI)
-        
-        // Modality
-        dataset.setString("OT", for: .modality, vr: .CS)
-        
-        return DICOMFile(fileMetaInformation: fileMetaInformation, dataSet: dataset)
+        return DICOMFile.create(dataSet: dataset, sopClassUID: sopClassUID, sopInstanceUID: sopInstanceUID)
     }
     
     private func setElement(_ file: inout DICOMFile, tag: Tag, value: String, vr: VR) throws {
@@ -146,61 +145,8 @@ class HL7ToDICOMConverter {
         file = DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: newDataSet)
     }
     
-    private func convertHL7NameToDICOM(_ hl7Name: String) -> String {
-        // HL7 format: LastName^FirstName^MiddleName^Suffix^Prefix
-        // DICOM format: LastName^FirstName^MiddleName^Prefix^Suffix
-        let components = hl7Name.split(separator: "^", omittingEmptySubsequences: false)
-        if components.count >= 5 {
-            return "\(components[0])^\(components[1])^\(components[2])^\(components[4])^\(components[3])"
-        }
-        return hl7Name
-    }
-    
-    private func convertHL7DateToDICOM(_ hl7Date: String) -> String {
-        // HL7: YYYYMMDD or YYYYMMDDHHMMSS
-        // DICOM date: YYYYMMDD
-        if hl7Date.count >= 8 {
-            return String(hl7Date.prefix(8))
-        }
-        return hl7Date
-    }
-    
-    private func splitHL7DateTime(_ dateTime: String) -> (date: String, time: String) {
-        // HL7: YYYYMMDDHHMMSS
-        if dateTime.count >= 8 {
-            let date = String(dateTime.prefix(8))
-            if dateTime.count >= 14 {
-                let timeIndex = dateTime.index(dateTime.startIndex, offsetBy: 8)
-                let time = String(dateTime[timeIndex..<dateTime.index(timeIndex, offsetBy: 6)])
-                return (date, time)
-            }
-            return (date, "")
-        }
-        return ("", "")
-    }
-    
-    private func mapHL7SexToDICOM(_ hl7Sex: String) -> String {
-        switch hl7Sex.uppercased() {
-        case "M": return "M"
-        case "F": return "F"
-        case "O": return "O"
-        case "U", "": return ""
-        default: return "O"
-        }
-    }
-    
-    private func isValidUID(_ string: String) -> Bool {
-        // UID should contain only digits and dots, start with digit
-        guard !string.isEmpty, string.first?.isNumber == true else { return false }
-        let validCharacters = CharacterSet(charactersIn: "0123456789.")
-        return string.unicodeScalars.allSatisfy { validCharacters.contains($0) }
-    }
-    
-    private func generateUID() -> String {
-        // Generate a UID using a base prefix and timestamp
-        let prefix = "1.2.826.0.1.3680043.10"
-        let timestamp = Date().timeIntervalSince1970
-        let random = UInt32.random(in: 0...999999)
-        return "\(prefix).\(Int(timestamp)).\(random)"
+    private func warnIfTooLong(_ value: String, max: Int, attribute: String, vr: String) {
+        guard value.count > max else { return }
+        FileHandle.standardError.write(Data("warning: \(attribute) \"\(value)\" is \(value.count) characters; VR \(vr) allows \(max) (PS3.5 Table 6.2-1)\n".utf8))
     }
 }

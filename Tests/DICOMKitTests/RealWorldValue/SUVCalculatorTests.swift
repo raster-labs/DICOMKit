@@ -25,7 +25,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000, // 370 MBq = 10 mCi
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: seriesTime
+            acquisitionTime: seriesTime
         )
         
         XCTAssertEqual(calculator.patientWeight, 70.0)
@@ -46,7 +46,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: halfLife,
-            seriesTime: seriesTime
+            acquisitionTime: seriesTime
         )
         
         let decayedDose = calculator.decayCorrectedDose()
@@ -63,7 +63,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 400_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: halfLife,
-            seriesTime: seriesTime
+            acquisitionTime: seriesTime
         )
         
         let decayedDose = calculator.decayCorrectedDose()
@@ -78,7 +78,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let decayedDose = calculator.decayCorrectedDose()
@@ -96,7 +96,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000, // 370 MBq
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: seriesTime
+            acquisitionTime: seriesTime
         )
         
         let activityConcentration = 5_000.0 // 5 kBq/ml
@@ -115,7 +115,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let suvbw = calculator.suvBodyWeight(activityConcentration: 0.0)
@@ -134,7 +134,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let activityConcentration = 5_000.0
@@ -154,7 +154,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let activityConcentration = 5_000.0
@@ -173,7 +173,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let suvlbm = calculator.suvLeanBodyMass(activityConcentration: 5_000.0)
@@ -189,7 +189,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let suvlbm = calculator.suvLeanBodyMass(activityConcentration: 5_000.0)
@@ -207,7 +207,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let activityConcentration = 5_000.0
@@ -225,7 +225,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let suvbsa = calculator.suvBodySurfaceArea(activityConcentration: 5_000.0)
@@ -244,7 +244,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let activityConcentration = 5_000.0
@@ -264,7 +264,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         let activityConcentration = 5_000.0
@@ -283,7 +283,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         XCTAssertNil(calculator1.suvIdealBodyWeight(activityConcentration: 5_000.0))
         
@@ -293,7 +293,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         XCTAssertNil(calculator2.suvIdealBodyWeight(activityConcentration: 5_000.0))
     }
@@ -351,7 +351,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: seriesTime
+            acquisitionTime: seriesTime
         )
         
         let activityConcentration = 5_000.0
@@ -381,7 +381,7 @@ final class SUVCalculatorTests: XCTestCase {
             injectedDose: 370_000_000,
             injectionTime: injectionTime,
             radionuclideHalfLife: SUVCalculator.RadionuclideHalfLife.f18,
-            seriesTime: injectionTime
+            acquisitionTime: injectionTime
         )
         
         // Verify we can use in async context (tests Sendable conformance)

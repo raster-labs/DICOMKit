@@ -285,8 +285,8 @@ dicom-convert input.dcm output.dcm --compress jpeg2000 --quality 80
 ```bash
 # Usage examples
 dicom-anon input.dcm output.dcm                         # Default anonymization
-dicom-anon input.dcm output.dcm --profile minimal       # Minimal profile
-dicom-anon input.dcm output.dcm --profile research      # Research profile
+dicom-anon input.dcm output.dcm --profile ps315         # PS3.15 Basic Profile (the default; basic is an alias)
+dicom-anon input.dcm output.dcm --profile legacy-research   # deprecated fixed list, not a PS3.15 profile ("minimal" never existed)
 dicom-anon *.dcm --output-dir anon/ --retain-dates      # Keep dates
 dicom-anon input.dcm output.dcm --script custom.json    # Custom script
 dicom-anon input.dcm output.dcm --remove-private        # Strip private tags

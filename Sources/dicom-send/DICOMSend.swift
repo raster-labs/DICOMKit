@@ -2,6 +2,7 @@ import Foundation
 import ArgumentParser
 import DICOMCore
 import DICOMNetwork
+// NEMA-verified: 2026a, checked 2026-10-01 — --priority values diffed against PS3.7 2026a Table 9.3-1 (C-STORE-RQ Priority: LOW 0002H, MEDIUM 0000H, HIGH 0001H: 3 of 3 match via DIMSEPriority); --transfer-syntax accepts a PS3.6 Table A-1 UID or a DICOMCore.TransferSyntax alias; port 11112 is the registered DICOM port of PS3.8 2026a 9.1.1; AE Titles are PS3.5 Table 6.2-1 VR AE (16 bytes), checked by DICOMNetwork.AETitle
 
 @main
 struct DICOMSend: AsyncParsableCommand {
@@ -59,7 +60,7 @@ struct DICOMSend: AsyncParsableCommand {
     @Option(name: .long, help: "Connection timeout in seconds (default: 60)")
     var timeout: Int = 60
     
-    @Option(name: .long, help: "Operation priority: low, medium, high (default: medium)")
+    @Option(name: .long, help: "C-STORE Priority (0000,0700): low (0002H), medium (0000H), high (0001H) — PS3.7 Table 9.3-1 (default: medium)")
     var priority: PriorityOption = .medium
 
     @Option(name: .long, help: "Transfer syntax to negotiate for the C-STORE presentation context. dicom-send sends files as-is and never transcodes, so this must match the file's own transfer syntax (the send fails otherwise — use dicom-convert to change it). Omit to send the file unchanged.")
@@ -171,7 +172,9 @@ struct DICOMSend: AsyncParsableCommand {
     
 }
 
-enum PriorityOption: String, ExpressibleByArgument {
+/// The `--priority` values, mapped to the Priority (0000,0700) values of PS3.7
+/// Table 9.3-1: LOW = 0002H, MEDIUM = 0000H, HIGH = 0001H.
+enum PriorityOption: String, ExpressibleByArgument, CaseIterable {
     case low
     case medium
     case high

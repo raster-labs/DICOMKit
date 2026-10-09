@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (upload/download/list/delete/sync/copy of opaque file bytes; files are not parsed as DICOM); Scripts/diff_cli.py: 0 UID, tag or code literals
 import Foundation
 
 // MARK: - Cloud Uploader

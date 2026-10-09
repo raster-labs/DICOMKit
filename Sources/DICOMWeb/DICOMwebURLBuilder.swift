@@ -5,7 +5,14 @@ import Foundation
 /// Provides utilities for building standard DICOMweb endpoint URLs
 /// according to PS3.18 specification.
 ///
-/// Reference: PS3.18 Section 10 - URI Templates
+/// NEMA-verified: 2026a, checked 2026-09-28 — URI templates diffed against PS3.18 2026a
+/// Tables 10.4.1-1..4, 10.4.1.5-1, 10.5.1-1, 10.6.1-1, 11.1.1-1, 11.4.1-1, 11.10.1-1 and
+/// 11.12.1-1; query parameter names against Tables 8.3.4-1, 8.3.5-1, 8.3.5-2, 10.4.1-5,
+/// 11.7.2.1-1 and 11.10.1-2; window/viewport syntax per 8.3.5.1.3 and 8.3.5.1.4. The
+/// `/bulkdata/{attributePath}`, `/state/{requestingAE}`, `/cancelrequest/{requestingAE}`
+/// and `/ws/subscribers` paths are dcm4chee conventions, not PS3.18 templates.
+///
+/// Reference: PS3.18 Section 10.1 (Studies Service resources), 11.1 (Worklist Service resources)
 public struct DICOMwebURLBuilder: Sendable {
     /// The base URL of the DICOMweb server
     public let baseURL: URL
@@ -313,33 +320,59 @@ extension DICOMwebURLBuilder {
         /// Fuzzy matching for patient name
         public static let fuzzymatching = "fuzzymatching"
         
-        // MARK: - Rendered Image Parameters
+        /// Empty Value Matching (PS3.18 8.3.4.5)
+        public static let emptyvaluematching = "emptyvaluematching"
         
-        /// Window center for windowing
-        public static let windowCenter = "windowcenter"
+        /// Multiple Value Matching (PS3.18 8.3.4.6)
+        public static let multiplevaluematching = "multiplevaluematching"
         
-        /// Window width for windowing
-        public static let windowWidth = "windowwidth"
+        // MARK: - Rendered Image Parameters (PS3.18 Table 8.3.5-1)
         
-        /// Viewport width (columns)
-        public static let viewportWidth = "columns"
+        /// Windowing: `window=center,width,function` (PS3.18 8.3.5.1.4)
+        public static let window = "window"
         
-        /// Viewport height (rows)
-        public static let viewportHeight = "rows"
+        /// Viewport scaling: `viewport=vw,vh[,sx,sy,sw,sh]` (PS3.18 8.3.5.1.3)
+        public static let viewport = "viewport"
         
-        /// Quality (0-100) for lossy compression
+        /// Quality (1-100) for lossy compression (PS3.18 8.3.5.1.2)
         public static let quality = "quality"
         
-        /// ICC Profile for color management
+        /// ICC Profile for color management (PS3.18 8.3.5.1.5)
         public static let iccprofile = "iccprofile"
         
-        /// Annotation types
+        /// Annotation types (PS3.18 8.3.5.1.1)
         public static let annotation = "annotation"
+        
+        /// Not PS3.18 parameters: the RESTful Retrieve Rendered Transaction takes `window`
+        /// and `viewport` (8.3.5.1.3, 8.3.5.1.4); the URI Service (Chapter 9) takes
+        /// `windowCenter`, `windowWidth`, `rows` and `columns`, which `WADOURIClient` sends.
+        @available(*, deprecated, renamed: "window", message: "PS3.18 8.3.5.1.4: use window=center,width,function")
+        public static let windowCenter = "windowcenter"
+        
+        @available(*, deprecated, renamed: "window", message: "PS3.18 8.3.5.1.4: use window=center,width,function")
+        public static let windowWidth = "windowwidth"
+        
+        @available(*, deprecated, renamed: "viewport", message: "PS3.18 8.3.5.1.3: use viewport=vw,vh")
+        public static let viewportWidth = "columns"
+        
+        @available(*, deprecated, renamed: "viewport", message: "PS3.18 8.3.5.1.3: use viewport=vw,vh")
+        public static let viewportHeight = "rows"
         
         // MARK: - WADO-RS Parameters
         
-        /// Accept parameter for multipart (override header)
+        /// Accept parameter (PS3.18 8.3.3.1)
         public static let accept = "accept"
+        
+        /// Character set parameter (PS3.18 8.3.3.2)
+        public static let charset = "charset"
+        
+        // MARK: - UPS-RS Parameters
+        
+        /// Deletion Lock on Subscribe (PS3.18 11.10.1.2)
+        public static let deletionlock = "deletionlock"
+        
+        /// Requesting AE Title on Change State / Request Cancellation (PS3.18 Table 11.7.2.1-1)
+        public static let requester = "requester"
         
         // MARK: - DICOM Attribute Tags (Common)
         
@@ -369,13 +402,18 @@ extension DICOMwebURLBuilder {
     }
     
     /// Creates rendered URL with viewport and windowing parameters
+    ///
+    /// Emits `window=center,width,linear` when both window values are given (PS3.18
+    /// 8.3.5.1.4: all three shall be present), `viewport=vw,vh` when both viewport values
+    /// are given (8.3.5.1.3), and `quality` clamped to 1-100 (8.3.5.1.2).
+    ///
     /// - Parameters:
     ///   - baseRenderedURL: The base rendered URL
     ///   - windowCenter: Window center value
     ///   - windowWidth: Window width value
     ///   - viewportWidth: Viewport width in pixels
     ///   - viewportHeight: Viewport height in pixels
-    ///   - quality: Quality value (0-100) for lossy formats
+    ///   - quality: Quality value (1-100) for lossy formats
     /// - Returns: URL with query parameters
     public static func renderedURL(
         base baseRenderedURL: URL,
@@ -385,25 +423,31 @@ extension DICOMwebURLBuilder {
         viewportHeight: Int? = nil,
         quality: Int? = nil
     ) -> URL {
+        return appendQueryParameters(to: baseRenderedURL, parameters: renderedParameters(
+            windowCenter: windowCenter, windowWidth: windowWidth,
+            viewportWidth: viewportWidth, viewportHeight: viewportHeight, quality: quality))
+    }
+    
+    /// The PS3.18 Table 8.3.5-1 query parameters for a rendered resource
+    static func renderedParameters(
+        windowCenter: Double?, windowWidth: Double?, viewportWidth: Int?, viewportHeight: Int?, quality: Int?
+    ) -> [String: String] {
         var params: [String: String] = [:]
-        
-        if let wc = windowCenter {
-            params[QueryParameter.windowCenter] = String(wc)
+        if let wc = windowCenter, let ww = windowWidth {
+            params[QueryParameter.window] = "\(decimal(wc)),\(decimal(ww)),linear"
         }
-        if let ww = windowWidth {
-            params[QueryParameter.windowWidth] = String(ww)
-        }
-        if let vw = viewportWidth {
-            params[QueryParameter.viewportWidth] = String(vw)
-        }
-        if let vh = viewportHeight {
-            params[QueryParameter.viewportHeight] = String(vh)
+        if let vw = viewportWidth, let vh = viewportHeight {
+            params[QueryParameter.viewport] = "\(vw),\(vh)"
         }
         if let q = quality {
-            params[QueryParameter.quality] = String(min(100, max(0, q)))
+            params[QueryParameter.quality] = String(min(100, max(1, q)))
         }
-        
-        return appendQueryParameters(to: baseRenderedURL, parameters: params)
+        return params
+    }
+    
+    /// A decimal without a trailing ".0" (PS3.18 5.1.1 decimal)
+    private static func decimal(_ value: Double) -> String {
+        value == value.rounded() && abs(value) < 1e15 ? String(Int64(value)) : String(value)
     }
 }
 
@@ -414,7 +458,7 @@ extension DICOMwebURLBuilder {
     /// URL for the workitems endpoint
     /// - Returns: URL for `/workitems`
     ///
-    /// Reference: PS3.18 Section 11 - UPS-RS
+    /// Reference: PS3.18 Table 11.1.1-1 - Worklist Service resources
     public var workitemsURL: URL {
         return baseURL.appendingPathComponent("workitems")
     }
@@ -510,13 +554,31 @@ extension DICOMwebURLBuilder {
             .appendingPathComponent(aeTitle)
     }
     
+    /// Well-known UID of the Worklist (global) Subscription (PS3.18 Table 11.1.1-1; PS3.6 Table A-1)
+    public static let globalSubscriptionUID = "1.2.840.10008.5.1.4.34.5"
+    
+    /// Well-known UID of the Filtered Worklist Subscription (PS3.18 Table 11.1.1-1; PS3.6 Table A-1)
+    public static let filteredGlobalSubscriptionUID = "1.2.840.10008.5.1.4.34.5.1"
+    
     /// URL for global workitem subscription (subscribe to all workitems)
     /// - Parameter aeTitle: The subscribing AE Title
     /// - Returns: URL for `/workitems/1.2.840.10008.5.1.4.34.5/subscribers/{aeTitle}`
     public func globalWorkitemSubscriptionURL(aeTitle: String) -> URL {
-        // The well-known UID for global subscription
-        let globalSubscriptionUID = "1.2.840.10008.5.1.4.34.5"
-        return workitemSubscriptionURL(workitemUID: globalSubscriptionUID, aeTitle: aeTitle)
+        return workitemSubscriptionURL(workitemUID: Self.globalSubscriptionUID, aeTitle: aeTitle)
+    }
+    
+    /// URL for a filtered worklist subscription (PS3.18 Table 11.10.1-1; `filter` is added by the caller)
+    /// - Parameter aeTitle: The subscribing AE Title
+    /// - Returns: URL for `/workitems/1.2.840.10008.5.1.4.34.5.1/subscribers/{aeTitle}`
+    public func filteredGlobalWorkitemSubscriptionURL(aeTitle: String) -> URL {
+        return workitemSubscriptionURL(workitemUID: Self.filteredGlobalSubscriptionUID, aeTitle: aeTitle)
+    }
+    
+    /// URL for suspending the global subscription (PS3.18 Table 11.12.1-1)
+    /// - Parameter aeTitle: The subscribing AE Title
+    /// - Returns: URL for `/workitems/1.2.840.10008.5.1.4.34.5/subscribers/{aeTitle}/suspend`
+    public func globalWorkitemSubscriptionSuspendURL(aeTitle: String) -> URL {
+        return workitemSubscriptionSuspendURL(workitemUID: Self.globalSubscriptionUID, aeTitle: aeTitle)
     }
     
     /// URL for suspending a workitem subscription
@@ -544,7 +606,8 @@ extension DICOMwebURLBuilder {
     /// - Parameter aeTitle: The subscribing AE Title
     /// - Returns: URL for `ws[s]://<server>/ws/subscribers/{aeTitle}`
     ///
-    /// Reference: PS3.18 §11.11 - Open Event Channel Transaction
+    /// Reference: PS3.18 §8.10.4 - Open Notification Connection Transaction (the URL of
+    /// the WebSocket endpoint is left to the origin server; `/ws/subscribers` is dcm4chee's)
     public func webSocketEventChannelURL(aeTitle: String) -> URL? {
         guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: true) else {
             return nil

@@ -246,7 +246,7 @@ struct KeyObjectSelectionBuilderTests {
             .addKeyObject(sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3")
             .build()
         
-        #expect(document.documentTitle?.codeValue == "113020")
+        #expect(document.documentTitle?.codeValue == "113013")   // CID 7010
         #expect(document.documentTitle?.codeMeaning == "Best In Set")
     }
     
@@ -257,7 +257,7 @@ struct KeyObjectSelectionBuilderTests {
             .addKeyObject(sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3")
             .build()
         
-        #expect(document.documentTitle?.codeValue == "113030")
+        #expect(document.documentTitle?.codeValue == "113018")
         #expect(document.documentTitle?.codeMeaning == "For Printing")
     }
     
@@ -268,7 +268,7 @@ struct KeyObjectSelectionBuilderTests {
             .addKeyObject(sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3")
             .build()
         
-        #expect(document.documentTitle?.codeValue == "113040")
+        #expect(document.documentTitle?.codeValue == "113020")
         #expect(document.documentTitle?.codeMeaning == "For Report Attachment")
     }
     
@@ -424,7 +424,7 @@ struct KeyObjectSelectionBuilderTests {
         // Verify document properties
         #expect(document.sopClassUID == SRDocumentType.keyObjectSelectionDocument.sopClassUID)
         #expect(document.documentType == .keyObjectSelectionDocument)
-        #expect(document.modality == "SR")
+        #expect(document.modality == "KO")   // PS3.3 C.17.6.1 Key Object Document Series: Enumerated Value KO
         #expect(document.patientID == "PAT12345")
         #expect(document.documentTitle?.codeValue == "113004")
         #expect(document.completionFlag == .complete)
@@ -546,9 +546,10 @@ struct KeyObjectSelectionBuilderTests {
         #expect(DocumentTitle.forSurgery.concept.codeValue == "113003")
         #expect(DocumentTitle.forTeaching.concept.codeValue == "113004")
         #expect(DocumentTitle.qualityIssue.concept.codeValue == "113010")
-        #expect(DocumentTitle.bestInSet.concept.codeValue == "113020")
-        #expect(DocumentTitle.forPrinting.concept.codeValue == "113030")
-        #expect(DocumentTitle.forReportAttachment.concept.codeValue == "113040")
+        // PS3.16 CID 7010
+        #expect(DocumentTitle.bestInSet.concept.codeValue == "113013")
+        #expect(DocumentTitle.forPrinting.concept.codeValue == "113018")
+        #expect(DocumentTitle.forReportAttachment.concept.codeValue == "113020")
         
         // All should use DCM coding scheme
         #expect(DocumentTitle.ofInterest.concept.codingSchemeDesignator == "DCM")

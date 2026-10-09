@@ -28,9 +28,16 @@ public struct ModalityWorklistConfiguration: Sendable, Hashable {
     
     /// User identity for authentication (optional)
     public let userIdentity: UserIdentity?
+
+    /// Forces the Specific Character Set (0008,0005) of the C-FIND Identifier.
+    ///
+    /// When nil (the default) the narrowest repertoire that represents every text
+    /// key is chosen: none for pure ASCII, "ISO_IR 100" for Latin-1, "ISO_IR 192"
+    /// otherwise (PS3.5 6.1.2, PS3.4 C.2.2.2.1).
+    public let specificCharacterSet: String?
     
     /// Default Implementation Class UID for DICOMKit
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.1"
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
     
     /// Default Implementation Version Name for DICOMKit
     public static let defaultImplementationVersionName = "DICOMKIT_001"
@@ -41,10 +48,11 @@ public struct ModalityWorklistConfiguration: Sendable, Hashable {
     ///   - callingAETitle: The local AE title
     ///   - calledAETitle: The remote AE title
     ///   - timeout: Connection timeout in seconds (default: 60)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - userIdentity: User identity for authentication (optional)
+    ///   - specificCharacterSet: forced (0008,0005) for the Identifier; nil chooses automatically
     public init(
         callingAETitle: AETitle,
         calledAETitle: AETitle,
@@ -52,7 +60,8 @@ public struct ModalityWorklistConfiguration: Sendable, Hashable {
         maxPDUSize: UInt32 = defaultMaxPDUSize,
         implementationClassUID: String = defaultImplementationClassUID,
         implementationVersionName: String? = defaultImplementationVersionName,
-        userIdentity: UserIdentity? = nil
+        userIdentity: UserIdentity? = nil,
+        specificCharacterSet: String? = nil
     ) {
         self.callingAETitle = callingAETitle
         self.calledAETitle = calledAETitle
@@ -61,6 +70,7 @@ public struct ModalityWorklistConfiguration: Sendable, Hashable {
         self.implementationClassUID = implementationClassUID
         self.implementationVersionName = implementationVersionName
         self.userIdentity = userIdentity
+        self.specificCharacterSet = specificCharacterSet
     }
 }
 
@@ -74,6 +84,8 @@ public struct WorklistQueryKeys: Sendable {
     private var keys: [Tag: String] = [:]
     /// Attributes that go inside the `(0040,0100)` SPS Sequence item.
     private var spsKeys: [Tag: String] = [:]
+    /// Caller-forced Specific Character Set; nil means choose from the values.
+    private var characterSetOverride: String?
 
     public init() {}
 
@@ -123,6 +135,10 @@ public struct WorklistQueryKeys: Sendable {
     }
 
     /// Scheduled Station AE Title (AE) — encoded inside the SPS sequence.
+    ///
+    /// The value is validated when the Identifier is built (see
+    /// ``validateScheduledStationAETitle(_:)``); use ``forQuery(date:time:station:patientName:patientID:modality:spsStatus:accession:performingPhysician:)``
+    /// to have it validated up front.
     public func scheduledStationAET(_ value: String) -> WorklistQueryKeys {
         var copy = self
         // (0040,0001) Scheduled Station AE Title — inside (0040,0100) SPS Sequence
@@ -130,11 +146,52 @@ public struct WorklistQueryKeys: Sendable {
         return copy
     }
 
+    /// Validates a Scheduled Station AE Title matching key.
+    ///
+    /// AE is 16 characters maximum from the Default Character Repertoire excluding
+    /// backslash and control characters (PS3.5 Table 6.2-1). PS3.4 2026a Table K.6-1:
+    /// "Scheduled Station AE Title shall be retrieved with Single Value Matching
+    /// only", so the wildcard characters `*` and `?` (which would make it Wild Card
+    /// Matching, C.2.2.2.4) are refused (before 2026-10-01 they were accepted, D81).
+    /// An empty value is a Universal Match and is accepted.
+    ///
+    /// - Throws: ``WorklistDateFilterError/invalidStationAETitle(_:)``
+    public static func validateScheduledStationAETitle(_ value: String) throws {
+        guard !value.isEmpty else { return }
+        guard value.count <= 16 else {
+            throw WorklistDateFilterError.invalidStationAETitle(value)
+        }
+        for scalar in value.unicodeScalars {
+            let v = scalar.value
+            // ISO 646 graphic characters only: no control characters (0x00–0x1F,
+            // 0x7F), no backslash (value delimiter), nothing outside ASCII.
+            if v < 0x20 || v >= 0x7F || v == 0x5C {
+                throw WorklistDateFilterError.invalidStationAETitle(value)
+            }
+            // Single Value Matching only (PS3.4 Table K.6-1): no wild card characters.
+            if v == 0x2A || v == 0x3F {
+                throw WorklistDateFilterError.invalidStationAETitle(value)
+            }
+        }
+    }
+
     /// Modality (CS) — encoded inside the SPS sequence per PS3.4 Table K.6-1.
     public func modality(_ value: String) -> WorklistQueryKeys {
         var copy = self
         // (0008,0060) Modality — inside (0040,0100) SPS Sequence
         copy.spsKeys[Tag(group: 0x0008, element: 0x0060)] = value
+        return copy
+    }
+
+    /// Scheduled Performing Physician's Name (PN) — encoded inside the SPS sequence.
+    ///
+    /// A Required Matching Key per PS3.4 Table K.6-1, which permits Single Value
+    /// Matching or Wild Card Matching (e.g. "SMITH*"). Pass "" to request the
+    /// attribute back without filtering on it.
+    public func scheduledPerformingPhysician(_ value: String) -> WorklistQueryKeys {
+        var copy = self
+        // (0040,0006) Scheduled Performing Physician's Name — inside (0040,0100) SPS Sequence
+        copy.spsKeys[Tag(group: 0x0040, element: 0x0006)] = value
         return copy
     }
 
@@ -150,28 +207,99 @@ public struct WorklistQueryKeys: Sendable {
         return copy
     }
 
+    // MARK: - Generic keys (any PS3.4 Table K.6-1 attribute)
+
+    /// Adds or replaces a top-level (root) key. Pass "" to request the attribute
+    /// as a return key without matching on it. Use for the Optional matching keys
+    /// that have no dedicated setter (Requested Procedure ID, Study Instance UID,
+    /// Referring Physician's Name, Admission ID, …).
+    public func matching(_ tag: Tag, _ value: String) -> WorklistQueryKeys {
+        var copy = self
+        copy.keys[tag] = value
+        return copy
+    }
+
+    /// Adds or replaces a key inside the Scheduled Procedure Step Sequence item
+    /// (0040,0100). Pass "" to request it as a return key.
+    public func spsMatching(_ tag: Tag, _ value: String) -> WorklistQueryKeys {
+        var copy = self
+        copy.spsKeys[tag] = value
+        return copy
+    }
+
     /// Returns top-level query attributes.
     internal var allKeys: [Tag: String] { keys }
     /// Returns SPS-level attributes that go inside `(0040,0100)` sequence item.
     internal var allSPSKeys: [Tag: String] { spsKeys }
+    /// The caller-forced Specific Character Set, if any.
+    internal var specificCharacterSetOverride: String? { characterSetOverride }
 
-    /// Specific Character Set (CS) — declares the character set used in the query
-    /// identifier so the SCP can properly encode response strings.
-    /// Common values: "ISO_IR 100" (Latin-1), "ISO_IR 192" (UTF-8).
+    /// Specific Character Set (CS) — forces the character set used to encode the
+    /// query identifier's text keys and declared in (0008,0005).
+    /// Common values: "ISO_IR 100" (Latin-1), "ISO_IR 192" (UTF-8). Without it
+    /// the narrowest set that represents every key is chosen (PS3.5 6.1.2).
     /// Reference: PS3.3 C.12.1.1.2
     public func specificCharacterSet(_ value: String) -> WorklistQueryKeys {
         var copy = self
-        copy.keys[.specificCharacterSet] = value
+        let trimmed = value.trimmingCharacters(in: .whitespaces)
+        copy.characterSetOverride = trimmed.isEmpty ? nil : trimmed
+        copy.keys[.specificCharacterSet] = ""
         return copy
+    }
+
+    /// The Data Elements whose values are encoded with the Specific Character Set
+    /// (PS3.5 6.1.2.3): PN, LO, SH, ST, LT, UT and UC. Every other VR is ISO 646.
+    internal static let characterSetVRs: Set<VR> = [.PN, .LO, .SH, .ST, .LT, .UT, .UC]
+
+    /// The VR an Identifier key is encoded with: the data dictionary's, with the
+    /// same fallbacks the encoder uses for tags it does not know.
+    internal static func vr(for tag: Tag, inSPS: Bool) -> VR {
+        if let entry = DataElementDictionary.lookup(tag: tag) {
+            return entry.vr.first ?? .UN
+        }
+        switch (tag.group, tag.element) {
+        case (0x0010, 0x0010): return .PN
+        case (0x0010, 0x0020): return .LO
+        case (0x0020, 0x000D): return .UI
+        case (0x0008, 0x0050): return .SH
+        case (0x0008, 0x0060): return .CS
+        case (0x0040, 0x0001): return .AE
+        case (0x0040, 0x0002): return .DA
+        case (0x0040, 0x0003): return .TM
+        case (0x0040, 0x0006): return .PN
+        case (0x0040, 0x0009), (0x0040, 0x0010): return .SH
+        case (0x0040, 0x0020): return .CS
+        default: return .LO
+        }
+    }
+
+    /// Every text-VR value of the Identifier — the input to the character set choice.
+    internal var textValues: [String] {
+        var values: [String] = []
+        for (tag, value) in keys where !value.isEmpty
+            && Self.characterSetVRs.contains(Self.vr(for: tag, inSPS: false)) {
+            values.append(value)
+        }
+        for (tag, value) in spsKeys where !value.isEmpty
+            && Self.characterSetVRs.contains(Self.vr(for: tag, inSPS: true)) {
+            values.append(value)
+        }
+        return values
+    }
+
+    /// Chooses the character set for this Identifier: `override` (or the keys' own
+    /// override) when given, else the narrowest one that represents every text key.
+    internal func chooseCharacterSet(override: String? = nil) -> DIMSECharacterSet {
+        DIMSECharacterSet.choose(for: textValues, override: override ?? characterSetOverride)
     }
 
     /// Default worklist query keys requesting all common return attributes.
     public static func `default`() -> WorklistQueryKeys {
         var wlk = WorklistQueryKeys()
-        // Specific Character Set — required by many RIS/PACS servers to avoid
-        // null-tag errors.  Default to ISO_IR 100 (Latin-1) which is the most
-        // widely supported single-byte character set per PS3.3 C.12.1.1.2.
-        wlk.keys[.specificCharacterSet]                   = "ISO_IR 100"
+        // Specific Character Set — a Return Key (PS3.4 Table K.6-1). The value sent
+        // is chosen when the Identifier is built (empty for pure-ASCII keys,
+        // "ISO_IR 100" / "ISO_IR 192" when a key needs them, PS3.5 6.1.2).
+        wlk.keys[.specificCharacterSet]                   = ""
         // Top-level return attributes
         wlk.keys[.patientName]                            = ""
         wlk.keys[.patientID]                             = ""
@@ -181,7 +309,22 @@ public struct WorklistQueryKeys: Sendable {
         wlk.keys[Tag(group: 0x0010, element: 0x0040)]    = ""  // Patient's Sex
         wlk.keys[Tag(group: 0x0008, element: 0x0090)]    = ""  // Referring Physician's Name
         wlk.keys[Tag(group: 0x0040, element: 0x1001)]    = ""  // Requested Procedure ID
-        wlk.keys[.requestedProcedureDescription]          = ""  // Requested Procedure Description (0032,1060)
+        wlk.keys[.requestedProcedureDescription]         = ""  // (0032,1060) Requested Procedure Description
+        wlk.keys[Tag(group: 0x0032, element: 0x1064)]    = ""  // Requested Procedure Code Sequence (1C)
+        wlk.keys[Tag(group: 0x0008, element: 0x1110)]    = ""  // Referenced Study Sequence (2)
+        wlk.keys[Tag(group: 0x0040, element: 0x1003)]    = ""  // Requested Procedure Priority (2)
+        wlk.keys[Tag(group: 0x0040, element: 0x1004)]    = ""  // Patient Transport Arrangements (2)
+        wlk.keys[Tag(group: 0x0032, element: 0x1032)]    = ""  // Requesting Physician (2)
+        wlk.keys[Tag(group: 0x0038, element: 0x0010)]    = ""  // Admission ID (2)
+        wlk.keys[Tag(group: 0x0038, element: 0x0300)]    = ""  // Current Patient Location (2)
+        wlk.keys[Tag(group: 0x0010, element: 0x1030)]    = ""  // Patient's Weight (2)
+        wlk.keys[Tag(group: 0x0010, element: 0x1020)]    = ""  // Patient's Size (3)
+        wlk.keys[Tag(group: 0x0010, element: 0x21C0)]    = ""  // Pregnancy Status (2)
+        wlk.keys[Tag(group: 0x0010, element: 0x2000)]    = ""  // Medical Alerts (2)
+        wlk.keys[Tag(group: 0x0010, element: 0x2110)]    = ""  // Allergies (2)
+        wlk.keys[Tag(group: 0x0038, element: 0x0050)]    = ""  // Special Needs (2)
+        wlk.keys[Tag(group: 0x0038, element: 0x0500)]    = ""  // Patient State (2)
+        wlk.keys[Tag(group: 0x0040, element: 0x3001)]    = ""  // Confidentiality Constraint on Patient Data Description (2)
         // SPS return attributes (encoded inside (0040,0100) sequence)
         wlk.spsKeys[Tag(group: 0x0040, element: 0x0001)] = ""  // Scheduled Station AE Title
         wlk.spsKeys[Tag(group: 0x0040, element: 0x0002)] = ""  // Scheduled Procedure Step Start Date
@@ -192,6 +335,10 @@ public struct WorklistQueryKeys: Sendable {
         wlk.spsKeys[Tag(group: 0x0040, element: 0x0020)] = ""  // Scheduled Procedure Step Status (CS)
         wlk.spsKeys[Tag(group: 0x0040, element: 0x0006)] = ""  // Scheduled Performing Physician's Name
         wlk.spsKeys[Tag(group: 0x0040, element: 0x0010)] = ""  // Scheduled Station Name
+        wlk.spsKeys[Tag(group: 0x0040, element: 0x0008)] = ""  // Scheduled Protocol Code Sequence (1C)
+        wlk.spsKeys[Tag(group: 0x0040, element: 0x0011)] = ""  // Scheduled Procedure Step Location (2)
+        wlk.spsKeys[Tag(group: 0x0032, element: 0x1070)] = ""  // Requested Contrast Agent (2C)
+        wlk.spsKeys[Tag(group: 0x0040, element: 0x0012)] = ""  // Pre-Medication (2C)
         return wlk
     }
 }
@@ -204,9 +351,17 @@ public enum WorklistDateFilterError: Error, CustomStringConvertible, Sendable {
     /// The supplied time filter was neither a valid `HHMMSS` Single Value Match nor
     /// a valid TM Range Match per PS3.4 C.2.2.2.5.2.
     case invalidTimeFormat(String)
+    /// The Scheduled Station AE Title filter is not a valid AE value: more than 16
+    /// characters, or a backslash / control / non-ASCII character (PS3.5 Table 6.2-1).
+    case invalidStationAETitle(String)
 
     public var description: String {
         switch self {
+        case .invalidStationAETitle(let value):
+            return "Invalid Scheduled Station AE Title '\(value)': an AE title is at most 16 " +
+                "characters from the default repertoire, without backslash or control " +
+                "characters (PS3.5 Table 6.2-1), matched by Single Value Matching only — no '*' or '?' " +
+                "wildcards (PS3.4 Table K.6-1)."
         case .invalidDateFormat(let filter):
             return "Invalid date filter '\(filter)'. Use YYYYMMDD, 'today', 'tomorrow', " +
                 "or a DICOM date range (YYYYMMDD-YYYYMMDD, YYYYMMDD-, or -YYYYMMDD)."
@@ -218,6 +373,26 @@ public enum WorklistDateFilterError: Error, CustomStringConvertible, Sendable {
 }
 
 extension WorklistQueryKeys {
+
+    /// Scheduled Procedure Step Status (0040,0020) Defined Terms, PS3.3 2026a
+    /// Table C.4-10: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED. Defined Terms may be
+    /// extended, so an unlisted value is sent as given — but it is almost always a
+    /// Performed Procedure Step Status (IN PROGRESS / COMPLETED / DISCONTINUED, Table
+    /// C.4-14) typed by mistake, which matches nothing. Formerly dicom-mwl's CLI-local
+    /// copy (D264).
+    public static let scheduledProcedureStepStatusDefinedTerms: [String] =
+        ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"]
+
+    /// The stderr warning (with its trailing newline) for a `--sps-status` value
+    /// outside ``scheduledProcedureStepStatusDefinedTerms``, or nil when the value is a
+    /// Defined Term, empty or absent (D264).
+    public static func spsStatusWarning(_ value: String?) -> String? {
+        guard let value, !value.isEmpty,
+              !scheduledProcedureStepStatusDefinedTerms.contains(value) else { return nil }
+        return "warning: --sps-status '\(value)' is not a Scheduled Procedure Step Status Defined Term "
+            + "(PS3.3 Table C.4-10: \(scheduledProcedureStepStatusDefinedTerms.joined(separator: ", "))); "
+            + "it is sent as given and will match only an SCP that uses that private term\n"
+    }
 
     /// Formats today (or a day offset from today) as a DICOM `YYYYMMDD` date string,
     /// pinned to `en_US_POSIX` so the result is always a Gregorian calendar date
@@ -357,8 +532,9 @@ extension WorklistQueryKeys {
     /// independently-matched attributes — this method emits both matching keys as-is
     /// and relies on the SCP for that combined interpretation.
     ///
-    /// `patientName` is passed through verbatim — callers add `*` wildcards explicitly,
-    /// matching the `dicom-mwl --patient` semantics.
+    /// `patientName` and `performingPhysician` are passed through verbatim — callers add
+    /// `*` wildcards explicitly, matching the `dicom-mwl --patient` semantics. Both are
+    /// Required Matching Keys that permit Wild Card Matching per PS3.4 Table K.6-1.
     public static func forQuery(
         date: String = "",
         time: String = "",
@@ -367,40 +543,125 @@ extension WorklistQueryKeys {
         patientID: String = "",
         modality: String = "",
         spsStatus: String = "",
-        accession: String = ""
+        accession: String = "",
+        performingPhysician: String = ""
     ) throws -> WorklistQueryKeys {
         var keys = WorklistQueryKeys.default()
         if !date.isEmpty        { keys = keys.scheduledDate(try resolveScheduledDate(date)) }
         if !time.isEmpty        { keys = keys.scheduledTime(try resolveScheduledTime(time)) }
-        if !station.isEmpty     { keys = keys.scheduledStationAET(station) }
+        if !station.isEmpty {
+            try validateScheduledStationAETitle(station)
+            keys = keys.scheduledStationAET(station)
+        }
         if !patientName.isEmpty { keys = keys.patientName(patientName) }
         if !patientID.isEmpty   { keys = keys.patientID(patientID) }
         if !modality.isEmpty    { keys = keys.modality(modality) }
         if !spsStatus.isEmpty   { keys = keys.scheduledProcedureStepStatus(spsStatus) }
         if !accession.isEmpty   { keys = keys.accessionNumber(accession) }
+        if !performingPhysician.isEmpty {
+            keys = keys.scheduledPerformingPhysician(performingPhysician)
+        }
         return keys
     }
+}
+
+/// A Code Sequence item (PS3.3 8.8) from a worklist response.
+public struct WorklistCodedEntry: Sendable, Hashable {
+    /// Code Value (0008,0100)
+    public let codeValue: String
+    /// Coding Scheme Designator (0008,0102)
+    public let codingSchemeDesignator: String
+    /// Code Meaning (0008,0104)
+    public let codeMeaning: String
+
+    public init(codeValue: String, codingSchemeDesignator: String, codeMeaning: String) {
+        self.codeValue = codeValue
+        self.codingSchemeDesignator = codingSchemeDesignator
+        self.codeMeaning = codeMeaning
+    }
+}
+
+/// A Referenced SOP Sequence item (SOP Class / SOP Instance UID pair).
+public struct WorklistSOPReference: Sendable, Hashable {
+    /// Referenced SOP Class UID (0008,1150)
+    public let sopClassUID: String
+    /// Referenced SOP Instance UID (0008,1155)
+    public let sopInstanceUID: String
 }
 
 /// Modality Worklist item result.
 ///
 /// Attributes from the top-level dataset and from the nested SPS sequence
 /// `(0040,0100)` are stored in the same flat dictionary — their tag numbers
-/// never collide, so direct lookup works without a second container.
+/// never collide, so direct lookup works without a second container. Every
+/// other sequence (Requested Procedure Code Sequence, Scheduled Protocol Code
+/// Sequence, Referenced Study Sequence, …) keeps its items separately in
+/// `sequences`, because their nested Code Value / Referenced SOP UIDs would
+/// otherwise overwrite one another.
+///
+/// String values are decoded with the response's Specific Character Set
+/// (0008,0005). When it is absent the Default Character Repertoire (ISO-IR 6)
+/// applies (PS3.5 6.1.2); as a deliberate leniency a value that then holds a
+/// byte >= 0x80 — an SCP sending Latin-1 without declaring it — is decoded as
+/// ISO 8859-1 rather than lost.
 public struct WorklistItem: Sendable {
     public let attributes: [Tag: Data]
+    /// Items of every non-SPS sequence, keyed by the sequence tag. Each item is a
+    /// flat tag → value map; nested sequences inside an item are flattened into it.
+    public let sequences: [Tag: [[Tag: Data]]]
+    private let characterSet: CharacterSetHandler
 
     public init(attributes: [Tag: Data]) {
-        self.attributes = attributes
+        self.init(attributes: attributes, sequences: [:])
     }
 
-    // MARK: - Private helper
+    public init(attributes: [Tag: Data], sequences: [Tag: [[Tag: Data]]]) {
+        self.attributes = attributes
+        self.sequences = sequences
+        let declared = attributes[.specificCharacterSet]
+            .flatMap { String(data: $0, encoding: .ascii) }?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\0"))
+        // No (0008,0005) means the Default Character Repertoire, ISO-IR 6
+        // (PS3.5 6.1.2); `decode` adds the undeclared-Latin-1 leniency.
+        self.characterSet = CharacterSetHandler.from(
+            specificCharacterSet: (declared?.isEmpty ?? true) ? nil : declared)
+    }
+
+    // MARK: - Private helpers
+
+    /// Decodes with the declared set (or ISO-IR 6 when none was declared).
+    /// Leniency: bytes the declared/default set cannot decode — typically an
+    /// undeclared ISO 8859-1 value — fall back to Latin-1, which accepts any
+    /// byte, so the value is never lost.
+    private func decode(_ data: Data) -> String? {
+        let s = (characterSet.decode(data) ?? String(data: data, encoding: .isoLatin1))?
+            .trimmingCharacters(in: CharacterSet(charactersIn: " \0"))
+        return s.flatMap { $0.isEmpty ? nil : $0 }
+    }
 
     private func stringValue(group: UInt16, element: UInt16) -> String? {
-        let tag = Tag(group: group, element: element)
-        guard let data = attributes[tag] else { return nil }
-        let s = String(data: data, encoding: .ascii)?.trimmingCharacters(in: .whitespaces)
-        return s.flatMap { $0.isEmpty ? nil : $0 }
+        guard let data = attributes[Tag(group: group, element: element)] else { return nil }
+        return decode(data)
+    }
+
+    private func codedEntries(group: UInt16, element: UInt16) -> [WorklistCodedEntry] {
+        (sequences[Tag(group: group, element: element)] ?? []).compactMap { item in
+            guard let value = item[Tag(group: 0x0008, element: 0x0100)].flatMap(decode) else { return nil }
+            return WorklistCodedEntry(
+                codeValue: value,
+                codingSchemeDesignator: item[Tag(group: 0x0008, element: 0x0102)].flatMap(decode) ?? "",
+                codeMeaning: item[Tag(group: 0x0008, element: 0x0104)].flatMap(decode) ?? "")
+        }
+    }
+
+    private func sopReferences(group: UInt16, element: UInt16) -> [WorklistSOPReference] {
+        (sequences[Tag(group: group, element: element)] ?? []).compactMap { item in
+            guard let instance = item[Tag(group: 0x0008, element: 0x1155)].flatMap(decode) else { return nil }
+            return WorklistSOPReference(
+                sopClassUID: item[Tag(group: 0x0008, element: 0x1150)].flatMap(decode) ?? "",
+                sopInstanceUID: instance)
+        }
     }
 
     // MARK: - Patient Demographics
@@ -416,6 +677,50 @@ public struct WorklistItem: Sendable {
 
     /// Patient's Sex (0010,0040) — "M", "F", or "O".
     public var patientSex: String? { stringValue(group: 0x0010, element: 0x0040) }
+
+    /// Patient's Weight (0010,1030) in kg (DS)
+    public var patientWeight: String? { stringValue(group: 0x0010, element: 0x1030) }
+
+    /// Patient's Size (0010,1020) in m (DS)
+    public var patientSize: String? { stringValue(group: 0x0010, element: 0x1020) }
+
+    /// Pregnancy Status (0010,21C0): 1 not pregnant, 2 possibly, 3 definitely, 4 unknown.
+    public var pregnancyStatus: UInt16? {
+        guard let data = attributes[Tag(group: 0x0010, element: 0x21C0)], data.count >= 2 else { return nil }
+        return UInt16(data[data.startIndex]) | (UInt16(data[data.startIndex + 1]) << 8)
+    }
+
+    /// Medical Alerts (0010,2000)
+    public var medicalAlerts: String? { stringValue(group: 0x0010, element: 0x2000) }
+
+    /// Allergies (0010,2110)
+    public var allergies: String? { stringValue(group: 0x0010, element: 0x2110) }
+
+    /// Special Needs (0038,0050)
+    public var specialNeeds: String? { stringValue(group: 0x0038, element: 0x0050) }
+
+    /// Patient State (0038,0500)
+    public var patientState: String? { stringValue(group: 0x0038, element: 0x0500) }
+
+    /// Confidentiality Constraint on Patient Data Description (0040,3001)
+    public var confidentialityConstraint: String? { stringValue(group: 0x0040, element: 0x3001) }
+
+    // MARK: - Visit / Order
+
+    /// Admission ID (0038,0010)
+    public var admissionID: String? { stringValue(group: 0x0038, element: 0x0010) }
+
+    /// Current Patient Location (0038,0300)
+    public var currentPatientLocation: String? { stringValue(group: 0x0038, element: 0x0300) }
+
+    /// Requesting Physician (0032,1032)
+    public var requestingPhysician: String? { stringValue(group: 0x0032, element: 0x1032) }
+
+    /// Patient Transport Arrangements (0040,1004)
+    public var patientTransportArrangements: String? { stringValue(group: 0x0040, element: 0x1004) }
+
+    /// Requested Procedure Priority (0040,1003) — STAT, HIGH, ROUTINE, MEDIUM, LOW
+    public var requestedProcedurePriority: String? { stringValue(group: 0x0040, element: 0x1003) }
 
     // MARK: - Study Level
 
@@ -433,6 +738,12 @@ public struct WorklistItem: Sendable {
 
     /// Requested Procedure Description (0032,1060)
     public var requestedProcedureDescription: String? { stringValue(group: 0x0032, element: 0x1060) }
+
+    /// Requested Procedure Code Sequence (0032,1064) — first item
+    public var requestedProcedureCode: WorklistCodedEntry? { codedEntries(group: 0x0032, element: 0x1064).first }
+
+    /// Referenced Study Sequence (0008,1110) items
+    public var referencedStudies: [WorklistSOPReference] { sopReferences(group: 0x0008, element: 0x1110) }
 
     // MARK: - Scheduled Procedure Step (SPS) attributes — from (0040,0100) sequence
 
@@ -454,11 +765,23 @@ public struct WorklistItem: Sendable {
     /// Scheduled Procedure Step Description (0040,0007)
     public var scheduledProcedureStepDescription: String? { stringValue(group: 0x0040, element: 0x0007) }
 
+    /// Scheduled Protocol Code Sequence (0040,0008) items
+    public var scheduledProtocolCodes: [WorklistCodedEntry] { codedEntries(group: 0x0040, element: 0x0008) }
+
     /// Scheduled Procedure Step ID (0040,0009)
     public var scheduledProcedureStepID: String? { stringValue(group: 0x0040, element: 0x0009) }
 
     /// Scheduled Station Name (0040,0010)
     public var scheduledStationName: String? { stringValue(group: 0x0040, element: 0x0010) }
+
+    /// Scheduled Procedure Step Location (0040,0011)
+    public var scheduledProcedureStepLocation: String? { stringValue(group: 0x0040, element: 0x0011) }
+
+    /// Pre-Medication (0040,0012)
+    public var preMedication: String? { stringValue(group: 0x0040, element: 0x0012) }
+
+    /// Requested Contrast Agent (0032,1070)
+    public var requestedContrastAgent: String? { stringValue(group: 0x0032, element: 0x1070) }
 
     /// Modality (0008,0060) — e.g. "CT", "MR", "US".
     public var modality: String? { stringValue(group: 0x0008, element: 0x0060) }
@@ -466,6 +789,7 @@ public struct WorklistItem: Sendable {
 
 #if canImport(Network)
 import Network
+// NEMA-verified: 2026a, checked 2026-10-06 — Scheduled Procedure Step Status (0040,0020) Defined Terms re-read from PS3.3 2026a Table C.4-10 (5: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED) for WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms / spsStatusWarning (D264); MWL FIND UID per PS3.4 2026a Table K.6.1.4-1; identifier keys and (0008,0005) rule per Tables K.6-1/K.6-1a, K.4.1.1.3.1 and C.2.2.2; response decoding per PS3.5 §6.1.2; Scheduled Station AE Title (0040,0001) Single Value Matching only per Table K.6-1 (wild cards refused, D81, 2026-10-01)
 
 // MARK: - DICOM Modality Worklist Service
 
@@ -501,15 +825,19 @@ public enum DICOMModalityWorklistService {
     ///   - calledAE: The remote AE title
     ///   - matching: Query keys specifying match criteria (optional)
     ///   - timeout: Connection timeout in seconds (default: 60)
+    ///   - specificCharacterSet: forces (0008,0005) of the Identifier; nil (default)
+    ///     chooses the narrowest set that represents every text key
     /// - Returns: Array of worklist items
-    /// - Throws: `DICOMNetworkError` for connection or protocol errors
+    /// - Throws: `DICOMNetworkError` for connection or protocol errors,
+    ///   ``WorklistDateFilterError/invalidStationAETitle(_:)`` for a bad station filter
     public static func find(
         host: String,
         port: UInt16 = dicomDefaultPort,
         callingAE: String,
         calledAE: String,
         matching: WorklistQueryKeys? = nil,
-        timeout: TimeInterval = 60
+        timeout: TimeInterval = 60,
+        specificCharacterSet: String? = nil
     ) async throws -> [WorklistItem] {
         let callingAETitle = try AETitle(callingAE)
         let calledAETitle = try AETitle(calledAE)
@@ -517,7 +845,8 @@ public enum DICOMModalityWorklistService {
         let config = ModalityWorklistConfiguration(
             callingAETitle: callingAETitle,
             calledAETitle: calledAETitle,
-            timeout: timeout
+            timeout: timeout,
+            specificCharacterSet: specificCharacterSet
         )
         
         let queryKeys = matching ?? WorklistQueryKeys.default()
@@ -539,7 +868,11 @@ public enum DICOMModalityWorklistService {
         configuration: ModalityWorklistConfiguration,
         queryKeys: WorklistQueryKeys
     ) async throws -> [WorklistItem] {
-        
+        // Reject a malformed Scheduled Station AE Title before opening a connection.
+        if let station = queryKeys.allSPSKeys[Tag(group: 0x0040, element: 0x0001)] {
+            try WorklistQueryKeys.validateScheduledStationAETitle(station)
+        }
+
         // Create association configuration
         let associationConfig = AssociationConfiguration(
             callingAETitle: configuration.callingAETitle,
@@ -586,7 +919,8 @@ public enum DICOMModalityWorklistService {
                 presentationContextID: 1,
                 maxPDUSize: negotiated.maxPDUSize,
                 queryKeys: queryKeys,
-                transferSyntax: acceptedTransferSyntax
+                transferSyntax: acceptedTransferSyntax,
+                specificCharacterSet: configuration.specificCharacterSet
             )
             
             // Release association gracefully
@@ -607,10 +941,12 @@ public enum DICOMModalityWorklistService {
         presentationContextID: UInt8,
         maxPDUSize: UInt32,
         queryKeys: WorklistQueryKeys,
-        transferSyntax: String
+        transferSyntax: String,
+        specificCharacterSet: String? = nil
     ) async throws -> [WorklistItem] {
         // Build the query identifier data set
-        let identifierData = buildQueryIdentifier(queryKeys: queryKeys, transferSyntax: transferSyntax)
+        let identifierData = buildQueryIdentifier(
+            queryKeys: queryKeys, transferSyntax: transferSyntax, specificCharacterSet: specificCharacterSet)
         
         // Create C-FIND request
         let request = CFindRequest(
@@ -655,8 +991,8 @@ public enum DICOMModalityWorklistService {
                 if status.isPending {
                     // Pending - parse the data set and add to results
                     if let dataSetData = message.dataSet {
-                        let attributes = parseQueryResponse(data: dataSetData, transferSyntax: transferSyntax)
-                        results.append(WorklistItem(attributes: attributes))
+                        let parsed = parseQueryResponse(data: dataSetData, transferSyntax: transferSyntax)
+                        results.append(WorklistItem(attributes: parsed.attributes, sequences: parsed.sequences))
                     }
                 } else if status.isSuccess {
                     // Success - query complete
@@ -677,37 +1013,58 @@ public enum DICOMModalityWorklistService {
         return results
     }
     
-    /// Builds the query identifier data set
-    private static func buildQueryIdentifier(
+    /// Builds the query identifier data set.
+    ///
+    /// The Specific Character Set (0008,0005) is chosen with
+    /// `DIMSECharacterSet.choose(for:override:)` over every text-VR key
+    /// (`specificCharacterSet` wins when given, then the keys' own override).
+    /// It is emitted only when an expanded or replacement repertoire is used
+    /// (PS3.4 K.4.1.1.3.1: "It shall not be included otherwise"; C.2.2.2:
+    /// "Specific Character Set (0008,0005) shall not have a zero length
+    /// value"), so with ISO 646 keys no (0008,0005) is written even if the key
+    /// set carries it as an empty return key. Every PN / LO / SH / ST / LT /
+    /// UT / UC value is encoded in the chosen set (PS3.5 6.1.2,
+    /// PS3.4 C.2.2.2.1, K.6.1.2.2). Other VRs stay ISO 646.
+    internal static func buildQueryIdentifier(
         queryKeys: WorklistQueryKeys,
-        transferSyntax: String
+        transferSyntax: String,
+        specificCharacterSet: String? = nil
     ) -> Data {
         var data = Data()
         let isExplicitVR = transferSyntax == explicitVRLittleEndianTransferSyntaxUID
+        let charset = queryKeys.chooseCharacterSet(override: specificCharacterSet)
 
         // Determine which tags go at the top level and which go in the SPS sequence.
         // The SPS sequence tag (0040,0100) must appear in tag-number order relative to
         // the surrounding top-level attributes.
-        let topSorted   = queryKeys.allKeys.sorted   { $0.key < $1.key }
+        var topKeys = queryKeys.allKeys
+        if let chosen = charset.specificCharacterSet {
+            topKeys[.specificCharacterSet] = chosen
+        } else {
+            // Default repertoire: (0008,0005) shall not be included, and never
+            // with a zero-length value (PS3.4 C.2.2.2, K.4.1.1.3.1).
+            topKeys.removeValue(forKey: .specificCharacterSet)
+        }
+        let topSorted   = topKeys.sorted { $0.key < $1.key }
         let spsSorted   = queryKeys.allSPSKeys.sorted { $0.key < $1.key }
         let spsSeqTag   = Tag(group: 0x0040, element: 0x0100)
 
         // Merge: emit top-level tags before (0040,0100), then the SPS sequence, then the rest.
         for (tag, value) in topSorted where tag < spsSeqTag {
             data.append(encodeElement(tag: tag, vr: determineVR(for: tag),
-                                      value: value, explicit: isExplicitVR))
+                                      value: value, explicit: isExplicitVR, charset: charset))
         }
 
         // Encode the SPS Sequence (0040,0100) with one item containing all SPS attributes.
         // Each PACS (including dcm4chee2) expects the SPS attributes nested here per PS3.4 Annex K.
         if !spsSorted.isEmpty {
-            data.append(encodeSPSSequence(spsKeys: spsSorted, explicit: isExplicitVR))
+            data.append(encodeSPSSequence(spsKeys: spsSorted, explicit: isExplicitVR, charset: charset))
         }
 
         // Remaining top-level tags after (0040,0100)
         for (tag, value) in topSorted where tag > spsSeqTag {
             data.append(encodeElement(tag: tag, vr: determineVR(for: tag),
-                                      value: value, explicit: isExplicitVR))
+                                      value: value, explicit: isExplicitVR, charset: charset))
         }
 
         return data
@@ -719,7 +1076,8 @@ public enum DICOMModalityWorklistService {
     /// by explicit delimiter tags per PS3.5 §7.5.  This is the most widely supported
     /// format across PACS vendors including dcm4chee2.
     private static func encodeSPSSequence(spsKeys: [(key: Tag, value: String)],
-                                           explicit: Bool) -> Data {
+                                           explicit: Bool,
+                                           charset: DIMSECharacterSet) -> Data {
         // Build the item's attribute bytes first
         var itemData = Data()
         for (tag, value) in spsKeys {
@@ -727,7 +1085,8 @@ public enum DICOMModalityWorklistService {
                 tag: tag,
                 vr: determineSPSVR(for: tag),
                 value: value,
-                explicit: explicit
+                explicit: explicit,
+                charset: charset
             ))
         }
 
@@ -800,8 +1159,14 @@ public enum DICOMModalityWorklistService {
         }
     }
     
-    /// Encodes a single data element for the query identifier
-    private static func encodeElement(tag: Tag, vr: VR, value: String, explicit: Bool) -> Data {
+    /// Encodes a single data element for the query identifier.
+    ///
+    /// Text VRs (PN, LO, SH, ST, LT, UT, UC) are encoded with `charset`; every
+    /// other VR is ISO 646. A value is never silently reduced to zero length: a
+    /// non-ASCII character in a non-text VR falls back to UTF-8 bytes rather than
+    /// turning the key into a Universal Match.
+    private static func encodeElement(tag: Tag, vr: VR, value: String, explicit: Bool,
+                                      charset: DIMSECharacterSet = DIMSECharacterSet(specificCharacterSet: nil)) -> Data {
         var data = Data()
         
         // Tag (4 bytes, little endian)
@@ -811,7 +1176,12 @@ public enum DICOMModalityWorklistService {
         data.append(Data(bytes: &element, count: 2))
         
         // Prepare value data with padding
-        var valueData = value.data(using: .ascii) ?? Data()
+        var valueData: Data
+        if WorklistQueryKeys.characterSetVRs.contains(vr) {
+            valueData = charset.encode(value)
+        } else {
+            valueData = value.data(using: .ascii) ?? Data(value.utf8)
+        }
         
         // Pad to even length per DICOM rules (PS3.5 Section 6.2)
         // DICOM requires all Value Fields to have even length
@@ -832,7 +1202,7 @@ public enum DICOMModalityWorklistService {
             }
             
             // Check if VR uses 4-byte length
-            if vr.uses4ByteLength {
+            if vr.uses32BitLength {
                 // Reserved (2 bytes)
                 data.append(Data([0x00, 0x00]))
                 // Value Length (4 bytes)
@@ -856,27 +1226,50 @@ public enum DICOMModalityWorklistService {
         return data
     }
     
-    /// Parses the query response dataset — including nested SPS sequence items — into a flat
-    /// attribute map.  SPS-level attributes (from the `(0040,0100)` sequence) are merged directly
-    /// into the result because their tag numbers do not collide with top-level MWL attributes.
-    private static func parseQueryResponse(data: Data, transferSyntax: String) -> [Tag: Data] {
+    /// A parsed C-FIND response: root + SPS attributes flattened into `attributes`,
+    /// every other sequence's items kept apart in `sequences`.
+    internal struct MWLParsedDataSet {
         var attributes: [Tag: Data] = [:]
+        var sequences: [Tag: [[Tag: Data]]] = [:]
+    }
+
+    /// The SPS sequence, whose single item is flattened into the root map.
+    private static let spsSequenceTag = Tag(group: 0x0040, element: 0x0100)
+
+    /// Parses the query response dataset. SPS-level attributes (from the `(0040,0100)`
+    /// sequence) are merged into `attributes` because their tag numbers do not collide
+    /// with top-level MWL attributes; any other sequence's items go to `sequences`.
+    private static func parseQueryResponse(data: Data, transferSyntax: String) -> MWLParsedDataSet {
+        var parsed = MWLParsedDataSet()
         var offset = 0
         let isExplicitVR = transferSyntax == explicitVRLittleEndianTransferSyntaxUID
         parseMWLDataSet(data: data, offset: &offset, end: data.count,
-                        isExplicitVR: isExplicitVR, into: &attributes)
-        return attributes
+                        isExplicitVR: isExplicitVR, into: &parsed)
+        return parsed
     }
 
-    /// Recursively parses DICOM tags from `data[offset..<end]`, merging every encountered
-    /// attribute (including items within SPS sequences) into `out`.
-    /// Returns early when a delimiter tag `(FFFE,E00D)` or `(FFFE,E0DD)` is encountered.
+    /// Flat-map variant kept for callers (and tests) that only need root + SPS attributes.
     internal static func parseMWLDataSet(
         data rawData: Data,
         offset: inout Int,
         end: Int,
         isExplicitVR: Bool,
         into out: inout [Tag: Data]
+    ) {
+        var parsed = MWLParsedDataSet(attributes: out)
+        parseMWLDataSet(data: rawData, offset: &offset, end: end, isExplicitVR: isExplicitVR, into: &parsed)
+        out = parsed.attributes
+    }
+
+    /// Recursively parses DICOM tags from `data[offset..<end]`, merging every root and
+    /// SPS attribute into `out.attributes` and collecting other sequences' items into
+    /// `out.sequences`. Returns early on `(FFFE,E00D)` / `(FFFE,E0DD)`.
+    internal static func parseMWLDataSet(
+        data rawData: Data,
+        offset: inout Int,
+        end: Int,
+        isExplicitVR: Bool,
+        into out: inout MWLParsedDataSet
     ) {
         // Indexing below is zero-based, which a Data slice (startIndex != 0) would
         // trap on, so rebase before parsing.
@@ -903,7 +1296,7 @@ public enum DICOMModalityWorklistService {
                                              encoding: .ascii) ?? "UN") ?? .UN
                 isSequence = (vr == .SQ)
                 offset += 2
-                if vr.uses4ByteLength {
+                if vr.uses32BitLength {
                     guard offset + 6 <= data.count else { return }
                     offset += 2  // skip reserved 2 bytes
                     valueLength = UInt32(data[offset])     | (UInt32(data[offset + 1]) << 8)
@@ -919,29 +1312,35 @@ public enum DICOMModalityWorklistService {
                 valueLength = UInt32(data[offset])     | (UInt32(data[offset + 1]) << 8)
                             | (UInt32(data[offset + 2]) << 16) | (UInt32(data[offset + 3]) << 24)
                 offset += 4
-                // In implicit VR, (0040,0100) is the MWL Scheduled Procedure Step Sequence
-                isSequence = (group == 0x0040 && element == 0x0100)
+                // Implicit VR: the SPS sequence is always SQ; anything else the
+                // dictionary says is SQ (code sequences, Referenced Study Sequence).
+                isSequence = tag == spsSequenceTag
+                    || (DataElementDictionary.lookup(tag: tag)?.vr.contains(.SQ) ?? false)
+            }
+
+            if isSequence {
+                // The SPS item flattens into the root map; other sequences keep their
+                // items apart so nested Code Values cannot overwrite each other.
+                if tag == spsSequenceTag {
+                    parseMWLSequenceItems(data: data, offset: &offset, isExplicitVR: isExplicitVR,
+                                          into: &out, boundedEnd: valueLength == 0xFFFFFFFF ? nil
+                                              : min(offset + Int(valueLength), data.count))
+                } else {
+                    var items: [[Tag: Data]] = []
+                    parseMWLSequenceItemsSeparately(data: data, offset: &offset, isExplicitVR: isExplicitVR,
+                                                    into: &items, boundedEnd: valueLength == 0xFFFFFFFF ? nil
+                                                        : min(offset + Int(valueLength), data.count))
+                    if !items.isEmpty { out.sequences[tag, default: []].append(contentsOf: items) }
+                }
+                continue
             }
 
             if valueLength == 0xFFFFFFFF {
-                if isSequence {
-                    // Undefined-length SQ: parse items until (FFFE,E0DD) sequence delimiter
-                    parseMWLSequenceItems(data: data, offset: &offset,
-                                         isExplicitVR: isExplicitVR, into: &out)
-                } else {
-                    // Non-sequence undefined-length item: scan forward to next delimiter pair
-                    skipMWLUndefinedItem(data: data, offset: &offset)
-                }
-            } else if isSequence {
-                // Defined-length SQ: items are bounded by valueLength bytes
-                let seqEnd = min(offset + Int(valueLength), data.count)
-                parseMWLSequenceItems(data: data, offset: &offset,
-                                      isExplicitVR: isExplicitVR, into: &out,
-                                      boundedEnd: seqEnd)
-                offset = seqEnd
+                // Non-sequence undefined-length item: scan forward to next delimiter pair
+                skipMWLUndefinedItem(data: data, offset: &offset)
             } else {
                 guard offset + Int(valueLength) <= data.count else { return }
-                out[tag] = data.subdata(in: offset ..< (offset + Int(valueLength)))
+                out.attributes[tag] = data.subdata(in: offset ..< (offset + Int(valueLength)))
                 offset += Int(valueLength)
             }
         }
@@ -953,7 +1352,7 @@ public enum DICOMModalityWorklistService {
         data: Data,
         offset: inout Int,
         isExplicitVR: Bool,
-        into out: inout [Tag: Data],
+        into out: inout MWLParsedDataSet,
         boundedEnd: Int? = nil
     ) {
         let limit = boundedEnd ?? data.count
@@ -978,6 +1377,46 @@ public enum DICOMModalityWorklistService {
                 offset = itemEnd
             }
         }
+        if let boundedEnd { offset = max(offset, boundedEnd) }
+    }
+
+    /// Like `parseMWLSequenceItems`, but each item becomes its own flat map (with
+    /// its nested sequences flattened into it) instead of merging into the root.
+    private static func parseMWLSequenceItemsSeparately(
+        data: Data,
+        offset: inout Int,
+        isExplicitVR: Bool,
+        into items: inout [[Tag: Data]],
+        boundedEnd: Int? = nil
+    ) {
+        let limit = boundedEnd ?? data.count
+        while offset + 8 <= limit {
+            let group      = UInt16(data[offset])     | (UInt16(data[offset + 1]) << 8)
+            let element    = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
+            let itemLength = UInt32(data[offset + 4]) | (UInt32(data[offset + 5]) << 8)
+                           | (UInt32(data[offset + 6]) << 16) | (UInt32(data[offset + 7]) << 24)
+            offset += 8
+
+            guard group == 0xFFFE else { continue }
+            if element == 0xE0DD { return }
+            guard element == 0xE000 else { continue }
+            var item = MWLParsedDataSet()
+            if itemLength == 0xFFFFFFFF {
+                parseMWLDataSet(data: data, offset: &offset, end: data.count,
+                                isExplicitVR: isExplicitVR, into: &item)
+            } else {
+                let itemEnd = min(offset + Int(itemLength), data.count)
+                parseMWLDataSet(data: data, offset: &offset, end: itemEnd,
+                                isExplicitVR: isExplicitVR, into: &item)
+                offset = itemEnd
+            }
+            // Flatten the item's own nested sequences (e.g. a code's Context Group
+            // Sequence) into the item map so nothing is lost.
+            var flat = item.attributes
+            for (_, nested) in item.sequences { for n in nested { flat.merge(n) { cur, _ in cur } } }
+            items.append(flat)
+        }
+        if let boundedEnd { offset = max(offset, boundedEnd) }
     }
 
     /// Scans forward over an undefined-length non-sequence item to safely skip it.
@@ -1175,7 +1614,7 @@ public enum DICOMModalityWorklistService {
     }
 
     /// Builds a DICOM JSON dictionary (PS3.18 Annex F) for MWL item creation.
-    private static func buildMWLCreateJSON(
+    internal static func buildMWLCreateJSON(
         studyInstanceUID: String,
         patientName: String,
         patientID: String,

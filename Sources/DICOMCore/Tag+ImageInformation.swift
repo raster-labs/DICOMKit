@@ -2,6 +2,7 @@
 ///
 /// Tags from Groups 0008, 0018, 0020, 0028 (Image and related modules)
 /// Reference: DICOM PS3.3 - Information Object Definitions
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - Instance Identification
     
@@ -225,9 +226,13 @@ extension Tag {
     /// VR: AT, VM: 1-n
     public static let frameIncrementPointer = Tag(group: 0x0028, element: 0x0009)
     
-    /// Frame Dimension Pointer (0028,0014)
+    /// Frame Dimension Pointer (0028,000A)
     /// VR: AT, VM: 1-n
-    public static let frameDimensionPointer = Tag(group: 0x0028, element: 0x0014)
+    public static let frameDimensionPointer = Tag(group: 0x0028, element: 0x000A)
+    
+    /// Ultrasound Color Data Present (0028,0014)
+    /// VR: US, VM: 1
+    public static let ultrasoundColorDataPresent = Tag(group: 0x0028, element: 0x0014)
     
     /// Frame Time (0018,1063)
     /// VR: DS, VM: 1

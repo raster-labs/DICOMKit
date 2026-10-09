@@ -1,11 +1,12 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — media types and the 11 transfer syntaxes checked against PS3.18 2026a Table 8.7.3-2 and PS3.6 Table A-1 (all registered; A-1 names in the comments). This JSON document is DICOMKit's own: PS3.18 8.9 defines OPTIONS / returning a WADL Capabilities Description (Annex H), which is not implemented
 /// DICOMweb server capabilities
 ///
 /// Describes the capabilities and supported features of a DICOMweb server.
 /// This information is typically retrieved from the `/capabilities` or root endpoint.
 ///
-/// Reference: PS3.18 Section 10.8 - Capabilities
+/// Not the PS3.18 Section 8.9 Retrieve Capabilities Transaction (WADL, Annex H); a DICOMKit JSON document
 public struct DICOMwebCapabilities: Sendable, Codable, Equatable {
     /// The DICOMweb API version
     public let apiVersion: String?
@@ -286,12 +287,12 @@ extension DICOMwebCapabilities {
             "1.2.840.10008.1.2",       // Implicit VR Little Endian
             "1.2.840.10008.1.2.2",     // Explicit VR Big Endian
             "1.2.840.10008.1.2.4.50",  // JPEG Baseline
-            "1.2.840.10008.1.2.4.70",  // JPEG Lossless SV1
+            "1.2.840.10008.1.2.4.70",  // JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])
             "1.2.840.10008.1.2.4.90",  // JPEG 2000 Lossless
             "1.2.840.10008.1.2.4.91",  // JPEG 2000
-            "1.2.840.10008.1.2.4.201", // HTJ2K Lossless
-            "1.2.840.10008.1.2.4.202", // HTJ2K RPCL Lossless
-            "1.2.840.10008.1.2.4.203", // HTJ2K Lossy
+            "1.2.840.10008.1.2.4.201", // High-Throughput JPEG 2000 Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.202", // High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)
+            "1.2.840.10008.1.2.4.203", // High-Throughput JPEG 2000 Image Compression
             "1.2.840.10008.1.2.5"      // RLE Lossless
         ],
         queryCapabilities: QueryCapabilities(

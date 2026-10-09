@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — the 5 Result/Reason values text-diffed against PS3.8 2026a Table 9-18 (Scripts/diff_network.py): 5 of 5 match; ID rule (odd, 1-255) per §9.3.2.2 / Table 9-13
 
 /// Presentation Context for DICOM association negotiation
 ///

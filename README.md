@@ -4390,13 +4390,15 @@ cp .build/release/dicom-* /usr/local/bin/
 
 | Tool | Description | Example |
 |------|-------------|---------|
-| `dicom-anon` | DICOM anonymization with HIPAA-compliant profiles | `dicom-anon study/ --profile clinical-trial --shift-dates 100` |
+| `dicom-anon` | De-identification per the PS3.15 Basic Application Level Confidentiality Profile and its Options | `dicom-anon study/ --profile ps315 --retain-modified-dates --shift-dates 100 --recursive` |
 
 **Anonymization Profiles:**
-- `basic` - Remove direct identifiers
-- `clinical-trial` - HIPAA Safe Harbor method
-- `research` - IRB-compliant anonymization
-- `custom` - User-defined rules
+- `ps315` (default) - PS3.15 Basic Application Level Confidentiality Profile (every row of Table E.1-1), with the
+  E.3 Options chosen by the `--retain-*` / `--clean-*` flags
+- `basic` - alias of `ps315` (before 2026-10-01 it selected the list now called `legacy-basic`)
+- `legacy-basic`, `legacy-clinical-trial`, `legacy-research` - deprecated fixed attribute lists, not PS3.15
+  profiles; `clinical-trial` and `research` still select the last two with a deprecation note
+- Custom rules: `--remove` / `--replace`
 
 </details>
 
@@ -4555,14 +4557,14 @@ dicom-convert scan.dcm --output compressed.dcm --transfer-syntax jpeg2000-lossle
 #### Anonymization
 
 ```bash
-# Anonymize a single file
-dicom-anon patient.dcm --output anon.dcm --profile clinical-trial
+# Anonymize a single file (PS3.15 Basic Profile; --profile ps315 is the default)
+dicom-anon patient.dcm --output anon.dcm --profile ps315
 
-# Anonymize a study with date shifting
-dicom-anon ./study/ --output ./anon_study/ --shift-dates 100 --recursive
+# Anonymize a study with date shifting (Retain Longitudinal Temporal Information With Modified Dates Option)
+dicom-anon ./study/ --output ./anon_study/ --retain-modified-dates --shift-dates 100 --recursive
 
-# Check for PHI leaks
-dicom-anon scan.dcm --check-only
+# Preview the changes without writing
+dicom-anon scan.dcm --dry-run
 ```
 
 #### PACS Communication

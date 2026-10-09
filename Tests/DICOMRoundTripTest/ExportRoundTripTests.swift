@@ -207,13 +207,55 @@ final class ExportRoundTripTests: XCTestCase {
         XCTAssertEqual(range.min, 0)
         XCTAssertEqual(range.max, 15)
 
-        // No stored window in makeGrayscale8, no explicit -> center = (min+max)/2, width = max-min.
+        // No stored window in makeGrayscale8, no explicit -> the full input range x1…x2 of
+        // PS3.3 C.11.2.1.2.1: center = (x1+x2+1)/2, width = x2-x1+1 (D66).
         XCTAssertNil(file.windowSettings())
         let ws = DICOMImageExporter.determineWindowSettings(
             from: file, pixelData: pd, frameIndex: 0, windowCenter: nil, windowWidth: nil)
-        XCTAssertEqual(ws.center, Double(range.min + range.max) / 2.0, accuracy: 1e-9)
-        XCTAssertEqual(ws.width, Double(range.max - range.min), accuracy: 1e-9)
+        XCTAssertEqual(ws.center, Double(range.min + range.max + 1) / 2.0, accuracy: 1e-9)
+        XCTAssertEqual(ws.width, Double(range.max - range.min + 1), accuracy: 1e-9)
     }
+
+    #if canImport(CoreGraphics)
+    /// D66: the auto window selects exactly x1…x2 — x1 black, x2 white and every value
+    /// between on the ramp, here x · 255 / 15 = 17x (no value below x2 saturates).
+    func testAutoWindowSpansTheFullInputRange() throws {
+        let file = makeGrayscale8(rows: 4, cols: 4, fillPattern: { UInt8($0) }) // values 0..15
+        let pd = try XCTUnwrap(file.pixelData())
+        let image = try XCTUnwrap(PixelDataRenderer(pixelData: pd).renderFrame(0))
+        let bytes = [UInt8](try XCTUnwrap(image.dataProvider?.data as Data?))
+        XCTAssertEqual(bytes, (0..<16).map { UInt8($0 * 17) })
+    }
+
+    /// D65: export applies the file's window after its rescale (PS3.3 C.11.2.1.2.1),
+    /// whatever the slope — including a negative one, which the stored-unit conversion
+    /// rendered inverted.
+    func testExportAppliesTheWindowAfterTheRescale() throws {
+        func linearByte(_ x: Double, _ c: Double, _ w: Double) -> UInt8 {
+            if x <= c - 0.5 - (w - 1) / 2 { return 0 }
+            if x > c - 0.5 + (w - 1) / 2 { return 255 }
+            return UInt8(((x - (c - 0.5)) / (w - 1) + 0.5) * 255 + 1e-9)
+        }
+        let stored: [Int16] = [-100, -26, -25, -24, 0, 24, 25, 26, 100]
+        for (slope, intercept, center) in [(2.0, 0.0, 0.0), (-1.0, 100.0, 100.0)] {
+            let base = makeGrayscale16(rows: 1, cols: UInt16(stored.count),
+                                       fillPattern: { UInt16(bitPattern: stored[$0]) }, signed: true)
+            var ds = base.dataSet
+            ds.setString(String(slope), for: .rescaleSlope, vr: .DS)
+            ds.setString(String(intercept), for: .rescaleIntercept, vr: .DS)
+            ds.setString(String(center), for: .windowCenter, vr: .DS)
+            ds.setString("100", for: .windowWidth, vr: .DS)
+            let file = DICOMFile(fileMetaInformation: base.fileMetaInformation, dataSet: ds)
+            let pd = try XCTUnwrap(file.pixelData())
+            let image = try DICOMImageExporter.renderFrameForExport(
+                file: file, pixelData: pd, frameIndex: 0,
+                applyWindow: false, windowCenter: nil, windowWidth: nil)
+            let bytes = [UInt8](try XCTUnwrap(image.dataProvider?.data as Data?))
+            XCTAssertEqual(bytes, stored.map { linearByte(slope * Double($0) + intercept, center, 100) },
+                           "slope \(slope)")
+        }
+    }
+    #endif
 
     #if canImport(CoreGraphics) && canImport(ImageIO)
 
@@ -281,7 +323,7 @@ final class ExportRoundTripTests: XCTestCase {
     // Oracle: buildEXIFMetadata maps each DICOM field into its documented EXIF/TIFF dictionary key
     // (deterministic, lossless mapping), and export-with-metadata still produces a readable JPEG.
     func testEmbedMetadataMappingAndExport() throws {
-        // makeGrayscale8 sets PatientName "RoundTrip^Patient" (TIFF/ImageDescription) and Modality "CT" (EXIF/Software).
+        // makeGrayscale8 sets PatientName "RoundTrip^Patient" (TIFF/ImageDescription) and Modality "CT" (EXIF/UserComment, D126).
         let file = makeGrayscale8(rows: 16, cols: 16)
 
         // Semantic oracle on the built dictionary: fields land in the mapped dictionary/key verbatim.
@@ -290,7 +332,7 @@ final class ExportRoundTripTests: XCTestCase {
         let tiffBuilt = try XCTUnwrap(built[kCGImagePropertyTIFFDictionary as String] as? [String: Any])
         XCTAssertEqual(tiffBuilt["ImageDescription"] as? String, "RoundTrip^Patient")
         let exifBuilt = try XCTUnwrap(built[kCGImagePropertyExifDictionary as String] as? [String: Any])
-        XCTAssertEqual(exifBuilt["Software"] as? String, "CT")
+        XCTAssertEqual(exifBuilt["UserComment"] as? String, "Modality=CT")
 
         // Export with that metadata must still write a valid, readable JPEG of the right size.
         let pd = try XCTUnwrap(file.pixelData())

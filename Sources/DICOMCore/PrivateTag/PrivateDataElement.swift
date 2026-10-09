@@ -4,6 +4,8 @@
 /// Private data elements contain vendor-specific information.
 ///
 /// Reference: DICOM PS3.5 Section 7.8 - Private Data Elements
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — carries no standard data beyond the block arithmetic of PS3.5 2026a §7.8.1; the offset range doc (0x10-0xFF) was corrected to 0x00-0xFF.
 public struct PrivateDataElement: Sendable {
     /// Private tag
     public let tag: Tag
@@ -25,7 +27,7 @@ public struct PrivateDataElement: Sendable {
         self.element = element
     }
     
-    /// Element offset within the creator's block (0x10-0xFF)
+    /// Element offset within the creator's block (0x00-0xFF)
     public var blockOffset: UInt8? {
         guard creator.owns(tag) else { return nil }
         return UInt8(tag.element & 0xFF)

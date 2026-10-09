@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — A-ASSOCIATE-RQ layout compared with PS3.8 2026a Tables 9-11..9-16 and Annex D.1-1; Application Context Name per PS3.7 A.2.1; Implementation Class UID / Version Name limits per PS3.7 Tables D.3-1/D.3-3 and PS3.5 UI (enforced); 2026-10-01: SOP Class Extended Negotiation sub-items (56H) encoded per PS3.7 Table D.3-11
 
 /// A-ASSOCIATE-RQ PDU (Association Request)
 ///
@@ -8,8 +9,12 @@ import Foundation
 public struct AssociateRequestPDU: PDU, Sendable, Hashable {
     public let pduType: PDUType = .associateRequest
     
-    /// Protocol version (always 1)
-    public let protocolVersion: UInt16 = 1
+    /// Protocol version
+    ///
+    /// Always 1 when built locally. A decoded PDU carries the peer's value;
+    /// PS3.8 Table 9-11 bytes 7-8: "A receiver of this PDU implementing only
+    /// this version of the DICOM UL protocol shall only test that bit 0 is set."
+    public let protocolVersion: UInt16
     
     /// Called AE Title (the receiving application entity)
     public let calledAETitle: AETitle
@@ -39,6 +44,19 @@ public struct AssociateRequestPDU: PDU, Sendable, Hashable {
     /// Reference: PS3.7 Section D.3.3.7 - User Identity Negotiation
     public let userIdentity: UserIdentity?
     
+    /// Proposed SCP/SCU Role Selections (optional)
+    ///
+    /// One entry per Abstract Syntax for which the requestor wants a role other
+    /// than the default (SCU only). Required for C-GET storage contexts.
+    ///
+    /// Reference: PS3.7 Section D.3.3.4 - SCP/SCU Role Selection Negotiation
+    public let roleSelections: [SCPSCURoleSelection]
+
+    /// Proposed SOP Class Extended Negotiation sub-items (optional)
+    ///
+    /// Reference: PS3.7 Section D.3.3.5 - SOP Class Extended Negotiation
+    public let extendedNegotiations: [SOPClassExtendedNegotiation]
+    
     /// DICOM Application Context Name UID
     ///
     /// Reference: PS3.7 Annex A
@@ -55,6 +73,7 @@ public struct AssociateRequestPDU: PDU, Sendable, Hashable {
     ///   - implementationVersionName: The Implementation Version Name (optional)
     ///   - userIdentity: User identity for authentication (optional)
     ///   - applicationContextName: Application Context Name (defaults to DICOM)
+    ///   - roleSelections: Proposed SCP/SCU Role Selections (optional)
     public init(
         calledAETitle: AETitle,
         callingAETitle: AETitle,
@@ -63,8 +82,65 @@ public struct AssociateRequestPDU: PDU, Sendable, Hashable {
         implementationClassUID: String,
         implementationVersionName: String? = nil,
         userIdentity: UserIdentity? = nil,
-        applicationContextName: String = dicomApplicationContextName
+        applicationContextName: String = dicomApplicationContextName,
+        roleSelections: [SCPSCURoleSelection] = []
     ) {
+        self.init(
+            calledAETitle: calledAETitle, callingAETitle: callingAETitle,
+            presentationContexts: presentationContexts, maxPDUSize: maxPDUSize,
+            implementationClassUID: implementationClassUID,
+            implementationVersionName: implementationVersionName,
+            userIdentity: userIdentity, applicationContextName: applicationContextName,
+            roleSelections: roleSelections, extendedNegotiations: [])
+    }
+
+    /// Creates an A-ASSOCIATE-RQ PDU proposing SOP Class Extended Negotiation
+    /// sub-items (PS3.7 D.3.3.5, Table D.3-11; added 2026-10-01).
+    public init(
+        calledAETitle: AETitle,
+        callingAETitle: AETitle,
+        presentationContexts: [PresentationContext],
+        maxPDUSize: UInt32 = defaultMaxPDUSize,
+        implementationClassUID: String,
+        implementationVersionName: String? = nil,
+        userIdentity: UserIdentity? = nil,
+        applicationContextName: String = dicomApplicationContextName,
+        roleSelections: [SCPSCURoleSelection] = [],
+        extendedNegotiations: [SOPClassExtendedNegotiation]
+    ) {
+        self.init(
+            protocolVersion: 1,
+            calledAETitle: calledAETitle,
+            callingAETitle: callingAETitle,
+            presentationContexts: presentationContexts,
+            maxPDUSize: maxPDUSize,
+            implementationClassUID: implementationClassUID,
+            implementationVersionName: implementationVersionName,
+            userIdentity: userIdentity,
+            applicationContextName: applicationContextName,
+            roleSelections: roleSelections,
+            extendedNegotiations: extendedNegotiations
+        )
+    }
+    
+    /// Creates an A-ASSOCIATE-RQ PDU carrying an explicit Protocol-version
+    ///
+    /// Used by the decoder to preserve the peer's value (and by tests to
+    /// build a request with bit 0 clear).
+    init(
+        protocolVersion: UInt16,
+        calledAETitle: AETitle,
+        callingAETitle: AETitle,
+        presentationContexts: [PresentationContext],
+        maxPDUSize: UInt32 = defaultMaxPDUSize,
+        implementationClassUID: String,
+        implementationVersionName: String? = nil,
+        userIdentity: UserIdentity? = nil,
+        applicationContextName: String = dicomApplicationContextName,
+        roleSelections: [SCPSCURoleSelection] = [],
+        extendedNegotiations: [SOPClassExtendedNegotiation] = []
+    ) {
+        self.protocolVersion = protocolVersion
         self.calledAETitle = calledAETitle
         self.callingAETitle = callingAETitle
         self.presentationContexts = presentationContexts
@@ -73,12 +149,28 @@ public struct AssociateRequestPDU: PDU, Sendable, Hashable {
         self.implementationVersionName = implementationVersionName
         self.userIdentity = userIdentity
         self.applicationContextName = applicationContextName
+        self.roleSelections = roleSelections
+        self.extendedNegotiations = extendedNegotiations
+    }
+    
+    /// Whether the Protocol-version is acceptable to this implementation
+    ///
+    /// PS3.8 Table 9-11: only bit 0 (version 1) is tested.
+    var isProtocolVersionSupported: Bool {
+        (protocolVersion & 0x0001) != 0
     }
     
     /// Encodes the PDU for network transmission
     ///
+    /// - Throws: `DICOMNetworkError.encodingFailed` if the Implementation
+    ///   Class UID exceeds 64 bytes (PS3.5 UI) or the Implementation Version
+    ///   Name is not 1-16 characters (PS3.7 Table D.3-4)
+    ///
     /// Reference: PS3.8 Section 9.3.2
     public func encode() throws -> Data {
+        try validateImplementationSubItems(
+            classUID: implementationClassUID, versionName: implementationVersionName)
+        
         var data = Data()
         
         // Build the PDU variable field first to calculate length
@@ -240,6 +332,16 @@ public struct AssociateRequestPDU: PDU, Sendable, Hashable {
         // Implementation Version Name Sub-Item (optional)
         if let versionName = implementationVersionName {
             subItems.append(encodeImplementationVersionNameSubItem(versionName))
+        }
+        
+        // SCP/SCU Role Selection Sub-Items (optional, PS3.7 D.3.3.4)
+        for role in roleSelections {
+            subItems.append(role.encode())
+        }
+
+        // SOP Class Extended Negotiation Sub-Items (optional, PS3.7 D.3.3.5)
+        for negotiation in extendedNegotiations {
+            subItems.append(negotiation.encode())
         }
         
         // User Identity Sub-Item (optional)

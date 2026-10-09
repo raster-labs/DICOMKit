@@ -214,7 +214,8 @@ final class MeasurementReportExtractorTests: XCTestCase {
         
         XCTAssertEqual(report.measurementGroups.count, 1)
         XCTAssertEqual(report.measurementGroups[0].trackingIdentifier, "Lesion 1")
-        XCTAssertNil(report.measurementGroups[0].trackingUID)
+        XCTAssertNotNil(report.measurementGroups[0].trackingUID,
+                        "TID 1411 requires a Tracking Unique Identifier; the builder generates one")
         XCTAssertNil(report.measurementGroups[0].findingType)
         XCTAssertNil(report.measurementGroups[0].findingSite)
         XCTAssertEqual(report.measurementGroups[0].measurements.count, 0)
@@ -241,7 +242,7 @@ final class MeasurementReportExtractorTests: XCTestCase {
     
     func testExtractMeasurementGroupWithFindingType() throws {
         let original = try MeasurementReportBuilder()
-            .addMeasurementGroup(trackingIdentifier: "Lesion 1") {}
+            .addMeasurementGroup(trackingIdentifier: "Lesion 1", finding: CodedConcept(codeValue: "108369006", codingSchemeDesignator: "SCT", codeMeaning: "Tumor")) {}
             .build()
         let parsed = try serializeAndParse(original)
         
@@ -253,9 +254,10 @@ final class MeasurementReportExtractorTests: XCTestCase {
         XCTAssertEqual(report.measurementGroups[0].findingType?.codeMeaning, "Tumor")
     }
     
-    func testExtractMeasurementGroupWithFindingSite() throws{
+    func testExtractMeasurementGroupWithFindingSite() throws {
+        // TID 1501 row 8: Finding Site is a concept modifier of the Finding.
         let original = try MeasurementReportBuilder()
-            .addMeasurementGroup(trackingIdentifier: "Lesion 1") {}
+            .addMeasurementGroup(trackingIdentifier: "Lesion 1", finding: CodedConcept(codeValue: "108369006", codingSchemeDesignator: "SCT", codeMeaning: "Tumor"), findingSite: CodedConcept(codeValue: "39607008", codingSchemeDesignator: "SCT", codeMeaning: "Lung")) {}
             .build()
         let parsed = try serializeAndParse(original)
         
@@ -325,7 +327,9 @@ final class MeasurementReportExtractorTests: XCTestCase {
         let original = try MeasurementReportBuilder()
             .addMeasurementGroup(
                 trackingIdentifier: "Lesion 1",
-                trackingUID: trackingUID
+                trackingUID: trackingUID,
+                finding: CodedConcept(codeValue: "108369006", codingSchemeDesignator: "SCT", codeMeaning: "Tumor"),
+                findingSite: CodedConcept(codeValue: "39607008", codingSchemeDesignator: "SCT", codeMeaning: "Lung")
             ) {
                 MeasurementGroupContentHelper.longAxisMM(value: 25.5)
                 MeasurementGroupContentHelper.shortAxisMM(value: 18.2)

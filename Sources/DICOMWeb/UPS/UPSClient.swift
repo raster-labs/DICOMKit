@@ -1,8 +1,10 @@
 import Foundation
+import DICOMCore
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
 
+// NEMA-verified: 2026a, checked 2026-09-28 — methods and resources diffed against PS3.18 2026a Table 11.3-1; Deletion Lock per 11.10.1-2; Transaction UID rule per PS3.4 CC.2.1.2; status handling per Tables 11.4.3-1, 11.7.3-1, 11.8.3-1
 /// UPS-RS client for managing UPS workitems over HTTP
 ///
 /// Implements the UPS-RS (Unified Procedure Step - RESTful Services)
@@ -74,7 +76,7 @@ public final class UPSClient: @unchecked Sendable {
     /// - Returns: Query results with matching workitems
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.2 - Search Transaction
+    /// Reference: PS3.18 Section 11.9 - Search Transaction
     public func searchWorkitems(query: UPSQuery) async throws -> UPSQueryResult {
         let url = urlBuilder.searchWorkitemsURL(parameters: query.toParameters())
         
@@ -126,7 +128,7 @@ public final class UPSClient: @unchecked Sendable {
     /// - Returns: The workitem data as DICOM JSON
     /// - Throws: DICOMwebError on failure, UPSError.workitemNotFound if not found
     ///
-    /// Reference: PS3.18 Section 11.3 - Retrieve Transaction
+    /// Reference: PS3.18 Section 11.5 - Retrieve Workitem Transaction
     public func retrieveWorkitem(uid: String) async throws -> [String: Any] {
         let url = urlBuilder.workitemURL(workitemUID: uid)
         
@@ -167,13 +169,13 @@ public final class UPSClient: @unchecked Sendable {
     /// - Throws: DICOMwebError on failure, UPSError.workitemNotFound if not found
     public func retrieveWorkitemResult(uid: String) async throws -> WorkitemResult {
         let json = try await retrieveWorkitem(uid: uid)
-        guard let result = WorkitemResult.parse(json: json) else {
+        guard let result = WorkitemResult.parse(json: json, requestedUID: uid) else {
             throw DICOMwebError.invalidJSON(reason: "Failed to parse workitem JSON")
         }
         return result
     }
     
-    // MARK: - Create Workitem (POST /workitems or POST /workitems/{uid})
+    // MARK: - Create Workitem (POST /workitems or POST /workitems?workitem={uid}, PS3.18 11.4.1)
     
     /// Creates a new workitem
     ///
@@ -307,15 +309,19 @@ public final class UPSClient: @unchecked Sendable {
     /// - Returns: Response with the new state and transaction UID if applicable
     /// - Throws: DICOMwebError on failure, UPSError for invalid state transitions
     ///
-    /// Reference: PS3.18 Section 11.6 - Change State Transaction
+    /// Reference: PS3.18 Section 11.7 - Change Workitem State Transaction
     public func changeState(
         uid: String,
         state: UPSState,
         transactionUID: String? = nil
     ) async throws -> UPSStateChangeResponse {
-        // Per PS3.18 §11.6, Transaction UID for state change goes in the
+        // Per PS3.18 §11.7, Transaction UID for state change goes in the
         // request body only — NOT as a URL query parameter.
         let url = urlBuilder.workitemStateURL(workitemUID: uid)
+        
+        // PS3.4 CC.2.1.2: to claim a SCHEDULED UPS the SCU generates the Transaction UID and
+        // sends it with the change to IN PROGRESS; PS3.18 11.7.1.4: the payload shall include it
+        let transactionUID = transactionUID ?? (state == .inProgress ? UIDGenerator.generateUID().value : nil)
         
         // Build state change JSON
         let stateChangeJSON = buildStateChangeJSON(state: state, transactionUID: transactionUID)
@@ -366,7 +372,7 @@ public final class UPSClient: @unchecked Sendable {
         )
     }
     
-    // MARK: - Request Cancellation (PUT /workitems/{uid}/cancelrequest)
+    // MARK: - Request Cancellation (POST /workitems/{uid}/cancelrequest, PS3.18 11.8.1)
     
     /// Requests cancellation of a workitem
     ///
@@ -378,7 +384,7 @@ public final class UPSClient: @unchecked Sendable {
     /// - Returns: Response indicating if cancellation was accepted
     /// - Throws: DICOMwebError on failure, UPSError.workitemNotFound if not found
     ///
-    /// Reference: PS3.18 Section 11.7 - Request Cancellation Transaction
+    /// Reference: PS3.18 Section 11.8 - Request Cancellation Transaction
     public func requestCancellation(
         uid: String,
         reason: String? = nil,
@@ -395,9 +401,10 @@ public final class UPSClient: @unchecked Sendable {
         )
         let body = try JSONSerialization.data(withJSONObject: cancellationJSON)
         
+        // PS3.18 Table 11.3-1 / 11.8.1: POST /workitems/{workitem}/cancelrequest
         let request = HTTPClient.Request(
             url: url,
-            method: .put,
+            method: .post,
             headers: [
                 "Content-Type": DICOMMediaType.dicomJSON.description,
                 "Accept": DICOMMediaType.dicomJSON.description
@@ -465,28 +472,29 @@ public final class UPSClient: @unchecked Sendable {
     ///   - deletionLock: Whether to lock the workitem from deletion while subscribed
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.8 - Subscribe Transaction
+    /// Reference: PS3.18 Section 11.10 - Subscribe Transaction
     public func subscribe(
         uid: String?,
         aeTitle: String,
         deletionLock: Bool = false
     ) async throws {
-        let url: URL
+        var url: URL
         if let uid = uid {
             url = urlBuilder.workitemSubscriptionURL(workitemUID: uid, aeTitle: aeTitle)
         } else {
             url = urlBuilder.globalWorkitemSubscriptionURL(aeTitle: aeTitle)
         }
         
-        var headers: [String: String] = [:]
+        // PS3.18 11.10.1.2: the Deletion Lock is the query parameter deletionlock=true
         if deletionLock {
-            headers["Deletion-Lock"] = "true"
+            url = DICOMwebURLBuilder.appendQueryParameters(
+                to: url, parameters: [DICOMwebURLBuilder.QueryParameter.deletionlock: "true"])
         }
         
         let request = HTTPClient.Request(
             url: url,
             method: .post,
-            headers: headers
+            headers: [:]
         )
         
         do {
@@ -520,7 +528,7 @@ public final class UPSClient: @unchecked Sendable {
     ///   - aeTitle: The subscribing AE Title
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.9 - Unsubscribe Transaction
+    /// Reference: PS3.18 Section 11.11 - Unsubscribe Transaction
     public func unsubscribe(uid: String?, aeTitle: String) async throws {
         let url: URL
         if let uid = uid {
@@ -563,7 +571,7 @@ public final class UPSClient: @unchecked Sendable {
     ///   - aeTitle: The subscribing AE Title
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.10 - Suspend Subscription Transaction
+    /// Reference: PS3.18 Section 11.12 - Suspend Global Subscription Transaction
     public func suspendSubscription(uid: String, aeTitle: String) async throws {
         let url = urlBuilder.workitemSubscriptionSuspendURL(workitemUID: uid, aeTitle: aeTitle)
         
@@ -604,7 +612,7 @@ public final class UPSClient: @unchecked Sendable {
     ///   - wsConfiguration: WebSocket configuration (auto-reconnect, timeouts, etc.)
     /// - Returns: A configured `UPSEventChannelManager`
     ///
-    /// Reference: PS3.18 §11.11 - Open Event Channel Transaction
+    /// Reference: PS3.18 §8.10.4 - Open Notification Connection Transaction
     public func createEventChannelManager(
         aeTitle: String,
         wsConfiguration: UPSWebSocketConfiguration = .default
@@ -627,7 +635,7 @@ public final class UPSClient: @unchecked Sendable {
     ///   - wsConfiguration: WebSocket configuration
     /// - Returns: A configured `UPSWebSocketClient`
     ///
-    /// Reference: PS3.18 §11.11 - Open Event Channel Transaction
+    /// Reference: PS3.18 §8.10.4 - Open Notification Connection Transaction
     public func createWebSocketClient(
         aeTitle: String,
         wsConfiguration: UPSWebSocketConfiguration = .default
@@ -718,15 +726,15 @@ public final class UPSClient: @unchecked Sendable {
             
             if let name = contactDisplayName {
                 // Contact Display Name
-                contactItem["00401006"] = [
-                    "vr": "SH",
+                contactItem["0074100C"] = [
+                    "vr": "LO",
                     "Value": [name]
                 ]
             }
             
             if let uri = contactURI {
                 // Contact URI
-                contactItem["00401005"] = [
+                contactItem["0074100A"] = [
                     "vr": "UR",
                     "Value": [uri]
                 ]

@@ -108,15 +108,47 @@ final class SegmentationTests: XCTestCase {
     
     // MARK: - SegmentationType Tests
     
+    /// PS3.3 2026a Table C.8.20-2: Segmentation Type (0062,0001) Enumerated Values
+    /// BINARY, FRACTIONAL, LABELMAP
     func test_segmentationType_rawValues() {
         XCTAssertEqual(SegmentationType.binary.rawValue, "BINARY")
         XCTAssertEqual(SegmentationType.fractional.rawValue, "FRACTIONAL")
+        XCTAssertEqual(SegmentationType.labelmap.rawValue, "LABELMAP")
+        XCTAssertEqual(SegmentationType.allCases.count, 3)
     }
-    
+
     func test_segmentationType_fromString() {
         XCTAssertEqual(SegmentationType(rawValue: "BINARY"), .binary)
         XCTAssertEqual(SegmentationType(rawValue: "FRACTIONAL"), .fractional)
+        XCTAssertEqual(SegmentationType(rawValue: "LABELMAP"), .labelmap)
         XCTAssertNil(SegmentationType(rawValue: "INVALID"))
+        XCTAssertNil(SegmentationType(rawValue: "LABEL_MAP"))
+    }
+
+    /// Table C.8.20-2 Enumerated Values per Segmentation Type
+    func test_segmentationType_pixelConstraints() {
+        XCTAssertEqual(SegmentationType.binary.allowedBitsAllocated, [1])
+        XCTAssertEqual(SegmentationType.fractional.allowedBitsAllocated, [8])
+        XCTAssertEqual(SegmentationType.labelmap.allowedBitsAllocated, [8, 16])
+        XCTAssertEqual(SegmentationType.binary.allowedPhotometricInterpretations, ["MONOCHROME2"])
+        XCTAssertEqual(SegmentationType.labelmap.allowedPhotometricInterpretations, ["MONOCHROME2", "PALETTE COLOR"])
+    }
+
+    /// Table C.8.20-2: Segments Overlap (0062,0013) Enumerated Values YES, UNDEFINED, NO
+    func test_segmentsOverlap_rawValues() {
+        XCTAssertEqual(SegmentsOverlap.yes.rawValue, "YES")
+        XCTAssertEqual(SegmentsOverlap.undefined.rawValue, "UNDEFINED")
+        XCTAssertEqual(SegmentsOverlap.no.rawValue, "NO")
+        XCTAssertEqual(SegmentsOverlap.allCases.count, 3)
+    }
+
+    /// PS3.6 Table A-1 and PS3.4 B.5.1.25: SOP Class per Segmentation Type
+    func test_sopClassUID_perSegmentationType() {
+        XCTAssertEqual(Segmentation.segmentationStorageUID, "1.2.840.10008.5.1.4.1.1.66.4")
+        XCTAssertEqual(Segmentation.labelMapSegmentationStorageUID, "1.2.840.10008.5.1.4.1.1.66.7")
+        XCTAssertEqual(Segmentation.sopClassUID(for: .binary), Segmentation.segmentationStorageUID)
+        XCTAssertEqual(Segmentation.sopClassUID(for: .fractional), Segmentation.segmentationStorageUID)
+        XCTAssertEqual(Segmentation.sopClassUID(for: .labelmap), Segmentation.labelMapSegmentationStorageUID)
     }
     
     // MARK: - SegmentationFractionalType Tests

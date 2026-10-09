@@ -6,7 +6,7 @@ DICOM UID generation, validation, and management tool.
 
 - **Generate** new DICOM UIDs with custom roots and types
 - **Validate** UIDs against DICOM PS3.5 Section 9 compliance rules
-- **Look up** well-known UIDs (Transfer Syntaxes, SOP Classes) in the DICOM registry
+- **Look up** UIDs registered in PS3.6 Table A-1 (filter with `--type`: transfer-syntax, sop-class, meta-sop-class, well-known-sop-instance, ldap-oid, coding-scheme, application-context-name, service-class, application-hosting-model, mapping-resource, synchronization-frame-of-reference)
 - **Regenerate** UIDs in DICOM files while maintaining hierarchical relationships
 - **Export** old→new UID mappings to JSON for tracking
 
@@ -21,8 +21,13 @@ dicom-uid generate
 # Generate 5 study UIDs
 dicom-uid generate --count 5 --type study
 
-# Generate with custom root
+# Generate with your organisation's registered root (PS3.5 9.2.2); the default is
+# DICOMKit's root 1.2.826.0.1.3680043.10.511.4. A root that is not a valid UID, or is
+# too long to leave room for the unique suffix within 64 characters, is rejected.
 dicom-uid generate --root 1.2.826.0.1.3680043.9.1234
+
+# UUID derived UIDs, 2.25.<UUID as a decimal integer> (PS3.5 B.2)
+dicom-uid generate --uuid --count 3
 
 # Output as JSON
 dicom-uid generate --count 3 --json
@@ -60,6 +65,12 @@ dicom-uid lookup --list-all --type transfer-syntax
 dicom-uid lookup --search "CT"
 ```
 
+`lookup` prints the UID Type of PS3.6 2026a Table A-1 verbatim (for example "Well-known SOP Instance",
+"Application Context Name", "DICOM UIDs as a Coding Scheme"). With `--json` each entry has `uid`, `name`,
+`uidType` (the Table A-1 UID Type) and `type`. **`type` is deprecated**: it keeps the former tool wording
+("Well-Known UID", "Application Context", "Coding Scheme" for the DICOM UID Registry) for existing scripts and
+will be removed in the next major version; read `uidType` instead.
+
 ### Regenerate UIDs
 
 ```bash
@@ -79,14 +90,29 @@ dicom-uid regenerate study/*.dcm --output new/ --export-map mapping.json
 dicom-uid regenerate file.dcm --dry-run --verbose
 ```
 
-## UID Validation Rules (PS3.5 Section 9)
+## UID Validation Rules (PS3.5 9.1)
 
 - Maximum 64 characters
 - Only digits (0-9) and periods (.)
 - No leading or trailing periods
 - No consecutive periods
 - No leading zeros in components (except "0" itself)
-- At least 2 components
+
+Each failure names PS3.5 9.1. `validate --file` checks every UI value of the file, File Meta
+and sequence items included.
+
+## Regeneration scope
+
+`regenerate` replaces the values of the 57 UI attributes of PS3.15 Table E.1-1 (action U,
+and D for Annotation Group UID): SOP Instance, Study, Series and Frame of Reference UIDs,
+Referenced SOP Instance UID (0008,1155) in Referenced / Source Image Sequence, Referenced
+Frame of Reference UID (3006,0024), and the rest of that table, at every sequence depth. The
+same old UID gets the same new UID throughout a file and, with `--maintain-relationships`
+(automatic for more than one input), across files, so references between the files keep
+pointing at the right instance. Other UI attributes (SOP Class, Transfer Syntax, Coding
+Scheme UID (0008,010C), Context Group Extension Creator UID, private attributes) and any
+value that is a PS3.6 Table A-1 UID are kept. The Media Storage SOP Instance UID (0002,0003)
+follows the new SOP Instance UID.
 
 ## Version
 

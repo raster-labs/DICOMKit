@@ -59,7 +59,7 @@ Legend: ✅ covered this pass · ⚙️ inert flag / code issue (no behavioral o
 | Tool | Status of the flagged gaps |
 |---|---|
 | dicom-dump | ✅ `--offset` re-base regression; ✅ whole-file `--length` cap + footer |
-| dicom-anon | ✅ `--profile clinical-trial` (remove + shift variants); 🚫 `--recursive` (`anonymizeDirectory` is CLI-only); ⏳ `--dry-run`/`--backup`/`--output` (write-orchestration, no library oracle) |
+| dicom-anon | ✅ `--profile clinical-trial` (now `legacy-clinical-trial`, deprecated; remove + shift variants); 🚫 `--recursive` (`anonymizeDirectory` is CLI-only); ⏳ `--dry-run`/`--backup`/`--output` (write-orchestration, no library oracle) |
 | dicom-merge | ✅ `--level study`; ✅ `--sort-by ImagePositionPatient` (along the slice normal); ✅ `--sort-by AcquisitionTime`; ✅ `--format enhanced-*` / `legacy-converted-*` / `auto` / `sc-multiframe` / `us-multiframe`; ✅ `--make-stacks`; ✅ `--pixel-handling` |
 | dicom-validate | ✅ level 1, ✅ level 4, ✅ level 5; 🚫 `--recursive` (`validateDirectory` CLI-only); ⏳ `--iod`/`--output`/`--force` |
 | dicom-archive | ✅ query `--patient-id`/`--study-uid`/`--study-date`; ✅ export `--series-uid`/`--patient-id`; ✅ export `--flatten=false`; ⏳ default `table`/`tree`/`text` renderers, `import --recursive`, orphan detection |
@@ -92,9 +92,9 @@ than a test, and ⏳ are lower-value, ambiguous, or need the executable-target e
 - ⚪ `--verbose`; CLI guards ("no operations specified", "--apply-window requires both center+width", file-not-found).
 
 ### dicom-anon
-- 🔴 `--profile clinical-trial` — the `.clinicalTrial` profile (distinct tag-action set) is **never instantiated**.
+- 🔴 `--profile clinical-trial` (now `legacy-clinical-trial`; since 2026-10-01 the default is `ps315`, the PS3.15 Basic Profile, and `basic` is its alias) — the `.clinicalTrial` profile (distinct tag-action set) is **never instantiated**.
 - 🔴 `--recursive` — directory batch mode (`anonymizeDirectory`, per-file aggregation, required-flag validation) entirely untested.
-- 🟡 `--profile research` — instantiated (cases 8–9) but assertions target custom `--remove`/`--replace`, not the research profile's own tag removals; its distinctive behavior is unasserted.
+- 🟡 `--profile research` (now `legacy-research`) — instantiated (cases 8–9) but assertions target custom `--remove`/`--replace`, not the research profile's own tag removals; its distinctive behavior is unasserted.
 - 🟡 `--dry-run` / `--backup` / `--output` — write-orchestration branches (skip-write, `.backup` copy, output write) uncovered.
 - ⚪ `--verbose`; CLI tag parser (`parseTag`/`tagFromKeyword` hex+keyword forms for `--remove`/`--replace`/`--keep`); `--force` only exercised as `force:true` on already-prefixed corpus files.
 
@@ -252,5 +252,5 @@ than a test, and ⏳ are lower-value, ambiguous, or need the executable-target e
 | dicom-measure | roi `--circle` |
 | dicom-script | run `--parallel` |
 | dicom-dump | `--offset` (known crash-fix path, no regression test) |
-| dicom-anon | `--profile clinical-trial`; `--recursive` |
+| dicom-anon | `--profile legacy-clinical-trial` (was `clinical-trial`); `--recursive` |
 | dicom-dcmdir | `update` subcommand (unimplemented) |

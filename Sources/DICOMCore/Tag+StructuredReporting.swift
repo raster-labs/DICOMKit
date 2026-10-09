@@ -2,6 +2,7 @@
 ///
 /// Tags specific to DICOM Structured Reporting (SR) documents
 /// Reference: DICOM PS3.3 - Structured Reporting
+/// NEMA-verified: 2026a, checked 2026-09-30 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status); re-run 2026-09-30 after adding Verifying Observer Identification Code Sequence (0040,A088): 75 constants, all match Table 6-1 (keyword, VR, VM, not retired). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - SR Document General Module
     
@@ -32,7 +33,12 @@ extension Tag {
     /// Verifying Observer Name (0040,A075)
     /// VR: PN, VM: 1
     public static let verifyingObserverName = Tag(group: 0x0040, element: 0xA075)
-    
+
+    /// Verifying Observer Identification Code Sequence (0040,A088)
+    /// VR: SQ, VM: 1
+    /// PS3.6 2026a Table 6-1 (keyword VerifyingObserverIdentificationCodeSequence)
+    public static let verifyingObserverIdentificationCodeSequence = Tag(group: 0x0040, element: 0xA088)
+
     /// Verifying Organization (0040,A027)
     /// VR: LO, VM: 1
     public static let verifyingOrganization = Tag(group: 0x0040, element: 0xA027)
@@ -94,6 +100,10 @@ extension Tag {
     /// Concept Code Sequence (0040,A168)
     /// VR: SQ, VM: 1
     public static let conceptCodeSequence = Tag(group: 0x0040, element: 0xA168)
+
+    /// Numeric Value Qualifier Code Sequence (0040,A301)
+    /// VR: SQ, VM: 1
+    public static let numericValueQualifierCodeSequence = Tag(group: 0x0040, element: 0xA301)
     
     /// Numeric Value (0040,A30A)
     /// VR: DS, VM: 1-n
@@ -171,13 +181,17 @@ extension Tag {
     /// VR: SQ, VM: 1
     public static let equivalentCodeSequence = Tag(group: 0x0008, element: 0x0121)
     
-    /// Mapping Resource UID (0008,0117)
+    /// Context UID (0008,0117)
     /// VR: UI, VM: 1
-    public static let mappingResourceUID = Tag(group: 0x0008, element: 0x0117)
+    public static let contextUID = Tag(group: 0x0008, element: 0x0117)
     
-    /// Mapping Resource Name (0008,0118)
+    /// Mapping Resource UID (0008,0118)
+    /// VR: UI, VM: 1
+    public static let mappingResourceUID = Tag(group: 0x0008, element: 0x0118)
+    
+    /// Mapping Resource Name (0008,0122)
     /// VR: LO, VM: 1
-    public static let mappingResourceName = Tag(group: 0x0008, element: 0x0118)
+    public static let mappingResourceName = Tag(group: 0x0008, element: 0x0122)
     
     /// Long Code Value (0008,0119)
     /// VR: UC, VM: 1
@@ -224,6 +238,40 @@ extension Tag {
     /// Referenced Content Item Identifier (0040,DB73)
     /// VR: UL, VM: 1-n
     public static let referencedContentItemIdentifier = Tag(group: 0x0040, element: 0xDB73)
+
+    // MARK: - Table Content Item Macro (PS3.3 C.18.10, added 2026-09-25 for P8)
+
+    /// Tabulated Values Sequence (0040,A801)
+    /// VR: SQ, VM: 1
+    public static let tabulatedValuesSequence = Tag(group: 0x0040, element: 0xA801)
+
+    /// Number of Table Rows (0040,A802)
+    /// VR: UL, VM: 1
+    public static let numberOfTableRows = Tag(group: 0x0040, element: 0xA802)
+
+    /// Number of Table Columns (0040,A803)
+    /// VR: UL, VM: 1
+    public static let numberOfTableColumns = Tag(group: 0x0040, element: 0xA803)
+
+    /// Table Row Number (0040,A804)
+    /// VR: UL, VM: 1
+    public static let tableRowNumber = Tag(group: 0x0040, element: 0xA804)
+
+    /// Table Column Number (0040,A805)
+    /// VR: UL, VM: 1
+    public static let tableColumnNumber = Tag(group: 0x0040, element: 0xA805)
+
+    /// Table Row Definition Sequence (0040,A806)
+    /// VR: SQ, VM: 1
+    public static let tableRowDefinitionSequence = Tag(group: 0x0040, element: 0xA806)
+
+    /// Table Column Definition Sequence (0040,A807)
+    /// VR: SQ, VM: 1
+    public static let tableColumnDefinitionSequence = Tag(group: 0x0040, element: 0xA807)
+
+    /// Cell Values Sequence (0040,A808)
+    /// VR: SQ, VM: 1
+    public static let cellValuesSequence = Tag(group: 0x0040, element: 0xA808)
     
     /// Relationship Type (0040,A010)
     /// VR: CS, VM: 1

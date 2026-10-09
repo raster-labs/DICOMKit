@@ -7,6 +7,8 @@
 // place where files are read. Anything that cannot be parsed still produces a
 // summary: a report the viewer cannot fully decode is still worth naming, and
 // saying so beats an error about pixel data the object never claimed to have.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the 7 (group,element) rows of generalRows carry PS3.6 2026a Table 6-1 names (Modality, Protocol Name, Series Description, Content Date, Study Date, Series Number, Instance Number): 7 match; EncapsulatedDocumentType names and the content switch are plumbing
 
 import Foundation
 import DICOMCore

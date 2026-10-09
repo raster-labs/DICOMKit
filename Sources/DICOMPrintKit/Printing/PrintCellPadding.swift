@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — MONOCHROME1 background (maximum value black) per PS3.3 2026a C.7.6.3.1.2; 8-bit image box pixels per Table C.13-5; no other standard data
 // PrintCellPadding.swift
 // DICOMPrintKit
 //

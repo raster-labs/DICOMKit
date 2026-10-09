@@ -8,6 +8,7 @@ import SwiftUI
 #endif
 
 import Foundation
+import DICOMCore
 
 /// Medical imaging color palette for radiology-appropriate theming.
 ///
@@ -95,13 +96,26 @@ public enum StudioColors: Sendable {
     public static let xrBlue: Double = 0.30
 
     /// Returns RGB tuple for a given modality string.
+    ///
+    /// Colors are assigned per ``DICOMCore/Modality/Category`` so every one of
+    /// the 79 defined terms gets a meaningful color rather than only the four
+    /// codes this switch once listed. Aliases (`MRI`, `XR`, `PET`, …) resolve
+    /// through ``DICOMCore/Modality/normalized(_:)``, the project's one alias table.
     public static func modalityColor(for modality: String) -> (red: Double, green: Double, blue: Double) {
-        switch modality.uppercased() {
-        case "CT": return (ctRed, ctGreen, ctBlue)
-        case "MR", "MRI": return (mrRed, mrGreen, mrBlue)
-        case "US": return (usRed, usGreen, usBlue)
-        case "CR", "DX", "XR": return (xrRed, xrGreen, xrBlue)
-        default: return (primaryRed, primaryGreen, primaryBlue)
+        guard let resolved = Modality.normalized(modality) else {
+            return (primaryRed, primaryGreen, primaryBlue)
+        }
+        switch resolved.category {
+        case .crossSectional:
+            // CT and MR are distinct enough in daily use to keep their own hues.
+            if resolved == .mr { return (mrRed, mrGreen, mrBlue) }
+            return (ctRed, ctGreen, ctBlue)
+        case .ultrasound:
+            return (usRed, usGreen, usBlue)
+        case .radiography:
+            return (xrRed, xrGreen, xrBlue)
+        default:
+            return (primaryRed, primaryGreen, primaryBlue)
         }
     }
 }

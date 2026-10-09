@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for Browser Navigation (Milestone 18)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (sidebar, tab, window, menu and welcome-screen state; the only standard mention is the dicomStandardRef doc example "PS3.7 §9.1.5", which is the C-ECHO Service of PS3.7 2026a); the tool-name values it holds are verified where they are produced (CLIShellFoundationHelpers, BrowserNavigationHelpers)
 
 import Foundation
 

@@ -4,12 +4,12 @@ A command-line tool for adding, modifying, and deleting tags in DICOM files.
 
 ## Features
 
-- **Set Tag Values**: Add or update tags by name or hex code
+- **Set Tag Values**: Add or update tags by keyword or hex code; the value is written with the PS3.6 VR and checked against PS3.5 Table 6.2-1
 - **Delete Tags**: Remove specific tags from DICOM files
 - **Delete Private Tags**: Strip all private (odd group) tags in one operation
 - **Copy Tags**: Copy tags from one DICOM file to another
 - **Dry Run**: Preview changes without writing to disk
-- **Flexible Tag Formats**: Specify tags by name (e.g., `PatientName`) or hex (e.g., `0010,0010`)
+- **Flexible Tag Formats**: Specify tags by PS3.6 keyword (exact case, e.g., `PatientName`) or hex (e.g., `0010,0010`)
 
 ## Installation
 
@@ -91,7 +91,22 @@ dicom-tags file.dcm \
   --verbose
 ```
 
-## Supported Tag Names
+## Value Rules (DICOM 2026a)
+
+- `--set` writes the VR of the PS3.6 data dictionary (for a tag with two dictionary VRs, such as
+  "US or SS", the element's current VR when it is one of them). Private Creator elements
+  (gggg,0010-00FF) are LO (PS3.5 7.8.1); other private tags keep their VR, else LO.
+- Every value must fit PS3.5 Table 6.2-1 for that VR: e.g. DA is exactly 8 digits (`20200101`),
+  CS is upper case, digits, space or `_`, at most 16 bytes; LO at most 64 characters; PN at most
+  64 characters per component group. Multiple values are separated by `\` (except LT, ST, UT, UR).
+- US, SS, UL, SL, FL and FD values are decimal numbers (`--set Rows=512`), range-checked.
+  AT, OB, OD, OF, OL, OV, OW, SQ, SV, UV and UN cannot be set from text.
+- File Meta Information (group 0002) cannot be set, deleted or copied: PS3.10 7.1 keeps group
+  0002 out of the Data Set, and the file writer sets it. Item/delimiter tags (FFFE,xxxx) and the
+  unused groups 0001, 0003, 0005, 0007, FFFF are refused too.
+- A refused edit stops the run before anything is written (exit code 1).
+
+## Example Keywords
 
 | Name | Tag | VR |
 |------|-----|-----|
@@ -113,12 +128,13 @@ dicom-tags file.dcm \
 | InstitutionName | (0008,0080) | LO |
 | SOPInstanceUID | (0008,0018) | UI |
 
-Tags not listed above can always be specified by hex code (e.g., `0008,0050`).
+Any keyword of PS3.6 Table 6-1 works (exact case); a tag can always be given by hex code (e.g., `0008,0050`).
 
 ## Exit Codes
 
 - `0`: Success
-- `1`: Failure (file not found, invalid tag format, write error, etc.)
+- `1`: Failure (file not found, no operation given, a value or tag refused by the rules above, write error, etc.)
+- `64`: Usage error (missing input file, unknown option)
 
 ## See Also
 

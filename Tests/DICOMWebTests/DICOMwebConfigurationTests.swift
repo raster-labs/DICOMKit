@@ -221,4 +221,33 @@ struct DICOMwebConfigurationTests {
         
         #expect(builder.baseURL == testURL)
     }
+
+    // MARK: - PS3.15 2026a Annex B TLS profile (P-STUDIO-TLS-PROFILES)
+
+    @Test("TLSProfile raw values are the PS3.15 2026a B.12 / B.13 titles; default is nil")
+    func tlsProfileValues() {
+        #expect(DICOMwebConfiguration.TLSProfile.allCases.map(\.rawValue)
+                == ["BCP 195 RFC 8996, 9325 TLS", "Modified BCP 195 RFC 8996, 9325 TLS"])
+        #expect(DICOMwebConfiguration.TLSProfile.bcp195.section == "B.12")
+        #expect(DICOMwebConfiguration.TLSProfile.modifiedBCP195.section == "B.13")
+        for profile in DICOMwebConfiguration.TLSProfile.allCases { #expect(profile.minimumTLSVersion == "1.2") }
+        #expect(DICOMwebConfiguration(baseURL: testURL).tlsProfile == nil)
+        #expect(DICOMwebConfiguration(baseURL: testURL, tlsProfile: .modifiedBCP195).tlsProfile == .modifiedBCP195)
+    }
+
+    #if canImport(Darwin)
+    @Test("A TLS profile sets the URLSession minimum to TLS 1.2 and leaves the maximum open")
+    func tlsProfileAppliedToSession() {
+        for profile in DICOMwebConfiguration.TLSProfile.allCases {
+            let session = URLSessionConfiguration.ephemeral
+            HTTPClient.applyTLSProfile(profile, to: session)
+            #expect(session.tlsMinimumSupportedProtocolVersion == .TLSv12)
+            #expect(session.tlsMaximumSupportedProtocolVersion == URLSessionConfiguration.ephemeral.tlsMaximumSupportedProtocolVersion)
+        }
+        let untouched = URLSessionConfiguration.ephemeral
+        let before = untouched.tlsMinimumSupportedProtocolVersion
+        HTTPClient.applyTLSProfile(nil, to: untouched)
+        #expect(untouched.tlsMinimumSupportedProtocolVersion == before)
+    }
+    #endif
 }

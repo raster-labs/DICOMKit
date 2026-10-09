@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — query/export key matching against PS3.4 2026a C.2.2.2 (Single Value C.2.2.2.1 case-sensitive except PN, List of UID C.2.2.2.2, Universal C.2.2.2.3, Wild Card C.2.2.2.4, DA Range C.2.2.2.5.1); the JSON index (archive_index.json) follows the Patient/Study/Series/Instance hierarchy of PS3.4 Tables C.6-1..C.6-4 with patients keyed on Patient ID + Issuer of Patient ID (0010,0021); study modality is Modalities in Study (0008,0061, C.6-5) from all series; 15 printed labels are PS3.6 2026a Table 6-1 names and SOP Classes are named from PS3.6 Table A-1
+// NEMA-verified: 2026a, checked 2026-10-06 — studyDateKeyWarning (lifted from dicom-archive QueryKeys, D249) warns only for a key that is neither the DA value of PS3.5 2026a Table 6.2-1 nor one of the three DA range forms of PS3.4 2026a C.2.2.2.5.1 ("<date1> - <date2>", "- <date1>", "<date1> -"; clause read by script), the forms dateRange(_:) accepts
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -48,19 +50,91 @@ public struct ArchiveSeries: Codable, Sendable {
     public var instances: [ArchiveInstance]
 }
 
+/// One study of the archive index.
+///
+/// `modality` is the Modality of the first instance imported (deprecated as a study-level key,
+/// P-ARCHIVE-1). The study level carries Modalities in Study (0008,0061, CS 1-n; PS3.4 2026a
+/// Tables C.6-2 / C.6-5): ``modalitiesInStudy``, written to JSON as `ModalitiesInStudy` next to
+/// `modality`. Decoding reads only the stored keys, so indexes written before 2026-10-01 load.
 public struct ArchiveStudy: Codable, Sendable {
     public let studyInstanceUID: String
     public let studyDate: String?
     public let studyDescription: String?
-    public let modality: String?
+    /// The Modality of the first instance imported, kept for the index's `modality` key.
+    let firstInstanceModality: String?
     public let accessionNumber: String?
     public var series: [ArchiveSeries]
+
+    /// The Modality (0008,0060) of the first instance imported into the study — not a
+    /// study-level attribute. A study's modalities are ``modalitiesInStudy``.
+    @available(*, deprecated, message: "The first imported instance's Modality; use modalitiesInStudy (Modalities in Study (0008,0061), PS3.4 2026a Table C.6-5)")
+    public var modality: String? { firstInstanceModality }
+
+    init(studyInstanceUID: String, studyDate: String?, studyDescription: String?, modality: String?,
+         accessionNumber: String?, series: [ArchiveSeries]) {
+        self.studyInstanceUID = studyInstanceUID
+        self.studyDate = studyDate
+        self.studyDescription = studyDescription
+        self.firstInstanceModality = modality
+        self.accessionNumber = accessionNumber
+        self.series = series
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        studyInstanceUID = try c.decode(String.self, forKey: .studyInstanceUID)
+        studyDate = try c.decodeIfPresent(String.self, forKey: .studyDate)
+        studyDescription = try c.decodeIfPresent(String.self, forKey: .studyDescription)
+        firstInstanceModality = try c.decodeIfPresent(String.self, forKey: .modality)
+        accessionNumber = try c.decodeIfPresent(String.self, forKey: .accessionNumber)
+        series = try c.decode([ArchiveSeries].self, forKey: .series)
+    }
+
+    /// Modalities in Study (0008,0061): the distinct Modality values of the study's series, in
+    /// series order, empty values left out.
+    public var modalitiesInStudy: [String] {
+        var seen: [String] = []
+        for m in series.map(\.modality) where !m.isEmpty && !seen.contains(m) { seen.append(m) }
+        return seen
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case studyInstanceUID, studyDate, studyDescription, modality, accessionNumber, series
+    }
+
+    enum KeywordKeys: String, CodingKey { case ModalitiesInStudy }
+
+    public func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(studyInstanceUID, forKey: .studyInstanceUID)
+        try c.encodeIfPresent(studyDate, forKey: .studyDate)
+        try c.encodeIfPresent(studyDescription, forKey: .studyDescription)
+        try c.encodeIfPresent(firstInstanceModality, forKey: .modality)
+        try c.encodeIfPresent(accessionNumber, forKey: .accessionNumber)
+        try c.encode(series, forKey: .series)
+        var k = encoder.container(keyedBy: KeywordKeys.self)
+        try k.encode(modalitiesInStudy, forKey: .ModalitiesInStudy)
+    }
 }
 
+/// One patient of the archive index, keyed on Patient ID (0010,0020) together with Issuer of
+/// Patient ID (0010,0021) (PS3.4 2026a Tables C.6-1 / C.6-5; PS3.3 Table 10-18). Files whose
+/// Patient ID is empty or absent (Type 2, PS3.3 Table C.7-1) are additionally keyed on
+/// Patient's Name, so unrelated unidentified patients are not merged into one entry.
 public struct ArchivePatient: Codable, Sendable {
     public let patientName: String
     public let patientID: String
+    /// Issuer of Patient ID (0010,0021); `nil` when the files carry none (and in indexes
+    /// written before 2026-10-01).
+    public let issuerOfPatientID: String?
     public var studies: [ArchiveStudy]
+
+    init(patientName: String, patientID: String, issuerOfPatientID: String? = nil, studies: [ArchiveStudy]) {
+        self.patientName = patientName
+        self.patientID = patientID
+        self.issuerOfPatientID = issuerOfPatientID
+        self.studies = studies
+    }
 }
 
 public struct ArchiveIndex: Codable, Sendable {
@@ -71,21 +145,67 @@ public struct ArchiveIndex: Codable, Sendable {
     public var patients: [ArchivePatient]
 }
 
-// MARK: - Archive Store
+// MARK: - Matching
 
-public enum ArchiveStore {
+/// The PS3.4 2026a C.2.2.2 matching the archive's query and export keys use.
+public enum ArchiveMatching {
 
-    public static let archiveVersion = "1.2.1"
-
-    // MARK: Wildcard Matching
-
-    static func wildcardMatch(_ pattern: String, _ text: String) -> Bool {
-        let p = Array(pattern.uppercased())
-        let t = Array(text.uppercased())
-        return wildcardMatchHelper(p, 0, t, 0)
+    /// Single Value Matching (C.2.2.2.1) or, when `key` contains `*` or `?`, Wild Card Matching
+    /// (C.2.2.2.4) of a string key. A zero-length key or `*` is Universal Matching (C.2.2.2.3).
+    /// `caseSensitive` is `true` for every VR except PN: "This matching is case sensitive,
+    /// except for Attributes with a PN VR".
+    public static func matches(_ key: String, _ value: String, caseSensitive: Bool) -> Bool {
+        if key.isEmpty { return true }
+        let p = Array(caseSensitive ? key : key.uppercased())
+        let t = Array(caseSensitive ? value : value.uppercased())
+        return wildcard(p, 0, t, 0)
     }
 
-    private static func wildcardMatchHelper(_ pattern: [Character], _ pi: Int, _ text: [Character], _ ti: Int) -> Bool {
+    /// List of UID Matching (C.2.2.2.2): `key` is one UID or a backslash-separated list; each
+    /// UID in the list may generate a match. A zero-length key is Universal Matching.
+    public static func matchesUIDList(_ key: String, _ uid: String) -> Bool {
+        if key.isEmpty { return true }
+        return key.split(separator: "\\", omittingEmptySubsequences: true)
+            .contains { $0.trimmingCharacters(in: .whitespaces) == uid }
+    }
+
+    /// Single Value Matching (C.2.2.2.1) or Range Matching (C.2.2.2.5.1) of a DA key:
+    /// `YYYYMMDD`, `YYYYMMDD-YYYYMMDD` (inclusive), `-YYYYMMDD` (on or before) or `YYYYMMDD-`
+    /// (on or after). An entity without a date matches only a zero-length key. A key that is
+    /// neither form is compared as a literal string.
+    public static func matchesDate(_ key: String, _ date: String?) -> Bool {
+        let key = key.trimmingCharacters(in: .whitespaces)
+        if key.isEmpty { return true }
+        guard let date = date?.trimmingCharacters(in: .whitespaces), !date.isEmpty else { return false }
+        guard let range = dateRange(key) else { return key == date }
+        guard isDA(date) else { return false }
+        if let lower = range.lower, date < lower { return false }
+        if let upper = range.upper, date > upper { return false }
+        return true
+    }
+
+    /// The bounds of a DA key (C.2.2.2.1 single value or C.2.2.2.5.1 range); `nil` when the
+    /// key is neither a DA value (PS3.5 2026a Table 6.2-1: 8 bytes, "0"-"9") nor a DA range.
+    public static func dateRange(_ key: String) -> (lower: String?, upper: String?)? {
+        let key = key.trimmingCharacters(in: .whitespaces)
+        if isDA(key) { return (key, key) }
+        let parts = key.split(separator: "-", omittingEmptySubsequences: false)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2 else { return nil }
+        let lower = parts[0].isEmpty ? nil : parts[0]
+        let upper = parts[1].isEmpty ? nil : parts[1]
+        if lower == nil && upper == nil { return nil }
+        if let lower, !isDA(lower) { return nil }
+        if let upper, !isDA(upper) { return nil }
+        if let lower, let upper, lower > upper { return nil }
+        return (lower, upper)
+    }
+
+    static func isDA(_ s: String) -> Bool {
+        s.utf8.count == 8 && s.utf8.allSatisfy { $0 >= 0x30 && $0 <= 0x39 }
+    }
+
+    private static func wildcard(_ pattern: [Character], _ pi: Int, _ text: [Character], _ ti: Int) -> Bool {
         var pi = pi
         var ti = ti
         while pi < pattern.count {
@@ -95,7 +215,7 @@ public enum ArchiveStore {
                 while pi < pattern.count && pattern[pi] == "*" { pi += 1 }
                 if pi == pattern.count { return true }
                 while ti <= text.count {
-                    if wildcardMatchHelper(pattern, pi, text, ti) { return true }
+                    if wildcard(pattern, pi, text, ti) { return true }
                     ti += 1
                 }
                 return false
@@ -108,6 +228,22 @@ public enum ArchiveStore {
             }
         }
         return ti == text.count
+    }
+}
+
+// MARK: - Archive Store
+
+public enum ArchiveStore {
+
+    public static let archiveVersion = "1.2.1"
+
+    // MARK: Matching (PS3.4 2026a C.2.2.2)
+
+    /// Wild Card Matching (PS3.4 C.2.2.2.4) of a Patient's Name (PN) key: `*` matches any
+    /// sequence of characters, `?` any single character, case-insensitively (C.2.2.2.1.1 and
+    /// C.2.2.2.4 leave PN case handling to the implementation).
+    static func wildcardMatch(_ pattern: String, _ text: String) -> Bool {
+        ArchiveMatching.matches(pattern, text, caseSensitive: false)
     }
 
     // MARK: Helpers
@@ -287,6 +423,7 @@ public enum ArchiveStore {
 
                 let patientName = ds.string(for: .patientName) ?? "UNKNOWN"
                 let patientID = ds.string(for: .patientID) ?? "UNKNOWN"
+                let issuerOfPatientID = ds.string(for: Tag(group: 0x0010, element: 0x0021)).flatMap { $0.isEmpty ? nil : $0 }
                 let studyInstanceUID = ds.string(for: .studyInstanceUID) ?? "UNKNOWN_STUDY"
                 let seriesInstanceUID = ds.string(for: .seriesInstanceUID) ?? "UNKNOWN_SERIES"
                 let sopClassUID = ds.string(for: .sopClassUID) ?? ""
@@ -327,6 +464,7 @@ public enum ArchiveStore {
                     instance: instance,
                     patientName: patientName,
                     patientID: patientID,
+                    issuerOfPatientID: issuerOfPatientID,
                     studyInstanceUID: studyInstanceUID,
                     studyDate: studyDate,
                     studyDescription: studyDescription,
@@ -395,6 +533,7 @@ public enum ArchiveStore {
         instance: ArchiveInstance,
         patientName: String,
         patientID: String,
+        issuerOfPatientID: String?,
         studyInstanceUID: String,
         studyDate: String?,
         studyDescription: String?,
@@ -421,7 +560,15 @@ public enum ArchiveStore {
                 accessionNumber: accessionNumber,
                 series: [makeSeries()])
         }
-        if let pi = index.patients.firstIndex(where: { $0.patientID == patientID }) {
+        // Patient ID is unique only within its issuer (Issuer of Patient ID (0010,0021), PS3.4
+        // Tables C.6-1 / C.6-5); an empty or absent Patient ID (Type 2) identifies no one, so
+        // those files are also keyed on Patient's Name.
+        let unidentified = patientID.isEmpty || patientID == "UNKNOWN"
+        let samePatient: (ArchivePatient) -> Bool = { p in
+            p.patientID == patientID && p.issuerOfPatientID == issuerOfPatientID
+                && (!unidentified || p.patientName == patientName)
+        }
+        if let pi = index.patients.firstIndex(where: samePatient) {
             if let si = index.patients[pi].studies.firstIndex(where: { $0.studyInstanceUID == studyInstanceUID }) {
                 if let sei = index.patients[pi].studies[si].series.firstIndex(where: { $0.seriesInstanceUID == seriesInstanceUID }) {
                     index.patients[pi].studies[si].series[sei].instances.append(instance)
@@ -432,7 +579,8 @@ public enum ArchiveStore {
                 index.patients[pi].studies.append(makeStudy())
             }
         } else {
-            index.patients.append(ArchivePatient(patientName: patientName, patientID: patientID, studies: [makeStudy()]))
+            index.patients.append(ArchivePatient(patientName: patientName, patientID: patientID,
+                                                 issuerOfPatientID: issuerOfPatientID, studies: [makeStudy()]))
         }
     }
 
@@ -454,15 +602,18 @@ public enum ArchiveStore {
 
         var results: [(patient: ArchivePatient, study: ArchiveStudy)] = []
         for patient in index.patients {
-            if let pn = patientName, !wildcardMatch(pn, patient.patientName) { continue }
-            if let pid = patientID, !wildcardMatch(pid, patient.patientID) { continue }
+            // Patient's Name (PN): wild cards, case-insensitive (C.2.2.2.1.1, C.2.2.2.4).
+            if let pn = patientName, !ArchiveMatching.matches(pn, patient.patientName, caseSensitive: false) { continue }
+            // Patient ID (LO): wild cards, case-sensitive (C.2.2.2.1, C.2.2.2.4).
+            if let pid = patientID, !ArchiveMatching.matches(pid, patient.patientID, caseSensitive: true) { continue }
             for study in patient.studies {
-                if let uid = studyUID, study.studyInstanceUID != uid { continue }
-                if let mod = modality {
-                    let studyModalities = Set(study.series.map { $0.modality })
-                    if !studyModalities.contains(mod.uppercased()) { continue }
-                }
-                if let sd = studyDate, study.studyDate != sd { continue }
+                // Study Instance UID (UI): List of UID Matching (C.2.2.2.2).
+                if let uid = studyUID, !ArchiveMatching.matchesUIDList(uid, study.studyInstanceUID) { continue }
+                // Modality (CS) against Modalities in Study (0008,0061): wild cards, case-sensitive.
+                if let mod = modality,
+                   !study.modalitiesInStudy.contains(where: { ArchiveMatching.matches(mod, $0, caseSensitive: true) }) { continue }
+                // Study Date (DA): single value or Range Matching (C.2.2.2.5.1).
+                if let sd = studyDate, !ArchiveMatching.matchesDate(sd, study.studyDate) { continue }
                 results.append((patient: patient, study: study))
             }
         }
@@ -478,54 +629,84 @@ public enum ArchiveStore {
         }
     }
 
-    private static func queryTable(_ results: [(patient: ArchivePatient, study: ArchiveStudy)]) -> String {
-        var out = ""
-        let cols = ["Patient Name", "Patient ID", "Study Date", "Modality", "Description", "Series", "Images"]
-        let widths = [20, 15, 12, 10, 25, 6, 6]
-        let header = zip(cols, widths).map { $0.0.padding(toLength: $0.1, withPad: " ", startingAt: 0) }.joined(separator: " | ")
-        let separator = widths.map { String(repeating: "-", count: $0) }.joined(separator: "-+-")
-        out += header + "\n"
-        out += separator + "\n"
-        for result in results {
-            let imageCount = result.study.series.reduce(0) { $0 + $1.instances.count }
-            let row = [
-                truncate(result.patient.patientName, to: 20),
-                truncate(result.patient.patientID, to: 15),
-                truncate(result.study.studyDate ?? "", to: 12),
-                truncate(result.study.modality ?? "", to: 10),
-                truncate(result.study.studyDescription ?? "", to: 25),
-                truncate(String(result.study.series.count), to: 6),
-                truncate(String(imageCount), to: 6)
-            ]
-            let line = zip(row, widths).map { $0.0.padding(toLength: $0.1, withPad: " ", startingAt: 0) }.joined(separator: " | ")
-            out += line + "\n"
+    /// Renders `cols` / `rows` as a ` | `-separated table whose column widths fit the
+    /// header and are capped at `maxWidths` for the values.
+    private static func renderTable(_ cols: [String], _ rows: [[String]], maxWidths: [Int]) -> String {
+        let widths = cols.indices.map { i in
+            max(cols[i].count, min(maxWidths[i], rows.map { $0[i].count }.max() ?? 0))
         }
+        func line(_ cells: [String]) -> String {
+            zip(cells, widths).map { truncate($0.0, to: $0.1).padding(toLength: $0.1, withPad: " ", startingAt: 0) }
+                .joined(separator: " | ")
+        }
+        var out = line(cols) + "\n"
+        out += widths.map { String(repeating: "-", count: $0) }.joined(separator: "-+-") + "\n"
+        for row in rows { out += line(row) + "\n" }
+        return out
+    }
+
+    /// Modalities in Study (0008,0061) as a DICOM multi-value string ("CT\\PT").
+    private static func modalitiesString(_ study: ArchiveStudy) -> String {
+        study.modalitiesInStudy.joined(separator: "\\")
+    }
+
+    private static func queryTable(_ results: [(patient: ArchivePatient, study: ArchiveStudy)]) -> String {
+        // Column labels: PS3.6 2026a Table 6-1 names (Number of Study Related Series /
+        // Instances, PS3.4 Table C.6-5).
+        let cols = ["Patient's Name", "Patient ID", "Study Date", "Modalities in Study", "Study Description",
+                    "Number of Study Related Series", "Number of Study Related Instances"]
+        let rows = results.map { result -> [String] in
+            let instanceCount = result.study.series.reduce(0) { $0 + $1.instances.count }
+            return [
+                result.patient.patientName,
+                result.patient.patientID,
+                result.study.studyDate ?? "",
+                modalitiesString(result.study),
+                result.study.studyDescription ?? "",
+                String(result.study.series.count),
+                String(instanceCount)
+            ]
+        }
+        var out = renderTable(cols, rows, maxWidths: [20, 15, 8, 19, 25, 30, 33])
         out += "\n"
         out += "Found \(results.count) matching study(ies)\n"
         return out
     }
 
     private static func queryJSON(_ results: [(patient: ArchivePatient, study: ArchiveStudy)]) -> String {
+        // P-ARCHIVE-1 (approved 2026-10-01): the PS3.6 2026a Table 6-1 keywords ModalitiesInStudy
+        // (0008,0061), NumberOfStudyRelatedSeries (0020,1206) and NumberOfStudyRelatedInstances
+        // (0020,1208) (PS3.4 Table C.6-5) are written next to the former `modality`, `seriesCount`
+        // and `imageCount`, which keep their values and are deprecated.
         struct QueryResult: Codable {
             let patientName: String
             let patientID: String
+            let IssuerOfPatientID: String?
             let studyInstanceUID: String
             let studyDate: String?
             let studyDescription: String?
             let modality: String?
             let seriesCount: Int
             let imageCount: Int
+            let ModalitiesInStudy: [String]
+            let NumberOfStudyRelatedSeries: Int
+            let NumberOfStudyRelatedInstances: Int
         }
         let items = results.map { r in
-            QueryResult(
+            let instances = r.study.series.reduce(0) { $0 + $1.instances.count }
+            return QueryResult(
                 patientName: r.patient.patientName,
                 patientID: r.patient.patientID,
+                IssuerOfPatientID: r.patient.issuerOfPatientID,
                 studyInstanceUID: r.study.studyInstanceUID,
                 studyDate: r.study.studyDate,
                 studyDescription: r.study.studyDescription,
-                modality: r.study.modality,
+                modality: r.study.firstInstanceModality,
                 seriesCount: r.study.series.count,
-                imageCount: r.study.series.reduce(0) { $0 + $1.instances.count })
+                imageCount: instances,
+                ModalitiesInStudy: r.study.modalitiesInStudy,
+                NumberOfStudyRelatedSeries: r.study.series.count,
+                NumberOfStudyRelatedInstances: instances)
         }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -536,17 +717,21 @@ public enum ArchiveStore {
     }
 
     private static func queryText(_ results: [(patient: ArchivePatient, study: ArchiveStudy)]) -> String {
+        // Labels: PS3.6 2026a Table 6-1 names.
         var out = ""
         for (i, result) in results.enumerated() {
             if i > 0 { out += "\n" }
-            let imageCount = result.study.series.reduce(0) { $0 + $1.instances.count }
-            out += "Patient: \(result.patient.patientName) (ID: \(result.patient.patientID))\n"
-            out += "  Study: \(result.study.studyInstanceUID)\n"
-            if let date = result.study.studyDate { out += "  Date: \(date)\n" }
-            if let desc = result.study.studyDescription { out += "  Description: \(desc)\n" }
-            if let mod = result.study.modality { out += "  Modality: \(mod)\n" }
-            out += "  Series: \(result.study.series.count)\n"
-            out += "  Images: \(imageCount)\n"
+            let instanceCount = result.study.series.reduce(0) { $0 + $1.instances.count }
+            out += "Patient's Name: \(result.patient.patientName)\n"
+            out += "Patient ID: \(result.patient.patientID)\n"
+            if let issuer = result.patient.issuerOfPatientID { out += "Issuer of Patient ID: \(issuer)\n" }
+            out += "  Study Instance UID: \(result.study.studyInstanceUID)\n"
+            if let date = result.study.studyDate { out += "  Study Date: \(date)\n" }
+            if let desc = result.study.studyDescription { out += "  Study Description: \(desc)\n" }
+            let modalities = modalitiesString(result.study)
+            if !modalities.isEmpty { out += "  Modalities in Study: \(modalities)\n" }
+            out += "  Number of Study Related Series: \(result.study.series.count)\n"
+            out += "  Number of Study Related Instances: \(instanceCount)\n"
         }
         out += "\n"
         out += "Found \(results.count) matching study(ies)\n"
@@ -579,7 +764,8 @@ public enum ArchiveStore {
             let isLastPatient = pi == index.patients.count - 1
             let pPrefix = isLastPatient ? "└── " : "├── "
             let pCont = isLastPatient ? "    " : "│   "
-            out += "\(pPrefix)Patient: \(patient.patientName) (ID: \(patient.patientID))\n"
+            let issuer = patient.issuerOfPatientID.map { ", Issuer of Patient ID: \($0)" } ?? ""
+            out += "\(pPrefix)Patient: \(patient.patientName) (Patient ID: \(patient.patientID)\(issuer))\n"
             for (si, study) in patient.studies.enumerated() {
                 let isLastStudy = si == patient.studies.count - 1
                 let sPrefix = pCont + (isLastStudy ? "└── " : "├── ")
@@ -607,29 +793,18 @@ public enum ArchiveStore {
     }
 
     private static func listTable(_ index: ArchiveIndex) -> String {
-        var out = ""
-        let cols = ["Patient Name", "Patient ID", "Studies", "Series", "Images"]
-        let widths = [25, 15, 8, 8, 8]
-        let header = zip(cols, widths).map { $0.0.padding(toLength: $0.1, withPad: " ", startingAt: 0) }.joined(separator: " | ")
-        let separator = widths.map { String(repeating: "-", count: $0) }.joined(separator: "-+-")
-        out += header + "\n"
-        out += separator + "\n"
-        for patient in index.patients {
+        // Column labels: PS3.6 2026a Table 6-1 names (PS3.4 Table C.6-1 patient-level counts).
+        let cols = ["Patient's Name", "Patient ID", "Number of Patient Related Studies",
+                    "Number of Patient Related Series", "Number of Patient Related Instances"]
+        let rows = index.patients.map { patient -> [String] in
             let seriesCount = patient.studies.reduce(0) { $0 + $1.series.count }
-            let imageCount = patient.studies.reduce(0) { total, study in
+            let instanceCount = patient.studies.reduce(0) { total, study in
                 total + study.series.reduce(0) { $0 + $1.instances.count }
             }
-            let name = patient.patientName.count > 25 ? String(patient.patientName.prefix(24)) + "…" : patient.patientName
-            let pid = patient.patientID.count > 15 ? String(patient.patientID.prefix(14)) + "…" : patient.patientID
-            let row = [
-                name.padding(toLength: 25, withPad: " ", startingAt: 0),
-                pid.padding(toLength: 15, withPad: " ", startingAt: 0),
-                String(patient.studies.count).padding(toLength: 8, withPad: " ", startingAt: 0),
-                String(seriesCount).padding(toLength: 8, withPad: " ", startingAt: 0),
-                String(imageCount).padding(toLength: 8, withPad: " ", startingAt: 0)
-            ]
-            out += row.joined(separator: " | ") + "\n"
+            return [patient.patientName, patient.patientID, String(patient.studies.count),
+                    String(seriesCount), String(instanceCount)]
         }
+        var out = renderTable(cols, rows, maxWidths: [25, 15, 33, 32, 35])
         out += "\n"
         out += "Total: \(index.patients.count) patient(s), \(index.fileCount) file(s)\n"
         return out
@@ -673,9 +848,10 @@ public enum ArchiveStore {
         for patient in index.patients {
             if let pid = patientID, patient.patientID != pid { continue }
             for study in patient.studies {
-                if let uid = studyUID, study.studyInstanceUID != uid { continue }
+                // List of UID Matching (PS3.4 C.2.2.2.2) for both UID keys.
+                if let uid = studyUID, !ArchiveMatching.matchesUIDList(uid, study.studyInstanceUID) { continue }
                 for series in study.series {
-                    if let uid = seriesUID, series.seriesInstanceUID != uid { continue }
+                    if let uid = seriesUID, !ArchiveMatching.matchesUIDList(uid, series.seriesInstanceUID) { continue }
                     for instance in series.instances {
                         let sourceFile = dataDir.appendingPathComponent(instance.filePath)
                         let destFile: URL
@@ -886,7 +1062,9 @@ public enum ArchiveStore {
         if !sopClasses.isEmpty {
             out += "SOP Classes:\n"
             for (sop, count) in sopClasses.sorted(by: { $0.value > $1.value }).prefix(10) {
-                out += "  \(sop): \(count)\n"
+                // SOP Class name from PS3.6 2026a Table A-1.
+                let name = UIDDictionary.lookup(uid: sop).map { " (\($0.name))" } ?? ""
+                out += "  \(sop)\(name): \(count)\n"
             }
             if sopClasses.count > 10 {
                 out += "  ... and \(sopClasses.count - 10) more\n"
@@ -920,5 +1098,22 @@ public enum ArchiveStore {
             return json + "\n"
         }
         return ""
+    }
+}
+
+// MARK: - Study Date key warning (shared by dicom-archive query and the Workshop; D249)
+
+extension ArchiveMatching {
+
+    /// The warning for a Study Date (0008,0020) query key that ``matchesDate(_:_:)`` can only
+    /// compare as a literal string: `value` is neither a DA value (PS3.5 2026a Table 6.2-1:
+    /// `YYYYMMDD`) nor a DA range of PS3.4 2026a C.2.2.2.5.1 (`<date1>-<date2>`, `-<date1>`,
+    /// `<date1>-`), as ``dateRange(_:)`` decides. `nil` for an empty key (Universal Matching)
+    /// or a key the archive matches as DICOM. `option` names the key as the caller spells it.
+    public static func studyDateKeyWarning(_ value: String?, option: String = "--study-date") -> String? {
+        guard let value, !value.isEmpty else { return nil }
+        if dateRange(value) != nil { return nil }
+        return "warning: \(option) '\(value)' is neither a DA value (YYYYMMDD) nor a DA range "
+            + "(PS3.4 C.2.2.2.5.1); it matches only a Study Date (0008,0020) equal to the whole string"
     }
 }

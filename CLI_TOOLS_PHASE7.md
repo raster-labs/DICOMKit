@@ -1278,7 +1278,7 @@ dicom-gateway hl7-to-dicom message.hl7 --template template.dcm --output study.dc
 dicom-gateway dicom-to-fhir study.dcm --output study.json --resource ImagingStudy
 
 # Convert FHIR to DICOM
-dicom-gateway fhir-to-dicom imaging-study.json --output study.dcm
+dicom-gateway fhir-to-dicom imaging-study.json --template template.dcm --output study.dcm
 
 # Run as HL7 listener (forward DICOM events)
 dicom-gateway listen --protocol hl7 --port 2575 \

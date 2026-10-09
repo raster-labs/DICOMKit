@@ -3,6 +3,7 @@ import Foundation
 import Compression
 #endif
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data beyond media type names (all in PS3.18 2026a 8.7.3.5 / Table 8.7.4-1); Content-Encoding of a whole response is permitted by PS3.18 8.4.2 Table 8.4.2-1
 /// Configuration for HTTP response compression
 ///
 /// Controls how the DICOMweb server compresses responses to reduce bandwidth

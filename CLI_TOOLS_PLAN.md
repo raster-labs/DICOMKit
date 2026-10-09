@@ -278,27 +278,34 @@ dicom-convert large_dataset/ --output converted/ --jobs 8 --transfer-syntax Expl
   - Report any potential PHI leaks (unusual tags)
 
 #### Usage Examples
-```bash
-# Basic anonymization
-dicom-anon file.dcm --output anon.dcm --profile basic
 
-# Anonymize with date shifting
-dicom-anon file.dcm --output anon.dcm --profile basic --shift-dates 100
+> **Note (2026-10-01):** `dicom-anon --profile` now defaults to `ps315`, the PS3.15 2026a Basic Application Level
+> Confidentiality Profile (Table E.1-1), and `basic` is an alias of it. The old fixed lists are `legacy-basic`,
+> `legacy-clinical-trial` and `legacy-research` (deprecated, not PS3.15 profiles); `clinical-trial` and `research`
+> still select them with a deprecation note. With `ps315`, `--shift-dates` needs `--retain-modified-dates` and
+> `--keep` / `--regenerate-uids` apply to the legacy lists only.
+
+```bash
+# PS3.15 Basic Profile (the default; same as --profile basic)
+dicom-anon file.dcm --output anon.dcm --profile ps315
+
+# Anonymize with date shifting (Retain Longitudinal Temporal Information With Modified Dates Option)
+dicom-anon file.dcm --output anon.dcm --profile ps315 --retain-modified-dates --shift-dates 100
 
 # Batch anonymize directory
-dicom-anon input_dir/ --output anon_dir/ --profile clinical-trial --recursive
+dicom-anon input_dir/ --output anon_dir/ --profile ps315 --recursive
 
 # Custom profile with specific tags
 dicom-anon file.dcm --output anon.dcm --remove 0010,0010 --remove 0010,0020 --replace 0010,0030=19700101
 
 # Dry run to preview changes
-dicom-anon file.dcm --profile basic --dry-run
+dicom-anon file.dcm --profile ps315 --dry-run
 
 # Generate audit log
-dicom-anon file.dcm --output anon.dcm --profile basic --audit-log anonymization.log
+dicom-anon file.dcm --output anon.dcm --profile ps315 --audit-log anonymization.log
 
-# Preserve specific tags
-dicom-anon file.dcm --output anon.dcm --profile basic --keep 0008,0060 --keep Modality
+# Preserve specific tags (deprecated legacy list only; ps315 refuses --keep)
+dicom-anon file.dcm --output anon.dcm --profile legacy-basic --keep 0008,0060 --keep Modality
 ```
 
 #### Test Cases

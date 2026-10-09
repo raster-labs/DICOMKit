@@ -27,10 +27,13 @@ dicom-dcmdir create study_folder/ --output DICOMDIR
 dicom-dcmdir create study_folder/ \
   --output DICOMDIR \
   --file-set-id "MYSTUDY" \
-  --profile STD-GEN-DVD
+  --profile STD-GEN-DVD-JPEG
 
 # Strict mode (only include valid DICOM files)
 dicom-dcmdir create study_folder/ --output DICOMDIR --strict --verbose
+
+# Files named like img1.dcm: copy them into a new File-set with assigned File IDs
+dicom-dcmdir create study_folder/ --copy-to media/
 ```
 
 ### Validate a DICOMDIR
@@ -65,15 +68,18 @@ dicom-dcmdir dump DICOMDIR --format text --verbose
 ### Create Command
 
 - `--output, -o <path>`: Output DICOMDIR path (default: DICOMDIR in input directory)
-- `--file-set-id <id>`: File-set identifier (default: derived from directory name)
-- `--profile <profile>`: Application profile (STD-GEN-CD, STD-GEN-DVD, STD-GEN-USB)
+- `--file-set-id <id>`: File-set ID (0004,1130), up to 16 characters A-Z, 0-9, _ (PS3.10 8.1, 8.5); a value outside these rules is refused with exit 1 (it was written with a warning before 2026-10-01) (default: the directory name upper-cased, other characters replaced by `_`, cut to 16)
+- `--profile <profile>`: PS3.11 Application Profile identifier (default STD-GEN-CD; e.g. STD-GEN-DVD-JPEG, STD-GEN-USB-JPEG). The deprecated spellings STD-GEN-DVD, STD-GEN-USB, STD-GEN-SEC, STD-CTMR-XXXX and STD-US-XXXX are not PS3.11 identifiers; they are still accepted, print a stderr warning, and write STD-GEN-DVD-JPEG, STD-GEN-USB-JPEG, STD-GEN-SEC-CD, STD-CTMR-CD and STD-US-ID-SF-CDR respectively
+- `--copy-to <folder>`: Copy every accepted file into a new File-set in `<folder>` under File IDs the tool assigns, `DICOM\PTnnnnnn\STnnnnnn\SEnnnnnn\IMnnnnnn` (PS3.10 8.2, 8.5), and write `<folder>/DICOMDIR`. Without it the files are indexed where they are, and a file whose path relative to the input directory is not a PS3.10 File ID (e.g. `img1.dcm`) is refused
 - `--recursive`: Recursively scan subdirectories (default: true)
 - `--strict`: Include only valid DICOM files
 - `--verbose`: Verbose output showing progress
 
 ### Validate Command
 
-- `--check-files`: Verify that referenced files exist
+- `--check-files`: Verify that every Referenced File ID (0004,1500) names a file in the File-set (PS3.10 8.6)
+
+`validate` also checks the File-set ID (PS3.10 8.1, 8.5) and every Referenced File ID (at most 8 components of 1 to 8 characters A-Z, 0-9, _; PS3.10 8.2, 8.5; each File referenced by at most one record, PS3.3 Table F.3-3) and names the clause each failure breaks. `create` refuses (lists in the summary, and exits 1 when nothing is left) a file whose path relative to the input directory is not a valid File ID (name the files e.g. `DIR00001/IMG00001`, or use `--copy-to`), a SOP Class or Transfer Syntax the chosen profile's PS3.11 table does not list (e.g. STD-GEN-CD: Explicit VR Little Endian only, Table D.3-1; -JPEG profiles add JPEG Lossless SV1 / Baseline / Extended, -J2K profiles JPEG 2000, Tables H.3-1, J.3-1, M.3-1), a second file with an already indexed SOP Instance UID, an instance that breaks the profile's image attribute values (e.g. STD-XA1K Rows / Columns up to 1024, STD-CTMR High Bit = Bits Stored - 1, STD-US Photometric Interpretation / Transfer Syntax pairs; PS3.11 Tables A.3-3, B.3-3, B.3-4, C.3-2, E.3-3 to E.3-6, K.3-3, K.3-4, L.4-1, L.4-2), an MPEG instance without Number of Frames, a SOP Class PS3.3 gives no Directory Record Type (Procedure Protocol, Protocol Approval) and an instance without a Type 1 key of its record (e.g. an SR without Completion Flag). Every instance gets its own record, of the type PS3.3 F.5 gives its SOP Class (IMAGE, SR DOCUMENT, KEY OBJECT DOC, PRESENTATION, WAVEFORM, ENCAP DOC, RT DOSE, …; HANGING PROTOCOL, PALETTE, IMPLANT and INVENTORY at the root) with that record's Type 1 / 2 keys (Tables F.5-1 to F.5-49). A STUDY without Study ID gets its ordinal, a SERIES without Series Number and a record without Instance Number theirs; a missing Study Date / Time comes from the Series, Acquisition or Content Date / Time, else 19000101 / 000000 (PS3.11 D.3.3.1: the File-set Creator supplies them). The profile's "Additional DICOMDIR Keys" are added too (PS3.11 Tables A.3-2, B.3-2, D.3-2, E.3-2, H.3-2, I.3-2; USB / flash, BD and BD-MPEG4 profiles use H.3-2): e.g. Patient's Birth Date / Sex, Institution Name / Address and Performing Physicians' Name, Rows / Columns, Image Position / Orientation, Frame of Reference UID and Pixel Spacing; STD-XABC-CD and STD-XA1K IMAGE records get a 128 x 128 8-bit MONOCHROME2 Icon Image Sequence (A.3.3.2, B.3.3.2, PS3.3 F.7), copied from the instance when it carries a conforming one, else made from its pixels. An instance whose required key cannot be supplied (an icon from pixels that cannot be decoded, no Rows, an XA Image Type of BIPLANE A / B without Referenced Image Sequence) is refused.
 - `--detailed`: Show detailed validation output including record statistics
 
 ### Dump Command
@@ -85,9 +91,10 @@ dicom-dcmdir dump DICOMDIR --format text --verbose
 
 The tool supports standard DICOM application profiles:
 
-- **STD-GEN-CD**: General Purpose CD-R Interchange (default)
-- **STD-GEN-DVD**: General Purpose DVD Interchange with JPEG
-- **STD-GEN-USB**: General Purpose USB/Flash Memory with JPEG/JPEG 2000
+- **STD-GEN-CD**: General Purpose CD-R Interchange (default; PS3.11 Table D.1-1)
+- **STD-GEN-DVD-JPEG** / **STD-GEN-DVD-J2K**: General Purpose DVD Interchange with JPEG / JPEG 2000 (Table H.1-1)
+- **STD-GEN-USB-JPEG** / **STD-GEN-USB-J2K**: General Purpose USB Media Interchange with JPEG / JPEG-2000 (Table J.1-1)
+- every other identifier of PS3.11 2026a Annexes A-N (`dicom-dcmdir create --help` and the error text list them)
 
 ## Examples
 
@@ -138,29 +145,26 @@ Each record contains DICOM attributes relevant to that level of the hierarchy.
 
 ### File-set ID
 
-The File-set ID is an identifier for the file-set on the media. It should be:
-- Up to 16 characters
-- Composed of uppercase letters (A-Z), digits (0-9), underscores, and spaces
-- Unique for the media
+The File-set ID (0004,1130) is a short human-readable label for the File-set (PS3.10 8.1, PS3.3 Table F.3-2):
+- 0 to 16 characters
+- Uppercase letters (A-Z), digits (0-9) and underscore only; SPACE is not allowed (PS3.10 8.5)
+- Not necessarily unique; the File-set UID identifies the File-set
 
 ### Referenced File Paths
 
-File paths in DICOMDIR are stored as path components (array of strings) relative to the DICOMDIR location. For example:
-- `["PATIENT1", "STUDY1", "SERIES1", "IMG00001.dcm"]`
-- Represents: `PATIENT1/STUDY1/SERIES1/IMG00001.dcm`
+File IDs in DICOMDIR are stored in Referenced File ID (0004,1500) as components relative to the DICOMDIR location: 1 to 8 components, each 1 to 8 characters from A-Z, 0-9 and _ (PS3.10 8.2, 8.5). For example:
+- `["PATIENT1", "STUDY1", "SERIES1", "IMG00001"]`
+- Represents: `PATIENT1/STUDY1/SERIES1/IMG00001`
 
 ### Consistency Flag
 
-The consistency flag indicates whether the DICOMDIR is in a consistent state:
-- **Consistent (0x0000)**: DICOMDIR is complete and valid
-- **Inconsistent (0xFFFF)**: DICOMDIR is being updated or corrupted
+File-set Consistency Flag (0004,1212) is written as 0000H. PS3.3 2026a Table F.3-3: "The Value FFFFH shall never be present."
 
 ## Limitations
 
-- **Update command** is not yet implemented (use create to rebuild)
 - **Extract command** is not yet implemented
-- Only supports standard directory record types (PATIENT, STUDY, SERIES, IMAGE)
-- Icon images are not currently supported
+- PRIVATE directory records of an existing DICOMDIR are read and kept where its offsets place them (dump, validate); `create` and `update` index instances only and write no PRIVATE records
+- Icon images are written only where the profile requires them (STD-XABC-CD, STD-XA1K); the optional STD-CTMR icons (E.3.3.3) are copied from the instance, never generated
 
 ## See Also
 
@@ -170,6 +174,7 @@ The consistency flag indicates whether the DICOMDIR is in a consistent state:
 
 ## References
 
-- DICOM PS3.3 F.5 - Media Storage Directory SOP Class
-- DICOM PS3.10 - Media Storage and File Format
+- DICOM PS3.3 Annex F - Basic Directory IOD (Table F.4-1 record types, F.5 directory records)
+- DICOM PS3.4 Annex I - Media Storage Service Class (Media Storage Directory Storage, 1.2.840.10008.1.3.10)
+- DICOM PS3.10 Section 8 - DICOM File Service (File-set, File IDs, character set, DICOMDIR)
 - DICOM PS3.11 - Media Storage Application Profiles

@@ -71,7 +71,7 @@ struct PrintPaletteTests {
     }
 
     /// A grey film keeps every depth the standard actually allows. 16 is not
-    /// one of them — PS3.3 Table C.13-3 enumerates Bits Stored as 8 or 12 — so
+    /// one of them — PS3.3 Table C.13-5 enumerates Bits Stored as 8 or 12 — so
     /// it is tested separately, below, where it is clamped rather than kept.
     @Test("A grey film keeps the depth it asked for", arguments: [8, 12])
     func greyKeepsDepth(_ depth: Int) {

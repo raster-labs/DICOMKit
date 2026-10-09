@@ -12,18 +12,17 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  SWIFT_VERSION: '6.2'
+  SWIFT_VERSION: '6.4'
 
 jobs:
   test-macos:
     name: Test on macOS
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
-        # Test on different Xcode versions for comprehensive coverage
-        # Xcode 16.0+ required for swift-tools-version: 6.0 (Swift 6)
-        xcode: ['26.0', '26.3']
+        # Xcode 27 supplies Swift 6.4, as required by Package.swift.
+        xcode: ['27.0']
     
     steps:
     - name: Checkout code
@@ -45,6 +44,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
     
+    # DICOM_TAG_ATTRIBUTE_AUDIT_PLAN.md Phase 5: every hand-written tag must agree
+    # with the PS3.6 dictionary it sits next to. Fails on any BLOCKER/MAJOR.
+    - name: Audit DICOM tags against PS3.6
+      run: python3 Scripts/audit_tags.py . --strict
+
     - name: Build package
       run: swift build -v
       
@@ -72,12 +76,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Install Swift 6.2
+    - name: Install Swift 6.4
       run: |
-        # Download and install Swift 6.2 for Ubuntu 22.04
-        wget -q https://download.swift.org/swift-6.2-release/ubuntu2204/swift-6.2-RELEASE/swift-6.2-RELEASE-ubuntu22.04.tar.gz
-        tar xzf swift-6.2-RELEASE-ubuntu22.04.tar.gz
-        sudo mv swift-6.2-RELEASE-ubuntu22.04 /usr/share/swift
+        # Download and install Swift 6.4 for Ubuntu 22.04
+        wget -q https://download.swift.org/swift-6.4.0-release/ubuntu2204/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
+        tar xzf swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
+        sudo mv swift-6.4.0-RELEASE-ubuntu22.04 /usr/share/swift
         echo "/usr/share/swift/usr/bin" >> $GITHUB_PATH
         
     - name: Install system dependencies
@@ -104,7 +108,7 @@ jobs:
     - name: Verify Swift installation
       run: |
         swift --version
-        swift --version | grep -Eq "Swift version 6\\.[2-9]"
+        swift --version | grep -Eq "Swift version 6\\.[4-9]"
         
     - name: Cache Swift Package Manager
       uses: actions/cache@v4
@@ -139,7 +143,7 @@ jobs:
       
   build-documentation:
     name: Build Documentation
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code
@@ -169,7 +173,7 @@ jobs:
       
   code-quality:
     name: Code Quality Checks
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code
@@ -209,7 +213,7 @@ jobs:
       
   validate-platforms:
     name: Validate Platform Support
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
@@ -252,7 +256,7 @@ jobs:
       
   security-scan:
     name: Security Scan
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code

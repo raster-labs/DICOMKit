@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — carries no DICOM-standard data (ICC lut8, lut16, mAB and mBA transforms; LUT1D and ColorLUT input clipping is ICC.1 behaviour, not a PS3.3 rule; D54 makes ColorLUT.lookup total on non-finite input)
 //
 // LUTColorTransform.swift
 // DICOMKit
@@ -200,22 +201,30 @@ public struct LUT1D: Sendable, Hashable {
     
     /// Lookup value in the table with linear interpolation
     ///
+    /// The input is clipped to 0.0...1.0 before the lookup (ICC.1 curves clip their
+    /// input to the domain), so an input below 0 returns the first entry and an input
+    /// above 1 returns the last. A NaN input returns the first entry; ±infinity clips
+    /// like any other out-of-range value.
+    ///
     /// - Parameter input: Input value (0.0-1.0)
     /// - Returns: Interpolated output value (0.0-1.0)
     public func lookup(_ input: Double) -> Double {
         guard !values.isEmpty else { return input }
         guard values.count > 1 else { return values[0] }
         
+        // Clip before converting to an index: Int(_:) truncates toward zero, so an
+        // unclipped input in (-1/(n-1), 0) would reach index 0 with a negative
+        // fraction and extrapolate below the table; Int(_:) also traps on NaN and
+        // infinity.
+        guard !input.isNaN, input > 0 else { return values[0] }
+        guard input < 1 else { return values[values.count - 1] }
+        
         let scaledInput = input * Double(values.count - 1)
         let index = Int(scaledInput)
         let fraction = scaledInput - Double(index)
         
         if index >= values.count - 1 {
-            return values.last ?? input
-        }
-        
-        if index < 0 {
-            return values.first ?? input
+            return values[values.count - 1]
         }
         
         // Linear interpolation
@@ -269,6 +278,10 @@ public struct ColorLUT: Sendable, Hashable {
     
     /// Lookup color in the CLUT with trilinear interpolation
     ///
+    /// Each input is clipped to 0.0...1.0 before it becomes a grid index (ICC.1 CLUTs clip
+    /// their input to the domain), as `LUT1D.lookup` does: below 0 (and -infinity) selects the
+    /// first grid point, above 1 (and +infinity) the last, and NaN the first.
+    ///
     /// - Parameters:
     ///   - r: Red input (0.0-1.0)
     ///   - g: Green input (0.0-1.0)
@@ -283,9 +296,18 @@ public struct ColorLUT: Sendable, Hashable {
         // For simplicity, we'll use nearest neighbor for now
         // Full implementation would do proper trilinear interpolation
         
-        let ir = min(gridSize - 1, max(0, Int(r * Double(gridSize - 1))))
-        let ig = min(gridSize - 1, max(0, Int(g * Double(gridSize - 1))))
-        let ib = min(gridSize - 1, max(0, Int(b * Double(gridSize - 1))))
+        guard gridSize > 0 else { return (r, g, b) }
+
+        // Clip before converting to an index: Int(_:) traps on NaN, ±infinity and
+        // magnitudes beyond Int (D54, as LUT1D.lookup since D48).
+        func gridIndex(_ value: Double) -> Int {
+            guard !value.isNaN, value > 0 else { return 0 }
+            guard value < 1 else { return gridSize - 1 }
+            return min(gridSize - 1, Int(value * Double(gridSize - 1)))
+        }
+        let ir = gridIndex(r)
+        let ig = gridIndex(g)
+        let ib = gridIndex(b)
         
         let index = (ir * gridSize * gridSize + ig * gridSize + ib) * outputChannels
         

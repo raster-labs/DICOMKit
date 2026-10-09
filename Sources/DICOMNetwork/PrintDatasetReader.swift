@@ -17,6 +17,7 @@
 import Foundation
 import DICOMCore
 import DICOMDictionary
+// NEMA-verified: 2026a, checked 2026-09-28 — delimiters (FFFE,E000/E00D/E0DD), undefined length and Explicit VR header rules checked against PS3.5 2026a §7.1 and §7.5; no other standard data
 
 // MARK: - Errors
 
@@ -154,6 +155,13 @@ public struct PrintDatasetReader: Sendable {
         let (set, _) = try parseAttributes(
             data, from: 0, limit: data.count, undefinedLength: false, depth: 0)
         return set
+    }
+
+    /// Parses the Value Field of a sequence — its Items, without the sequence's
+    /// own element header or Sequence Delimitation Item (PS3.5 7.5). Used for the
+    /// raw SQ values a C-FIND response keeps (`GenericQueryResult`).
+    func parseSequenceValue(_ data: Data, tag: Tag) throws -> [PrintAttributeSet] {
+        try parseItems(data, from: 0, limit: data.count, undefinedLength: false, tag: tag, depth: 1).0
     }
 
     // MARK: Element walk

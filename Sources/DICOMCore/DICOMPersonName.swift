@@ -21,6 +21,8 @@ import Foundation
 ///
 /// Reference: DICOM PS3.5 Section 6.2.1 - Person Name Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the PN row of PS3.5 2026a Table 6.2-1 (five "^" components, up to three "=" component groups, trailing null components omitted). Not enforced: the 64-character limit per component group and the ban on 5CH; extra "^" components beyond five are dropped on read.
+///
 /// Examples:
 /// - "Doe^John" = family name "Doe", given name "John"
 /// - "Doe^John^Robert^Dr.^Jr." = full name with all components

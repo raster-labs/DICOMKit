@@ -153,6 +153,16 @@ final class VideoAttributeTests: XCTestCase {
         XCTAssertFalse(element.valueData.isEmpty, "A Type 1 attribute must have a value")
     }
 
+    /// D180: text is written as UTF-8, so Specific Character Set (0008,0005), Type 1C
+    /// "Required if an expanded or replacement character set is used" (PS3.3 2026a
+    /// Table C.12-1), is ISO_IR 192 (Table C.12-5) when a value is not ASCII.
+    func test_specificCharacterSet_isUTF8ForNonASCIIText() throws {
+        let dataSet = try makeDataSet { $0.setPatientName("Müller^Jörg") }
+        XCTAssertEqual(dataSet.string(for: .specificCharacterSet), "ISO_IR 192")
+        XCTAssertEqual(dataSet.string(for: .patientName), "Müller^Jörg")
+        XCTAssertNil(try makeDataSet { $0.setPatientName("DOE^John") }[.specificCharacterSet])
+    }
+
     func test_imageType_overridable() throws {
         let dataSet = try makeDataSet { $0.setImageType(["DERIVED", "SECONDARY"]) }
         XCTAssertEqual(dataSet[.imageType]?.stringValues, ["DERIVED", "SECONDARY"])

@@ -3,6 +3,9 @@
 //
 // DICOM Studio — Thread-safe service for DICOM Networking Hub display state management
 // Reference: DICOM PS3.4 (Service Class Specifications)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (locked display state: profiles, queues,
+// MPPS and print job records, audit entries); the only literal is the fallback AE title DICOMSTUDIO, a valid
+// PS3.5 Table 6.2-1 AE value (11 characters). Status values are the enums of NetworkingModel.swift.
 
 import Foundation
 

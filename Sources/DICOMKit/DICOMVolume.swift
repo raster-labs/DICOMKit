@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a Table C.7-11c (High Bit "shall be one less than Bits Stored"; Photometric Interpretation) and C.7.6.3.1.2 (MONOCHROME1 "minimum sample value is intended to be displayed as white after any VOI gray scale transformations"): carried as fields, voxel() masks to Bits Stored and sign-extends from High Bit (D33); other defaults are API defaults, not standard claims
 import Foundation
 import DICOMCore
 import J2KCore
@@ -56,8 +57,25 @@ public struct DICOMVolume: Sendable {
     /// Bits actually stored per voxel.
     public let bitsStored: Int
 
+    /// High Bit (0028,0102) of the source: the most significant bit of each stored
+    /// sample. PS3.3 Table C.7-11c: "High Bit (0028,0102) shall be one less than
+    /// Bits Stored (0028,0101)", so stored values occupy bits `0...highBit` of each
+    /// voxel and bit `highBit` is the sign bit when ``isSigned`` is `true`.
+    public let highBit: Int
+
     /// Whether voxel values are signed integers.
     public let isSigned: Bool
+
+    /// Photometric Interpretation (0028,0004) of the source (PS3.3 C.7.6.3.1.2).
+    ///
+    /// The stored voxel values are never inverted when a volume is built, so a
+    /// ``PhotometricInterpretation/monochrome1`` volume holds the source values
+    /// as written and any Window Center/Width read from the source stays valid.
+    /// C.7.6.3.1.2 defines MONOCHROME1 as "The minimum sample value is intended to
+    /// be displayed as white after any VOI gray scale transformations have been
+    /// performed": whatever renders the volume inverts the gray scale *after*
+    /// windowing. See ``isMonochrome1``.
+    public let photometricInterpretation: PhotometricInterpretation
 
     // MARK: - Voxel Spacing (mm)
 
@@ -114,6 +132,12 @@ public struct DICOMVolume: Sendable {
     /// Total number of voxels.
     public var voxelCount: Int { width * height * depth }
 
+    /// `true` when the volume is ``PhotometricInterpretation/monochrome1``: after
+    /// the VOI (window) transformation the gray scale is displayed inverted, the
+    /// minimum value as white (PS3.3 C.7.6.3.1.2). Renderers of the volume check
+    /// this flag; the voxel values themselves are the stored values.
+    public var isMonochrome1: Bool { photometricInterpretation == .monochrome1 }
+
     // MARK: - Slice Access
 
     /// Returns the pixel data for a single slice.
@@ -145,30 +169,46 @@ public struct DICOMVolume: Sendable {
         let byteOffset = (z * height * width + y * width + x) * bytesPerVoxel
         guard byteOffset + bytesPerVoxel <= pixelData.count else { return nil }
 
+        let raw: UInt32
         if bytesPerVoxel == 2 {
-            let raw = pixelData.subdata(in: byteOffset..<(byteOffset + 2))
-                .withUnsafeBytes { $0.load(as: UInt16.self).littleEndian }
-            if isSigned && (raw & (1 << (bitsStored - 1))) != 0 {
-                // Sign-extend
-                let signedVal = Int16(bitPattern: raw)
-                return Int(signedVal)
-            }
-            return Int(raw)
+            raw = UInt32(pixelData.subdata(in: byteOffset..<(byteOffset + 2))
+                .withUnsafeBytes { $0.loadUnaligned(as: UInt16.self).littleEndian })
         } else {
-            return Int(pixelData[byteOffset])
+            raw = UInt32(pixelData[pixelData.startIndex + byteOffset])
         }
+        return Self.sampleValue(raw, bitsStored: bitsStored, highBit: highBit, isSigned: isSigned)
+    }
+
+    /// The stored sample in `raw`: bits `(highBit − bitsStored + 1)...highBit`, with
+    /// bit `highBit` as the sign bit for two's complement data (PS3.3 Table C.7-11c
+    /// High Bit and Pixel Representation; PS3.5 8.1.1). Bits above High Bit are not
+    /// part of the sample and are ignored.
+    static func sampleValue(_ raw: UInt32, bitsStored: Int, highBit: Int, isSigned: Bool) -> Int {
+        let stored = max(1, min(32, bitsStored))
+        let lowBit = max(0, highBit - stored + 1)
+        let mask: UInt32 = stored >= 32 ? .max : (UInt32(1) << UInt32(stored)) - 1
+        let value = (raw >> UInt32(lowBit)) & mask
+        if isSigned && stored < 32 && (value & (UInt32(1) << UInt32(stored - 1))) != 0 {
+            return Int(value) - (1 << stored)
+        }
+        return Int(value)
     }
 
     // MARK: - Initialiser
 
     /// Creates a `DICOMVolume` with the given parameters.
+    ///
+    /// `highBit` defaults to `bitsStored − 1`, the only value PS3.3 Table C.7-11c
+    /// permits; `photometricInterpretation` defaults to MONOCHROME2.
     public init(
         width: Int,
         height: Int,
         depth: Int,
         bitsAllocated: Int = 16,
         bitsStored: Int = 12,
+        highBit: Int? = nil,
         isSigned: Bool = false,
+        photometricInterpretation: PhotometricInterpretation = .monochrome2,
         spacingX: Double = 1.0,
         spacingY: Double = 1.0,
         spacingZ: Double = 1.0,
@@ -186,7 +226,10 @@ public struct DICOMVolume: Sendable {
         self.depth = depth
         self.bitsAllocated = bitsAllocated
         self.bitsStored = bitsStored
+        // PS3.3 Table C.7-11c: High Bit shall be one less than Bits Stored.
+        self.highBit = highBit ?? max(0, bitsStored - 1)
         self.isSigned = isSigned
+        self.photometricInterpretation = photometricInterpretation
         self.spacingX = spacingX
         self.spacingY = spacingY
         self.spacingZ = spacingZ

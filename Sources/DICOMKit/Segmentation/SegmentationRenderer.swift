@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — CIELab decoding per PS3.3 2026a C.10.7.1.1; LABELMAP rendering reads the Segment Number from the pixel value per C.8.20.2.3.3 and treats Pixel Padding Value as background per C.8.20.2.4; a PALETTE COLOR LABELMAP takes segment colours from its Palette Color Lookup Table (Table C.8.20-2, C.7.6.3.1.5)
 //
 // SegmentationRenderer.swift
 // DICOMKit
@@ -155,6 +156,65 @@ public struct SegmentationRenderer: Sendable {
         return createRGBACGImage(from: outputBytes, width: width, height: height)
     }
     
+    /// Render one frame of a LABELMAP segmentation as a colored overlay
+    ///
+    /// Each pixel's value is the Segment Number of the segment present there (PS3.3
+    /// C.8.20.2.3.3); it is painted with that segment's color at `options.opacity`. Pixels
+    /// whose value is the Pixel Padding Value (the background segment, C.8.20.2.4), belongs
+    /// to a hidden segment, or is not described by any segment stay transparent.
+    ///
+    /// - Parameters:
+    ///   - segmentation: A segmentation whose type is `.labelmap`
+    ///   - pixelData: The raw pixel data of all frames
+    ///   - frameIndex: The frame (slice) to render, 0-based
+    ///   - options: Rendering options (opacity, visibility, colors)
+    /// - Returns: CGImage containing the rendered overlay, or nil if the segmentation is not
+    ///   a LABELMAP or the frame cannot be read
+    public static func renderLabelmap(
+        segmentation: Segmentation,
+        pixelData: Data,
+        frameIndex: Int = 0,
+        options: RenderOptions = RenderOptions()
+    ) -> CGImage? {
+        guard segmentation.segmentationType == .labelmap,
+              let labels = SegmentationPixelDataExtractor.extractLabelmapFrame(
+                from: pixelData,
+                frameIndex: frameIndex,
+                rows: segmentation.rows,
+                columns: segmentation.columns,
+                bitsAllocated: segmentation.bitsAllocated
+              ) else {
+            return nil
+        }
+
+        let width = segmentation.columns
+        let height = segmentation.rows
+        let segmentColors = buildSegmentColorMap(from: segmentation, customColors: options.customColors)
+        let alpha = UInt8(max(0, min(255, options.opacity * 255.0)))
+
+        var outputBytes = [UInt8](repeating: 0, count: width * height * 4)
+        for (pixelIndex, label) in labels.enumerated() {
+            let segmentNumber = Int(label)
+            if let padding = segmentation.pixelPaddingValue, segmentNumber == padding {
+                continue
+            }
+            if let visible = options.visibleSegments, !visible.contains(segmentNumber) {
+                continue
+            }
+            guard let color = segmentColors[segmentNumber] else {
+                continue
+            }
+            let offset = pixelIndex * 4
+            // Premultiplied RGBA
+            outputBytes[offset] = UInt8((Int(color.r) * Int(alpha)) / 255)
+            outputBytes[offset + 1] = UInt8((Int(color.g) * Int(alpha)) / 255)
+            outputBytes[offset + 2] = UInt8((Int(color.b) * Int(alpha)) / 255)
+            outputBytes[offset + 3] = alpha
+        }
+
+        return createRGBACGImage(from: outputBytes, width: width, height: height)
+    }
+
     /// Composite segmentation overlay with a base image
     ///
     /// Renders the segmentation overlay and composites it over the provided base image.
@@ -287,6 +347,16 @@ public struct SegmentationRenderer: Sendable {
             // Use segment's recommended display color if available
             if let cielab = segment.recommendedDisplayCIELabValue {
                 colorMap[segmentNumber] = cielabToRGB(cielab)
+                continue
+            }
+
+            // A PALETTE COLOR LABELMAP carries its colours in the Palette Color Lookup
+            // Table, indexed by the stored pixel value = Segment Number (PS3.3 2026a
+            // Table C.8.20-2, C.7.6.3.1.5), and has no CIELab value
+            if segmentation.photometricInterpretation == "PALETTE COLOR",
+               let lut = segmentation.paletteColorLookupTable {
+                let color = lut.lookup(segmentNumber)
+                colorMap[segmentNumber] = (r: color.red, g: color.green, b: color.blue)
                 continue
             }
             

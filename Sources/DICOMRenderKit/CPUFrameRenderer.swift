@@ -5,6 +5,8 @@
 // tested against. It is a thin adapter over `PixelDataRenderer`, which is *not*
 // being replaced: it remains what `dicom-export`, `dicom-convert`, the print film
 // burn and headless CI use, none of which the GPU will ever serve.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — delegates to DICOMKit PixelDataRenderer; its VOI chain (WindowSettings.apply = PS3.3 2026a C.11.2.1.2.1/C.11.2.1.3.1/C.11.2.1.3.2 evaluated by Scripts/diff_renderkit.py, MONOCHROME1 after the VOI per C.7.6.3.1.2) and the pseudo-colour fold match; the Rec. 709 luma of the reader ramp is ITU-R BT.709, not DICOM. The no-window auto rung is the C.11.2.1.2.1 full-range window (D66); requests with the N.2 chain and Bits Allocated 32 frames go through GrayscaleDisplayPipeline (P-PIPELINE, D67); colour output is tagged with the ICC Profile (C.11.15.1.1, P-ICC).
 
 import Foundation
 import DICOMCore
@@ -25,6 +27,15 @@ public struct CPUFrameRenderer: FrameRenderBackend {
         )
         switch request.family {
         case .monochrome:
+            // The PS3.4 N.2 chain (P-PIPELINE), and any frame whose cells are too wide
+            // for a table (Bits Allocated 32, D67): one call that folds the chain into
+            // a table where it can and evaluates it per pixel where it cannot.
+            if request.usesDisplayPipeline || !WindowLUT.canTabulate(request.pixelData.descriptor) {
+                guard let pipeline = request.displayPipeline(scanningFrame: true) else { return nil }
+                return renderer.renderMonochromeFrame(
+                    request.frameIndex, pipeline: pipeline,
+                    pseudoColor: request.effectivePseudoColorPalette?.entries())
+            }
             // Without a window the renderer's own auto-window (the frame's pixel
             // range) applies — the same behaviour callers get from
             // `PixelDataRenderer.renderFrame`.
@@ -46,14 +57,22 @@ public struct CPUFrameRenderer: FrameRenderBackend {
         case .palette:
             // A reader's ramp still applies here, over the luminance of the
             // colours the file's own table produced. See `recoloured`.
-            return recoloured(
+            return tagged(recoloured(
                 renderer.renderPaletteColorFrame(request.frameIndex),
-                through: request.readerPalette)
+                through: request.readerPalette), request)
         case .color:
-            return recoloured(
+            return tagged(recoloured(
                 renderer.renderColorFrame(request.frameIndex),
-                through: request.readerPalette)
+                through: request.readerPalette), request)
         }
+    }
+
+    /// The image in the request's ICC Profile colour space (PS3.3 C.11.15.1.1, P-ICC):
+    /// the bytes are unchanged, only their meaning — which is what lets Core Graphics
+    /// convert the device colours for the screen. Untouched when there is no profile.
+    private func tagged(_ image: CGImage?, _ request: FrameRenderRequest) -> CGImage? {
+        guard let image, let space = request.outputColorSpace else { return image }
+        return image.copy(colorSpace: space) ?? image
     }
 
     /// Re-maps a rendered colour frame through a reader's pseudo-colour ramp.

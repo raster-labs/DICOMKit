@@ -5,7 +5,8 @@
 set -euo pipefail
 
 requested_version="${1:-}"
-required_version="${SWIFT_VERSION:-6.2}"
+package_version="$(sed -nE '1s/.*swift-tools-version: *([0-9]+\.[0-9]+).*/\1/p' Package.swift)"
+required_version="${SWIFT_VERSION:-$package_version}"
 
 select_developer_dir() {
   local candidate
@@ -44,7 +45,7 @@ xcodebuild -version
 swift --version
 
 # Swift tools versions are compared numerically (6.0 must not silently run a
-# package that declares swift-tools-version: 6.2).
+# package that declares swift-tools-version: 6.4).
 actual_version="$(swift --version | sed -nE 's/.*Swift version ([0-9]+\.[0-9]+).*/\1/p' | head -n 1)"
 if [[ -z "$actual_version" ]]; then
   echo "::error::Unable to determine the selected Swift version." >&2

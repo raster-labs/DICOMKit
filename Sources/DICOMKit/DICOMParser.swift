@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.5 2026a 7.1.2, 7.1.3, 7.5, A.4 and A.5 encoding rules read clause by clause (item and delimiter tags, undefined length, Basic Offset Table, fragments, raw DEFLATE); the multi-VR first-VR heuristic is recorded
 import Foundation
 import DICOMCore
 import DICOMDictionary

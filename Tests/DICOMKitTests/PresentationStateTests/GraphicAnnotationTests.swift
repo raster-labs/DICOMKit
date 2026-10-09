@@ -171,14 +171,20 @@ final class GraphicAnnotationTests: XCTestCase {
     }
     
     func test_graphicObject_ellipse() {
-        // Ellipse: 4 corner points of bounding box
+        // ELLIPSE: exactly four points, the endpoints of the major axis then the
+        // endpoints of the minor axis (PS3.3 2026a C.10.5.1.2) — not the corners
+        // of a bounding box. Column (X) precedes row (Y) in each point.
         let graphic = GraphicObject(
             type: .ellipse,
-            data: [50.0, 50.0, 150.0, 50.0, 150.0, 100.0, 50.0, 100.0]
+            data: [50.0, 75.0, 150.0, 75.0, 100.0, 50.0, 100.0, 100.0]
         )
         
         XCTAssertEqual(graphic.type, .ellipse)
         XCTAssertEqual(graphic.pointCount, 4)
+        XCTAssertEqual(graphic.point(at: 0)?.column, 50.0)   // major axis
+        XCTAssertEqual(graphic.point(at: 1)?.column, 150.0)
+        XCTAssertEqual(graphic.point(at: 2)?.row, 50.0)      // minor axis
+        XCTAssertEqual(graphic.point(at: 3)?.row, 100.0)
     }
     
     func test_graphicObject_filled() {

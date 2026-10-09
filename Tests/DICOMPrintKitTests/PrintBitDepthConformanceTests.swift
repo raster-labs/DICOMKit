@@ -4,8 +4,8 @@
 //
 // The depth a film actually goes out at.
 //
-// PS3.3 Table C.13-3 enumerates Bits Stored as 8 or 12 on the Basic Grayscale
-// Image Box, and Table C.13-5 fixes the colour box at 8. Enumerated Values are
+// PS3.3 Table C.13-5 enumerates Bits Stored as 8 or 12 in the Basic Grayscale
+// Image Sequence, and fixes the colour sequence at 8. Enumerated Values are
 // closed sets (PS3.5 3.6.1), so 16 bits *stored* is not a deep-grayscale
 // option — it is a non-conformant image box a printer may refuse outright.
 //
@@ -110,7 +110,9 @@ final class PrintBitDepthConformanceTests: XCTestCase {
         let note = try XCTUnwrap(PrintImagePreparer.clampNote(request(bitDepth: 16)))
         XCTAssertTrue(note.contains("16-bit"), note)
         XCTAssertTrue(note.contains("12-bit"), note)
-        XCTAssertTrue(note.contains("C.13-3"), note)
+        // Bits Stored 8/12 is the Image Box Pixel Presentation Module, Table
+        // C.13-5 (C.13-3 is the Film Box module) — D23.
+        XCTAssertTrue(note.contains("C.13-5"), note)
     }
 
     func testPaletteNoteExplainsWhyDepthWasDropped() throws {
@@ -158,7 +160,9 @@ final class PrintSCPCorrectionLogTests: XCTestCase {
 
         XCTAssertEqual(entry.level, .warning)
         XCTAssertTrue(entry.message.contains("Image box 1"), entry.message)
-        XCTAssertTrue(entry.message.contains("C.13-3"), entry.message)
+        // PS3.3 Table C.13-5 is the Image Box Pixel Presentation Module,
+        // which enumerates the depths for both image sequences.
+        XCTAssertTrue(entry.message.contains("C.13-5"), entry.message)
 
         // The rendered line is what ends up on screen, so it is worth pinning
         // that the warning tag survives formatting.

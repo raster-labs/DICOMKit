@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data. The two UIDs are private (1.2.826.0.1.3680043.10.511.x), not in PS3.6 2026a Table A-1; JP3D has no standard transfer syntax. C1 classification confirmed.
+
 import Foundation
 import J2KCore
 import J2K3D

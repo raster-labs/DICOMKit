@@ -12,6 +12,7 @@
 // into a `J2KEncodingConfiguration`. That keeps the routing policy testable on
 // every platform (including builds without J2KSwift) and isolates the one place
 // that must change as later phases widen GPU coverage and add real Part-2.
+// NEMA-verified: 2026a, checked 2026-09-25 — the UID family groupings (.90/.91 JPEG 2000 Part 1, .92/.93 Part 2 Multi-component, .201/.202/.203 High-Throughput JPEG 2000, .202 with RPCL) match PS3.6 2026a Table A-1 and the lossless-only / general split of PS3.5 2026a A.4.4; no other standard data. C1 classification confirmed.
 
 import Foundation
 

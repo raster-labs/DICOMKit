@@ -354,6 +354,7 @@ struct ROIFormattingTests {
     @Test("Format area mm²")
     func testFormatAreaMM() {
         let text = ROIHelpers.formatArea(pixelArea: 1000, physicalArea: 250.0, unit: .millimeters)
+        #expect(text == "250.0 mm2 (mm²)")
         #expect(text.contains("250.0"))
         #expect(text.contains("mm²"))
     }
@@ -361,6 +362,7 @@ struct ROIFormattingTests {
     @Test("Format area cm²")
     func testFormatAreaCM() {
         let text = ROIHelpers.formatArea(pixelArea: 1000, physicalArea: 250.0, unit: .centimeters)
+        #expect(text == "2.50 cm2 (cm²)")
         #expect(text.contains("2.50"))
         #expect(text.contains("cm²"))
     }
@@ -389,7 +391,7 @@ struct ROIFormattingTests {
         #expect(text.contains("Min: 50.0"))
         #expect(text.contains("Max: 200.0"))
         #expect(text.contains("Pixels: 1000"))
-        #expect(text.contains("Area: 250.0 mm²"))
+        #expect(text.contains("Area: 250.0 mm2 (mm²)"))   // UCUM code (PS3.16 2026a CID 7461) with the symbol, as dicom-measure prints it
         #expect(text.contains("Perimeter: 28.0 mm"))
     }
 }

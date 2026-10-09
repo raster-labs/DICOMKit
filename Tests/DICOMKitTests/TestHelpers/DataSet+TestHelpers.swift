@@ -38,13 +38,30 @@ extension DataSet {
     }
     
     /// Convenience method to append Int values to a DataSet
+    ///
+    /// The element takes the dictionary VR of `tag` (IS as a string, US/SS/UL/SL
+    /// as binary), so the parsers under test see the same encoding a real file
+    /// carries. An unknown tag falls back to SL.
     /// - Parameters:
     ///   - tag: The tag to append
     ///   - value: The Int value
     mutating func append(_ tag: Tag, _ value: Int) {
-        // Convert Int to appropriate type based on tag
-        // Most integer tags in DICOM are IS (Integer String) or SL/SS
-        self[tag] = DataElement.int32(tag: tag, value: Int32(value))
+        switch DataElementDictionary.lookup(tag: tag)?.vr.first {
+        case .IS?, .DS?, .LO?, .SH?, .CS?, .ST?, .LT?, .UT?:
+            self[tag] = DataElement.string(tag: tag, vr: DataElementDictionary.lookup(tag: tag)!.vr.first!, value: String(value))
+        case .US?:
+            self[tag] = DataElement.uint16(tag: tag, value: UInt16(clamping: value))
+        case .SS?:
+            self[tag] = DataElement.int16(tag: tag, value: Int16(clamping: value))
+        case .UL?:
+            self[tag] = DataElement.uint32(tag: tag, value: UInt32(clamping: value))
+        case .FD?:
+            self[tag] = DataElement.float64(tag: tag, value: Double(value))
+        case .FL?:
+            self[tag] = DataElement.float32(tag: tag, value: Float(value))
+        default:
+            self[tag] = DataElement.int32(tag: tag, value: Int32(clamping: value))
+        }
     }
     
     /// Convenience method to append array of Int values to a DataSet
@@ -75,11 +92,21 @@ extension DataSet {
     }
     
     /// Convenience method to append Double values to a DataSet
+    ///
+    /// DS tags are written as decimal strings, FL as Float32; anything else
+    /// (FD, unknown) as Float64.
     /// - Parameters:
     ///   - tag: The tag to append
     ///   - value: The Double value
     mutating func append(_ tag: Tag, _ value: Double) {
-        self[tag] = DataElement.float64(tag: tag, value: value)
+        switch DataElementDictionary.lookup(tag: tag)?.vr.first {
+        case .DS?:
+            self[tag] = DataElement.string(tag: tag, vr: .DS, value: String(value))
+        case .FL?:
+            self[tag] = DataElement.float32(tag: tag, value: Float(value))
+        default:
+            self[tag] = DataElement.float64(tag: tag, value: value)
+        }
     }
     
     /// Convenience method to append DICOMDate values to a DataSet

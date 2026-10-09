@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — C-ECHO fields per PS3.7 2026a Table 9.3-12/9.3-13; Verification SOP Class and the two transfer syntax UIDs registered in PS3.6 2026a Table A-1 (Scripts/diff_network.py)
 
 // MARK: - SOP Class UIDs
 
@@ -145,7 +146,7 @@ public struct VerificationConfiguration: Sendable, Hashable {
     public let userIdentity: UserIdentity?
     
     /// Default Implementation Class UID for DICOMKit
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.1"
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
     
     /// Default Implementation Version Name for DICOMKit
     public static let defaultImplementationVersionName = "DICOMKIT_001"
@@ -156,7 +157,7 @@ public struct VerificationConfiguration: Sendable, Hashable {
     ///   - callingAETitle: The local AE title
     ///   - calledAETitle: The remote AE title
     ///   - timeout: Connection timeout in seconds (default: 30)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - userIdentity: User identity for authentication (optional)

@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — the 20 SOP Class UIDs and names diffed against PS3.6 2026a Table A-1 (all registered; the en dash in the DX name corrected); QIDO attribute tags against PS3.18 Table 10.6.1-5
 /// Generator for DICOM Conformance Statements
 ///
 /// Creates conformance statements from DICOMweb server configuration and capabilities.
@@ -270,6 +271,8 @@ public enum ConformanceStatementGenerator {
             ConformanceStatement.QueryAttribute(tag: "00080050", name: "AccessionNumber", vr: "SH", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "00080061", name: "ModalitiesInStudy", vr: "CS", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "0020000D", name: "StudyInstanceUID", vr: "UI", levels: ["STUDY", "SERIES", "INSTANCE"]),
+            ConformanceStatement.QueryAttribute(tag: "00200010", name: "StudyID", vr: "SH", levels: ["STUDY"]),
+            ConformanceStatement.QueryAttribute(tag: "00080090", name: "ReferringPhysicianName", vr: "PN", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "00080060", name: "Modality", vr: "CS", levels: ["SERIES"]),
             ConformanceStatement.QueryAttribute(tag: "0020000E", name: "SeriesInstanceUID", vr: "UI", levels: ["SERIES", "INSTANCE"]),
             ConformanceStatement.QueryAttribute(tag: "00200011", name: "SeriesNumber", vr: "IS", levels: ["SERIES"]),
@@ -285,7 +288,6 @@ public enum ConformanceStatementGenerator {
             ConformanceStatement.QueryAttribute(tag: "00100030", name: "PatientBirthDate", vr: "DA", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "00100040", name: "PatientSex", vr: "CS", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "00081030", name: "StudyDescription", vr: "LO", levels: ["STUDY"]),
-            ConformanceStatement.QueryAttribute(tag: "00080090", name: "ReferringPhysicianName", vr: "PN", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "00201206", name: "NumberOfStudyRelatedSeries", vr: "IS", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "00201208", name: "NumberOfStudyRelatedInstances", vr: "IS", levels: ["STUDY"]),
             ConformanceStatement.QueryAttribute(tag: "0008103E", name: "SeriesDescription", vr: "LO", levels: ["SERIES"]),
@@ -330,7 +332,7 @@ public enum ConformanceStatementGenerator {
             ),
             ConformanceStatement.SOPClassInfo(
                 uid: "1.2.840.10008.5.1.4.1.1.1.1",
-                name: "Digital X-Ray Image Storage – For Presentation",
+                name: "Digital X-Ray Image Storage - For Presentation",
                 category: "Image"
             ),
             ConformanceStatement.SOPClassInfo(
@@ -372,7 +374,7 @@ public enum ConformanceStatementGenerator {
             "1.2.840.10008.5.1.4.1.1.2": ("CT Image Storage", "Image"),
             "1.2.840.10008.5.1.4.1.1.4": ("MR Image Storage", "Image"),
             "1.2.840.10008.5.1.4.1.1.1": ("Computed Radiography Image Storage", "Image"),
-            "1.2.840.10008.5.1.4.1.1.1.1": ("Digital X-Ray Image Storage – For Presentation", "Image"),
+            "1.2.840.10008.5.1.4.1.1.1.1": ("Digital X-Ray Image Storage - For Presentation", "Image"),
             "1.2.840.10008.5.1.4.1.1.7": ("Secondary Capture Image Storage", "Image"),
             "1.2.840.10008.5.1.4.1.1.12.1": ("X-Ray Angiographic Image Storage", "Image"),
             "1.2.840.10008.5.1.4.1.1.6.1": ("Ultrasound Image Storage", "Image"),

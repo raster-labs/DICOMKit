@@ -1,6 +1,7 @@
 import Foundation
 #if canImport(os)
 import os
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (log categories and formatting only)
 #endif
 
 // MARK: - Log Level

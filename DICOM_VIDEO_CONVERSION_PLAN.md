@@ -557,8 +557,17 @@ the bytes to encapsulation unchanged wherever possible.
   `AVFileType.mp4` and compressed sample appends) — stream copy only, never re-encode.
 - Reject MP4s carrying multiple video tracks, or a video track plus content we cannot
   represent, rather than silently picking track 0.
-- Audio: DICOM video IODs have no audio. Strip it during the remux and **warn** —
-  see the resolved open question below.
+- Audio: DICOM video may carry audio. PS3.5 2026a 8.2.5 (MPEG2 MP@ML, applied to
+  MP@HL by 8.2.6) restricts "any audio components present within the MPEG bit
+  stream" to CBR MP3; 8.2.7–8.2.11 (H.264, HEVC) send "any audio components included
+  in the data container" to 8.2.12, whose Table 8.2.12-1 allows AAC, MP3 and MPEG-1
+  Audio Layer II in MP4, and those plus LPCM and AC-3 in MPEG-2 TS. DICOMKit keeps the
+  audio in the bit stream unchanged and checks each track against those constraints
+  (`VideoConformanceValidator.validateAudio`, D46): a violation is a **warning**, never a
+  rejection or a re-encode — see the resolved open question below. MP3 frame headers are
+  walked for the CBR rule, and LATM/raw MPEG-4 audio in MPEG-TS is identified (D58); bits per
+  sample of compressed audio is stated as not in the bit stream, and what remains unknown
+  (e.g. MP3 complementary channels) is reported as "not checked".
 
 ### 4.2 Parameter-set access for validation
 
@@ -1059,10 +1068,19 @@ separate series.
   count from the MP4 sample table (Phase 4.2) is O(1)-ish and avoids walking the
   bitstream. Access-unit counting is now only the fallback for raw elementary streams.
   Still worth confirming typical clip length.
-- **Audio tracks** — *resolved (2026-10-01)*: PS3.5 8.2.12 permits audio interleaved
-  in the container, and the payload is encapsulated unchanged, so audio is carried.
-  It is validated against 8.2.12 / 8.2.5; a non-conformant track is rejected with a
-  remedy that re-encodes only the audio (`-c:v copy`) or drops it.
+- **Audio tracks** — *resolved*: audio is permitted in DICOM video (PS3.5 2026a
+  8.2.5–8.2.12; Table 8.2.12-1 lists the formats allowed in MP4 and MPEG-2 TS), so
+  it is kept in the bit stream, not stripped. The earlier premise that DICOM video
+  IODs have no audio was wrong, and `convert` never removed it. Since D46 the probe
+  reads each track's format, sampling frequency, channels, bits per sample and bit rate
+  (MP4 and MPEG-TS) and checks them against 8.2.5/8.2.12; a track known to break them is **rejected** (exit 2; PS3.5
+  says audio "shall follow the constraints"), with a remedy that re-encodes only the audio, e.g.
+  `error: audio track 1 (AAC, 44.1 kHz, 2 channels, max 192 kbit/s) sampling frequency 44.1 kHz is not permitted for AAC; PS3.5 8.2.12 allows 48 kHz`.
+  When no track's format can be identified the earlier `VideoConsole.audioCarriedLine`
+  text is used. (003A,0300) gets Items only when the Channel Source (CID 3000) is named
+  through the library (`VideoWorkflow.Metadata.audioChannelSource`; no CLI option, D56);
+  `VideoParser` reads them back, together with the Cine attributes `VideoBuilder` writes
+  (Frame Time Vector, Preferred Playback Sequencing, Image Trigger Delay, Effective Duration; D60).
 - **`ImageType` value** (F5) — `ORIGINAL\PRIMARY` is the safe default for
   camera-captured video. Confirm whether any workflow needs `DERIVED`.
 

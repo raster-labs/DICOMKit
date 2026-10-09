@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data beyond the CIELab maths used for C.10.7.1.1 encoding (D65 reference, recorded)
 //
 // ColorTransform.swift
 // DICOMKit

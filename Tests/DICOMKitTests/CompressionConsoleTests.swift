@@ -76,9 +76,10 @@ final class CompressionConsoleTests: XCTestCase {
             "Note: Source is already compressed (JPEG 2000 Lossless) — decompressing to native pixels first, then re-encoding\n")
 
         // Compression phase ratio/time lines (time's double space aligns its value
-        // under the one-char-longer ratio label).
+        // under the one-char-longer ratio label). Ratios are "N:1" — PS3.3 2026a
+        // C.7.6.1.1.5.2 (D183); the decompression phase is "1:N".
         XCTAssertEqual(CompressionConsole.compressRatioLine(inputSize: 528_924, outputSize: 174_400),
-                       "Compression ratio: 33.0%\n")
+                       "Compression ratio: 3.03:1\n")
         XCTAssertEqual(CompressionConsole.compressTimeLine(elapsed: 1.234), "Compression time:  1.234s\n")
         // No input bytes → no ratio line
         XCTAssertEqual(CompressionConsole.compressRatioLine(inputSize: 0, outputSize: 100), "")
@@ -87,11 +88,11 @@ final class CompressionConsoleTests: XCTestCase {
         XCTAssertEqual(
             CompressionConsole.compressSummary(inputSize: 528_924, intermediateSize: nil, outputSize: 174_400,
                                                decompressElapsed: nil, compressElapsed: 0.5),
-            "Compression ratio: 33.0%\nCompression time:  0.500s\n")
+            "Compression ratio: 3.03:1\nCompression time:  0.500s\n")
         XCTAssertEqual(
             CompressionConsole.compressStats(inputSize: 528_924, intermediateSize: nil, outputSize: 174_400,
                                              decompressElapsed: nil, compressElapsed: 0.5),
-            "Input size:  516.5 KB\nOutput size: 170.3 KB\nCompression ratio: 33.0%\nCompression time:  0.500s\n")
+            "Input size:  516.5 KB\nOutput size: 170.3 KB\nCompression ratio: 3.03:1\nCompression time:  0.500s\n")
 
         // Recompression (already-compressed source → different codec): BOTH phases —
         // decompression (source→native) then compression (native→target).
@@ -99,11 +100,11 @@ final class CompressionConsoleTests: XCTestCase {
         XCTAssertEqual(
             CompressionConsole.compressSummary(inputSize: 174_400, intermediateSize: 528_924, outputSize: 261_120,
                                                decompressElapsed: 0.042, compressElapsed: 1.234),
-            "Decompression ratio: 303.3%\nDecompression time:  0.042s\nCompression ratio: 49.4%\nCompression time:  1.234s\n")
+            "Decompression ratio: 1:3.03\nDecompression time:  0.042s\nCompression ratio: 2.03:1\nCompression time:  1.234s\n")
         XCTAssertEqual(
             CompressionConsole.compressStats(inputSize: 174_400, intermediateSize: 528_924, outputSize: 261_120,
                                              decompressElapsed: 0.042, compressElapsed: 1.234),
-            "Input size:        170.3 KB\nDecompressed size: 516.5 KB\nOutput size:       255.0 KB\nDecompression ratio: 303.3%\nDecompression time:  0.042s\nCompression ratio: 49.4%\nCompression time:  1.234s\n")
+            "Input size:        170.3 KB\nDecompressed size: 516.5 KB\nOutput size:       255.0 KB\nDecompression ratio: 1:3.03\nDecompression time:  0.042s\nCompression ratio: 2.03:1\nCompression time:  1.234s\n")
     }
 
     func testDecompressLines() {
@@ -115,19 +116,19 @@ final class CompressionConsoleTests: XCTestCase {
             "Decompressing: /c.dcm\nTarget syntax: Explicit VR Little Endian\n")
         // Expansion ratio + time (input=170.3 KB compressed → output=516.5 KB uncompressed).
         XCTAssertEqual(CompressionConsole.decompressRatioLine(inputSize: 174_400, outputSize: 528_924),
-                       "Decompression ratio: 303.3%\n")
+                       "Decompression ratio: 1:3.03\n")
         XCTAssertEqual(CompressionConsole.decompressTimeLine(elapsed: 0.042), "Decompression time:  0.042s\n")
         // Non-verbose summary (ratio + time)
         XCTAssertEqual(
             CompressionConsole.decompressSummary(inputSize: 174_400, outputSize: 528_924, elapsed: 0.042),
-            "Decompression ratio: 303.3%\nDecompression time:  0.042s\n")
+            "Decompression ratio: 1:3.03\nDecompression time:  0.042s\n")
         // Verbose stats now include the expansion ratio; ratio shows even without elapsed.
         XCTAssertEqual(
             CompressionConsole.decompressStats(inputSize: 174_400, outputSize: 528_924),
-            "Input size:  170.3 KB\nOutput size: 516.5 KB\nDecompression ratio: 303.3%\n")
+            "Input size:  170.3 KB\nOutput size: 516.5 KB\nDecompression ratio: 1:3.03\n")
         XCTAssertEqual(
             CompressionConsole.decompressStats(inputSize: 174_400, outputSize: 528_924, elapsed: 0.042),
-            "Input size:  170.3 KB\nOutput size: 516.5 KB\nDecompression ratio: 303.3%\nDecompression time:  0.042s\n")
+            "Input size:  170.3 KB\nOutput size: 516.5 KB\nDecompression ratio: 1:3.03\nDecompression time:  0.042s\n")
     }
 
     func testCompressBackendReporting() {

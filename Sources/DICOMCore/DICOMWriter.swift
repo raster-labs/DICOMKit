@@ -6,6 +6,8 @@ import Foundation
 /// Supports Explicit VR Little Endian transfer syntax (the most common format).
 ///
 /// Reference: DICOM PS3.5 Section 7.1 - Data Element Encoding Rules
+///
+/// NEMA-verified: 2026a, checked 2026-10-01 — values are written in the writer's byte order, swapping 2-byte US/SS/OW/AT, 4-byte UL/SL/FL/OF/OL and 8-byte FD/OD/OV/SV/UV units when the element's order differs (PS3.5 2026a 7.3; D206); element headers (Tables 7.1-1/7.1-2 with the 13 32-bit-length VRs), padding (SPACE for strings, NULL for UI and OB, PS3.5 Table 6.2-1), backslash value separators, explicit-length Items (§7.5.1) and encapsulated Pixel Data layout (§A.4: undefined length, Basic Offset Table Item, even-length fragment Items, Sequence Delimitation Item) all match PS3.5 2026a.
 public struct DICOMWriter: Sendable {
     
     /// The byte order for writing multi-byte values
@@ -317,12 +319,40 @@ public struct DICOMWriter: Sendable {
         // Write header
         data.append(serializeElementHeader(tag: element.tag, vr: element.vr, length: element.length))
 
-        // Write value data
+        // Write value data, in this writer's byte order: a value parsed from (or built for) the
+        // other order is byte-swapped per its VR (PS3.5 2026a 7.3; D206).
         if element.length != 0xFFFFFFFF {
-            data.append(element.valueData)
+            data.append(Self.value(element.valueData, vr: element.vr, from: element.byteOrder, to: byteOrder))
         }
 
         return data
+    }
+
+    /// The size of one binary value unit that changes with byte order. PS3.5 2026a 7.3 lists the
+    /// VRs "that are not a string of characters and consist of multiple bytes": "2-byte US, SS, OW
+    /// and each component of AT", "4-byte OF, OL, UL, SL, and FL", "8-byte OD, OV, FD, SV and UV"
+    /// (Big Endian itself is retired, A.3, described in PS3.5 2016b). `nil` for a VR whose value
+    /// is not byte-swapped (OB, UN, SQ, character strings).
+    public static func byteSwapUnit(for vr: VR) -> Int? {
+        switch vr {
+        case .US, .SS, .OW, .AT: return 2
+        case .UL, .SL, .FL, .OF, .OL: return 4
+        case .FD, .OD, .OV, .SV, .UV: return 8
+        default: return nil
+        }
+    }
+
+    /// `value` re-expressed in `target` byte order. A value whose length is not a multiple of
+    /// the VR's unit is returned unchanged (it is malformed; swapping part of it would hide that).
+    public static func value(_ value: Data, vr: VR, from source: ByteOrder, to target: ByteOrder) -> Data {
+        guard source != target, let unit = byteSwapUnit(for: vr), value.count % unit == 0 else { return value }
+        var bytes = [UInt8](value)
+        var i = 0
+        while i < bytes.count {
+            bytes[i..<(i + unit)].reverse()
+            i += unit
+        }
+        return Data(bytes)
     }
 
     /// Serializes an encapsulated PixelData element per DICOM PS3.5 A.4

@@ -231,7 +231,7 @@ final class MP4ContainerParserTests: XCTestCase {
         // still be identified as QuickTime.
         let mov = mp4File(tracks: [], major: "qt  ", compatible: ["qt  "])
         XCTAssertEqual(MP4ContainerParser.detectContainer(mov), .quickTime)
-        XCTAssertFalse(MP4ContainerParser.detectContainer(mov).isPermittedByDICOM)
+        XCTAssertFalse(MP4ContainerParser.detectContainer(mov).isPermittedByDICOM(for: .h264))
     }
 
     func test_detectContainer_recognizesTransportStream() {
@@ -269,12 +269,21 @@ final class MP4ContainerParserTests: XCTestCase {
     }
 
     func test_permittedContainers_matchTheStandard() {
-        // PS3.5 8.2.7: MPEG-TS or MP4 only.
-        XCTAssertTrue(VideoContainer.mp4.isPermittedByDICOM)
-        XCTAssertTrue(VideoContainer.mpegTS.isPermittedByDICOM)
-        XCTAssertFalse(VideoContainer.quickTime.isPermittedByDICOM)
-        XCTAssertFalse(VideoContainer.elementaryStream.isPermittedByDICOM)
-        XCTAssertFalse(VideoContainer.unknown.isPermittedByDICOM)
+        // PS3.5 2026a 8.2.7-8.2.11 (H.264, HEVC): MPEG-TS or MP4 only.
+        for codec in [VideoCodec.h264, .h265, .unknown] {
+            XCTAssertTrue(VideoContainer.mp4.isPermittedByDICOM(for: codec))
+            XCTAssertTrue(VideoContainer.mpegTS.isPermittedByDICOM(for: codec))
+            XCTAssertFalse(VideoContainer.quickTime.isPermittedByDICOM(for: codec))
+            XCTAssertFalse(VideoContainer.elementaryStream.isPermittedByDICOM(for: codec))
+            XCTAssertFalse(VideoContainer.unknown.isPermittedByDICOM(for: codec))
+        }
+        // PS3.5 2026a 8.2.5 / 8.2.6 (MPEG-2): "The container format for the video bit
+        // stream is not constrained" — MPEG-TS, MPEG-PS, MPEG-ES, MPEG-PES or MP4.
+        XCTAssertTrue(VideoContainer.mp4.isPermittedByDICOM(for: .mpeg2))
+        XCTAssertTrue(VideoContainer.mpegTS.isPermittedByDICOM(for: .mpeg2))
+        XCTAssertTrue(VideoContainer.elementaryStream.isPermittedByDICOM(for: .mpeg2))
+        XCTAssertTrue(VideoContainer.quickTime.isPermittedByDICOM(for: .mpeg2))
+        XCTAssertFalse(VideoContainer.unknown.isPermittedByDICOM(for: .mpeg2))
     }
 
     // MARK: - Box Walking
@@ -376,7 +385,8 @@ final class MP4ContainerParserTests: XCTestCase {
     }
 
     func test_inspect_countsAudioTracks() throws {
-        // DICOM video IODs carry no audio, so the count drives a warning.
+        // DICOM video may carry audio (PS3.5 8.2.5-8.2.12, Table 8.2.12-1); the
+        // count drives the "kept, not checked" warning and (003A,0300).
         let videoEntry = visualSampleEntry(
             format: "avc1", width: 1920, height: 1080,
             extensions: avcC(sps: [Self.spsH264Unit], pps: []))

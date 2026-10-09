@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — SOP Class UIDs match PS3.6 2026a Table A-1; MIME types are the Enumerated Values of PS3.3 A.85 (model/stl)
 //
 // EncapsulatedDocument.swift
 // DICOMKit
@@ -208,7 +209,7 @@ public enum EncapsulatedDocumentType: String, Sendable {
         switch self {
         case .pdf: return "application/pdf"
         case .cda: return "text/xml"
-        case .stl: return "application/sla"
+        case .stl: return "model/stl"   // PS3.3 A.85.1, Enumerated Value of MIME Type of Encapsulated Document
         case .obj: return "model/obj"
         case .mtl: return "model/mtl"
         case .unknown: return "application/octet-stream"

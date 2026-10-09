@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — the 8 module-defined tags and every key VR checked against PS3.6 2026a Table 6-1; key levels against PS3.4 2026a Tables C.6-1..C.6-5 (Patient's Age is a study-level key)
 
 /// Query/Retrieve Level tag (0008,0052)
 ///
@@ -97,6 +98,10 @@ public struct QueryKeys: Sendable, Hashable {
     /// - Returns: Updated query keys
     public func matching(_ tag: Tag, value: String, vr: VR) -> QueryKeys {
         var copy = self
+        // A data set holds each tag once (PS3.5 7.1): a later key for the same
+        // tag replaces the earlier one, so `.requestPatientID().patientID("P1")`
+        // yields a single (0010,0020) element carrying "P1".
+        copy.keys.removeAll { $0.tag == tag }
         copy.keys.append(QueryKey(tag: tag, value: value, vr: vr))
         return copy
     }
@@ -109,6 +114,8 @@ public struct QueryKeys: Sendable, Hashable {
     /// - Returns: Updated query keys
     public func returning(_ tag: Tag, vr: VR) -> QueryKeys {
         var copy = self
+        // Never downgrade a matching key already set for this tag to a return key.
+        guard !copy.keys.contains(where: { $0.tag == tag }) else { return copy }
         copy.keys.append(QueryKey(tag: tag, value: "", vr: vr))
         return copy
     }
@@ -171,12 +178,15 @@ public struct QueryKeys: Sendable, Hashable {
         returning(.patientSex, vr: .CS)
     }
     
-    /// Requests Patient Age be returned
+    // MARK: - Study Level Keys
+
+    /// Requests Patient's Age (0010,1010) be returned
+    ///
+    /// A study-level Optional Key (PS3.4 Tables C.6-2 / C.6-5); Table C.6-1
+    /// (patient level) lists no Patient's Age, so it is not a patient-level key.
     public func requestPatientAge() -> QueryKeys {
         returning(.patientAge, vr: .AS)
     }
-    
-    // MARK: - Study Level Keys
     
     /// Matches Study Instance UID
     ///

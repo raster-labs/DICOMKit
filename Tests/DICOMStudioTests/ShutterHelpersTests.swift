@@ -172,3 +172,47 @@ struct ShutterDisplayTests {
         #expect(abs(ShutterHelpers.normalizedShutterGray(32768) - 0.5) < 0.01)
     }
 }
+
+#if canImport(SwiftUI)
+import SwiftUI
+
+/// PS3.3 2026a C.7.6.11, Shutter Shape (0018,1600): "When multiple Values are
+/// present … all of the shapes shall be combined and applied simultaneously,
+/// that is, the least amount of image remaining shall be visible" — the
+/// cut-out drawn over the image is the intersection of the shapes, which is
+/// also what `ShutterHelpers.isPixelVisible` answers pixel by pixel.
+@Suite("ShutterOverlayView cut-out")
+struct ShutterOverlayCutoutTests {
+
+    @Test("Several shapes cut out their intersection, not their union (PS3.3 C.7.6.11)")
+    func cutoutIsTheIntersection() {
+        let model = ShutterModel(
+            shapes: [.rectangular, .circular],
+            rectangular: RectangularShutter(top: 0, bottom: 100, left: 0, right: 100),
+            circular: CircularShutter(centerRow: 100, centerColumn: 100, radius: 50))
+        let path = ShutterCutoutShape(shutter: model, scaleX: 1, scaleY: 1)
+            .path(in: CGRect(x: 0, y: 0, width: 200, height: 200))
+
+        // Inside the rectangle only: occluded by the circle, so not cut out.
+        #expect(!path.contains(CGPoint(x: 10, y: 10)))
+        #expect(!ShutterHelpers.isPixelVisible(row: 10, column: 10, shutter: model))
+        // Inside the circle only: occluded by the rectangle.
+        #expect(!path.contains(CGPoint(x: 120, y: 120)))
+        #expect(!ShutterHelpers.isPixelVisible(row: 120, column: 120, shutter: model))
+        // Inside both: visible.
+        #expect(path.contains(CGPoint(x: 90, y: 90)))
+        #expect(ShutterHelpers.isPixelVisible(row: 90, column: 90, shutter: model))
+    }
+
+    @Test("A single shape cuts out exactly itself")
+    func singleShape() {
+        let model = ShutterModel(
+            shapes: [.circular],
+            circular: CircularShutter(centerRow: 50, centerColumn: 50, radius: 10))
+        let path = ShutterCutoutShape(shutter: model, scaleX: 1, scaleY: 1)
+            .path(in: CGRect(x: 0, y: 0, width: 100, height: 100))
+        #expect(path.contains(CGPoint(x: 50, y: 50)))
+        #expect(!path.contains(CGPoint(x: 80, y: 80)))
+    }
+}
+#endif

@@ -18,6 +18,8 @@ import Foundation
 /// Reference: DICOM PS3.5 Section 6.2 - AE Value Representation
 /// Reference: DICOM PS3.8 Section 9.2.1 - AE Title
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the AE row of PS3.5 2026a Table 6.2-1 (16 bytes max; Default Character Repertoire without 5CH and control characters; leading/trailing spaces not significant). The row also says a Value of spaces only "shall not be used"; `parse` accepts it as the empty value, a deliberate leniency on read.
+///
 /// Examples:
 /// - "STORESCU"
 /// - "PACS_SERVER"

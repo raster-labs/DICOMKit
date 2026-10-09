@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — A-RELEASE-RQ/RP layout compared with PS3.8 2026a Tables 9-24 and 9-25 (type, reserved, fixed length 4, 4 reserved bytes): match
 
 /// A-RELEASE-RQ PDU (Release Request)
 ///

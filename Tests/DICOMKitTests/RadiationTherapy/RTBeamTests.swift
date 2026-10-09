@@ -245,9 +245,90 @@ final class RTBeamTests: XCTestCase {
         
         XCTAssertEqual(beam.numberOfControlPoints, 3)
         XCTAssertEqual(beam.type, "DYNAMIC")
+        XCTAssertEqual(beam.beamType, .dynamic)
         XCTAssertEqual(beam.controlPoints[0].gantryAngle, 0.0)
         XCTAssertEqual(beam.controlPoints[1].gantryAngle, 45.0)
         XCTAssertEqual(beam.controlPoints[2].gantryAngle, 90.0)
         XCTAssertEqual(beam.controlPoints[2].cumulativeMetersetWeight, 1.0)
+    }
+
+    // MARK: - 2026a term enums (PS3.3 Table C.8-50)
+
+    func test_beamType_rawValues() {
+        XCTAssertEqual(BeamType.allCases.map(\.rawValue), ["STATIC", "DYNAMIC"])
+    }
+
+    func test_radiationType_rawValues() {
+        XCTAssertEqual(RadiationType.allCases.map(\.rawValue), ["PHOTON", "ELECTRON", "NEUTRON", "PROTON"])
+    }
+
+    func test_primaryDosimeterUnit_rawValues() {
+        XCTAssertEqual(PrimaryDosimeterUnit.allCases.map(\.rawValue), ["MU", "MINUTE"])
+    }
+
+    func test_highDoseTechniqueType_rawValues() {
+        XCTAssertEqual(HighDoseTechniqueType.allCases.map(\.rawValue), ["TBI", "HDR"])
+    }
+
+    func test_treatmentDeliveryType_rawValues() {
+        XCTAssertEqual(TreatmentDeliveryType.allCases.map(\.rawValue),
+                       ["TREATMENT", "OPEN_PORTFILM", "TRMT_PORTFILM", "CONTINUATION", "SETUP"])
+    }
+
+    func test_rtBeamLimitingDeviceType_rawValues() {
+        XCTAssertEqual(RTBeamLimitingDeviceType.allCases.map(\.rawValue), ["X", "Y", "ASYMX", "ASYMY", "MLCX", "MLCY"])
+    }
+
+    func test_rotationDirection_rawValues() {
+        XCTAssertEqual(RotationDirection.allCases.map(\.rawValue), ["CW", "CC", "NONE"])
+    }
+
+    func test_wedgeType_and_placement_rawValues() {
+        XCTAssertEqual(WedgeType.allCases.map(\.rawValue), ["STANDARD", "DYNAMIC", "MOTORIZED"])
+        XCTAssertEqual(WedgePlacement.allCases.map(\.rawValue), ["IN", "OUT"])
+    }
+
+    func test_rtBeam_typedAccessors_deriveFromStrings() {
+        let beam = RTBeam(
+            number: 1,
+            type: "STATIC",
+            radiationType: "NEUTRON",
+            primaryDosimeterUnit: "MINUTE",
+            treatmentDeliveryType: "TRMT_PORTFILM",
+            highDoseTechniqueType: "HDR"
+        )
+        XCTAssertEqual(beam.beamType, .static)
+        XCTAssertEqual(beam.radiationTypeTerm, .neutron)
+        XCTAssertEqual(beam.primaryDosimeterUnitTerm, .minute)
+        XCTAssertEqual(beam.treatmentDeliveryTypeTerm, .treatmentPortfilm)
+        XCTAssertEqual(beam.highDoseTechniqueTypeTerm, .highDoseRate)
+
+        let legacy = RTBeam(number: 2, type: "MODULATED", radiationType: "CARBON", primaryDosimeterUnit: "MINUTES")
+        XCTAssertEqual(legacy.type, "MODULATED")
+        XCTAssertNil(legacy.beamType)
+        XCTAssertNil(legacy.radiationTypeTerm)
+        XCTAssertNil(legacy.primaryDosimeterUnitTerm)
+        XCTAssertNil(legacy.treatmentDeliveryTypeTerm)
+    }
+
+    func test_controlPoint_and_device_typedAccessors() {
+        let jaw = BeamLimitingDevicePosition(type: "ASYMY", positions: [-5, 5])
+        XCTAssertEqual(jaw.deviceType, .asymmetricY)
+        XCTAssertNil(BeamLimitingDevicePosition(type: "MLC", positions: []).deviceType)
+
+        let point = BeamControlPoint(
+            index: 0,
+            gantryRotationDirection: "CC",
+            beamLimitingDeviceRotationDirection: "CW",
+            patientSupportRotationDirection: "NONE"
+        )
+        XCTAssertEqual(point.gantryRotation, .counterClockwise)
+        XCTAssertEqual(point.beamLimitingDeviceRotation, .clockwise)
+        XCTAssertEqual(point.patientSupportRotation, RotationDirection.none)
+        XCTAssertNil(BeamControlPoint(index: 1).gantryRotation)
+
+        let wedge = WedgePosition(number: 1, type: "MOTORIZED", position: "IN")
+        XCTAssertEqual(wedge.wedgeType, .motorized)
+        XCTAssertEqual(wedge.placement, .in)
     }
 }

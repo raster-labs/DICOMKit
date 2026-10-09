@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (assembly of server, composer and sinks)
 //
 // PrintSCPService.swift
 // DICOMPrintKit

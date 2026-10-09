@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — the 4 level values text-diffed against PS3.4 2026a Table C.6.1-1 (Scripts/diff_network.py): 4 of 4 match
 
 /// Query Level for C-FIND operations
 ///

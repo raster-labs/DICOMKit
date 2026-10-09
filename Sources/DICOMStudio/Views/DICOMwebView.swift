@@ -1,5 +1,6 @@
 // DICOMwebView.swift
 // DICOMStudio
+// NEMA-verified: 2026a, checked 2026-10-05 — JPIP header lists the 4 JPIP transfer syntaxes of PS3.6 2026a Table A-1 (1.2.840.10008.1.2.4.94 / .95 / .204 / .205) and the uri panel names Pixel Data Provider URL (0028,7FE0) per PS3.6 Table 6-1 and PS3.5 A.6 (was "(0008,1190) RETRIEVE URL"); UPS state strings SCHEDULED / IN PROGRESS / COMPLETED / CANCELED match PS3.3 2026a C.30.1; the dicom-jpip command strings are tool options (ISO/IEC 15444-9), out of scope; everything else is layout
 //
 // DICOM Studio — DICOMweb Integration Hub view for WADO-RS, QIDO-RS, STOW-RS,
 // UPS-RS operations, server configuration, and performance monitoring.
@@ -1568,12 +1569,12 @@ public struct DICOMwebView: View {
         }
     }
 
-    private func upsStateColor(_ state: UPSState) -> Color {
+    private func upsStateColor(_ state: WebUPSState) -> Color {
         switch state {
         case .scheduled:  return .blue
         case .inProgress: return .orange
         case .completed:  return .green
-        case .cancelled:  return .red
+        case .canceled:   return .red
         }
     }
 
@@ -1875,7 +1876,7 @@ private struct JPIPContentView: View {
                 Label("JPIP Streaming", systemImage: "arrow.down.to.line")
                     .font(.headline)
                 Spacer()
-                Text("Transfer Syntax: 1.2.840.10008.1.2.4.94 / .95")
+                Text("Transfer Syntaxes: 1.2.840.10008.1.2.4.94 / .95 / .204 / .205")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -1953,7 +1954,7 @@ private struct JPIPContentView: View {
 
     private var uriPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Extract the JPIP URI embedded in a DICOM file (tag (0008,1190) RETRIEVE URL).")
+            Text("Extract the JPIP request URL of a JPIP-referenced DICOM file: Pixel Data Provider URL (0028,7FE0), which stands in for the Pixel Data (PS3.5 A.6).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

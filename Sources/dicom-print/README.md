@@ -106,26 +106,26 @@ dicom-print remove-printer --name radiology-printer
 
 | Option | Description |
 |--------|-------------|
-| `--copies` | Number of copies (default: 1) |
-| `--film-size` | Film size: 8x10, 8.5x11, 10x12, 10x14, 11x14, 11x17, 14x14, 14x17, 24x24cm, 24x30cm, a4, a3 |
-| `--magnification` | Magnification type: replicate, bilinear, cubic, none (default: replicate) |
-| `--film-destination` | Film destination: magazine, processor, bin-1, bin-2 (default: processor) |
-| `--check-status` | Query printer status first; abort on FAILURE, warn on WARNING |
+| `--copies` | Number of Copies (2000,0010), 1 or more (default: 1) |
+| `--film-size` | Film Size ID (2010,0050), PS3.3 Table C.13-3: 8x10 = 8INX10IN, 8.5x11 = 8_5INX11IN, 10x12 = 10INX12IN, 10x14 = 10INX14IN, 11x14 = 11INX14IN, 11x17 = 11INX17IN, 14x14 = 14INX14IN, 14x17 = 14INX17IN, 24x24cm = 24CMX24CM, 24x30cm = 24CMX30CM, a4 = A4, a3 = A3 (the Defined Term is also accepted; default: 14x17) |
+| `--magnification` | Magnification Type (2010,0060): replicate, bilinear, cubic, none = REPLICATE, BILINEAR, CUBIC, NONE (default: replicate) |
+| `--film-destination` | Film Destination (2000,0040): magazine = MAGAZINE, processor = PROCESSOR, bin-1 = BIN_1, bin-2 = BIN_2, ... bin-N = BIN_N (default: processor). PS3.3 Table C.13-1 numbers sorter bins from 1 with no maximum and no leading zeros: any `bin-N` or `BIN_N` is accepted and sent |
+| `--check-status` | N-GET Printer Status (2110,0010) first; abort on FAILURE, warn on WARNING |
 | `--verify` | C-ECHO connectivity check against the printer before printing |
-| `--orientation` | Film orientation: portrait, landscape |
-| `--priority` | Print priority: low, medium, high |
-| `--layout` | Image layout: a grid (1x1 … 4x5) or an Image Display Format (`'ROW\2,1,2'`, `'COL\1,2'`) (auto if omitted) |
+| `--orientation` | Film Orientation (2010,0040): portrait = PORTRAIT, landscape = LANDSCAPE (default: portrait) |
+| `--priority` | Print Priority (2000,0020): low = LOW, medium = MED, high = HIGH (default: medium) |
+| `--layout` | Image Display Format (2010,0010): a grid `RxC` (1x1 … 4x5; R rows by C columns, sent as `STANDARD\C,R`) or any PS3.3 Table C.13-3 form — `STANDARD\C,R`, `ROW\R1,R2,…`, `COL\C1,C2,…`, `SLIDE`, `SUPERSLIDE`, `CUSTOM\i` (auto if omitted) |
 | `--template` | Layout preset: single, comparison, grid, multi-phase (sets layout + film size + orientation; conflicts with `--layout`) |
-| `--medium` | Medium type: paper, clear-film, blue-film |
-| `--color` | Color mode: grayscale, color (default: grayscale) |
+| `--medium` | Medium Type (2000,0030): paper = PAPER, clear-film = CLEAR FILM, blue-film = BLUE FILM, mammo-clear-film = MAMMO CLEAR FILM, mammo-blue-film = MAMMO BLUE FILM (default: paper) |
+| `--color` | Meta SOP Class: grayscale = Basic Grayscale Print Management Meta SOP Class (1.2.840.10008.5.1.1.9), color = Basic Color Print Management Meta SOP Class (1.2.840.10008.5.1.1.18) (default: grayscale) |
 | `--frame` | 1-based frame to print from multi-frame files (default: 1) |
 | `--all-frames` | Print every frame of multi-frame files (one image box per frame) |
 | `--raw` | Send stored pixel values without preprocessing (compressed sources are still decoded) |
 | `--window-center` / `--window-width` | Explicit VOI window (paired; overrides the data set's window) |
-| `--bit-depth` | Grayscale output depth: 8, 12, or 16 (default: 8) |
-| `--presentation-lut` | Presentation LUT shape: identity, inverse, lin-od (default: none) |
-| `--annotate` | Annotation text on the film (repeatable; requires `--annotation-format`) |
-| `--annotation-format` | Printer-configured Annotation Display Format ID |
+| `--bit-depth` | Grayscale output depth: 8 or 12, the Bits Stored values of PS3.3 Table C.13-5 (default: 8; a higher value is clamped) |
+| `--presentation-lut` | Presentation LUT Shape (2050,0020), PS3.3 Table C.11-4: identity = IDENTITY, lin-od = LIN OD; inverse sends no shape (the table has none) and inverts the pixels (default: none) |
+| `--annotate` | Text String (2030,0020) of a Basic Annotation Box (repeatable; requires `--annotation-format`) |
+| `--annotation-format` | Annotation Display Format ID (2010,0030), from the printer's Conformance Statement |
 | `--retries` | Retry on connection/setup failure, up to N times with backoff (default: 0) |
 | `--recursive` / `-r` | Recursively scan directories |
 | `--dry-run` | Show what would be printed without printing |
@@ -159,6 +159,17 @@ Scripts can rely on this split across all subcommands:
 
 `send --format json` emits `{"success": bool, "printJobUID"?, "filmSessionUID"?,
 "filmBoxUID"?, "error"?}`.
+
+`status --format json` and `job --format json` key each N-GET attribute by its PS3.6
+Table 6-1 keyword:
+
+| Subcommand | Keyword keys | Deprecated keys (same value, kept for now) |
+|---|---|---|
+| `status` | `PrinterStatus`, `PrinterStatusInfo`, `PrinterName`, `Manufacturer`, `ManufacturerModelName` | `status`, `statusInfo`, `name`, `manufacturer`, `model` |
+| `job` | `ExecutionStatus`, `ExecutionStatusInfo`, `CreationDate` (DA, `YYYYMMDD`), `CreationTime` (TM, `HHMMSS`) | `status`, `statusInfo`, `creationDate` (ISO 8601) |
+
+`status` also has `isNormal` and `job` has `jobUID` (the Print Job SOP Instance UID); neither
+is an attribute keyword.
 
 ### Presentation LUT
 
@@ -305,12 +316,9 @@ dicom-print send pacs://mammo-printer:11112 mammo_*.dcm \
 
 | Code | Description |
 |------|-------------|
-| 0 | Success |
-| 1 | General error |
-| 64 | Command line usage error |
-| 65 | Data format error |
-| 66 | Cannot open input file |
-| 74 | I/O error |
+| 0 | Success (for `status` / `job`, the printer answered; read Printer Status / Execution Status for its state) |
+| 1 | Failure: the print was not accepted (an N-CREATE / N-SET / N-ACTION Failure status of PS3.4 Annex H), `--check-status` saw Printer Status FAILURE, or a connection / file error |
+| 64 | Command line usage error (unknown option value, conflicting options, no DICOM files found) |
 
 ## Implementation
 

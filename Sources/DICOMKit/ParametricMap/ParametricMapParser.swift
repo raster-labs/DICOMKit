@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Parametric Map module reads per PS3.3 2026a C.8.32
 //
 // ParametricMapParser.swift
 // DICOMKit
@@ -163,10 +164,11 @@ public struct ParametricMapParser {
         // Determine mapping method (linear or LUT)
         let mapping: MappingMethod
         
-        // Check for linear transformation (slope/intercept) - typically DS VR
-        if let slopeDS = item[.realWorldValueSlope]?.decimalStringValue?.value,
-           let interceptDS = item[.realWorldValueIntercept]?.decimalStringValue?.value {
-            mapping = .linear(slope: slopeDS, intercept: interceptDS)
+        // Linear transformation: Real World Value Slope (0040,9225) and
+        // Intercept (0040,9224) are FD (PS3.6); a DS encoding is tolerated.
+        if let slope = item[.realWorldValueSlope].flatMap(parseFlexibleDouble),
+           let intercept = item[.realWorldValueIntercept].flatMap(parseFlexibleDouble) {
+            mapping = .linear(slope: slope, intercept: intercept)
         }
         // Check for explicit LUT data - would be FD VR
         else if let lutDataElement = item[.realWorldValueLUTData],
@@ -210,6 +212,12 @@ public struct ParametricMapParser {
     }
     
     /// Extract a double value from a DataElement (handles FD VR)
+    /// FD as binary, otherwise DS text.
+    private static func parseFlexibleDouble(_ element: DataElement) -> Double? {
+        if element.vr == .FD { return element.float64Value }
+        return element.decimalStringValue?.value
+    }
+    
     private static func extractDouble(from element: DataElement) -> Double? {
         guard element.valueData.count >= 8 else {
             return nil

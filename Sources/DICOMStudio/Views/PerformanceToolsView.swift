@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Performance tools, tag dictionary, and conformance view
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (SwiftUI layout over the view model;
+// every tag, UID, VR and SOP Class value it shows comes from PerformanceToolsHelpers.swift, verified there).
 
 #if canImport(SwiftUI)
 import SwiftUI

@@ -50,9 +50,8 @@ final class DcmdirRoundTripTests: XCTestCase {
     }
 
     /// Writes `count` synthetic DICOM files, each with its own distinct patient /
-    /// study / series / SOP Instance UID (the DICOMDIR Builder groups by patient and
-    /// keeps only the first series+image per patient, so distinct patients is the
-    /// reliable way to produce N distinct IMAGE records). Returns (dir, [fileNames]).
+    /// study / series / SOP Instance UID, under names that are PS3.10 8.2/8.5 File IDs
+    /// (`IMG0`, …): the Builder refuses any other File ID (D131). Returns (dir, [fileNames]).
     private func makeCorpusDir(count: Int) throws -> (URL, [String]) {
         let dir = try makeTempDir()
         var names: [String] = []
@@ -60,7 +59,7 @@ final class DcmdirRoundTripTests: XCTestCase {
             let file = makeInstance(
                 patientID: "RT\(i)", studyUID: rtUID(),
                 seriesUID: rtUID(), sopInstanceUID: rtUID())
-            let name = "img\(i).dcm"
+            let name = "IMG\(i)"
             try file.write().write(to: dir.appendingPathComponent(name))
             names.append(name)
         }
@@ -422,10 +421,10 @@ final class DcmdirRoundTripTests: XCTestCase {
         var builder = DICOMDirectory.Builder(fileSetID: "B", profile: .standardGeneralCD)
         try builder.addFile(
             makeInstance(patientID: "PA", studyUID: rtUID(), seriesUID: rtUID(), sopInstanceUID: rtUID()),
-            relativePath: ["a.dcm"])
+            relativePath: ["A"])
         try builder.addFile(
             makeInstance(patientID: "PB", studyUID: rtUID(), seriesUID: rtUID(), sopInstanceUID: rtUID()),
-            relativePath: ["b.dcm"])
+            relativePath: ["B"])
         let stats = builder.build().statistics()
         XCTAssertEqual(stats.patientCount, 2)
         XCTAssertEqual(stats.imageCount, 2)
@@ -439,11 +438,19 @@ final class DcmdirRoundTripTests: XCTestCase {
         try XCTSkipIf(f == nil, "corpus absent")
         let file = try XCTUnwrap(f)
         let dir = try makeTempDir()
-        try file.write().write(to: dir.appendingPathComponent("CT.dcm"))
+        try file.write().write(to: dir.appendingPathComponent("CT"))
+        // STD-GEN-CD admits Explicit VR Little Endian only (PS3.11 2026a Table D.3-1); pick a
+        // profile whose table lists the corpus file's SOP Class and Transfer Syntax.
+        let sopClass = try XCTUnwrap(file.fileMetaInformation.string(for: .mediaStorageSOPClassUID))
+        let syntax = file.fileMetaInformation.string(for: .transferSyntaxUID) ?? "1.2.840.10008.1.2.1"
+        let profile = [DICOMDIRProfile.standardGeneralCD, .standardGeneralDVDJPEG, .standardGeneralDVDJPEG2000,
+                       .standardGeneralMIME].first {
+            DICOMDIRProfileRules.refusal(sopClassUID: sopClass, transferSyntaxUID: syntax, profile: $0) == nil
+        } ?? .standardGeneralMIME
         let result = try DICOMDIRWorkflow.buildDirectory(
             fromFilesIn: dir, recursive: true, strict: false,
-            fileSetID: "CORPUS", profile: .standardGeneralCD)
-        XCTAssertEqual(result.processed, 1)
+            fileSetID: "CORPUS", profile: profile)
+        XCTAssertEqual(result.processed, 1, "\(result.failures)")
         XCTAssertEqual(result.directory.statistics().imageCount, 1)
         let readBack = try DICOMDIRReader.read(from: try DICOMDIRWriter.write(result.directory))
         XCTAssertNoThrow(try readBack.validate(checkFileExistence: false))
@@ -452,11 +459,13 @@ final class DcmdirRoundTripTests: XCTestCase {
 
     // MARK: - profile / recursion options
 
-    // Oracle: the requested application profile is honored — building with STD-GEN-DVD
-    // and STD-GEN-USB yields a directory carrying that profile, not the default CD.
+    // Oracle: the requested application profile is honored — building with STD-GEN-DVD-JPEG
+    // (PS3.11 2026a Table H.1-1) and STD-GEN-USB-JPEG (Table J.1-1) yields a directory carrying
+    // that profile, not the default CD. (The deprecated STD-GEN-DVD / STD-GEN-USB constants are
+    // not PS3.11 identifiers; P-DCMDIR-PROFILE.)
     func testBuildHonorsDVDAndUSBProfiles() throws {
         let (dir, _) = try makeCorpusDir(count: 2)
-        for profile in [DICOMDIRProfile.standardGeneralDVD, .standardGeneralUSB] {
+        for profile in [DICOMDIRProfile.standardGeneralDVDJPEG, .standardGeneralUSBJPEG] {
             let result = try DICOMDIRWorkflow.buildDirectory(
                 fromFilesIn: dir, recursive: true, strict: false,
                 fileSetID: "TEST", profile: profile)
@@ -470,11 +479,11 @@ final class DcmdirRoundTripTests: XCTestCase {
     func testNoRecursiveExcludesSubdirectoryFiles() throws {
         let dir = try makeTempDir()
         try makeInstance(patientID: "TOP", studyUID: rtUID(), seriesUID: rtUID(), sopInstanceUID: rtUID())
-            .write().write(to: dir.appendingPathComponent("top.dcm"))
-        let sub = dir.appendingPathComponent("sub")
+            .write().write(to: dir.appendingPathComponent("TOP"))
+        let sub = dir.appendingPathComponent("SUB")
         try FileManager.default.createDirectory(at: sub, withIntermediateDirectories: true)
         try makeInstance(patientID: "NESTED", studyUID: rtUID(), seriesUID: rtUID(), sopInstanceUID: rtUID())
-            .write().write(to: sub.appendingPathComponent("nested.dcm"))
+            .write().write(to: sub.appendingPathComponent("NESTED"))
 
         let nonRecursive = try DICOMDIRWorkflow.buildDirectory(
             fromFilesIn: dir, recursive: false, strict: false, fileSetID: "T", profile: .standardGeneralCD)
@@ -502,7 +511,7 @@ final class DcmdirRoundTripTests: XCTestCase {
         // Drop a NEW instance into the media folder after the initial build.
         let newFile = makeInstance(
             patientID: "PAT_NEW", studyUID: rtUID(), seriesUID: rtUID(), sopInstanceUID: rtUID())
-        let newURL = dir.appendingPathComponent("added.dcm")
+        let newURL = dir.appendingPathComponent("ADDED")
         try newFile.write().write(to: newURL)
 
         let result = try DICOMDIRWorkflow.updateDirectory(
@@ -518,7 +527,7 @@ final class DcmdirRoundTripTests: XCTestCase {
         XCTAssertEqual(reread.fileSetID, "UPDATE_RT", "file-set ID preserved across update")
         let referenced = reread.allReferencedFiles()
         XCTAssertEqual(referenced.count, 3, "old + new files all referenced")
-        XCTAssertTrue(referenced.contains("added.dcm"), "new file's relative File ID present")
+        XCTAssertTrue(referenced.contains("ADDED"), "new file's relative File ID present")
     }
 
     // MARK: - Oracle: update drops entries whose files vanished from disk

@@ -152,10 +152,10 @@ struct SecurityServiceTests {
         #expect(service.getAnonymizationJobs().count == 1)
     }
 
-    @Test("initial selected profile is basic")
-    func testInitialSelectedProfileBasic() {
+    @Test("initial selected profile is the PS3.15 Basic Profile (P-STUDIO-ANON-PS315)")
+    func testInitialSelectedProfilePS315() {
         let service = SecurityService()
-        #expect(service.getSelectedProfile() == .basic)
+        #expect(service.getSelectedProfile() == .ps315)
     }
 
     @Test("setSelectedProfile updates profile")

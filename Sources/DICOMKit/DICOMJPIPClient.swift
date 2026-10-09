@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — JPIP Referenced transfer syntax UIDs match PS3.6 2026a Table A-1; the JPIP URI is read from Pixel Data Provider URL (0028,7FE0), VR UR (PS3.6 Table 6-1), and Pixel Data is treated as absent per PS3.5 2026a A.6/A.7 (P-JPIP)
 // DICOMJPIPClient.swift
 // DICOMKit — Phase 6: JPIP Streaming
 
@@ -48,9 +49,15 @@ public enum DICOMJPIPQuality: Sendable {
 public enum DICOMJPIPError: Error, Sendable, CustomStringConvertible {
     /// The transfer syntax stored in the DICOM dataset is not a JPIP reference.
     case notAJPIPTransferSyntax(String)
-    /// The Pixel Data element is missing from the DICOM dataset.
+    /// Pixel Data Provider URL (0028,7FE0) is missing or empty.
+    ///
+    /// PS3.5 A.6: "Pixel Data (7FE0,0010) shall not be present, but rather Pixel
+    /// Data shall be referenced via Data Element (0028,7FE0) Pixel Data Provider URL".
+    case missingPixelDataProviderURL
+    /// Superseded: JPIP objects never carried the URI in Pixel Data (7FE0,0010).
+    @available(*, deprecated, renamed: "missingPixelDataProviderURL")
     case missingPixelData
-    /// The Pixel Data element does not contain a valid URI string.
+    /// Pixel Data Provider URL (0028,7FE0) does not contain a valid URI string.
     case invalidJPIPURI(String)
     /// The JPIP server returned an unexpected response.
     case serverError(Int, String)
@@ -68,10 +75,10 @@ public enum DICOMJPIPError: Error, Sendable, CustomStringConvertible {
         switch self {
         case .notAJPIPTransferSyntax(let uid):
             return "Transfer syntax \(uid) is not a JPIP reference syntax"
-        case .missingPixelData:
-            return "DICOM dataset has no Pixel Data element"
+        case .missingPixelDataProviderURL, .missingPixelData:
+            return "DICOM dataset has no Pixel Data Provider URL (0028,7FE0) element"
         case .invalidJPIPURI(let raw):
-            return "Pixel Data does not contain a valid JPIP URI: \(raw)"
+            return "Pixel Data Provider URL (0028,7FE0) does not contain a valid JPIP URI: \(raw)"
         case .serverError(let code, let detail):
             return "JPIP server error \(code): \(detail)"
         case .jpipModuleUnavailable:
@@ -178,7 +185,8 @@ public struct DICOMJPIPImage: Sendable {
 ///
 /// ## What does work
 ///
-/// Recognising the JPIP transfer syntaxes and extracting the target URI from Pixel Data:
+/// Recognising the JPIP transfer syntaxes and extracting the target URI from
+/// Pixel Data Provider URL (0028,7FE0) — PS3.5 A.6 forbids Pixel Data itself:
 ///
 /// ```swift
 /// let uri = try DICOMJPIPClient.jpipURI(
@@ -308,35 +316,39 @@ public actor DICOMJPIPClient {
 
     // MARK: - DICOM Integration
 
-    /// Extracts the JPIP URI from a DICOM dataset's Pixel Data element.
+    /// Extracts the JPIP URI from a DICOM dataset's Pixel Data Provider URL (0028,7FE0).
     ///
-    /// JPIP-referenced DICOM objects store the server URI in the Pixel Data
-    /// element as a UTF-8 string rather than pixel bytes.
+    /// PS3.5 A.6 (JPIP Referenced) and A.7 (JPIP Referenced Deflate): "Pixel Data
+    /// (7FE0,0010) shall not be present, but rather Pixel Data shall be referenced
+    /// via Data Element (0028,7FE0) Pixel Data Provider URL". The element has VR UR
+    /// (PS3.6 Table 6-1). A Pixel Data element, if one is nevertheless present, is
+    /// treated as absent: it is never read for the URI and never reported as one.
     ///
     /// - Parameters:
     ///   - dataset: The DICOM dataset.
     ///   - transferSyntaxUID: The transfer syntax UID of the dataset.
     /// - Returns: The parsed JPIP server URI.
-    /// - Throws: ``DICOMJPIPError`` if the dataset is not a JPIP object or the URI is malformed.
+    /// - Throws: ``DICOMJPIPError/notAJPIPTransferSyntax(_:)`` if the transfer syntax is
+    ///   not JPIP, ``DICOMJPIPError/missingPixelDataProviderURL`` if (0028,7FE0) is absent
+    ///   or empty, ``DICOMJPIPError/invalidJPIPURI(_:)`` if it is not a URL.
     public static func jpipURI(from dataset: DataSet, transferSyntaxUID: String) throws -> URL {
         guard TransferSyntax.from(uid: transferSyntaxUID)?.isJPIP == true else {
             throw DICOMJPIPError.notAJPIPTransferSyntax(transferSyntaxUID)
         }
-        guard let pixelDataElement = dataset[Tag.pixelData] else {
-            throw DICOMJPIPError.missingPixelData
+        guard let providerElement = dataset[Tag.pixelDataProviderURL] else {
+            throw DICOMJPIPError.missingPixelDataProviderURL
         }
-        // Pixel Data for JPIP transfer syntaxes holds the URI as a byte string
-        let rawBytes = pixelDataElement.valueData
-        guard !rawBytes.isEmpty else {
-            throw DICOMJPIPError.missingPixelData
-        }
+        // UR values are UTF-8/ASCII strings; trailing space padding is permitted.
+        let rawBytes = providerElement.valueData
         guard let uriString = String(data: rawBytes, encoding: .utf8)?
-                .trimmingCharacters(in: .whitespacesAndNewlines),
-              !uriString.isEmpty,
-              let url = URL(string: uriString)
-        else {
-            let raw = String(data: rawBytes, encoding: .utf8) ?? "<binary>"
-            throw DICOMJPIPError.invalidJPIPURI(raw)
+                .trimmingCharacters(in: .whitespacesAndNewlines) else {
+            throw DICOMJPIPError.invalidJPIPURI("<binary>")
+        }
+        guard !uriString.isEmpty else {
+            throw DICOMJPIPError.missingPixelDataProviderURL
+        }
+        guard let url = URL(string: uriString) else {
+            throw DICOMJPIPError.invalidJPIPURI(uriString)
         }
         return url
     }

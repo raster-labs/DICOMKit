@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent segmentation overlay display helpers
-// Reference: DICOM PS3.3 C.8.20 (Segmentation Modules), A.51 (Segmentation IOD)
+// Reference: DICOM PS3.3 C.8.20 (Segmentation), A.51 (Segmentation IOD)
+// NEMA-verified: 2026a, checked 2026-10-05 — switches over SegmentAlgorithmType are exhaustive over the 3 Segment Algorithm Type (0062,0008) Defined Terms of PS3.3 2026a Table C.8.20-4 (verified in SpecializedModalityModel.swift); colours, blending and labels carry no standard data; Segmentation Type (BINARY / FRACTIONAL / LABELMAP / HEIGHTMAP, Table C.8.20-2) and the CID 7150 / 7151 category and type codes are not modelled here (SegmentOverlay carries them as free strings)
 
 import Foundation
 

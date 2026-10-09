@@ -85,11 +85,17 @@ dicom-pdf report.pdf --output report.dcm \
   --study-uid "1.2.840.113619.2.55.3.2831961723.123" \
   --series-uid "1.2.840.113619.2.55.3.2831961723.456"
 
-# Encapsulate CDA document
+# Encapsulate CDA document (HL7 Instance Identifier (0040,E001) is read from
+# /ClinicalDocument/id; --hl7-instance-identifier overrides it)
 dicom-pdf discharge.xml --output discharge.dcm \
   --patient-name "DOE^JANE" \
   --patient-id "99999" \
   --title "Discharge Summary"
+
+# Encapsulate a scanned paper report that does not identify the patient
+dicom-pdf scan.pdf --output scan.dcm \
+  --patient-name "DOE^JANE" --patient-id "99999" \
+  --conversion-type SD --burned-in-annotation NO
 
 # Encapsulate 3D model
 dicom-pdf model.stl --output model.dcm \
@@ -112,6 +118,15 @@ dicom-pdf documents/ --output dicoms/ --recursive \
 # All files will be grouped into a single series with auto-incrementing instance numbers
 ```
 
+A directory run (extract or encapsulate) exits with status 1 after its summary when any file
+failed, like `dicom-convert`'s directory run. Files the run does not apply to are skipped, not
+failed: in extract mode a file that is not an Encapsulated Document (not a DICOM file, or a data
+set without Encapsulated Document (0042,0011), PS3.3 C.24.2; `--verbose` prints
+`⊘ <file>: not an Encapsulated Document (skipped)`), as `dicom-image` skips non-images and
+`dicom-export bulk` files without pixel data; in encapsulate mode a file of an unsupported type.
+Only a document that fails to extract (or a file that cannot be read or written) counts as
+failed. Until 2026-10-06 a directory run exited 0 whatever the per-file outcomes (D271).
+
 ## Options
 
 ### Required Arguments
@@ -128,15 +143,18 @@ dicom-pdf documents/ --output dicoms/ --recursive \
 
 ### Encapsulation Metadata (Required for Encapsulation)
 
-- `--patient-name <name>` - Patient Name (DICOM PN format, e.g., "DOE^JOHN")
+- `--patient-name <name>` - Patient's Name (DICOM PN format, e.g., "DOE^JOHN")
 - `--patient-id <id>` - Patient ID
 
 ### Encapsulation Metadata (Optional)
 
-- `--title <title>` - Document Title
+- `--title <title>` - Document Title (0042,0010)
 - `--study-uid <uid>` - Study Instance UID (auto-generated if not provided)
 - `--series-uid <uid>` - Series Instance UID (auto-generated if not provided)
-- `--modality <modality>` - Modality (default: DOC for documents, M3D for 3D models)
+- `--modality <modality>` - Modality (default: DOC for documents; STL, OBJ and MTL require M3D, PS3.3 A.85.x.4.3)
+- `--conversion-type <term>` - Conversion Type (0008,0064) for PDF and CDA, one of the PS3.3 Table C.8-24 Defined Terms DV, DI, DF, WSD, SD, SI, DRW, SYN (default: WSD)
+- `--burned-in-annotation <YES|NO>` - Burned In Annotation (0028,0301): whether the document identifies the patient and the date (default: YES)
+- `--hl7-instance-identifier <uid[^ext]>` - HL7 Instance Identifier (0040,E001) of a CDA document (default: root^extension of /ClinicalDocument/id; single file only)
 - `--series-description <desc>` - Series Description
 - `--series-number <num>` - Series Number
 - `--instance-number <num>` - Instance Number
@@ -274,10 +292,15 @@ When not specified, the following metadata is auto-generated:
 
 This tool implements the following DICOM standards:
 
-- **PS3.3 A.45**: Encapsulated PDF IOD
-- **PS3.3 A.45.2**: Encapsulated CDA IOD
-- **PS3.3 C.24**: Encapsulated Document Module
-- **PS3.5 Section 8.2**: Transfer Syntax (Explicit VR Little Endian)
+- **PS3.3 A.45.1**: Encapsulated PDF IOD (MIME Type application/pdf)
+- **PS3.3 A.45.2**: Encapsulated CDA IOD (MIME Type text/XML)
+- **PS3.3 A.85.1–A.85.3**: Encapsulated STL, OBJ and MTL IODs (Modality M3D)
+- **PS3.3 C.24.1, C.24.2**: Encapsulated Document Series and Encapsulated Document Modules.
+  Encapsulated Document Length (0042,0015) is written with the unpadded length, and
+  extraction cuts the value to it, so an odd-length document comes back byte for byte
+- **PS3.3 C.8.6.1**: SC Equipment Module (Conversion Type, PDF and CDA)
+- **PS3.3 C.12.1**: SOP Common; Specific Character Set ISO_IR 192 when a text value is not ASCII
+- **PS3.5 A.2**: DICOM Little Endian Transfer Syntax (Explicit VR)
 
 ## Error Handling
 

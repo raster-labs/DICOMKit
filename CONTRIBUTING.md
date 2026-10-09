@@ -81,6 +81,14 @@ public struct PatientName: Sendable {
    - Use DICOM XML for structure definitions (PS3.6)
    - Use DICOM PS3.5 text for parsing and encoding rules
 5. **Never invent** - If the standard doesn't specify behavior, ask or leave it unimplemented
+6. **Never type a tag number without its PS3.6 keyword beside it** - a `Tag.xxx`
+   constant is named exactly by the PS3.6 keyword (lower-camel-cased); a raw
+   `Tag(group:element:)` or `"GGGGEEEE"` literal carries the attribute name in a
+   comment on the same line. `Scripts/audit_tags.py --strict` runs in CI and
+   fails the build when a name and its number disagree, and
+   `DICOMDictionaryTests/TagConstantAuditTests` checks every constant against the
+   bundled dictionary. Never define the same tag twice under two names; alias
+   through a `@available(*, deprecated, renamed:)` forwarder instead.
 
 ### Example Citation
 

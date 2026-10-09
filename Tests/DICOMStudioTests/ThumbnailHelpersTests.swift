@@ -5,6 +5,7 @@
 
 import Testing
 @testable import DICOMStudio
+import DICOMCore
 import Foundation
 
 @Suite("ThumbnailHelpers Tests")
@@ -238,6 +239,15 @@ struct ThumbnailHelpersTests {
         #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("YBR_FULL") == true)
         #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("YBR_FULL_422") == true)
         #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("YBR_PARTIAL_422") == true)
+        // D10: the compressed-domain and video terms were missing.
+        #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("YBR_PARTIAL_420") == true)
+        #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("YBR_ICT") == true)
+        #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("YBR_RCT") == true)
+        #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("XYB") == true)
+        // Retired in PS3.3-2001 and not in DICOMCore.
+        #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("HSV") == false)
+        #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("ARGB") == false)
+        #expect(ThumbnailHelpers.isSupportedPhotometricInterpretation("CMYK") == false)
     }
 
     @Test("Case-insensitive photometric matching")
@@ -254,8 +264,19 @@ struct ThumbnailHelpersTests {
 
     // MARK: - Supported Photometric Set
 
-    @Test("Supported set contains all standard types")
+    @Test("Supported set is every PS3.3 2026a C.7.6.3.1.2 Defined Term except the three retired in 2001")
     func testSupportedPhotometricSet() {
-        #expect(ThumbnailHelpers.supportedPhotometricInterpretations.count == 7)
+        // PS3.3 2026a C.7.6.3.1.2 lists 14 terms; HSV, ARGB and CMYK are "Retired. See PS3.3-2001".
+        let expected: Set<String> = [
+            "MONOCHROME1", "MONOCHROME2", "PALETTE COLOR", "RGB",
+            "YBR_FULL", "YBR_FULL_422", "YBR_PARTIAL_422", "YBR_PARTIAL_420",
+            "YBR_ICT", "YBR_RCT", "XYB",
+        ]
+        #expect(ThumbnailHelpers.supportedPhotometricInterpretations == expected)
+        #expect(ThumbnailHelpers.supportedPhotometricInterpretations.count == 11)
+        // Built from DICOMCore, so each string parses back to a PhotometricInterpretation.
+        for term in ThumbnailHelpers.supportedPhotometricInterpretations {
+            #expect(PhotometricInterpretation.parse(term)?.rawValue == term, "\(term)")
+        }
     }
 }

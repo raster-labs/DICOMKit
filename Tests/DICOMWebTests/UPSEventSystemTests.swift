@@ -18,7 +18,16 @@ final class UPSEventSystemTests: XCTestCase {
     
     func testUPSEventTypeCaseIterable() {
         let allTypes = UPSEventType.allCases
-        XCTAssertEqual(allTypes.count, 6)
+        XCTAssertEqual(allTypes.count, 7)
+        XCTAssertTrue(allTypes.contains(.scpStatusChange))
+        // PS3.4 Table CC.2.4-1 Event Type IDs
+        XCTAssertEqual(UPSEventType.stateReport.eventTypeID, 1)
+        XCTAssertEqual(UPSEventType.cancelRequested.eventTypeID, 2)
+        XCTAssertEqual(UPSEventType.progressReport.eventTypeID, 3)
+        XCTAssertEqual(UPSEventType.scpStatusChange.eventTypeID, 4)
+        XCTAssertEqual(UPSEventType.assigned.eventTypeID, 5)
+        XCTAssertEqual(UPSEventType.completed.eventTypeID, 1)
+        XCTAssertEqual(UPSEventType(eventTypeID: 5), .assigned)
         XCTAssertTrue(allTypes.contains(.stateReport))
         XCTAssertTrue(allTypes.contains(.progressReport))
         XCTAssertTrue(allTypes.contains(.cancelRequested))
@@ -55,13 +64,8 @@ final class UPSEventSystemTests: XCTestCase {
         
         let json = event.toDICOMJSON()
         
-        // Check transaction UID
-        if let txUID = json["00081195"] as? [String: Any],
-           let value = txUID["Value"] as? [String] {
-            XCTAssertEqual(value.first, "1.2.3.4.6")
-        } else {
-            XCTFail("Transaction UID not found in JSON")
-        }
+        // PS3.4 CC.2.7.3: the Transaction UID is the access lock and is never in an Event Report
+        XCTAssertNil(json["00081195"])
         
         // Check state
         if let state = json["00741000"] as? [String: Any],
@@ -71,13 +75,11 @@ final class UPSEventSystemTests: XCTestCase {
             XCTFail("State not found in JSON")
         }
         
-        // Check event type
-        if let eventType = json["EventType"] as? [String: Any],
-           let value = eventType["Value"] as? [String] {
-            XCTAssertEqual(value.first, "StateReport")
-        } else {
-            XCTFail("Event type not found in JSON")
-        }
+        // PS3.4 Table CC.2.4-1: Event Type ID (0000,1002) = 1, Input Readiness State (0040,4041) Type 1
+        XCTAssertEqual(((json["00001002"] as? [String: Any])?["Value"] as? [Int])?.first, 1)
+        XCTAssertEqual(((json["00404041"] as? [String: Any])?["Value"] as? [String])?.first, "READY")
+        XCTAssertEqual(((json["00741238"] as? [String: Any])?["Value"] as? [String])?.first, "Start processing")
+        XCTAssertNil(json["EventType"], "no bare-name keys in a DICOM JSON Event Report")
     }
     
     // MARK: - UPSProgressReportEvent Tests
@@ -115,21 +117,18 @@ final class UPSEventSystemTests: XCTestCase {
         
         let json = event.toDICOMJSON()
         
-        // Check progress percentage
-        if let progressTag = json["00741004"] as? [String: Any],
-           let value = progressTag["Value"] as? [String] {
-            XCTAssertEqual(value.first, "75")
-        } else {
-            XCTFail("Progress percentage not found in JSON")
+        // PS3.4 Table CC.2.4-1: Event Type ID 3; the progress attributes sit inside the
+        // Procedure Step Progress Information Sequence (0074,1002)
+        XCTAssertEqual(((json["00001002"] as? [String: Any])?["Value"] as? [Int])?.first, 3)
+        guard let item = ((json["00741002"] as? [String: Any])?["Value"] as? [[String: Any]])?.first else {
+            return XCTFail("Procedure Step Progress Information Sequence not found in JSON")
         }
-        
-        // Check description
-        if let descTag = json["00741006"] as? [String: Any],
-           let value = descTag["Value"] as? [String] {
-            XCTAssertEqual(value.first, "Nearly done")
-        } else {
-            XCTFail("Progress description not found in JSON")
-        }
+        XCTAssertEqual(((item["00741004"] as? [String: Any])?["Value"] as? [String])?.first, "75")
+        XCTAssertEqual(((item["00741006"] as? [String: Any])?["Value"] as? [String])?.first, "Nearly done")
+        let contact = ((item["00741008"] as? [String: Any])?["Value"] as? [[String: Any]])?.first
+        XCTAssertEqual(((contact?["0074100A"] as? [String: Any])?["Value"] as? [String])?.first, "https://example.com/contact")
+        XCTAssertEqual(((contact?["0074100C"] as? [String: Any])?["Value"] as? [String])?.first, "Dr. Smith")
+        XCTAssertNil(json["00741004"], "progress is not a top-level attribute")
     }
     
     // MARK: - UPSCancelRequestedEvent Tests
@@ -206,7 +205,7 @@ final class UPSEventSystemTests: XCTestCase {
         XCTAssertEqual(anyEvent.workitemUID, "1.2.3.4.5")
         
         let json = anyEvent.toDICOMJSON()
-        XCTAssertNotNil(json["EventType"])
+        XCTAssertNotNil(json["00001002"], "Event Type ID (0000,1002)")
     }
     
     // MARK: - Subscription Tests

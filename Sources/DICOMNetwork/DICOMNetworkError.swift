@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-10-01 — AssociateRejectResult/Source and AbortSource/AbortReason values text-diffed against PS3.8 2026a Tables 9-21 and 9-26 (Scripts/diff_network.py): 14 of 14 match; ARTIM citation §9.1.5; print failures worded per PS3.4 Annex H / PS3.7 Annex C (D91); MPPS N-CREATE / N-SET failures per PS3.4 Table F.7.2-2 and PS3.7 Annex C with Error ID / Error Comment (D83)
 
 // MARK: - Error Category
 
@@ -160,7 +161,7 @@ extension RecoverySuggestion: CustomStringConvertible {
 /// )
 /// ```
 ///
-/// Reference: PS3.8 Section 9.1.1 - ARTIM Timer
+/// Reference: PS3.8 Section 9.1.5 - ARTIM Timer
 public struct TimeoutConfiguration: Sendable, Hashable {
     /// Time allowed to establish TCP connection (in seconds)
     public let connect: TimeInterval
@@ -179,7 +180,7 @@ public struct TimeoutConfiguration: Sendable, Hashable {
     
     /// Time allowed for ARTIM timer - association establishment/release (in seconds)
     ///
-    /// Reference: PS3.8 Section 9.1.1 - ARTIM Timer
+    /// Reference: PS3.8 Section 9.1.5 - ARTIM Timer
     public let association: TimeInterval
     
     /// Creates a timeout configuration with specified values
@@ -366,7 +367,7 @@ public enum DICOMNetworkError: Error, Sendable {
     /// The ARTIM (Association Request/Release Timer) fires when waiting
     /// for an A-ASSOCIATE-AC/RJ or A-RELEASE-RP response takes too long.
     ///
-    /// Reference: PS3.8 Section 9.1.1 - ARTIM Timer
+    /// Reference: PS3.8 Section 9.1.5 - ARTIM Timer
     case artimTimerExpired
     
     /// Circuit breaker is open for this server
@@ -411,6 +412,20 @@ public enum DICOMNetworkError: Error, Sendable {
     /// only a numeric status.
     case printOperationFailed(DIMSEStatus, detail: String?)
 
+    /// A Modality Performed Procedure Step N-CREATE or N-SET was answered with a
+    /// Failure status (PS3.4 F.7.2.1.4 / F.7.2.2.4, Table F.7.2-2; PS3.7 Annex C).
+    ///
+    /// - Parameters:
+    ///   - operation: "N-CREATE" or "N-SET"
+    ///   - status: the response Status (0000,0900)
+    ///   - errorComment: the response Error Comment (0000,0902), when present
+    ///   - errorID: the response Error ID (0000,0903), when present — e.g. 0xA710
+    ///     "Performed Procedure Step Object may no longer be updated" (Table F.7.2-2)
+    ///
+    /// Before 2026-10-01 these failures were thrown as ``storeFailed(_:)`` and read
+    /// "Store failed: …", a C-STORE wording (D83).
+    case mppsOperationFailed(operation: String, status: DIMSEStatus, errorComment: String?, errorID: UInt16?)
+
     /// Unexpected response received
     ///
     /// The response received did not match the expected format or content.
@@ -418,6 +433,27 @@ public enum DICOMNetworkError: Error, Sendable {
 }
 
 extension DICOMNetworkError {
+    /// "Failure (0x0110): Processing Failure — Error ID A710H: Performed Procedure Step
+    /// Object may no longer be updated": the status worded per PS3.4 Table F.7.2-2
+    /// (N-SET) or PS3.7 Annex C, then the Error ID (with its Table F.7.2-2 Error
+    /// Comment when listed) and the SCP's own Error Comment.
+    static func mppsFailureText(operation: String, status: DIMSEStatus, errorComment: String?, errorID: UInt16?) -> String {
+        var text = status.description(for: operation == "N-SET" ? .mppsNSet : .dimseN)
+        var details: [String] = []
+        if let errorID {
+            var idText = "Error ID " + String(format: "%04X", errorID) + "H"
+            if operation == "N-SET", let meaning = DIMSEServiceStatusText.mppsNSetErrorComment(errorID: errorID) {
+                idText += ": " + meaning
+            }
+            details.append(idText)
+        }
+        if let comment = errorComment?.trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")), !comment.isEmpty {
+            details.append("Error Comment: " + comment)
+        }
+        if !details.isEmpty { text += " — " + details.joined(separator: "; ") }
+        return text
+    }
+
     /// Backward-compatible factory for ``printOperationFailed(_:detail:)`` without detail text.
     public static func printOperationFailed(_ status: DIMSEStatus) -> DICOMNetworkError {
         .printOperationFailed(status, detail: nil)
@@ -481,10 +517,15 @@ extension DICOMNetworkError: CustomStringConvertible {
             }
             return message
         case .printOperationFailed(let status, let detail):
+            // PS3.4 Annex H / PS3.7 Annex C wording (D91)
+            let statusText = DIMSEServiceStatusText.describePrintStatus(status)
             if let detail = detail, !detail.isEmpty {
-                return "Print operation failed: \(status) — \(detail)"
+                return "Print operation failed: \(statusText) — \(detail)"
             }
-            return "Print operation failed: \(status)"
+            return "Print operation failed: \(statusText)"
+        case .mppsOperationFailed(let operation, let status, let errorComment, let errorID):
+            return "MPPS \(operation) failed: "
+                + Self.mppsFailureText(operation: operation, status: status, errorComment: errorComment, errorID: errorID)
         case .unexpectedResponse:
             return "Unexpected response received"
         }
@@ -581,6 +622,8 @@ extension DICOMNetworkError {
             return .transient
         case .printOperationFailed:
             return .permanent
+        case .mppsOperationFailed:
+            return .permanent
         case .unexpectedResponse:
             return .protocol
         }
@@ -632,6 +675,7 @@ extension DICOMNetworkError {
              .retrieveFailed,
              .storeFailed,
              .printOperationFailed,
+             .mppsOperationFailed,
              .unexpectedResponse:
             return false
         }
@@ -716,9 +760,12 @@ extension DICOMNetworkError {
             return .noRecovery(reason: "Partial operation completed with failures")
         case .printOperationFailed(let status, let detail):
             if let detail = detail, !detail.isEmpty {
-                return .noRecovery(reason: "Print operation failed with status: \(status) — \(detail)")
+                return .noRecovery(reason: "Print operation failed with status: \(DIMSEServiceStatusText.describePrintStatus(status)) — \(detail)")
             }
-            return .noRecovery(reason: "Print operation failed with status: \(status)")
+            return .noRecovery(reason: "Print operation failed with status: \(DIMSEServiceStatusText.describePrintStatus(status))")
+        case .mppsOperationFailed(let operation, let status, let errorComment, let errorID):
+            return .noRecovery(reason: "MPPS \(operation) failed with status: "
+                + Self.mppsFailureText(operation: operation, status: status, errorComment: errorComment, errorID: errorID))
         case .unexpectedResponse:
             return .checkConfiguration(details: "Verify server compatibility and presentation context negotiation")
         }
@@ -784,9 +831,12 @@ extension DICOMNetworkError {
             return base + "."
         case .printOperationFailed(let status, let detail):
             if let detail = detail, !detail.isEmpty {
-                return "The print operation failed with DIMSE status: \(status). Printer reported: \(detail)."
+                return "The print operation failed with DIMSE status: \(DIMSEServiceStatusText.describePrintStatus(status)). Printer reported: \(detail)."
             }
-            return "The print operation failed with DIMSE status: \(status)."
+            return "The print operation failed with DIMSE status: \(DIMSEServiceStatusText.describePrintStatus(status))."
+        case .mppsOperationFailed(let operation, let status, let errorComment, let errorID):
+            return "The MPPS \(operation) request failed: "
+                + Self.mppsFailureText(operation: operation, status: status, errorComment: errorComment, errorID: errorID) + "."
         case .unexpectedResponse:
             return "The server sent an unexpected response. Verify server compatibility and protocol version."
         }
@@ -1027,6 +1077,7 @@ extension DICOMNetworkError {
              .storeFailed,
              .partialFailure,
              .printOperationFailed,
+             .mppsOperationFailed,
              .unexpectedResponse:
             return .operation
             

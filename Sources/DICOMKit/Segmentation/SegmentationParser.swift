@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — Segmentation Image Module reads per PS3.3 2026a Table C.8.20-2 (Segmentation Type incl. LABELMAP, Segments Overlap, Pixel Padding Value per A.51.4); Dimension Index Values (0020,9157) and In-Stack Position Number (0020,9057) read as UL per PS3.6 Table 6-1; SOP Class per PS3.4 B.5.1.25; Palette Color Lookup Table (C.7.9) and ICC Profile (C.11.15) Modules read with PALETTE COLOR per Table A.51-1 (D37b)
 //
 // SegmentationParser.swift
 // DICOMKit
@@ -29,8 +30,8 @@ public struct SegmentationParser {
             throw DICOMError.parsingFailed("Missing SOP Instance UID")
         }
         
-        let sopClassUID = dataSet.string(for: .sopClassUID) ?? "1.2.840.10008.5.1.4.1.1.66.4"
-        
+        let explicitSOPClassUID = dataSet.string(for: .sopClassUID)
+
         // Parse Series and Study UIDs
         guard let seriesInstanceUID = dataSet.string(for: .seriesInstanceUID) else {
             throw DICOMError.parsingFailed("Missing Series Instance UID")
@@ -42,6 +43,7 @@ public struct SegmentationParser {
         
         // Parse Content Identification
         let instanceNumber = dataSet[.instanceNumber]?.integerStringValue?.value
+        let seriesNumber = dataSet[.seriesNumber]?.integerStringValue?.value
         let contentLabel = dataSet.string(for: .contentLabel)
         let contentDescription = dataSet.string(for: .contentDescription)
         let contentCreatorName = dataSet.personName(for: .contentCreatorName)
@@ -54,16 +56,32 @@ public struct SegmentationParser {
             throw DICOMError.parsingFailed("Missing or invalid Segmentation Type")
         }
         
+        // PS3.4 B.5.1.25: Segmentation Storage carries BINARY/FRACTIONAL, Label Map
+        // Segmentation Storage carries LABELMAP. Default from the type when the data set
+        // has no SOP Class UID.
+        let sopClassUID = explicitSOPClassUID ?? Segmentation.sopClassUID(for: segmentationType)
+
         var segmentationFractionalType: SegmentationFractionalType? = nil
         var maxFractionalValue: Int? = nil
-        
+
         if segmentationType == .fractional {
             if let fractionalTypeString = dataSet.string(for: .segmentationFractionalType) {
                 segmentationFractionalType = SegmentationFractionalType(rawValue: fractionalTypeString)
             }
-            if let maxFracValue = dataSet.uint16(for: .maxFractionalValue) {
+            if let maxFracValue = dataSet.uint16(for: .maximumFractionalValue) {
                 maxFractionalValue = Int(maxFracValue)
             }
+        }
+
+        // Segments Overlap (0062,0013), Type 3 (Table C.8.20-2)
+        let segmentsOverlap = dataSet.string(for: Tag(group: 0x0062, element: 0x0013))
+            .flatMap { SegmentsOverlap(rawValue: $0.trimmingCharacters(in: .whitespaces)) }
+
+        // Pixel Padding Value (0028,0120): the background Segment Number of a LABELMAP
+        // (A.51.4); Pixel Representation is 0 for every Segmentation Type, so unsigned.
+        var pixelPaddingValue: Int? = nil
+        if segmentationType == .labelmap, let padding = dataSet.uint16(for: .pixelPaddingValue) {
+            pixelPaddingValue = Int(padding)
         }
         
         // Parse Segment Sequence
@@ -105,6 +123,13 @@ public struct SegmentationParser {
         let samplesPerPixel = dataSet.uint16(for: .samplesPerPixel) ?? 1
         let photometricInterpretation = dataSet.string(for: .photometricInterpretation) ?? "MONOCHROME2"
         let pixelRepresentation = dataSet.uint16(for: .pixelRepresentation) ?? 0
+
+        // Palette Color Lookup Table (C.7.9) and ICC Profile (C.11.15) Modules, required
+        // with PALETTE COLOR (PS3.3 2026a Table A.51-1)
+        let isPaletteColor = photometricInterpretation.trimmingCharacters(in: .whitespaces) == "PALETTE COLOR"
+        let paletteColorLookupTable = isPaletteColor ? dataSet.paletteColorLUT() : nil
+        let iccProfile = isPaletteColor ? dataSet[.iccProfile]?.valueData : nil
+        let colorSpace = isPaletteColor ? dataSet.string(for: .colorSpace) : nil
         
         // Parse Functional Groups
         let sharedFunctionalGroups = parseSharedFunctionalGroups(from: dataSet)
@@ -116,6 +141,7 @@ public struct SegmentationParser {
             seriesInstanceUID: seriesInstanceUID,
             studyInstanceUID: studyInstanceUID,
             instanceNumber: instanceNumber,
+            seriesNumber: seriesNumber,
             contentLabel: contentLabel,
             contentDescription: contentDescription,
             contentCreatorName: contentCreatorName,
@@ -124,6 +150,8 @@ public struct SegmentationParser {
             segmentationType: segmentationType,
             segmentationFractionalType: segmentationFractionalType,
             maxFractionalValue: maxFractionalValue,
+            segmentsOverlap: segmentsOverlap,
+            pixelPaddingValue: pixelPaddingValue,
             numberOfSegments: numberOfSegments,
             segments: segments,
             frameOfReferenceUID: frameOfReferenceUID,
@@ -139,7 +167,10 @@ public struct SegmentationParser {
             photometricInterpretation: photometricInterpretation,
             pixelRepresentation: Int(pixelRepresentation),
             sharedFunctionalGroups: sharedFunctionalGroups,
-            perFrameFunctionalGroups: perFrameFunctionalGroups
+            perFrameFunctionalGroups: perFrameFunctionalGroups,
+            paletteColorLookupTable: paletteColorLookupTable,
+            iccProfile: iccProfile,
+            colorSpace: colorSpace
         )
     }
     
@@ -370,22 +401,34 @@ public struct SegmentationParser {
         if let frameSeq = item[.frameContentSequence]?.sequenceItems,
            let frameItem = frameSeq.first {
             
-            let frameAcquisitionNumber = frameItem[.frameAcquisitionNumber]?.integerStringValue?.value
+            let frameAcquisitionNumber = frameItem[.frameAcquisitionNumber]?.uint16Value.map { Int($0) }
+                ?? frameItem[.frameAcquisitionNumber]?.integerStringValue?.value
             let frameReferenceDateTime = frameItem.string(for: .frameReferenceDateTime)
             let frameAcquisitionDateTime = frameItem.string(for: .frameAcquisitionDateTime)
-            
-            // Parse Dimension Index Values
+
+            // Dimension Index Values (0020,9157) — VR UL, VM 1-n (PS3.6 Table 6-1);
+            // a backslash-separated string is accepted from non-conformant writers.
             var dimensionIndexValues: [Int]? = nil
-            if let dimData = frameItem[.dimensionIndexValues]?.valueData,
-               let dimString = String(data: dimData, encoding: .ascii) {
-                dimensionIndexValues = dimString.split(separator: "\\").compactMap { Int($0) }
+            if let dimElement = frameItem[.dimensionIndexValues] {
+                if let values = dimElement.uint32Values {
+                    dimensionIndexValues = values.map { Int($0) }
+                } else if let dimString = String(data: dimElement.valueData, encoding: .ascii) {
+                    let parsed = dimString.split(separator: "\\").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+                    dimensionIndexValues = parsed.isEmpty ? nil : parsed
+                }
             }
-            
+
+            // Stack ID (0020,9056) SH and In-Stack Position Number (0020,9057) UL
+            let stackID = frameItem.string(for: .stackID)
+            let inStackPositionNumber = frameItem[.inStackPositionNumber]?.uint32Value.map { Int($0) }
+
             frameContent = FrameContent(
                 frameAcquisitionNumber: frameAcquisitionNumber,
                 frameReferenceDateTime: frameReferenceDateTime,
                 frameAcquisitionDateTime: frameAcquisitionDateTime,
-                dimensionIndexValues: dimensionIndexValues
+                dimensionIndexValues: dimensionIndexValues,
+                stackID: stackID,
+                inStackPositionNumber: inStackPositionNumber
             )
             hasContent = true
         }
@@ -397,7 +440,8 @@ public struct SegmentationParser {
            let posData = planeItem[.imagePositionPatient]?.valueData,
            let posString = String(data: posData, encoding: .ascii) {
             
-            let positions = posString.split(separator: "\\").compactMap { Double($0) }
+            // DS values may carry the even-length padding space (PS3.5 6.2)
+            let positions = posString.split(separator: "\\").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
             if positions.count >= 3 {
                 planePosition = PlanePosition(imagePositionPatient: positions)
                 hasContent = true
@@ -411,7 +455,7 @@ public struct SegmentationParser {
            let orientData = orientItem[.imageOrientationPatient]?.valueData,
            let orientString = String(data: orientData, encoding: .ascii) {
             
-            let orientations = orientString.split(separator: "\\").compactMap { Double($0) }
+            let orientations = orientString.split(separator: "\\").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
             if orientations.count >= 6 {
                 planeOrientation = PlaneOrientation(imageOrientationPatient: orientations)
                 hasContent = true

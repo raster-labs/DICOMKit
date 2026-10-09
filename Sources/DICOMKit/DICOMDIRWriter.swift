@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — PS3.3 2026a F.3.2.2 offsets and Table F.3-3 record keys; Implementation Class UID is no longer the Deflated Transfer Syntax UID; (0002,0000) is computed by DICOMFile.write() (PS3.10 Table 7.1-1); the Builder adds the PS3.11 2026a Additional DICOMDIR Keys of the profile and its Icon Image Sequence (D239)
+// NEMA-verified: 2026a, checked 2026-10-01 — Builder: one record per instance under its PATIENT/STUDY/SERIES records (PS3.3 2026a F.4, Table F.4-1; was first image per series, D129), of the record type PS3.3 F.5 gives its SOP Class with its Type 1/2 keys (D229, D230); File-set Consistency Flag always 0000H (Table F.3-3, D231); refuses File IDs outside PS3.10 2026a 8.2/8.5 (D131) and SOP Classes / Transfer Syntaxes the profile's PS3.11 2026a table does not list (DICOMDIRProfileRules, D70)
 import Foundation
 import DICOMCore
 
@@ -105,8 +107,9 @@ public struct DICOMDIRWriter {
             DataElement.uint32(tag: .offsetOfTheLastDirectoryRecordOfTheRootDirectoryEntity,
                                value: offset(layout.rootIndices.last))
 
-        let consistencyFlag: UInt16 = directory.isConsistent ? 0x0000 : 0xFFFF
-        dataSet[.fileSetConsistencyFlag] = DataElement.uint16(tag: .fileSetConsistencyFlag, value: consistencyFlag)
+        // PS3.3 2026a Table F.3-3: "The Value FFFFH shall never be present" (D231); 0000H is
+        // written whatever `isConsistent` says.
+        dataSet[.fileSetConsistencyFlag] = DataElement.uint16(tag: .fileSetConsistencyFlag, value: 0x0000)
 
         var items: [SequenceItem] = []
         for index in layout.records.indices {
@@ -198,11 +201,11 @@ public struct DICOMDIRWriter {
         // Transfer Syntax UID (Explicit VR Little Endian)
         fmi[.transferSyntaxUID] = DataElement.string(tag: .transferSyntaxUID, vr: .UI, value: TransferSyntax.explicitVRLittleEndian.uid)
         
-        // Implementation Class UID
-        fmi[.implementationClassUID] = DataElement.string(tag: .implementationClassUID, vr: .UI, value: "1.2.840.10008.1.2.1.99")
-        
-        // Implementation Version Name
-        fmi[.implementationVersionName] = DataElement.string(tag: .implementationVersionName, vr: .SH, value: "DICOMKit_1_0")
+        // Implementation Class UID and Version Name: the same values every file this
+        // library writes carries (the literal here used to be the Deflated Explicit VR
+        // Little Endian Transfer Syntax UID, which is not an implementation UID).
+        fmi[.implementationClassUID] = DataElement.string(tag: .implementationClassUID, vr: .UI, value: DICOMFile.implementationClassUID)
+        fmi[.implementationVersionName] = DataElement.string(tag: .implementationVersionName, vr: .SH, value: DICOMFile.implementationVersionName)
         
         return fmi
     }
@@ -258,11 +261,44 @@ public struct DICOMDIRWriter {
 
 extension DICOMDirectory {
     /// Builder for constructing DICOMDIR from DICOM files
+    ///
+    /// Every added instance gets its own record under its PATIENT / STUDY / SERIES records
+    /// (PS3.3 F.4, Table F.4-1), of the Directory Record Type PS3.3 F.5 gives its SOP Class
+    /// (IMAGE, SR DOCUMENT, PRESENTATION, RT DOSE, ENCAP DOC, …; HANGING PROTOCOL, PALETTE,
+    /// IMPLANT*, INVENTORY at the root), with the Type 1 / 2 keys of its PS3.3 F.5 table
+    /// (``DICOMDIRRecordKeys``); records keep the order in which they were first added.
+    /// A STUDY without Study ID gets its ordinal in the File-set, a SERIES without Series
+    /// Number its ordinal in the study, a record without Instance Number its ordinal in the
+    /// series (PS3.11 D.3.3.1: the FSC supplies them); a Study Date / Time the instance lacks
+    /// is taken from its Series, Acquisition or Content Date / Time, else 19000101 / 000000
+    /// (``suppliesMissingStudyDateTime``); any other missing Type 1 key refuses the file. The
+    /// profile's PS3.11 "Additional DICOMDIR Keys" (Tables A.3-2, B.3-2, D.3-2, E.3-2, H.3-2, I.3-2)
+    /// are added to the PATIENT, SERIES and instance records, with an Icon Image Sequence made from
+    /// the pixels where STD-XABC-CD / STD-XA1K require one; a required key that cannot be supplied
+    /// refuses the file (``DICOMDIRProfileRules/Refusal/missingProfileKey(profile:recordType:key:tag:table:reason:)``). `addFile` refuses (throws ``DICOMDIRProfileRules/Refusal``) a File ID that
+    /// breaks PS3.10 8.2 / 8.5, a SOP Class or Transfer Syntax the profile's PS3.11 table
+    /// does not list, and a SOP Instance that is already indexed.
     public struct Builder {
         private var fileSetID: String
         private var profile: DICOMDIRProfile
         private var specificCharacterSet: String?
-        private var patients: [String: DirectoryRecord] = [:]
+        /// PATIENT records in first-added order (DirectoryRecord is a value type: children
+        /// are always mutated in place through these indices, never through a copy).
+        private var patients: [DirectoryRecord] = []
+        private var patientIndex: [String: Int] = [:]
+        private var indexedInstances: [String: [String]] = [:]
+        /// Root-level records other than PATIENT (PS3.3 Table F.4-1), in first-added order.
+        private var otherRootRecords: [DirectoryRecord] = []
+        /// STUDY records created so far; the next one without a Study ID gets this count + 1.
+        private var studyCount = 0
+
+        /// Whether a STUDY record whose instance carries no Study, Series, Acquisition or Content
+        /// Date / Time gets Study Date 19000101 and Study Time 000000 (true, the default), or the
+        /// instance is refused (``DICOMDIRProfileRules/Refusal/missingRecordKey(recordType:key:tag:table:)``).
+        /// Study Date and Time are Type 1 keys of the STUDY record (PS3.3 2026a Table F.5-2) but
+        /// Type 2 in the General Study Module, and empty after de-identification (PS3.15 Table
+        /// E.1-1 action Z), so the File-set Creator has to supply them (PS3.11 2026a D.3.3.1).
+        public var suppliesMissingStudyDateTime: Bool = true
         
         /// Initialize a new DICOMDIR builder
         ///
@@ -278,33 +314,14 @@ extension DICOMDirectory {
         ///
         /// - Parameters:
         ///   - file: DICOM file to add
-        ///   - relativePath: Relative path to the file from DICOMDIR location
-        /// - Throws: DICOMError if file cannot be added
+        ///   - relativePath: Referenced File ID components (PS3.10 8.2: 1-8 components of
+        ///     1-8 characters A-Z, 0-9, _), relative to the DICOMDIR's directory
+        /// - Throws: DICOMError if a record key is missing; DICOMDIRProfileRules.Refusal if
+        ///   the File ID, the SOP Class / Transfer Syntax (PS3.11 profile table) or a
+        ///   duplicate SOP Instance makes the file unfit for this File-set
         public mutating func addFile(_ file: DICOMFile, relativePath: [String]) throws {
             let dataSet = file.dataSet
-            
-            // Extract patient information
-            guard let patientID = dataSet.string(for: .patientID) else {
-                throw DICOMError.parsingFailed( "Missing Patient ID")
-            }
-            let patientName = dataSet.string(for: .patientName) ?? ""
-            
-            // Extract study information
-            guard let studyInstanceUID = dataSet.string(for: .studyInstanceUID) else {
-                throw DICOMError.parsingFailed( "Missing Study Instance UID")
-            }
-            let studyDate = dataSet.string(for: .studyDate)
-            let studyTime = dataSet.string(for: .studyTime)
-            let studyDescription = dataSet.string(for: .studyDescription)
-            
-            // Extract series information
-            guard let seriesInstanceUID = dataSet.string(for: .seriesInstanceUID) else {
-                throw DICOMError.parsingFailed( "Missing Series Instance UID")
-            }
-            let modality = dataSet.string(for: .modality) ?? "OT"
-            let seriesNumber = dataSet.string(for: .seriesNumber)
-            let seriesDescription = dataSet.string(for: .seriesDescription)
-            
+
             // Extract instance information
             guard let sopClassUID = file.fileMetaInformation.string(for: .mediaStorageSOPClassUID) else {
                 throw DICOMError.parsingFailed( "Missing SOP Class UID")
@@ -313,104 +330,187 @@ extension DICOMDirectory {
                 throw DICOMError.parsingFailed( "Missing SOP Instance UID")
             }
             let transferSyntaxUID = file.fileMetaInformation.string(for: .transferSyntaxUID) ?? TransferSyntax.explicitVRLittleEndian.uid
-            let instanceNumber = dataSet.string(for: .instanceNumber)
-            
-            // Get or create patient record
-            var patient: DirectoryRecord
-            if let existingPatient = patients[patientID] {
-                patient = existingPatient
-            } else {
-                patient = DirectoryRecord.patient(patientID: patientID, patientName: patientName)
-                patients[patientID] = patient
+
+            // PS3.10 8.2 / 8.5: the Referenced File ID (0004,1500) must be a conformant File ID.
+            let problems = DICOMDIRProfileRules.fileIDProblems(relativePath)
+            guard problems.isEmpty else {
+                throw DICOMDIRProfileRules.Refusal.nonConformantFileID(fileID: relativePath, problems: problems)
             }
-            
-            // Find or create study record
-            var study: DirectoryRecord?
-            for (index, child) in patient.children.enumerated() {
-                if child.recordType == .study,
-                   child.attribute(for: .studyInstanceUID)?.stringValue == studyInstanceUID {
-                    study = patient.children[index]
-                    break
+            // PS3.11: the profile is a conformance claim; refuse what its table does not list
+            // (a "Multi-frame Composite IODs" row only for an instance with Number of Frames).
+            if let refusal = DICOMDIRProfileRules.refusal(
+                sopClassUID: sopClassUID, transferSyntaxUID: transferSyntaxUID, profile: profile,
+                isMultiFrame: dataSet[.numberOfFrames] != nil) {
+                throw refusal
+            }
+            // PS3.11: the profile's image attribute values (Tables A.3-3 ... L.4-2, C.3-2).
+            let attributeProblems = DICOMDIRProfileRules.imageAttributeProblems(
+                in: dataSet, sopClassUID: sopClassUID, transferSyntaxUID: transferSyntaxUID, profile: profile)
+            guard attributeProblems.isEmpty else {
+                throw DICOMDIRProfileRules.Refusal.imageAttributeValues(
+                    sopClassUID: sopClassUID, profile: profile.rawValue, problems: attributeProblems)
+            }
+            if let existing = indexedInstances[sopInstanceUID] {
+                throw DICOMDIRProfileRules.Refusal.duplicateSOPInstance(sopInstanceUID: sopInstanceUID, fileID: existing)
+            }
+
+            // The record type that references this SOP Class (PS3.3 F.5, Table F.4-1).
+            guard let recordType = Self.recordType(sopClassUID: sopClassUID, dataSet: dataSet) else {
+                throw DICOMDIRProfileRules.Refusal.noDirectoryRecordType(sopClassUID: sopClassUID)
+            }
+            func keys(_ type: DirectoryRecordType, _ assigned: DICOMDIRRecordKeys.Assigned) throws -> [Tag: DataElement] {
+                do {
+                    return try DICOMDIRRecordKeys.keyElements(for: type, from: dataSet, assigned: assigned)
+                } catch let missing as DICOMDIRRecordKeys.MissingKey {
+                    throw DICOMDIRProfileRules.Refusal.missingRecordKey(
+                        recordType: missing.recordType.rawValue, key: missing.key.name,
+                        tag: missing.key.tag.description, table: missing.table)
                 }
             }
-            
-            if study == nil {
-                study = DirectoryRecord.study(
-                    studyInstanceUID: studyInstanceUID,
-                    studyDate: studyDate,
-                    studyTime: studyTime,
-                    studyDescription: studyDescription
-                )
-            }
-            
-            // Find or create series record
-            var series: DirectoryRecord?
-            if var currentStudy = study {
-                for (index, child) in currentStudy.children.enumerated() {
-                    if child.recordType == .series,
-                       child.attribute(for: .seriesInstanceUID)?.stringValue == seriesInstanceUID {
-                        series = currentStudy.children[index]
-                        break
-                    }
-                }
-                
-                if series == nil {
-                    series = DirectoryRecord.series(
-                        seriesInstanceUID: seriesInstanceUID,
-                        modality: modality,
-                        seriesNumber: seriesNumber,
-                        seriesDescription: seriesDescription
-                    )
-                }
-                
-                // Create image record
-                let image = DirectoryRecord.image(
+            func instanceRecord(_ attributes: [Tag: DataElement]) -> DirectoryRecord {
+                DirectoryRecord(
+                    recordType: recordType,
                     referencedFileID: relativePath,
-                    sopClassUID: sopClassUID,
-                    sopInstanceUID: sopInstanceUID,
-                    transferSyntaxUID: transferSyntaxUID,
-                    instanceNumber: instanceNumber
-                )
-                
-                // Add image to series
-                if var currentSeries = series {
-                    currentSeries.addChild(image)
-                    series = currentSeries
-                }
-                
-                // Update study with series
-                if let currentSeries = series {
-                    let seriesExists = currentStudy.children.contains { $0.recordType == .series && $0.attribute(for: .seriesInstanceUID)?.stringValue == seriesInstanceUID }
-                    if !seriesExists {
-                        currentStudy.addChild(currentSeries)
-                    }
-                }
-                
-                study = currentStudy
+                    referencedSOPClassUID: sopClassUID,
+                    referencedSOPInstanceUID: sopInstanceUID,
+                    referencedTransferSyntaxUID: transferSyntaxUID,
+                    attributes: attributes)
             }
-            
-            // Update patient with study
-            if let currentStudy = study {
-                let studyExists = patient.children.contains { $0.recordType == .study && $0.attribute(for: .studyInstanceUID)?.stringValue == studyInstanceUID }
-                if !studyExists {
-                    patient.addChild(currentStudy)
-                }
+
+            // Root-level records (HANGING PROTOCOL, PALETTE, IMPLANT*, INVENTORY): no PATIENT.
+            if DirectoryRecordType.rootLevelTypes.contains(recordType) {
+                otherRootRecords.append(instanceRecord(try keys(recordType, .init())))
+                indexedInstances[sopInstanceUID] = relativePath
+                return
             }
-            
-            patients[patientID] = patient
+
+            guard let patientID = dataSet.string(for: .patientID) else {
+                throw DICOMError.parsingFailed( "Missing Patient ID")
+            }
+            guard let studyInstanceUID = dataSet.string(for: .studyInstanceUID) else {
+                throw DICOMError.parsingFailed( "Missing Study Instance UID")
+            }
+            guard let seriesInstanceUID = dataSet.string(for: .seriesInstanceUID) else {
+                throw DICOMError.parsingFailed( "Missing Series Instance UID")
+            }
+
+            // Every record's keys are computed before anything is added, so a refused instance
+            // leaves the directory unchanged.
+            let p = patientIndex[patientID]
+            let s = p.flatMap { p in patients[p].children.firstIndex(where: {
+                $0.recordType == .study && $0.attribute(for: .studyInstanceUID)?.stringValue == studyInstanceUID
+            }) }
+            let r = s.flatMap { s in patients[p!].children[s].children.firstIndex(where: {
+                $0.recordType == .series && $0.attribute(for: .seriesInstanceUID)?.stringValue == seriesInstanceUID
+            }) }
+
+            // PS3.11 2026a "Additional DICOMDIR Keys" of the profile (Tables A.3-2 ... I.3-2) and its
+            // Icon Images section, for this instance's PATIENT, SERIES and own record.
+            func profileKeys(_ type: DirectoryRecordType) throws -> [Tag: DataElement] {
+                try DICOMDIRProfileRules.additionalKeyElements(for: type, profile: profile, file: file, sopClassUID: sopClassUID)
+            }
+            let patientExtra = try profileKeys(.patient)
+            let seriesExtra = try profileKeys(.series)
+            let leafExtra = try profileKeys(recordType)
+
+            var newPatient: DirectoryRecord?
+            if p == nil {
+                newPatient = DirectoryRecord(recordType: .patient,
+                                             attributes: Self.merged(try keys(.patient, .init()), patientExtra))
+            }
+            var newStudy: DirectoryRecord?
+            if s == nil {
+                studyCount += 1
+                var assigned = DICOMDIRRecordKeys.Assigned()
+                assigned.studyID = String(studyCount)                 // SH
+                if suppliesMissingStudyDateTime {
+                    assigned.studyDate = "19000101"
+                    assigned.studyTime = "000000"
+                }
+                var attributes = try keys(.study, assigned)
+                attributes[.studyInstanceUID] = DataElement.string(tag: .studyInstanceUID, vr: .UI, value: studyInstanceUID)
+                newStudy = DirectoryRecord(recordType: .study, attributes: attributes)
+            }
+            var newSeries: DirectoryRecord?
+            if r == nil {
+                let seriesInStudy = s.map { patients[p!].children[$0].children.count } ?? 0
+                var assigned = DICOMDIRRecordKeys.Assigned()
+                assigned.seriesNumber = String(seriesInStudy + 1)     // IS
+                assigned.modality = "OT"   // Type 1 in every IOD; "OT" for an instance without one (as before)
+                var attributes = Self.merged(try keys(.series, assigned), seriesExtra)
+                if let description = dataSet[.seriesDescription] { attributes[.seriesDescription] = description }
+                newSeries = DirectoryRecord(recordType: .series, attributes: attributes)
+            }
+            let instancesInSeries = r.map { patients[p!].children[s!].children[$0].children.count } ?? 0
+            var assigned = DICOMDIRRecordKeys.Assigned()
+            assigned.instanceNumber = String(instancesInSeries + 1)   // IS
+            let leaf = instanceRecord(Self.merged(try keys(recordType, assigned), leafExtra))
+
+            // PATIENT (root entity) — found or appended.
+            let pi: Int
+            if let p {
+                pi = p
+                // "Required if present in any objects referenced by subordinate records" (H.3-2, I.3-2)
+                Self.fill(&patients[pi], with: patientExtra)
+            } else {
+                pi = patients.count
+                patients.append(newPatient!)
+                patientIndex[patientID] = pi
+            }
+            // STUDY under that PATIENT.
+            let si: Int
+            if let s { si = s } else {
+                si = patients[pi].children.count
+                patients[pi].addChild(newStudy!)
+            }
+            // SERIES under that STUDY.
+            let ri: Int
+            if let r {
+                ri = r
+                Self.fill(&patients[pi].children[si].children[ri], with: seriesExtra)
+            } else {
+                ri = patients[pi].children[si].children.count
+                patients[pi].children[si].addChild(newSeries!)
+            }
+            // One record per instance, of the type its SOP Class calls for (PS3.3 F.4, F.5).
+            patients[pi].children[si].children[ri].addChild(leaf)
+            indexedInstances[sopInstanceUID] = relativePath
+        }
+
+        /// `base` with the profile's additional keys; a non-empty value is never replaced by an empty one.
+        static func merged(_ base: [Tag: DataElement], _ extra: [Tag: DataElement]) -> [Tag: DataElement] {
+            base.merging(extra) { old, new in isEmpty(old) ? new : old }
+        }
+
+        /// Sets the additional keys an existing PATIENT / SERIES record lacks or has empty.
+        static func fill(_ record: inout DirectoryRecord, with extra: [Tag: DataElement]) {
+            for (tag, element) in extra where !isEmpty(element) {
+                if let existing = record.attribute(for: tag), !isEmpty(existing) { continue }
+                record.setAttribute(element, for: tag)
+            }
+        }
+
+        private static func isEmpty(_ element: DataElement) -> Bool {
+            element.vr == .SQ ? (element.sequenceItems ?? []).isEmpty : element.length == 0
+        }
+
+        /// The Directory Record Type for an instance: PS3.3 2026a F.5 per SOP Class; for a SOP
+        /// Class PS3.4 does not list (private, retired) IMAGE when the instance has Pixel Data.
+        static func recordType(sopClassUID: String, dataSet: DataSet) -> DirectoryRecordType? {
+            if let type = DICOMDIRRecordKeys.recordType(forSOPClassUID: sopClassUID) { return type }
+            if DICOMDIRRecordKeys.hasNoDirectoryRecordType(sopClassUID: sopClassUID) { return nil }
+            return dataSet[.pixelData] != nil ? .image : nil
         }
         
         /// Build the final DICOMDIR
         ///
         /// - Returns: Complete DICOMDIR structure
         public func build() -> DICOMDirectory {
-            let rootRecords = Array(patients.values)
-            
             return DICOMDirectory(
                 fileSetID: fileSetID,
                 profile: profile,
                 specificCharacterSet: specificCharacterSet,
-                rootRecords: rootRecords
+                rootRecords: patients + otherRootRecords
             )
         }
     }

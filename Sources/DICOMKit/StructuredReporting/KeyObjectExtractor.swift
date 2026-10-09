@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — SOP Class gate and value-type walk per PS3.3 2026a A.35.4
 /// Key Object Selection Extraction API
 ///
 /// Provides high-level extraction of Key Object Selection data from KOS documents.

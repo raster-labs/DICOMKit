@@ -1,5 +1,6 @@
 // CodecBackend.swift
 // DICOMCore — Phase 5: Hardware Acceleration
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (hardware backend selection). C1 classification confirmed.
 
 import Foundation
 

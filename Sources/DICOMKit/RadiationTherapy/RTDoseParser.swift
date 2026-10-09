@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — RT Dose Module reads per PS3.3 2026a Table C.8-39; DVH Sequence reads (incl. DVH Volume Units (3004,0054)) per Table C.8-40
 //
 // RTDoseParser.swift
 // DICOMKit
@@ -241,7 +242,8 @@ public struct RTDoseParser {
             let type = item.string(for: .dvhType)
             let doseUnits = item.string(for: .doseUnits)
             let doseType = item.string(for: .doseType)
-            let volumeUnits: String? = nil  // Would need to parse from DVH Volume Units tag
+            // DVH Volume Units (3004,0054), CS, Type 1 in the DVH Sequence (PS3.3 Table C.8-40)
+            let volumeUnits = item.string(for: .dvhVolumeUnits)
             let referencedROINumber = item[.referencedROINumber]?.integerStringValue?.value
             
             let normalizationPoint = parsePoint3DFromItem(item, tag: .dvhNormalizationPoint)

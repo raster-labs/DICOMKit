@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — carries only the Verification SOP Class and the two default transfer syntaxes (registered in PS3.6 2026a Table A-1) and the C-ECHO service of PS3.7 2026a §9.1.5; no other standard data
 
 #if canImport(Network)
 

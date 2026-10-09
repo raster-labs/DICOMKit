@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-25 — Planar Configuration 0/1 sample order matches PS3.3 2026a C.7.6.3.1.3 (0 = colour-by-pixel, 1 = colour-by-plane); no other standard data. C1 classification confirmed.
+
 import Foundation
 
 // Helpers for bridging DICOM frame buffers to/from the channel-interleaved,

@@ -3,6 +3,7 @@ import Foundation
 import CryptoKit
 #endif
 
+// NEMA-verified: 2026a, checked 2026-09-28 — the path segments studies, series, instances, frames, metadata, rendered, bulkdata, workitems, state, cancelrequest and subscribers read against PS3.18 2026a Tables 10.1-1 and 11.1.1-1 (thumbnail and pixeldata added); roles, scopes and JWT handling are not DICOM-defined
 // MARK: - JWT Claims
 
 /// Standard JWT claims parsed from a token
@@ -797,9 +798,9 @@ public struct DICOMwebResource: Sendable {
                 type = .frames
             case "metadata":
                 type = .metadata
-            case "rendered":
+            case "rendered", "thumbnail":
                 type = .rendered
-            case "bulkdata":
+            case "bulkdata", "pixeldata":
                 type = .bulkdata
             case "workitems":
                 type = .workitems
@@ -825,9 +826,10 @@ public struct DICOMwebResource: Sendable {
     }
     
     private static func isKeyword(_ component: String) -> Bool {
+        // PS3.18 Tables 10.1-1 and 11.1.1-1 resource path segments, plus DICOMKit's capabilities
         ["studies", "series", "instances", "frames", "metadata", "rendered",
-         "bulkdata", "workitems", "capabilities", "state", "cancelrequest",
-         "subscribers"].contains(component)
+         "thumbnail", "pixeldata", "bulkdata", "workitems", "capabilities", "state",
+         "cancelrequest", "subscribers", "suspend"].contains(component)
     }
 }
 

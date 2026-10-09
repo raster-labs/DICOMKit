@@ -7,8 +7,11 @@ import Foundation
 /// is used as an index into these lookup tables to determine the final
 /// RGB color.
 ///
-/// Reference: DICOM PS3.3 C.7.6.3.1.5 - Palette Color Lookup Table Module
+/// Reference: DICOM PS3.3 C.7.6.3.1.5 - Palette Color Lookup Table Descriptor
+/// Reference: DICOM PS3.3 C.7.6.3.1.6 - Palette Color Lookup Table Data
 /// Reference: DICOM PS3.3 C.7.9 - Palette Color Lookup Table Module
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — descriptor semantics (first value 0 means 2^16 entries; out-of-range input clamps to the first or last entry; 8 or 16 bits per entry) match PS3.3 2026a C.7.6.3.1.5, and the 8-bit normalisation follows C.7.6.3.1.6. The first citation named the wrong section title; corrected.
 public struct PaletteColorLUT: Sendable, Equatable {
     /// Descriptor containing the LUT metadata
     ///
@@ -146,9 +149,9 @@ public struct PaletteColorLUT: Sendable, Equatable {
     
     /// Normalizes a 16-bit LUT value to 8-bit
     ///
-    /// Per DICOM PS3.3 C.7.6.3.1.5, LUT entries are stored as 16-bit values
-    /// with the significant data in the high byte. This applies to both
-    /// 8-bit and 16-bit LUT data.
+    /// Per PS3.3 C.7.6.3.1.6, palette values are scaled across the full range of
+    /// the entry width, so the high byte of a 16-bit entry is its 8-bit intensity.
+    /// `parseLUTData` places 8-bit entries in the high byte, so one rule serves both.
     private func normalize(_ value: UInt16) -> UInt8 {
         // High byte contains the significant data for both 8-bit and 16-bit LUTs
         return UInt8(value >> 8)
@@ -165,9 +168,10 @@ public struct PaletteColorLUT: Sendable, Equatable {
         result.reserveCapacity(descriptor.numberOfEntries)
         
         if descriptor.bitsPerEntry == 8 {
-            // 8-bit LUT entries - stored as bytes, but we read as 16-bit with high byte
-            // Per DICOM, 8-bit LUT values are packed into 16-bit words
-            // or may be stored as individual bytes
+            // 8-bit entries are stored "in a format equivalent to 8 bits allocated"
+            // (PS3.3 C.7.6.3.1.5), i.e. one byte each; widen to the high byte so the
+            // lookup can treat every entry as 16-bit. The second branch below is
+            // unreachable for well-formed data and is kept only as a fallback.
             if data.count >= descriptor.numberOfEntries {
                 // Individual byte storage. Index from startIndex so a sliced
                 // Data (non-zero startIndex) is read correctly rather than trapping.

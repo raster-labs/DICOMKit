@@ -11,17 +11,22 @@ import Foundation
 /// DICOM tags for Grayscale Softcopy Presentation State
 ///
 /// Reference: PS3.3 Part 3 Section A.33 - Grayscale Softcopy Presentation State IOD
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - Presentation State Identification Module (C.11.10)
     
-    /// Instance Number (0020,0013)
-    public static let presentationInstanceNumber = Tag(group: 0x0020, element: 0x0013)
+    /// Instance Number (0020,0013) — use `Tag.instanceNumber`.
+    @available(*, deprecated, renamed: "instanceNumber")
+    public static let presentationInstanceNumber = Tag.instanceNumber
     
-    /// Presentation Label (0070,0080)
-    public static let presentationLabel = Tag(group: 0x0070, element: 0x0080)
+    /// Content Label (0070,0080) — use `Tag.contentLabel` (Tag+Segmentation.swift);
+    /// the attribute is shared by Presentation State, Segmentation and KOS IODs.
+    @available(*, deprecated, renamed: "contentLabel")
+    public static let presentationLabel = Tag.contentLabel
     
-    /// Presentation Description (0070,0081)
-    public static let presentationDescription = Tag(group: 0x0070, element: 0x0081)
+    /// Content Description (0070,0081) — use `Tag.contentDescription`.
+    @available(*, deprecated, renamed: "contentDescription")
+    public static let presentationDescription = Tag.contentDescription
     
     /// Presentation Creation Date (0070,0082)
     public static let presentationCreationDate = Tag(group: 0x0070, element: 0x0082)
@@ -29,8 +34,9 @@ extension Tag {
     /// Presentation Creation Time (0070,0083)
     public static let presentationCreationTime = Tag(group: 0x0070, element: 0x0083)
     
-    /// Presentation Creator's Name (0070,0084)
-    public static let presentationCreatorsName = Tag(group: 0x0070, element: 0x0084)
+    /// Content Creator's Name (0070,0084) — use `Tag.contentCreatorName`.
+    @available(*, deprecated, renamed: "contentCreatorName")
+    public static let presentationCreatorsName = Tag.contentCreatorName
     
     // MARK: - Presentation State Relationship Module (C.11.11)
     
@@ -64,13 +70,14 @@ extension Tag {
     /// Graphic Data, distinct from the bounding-box units a Text Object uses.
     public static let graphicAnnotationUnits = Tag(group: 0x0070, element: 0x0005)
 
-    /// Unformatted Text Value (0070,0006) — the words of a Text Object.
-    ///
-    /// Named for its sequence: `Tag.unformattedTextValue` already exists as SR's
-    /// Text Value (0040,A160), which is a different attribute. GSPS text objects
-    /// are written with this one; the parser reads it first and falls back to
-    /// (0040,A160) for files written before the distinction was made here.
-    public static let textObjectUnformattedTextValue = Tag(group: 0x0070, element: 0x0006)
+    /// Unformatted Text Value (0070,0006) — the words of a Text Object, and the
+    /// text of a Waveform Annotation (PS3.3 C.10.9). SR's Text Value (0040,A160)
+    /// is `Tag.textValue`, a different attribute; parsers read that as a fallback
+    /// for files written before the two were distinguished here.
+    public static let unformattedTextValue = Tag(group: 0x0070, element: 0x0006)
+    
+    @available(*, deprecated, renamed: "unformattedTextValue")
+    public static let textObjectUnformattedTextValue = Tag.unformattedTextValue
 
     /// Bounding Box Top Left Hand Corner (0070,0010)
     public static let boundingBoxTopLeftHandCorner = Tag(group: 0x0070, element: 0x0010)
@@ -114,6 +121,7 @@ extension Tag {
     public static let graphicLayerRecommendedDisplayGrayscaleValue = Tag(group: 0x0070, element: 0x0066)
     
     /// Graphic Layer Recommended Display RGB Value (0070,0067)
+    /// Retired in PS3.6 2026a Table 6-1 (RET (2004)). Kept for reading legacy objects.
     public static let graphicLayerRecommendedDisplayRGBValue = Tag(group: 0x0070, element: 0x0067)
     
     /// Graphic Layer Description (0070,0068)
@@ -150,8 +158,11 @@ extension Tag {
     /// Radius of Circular Shutter (0018,1612)
     public static let radiusOfCircularShutter = Tag(group: 0x0018, element: 0x1612)
     
-    /// Vertices of the Polygonal Shutter (0018,1620)
-    public static let verticesOfPolygonalShutter = Tag(group: 0x0018, element: 0x1620)
+    /// Vertices of the Polygonal Shutter (0018,1620) — PS3.6 keyword VerticesOfThePolygonalShutter
+    public static let verticesOfThePolygonalShutter = Tag(group: 0x0018, element: 0x1620)
+
+    @available(*, deprecated, renamed: "verticesOfThePolygonalShutter", message: "PS3.6 keyword is VerticesOfThePolygonalShutter")
+    public static var verticesOfPolygonalShutter: Tag { .verticesOfThePolygonalShutter }
     
     /// Shutter Presentation Value (0018,1622)
     public static let shutterPresentationValue = Tag(group: 0x0018, element: 0x1622)

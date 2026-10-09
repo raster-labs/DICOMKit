@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (crop/rotate/flip/invert of prepared pixels; inversion against 2^BitsStored - 1)
 // PrintPresentationTransform.swift
 // DICOMPrintKit
 //

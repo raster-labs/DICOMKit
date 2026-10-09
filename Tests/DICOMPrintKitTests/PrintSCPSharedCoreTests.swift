@@ -106,7 +106,7 @@ final class PrintSCPSettingsMappingTests: XCTestCase {
     func testPrinterStatusInfoFallsBackToTheStatusText() {
         var settings = PrintSCPSettings()
         settings.printerStatus = .failure
-        XCTAssertEqual(settings.effectivePrinterStatusInfo, "NO SUPPLY")
+        XCTAssertEqual(settings.effectivePrinterStatusInfo, "SUPPLY EMPTY")  // a PS3.3 C.13.9.1 Defined Term
         settings.printerStatusInfo = "OUT OF FILM"
         XCTAssertEqual(settings.reportedPrinterStatus.statusInfo, "OUT OF FILM")
         XCTAssertEqual(settings.reportedPrinterStatus.status, "FAILURE")
@@ -196,7 +196,10 @@ final class PrintSCPConsoleTests: XCTestCase {
             for: .requestFailed(command: .nCreateRequest, status: .printQueueFull, detail: nil))
         XCTAssertEqual(failed?.level, .warning)
         XCTAssertEqual(failed?.message.contains("0xC601"), true)
-        XCTAssertEqual(failed?.message.contains("Print queue full"), true)
+        // PS3.4 Table H.4-4 wording for C601.
+        XCTAssertEqual(
+            failed?.message.contains("Unable to create Print Job SOP Instance; print queue is full"),
+            true)
 
         // `.started` carries no line of its own: the bound port belongs to the
         // surface's own "listening on…" line, which knows the AE title.

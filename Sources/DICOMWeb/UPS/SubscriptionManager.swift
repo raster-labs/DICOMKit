@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (in-memory subscription registry; the well-known UIDs and the PS3.4 CC.2.3-2 subscription state table are not modelled here, see the audit report)
 // MARK: - Subscription
 
 /// Represents a subscription to UPS workitem events

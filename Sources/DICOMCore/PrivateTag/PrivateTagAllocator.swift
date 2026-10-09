@@ -4,6 +4,8 @@
 /// Manages conflict-free private group selection and serialization.
 ///
 /// Reference: DICOM PS3.5 Section 7.8 - Private Data Elements
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — allocation follows PS3.5 2026a §7.8.1: odd groups only, creator elements 0x0010-0x00FF, one block per creator identifier per group, blocks need not be sequential.
 public actor PrivateTagAllocator {
     /// Allocated private creators by group
     private var allocations: [UInt16: [UInt16: PrivateCreator]] = [:]

@@ -56,7 +56,7 @@ struct DictionaryTests {
         #expect(sopClassUID?.keyword == "MediaStorageSOPClassUID")
     }
     
-    @Test("64-bit Value Representations are declared for the CP-1818 elements")
+    @Test("64-bit Value Representations are declared for the CP 1818 (Extended Offset Table) and CP 1819 (0072,008x / 0008,04xx) elements")
     func testSixtyFourBitElements() {
         #expect(DataElementDictionary.lookup(tag: .extendedOffsetTable)?.vr == [.OV])
         #expect(DataElementDictionary.lookup(tag: .extendedOffsetTableLengths)?.vr == [.OV])

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (output path composition)
 import Foundation
 
 /// Resolves a user-supplied `--output` into a concrete destination FILE path for

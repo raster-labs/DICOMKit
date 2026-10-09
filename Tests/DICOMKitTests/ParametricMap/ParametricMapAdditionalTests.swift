@@ -111,27 +111,29 @@ final class ParametricMapAdditionalTests: XCTestCase {
         XCTAssertEqual(QuantityDefinition.ktrans.codeValue, "126312")
         XCTAssertEqual(QuantityDefinition.ktrans.codeMeaning, "Ktrans")
         
-        XCTAssertEqual(QuantityDefinition.ve.codeValue, "126313")
-        XCTAssertEqual(QuantityDefinition.ve.codeMeaning, "Ve")
-        
-        XCTAssertEqual(QuantityDefinition.vp.codeValue, "126314")
+        // PS3.16 2026a Table D-1: (126314, DCM, "ve"), (126331, DCM, "Vp")
+        XCTAssertEqual(QuantityDefinition.ve.codeValue, "126314")
+        XCTAssertEqual(QuantityDefinition.ve.codeMeaning, "ve")
+
+        XCTAssertEqual(QuantityDefinition.vp.codeValue, "126331")
         XCTAssertEqual(QuantityDefinition.vp.codeMeaning, "Vp")
     }
-    
+
     func test_quantityDefinition_suvVariants_haveCorrectCodes() {
         XCTAssertEqual(QuantityDefinition.suv.codeValue, "126400")
         XCTAssertEqual(QuantityDefinition.suvbw.codeValue, "126401")
         XCTAssertEqual(QuantityDefinition.suvlbm.codeValue, "126402")
         XCTAssertEqual(QuantityDefinition.suvbsa.codeValue, "126403")
-        
-        XCTAssertEqual(QuantityDefinition.suvbw.codeMeaning, "Standardized Uptake Value body weight")
+
+        // PS3.16 2026a Table D-1 / CID 7180 meaning
+        XCTAssertEqual(QuantityDefinition.suvbw.codeMeaning, "SUVbw")
     }
-    
+
     func test_quantityDefinition_relaxationTimes_haveDCMScheme() {
         XCTAssertEqual(QuantityDefinition.t1.codingSchemeDesignator, "DCM")
         XCTAssertEqual(QuantityDefinition.t2.codingSchemeDesignator, "DCM")
-        XCTAssertEqual(QuantityDefinition.t1.codeValue, "113054")
-        XCTAssertEqual(QuantityDefinition.t2.codeValue, "113055")
+        XCTAssertEqual(QuantityDefinition.t1.codeValue, "113063")
+        XCTAssertEqual(QuantityDefinition.t2.codeValue, "113065")
     }
     
     // MARK: - Pixel Representation Edge Cases

@@ -8,6 +8,8 @@
 // series pane, and until the viewer can name them it treats each one as a
 // picture it failed to decode — which is how a perfectly valid SR ends up
 // reported as an "unsupported transfer syntax".
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the 5 `…Prefix` constants are PS3.6 2026a Table A-1 OID arcs under 1.2.840.10008.5.1.4.1.1 (88. SR, 104. Encapsulated, 11. Presentation State, 9.100. Waveform Presentation State, 9. Waveform), each ending in "." and used with hasPrefix — 64 member SOP Classes fit their kind, 0 wrong; the two exact UIDs (.88.59 Key Object Selection Document Storage, .66 Raw Data Storage) match A-1; the open arcs "…1.1.9"/"…1.1.11" also matched Content Assessment Results / Microscopy Bulk Simple Annotations / Standalone Curve / VOI LUT and were closed
 
 import Foundation
 import DICOMCore
@@ -57,10 +59,11 @@ public enum ViewerContentKind: String, Sendable, Equatable, Hashable, CaseIterab
         default:
             break
         }
-        if uid.hasPrefix(Self.structuredReportPrefix)   { return .report }
-        if uid.hasPrefix(Self.encapsulatedPrefix)       { return .document }
-        if uid.hasPrefix(Self.presentationStatePrefix)  { return .presentationState }
-        if uid.hasPrefix(Self.waveformPrefix)           { return .waveform }
+        if uid.hasPrefix(Self.structuredReportPrefix)           { return .report }
+        if uid.hasPrefix(Self.encapsulatedPrefix)               { return .document }
+        if uid.hasPrefix(Self.presentationStatePrefix)          { return .presentationState }
+        if uid.hasPrefix(Self.waveformPresentationStatePrefix)  { return .presentationState }
+        if uid.hasPrefix(Self.waveformPrefix)                   { return .waveform }
         return .image
     }
 
@@ -125,12 +128,25 @@ public enum ViewerContentKind: String, Sendable, Equatable, Hashable, CaseIterab
         }
     }
 
-    // Storage class families. Reference: PS3.4 B.5 (Standard SOP Classes).
-    static let structuredReportPrefix = "1.2.840.10008.5.1.4.1.1.88"
+    // Storage class families — OID arcs of PS3.6 2026a Table A-1, not UIDs themselves,
+    // so each ends in "." and `hasPrefix` matches OID children only: "…1.1.9" alone
+    // would also claim Content Assessment Results Storage (…1.1.90.1) and Microscopy
+    // Bulk Simple Annotations Storage (…1.1.91.1). The members are listed in PS3.4
+    // Table B.5-1 (Standard SOP Classes).
+    /// The SR Storage arc: Basic Text SR (…88.11) … Waveform Annotation SR (…88.77),
+    /// including Key Object Selection Document (…88.59), handled first.
+    static let structuredReportPrefix = "1.2.840.10008.5.1.4.1.1.88."
     static let keyObjectSelectionUID = "1.2.840.10008.5.1.4.1.1.88.59"
-    static let encapsulatedPrefix = "1.2.840.10008.5.1.4.1.1.104"
-    static let presentationStatePrefix = "1.2.840.10008.5.1.4.1.1.11"
+    /// Encapsulated PDF, CDA, STL, OBJ and MTL Storage (…104.1 – …104.5).
+    static let encapsulatedPrefix = "1.2.840.10008.5.1.4.1.1.104."
+    /// The softcopy and volumetric Presentation State Storage arc (…11.1 – …11.12).
+    static let presentationStatePrefix = "1.2.840.10008.5.1.4.1.1.11."
     /// Raw Data Storage — vendor-private acquisition data with no image in it.
     static let rawDataUID = "1.2.840.10008.5.1.4.1.1.66"
-    static let waveformPrefix = "1.2.840.10008.5.1.4.1.1.9"
+    /// Waveform Presentation State and Waveform Acquisition Presentation State
+    /// Storage (…9.100.1, …9.100.2) sit under the waveform arc but are presentation
+    /// states (PS3.3 A.92), so they are asked about before the waveform arc.
+    static let waveformPresentationStatePrefix = "1.2.840.10008.5.1.4.1.1.9.100."
+    /// The Waveform Storage arc: 12-lead ECG (…9.1.1) … Body Position (…9.8.1).
+    static let waveformPrefix = "1.2.840.10008.5.1.4.1.1.9."
 }

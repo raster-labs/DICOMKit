@@ -62,15 +62,33 @@ final class LUTColorTransformTests: XCTestCase {
         XCTAssertEqual(lut.lookup(0.75), 0.75, accuracy: 0.01)
     }
     
-    func test_lut1d_outOfBounds() {
-        let values = [0.2, 0.8]
-        let lut = LUT1D(values: values)
-        
-        // Below range
-        XCTAssertEqual(lut.lookup(-0.5), 0.2)
-        
-        // Above range
+    func test_lut1d_outOfBounds_above() {
+        let lut = LUT1D(values: [0.2, 0.8])
         XCTAssertEqual(lut.lookup(1.5), 0.8)
+    }
+
+    func test_lut1d_outOfBounds_below() {
+        // D48: inputs in (-1/(n-1), 0) used to truncate to index 0 and
+        // extrapolate below the first entry (lookup(-0.5) gave -0.1).
+        let lut = LUT1D(values: [0.2, 0.8])
+        XCTAssertEqual(lut.lookup(-0.5), 0.2)
+        XCTAssertEqual(lut.lookup(-0.0001), 0.2)
+        XCTAssertEqual(lut.lookup(-1.5), 0.2)
+        XCTAssertEqual(lut.lookup(0), 0.2)
+        let longer = LUT1D(values: [0.1, 0.4, 0.6, 0.9])
+        XCTAssertEqual(longer.lookup(-0.2), 0.1)
+    }
+
+    func test_lut1d_nonFiniteInputs() {
+        // Int(_:) traps on NaN and infinity; the clip keeps them in the table.
+        let lut = LUT1D(values: [0.2, 0.8])
+        XCTAssertEqual(lut.lookup(.nan), 0.2)
+        XCTAssertEqual(lut.lookup(-.infinity), 0.2)
+        XCTAssertEqual(lut.lookup(.infinity), 0.8)
+        XCTAssertEqual(lut.lookup(1e300), 0.8)
+        XCTAssertEqual(lut.lookup(-1e300), 0.2)
+        XCTAssertEqual(lut.lookup(1), 0.8)
+        XCTAssertEqual(lut.lookup(0.5), 0.5, accuracy: 1e-12)
     }
     
     func test_lut1d_emptyValues() {
@@ -136,6 +154,23 @@ final class LUTColorTransformTests: XCTestCase {
         // Should handle out of bounds gracefully
         let result = lut.lookup(-0.5, 1.5, 0.5)
         XCTAssertNotNil(result)
+    }
+    
+    func test_colorLUT_nonFiniteInputs() {
+        // D54: Int(_:) trapped on NaN and infinity; each channel is clipped to 0...1 first.
+        // A 2-point grid whose output is the grid position of each channel.
+        var data: [Double] = []
+        for r in 0..<2 { for g in 0..<2 { for b in 0..<2 { data += [Double(r), Double(g), Double(b)] } } }
+        let lut = ColorLUT(gridSize: 2, inputChannels: 3, outputChannels: 3, data: data)
+        XCTAssertTrue(lut.lookup(.nan, .nan, .nan) == (0, 0, 0))
+        XCTAssertTrue(lut.lookup(-.infinity, .infinity, .nan) == (0, 1, 0))
+        XCTAssertTrue(lut.lookup(.infinity, -.infinity, .infinity) == (1, 0, 1))
+        XCTAssertTrue(lut.lookup(1e300, -1e300, 2) == (1, 0, 1))
+        XCTAssertTrue(lut.lookup(-0.5, 1.5, 0.25) == (0, 1, 0))
+        XCTAssertTrue(lut.lookup(1, 0, 0.999) == (1, 0, 0))
+        // A zero grid returns the input instead of indexing before the data
+        let empty = ColorLUT(gridSize: 0, inputChannels: 3, outputChannels: 3, data: [0.5, 0.5, 0.5])
+        XCTAssertTrue(empty.lookup(0.1, 0.2, 0.3) == (0.1, 0.2, 0.3))
     }
     
     // MARK: - LUTColorTransform Tests

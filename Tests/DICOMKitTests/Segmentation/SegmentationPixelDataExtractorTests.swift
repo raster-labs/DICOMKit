@@ -22,10 +22,11 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
         // 0 0 1 1
         // 0 0 1 1
         
-        // Pack into bytes (MSB first):
-        // First byte: 1,1,0,0,1,1,0,0 = 0xCC (11001100)
-        // Second byte: 0,0,1,1,0,0,1,1 = 0x33 (00110011)
-        let pixelData = Data([0xCC, 0x33])
+        // Packed as PS3.5 8.1.1 / D.1 describe: the first pixel in the least
+        // significant bit of the first byte.
+        // First byte: pixels 1,1,0,0,1,1,0,0 in bits 0...7 = 0x33
+        // Second byte: pixels 0,0,1,1,0,0,1,1 in bits 0...7 = 0xCC
+        let pixelData = Data([0x33, 0xCC])
         
         // When: Extracting the binary frame
         let mask = SegmentationPixelDataExtractor.extractBinaryFrame(
@@ -64,9 +65,9 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
     }
     
     func test_extractBinaryFrame_allOnes_succeeds() {
-        // Given: All ones (2x2 = 4 pixels, first 4 bits set)
-        // Byte: 1,1,1,1,0,0,0,0 = 0xF0
-        let pixelData = Data([0xF0])
+        // Given: All ones (2x2 = 4 pixels, the four least significant bits set)
+        // Byte: bits 0...3 set = 0x0F
+        let pixelData = Data([0x0F])
         
         // When: Extracting the binary frame
         let mask = SegmentationPixelDataExtractor.extractBinaryFrame(
@@ -82,11 +83,11 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
     }
     
     func test_extractBinaryFrame_multipleFrames_succeeds() {
-        // Given: Two frames of 2x2 pixels each
-        // Frame 0: 1,0,1,0 = 0xA0 (10100000)
-        // Frame 1: 0,1,0,1 = 0x50 (01010000)
-        let pixelData = Data([0xA0, 0x50])
-        
+        // Given: Two frames of 2x2 pixels each, least significant bit first
+        // Frame 0: 1,0,1,0 in bits 0...3 = 0x05
+        // Frame 1: 0,1,0,1 in bits 0...3 = 0x0A
+        let pixelData = Data([0x05, 0x0A])
+
         // When: Extracting frame 0
         let mask0 = SegmentationPixelDataExtractor.extractBinaryFrame(
             from: pixelData,
@@ -112,10 +113,10 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
     
     func test_extractBinaryFrame_oddPixelCount_succeeds() {
         // Given: 3x3 = 9 pixels, needs 2 bytes (last 7 bits unused)
-        // Pattern: 1,1,1,0,0,0,1,1,1 (first 9 pixels)
-        // Byte 0: 1,1,1,0,0,0,1,1 = 0xE3
-        // Byte 1: 1,0,0,0,0,0,0,0 = 0x80 (only first bit used)
-        let pixelData = Data([0xE3, 0x80])
+        // Pattern: 1,1,1,0,0,0,1,1,1 (first 9 pixels), least significant bit first
+        // Byte 0: pixels 1,1,1,0,0,0,1,1 in bits 0...7 = 0xC7
+        // Byte 1: pixel 9 in bit 0 = 0x01 (the other 7 bits unused)
+        let pixelData = Data([0xC7, 0x01])
         
         // When: Extracting the binary frame
         let mask = SegmentationPixelDataExtractor.extractBinaryFrame(
@@ -383,8 +384,8 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
             perFrameFunctionalGroups: [fg]
         )
         
-        // Pixel data: 1,0,1,0 = 0xA0
-        let pixelData = Data([0xA0])
+        // Pixel data: 1,0,1,0 in bits 0...3 (least significant bit first) = 0x05
+        let pixelData = Data([0x05])
         
         // When: Extracting segment 1
         let mask = SegmentationPixelDataExtractor.extractSegmentMask(
@@ -525,8 +526,8 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
             perFrameFunctionalGroups: [fg1, fg2]
         )
         
-        // Two frames: Frame 0 = 1,0,1,0, Frame 1 = 0,1,0,1
-        let pixelData = Data([0xA0, 0x50])
+        // Two frames, least significant bit first: Frame 0 = 1,0,1,0 (0x05), Frame 1 = 0,1,0,1 (0x0A)
+        let pixelData = Data([0x05, 0x0A])
         
         // When: Extracting all segments
         let masks = SegmentationPixelDataExtractor.extractAllSegmentMasks(

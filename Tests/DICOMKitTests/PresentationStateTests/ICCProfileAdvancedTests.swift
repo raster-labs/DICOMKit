@@ -126,8 +126,10 @@ final class ICCProfileAdvancedTests: XCTestCase {
     // MARK: - TRC Curve Extraction Tests
     
     func test_trcCurve_extraction() {
-        // Create a simple curv tag with gamma 2.2
-        var trcData = Data(count: 16)
+        // A 'curv' tag with four 16-bit entries: 12-byte header + 4 × 2 bytes.
+        // (The original Data(count: 16) was too short for the entries written
+        // at offsets 16 and 18, which trapped in replaceSubrange.)
+        var trcData = Data(count: 20)
         
         // Type signature 'curv' (0x63757276)
         trcData.writeUInt32BE(0x63757276, at: 0)
@@ -247,7 +249,9 @@ final class ICCProfileAdvancedTests: XCTestCase {
     // MARK: - Helper Methods
     
     private func createMinimalICCProfileData(
-        profileSize: UInt32 = 128,
+        // 128-byte header + 4-byte tag count (ICC.1 7.3.1). The original
+        // default of 128 left no room for the tag count written at 128.
+        profileSize: UInt32 = 132,
         version: (major: UInt8, minor: UInt8, bugfix: UInt8) = (2, 1, 0),
         deviceClass: ICCDeviceClass = .displayDevice,
         dataColorSpace: ICCColorSpace = .rgb,

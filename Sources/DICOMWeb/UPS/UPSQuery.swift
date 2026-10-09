@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-10-01 — workitemSearch accepts the 4 Enumerated Values of Procedure Step State (0074,1000), PS3.3 2026a Table C.30.1-1 (= PS3.4 Table CC.1.1-1), as spelled there ("IN PROGRESS" with the space; D107), plus IN_PROGRESS / INPROGRESS; checked 2026-09-28 — the 23 tags of UPSQueryAttribute diffed against PS3.6 2026a Table 6-1; search parameters against PS3.18 Table 8.3.4-1; matching keys against PS3.4 Table CC.2.5-3
 // MARK: - UPS Query Builder
 
 /// Builder for constructing UPS-RS search queries
@@ -117,7 +118,7 @@ public struct UPSQuery: Sendable, Equatable {
     /// - Parameter value: Priority level
     /// - Returns: Updated query
     public func priority(_ value: UPSPriority) -> UPSQuery {
-        return with(parameter: UPSQueryAttribute.scheduledProcedureStepPriority, value: value.rawValue)
+        return with(parameter: UPSQueryAttribute.scheduledProcedureStepPriority, value: value.dicomValue)
     }
     
     /// Filter by multiple priorities
@@ -125,7 +126,7 @@ public struct UPSQuery: Sendable, Equatable {
     /// - Parameter values: Priority levels to include
     /// - Returns: Updated query
     public func priorities(_ values: [UPSPriority]) -> UPSQuery {
-        let priorityValues = values.map { $0.rawValue }.joined(separator: ",")
+        let priorityValues = values.map { $0.dicomValue }.joined(separator: ",")
         return with(parameter: UPSQueryAttribute.scheduledProcedureStepPriority, value: priorityValues)
     }
     
@@ -230,7 +231,7 @@ public struct UPSQuery: Sendable, Equatable {
     /// - Parameter value: Station name or wildcard pattern
     /// - Returns: Updated query
     public func scheduledStationName(_ value: String) -> UPSQuery {
-        return with(parameter: UPSQueryAttribute.scheduledStationName, value: value)
+        return with(parameter: UPSQueryAttribute.scheduledStationNameCodeSequence, value: value)
     }
     
     /// Filter by Scheduled Station Class
@@ -238,7 +239,7 @@ public struct UPSQuery: Sendable, Equatable {
     /// - Parameter value: Station class or wildcard pattern
     /// - Returns: Updated query
     public func scheduledStationClass(_ value: String) -> UPSQuery {
-        return with(parameter: UPSQueryAttribute.scheduledStationClass, value: value)
+        return with(parameter: UPSQueryAttribute.scheduledStationClassCodeSequence, value: value)
     }
     
     /// Filter by Scheduled Station Geographic Location
@@ -460,11 +461,17 @@ public enum UPSQueryAttribute {
     
     // MARK: - Station (Coded Sequence attributes - for matching on code values)
     
-    /// Scheduled Station Name (matches against Scheduled Station Name Code Sequence)
-    public static let scheduledStationName = "00404025"
+    /// Scheduled Station Name Code Sequence (0040,4025) — matching is on the
+    /// code sequence; there is no plain-string station name in UPS.
+    public static let scheduledStationNameCodeSequence = "00404025"
     
-    /// Scheduled Station Class (matches against Scheduled Station Class Code Sequence)
-    public static let scheduledStationClass = "00404026"
+    /// Scheduled Station Class Code Sequence (0040,4026)
+    public static let scheduledStationClassCodeSequence = "00404026"
+    
+    @available(*, deprecated, renamed: "scheduledStationNameCodeSequence")
+    public static let scheduledStationName = scheduledStationNameCodeSequence
+    @available(*, deprecated, renamed: "scheduledStationClassCodeSequence")
+    public static let scheduledStationClass = scheduledStationClassCodeSequence
     
     /// Scheduled Station Geographic Location
     public static let scheduledStationGeographicLocation = "00404027"
@@ -551,7 +558,7 @@ extension UPSQuery {
     public static func highPriority(limit: Int? = nil) -> UPSQuery {
         var query = UPSQuery()
             .state(.scheduled)
-            .priorities([.stat, .high])
+            .priorities([.high])
         if let limit = limit {
             query = query.limit(limit)
         }
@@ -580,7 +587,7 @@ public enum UPSSearchFilterError: Error, CustomStringConvertible, Sendable, Equa
     public var description: String {
         switch self {
         case .invalidState(let value):
-            return "Invalid state: \(value). Valid states: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED"
+            return "Invalid state: \(value). Valid states: SCHEDULED, IN PROGRESS (or IN_PROGRESS), COMPLETED, CANCELED (PS3.3 2026a Table C.30.1-1)"
         }
     }
 }
@@ -595,7 +602,10 @@ extension UPSQuery {
     /// no `includefield` — the CLI sets none, so neither does the app.
     ///
     /// - Parameters:
-    ///   - filterState: `--filter-state` value (empty/nil means no state filter). A non-empty
+    ///   - filterState: `--filter-state` value (empty/nil means no state filter). The
+    ///     Procedure Step State (0074,1000) Enumerated Values of PS3.3 2026a Table C.30.1-1 are accepted
+    ///     case-insensitively as spelled there (SCHEDULED, "IN PROGRESS", COMPLETED,
+    ///     CANCELED), and IN_PROGRESS / INPROGRESS as aliases. A non-empty
     ///     unrecognised value throws `UPSSearchFilterError.invalidState`, mirroring the CLI,
     ///     which rejects an invalid `--filter-state` (non-zero exit) rather than silently
     ///     issuing an unfiltered query.
@@ -604,9 +614,11 @@ extension UPSQuery {
     public static func workitemSearch(filterState: String?, scheduledStation: String?) throws -> UPSQuery {
         var query = UPSQuery()
         if let filterState = filterState, !filterState.isEmpty {
-            switch filterState.uppercased() {
+            let term = filterState.trimmingCharacters(in: .whitespaces).uppercased()
+                .replacingOccurrences(of: "_", with: " ")
+            switch term {
             case "SCHEDULED":                 query = query.state(.scheduled)
-            case "IN_PROGRESS", "INPROGRESS": query = query.state(.inProgress)
+            case "IN PROGRESS", "INPROGRESS": query = query.state(.inProgress)
             case "COMPLETED":                 query = query.state(.completed)
             case "CANCELED":                  query = query.state(.canceled)
             default:                          throw UPSSearchFilterError.invalidState(filterState)

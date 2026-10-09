@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — Color Space terms of PS3.3 2026a C.11.15.1.2 are read (DISPLAYP3 added); the ColorSpace enum is a display model, not (0028,2002) terms; preset palette entries clamped to the full 16-bit range per C.7.6.3.1.6 (D38); BlendingMode is a rendering model, not Blending Mode (0070,1B06), whose Enumerated Values EQUAL and FOREGROUND are in PS3.3 2026a Table C.11.34.1-1 (A.33.7 only; not in C.11.14 / A.33.4), CS VM 1 per PS3.6 Table 6-1 (D49)
 //
 // ColorManagement.swift
 // DICOMKit
@@ -134,7 +135,7 @@ public struct ICCProfile: Sendable, Hashable {
             return .adobeRGB
         case "ROMMRGB", "PROPHOTO":
             return .proPhotoRGB
-        case "P3":
+        case "DISPLAYP3", "P3":
             return .displayP3
         case "REC2020", "BT2020":
             return .rec2020
@@ -280,10 +281,13 @@ public enum ColorMapPreset: String, Sendable, CaseIterable {
             let t = Double(i) / Double(numberOfEntries - 1)
             let (r, g, b) = colorForValue(t)
             
-            // Convert 0.0-1.0 to 16-bit values (stored in high byte per DICOM convention)
-            redData.append(UInt16(r * Double(maxValue)))
-            greenData.append(UInt16(g * Double(maxValue)))
-            blueData.append(UInt16(b * Double(maxValue)))
+            // Scale 0.0-1.0 across the full 16-bit entry range (PS3.3 2026a
+            // C.7.6.3.1.6). The piecewise ramps overshoot 1.0 at their segment
+            // ends (hot's green reaches 1.01 at entry 170), and an unclamped
+            // UInt16(_:) of a value above 65535 traps.
+            redData.append(Self.entry(r, maxValue: maxValue))
+            greenData.append(Self.entry(g, maxValue: maxValue))
+            blueData.append(Self.entry(b, maxValue: maxValue))
         }
         
         let descriptor = PaletteColorLUT.Descriptor(
@@ -302,6 +306,11 @@ public enum ColorMapPreset: String, Sendable, CaseIterable {
         )
     }
     
+    /// One 16-bit LUT entry for a normalised intensity, clamped to 0...1.
+    private static func entry(_ value: Double, maxValue: UInt16) -> UInt16 {
+        UInt16(min(max(value, 0.0), 1.0) * Double(maxValue))
+    }
+
     /// Get RGB color for normalized value (0.0-1.0)
     private func colorForValue(_ t: Double) -> (Double, Double, Double) {
         switch self {
@@ -358,7 +367,10 @@ public enum ColorMapPreset: String, Sendable, CaseIterable {
 ///
 /// Defines how multiple images are blended together for multi-modality fusion.
 ///
-/// Reference: PS3.3 Section C.11.13 - Blending Display Module
+/// A display model, not an encoding of the module: PS3.3 2026a C.11.14
+/// (Presentation State Blending Module) carries a single Relative Opacity
+/// (0070,0403) for the superimposed set. (Earlier text cited C.11.13, which is
+/// the Presentation State Mask Module.)
 public struct BlendingDisplaySet: Sendable, Hashable {
     /// Display set number
     public let displaySetNumber: Int
@@ -366,7 +378,7 @@ public struct BlendingDisplaySet: Sendable, Hashable {
     /// Referenced images to blend
     public let referencedImages: [ReferencedImageForBlending]
     
-    /// Blending mode
+    /// Blending mode (a rendering model, not Blending Mode (0070,1B06); see ``BlendingMode``)
     public let blendingMode: BlendingMode
     
     /// Relative opacity (0.0-1.0) for each image in the blend
@@ -409,7 +421,22 @@ public struct ReferencedImageForBlending: Sendable, Hashable {
     }
 }
 
-/// Blending mode for combining images
+/// Blending mode for combining images: a rendering model, not the DICOM attribute
+///
+/// These cases describe how a viewer might combine images on screen. They are not
+/// DICOM terms and are never written to or read from a data set; the raw values
+/// ("ALPHA", "MIP", "MinIP", "AVERAGE", "ADD", "SUBTRACT") are DICOMKit's own labels.
+///
+/// The DICOM attribute of the same name, Blending Mode (0070,1B06), CS, VM 1
+/// (PS3.6 2026a Table 6-1), is a different thing: it appears only in the Blending
+/// Display Sequence (0070,1B04) of the Advanced Blending Presentation State Display
+/// Module (PS3.3 2026a C.11.34, Table C.11.34.1-1), used by the Advanced Blending
+/// Presentation State IOD (A.33.7, SOP Class 1.2.840.10008.5.1.4.1.1.11.8). Its
+/// Enumerated Values are EQUAL and FOREGROUND (blending per PS3.4 N.2.6). The
+/// Blending Softcopy Presentation State IOD (A.33.4) and its Presentation State
+/// Blending Module (C.11.14) have no blending-mode attribute: they carry one Relative
+/// Opacity (0070,0403) for the superimposed image set. DICOMKit does not read or write
+/// (0070,1B06).
 public enum BlendingMode: String, Sendable, Hashable, CaseIterable {
     /// Alpha blending (weighted average)
     case alpha = "ALPHA"

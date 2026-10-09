@@ -81,7 +81,7 @@ struct PrintSCPSettingsTests {
     func testStatusInfoFallback() {
         var settings = PrintSCPSettings()
         settings.printerStatus = .failure
-        #expect(settings.effectivePrinterStatusInfo == "NO SUPPLY")
+        #expect(settings.effectivePrinterStatusInfo == "SUPPLY EMPTY")  // a PS3.3 C.13.9.1 Defined Term
         settings.printerStatusInfo = "OUT OF FILM"
         #expect(settings.effectivePrinterStatusInfo == "OUT OF FILM")
     }
@@ -185,7 +185,7 @@ struct PrintSCPConfigurationMappingTests {
         settings.printerName = "FILM-1"
         let status = settings.reportedPrinterStatus
         #expect(status.status == "FAILURE")
-        #expect(status.statusInfo == "NO SUPPLY")
+        #expect(status.statusInfo == "SUPPLY EMPTY")
         #expect(status.printerName == "FILM-1")
         #expect(!status.isNormal)
     }
@@ -498,7 +498,7 @@ struct PrintSCPAttributeRowTests {
         let rows = PrintSCPView.attributeRows(makeFilmInfo())
         let labels = rows.map(\.0)
         #expect(labels.contains("Calling AE"))
-        #expect(labels.contains("Film Size (2010,0050)"))
+        #expect(labels.contains("Film Size ID (2010,0050)"))   // PS3.6 Table 6-1 name of (2010,0050)
         #expect(labels.contains("Image Display Format (2010,0010)"))
         #expect(labels.contains("Min Density (2010,0120)"))
         #expect(labels.contains("Presentation LUT Shape (2050,0020)"))

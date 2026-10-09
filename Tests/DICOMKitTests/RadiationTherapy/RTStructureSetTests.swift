@@ -173,18 +173,74 @@ final class RTStructureSetTests: XCTestCase {
     
     // MARK: - ContourGeometricType Tests
     
+    /// PS3.3 2026a Table C.8-42, Contour Geometric Type (3006,0042) Enumerated Values
     func test_contourGeometricType_rawValues() {
         XCTAssertEqual(ContourGeometricType.point.rawValue, "POINT")
         XCTAssertEqual(ContourGeometricType.openPlanar.rawValue, "OPEN_PLANAR")
-        XCTAssertEqual(ContourGeometricType.closedPlanar.rawValue, "CLOSED_PLANAR")
         XCTAssertEqual(ContourGeometricType.openNonplanar.rawValue, "OPEN_NONPLANAR")
-        XCTAssertEqual(ContourGeometricType.closedNonplanar.rawValue, "CLOSED_NONPLANAR")
+        XCTAssertEqual(ContourGeometricType.closedPlanar.rawValue, "CLOSED_PLANAR")
+        XCTAssertEqual(ContourGeometricType.closedPlanarXOR.rawValue, "CLOSEDPLANAR_XOR")
+        XCTAssertEqual(ContourGeometricType.standardValues.map(\.rawValue),
+                       ["POINT", "OPEN_PLANAR", "OPEN_NONPLANAR", "CLOSED_PLANAR", "CLOSEDPLANAR_XOR"])
     }
-    
+
     func test_contourGeometricType_fromString() {
         XCTAssertEqual(ContourGeometricType(rawValue: "POINT"), .point)
         XCTAssertEqual(ContourGeometricType(rawValue: "CLOSED_PLANAR"), .closedPlanar)
+        XCTAssertEqual(ContourGeometricType(rawValue: "CLOSEDPLANAR_XOR"), .closedPlanarXOR)
         XCTAssertNil(ContourGeometricType(rawValue: "INVALID"))
+    }
+
+    /// The pre-2026a DICOMKit value CLOSED_NONPLANAR is not a standard term but must still parse.
+    @available(*, deprecated)
+    func test_contourGeometricType_legacyClosedNonplanarStillParses() {
+        XCTAssertEqual(ContourGeometricType(rawValue: "CLOSED_NONPLANAR"), .closedNonplanar)
+        XCTAssertFalse(ContourGeometricType.standardValues.contains(.closedNonplanar))
+    }
+
+    // MARK: - RTROIInterpretedType Tests
+
+    /// PS3.3 2026a Table C.8-44, RT ROI Interpreted Type (3006,00A4) Defined Terms, in table order
+    func test_rtROIInterpretedType_allTableC8_44Terms() {
+        let expected = [
+            "EXTERNAL", "PTV", "CTV", "GTV", "TREATED_VOLUME", "IRRAD_VOLUME", "OAR", "BOLUS",
+            "AVOIDANCE", "ORGAN", "MARKER", "REGISTRATION", "ISOCENTER", "CONTRAST_AGENT", "CAVITY",
+            "BRACHY_CHANNEL", "BRACHY_ACCESSORY", "BRACHY_SRC_APP", "BRACHY_CHNL_SHLD", "SUPPORT",
+            "FIXATION", "DOSE_REGION", "CONTROL", "DOSE_MEASUREMENT", "DEVICE"
+        ]
+        XCTAssertEqual(RTROIInterpretedType.allCases.map(\.rawValue), expected)
+        XCTAssertEqual(RTROIInterpretedType.allCases.count, 25)
+        XCTAssertEqual(RTROIInterpretedType.organAtRisk.rawValue, "OAR")
+        XCTAssertEqual(RTROIInterpretedType.brachyChannel.rawValue, "BRACHY_CHANNEL")
+        XCTAssertEqual(RTROIInterpretedType.brachyAccessory.rawValue, "BRACHY_ACCESSORY")
+        XCTAssertEqual(RTROIInterpretedType.brachySourceApplicator.rawValue, "BRACHY_SRC_APP")
+        XCTAssertEqual(RTROIInterpretedType.brachyChannelShield.rawValue, "BRACHY_CHNL_SHLD")
+        XCTAssertEqual(RTROIInterpretedType.doseMeasurement.rawValue, "DOSE_MEASUREMENT")
+        XCTAssertEqual(RTROIInterpretedType.device.rawValue, "DEVICE")
+        XCTAssertEqual(RTROIInterpretedType.irradiatedVolume.rawValue, "IRRAD_VOLUME")
+        XCTAssertEqual(RTROIInterpretedType.fixationDevice.rawValue, "FIXATION")
+        XCTAssertEqual(RTROIInterpretedType.controlPoint.rawValue, "CONTROL")
+    }
+
+    // MARK: - ROI term enums
+
+    /// PS3.3 2026a Table C.8-44, ROI Physical Property (3006,00B2) Defined Terms
+    func test_roiPhysicalPropertyType_rawValues() {
+        XCTAssertEqual(ROIPhysicalPropertyType.allCases.map(\.rawValue),
+                       ["REL_MASS_DENSITY", "REL_ELEC_DENSITY", "EFFECTIVE_Z", "EFF_Z_PER_A",
+                        "REL_STOP_RATIO", "ELEM_FRACTION", "MEAN_EXCI_ENERGY"])
+        let property = ROIPhysicalProperty(property: "REL_ELEC_DENSITY", value: 1.05)
+        XCTAssertEqual(property.propertyType, .relativeElectronDensity)
+        XCTAssertNil(ROIPhysicalProperty(property: "DENSITY", value: 1).propertyType)
+    }
+
+    /// PS3.3 2026a Table C.8-41, ROI Generation Algorithm (3006,0036) Defined Terms
+    func test_roiGenerationAlgorithm_rawValues() {
+        XCTAssertEqual(ROIGenerationAlgorithm.allCases.map(\.rawValue), ["AUTOMATIC", "SEMIAUTOMATIC", "MANUAL"])
+        let roi = RTRegionOfInterest(number: 1, name: "PTV", generationAlgorithm: "SEMIAUTOMATIC")
+        XCTAssertEqual(roi.generationAlgorithmTerm, .semiautomatic)
+        XCTAssertNil(RTRegionOfInterest(number: 2, name: "X", generationAlgorithm: "AUTO").generationAlgorithmTerm)
+        XCTAssertNil(RTRegionOfInterest(number: 3, name: "Y").generationAlgorithmTerm)
     }
     
     // MARK: - ROIContour Tests

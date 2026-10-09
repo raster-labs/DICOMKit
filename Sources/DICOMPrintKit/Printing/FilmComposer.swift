@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Film Box / Image Box / Presentation LUT citations corrected to PS3.3 2026a C.13.3, C.13.5, C.11.4; YBR 4:2:2 layout and partial-range inverse per C.7.6.3.1.2; Border/Empty Density terms per Table C.13-3; Trim = YES prints a trim box around each image per Table C.13-3 (D92); P-Value rendering through the PS3.14 7.2/7.3 GSDF under DensityMapping.gsdf (P-GSDF), linear under paper/film
 //
 // FilmComposer.swift
 // DICOMPrintKit
@@ -8,7 +9,9 @@
 // This is the only genuinely new piece of the emulator: everything upstream is
 // protocol handling and everything downstream is a sink.
 //
-// Reference: PS3.3 C.13.3 (Film Box), C.13.5 (Image Box), C.11.6 (Presentation LUT).
+// Reference: PS3.3 C.13.3 (Basic Film Box Presentation), C.13.5 (Image Box Pixel
+// Presentation), C.11.4 (Presentation LUT — the hardcopy module; C.11.6 is the
+// softcopy one).
 //
 
 import Foundation
@@ -44,7 +47,9 @@ public struct FilmComposerConfiguration: Sendable, Hashable {
     /// every film before this option existed was composed with.
     public let annotationEdge: FilmAnnotationEdge
 
-    /// Whether to draw crop marks when Trim (2010,0140) is YES.
+    /// Whether to print the trim box when Trim (2010,0140) is YES: per PS3.3
+    /// Table C.13-3, "a trim box shall be printed surrounding each image on the
+    /// film". (The name predates that reading and is kept for source compatibility.)
     public let drawTrimMarks: Bool
 
     /// Safety cap on the composed bitmap's longest side, in pixels.
@@ -323,6 +328,8 @@ public struct FilmComposer: Sendable {
             film.imageBoxes.map { (Int($0.content.imagePosition), $0) },
             uniquingKeysWith: { first, _ in first })
 
+        // Where each image landed, for the Trim (2010,0140) box.
+        var imageRects: [CGRect] = []
         for cell in cells(for: film) where !cell.isEmpty {
             let destination = flip(cell)
             guard let box = boxesByPosition[cell.position], let image = box.image else {
@@ -333,9 +340,9 @@ public struct FilmComposer: Sendable {
             }
 
             do {
-                try draw(box: box, image: image, film: film, cell: cell,
-                         sheet: sheet, in: context, isColor: isColor,
-                         emptyDensity: emptyDensity)
+                imageRects.append(try draw(box: box, image: image, film: film, cell: cell,
+                                           sheet: sheet, in: context, isColor: isColor,
+                                           emptyDensity: emptyDensity))
             } catch {
                 context.setFillColor(gray(emptyDensity, isColor: isColor))
                 context.fill(destination)
@@ -344,7 +351,8 @@ public struct FilmComposer: Sendable {
         }
 
         if configuration.drawTrimMarks, film.filmBox.trimOption == .yes {
-            drawTrimMarks(sheet: sheet, in: context, isColor: isColor, border: border)
+            drawTrimBoxes(around: imageRects, sheet: sheet, in: context,
+                          isColor: isColor, border: border)
         }
         if configuration.drawAnnotations, !film.annotations.isEmpty {
             drawAnnotations(film.annotations, sheet: sheet, in: context,
@@ -352,7 +360,9 @@ public struct FilmComposer: Sendable {
         }
     }
 
-    /// Draws one image box into its cell.
+    /// Draws one image box into its cell and returns the rectangle the image
+    /// occupies (CoreGraphics coordinates).
+    @discardableResult
     private func draw(
         box: ReceivedImageBox,
         image: PrintImageData,
@@ -362,9 +372,9 @@ public struct FilmComposer: Sendable {
         in context: CGContext,
         isColor: Bool,
         emptyDensity: Double
-    ) throws {
+    ) throws -> CGRect {
         let invert = shouldInvert(box: box, image: image, film: film)
-        let transfer = linODTransfer(film: film)
+        let transfer = displayTransfer(film: film)
         guard let cgImage = try makeCGImage(
             from: image, invert: invert, transfer: transfer, forceColor: isColor) else {
             throw FilmCompositionError.unsupportedPhotometricInterpretation(
@@ -414,6 +424,7 @@ public struct FilmComposer: Sendable {
                 width: cell.width, height: cell.height))
             context.draw(source, in: rect)
             context.restoreGState()
+            return rect
         }
     }
 
@@ -587,8 +598,12 @@ public struct FilmComposer: Sendable {
 
     /// 8-bit interleaved RGB samples for a colour image box.
     ///
-    /// Our own SCU converts to RGB before sending, but third-party SCUs do send
-    /// YBR — including the 4:2:2 packed form (PS3.5 8.7.4) — so both are handled.
+    /// PS3.3 Table C.13-5 enumerates only RGB for the Basic Color Image
+    /// Sequence, and our own SCU converts to RGB before sending, but
+    /// third-party SCUs do send YBR — including the 4:2:2 packed form, Y1 Y2 Cb
+    /// Cr per pixel pair (PS3.3 C.7.6.3.1.2) — so the composer reads both
+    /// rather than refuse the film. The partial-range equations are the
+    /// inverse of the C.7.6.3.1.2 YBR_PARTIAL_422 definition.
     private func rgbSamples(from image: PrintImageData, photometric: String) throws -> Data {
         let width = Int(image.columns), height = Int(image.rows)
         let pixelCount = width * height
@@ -690,6 +705,37 @@ public struct FilmComposer: Sendable {
         return invert
     }
 
+    /// The grayscale transfer the sheet is drawn through: the calibrated
+    /// P-Value (or LIN OD) → displayed-grey curve under ``DensityMapping/gsdf``,
+    /// else the LIN OD curve when that shape is in force, else none.
+    func displayTransfer(film: ReceivedFilm) -> [UInt8]? {
+        guard configuration.densityMapping == .gsdf else { return linODTransfer(film: film) }
+        let viewing = hardcopyViewing(for: film)
+        return (0...255).map { p in
+            let luminance = film.presentationLUTShape == .linearOpticalDensity
+                // C.11.4 LIN OD: the input is linear in optical density over
+                // Min…Max Density, low input light, as `linODTransfer` reads it.
+                ? viewing.luminance(density: viewing.minDensity
+                    + Double(p) / 255 * (viewing.maxDensity - viewing.minDensity))
+                // IDENTITY (or no shape): the input is P-Values, laid down
+                // through the GSDF (PS3.14 7.2 / 7.3).
+                : viewing.luminance(pValue: Double(p))
+            return viewing.displayValue(luminance: luminance)
+        }
+    }
+
+    /// How the sheet is viewed under ``DensityMapping/gsdf``: PAPER is a
+    /// reflective print (PS3.14 7.3), every film medium transmissive (7.2);
+    /// Min/Max Density from the film box, or 0.20/3.00 OD.
+    func hardcopyViewing(for film: ReceivedFilm) -> HardcopyViewing {
+        let minOD = Double(film.minDensity ?? 20) / 100
+        let maxOD = Double(film.maxDensity ?? 300) / 100
+        let (low, high) = maxOD > minOD ? (minOD, maxOD) : (0.2, 3.0)
+        return film.filmSession.mediumType == .paper
+            ? .reflective(minDensity: low, maxDensity: high)
+            : .transmissive(minDensity: low, maxDensity: high)
+    }
+
     /// The LIN OD transfer curve as a 256-entry P-value → luminance table.
     ///
     /// Under LIN OD the input values are linearly proportional to *optical
@@ -726,6 +772,21 @@ public struct FilmComposer: Sendable {
     /// Min and Max Density when both are known.
     func luminance(forDensity value: String, film: ReceivedFilm, default fallback: Double) -> Double {
         let text = value.trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")).uppercased()
+        if configuration.densityMapping == .gsdf {
+            // A density is a density: BLACK the sheet's maximum, WHITE its
+            // minimum, i hundredths of OD (Table C.13-3), seen as L = La +
+            // L0·10^−D (PS3.14 7.2 / 7.3).
+            let viewing = hardcopyViewing(for: film)
+            let density: Double
+            switch text {
+            case "BLACK": density = viewing.maxDensity
+            case "WHITE": density = viewing.minDensity
+            default:
+                guard let hundredths = Double(text) else { return fallback }
+                density = hundredths / 100
+            }
+            return Double(viewing.displayValue(luminance: viewing.luminance(density: density))) / 255
+        }
         switch text {
         case "BLACK": return configuration.densityMapping == .filmEmulation ? 1 : 0
         case "WHITE": return configuration.densityMapping == .filmEmulation ? 0 : 1
@@ -761,27 +822,22 @@ public struct FilmComposer: Sendable {
 
     // MARK: Decoration
 
-    /// Corner crop marks for Trim = YES.
-    private func drawTrimMarks(sheet: FilmSheet, in context: CGContext, isColor: Bool, border: Double) {
-        let inset = sheet.pixels(fromMillimeters: 2)
-        let length = sheet.pixels(fromMillimeters: 6)
-        let width = Double(sheet.pixelWidth), height = Double(sheet.pixelHeight)
-
+    /// Trim = YES: "a trim box shall be printed surrounding each image on the
+    /// film" (PS3.3 Table C.13-3, Trim (2010,0140)). One rectangle per placed
+    /// image, stroked just outside the image so no pixel of it is covered, in
+    /// the tone that contrasts with the Border Density.
+    private func drawTrimBoxes(
+        around imageRects: [CGRect], sheet: FilmSheet,
+        in context: CGContext, isColor: Bool, border: Double
+    ) {
+        guard !imageRects.isEmpty else { return }
+        let lineWidth = max(1, sheet.pixels(fromMillimeters: 0.3))
         context.saveGState()
         context.setStrokeColor(gray(border > 0.5 ? 0 : 1, isColor: isColor))
-        context.setLineWidth(max(1, sheet.pixels(fromMillimeters: 0.3)))
-        for (x, y, dx, dy) in [
-            (inset, inset, 1.0, 1.0),
-            (width - inset, inset, -1.0, 1.0),
-            (inset, height - inset, 1.0, -1.0),
-            (width - inset, height - inset, -1.0, -1.0)
-        ] {
-            context.move(to: CGPoint(x: x, y: y))
-            context.addLine(to: CGPoint(x: x + dx * length, y: y))
-            context.move(to: CGPoint(x: x, y: y))
-            context.addLine(to: CGPoint(x: x, y: y + dy * length))
+        context.setLineWidth(lineWidth)
+        for rect in imageRects {
+            context.stroke(rect.insetBy(dx: -lineWidth / 2, dy: -lineWidth / 2))
         }
-        context.strokePath()
         context.restoreGState()
     }
 
@@ -887,7 +943,7 @@ public struct FilmComposer: Sendable {
             imageDisplayFormat: film.filmBox.imageDisplayFormat,
             rows: format.layout.rows,
             columns: format.layout.columns,
-            mediumType: film.filmSession.mediumType.rawValue,
+            mediumType: film.filmSession.mediumType.wireValue,
             numberOfCopies: film.filmSession.numberOfCopies,
             filmSessionLabel: film.filmSession.filmSessionLabel,
             magnificationType: film.filmBox.magnificationType.rawValue,

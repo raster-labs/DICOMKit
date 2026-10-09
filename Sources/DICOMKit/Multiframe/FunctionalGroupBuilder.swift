@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Frame Acquisition Number written as US per PS3.6 2026a Table 6-1; macro membership per PS3.3 C.7.6.16 recorded; Sup 157 kept as provenance
 import Foundation
 import DICOMCore
 
@@ -15,7 +16,7 @@ public enum FunctionalGroupBuilder {
 
     public struct Options: Sendable {
         public var targetSOPClassUID: String
-        public var modality: String
+        public var modality: Modality
         /// Emit Conversion Source Attributes + Unassigned Converted Attributes (Sup 157).
         public var legacyConverted: Bool
         /// Group frames into stacks by Image Orientation (Patient).
@@ -24,7 +25,7 @@ public enum FunctionalGroupBuilder {
         /// Temporal Position Identifier.
         public var temporalPositions: Bool
 
-        public init(targetSOPClassUID: String, modality: String, legacyConverted: Bool,
+        public init(targetSOPClassUID: String, modality: Modality, legacyConverted: Bool,
                     makeStacks: Bool = false, temporalPositions: Bool = false) {
             self.targetSOPClassUID = targetSOPClassUID
             self.modality = modality
@@ -64,7 +65,7 @@ public enum FunctionalGroupBuilder {
         let modalities: Set<String>?
     }
 
-    static func macros(for modality: String) -> [Macro] {
+    static func macros(for modality: Modality) -> [Macro] {
         var list: [Macro] = [
             Macro(sequenceTag: .pixelMeasuresSequence, members: [
                 (.pixelSpacing, .pixelSpacing, nil), (.sliceThickness, .sliceThickness, nil),
@@ -102,7 +103,7 @@ public enum FunctionalGroupBuilder {
                 (.repetitionTime, .repetitionTime, nil), (.flipAngle, .flipAngle, nil),
                 (.echoTrainLength, .echoTrainLength, nil)], canBeShared: true, modalities: ["MR"]),
         ]
-        list = list.filter { $0.modalities == nil || $0.modalities!.contains(modality) }
+        list = list.filter { $0.modalities == nil || $0.modalities!.contains(modality.rawValue) }
         return list
     }
 
@@ -121,8 +122,8 @@ public enum FunctionalGroupBuilder {
         .studyInstanceUID, .seriesInstanceUID, .frameOfReferenceUID, .seriesNumber, .studyID,
         .seriesDescription, .instanceCreationTime, .instanceCreatorUID,
         Tag(group: 0x0008, element: 0x0050),   // Accession Number
-        Tag(group: 0x0008, element: 0x0020), Tag(group: 0x0008, element: 0x0030),   // Study Date / Time
-        Tag(group: 0x0008, element: 0x0021), Tag(group: 0x0008, element: 0x0031),   // Series Date / Time
+        Tag(group: 0x0008, element: 0x0020), Tag(group: 0x0008, element: 0x0030),   // Study Date, Study Time
+        Tag(group: 0x0008, element: 0x0021), Tag(group: 0x0008, element: 0x0031),   // Series Date, Series Time
         Tag(group: 0x0008, element: 0x0013),   // Instance Creation Time
     ]
 
@@ -190,8 +191,8 @@ public enum FunctionalGroupBuilder {
         // Frame Content: always per-frame.
         for (i, frame) in frames.enumerated() {
             var fc: [DataElement] = []
-            if let n = frame.string(for: .acquisitionNumber).flatMap({ UInt32($0.trimmingCharacters(in: .whitespaces)) }) {
-                fc.append(DataElement.uint32(tag: .frameAcquisitionNumber, value: n))
+            if let n = frame.string(for: .acquisitionNumber).flatMap({ UInt16($0.trimmingCharacters(in: .whitespaces)) }) {
+                fc.append(DataElement.uint16(tag: .frameAcquisitionNumber, value: n))
             }
             if let dt = acquisitionDateTime(of: frame) {
                 fc.append(DataElement.string(tag: .frameAcquisitionDateTime, vr: .DT, value: dt))
@@ -393,7 +394,7 @@ public enum FunctionalGroupBuilder {
 
     // MARK: - Frame type macro
 
-    static func frameTypeSequenceTag(for targetSOPClassUID: String, modality: String) -> Tag? {
+    static func frameTypeSequenceTag(for targetSOPClassUID: String, modality: Modality) -> Tag? {
         switch MultiframeSOPClassMap.normalize(targetSOPClassUID) {
         case MultiframeSOPClassMap.UID.enhancedCT, MultiframeSOPClassMap.UID.legacyConvertedEnhancedCT:
             return .ctImageFrameTypeSequence
@@ -410,20 +411,20 @@ public enum FunctionalGroupBuilder {
 
     /// Frame Type (4 values, padded from Image Type) plus the Common CT/MR/PET
     /// Image Description attributes the frame-type macros require.
-    static func frameTypeItem(from frame: DataSet, modality: String) -> [DataElement] {
+    static func frameTypeItem(from frame: DataSet, modality: Modality) -> [DataElement] {
         var values = (frame.strings(for: .imageType) ?? []).map { $0.trimmingCharacters(in: .whitespaces) }
         if values.isEmpty { values = ["ORIGINAL", "PRIMARY"] }
         while values.count < 4 { values.append(values.count == 2 ? "VOLUME" : "NONE") }
         var elements: [DataElement] = [
             DataElement.strings(tag: .frameType, vr: .CS, values: Array(values.prefix(4))),
         ]
-        if ["CT", "MR", "PT"].contains(modality) {
+        if modality.usesEnhancedFrameTypeDescriptors {
             let samples = frame.uint16(for: .samplesPerPixel) ?? 1
             elements.append(DataElement.string(tag: .pixelPresentation, vr: .CS, value: samples > 1 ? "COLOR" : "MONOCHROME"))
             elements.append(DataElement.string(tag: .volumetricProperties, vr: .CS, value: "VOLUME"))
             elements.append(DataElement.string(tag: .volumeBasedCalculationTechnique, vr: .CS, value: "NONE"))
         }
-        if modality == "MR" {
+        if modality == .mr {
             elements.append(DataElement.string(tag: .complexImageComponent, vr: .CS, value: "MAGNITUDE"))
             elements.append(DataElement.string(tag: .acquisitionContrast, vr: .CS, value: "UNKNOWN"))
         }

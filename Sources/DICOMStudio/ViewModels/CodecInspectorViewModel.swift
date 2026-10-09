@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Codec inspector ViewModel (Phase 8)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — transferSyntaxDescription is DICOMCore TransferSyntax.displayName (the PS3.6 2026a Table A-1 name); it was `description`, which spelled the VR/byte-order encoding for every compressed syntax
 
 import Foundation
 import Observation
@@ -53,7 +55,10 @@ public final class CodecInspectorViewModel {
     ///
     /// Call this after ``ImageDecodingService/decode(file:)`` succeeds.
     public func update(from result: DecodedImageResult, frameCount: Int) {
-        let desc = TransferSyntax.from(uid: result.transferSyntaxUID)?.description
+        // The PS3.6 Table A-1 name (`displayName`), not `description`, which spells
+        // the VR/byte-order encoding ("Explicit VR Little Endian (…)") for every
+        // encapsulated syntax and so misnamed each compressed file.
+        let desc = TransferSyntax.from(uid: result.transferSyntaxUID)?.displayName
                     ?? result.transferSyntaxUID
         let entry = CodecInspectorEntry(
             transferSyntaxUID: result.transferSyntaxUID,

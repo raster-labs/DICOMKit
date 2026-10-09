@@ -4,7 +4,10 @@ import JXLSwift
 /// JPEG XL codec backed by the JXLSwift pure-Swift package (ISO/IEC 18181).
 ///
 /// Bridges DICOM pixel data to JXLSwift for the JPEG XL transfer syntaxes added
-/// in Supplement 232 (DICOM 2024d). Encodes both **lossless** JPEG XL (Modular
+/// in Supplement 232 (DICOM 2024d). NEMA-verified: 2026a, checked 2026-09-24 — text-diffed
+/// against PS3.6 2026a Table A-1 (the three UIDs) and PS3.5 2026a §10.19 / §A.4.12 (.110
+/// lossless, .111 reversible JPEG transcoding, .112 any JPEG XL mode); see
+/// ``TransferSyntax/jpegXL``. Encodes both **lossless** JPEG XL (Modular
 /// mode, distance 0 → …4.110) and **lossy** JPEG XL (VarDCT, quality-driven
 /// distance → …4.112), and decodes lossless (Modular), general/lossy (VarDCT),
 /// and JPEG-recompressed JPEG XL back to pixels. The target transfer syntax
@@ -230,10 +233,11 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         do {
             return try decode(frameData)
         } catch {
-            // DICOM pads an odd-length encapsulated fragment to even length with a
-            // trailing 0x00 byte (PS3.5 §A.4). JXLSwift's container parser is strict
-            // about trailing bytes and rejects the stray pad ("partial box header"),
-            // so retry once with a single trailing null removed before giving up.
+            // PS3.5 §A.4 requires every encapsulated fragment to have an even length and
+            // lets the last fragment of a frame be padded. It does not fix the pad byte
+            // for JPEG XL, but writers commonly append a single 0x00. JXLSwift's container
+            // parser is strict about trailing bytes and rejects that pad ("partial box
+            // header"), so retry once with a single trailing null removed before giving up.
             if frameData.count % 2 == 0, frameData.last == 0 {
                 do {
                     return try decode(Data(frameData.dropLast()))

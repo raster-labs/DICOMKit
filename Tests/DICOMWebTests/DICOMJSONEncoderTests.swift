@@ -148,10 +148,10 @@ struct DICOMJSONEncoderTests {
         let encoder = DICOMJSONEncoder(configuration: config)
         let result = try encoder.encodeToObject([element])
         
-        if let elementDict = result["7FE00010"] as? [String: Any],
-           let values = elementDict["Value"] as? [[String: Any]] {
-            #expect(values.first?["InlineBinary"] != nil)
-        }
+        // PS3.18 F.2.2: InlineBinary is a sibling of vr, not an element of Value
+        let elementDict = result["7FE00010"] as? [String: Any]
+        #expect(elementDict?["InlineBinary"] as? String == binaryData.base64EncodedString())
+        #expect(elementDict?["Value"] == nil)
     }
     
     // MARK: - Sequence Encoding
@@ -184,28 +184,26 @@ struct DICOMJSONEncoderTests {
     
     // MARK: - Empty Value Handling
     
-    @Test("Empty values excluded by default")
-    func testEmptyValuesExcluded() throws {
+    @Test("Empty attribute preserved as {vr} with no Value by default (PS3.18 F.2.5)")
+    func testEmptyValuesPreserved() throws {
         let element = createStringElement(tag: Tag.patientID, vr: VR.LO, value: "")
         let result = try encoder.encodeToObject([element])
         
-        if let elementDict = result["00100020"] as? [String: Any] {
-            // VR should be present, but Value should be nil or empty
-            #expect(elementDict["vr"] as? String == "LO")
-        }
+        let elementDict = result["00100020"] as? [String: Any]
+        #expect(elementDict?["vr"] as? String == "LO")
+        #expect(elementDict?["Value"] == nil)
+        #expect(elementDict?.count == 1)
     }
     
-    @Test("Empty values included when configured")
-    func testEmptyValuesIncluded() throws {
-        let config = DICOMJSONEncoder.Configuration(includeEmptyValues: true)
+    @Test("Empty attributes dropped when includeEmptyValues is false")
+    func testEmptyValuesExcluded() throws {
+        let config = DICOMJSONEncoder.Configuration(includeEmptyValues: false)
         let encoder = DICOMJSONEncoder(configuration: config)
         
         let element = createStringElement(tag: Tag.patientID, vr: VR.LO, value: "")
         let result = try encoder.encodeToObject([element])
         
-        if let elementDict = result["00100020"] as? [String: Any] {
-            #expect(elementDict["Value"] != nil)
-        }
+        #expect(result["00100020"] == nil)
     }
     
     // MARK: - JSON Output

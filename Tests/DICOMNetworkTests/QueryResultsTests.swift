@@ -287,3 +287,50 @@ final class QueryResultsTests: XCTestCase {
         XCTAssertEqual(set.count, 2)
     }
 }
+
+// MARK: - Response Character Set Decoding (PS3.4 C.4.1.1.3.1, PS3.5 6.1.2)
+
+final class QueryResultCharacterSetTests: XCTestCase {
+
+    func testDeclaredISOIR100DecodesLatin1Bytes() {
+        let result = StudyResult(attributes: [
+            .specificCharacterSet: "ISO_IR 100".data(using: .ascii)!,
+            .patientName: "MÜLLER^HANS ".data(using: .isoLatin1)!
+        ])
+        XCTAssertEqual(result.specificCharacterSet, "ISO_IR 100")
+        XCTAssertEqual(result.patientName, "MÜLLER^HANS")
+    }
+
+    func testDeclaredISOIR192DecodesUTF8Bytes() {
+        let result = PatientResult(attributes: [
+            .specificCharacterSet: "ISO_IR 192".data(using: .ascii)!,
+            .patientName: Data("山田^太郎".utf8)
+        ])
+        XCTAssertEqual(result.patientName, "山田^太郎")
+    }
+
+    func testUndeclaredLatin1BytesFallBackToLatin1() {
+        // No (0008,0005): declared → UTF-8 → Latin-1. 0xDC alone is invalid UTF-8.
+        let result = StudyResult(attributes: [
+            .patientName: "MÜLLER^HANS".data(using: .isoLatin1)!
+        ])
+        XCTAssertNil(result.specificCharacterSet)
+        XCTAssertEqual(result.patientName, "MÜLLER^HANS")
+    }
+
+    func testUndeclaredUTF8BytesDecodeAsUTF8() {
+        let result = StudyResult(attributes: [.patientName: Data("MÜLLER^HANS".utf8)])
+        XCTAssertEqual(result.patientName, "MÜLLER^HANS")
+    }
+
+    func testFormatterJSONAndCSVUseDeclaredCharacterSet() {
+        let result = GenericQueryResult(attributes: [
+            .specificCharacterSet: "ISO_IR 100".data(using: .ascii)!,
+            .patientName: "MÜLLER^HANS ".data(using: .isoLatin1)!
+        ], level: .study)
+        let json = DICOMQueryResultFormatter(format: .json, level: .study).format(results: [result])
+        XCTAssertTrue(json.contains("MÜLLER^HANS"), json)
+        let csv = DICOMQueryResultFormatter(format: .csv, level: .study).format(results: [result])
+        XCTAssertTrue(csv.contains("MÜLLER^HANS"), csv)
+    }
+}

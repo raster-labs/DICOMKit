@@ -31,9 +31,28 @@ struct SpecializedModalityModelTests {
         }
     }
 
-    @Test("RTROIType has six expected cases")
+    @Test("RTROIType carries the 25 RT ROI Interpreted Type Defined Terms")
     func testRTROITypeCaseCount() {
-        #expect(RTROIType.allCases.count == 7)
+        // PS3.3 2026a C.8.8.8.1 (Table C.8-44 RT ROI Interpreted Type (3006,00A4)), in order
+        let terms = ["EXTERNAL", "PTV", "CTV", "GTV", "TREATED_VOLUME", "IRRAD_VOLUME", "OAR", "BOLUS",
+                     "AVOIDANCE", "ORGAN", "MARKER", "REGISTRATION", "ISOCENTER", "CONTRAST_AGENT", "CAVITY",
+                     "BRACHY_CHANNEL", "BRACHY_ACCESSORY", "BRACHY_SRC_APP", "BRACHY_CHNL_SHLD", "SUPPORT",
+                     "FIXATION", "DOSE_REGION", "CONTROL", "DOSE_MEASUREMENT", "DEVICE"]
+        #expect(RTROIType.allCases.count == 25)
+        #expect(RTROIType.allCases.map(\.rawValue) == terms)
+        for term in terms {
+            #expect(RTROIType(rawValue: term)?.rawValue == term)
+        }
+        #expect(RTROIType(rawValue: "BRACHY_SRC_APP") == .brachySourceApplicator)
+        #expect(RTROIType.gtv.displayName == "Gross Tumor Volume")
+    }
+
+    @Test("RTROIType maps OTHER, unknown and empty values to nil")
+    func testRTROITypeUnknownIsNil() {
+        #expect(RTROIType(rawValue: "OTHER") == nil)
+        #expect(RTROIType(rawValue: "NOT_A_TERM") == nil)
+        #expect(RTROIType(rawValue: "") == nil)
+        #expect(RTROIType(rawValue: "ptv") == nil)
     }
 
     @Test("RTROIType PTV raw value is PTV")
@@ -92,20 +111,30 @@ struct SpecializedModalityModelTests {
 
     // MARK: - RTDoseUnits
 
-    @Test("RTDoseUnits Gy conversion is 1.0")
-    func testRTDoseUnitsGy() {
-        #expect(RTDoseUnits.gy.conversionToGy == 1.0)
+    // PS3.3 2026a Table C.8-39 Dose Units (3004,0002) Enumerated Values: GY, RELATIVE, CODED
+    @Test("RTDoseUnits raw values are the Dose Units Enumerated Values")
+    func testRTDoseUnitsRawValues() {
+        #expect(RTDoseUnits.allCases.map(\.rawValue) == ["GY", "RELATIVE", "CODED"])
+        #expect(RTDoseUnits(rawValue: "RELATIVE") == .relative)
+        #expect(RTDoseUnits(rawValue: "CODED") == .coded)
+        #expect(RTDoseUnits(rawValue: "MGY") == nil)
     }
 
-    @Test("RTDoseUnits cGy conversion is 0.01")
-    func testRTDoseUnitsCGy() {
-        #expect(RTDoseUnits.cgy.conversionToGy == 0.01)
+    @Test("Legacy CGY decodes as GY; cGy is a display scale")
+    func testRTDoseUnitsLegacyCGy() {
+        #expect(RTDoseUnits(rawValue: "CGY") == .gy)
+        #expect(RTDoseUnits.gy.conversionToGy == 1.0)
+        #expect(RTDoseUnits.relative.conversionToGy.isNaN)
+        #expect(RTDoseDisplayScale.centigray.perGray == 100)
+        #expect(RTDoseDisplayScale.gray.perGray == 1)
+        #expect(RTDoseDisplayScale.centigray.symbol == "cGy")
     }
 
     @Test("RTDoseUnits display names are non-empty")
     func testRTDoseUnitsDisplayNames() {
-        #expect(!RTDoseUnits.gy.displayName.isEmpty)
-        #expect(!RTDoseUnits.cgy.displayName.isEmpty)
+        for units in RTDoseUnits.allCases {
+            #expect(!units.displayName.isEmpty)
+        }
     }
 
     // MARK: - DVHCurve

@@ -202,3 +202,62 @@ struct RLECodecStrictDecodingTests {
         }
     }
 }
+
+// MARK: - PS3.5 G.3.1 row boundaries
+
+@Suite("RLE encoder row boundaries (PS3.5 2026a G.3.1)")
+struct RLEEncoderRowBoundaryTests {
+
+    /// Decodes one PackBits segment into (control, payload) packets.
+    private func packets(_ segment: Data) -> [(Int8, [UInt8])] {
+        var result: [(Int8, [UInt8])] = []
+        var i = segment.startIndex
+        while i < segment.endIndex {
+            let control = Int8(bitPattern: segment[i]); i += 1
+            if control >= 0 {
+                let n = Int(control) + 1
+                result.append((control, Array(segment[i..<(i + n)]))); i += n
+            } else if control != -128 {
+                result.append((control, [segment[i]])); i += 1
+            }
+        }
+        return result
+    }
+
+    @Test("A run of identical bytes is split at every row boundary")
+    func testRunsDoNotCrossRows() throws {
+        // 4 rows × 8 columns, all the same value: one 32-byte run without the rule,
+        // four 8-byte replicate packets with it.
+        let descriptor = PixelDataDescriptor(
+            rows: 4, columns: 8, bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, samplesPerPixel: 1, photometricInterpretation: .monochrome2)
+        let frame = Data(repeating: 0x2A, count: 32)
+        let encoded = try RLECodec().encodeFrame(frame, descriptor: descriptor, frameIndex: 0, configuration: .lossless)
+
+        let segmentOffset = Int(encoded.readUInt32LE(at: 4)!)
+        let segment = encoded.subdata(in: segmentOffset..<encoded.count)
+        let p = packets(segment)
+        #expect(p.count == 4)
+        for (control, payload) in p {
+            #expect(control == -7, "replicate run of 8 = control -(8-1)")
+            #expect(payload == [0x2A])
+        }
+        // Still decodes losslessly.
+        let decoded = try RLECodec().decodeFrame(encoded, descriptor: descriptor, frameIndex: 0)
+        #expect(decoded == frame)
+    }
+
+    @Test("A literal run also stops at the row boundary")
+    func testLiteralRunsDoNotCrossRows() throws {
+        let descriptor = PixelDataDescriptor(
+            rows: 2, columns: 3, bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, samplesPerPixel: 1, photometricInterpretation: .monochrome2)
+        let frame = Data([1, 2, 3, 4, 5, 6])
+        let encoded = try RLECodec().encodeFrame(frame, descriptor: descriptor, frameIndex: 0, configuration: .lossless)
+        let segment = encoded.subdata(in: 64..<encoded.count)
+        let p = packets(segment)
+        #expect(p.count == 2)
+        #expect(p[0].1 == [1, 2, 3])
+        #expect(p[1].1 == [4, 5, 6])
+    }
+}

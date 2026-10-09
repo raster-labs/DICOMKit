@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (annotation mapping through crop, rotation and flips)
 // PrintOverlayOrientation.swift
 // DICOMPrintKit
 //

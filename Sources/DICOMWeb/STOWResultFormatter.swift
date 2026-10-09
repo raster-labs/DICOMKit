@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-10-01 — Failure Reason (0008,1197) and Warning Reason (0008,1196) print as hex (decimal): meaning per PS3.18 2026a Tables I.2-2 (6 rows) / I.2-1 (3 rows), dumped by Scripts/nema_docbook.py (D106)
 /// Console renderings shared by the `dicom-wado store` CLI (STOW-RS) and
 /// DICOMStudio's in-app STOW upload, so both produce identical text for the same
 /// upload outcome. This is the store-side peer of `QIDOResultFormatter` (query) and
@@ -49,10 +50,28 @@ public struct STOWResultFormatter {
         "    Failed: \(sopInstanceUID ?? "unknown") - \(reason)"
     }
 
-    /// Resolves a STOW failure to its human-readable reason, identical on both sides:
-    /// the failure description, else "Code <n>", else "unknown error".
+    /// Resolves a STOW failure to its human-readable reason, identical on both sides.
+    /// A Failure Reason (0008,1197) prints as `<hex> (<decimal>): <meaning>` with the
+    /// PS3.18 2026a Table I.2-2 meaning (e.g. `A701 (42753): Refused out of Resources`),
+    /// followed by the server's description in brackets when there is one; without a code,
+    /// the description, else "unknown error".
     public func failureReason(description: String?, code: UInt16?) -> String {
-        description ?? (code.map { "Code \($0)" } ?? "unknown error")
+        guard let code else { return description ?? "unknown error" }
+        let text = STOWResponse.describe(code: code,
+                                         meaning: STOWResponse.standardMeaning(forFailureReason: code),
+                                         table: "I.2-2")
+        if let description, !description.isEmpty { return text + " [\(description)]" }
+        return text
+    }
+
+    /// Verbose per-warning line for an instance stored with a Warning Reason (0008,1196):
+    /// `    Warning: <sopInstanceUID> - <hex> (<decimal>): <meaning>` with the PS3.18 2026a
+    /// Table I.2-1 meaning, e.g. `B000 (45056): Coercion of Data Elements`.
+    public func warningDetail(sopInstanceUID: String, code: UInt16) -> String {
+        let text = STOWResponse.describe(code: code,
+                                         meaning: STOWResponse.standardMeaning(forWarningReason: code),
+                                         table: "I.2-1")
+        return "    Warning: \(sopInstanceUID) - \(text)"
     }
 
     /// The always-printed final summary block (the parity contract):

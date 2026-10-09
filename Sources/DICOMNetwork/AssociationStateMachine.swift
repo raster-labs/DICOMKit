@@ -1,4 +1,5 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — states relabelled to PS3.8 2026a Tables 9-1..9-5 (Scripts/diff_network.py: 9 of 9), transitions checked against Table 9-10 (Sta13 AA-2 added; requestor timeouts are local AA-1, not the standard's ARTIM)
 
 /// DICOM Association State Machine
 ///
@@ -10,20 +11,24 @@ import Foundation
 /// ## States
 ///
 /// The association can be in one of the following states:
+/// State numbers follow PS3.8 Tables 9-1 to 9-5:
 /// - `idle` (Sta1): No association exists
-/// - `awaitingLocalAssociateResponse` (Sta2): Awaiting local A-ASSOCIATE response primitive
+/// - `awaitingLocalAssociateResponse` (Sta2/Sta3): Transport connection open,
+///   awaiting A-ASSOCIATE-RQ PDU (Sta2), then awaiting the local A-ASSOCIATE
+///   response primitive (Sta3)
+/// - `awaitingTransportOpen` (Sta4): Awaiting transport connection opening to complete
 /// - `awaitingRemoteAssociateResponse` (Sta5): Awaiting A-ASSOCIATE-AC or A-ASSOCIATE-RJ PDU
 /// - `established` (Sta6): Association established and data transfer allowed
-/// - `awaitingLocalReleaseResponse` (Sta7): Awaiting local A-RELEASE response primitive
-/// - `awaitingRemoteReleaseResponse` (Sta8): Awaiting A-RELEASE-RP PDU
-/// - `awaitingReleaseCollision` (Sta9-11): Release collision states
-/// - `awaitingTransportClose` (Sta12): Awaiting transport connection close
-/// - `awaitingLocalOpen` (Sta13): Awaiting transport connection open
+/// - `awaitingRemoteReleaseResponse` (Sta7): Awaiting A-RELEASE-RP PDU
+/// - `awaitingLocalReleaseResponse` (Sta8): Awaiting local A-RELEASE response primitive
+/// - `releaseCollision` (Sta9-12): Release collision states
+/// - `awaitingTransportClose` (Sta13): Awaiting transport connection close
 public enum AssociationState: Sendable, Hashable, CustomStringConvertible {
     /// No association exists (Sta1)
     case idle
     
-    /// Transport connection open, awaiting A-ASSOCIATE-RQ PDU (Sta2)
+    /// Transport connection open, awaiting A-ASSOCIATE-RQ PDU (Sta2), then
+    /// awaiting the local A-ASSOCIATE response primitive (Sta3)
     /// This state is for the acceptor (SCP) side
     case awaitingLocalAssociateResponse
     
@@ -34,19 +39,19 @@ public enum AssociationState: Sendable, Hashable, CustomStringConvertible {
     /// Association established, data transfer allowed (Sta6)
     case established
     
-    /// A-RELEASE-RQ received, awaiting local release response (Sta7)
+    /// A-RELEASE-RQ received, awaiting local release response (Sta8)
     case awaitingLocalReleaseResponse
     
-    /// A-RELEASE-RQ sent, awaiting A-RELEASE-RP PDU (Sta8)
+    /// A-RELEASE-RQ sent, awaiting A-RELEASE-RP PDU (Sta7)
     case awaitingRemoteReleaseResponse
     
-    /// Release collision - awaiting A-RELEASE-RP while processing release (Sta9-11)
+    /// Release collision - awaiting A-RELEASE-RP while processing release (Sta9-12)
     case releaseCollision
     
-    /// Awaiting transport connection close (Sta12)
+    /// Awaiting transport connection close (Sta13)
     case awaitingTransportClose
     
-    /// Awaiting transport connection open (Sta13)
+    /// Awaiting transport connection opening to complete (Sta4)
     case awaitingTransportOpen
     
     public var description: String {
@@ -54,21 +59,21 @@ public enum AssociationState: Sendable, Hashable, CustomStringConvertible {
         case .idle:
             return "Idle (Sta1)"
         case .awaitingLocalAssociateResponse:
-            return "Awaiting Local Associate Response (Sta2)"
+            return "Awaiting Local Associate Response (Sta2/Sta3)"
         case .awaitingRemoteAssociateResponse:
             return "Awaiting Remote Associate Response (Sta5)"
         case .established:
             return "Association Established (Sta6)"
         case .awaitingLocalReleaseResponse:
-            return "Awaiting Local Release Response (Sta7)"
+            return "Awaiting Local Release Response (Sta8)"
         case .awaitingRemoteReleaseResponse:
-            return "Awaiting Remote Release Response (Sta8)"
+            return "Awaiting Remote Release Response (Sta7)"
         case .releaseCollision:
-            return "Release Collision (Sta9-11)"
+            return "Release Collision (Sta9-12)"
         case .awaitingTransportClose:
-            return "Awaiting Transport Close (Sta12)"
+            return "Awaiting Transport Close (Sta13)"
         case .awaitingTransportOpen:
-            return "Awaiting Transport Open (Sta13)"
+            return "Awaiting Transport Open (Sta4)"
         }
     }
     
@@ -122,9 +127,10 @@ public enum AssociationEvent: Sendable {
     /// ARTIM (Association Request/Release Timer) expired
     ///
     /// This event is triggered when the ARTIM timer fires while waiting for
-    /// an association response (A-ASSOCIATE-AC/RJ) or release response (A-RELEASE-RP).
+    /// an association response (A-ASSOCIATE-AC/RJ), a release response
+    /// (A-RELEASE-RP) or the transport close (Sta13).
     ///
-    /// Reference: PS3.8 Section 9.1.1 - ARTIM Timer
+    /// Reference: PS3.8 Section 9.1.5 - ARTIM Timer
     case artimTimerExpired
 }
 
@@ -256,7 +262,7 @@ public final class AssociationStateMachine: @unchecked Sendable {
             // AE-1: Transport connection indication
             return TransitionResult(newState: .awaitingTransportOpen)
             
-        // Awaiting transport open transitions (Sta13)
+        // Awaiting transport open transitions (Sta4)
         case (.awaitingTransportOpen, .associateRequestSent):
             // AE-2: A-ASSOCIATE request primitive
             return TransitionResult(newState: .awaitingRemoteAssociateResponse)
@@ -265,7 +271,7 @@ public final class AssociationStateMachine: @unchecked Sendable {
             // AA-1: Abort request
             return TransitionResult(newState: .idle, actions: [.closeTransport])
             
-        // Awaiting local associate response (Sta2 - SCP side)
+        // Awaiting local associate response (Sta2/Sta3 - SCP side)
         case (.awaitingLocalAssociateResponse, .associateRequestReceived(let pdu)):
             return TransitionResult(
                 newState: .awaitingLocalAssociateResponse,
@@ -308,9 +314,11 @@ public final class AssociationStateMachine: @unchecked Sendable {
             )
             
         case (.awaitingRemoteAssociateResponse, .artimTimerExpired):
-            // AA-2: ARTIM timer expired while awaiting A-ASSOCIATE-AC/RJ
-            // Abort the association and close the transport
-            let abortPDU = AbortPDU(source: .serviceProvider, reason: AbortReason.notSpecified.rawValue)
+            // Local timeout while awaiting A-ASSOCIATE-AC/RJ. PS3.8 Table 9-10
+            // defines ARTIM expiry (AA-2) only in Sta2 and Sta13; a local timer
+            // here is handled as an A-ABORT request primitive (AA-1): send
+            // A-ABORT with service-user source, reason 0, then close transport.
+            let abortPDU = AbortPDU(source: .serviceUser, reason: 0)
             return TransitionResult(
                 newState: .awaitingTransportClose,
                 actions: [.sendAbort(abortPDU)]
@@ -364,7 +372,7 @@ public final class AssociationStateMachine: @unchecked Sendable {
                 actions: [.issueAbortIndication(.serviceProvider, AbortReason.notSpecified.rawValue)]
             )
             
-        // Awaiting local release response (Sta7)
+        // Awaiting local release response (Sta8)
         case (.awaitingLocalReleaseResponse, .releaseResponseSent):
             // AR-4: A-RELEASE response primitive
             return TransitionResult(
@@ -385,7 +393,7 @@ public final class AssociationStateMachine: @unchecked Sendable {
                 actions: [.issueAbortIndication(pdu.source, pdu.reason), .closeTransport]
             )
             
-        // Awaiting remote release response (Sta8)
+        // Awaiting remote release response (Sta7)
         case (.awaitingRemoteReleaseResponse, .releaseResponseReceived):
             // AR-3: A-RELEASE-RP PDU received
             return TransitionResult(
@@ -413,15 +421,17 @@ public final class AssociationStateMachine: @unchecked Sendable {
             )
             
         case (.awaitingRemoteReleaseResponse, .artimTimerExpired):
-            // AA-2: ARTIM timer expired while awaiting A-RELEASE-RP
-            // Abort the association and close the transport
-            let abortPDU = AbortPDU(source: .serviceProvider, reason: AbortReason.notSpecified.rawValue)
+            // Local timeout while awaiting A-RELEASE-RP. PS3.8 Table 9-10
+            // defines ARTIM expiry (AA-2) only in Sta2 and Sta13; a local timer
+            // here is handled as an A-ABORT request primitive (AA-1): send
+            // A-ABORT with service-user source, reason 0, then close transport.
+            let abortPDU = AbortPDU(source: .serviceUser, reason: 0)
             return TransitionResult(
                 newState: .awaitingTransportClose,
                 actions: [.sendAbort(abortPDU)]
             )
             
-        // Release collision (Sta9-11)
+        // Release collision (Sta9-12)
         case (.releaseCollision, .releaseResponseSent):
             // AR-9: A-RELEASE response primitive (collision resolution)
             return TransitionResult(
@@ -436,14 +446,18 @@ public final class AssociationStateMachine: @unchecked Sendable {
                 actions: [.issueReleaseConfirm]
             )
             
-        // Awaiting transport close (Sta12)
+        // Awaiting transport close (Sta13)
         case (.awaitingTransportClose, .transportConnectionClosed):
             // AR-5: Transport connection closed
             return TransitionResult(newState: .idle)
             
         case (.awaitingTransportClose, .abortReceived):
-            // Ignore abort during transport close
-            return TransitionResult(newState: .awaitingTransportClose)
+            // AA-2: A-ABORT PDU in Sta13 - stop ARTIM timer, close transport
+            return TransitionResult(newState: .idle, actions: [.closeTransport])
+            
+        case (.awaitingTransportClose, .artimTimerExpired):
+            // AA-2: ARTIM timer expired in Sta13 - close transport
+            return TransitionResult(newState: .idle, actions: [.closeTransport])
             
         case (.awaitingTransportClose, _):
             // Ignore other events during transport close

@@ -7,6 +7,10 @@
 // film looked identical to one that had failed. The mapping lives here rather
 // than inline in each view, so the settings pane and the printer list cannot
 // drift apart on what amber means.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the three Printer Status (2110,0010) values of PS3.3 2026a Table C.13-9
+// (NORMAL, WARNING, FAILURE) are DICOMNetwork's PrinterStatusSeverity cases, each given its own colour and glyph
+// here plus unknown; Printer Status Info (2110,0020) is shown as the SCP sent it. No literal of its own.
 
 import SwiftUI
 import DICOMNetwork

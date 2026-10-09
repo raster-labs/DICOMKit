@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — DICOM tag inspector sheet
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the binary-VR set shown as bytes is now OB, OD, OF, OL, OV, OW and UN — the 6 'Other …' VRs of PS3.5 2026a Table 6.2-1 plus Unknown (OV was missing: corrected, D28); Pixel Data (7FE0,0010) and SQ handled separately; US/SS/UL/SL/IS decoded numerically; tag names from DICOMDictionary (PS3.6 Table 6-1); private creators in elements 0010–00FF of odd groups (PS3.5 7.8.1); checked by Scripts/diff_studio_g2_viewer.py
 
 #if canImport(SwiftUI)
 import SwiftUI
@@ -37,8 +39,8 @@ public enum DICOMInspectorHelpers: Sendable {
             return "<\(count) sequence item(s)>"
         }
 
-        // Binary VRs: show hex preview
-        if [VR.OB, .OW, .OD, .OF, .OL, .UN].contains(element.vr) {
+        // Binary VRs (PS3.5 Table 6.2-1: OB, OD, OF, OL, OV, OW and UN): show hex preview
+        if [VR.OB, .OD, .OF, .OL, .OV, .OW, .UN].contains(element.vr) {
             let bytes = element.valueData
             if bytes.isEmpty { return "<empty>" }
             let preview = bytes.prefix(8).map { String(format: "%02X", $0) }.joined(separator: " ")

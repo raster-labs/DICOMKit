@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (marching-cubes mesh, binary STL / OBJ writers); vertex coordinates come from VolumeData.physicalCoordinates, i.e. patient LPS millimetres of PS3.3 2026a C.7.6.2.1.1; no Surface Segmentation / Surface Scan Mesh IOD is written
 import Foundation
 
 // MARK: - 3D Mesh

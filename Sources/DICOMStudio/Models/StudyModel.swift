@@ -2,6 +2,11 @@
 // DICOMStudio
 //
 // DICOM Studio — Study-level metadata model
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — fields mirror PS3.6 2026a Table 6-1 attributes (Study Instance UID,
+// Study ID, Study Date, Study Description, Accession Number, Referring Physician's Name, Patient's Name, Patient ID,
+// Patient's Sex, Institution Name, Modalities in Study); `patientDisplayName` joins PN components (PS3.5 2026a
+// 6.2.1.1) for display only.
 
 import Foundation
 

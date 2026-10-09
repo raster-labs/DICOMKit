@@ -331,3 +331,116 @@ struct AssociateRejectPDUTests {
         #expect(decodedReject.reason == original.reason)
     }
 }
+
+// MARK: - SCP/SCU Role Selection (PS3.7 D.3.3.4; PS3.4 C.4.3.1.1 / C.5.3)
+
+@Suite("SCP/SCU Role Selection PDU Tests")
+struct RoleSelectionPDUTests {
+
+    private let ctImageStorage = "1.2.840.10008.5.1.4.1.1.2"
+    private let mrImageStorage = "1.2.840.10008.5.1.4.1.1.4"
+    private let studyRootGet = "1.2.840.10008.5.1.4.1.2.2.3"
+
+    @Test("A-ASSOCIATE-RQ role selections round-trip through PDUDecoder")
+    func testRequestRoleSelectionRoundTrip() throws {
+        let contexts = [
+            try PresentationContext(id: 1, abstractSyntax: studyRootGet, transferSyntaxes: ["1.2.840.10008.1.2.1"]),
+            try PresentationContext(id: 3, abstractSyntax: ctImageStorage, transferSyntaxes: ["1.2.840.10008.1.2.1"]),
+            try PresentationContext(id: 5, abstractSyntax: mrImageStorage, transferSyntaxes: ["1.2.840.10008.1.2.1"])
+        ]
+        let original = AssociateRequestPDU(
+            calledAETitle: try AETitle("PACS"),
+            callingAETitle: try AETitle("SCU"),
+            presentationContexts: contexts,
+            implementationClassUID: "1.2.3.4",
+            roleSelections: [.both(ctImageStorage), .scpOnly(mrImageStorage)]
+        )
+        let encoded = try original.encode()
+        let decoded = try PDUDecoder.decode(from: encoded)
+        guard let request = decoded as? AssociateRequestPDU else {
+            #expect(Bool(false), "Decoded PDU is not AssociateRequestPDU")
+            return
+        }
+        #expect(request.roleSelections.count == 2)
+        #expect(request.roleSelections[0] == .both(ctImageStorage))
+        #expect(request.roleSelections[1] == .scpOnly(mrImageStorage))
+        #expect(request.presentationContexts.count == 3)
+    }
+
+    @Test("A-ASSOCIATE-AC role selections round-trip through PDUDecoder")
+    func testAcceptRoleSelectionRoundTrip() throws {
+        let original = AssociateAcceptPDU(
+            calledAETitle: try AETitle("PACS"),
+            callingAETitle: try AETitle("SCU"),
+            presentationContexts: [
+                AcceptedPresentationContext(id: 1, result: .acceptance, transferSyntax: "1.2.840.10008.1.2.1"),
+                AcceptedPresentationContext(id: 3, result: .acceptance, transferSyntax: "1.2.840.10008.1.2.1")
+            ],
+            maxPDUSize: 16384,
+            implementationClassUID: "1.2.3.4",
+            roleSelections: [
+                SCPSCURoleSelection(sopClassUID: ctImageStorage, scuRole: false, scpRole: true),
+                SCPSCURoleSelection(sopClassUID: mrImageStorage, scuRole: false, scpRole: false)
+            ]
+        )
+        let encoded = try original.encode()
+        let decoded = try PDUDecoder.decode(from: encoded)
+        guard let accept = decoded as? AssociateAcceptPDU else {
+            #expect(Bool(false), "Decoded PDU is not AssociateAcceptPDU")
+            return
+        }
+        #expect(accept.roleSelections == original.roleSelections)
+        #expect(accept.maxPDUSize == 16384)
+    }
+
+    @Test("Role selection sub-item encodes as type 0x54 with the PS3.7 D.3-9 layout")
+    func testSubItemLayout() throws {
+        let item = SCPSCURoleSelection.both("1.2.3").encode()
+        #expect(item[0] == 0x54)
+        #expect(item[1] == 0x00)
+        #expect(Int(item[2]) << 8 | Int(item[3]) == 2 + 5 + 2)
+        #expect(Int(item[4]) << 8 | Int(item[5]) == 5)
+        #expect(item[item.count - 2] == 1)
+        #expect(item[item.count - 1] == 1)
+        let decoded = try SCPSCURoleSelection.decode(from: item.dropFirst(4))
+        #expect(decoded == .both("1.2.3"))
+    }
+
+    @Test("NegotiatedRoles.resolve: no answer or unproposed class yields the default roles")
+    func testResolveDefaults() {
+        #expect(NegotiatedRoles.default == NegotiatedRoles(requestorIsSCU: true, requestorIsSCP: false))
+        // No answer at all
+        #expect(NegotiatedRoles.resolve(proposed: [.both(ctImageStorage)], accepted: [], sopClassUID: ctImageStorage) == .default)
+        // Answer for a class that was never proposed
+        #expect(NegotiatedRoles.resolve(proposed: [], accepted: [.both(ctImageStorage)], sopClassUID: ctImageStorage) == .default)
+        // Answer may only reduce: proposed both, granted SCP only
+        let reduced = NegotiatedRoles.resolve(
+            proposed: [.both(ctImageStorage)],
+            accepted: [SCPSCURoleSelection(sopClassUID: ctImageStorage, scuRole: false, scpRole: true)],
+            sopClassUID: ctImageStorage)
+        #expect(reduced == NegotiatedRoles(requestorIsSCU: false, requestorIsSCP: true))
+        // Acceptor cannot grant more than proposed
+        let capped = NegotiatedRoles.resolve(
+            proposed: [.scpOnly(ctImageStorage)],
+            accepted: [.both(ctImageStorage)],
+            sopClassUID: ctImageStorage)
+        #expect(capped == NegotiatedRoles(requestorIsSCU: false, requestorIsSCP: true))
+    }
+
+    @Test("NegotiatedAssociation exposes the SCP role per SOP Class")
+    func testNegotiatedAssociationRoles() throws {
+        let accept = AssociateAcceptPDU(
+            calledAETitle: try AETitle("PACS"),
+            callingAETitle: try AETitle("SCU"),
+            presentationContexts: [AcceptedPresentationContext(id: 3, result: .acceptance, transferSyntax: "1.2.840.10008.1.2.1")],
+            maxPDUSize: 16384,
+            implementationClassUID: "1.2.3.4",
+            roleSelections: [SCPSCURoleSelection(sopClassUID: ctImageStorage, scuRole: true, scpRole: true)]
+        )
+        let negotiated = NegotiatedAssociation(
+            acceptPDU: accept, localMaxPDUSize: 16384,
+            proposedRoleSelections: [.both(ctImageStorage), .both(mrImageStorage)])
+        #expect(negotiated.isSCPRoleAccepted(for: ctImageStorage))
+        #expect(!negotiated.isSCPRoleAccepted(for: mrImageStorage), "no answer means default roles (SCU only)")
+    }
+}

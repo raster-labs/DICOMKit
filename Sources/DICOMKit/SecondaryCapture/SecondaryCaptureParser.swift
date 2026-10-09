@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — SC attribute reads per PS3.3 2026a Tables C.7-1, C.7-3, C.7-5a, C.7-9, C.7-14, C.8-24, C.8-25, C.8-25b, C.8-25c
 //
 // SecondaryCaptureParser.swift
 // DICOMKit
@@ -72,25 +73,51 @@ public struct SecondaryCaptureParser {
         // Parse Patient Module
         let patientName = dataSet.string(for: .patientName)
         let patientID = dataSet.string(for: .patientID)
+        let patientBirthDate = dataSet.date(for: .patientBirthDate)
+        let patientSex = nonEmpty(dataSet.string(for: .patientSex))
+
+        // Parse General Study Module
+        let studyDate = dataSet.date(for: .studyDate)
+        let studyTime = dataSet.time(for: .studyTime)
+        let referringPhysicianName = nonEmpty(dataSet.string(for: .referringPhysicianName))
+        let studyID = nonEmpty(dataSet.string(for: .studyID))
+        let accessionNumber = nonEmpty(dataSet.string(for: .accessionNumber))
+        let studyDescription = dataSet.string(for: .studyDescription)
 
         // Parse Series Module
         let modality = dataSet.string(for: .modality)
         let seriesDescription = dataSet.string(for: .seriesDescription)
         let seriesNumber = dataSet[.seriesNumber]?.integerStringValue?.value
 
-        // Parse SC Equipment Module
+        // Parse SC Equipment Module (values outside Table C.8-24 are tolerated)
         let conversionTypeString = dataSet.string(for: .conversionType) ?? ""
         let conversionType = ConversionType(dicomValue: conversionTypeString)
 
         // Parse SC Image Module
         let dateOfSecondaryCapture = dataSet.date(for: .dateOfSecondaryCapture)
         let timeOfSecondaryCapture = dataSet.time(for: .timeOfSecondaryCapture)
+        let nominalScannedPixelSpacing = decimals(dataSet.strings(for: .nominalScannedPixelSpacing))
+
+        // Parse Multi-frame vectors (Tables C.7-13, C.8-25c)
+        let frameTime = decimals(dataSet.strings(for: .frameTime))?.first
+        let frameTimeVector = decimals(dataSet.strings(for: .frameTimeVector))
+        let pageNumberVector = dataSet.strings(for: .pageNumberVector).flatMap { values -> [Int]? in
+            let parsed = values.compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+            return parsed.count == values.count && !parsed.isEmpty ? parsed : nil
+        }
+        let frameLabelVector = dataSet.strings(for: .frameLabelVector).flatMap { $0.isEmpty ? nil : $0 }
+
+        // Parse SC Multi-frame Image Module rescale
+        let rescaleIntercept = decimals(dataSet.strings(for: .rescaleIntercept))?.first
+        let rescaleSlope = decimals(dataSet.strings(for: .rescaleSlope))?.first
+        let rescaleType = nonEmpty(dataSet.string(for: .rescaleType))
 
         // Parse General Image Module
         let imageTypeString = dataSet.string(for: .imageType)
         let imageType = imageTypeString?.components(separatedBy: "\\")
         let derivationDescription = dataSet.string(for: .derivationDescription)
         let burnedInAnnotation = dataSet.string(for: .burnedInAnnotation)
+        let patientOrientation = dataSet.strings(for: .patientOrientation).flatMap { $0.isEmpty ? nil : $0 }
 
         // Parse Content Date/Time
         let contentDate = dataSet.date(for: .contentDate)
@@ -128,7 +155,37 @@ public struct SecondaryCaptureParser {
             burnedInAnnotation: burnedInAnnotation,
             contentDate: contentDate,
             contentTime: contentTime,
-            pixelData: pixelData
+            pixelData: pixelData,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            studyDate: studyDate,
+            studyTime: studyTime,
+            referringPhysicianName: referringPhysicianName,
+            studyID: studyID,
+            accessionNumber: accessionNumber,
+            studyDescription: studyDescription,
+            nominalScannedPixelSpacing: nominalScannedPixelSpacing,
+            patientOrientation: patientOrientation,
+            frameTime: frameTime,
+            frameTimeVector: frameTimeVector,
+            pageNumberVector: pageNumberVector,
+            frameLabelVector: frameLabelVector,
+            rescaleIntercept: rescaleIntercept,
+            rescaleSlope: rescaleSlope,
+            rescaleType: rescaleType
         )
+    }
+
+    /// nil for an absent or zero-length (Type 2 empty) value.
+    private static func nonEmpty(_ value: String?) -> String? {
+        guard let value, !value.isEmpty else { return nil }
+        return value
+    }
+
+    /// Parses a DS multi-value; nil when absent, empty or not all numeric.
+    private static func decimals(_ values: [String]?) -> [Double]? {
+        guard let values, !values.isEmpty else { return nil }
+        let parsed = values.compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+        return parsed.count == values.count ? parsed : nil
     }
 }

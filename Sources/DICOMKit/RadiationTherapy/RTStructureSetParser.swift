@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — RT Structure Set module reads per PS3.3 2026a C.8.8.5-C.8.8.8
 //
 // RTStructureSetParser.swift
 // DICOMKit

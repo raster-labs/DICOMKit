@@ -2,8 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Thread-safe service for Security & Privacy Center display state management
-// Reference: DICOM PS3.15 (Security and System Management Profiles)
-// Reference: HIPAA Security Rule §164.312
+// Reference: DICOM PS3.15 (Security and System Management Profiles); HIPAA Security Rule §164.312 (law)
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (locked state store for certificates, server entries, anonymization jobs and rules, audit entries, sessions; defaults .compatible / .basic are app choices)
 
 import Foundation
 
@@ -27,7 +27,7 @@ public final class SecurityService: @unchecked Sendable {
 
     private var _anonymizationJobs: [AnonymizationJob] = []
     private var _phiDetectionResults: [PHIDetectionResult] = []
-    private var _selectedProfile: AnonymizationProfile = .basic
+    private var _selectedProfile: AnonymizationProfile = .ps315  // PS3.15 Basic Profile (P-STUDIO-ANON-PS315)
     private var _customRules: [AnonymizationTagRule] = []
 
     // MARK: - 11.3 Audit Log State

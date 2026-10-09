@@ -4,7 +4,9 @@
 /// Private creators reserve a block of element numbers for their private tags.
 ///
 /// Reference: DICOM PS3.5 Section 7.8 - Private Data Elements
-/// Reference: DICOM PS3.5 Section 6.1.4 - Private Creator Data Element
+/// Reference: DICOM PS3.5 Section 7.8.1 - Private Data Element Tags
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the block rules (creator elements (gggg,0010-00FF) in an odd group; data elements (gggg,bb00-bbFF) where bb is the creator element's low byte) match PS3.5 2026a §7.8.1. The citation "§6.1.4 Private Creator Data Element" named a section that does not exist; corrected. The vendor creator strings are outside NEMA's scope (they match the DCMTK/GDCM private dictionaries).
 public struct PrivateCreator: Sendable, Hashable, Equatable {
     /// Creator identification string
     ///
@@ -103,7 +105,8 @@ extension PrivateCreator {
             PrivateCreator(creatorID: "GEMS_IDEN_01", group: group, element: element)
         }
         
-        /// GE Protocol Data Block
+        /// GE Acquisition private group (GEMS_ACQU_01). The Protocol Data Block lives in
+        /// GEMS_SERS_01 (0025,xx1B), see `geSeries`.
         public static func geProtocol(group: UInt16 = 0x0019, element: UInt16 = 0x0010) -> PrivateCreator {
             PrivateCreator(creatorID: "GEMS_ACQU_01", group: group, element: element)
         }

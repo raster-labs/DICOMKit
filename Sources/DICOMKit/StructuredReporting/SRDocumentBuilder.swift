@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — value-type rules delegate to DICOMCore allows(_:), which reproduces PS3.3 2026a Tables A.35.x-2 (D16); validation recurses into the Content Sequence (0040,A730) of every value type per PS3.3 2026a Table C.17-6 (D31)
 /// DICOM Structured Reporting Document Builder
 ///
 /// Provides a fluent API for creating valid DICOM SR documents programmatically.
@@ -802,7 +803,7 @@ public struct SRDocumentBuilder: Sendable {
         }
         
         // Generate UIDs if not provided.
-        // Note: Auto-generated UIDs use UIDGenerator with the default UID root (1.2.276.0.7230010.3).
+        // Note: Auto-generated UIDs use UIDGenerator with the default UID root (UIDGenerator.defaultRoot).
         // In production environments with specific UID root requirements, developers should
         // provide their own UIDs using withSOPInstanceUID(), withStudyInstanceUID(), and
         // withSeriesInstanceUID() methods to ensure compliance with organizational policies.
@@ -838,7 +839,10 @@ public struct SRDocumentBuilder: Sendable {
             verificationFlag: verificationFlag,
             preliminaryFlag: preliminaryFlag,
             documentTitle: documentTitle,
-            rootContent: rootContent
+            rootContent: rootContent,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName
         )
     }
     
@@ -873,14 +877,13 @@ public struct SRDocumentBuilder: Sendable {
     private func validateValueTypes(items: [AnyContentItem]) throws {
         for item in items {
             // Check if value type is allowed for this document type
-            if !documentType.allowsValueType(item.valueType) {
+            if !documentType.allows(item.valueType) {
                 throw BuildError.invalidValueType(valueType: item.valueType, documentType: documentType)
             }
             
-            // Recursively validate container children
-            if let container = item.asContainer {
-                try validateValueTypes(items: container.contentItems)
-            }
+            // Recursively validate children: a CONTAINER's, and the Content Sequence
+            // any other value type may carry (PS3.3 Table C.17-6)
+            try validateValueTypes(items: item.contentItems)
         }
     }
 }
@@ -921,34 +924,12 @@ public struct ContainerBuilder {
 // MARK: - SRDocumentType Value Type Validation
 
 extension SRDocumentType {
-    /// Checks if this document type allows the specified value type
-    /// - Parameter valueType: The value type to check
-    /// - Returns: true if the value type is allowed
+    /// Checks if this document type allows the specified value type.
+    ///
+    /// The Value Type constraints of each SR IOD (PS3.3 Tables A.35.x-2) are carried once,
+    /// by ``SRDocumentType/allows(_:)`` in DICOMCore; this is the same answer.
+    @available(*, deprecated, renamed: "allows(_:)")
     public func allowsValueType(_ valueType: ContentItemValueType) -> Bool {
-        switch self {
-        case .basicTextSR:
-            // Basic Text SR only allows TEXT, CODE, and CONTAINER
-            return [.text, .code, .container, .pname, .uidref, .date, .time, .datetime].contains(valueType)
-            
-        case .enhancedSR:
-            // Enhanced SR allows most value types except 3D coordinates
-            return valueType != .scoord3D
-            
-        case .comprehensiveSR, .comprehensive3DSR, .extensibleSR:
-            // Comprehensive SR allows all value types
-            return true
-            
-        case .keyObjectSelectionDocument:
-            // Key Object Selection uses limited value types
-            return [.text, .code, .container, .uidref, .image, .composite].contains(valueType)
-            
-        case .mammographyCADSR, .chestCADSR, .colonCADSR:
-            // CAD SR documents allow most value types
-            return true
-            
-        default:
-            // Default to allowing all for unknown types
-            return true
-        }
+        allows(valueType)
     }
 }

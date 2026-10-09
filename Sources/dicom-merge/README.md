@@ -4,14 +4,14 @@ Combine single-frame DICOM images into multi-frame files.
 
 ## Overview
 
-`dicom-merge` combines multiple single-frame DICOM images into multi-frame DICOM files. It supports creating standard multi-frame formats or Enhanced CT/MR/XA formats with proper functional groups. The tool can also organize files by series or study.
+`dicom-merge` combines multiple single-frame DICOM images into multi-frame DICOM files. It supports keeping the source SOP Class (`standard`) or writing Enhanced CT / MR / PET / XA / XRF, Legacy Converted Enhanced CT / MR / PET, Ultrasound Multi-frame and Multi-frame Secondary Capture objects, with Shared and Per-Frame Functional Groups Sequences (PS3.3 C.7.6.16) for the Enhanced and Legacy Converted targets. The tool can also organize files by series or study.
 
 ## Features
 
 - **Single-to-Multi-Frame Conversion**: Combine single frames into a single multi-frame file
 - **Series Merging**: Group files by Series Instance UID and create one multi-frame file per series
 - **Study Merging**: Group files by Study Instance UID, then by series
-- **Frame Sorting**: Order frames by Instance Number, Image Position Patient, or Acquisition Time
+- **Frame Sorting**: Order frames by Instance Number, Image Position (Patient), or Acquisition Time
 - **Consistency Validation**: Verify that input files have compatible attributes
 - **Metadata Consolidation**: Automatically merge and update DICOM metadata
 - **UID Generation**: Generate unique SOP Instance UIDs for merged files
@@ -37,7 +37,7 @@ Sort by Instance Number (default):
 dicom-merge slices/*.dcm --output volume.dcm
 ```
 
-Sort by Image Position Patient (Z coordinate):
+Sort by Image Position (Patient) (distance along the slice normal):
 ```bash
 dicom-merge slices/*.dcm --output volume.dcm --sort-by ImagePositionPatient
 ```
@@ -66,15 +66,36 @@ dicom-merge data/ --output organized/ --level study --recursive
 
 ### Enhanced Formats
 
-Create Enhanced CT (not yet implemented):
+Create Enhanced CT Image Storage:
 ```bash
 dicom-merge ct_slices/*.dcm --output enhanced_ct.dcm --format enhanced-ct
 ```
 
-Create Enhanced MR (not yet implemented):
+Create Enhanced MR Image Storage, one Stack ID per Image Orientation (Patient):
 ```bash
-dicom-merge mr_slices/*.dcm --output enhanced_mr.dcm --format enhanced-mr
+dicom-merge mr_slices/*.dcm --output enhanced_mr.dcm --format enhanced-mr --make-stacks
 ```
+
+Let the tool pick the multi-frame SOP Class from the source (CT/MR/PET -> Legacy Converted
+Enhanced, Ultrasound -> Ultrasound Multi-frame, Secondary Capture -> Multi-frame SC):
+```bash
+dicom-merge slices/*.dcm --output volume.dcm --format auto
+```
+
+| `--format` | SOP Class (PS3.6 Table A-1) |
+|---|---|
+| `standard` | the source SOP Class is kept (only conformant when that IOD is multi-frame) |
+| `auto` | chosen from the source SOP Class |
+| `enhanced-ct` | Enhanced CT Image Storage (1.2.840.10008.5.1.4.1.1.2.1) |
+| `enhanced-mr` | Enhanced MR Image Storage (1.2.840.10008.5.1.4.1.1.4.1) |
+| `enhanced-pet` | Enhanced PET Image Storage (1.2.840.10008.5.1.4.1.1.130) |
+| `enhanced-xa` | Enhanced XA Image Storage (1.2.840.10008.5.1.4.1.1.12.1.1) |
+| `enhanced-xrf` | Enhanced XRF Image Storage (1.2.840.10008.5.1.4.1.1.12.2.1) |
+| `legacy-converted-ct` | Legacy Converted Enhanced CT Image Storage (1.2.840.10008.5.1.4.1.1.2.2) |
+| `legacy-converted-mr` | Legacy Converted Enhanced MR Image Storage (1.2.840.10008.5.1.4.1.1.4.4) |
+| `legacy-converted-pet` | Legacy Converted Enhanced PET Image Storage (1.2.840.10008.5.1.4.1.1.128.1) |
+| `us-multiframe` | Ultrasound Multi-frame Image Storage (1.2.840.10008.5.1.4.1.1.3.1) |
+| `sc-multiframe` | Multi-frame Single Bit / Grayscale Byte / Grayscale Word / True Color Secondary Capture Image Storage (1.2.840.10008.5.1.4.1.1.7.1 - .7.4, by Bits Allocated and Samples per Pixel) |
 
 ### Validation
 
@@ -97,11 +118,16 @@ dicom-merge slices/*.dcm --output volume.dcm --verbose
 
 ### Optional
 - `-o, --output <path>` - Output file or directory path
-- `--format <format>` - Output format: standard, enhanced-ct, enhanced-mr, enhanced-xa (default: standard)
+- `--format <format>` - Output format: standard, auto, enhanced-ct, enhanced-mr, enhanced-pet, enhanced-xa, enhanced-xrf, legacy-converted-ct, legacy-converted-mr, legacy-converted-pet, sc-multiframe, us-multiframe (default: standard)
+- `--pixel-handling <mode>` - Encapsulated inputs: preserve (keep the transfer syntax, one fragment per frame with a Basic Offset Table, PS3.5 A.4) or decode (to Explicit VR Little Endian) (default: preserve)
+- `--make-stacks` - Assign Stack ID (0020,9056) per Image Orientation (Patient) (0020,0037)
+- `--temporal-position` - Derive Temporal Position Index (0020,9128) from Trigger Time (0018,1060), Temporal Position Identifier (0020,0100) or Acquisition Time (0008,0032)
+- `--new-series` - Mint a new Series Instance UID (0020,000E)
+- `--allow-any-source` - Skip the source SOP Class check for Enhanced / Legacy Converted targets
 - `--level <level>` - Merge level: file, series, study (default: file)
 - `--sort-by <criteria>` - Sort frames by: InstanceNumber, ImagePositionPatient, AcquisitionTime, none (default: InstanceNumber)
 - `--order <order>` - Sort order: ascending, descending (default: ascending)
-- `--validate` - Validate consistency of input files
+- `--validate` - Also require equal Study / Series Instance UID, Modality and Frame of Reference UID
 - `-r, --recursive` - Process directories recursively
 - `-v, --verbose` - Show verbose output
 
@@ -152,8 +178,8 @@ output/
 ### Instance Number
 Sorts frames by the DICOM Instance Number attribute (0020,0013). This is the default.
 
-### Image Position Patient
-Sorts frames by the Z coordinate (third component) of Image Position Patient (0020,0032). Useful for CT/MR volumes where slices have spatial positions.
+### Image Position (Patient)
+Sorts frames by the distance along the slice normal derived from Image Position (Patient) (0020,0032) and Image Orientation (Patient) (0020,0037), or by the Z coordinate (third value) when the orientation is absent. Useful for CT/MR volumes where slices have spatial positions.
 
 ### Acquisition Time
 Sorts frames by Acquisition Time (0008,0032). Useful for temporal sequences.
@@ -163,17 +189,17 @@ Preserves the order in which files were provided.
 
 ## Validation
 
-When `--validate` is enabled, the tool checks that all input files have consistent values for critical attributes:
+Every run checks that the inputs agree on the Image Pixel Module attributes (Rows, Columns,
+Bits Allocated, Bits Stored, High Bit, Pixel Representation, Samples per Pixel, Photometric
+Interpretation), the pixel data size, the Transfer Syntax UID, and that no SOP Instance UID
+occurs twice.
+
+When `--validate` is enabled, the tool also checks:
 
 - Study Instance UID
 - Series Instance UID
 - Modality
-- Rows and Columns
-- Bits Allocated, Bits Stored, High Bit
-- Pixel Representation
-- Samples Per Pixel
-- Photometric Interpretation
-- Pixel Data Size
+- Frame of Reference UID
 
 If any inconsistencies are found, the tool reports an error and does not create output.
 
@@ -221,33 +247,23 @@ dicom-merge patient_data/ \
 
 - Generates valid DICOM Part 10 files
 - Updates Number of Frames (0028,0008) attribute
-- Generates unique SOP Instance UIDs using DICOMKit's UID generator
-- Concatenates pixel data from all frames
+- Generates a new SOP Instance UID for the merged object
+- Concatenates native pixel data from all frames; encapsulated frames are carried as one fragment per frame with a Basic Offset Table (PS3.5 A.4)
 - Preserves most metadata from the first input file
-- Updates Instance Number to 1 (multi-frame files are single instances)
+- Updates Instance Number (0020,0013) to 1 (multi-frame files are single instances)
+- Enhanced and Legacy Converted targets: Shared / Per-Frame Functional Groups Sequences (PS3.3 C.7.6.16) factored by attribute equality, Frame Content Macro (Stack ID, In-Stack Position Number, Dimension Index Values), Multi-frame Dimension Module (PS3.3 C.7.6.17)
+- Concatenation parts (Concatenation UID (0020,9161)) are detected and reassembled
 
 ### Limitations
 
-- Enhanced CT/MR/XA formats with Functional Groups are not yet fully implemented
-- Shared and Per-frame Functional Groups are not yet created
-- Some per-frame attributes are not moved to functional groups
-- Compressed pixel data is not yet supported
-- Encapsulated pixel data (JPEG, JPEG 2000) is not yet supported
-
-### Future Enhancements
-
-- Full Enhanced CT/MR/XA support with functional groups
-- Per-frame metadata preservation in functional groups
-- Compressed pixel data support
-- Custom frame reordering
-- Frame de-duplication
-- Metadata merging strategies
+- `--format standard` on a single-frame IOD (e.g. CT Image Storage) merges with a warning; that object is not conformant — use `--format auto`
+- Frame de-duplication and metadata merging strategies are not implemented
 
 ## Exit Codes
 
 - `0` - Success
-- `1` - General error (invalid arguments, file I/O errors)
-- `64` - Validation error (inconsistent input files)
+- `1` - Merge failed (inconsistent inputs, unsupported source SOP Class, duplicate SOP Instance UID, file I/O errors)
+- `64` - Usage error (invalid option value, input path not found, no DICOM files found)
 
 ## See Also
 

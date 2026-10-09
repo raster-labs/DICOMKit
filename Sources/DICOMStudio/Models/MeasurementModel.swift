@@ -2,19 +2,36 @@
 // DICOMStudio
 //
 // DICOM Studio — Measurement and annotation tool models for Milestone 5
+// NEMA-verified: 2026a, checked 2026-10-06 — MeasurementUnit raw values diffed against PS3.16 2026a CID 7460 Linear Measurement Unit: mm, cm, um are CID 7460 UCUM code values (um = "micrometer", P-STUDIO-MEASURE-UM); "in" has no PS3.16 code and is printed as a symbol only; the other enums in this file are the app's own tool model
 
 import Foundation
 
 // MARK: - Measurement Units
 
 /// Unit of measurement for physical distances.
+///
+/// The raw values mm, cm and um are UCUM code values of PS3.16 2026a CID 7460 Linear Measurement
+/// Unit (the matching area codes mm2, cm2 and um2 are CID 7461 Area Measurement Unit); "in" has
+/// no PS3.16 code.
 public enum MeasurementUnit: String, Sendable, Equatable, Hashable, CaseIterable {
-    /// Millimeters (UCUM: mm).
+    /// Millimeters (UCUM: mm, PS3.16 2026a CID 7460 "millimeter").
     case millimeters = "mm"
-    /// Centimeters (UCUM: cm).
+    /// Centimeters (UCUM: cm, PS3.16 2026a CID 7460 "centimeter").
     case centimeters = "cm"
-    /// Inches.
+    /// Inches (no PS3.16 code; symbol only).
     case inches = "in"
+    /// Micrometers (UCUM: um, PS3.16 2026a CID 7460 "micrometer"; area um2, CID 7461).
+    case micrometers = "um"
+
+    /// The symbol shown to the user ("µm" for micrometers; the raw value otherwise).
+    public var displaySymbol: String {
+        switch self {
+        case .millimeters: return "mm"
+        case .centimeters: return "cm"
+        case .inches: return "in"
+        case .micrometers: return "µm"
+        }
+    }
 }
 
 // MARK: - Measurement Tool Type

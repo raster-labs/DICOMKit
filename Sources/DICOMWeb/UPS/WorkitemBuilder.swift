@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — defaults read against PS3.3 2026a C.30.2 (MEDIUM priority, READY readiness are defined terms); builds through Workitem, whose tags are verified there
 /// Fluent builder for constructing UPS Workitem instances
 ///
 /// WorkitemBuilder provides a chainable API for creating fully populated Workitem objects.

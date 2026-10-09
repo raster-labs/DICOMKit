@@ -1,3 +1,6 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a C.11.1.1 and C.11.2.1.1 LUT Descriptor semantics; the 8...16 bits-per-entry tolerance and output normalisation are recorded
+// NEMA-verified: 2026a, checked 2026-09-30 — normalized(_:) divides by 2^n − 1 (n = third LUT Descriptor value) per PS3.3 2026a C.11.2.1.1 "The output range is from 0 to 2^n-1"; used-range scaling is an explicit opt-in (D53)
+// NEMA-verified: 2026a, checked 2026-09-30 — entry(for:) clamps to the first/last entry per PS3.3 2026a C.11.1.1.1 before the index conversion, so NaN (first entry) and ±infinity (first/last) no longer trap (D54)
 // GrayscaleLUT.swift
 // DICOMKit
 //
@@ -102,10 +105,16 @@ public struct GrayscaleLUT: Sendable, Equatable {
     // MARK: Lookup
 
     /// The entry a (possibly fractional) input value maps to, clamped to the
-    /// table's ends per PS3.3 C.11.1.1.
+    /// table's ends per PS3.3 C.11.1.1.1: below the first mapped value (and
+    /// -infinity) to the first entry, past the end (and +infinity) to the last.
+    /// NaN maps to the first entry.
     public func entry(for input: Double) -> UInt16 {
-        let index = Int((input - Double(firstMappedValue)).rounded())
-        return entries[max(0, min(entries.count - 1, index))]
+        // Clamp before converting to an index: Int(_:) traps on NaN, ±infinity and
+        // magnitudes beyond Int (D54).
+        let offset = (input - Double(firstMappedValue)).rounded()
+        guard !offset.isNaN, offset > 0 else { return entries[0] }
+        guard offset < Double(entries.count - 1) else { return entries[entries.count - 1] }
+        return entries[Int(offset)]
     }
 
     /// A Modality LUT lookup: the raw entry value, in the manufacturer-defined
@@ -114,17 +123,31 @@ public struct GrayscaleLUT: Sendable, Equatable {
         Double(entry(for: input))
     }
 
-    /// A VOI LUT lookup, normalized to 0…1 over the table's own entry range.
+    /// A VOI LUT lookup, normalized to 0…1.
     ///
-    /// Normalizing over the *actual* range rather than `2^bits − 1` is
-    /// deliberate: 12-bit tables declared as 16 bits per entry are common, and
-    /// dividing them by 65535 prints the whole film at a fifth of its
-    /// dynamic range. A table that spans its declared depth divides by the
-    /// same number either way.
-    public func normalized(_ input: Double) -> Double {
+    /// By default the output range is 0…2^n − 1 with n the third LUT
+    /// Descriptor value (`bitsPerEntry`), per PS3.3 2026a C.11.2.1.1: "The
+    /// output range is from 0 to 2^n-1 where n is the third Value of LUT
+    /// Descriptor." A 16-bit table whose entries stop at 4095 therefore peaks
+    /// at 4095/65535, and a flat table returns its entry over 2^n − 1.
+    ///
+    /// - Parameter normalizeToUsedRange: `true` opts in to the non-standard
+    ///   print tolerance (SRS FR-004): divide over the span the entries
+    ///   actually use (`entryRange`) instead, so a 12-bit table declared as
+    ///   16 bits per entry fills the film; a flat table then returns 0. A
+    ///   table that reaches 0 and 2^n − 1 gives the same result either way.
+    ///   `ImagePreprocessor.prepareForPrint` passes `true` (D53).
+    public func normalized(_ input: Double, normalizeToUsedRange: Bool = false) -> Double {
+        let value = Double(entry(for: input))
+        guard normalizeToUsedRange else {
+            // `init` does not range-check `bitsPerEntry`; entries are 16-bit,
+            // so n is clamped to 1...16 to keep the divisor positive.
+            let bits = min(max(bitsPerEntry, 1), 16)
+            return value / Double((1 << bits) - 1)
+        }
         let span = entryRange.upperBound - entryRange.lowerBound
         guard span > 0 else { return 0 }
-        return (Double(entry(for: input)) - entryRange.lowerBound) / span
+        return (value - entryRange.lowerBound) / span
     }
 }
 

@@ -3,6 +3,7 @@ import ArgumentParser
 import DICOMKit
 import DICOMCore
 import DICOMNetwork
+// NEMA-verified: 2026a, checked 2026-10-06 — a non-success C-MOVE / C-GET final response is reported by DICOMNetwork NetworkConsole.retrieveFinalResponse in dicom-retrieve wording (D262; PS3.4 Tables C.4-2 / C.4-3, PS3.7 Table 9.3-10, PS3.6 (0008,0058) re-read); the 7 match keys compared with PS3.4 2026a Table C.6-5 (Study Root, Study level: 4 R keys, 1 U key, 2 O keys — Modalities in Study (0008,0061) carries --modality), wildcard / range matching with C.2.2.2.4 / C.2.2.2.5, Query/Retrieve Level STUDY with Table C.6.1-1, methods with Table C.6.2.3-1 (Study Root MOVE/GET), Move Destination (0000,0600) with PS3.7 Table 9.3-9, final-status handling with Tables C.4-2 / C.4-3 via DICOMNetwork.DIMSEServiceStatusText, --priority with PS3.7 Tables 9.3-9 / 9.3-6 (LOW 0002H / MEDIUM 0000H / HIGH 0001H, 3 of 3), state key ModalitiesInStudy with PS3.6 Table 6-1 (0008,0061), ports 104 / 11112 with PS3.8 9.1.2; the Part 10 wrapper writes the 6 Type 1 rows of PS3.10 2026a Table 7.1-1; modes, state file, --output, --timeout, --parallel (concurrent batches, one association per study), --validate, --verbose are plumbing
 
 @main
 struct DICOMQR: AsyncParsableCommand {
@@ -73,7 +74,7 @@ extension DICOMQR {
         @Argument(help: "PACS server hostname or IP address, optionally with port (host:port)")
         var host: String
         
-        @Option(name: .long, help: "PACS server port (default: 11112)")
+        @Option(name: .long, help: "PACS server port (default: 11112, the registered DICOM port; 104 is the well-known port — PS3.8 9.1.2)")
         var port: UInt16?
         
         @Option(name: .long, help: "Local Application Entity Title (calling AE)")
@@ -82,39 +83,42 @@ extension DICOMQR {
         @Option(name: .long, help: "Remote Application Entity Title (default: ANY-SCP)")
         var calledAet: String = "ANY-SCP"
         
-        @Option(name: .long, help: "Move destination AE title (required for C-MOVE)")
+        @Option(name: .long, help: "Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)")
         var moveDest: String?
         
-        @Option(name: .long, help: "Retrieval method: c-move or c-get (default: c-move)")
+        @Option(name: .long, help: "Retrieval method: c-move (Study Root Query/Retrieve Information Model - MOVE) or c-get (Study Root Query/Retrieve Information Model - GET) (default: c-move)")
         var method: String = "c-move"
         
         // Query parameters
-        @Option(name: .long, help: "Patient name (wildcards * and ? supported)")
+        @Option(name: .long, help: "Patient's Name (0010,0010) — wildcards * and ? per PS3.4 C.2.2.2.4 (case handling of PN matching is the SCP's)")
         var patientName: String?
         
-        @Option(name: .long, help: "Patient ID")
+        @Option(name: .long, help: "Patient ID (0010,0020)")
         var patientId: String?
         
-        @Option(name: .long, help: "Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)")
+        @Option(name: .long, help: "Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD or YYYYMMDD- (PS3.4 C.2.2.2.5)")
         var studyDate: String?
         
-        @Option(name: .long, help: "Study Instance UID")
+        @Option(name: .long, help: "Study Instance UID (0020,000D)")
         var studyUid: String?
         
-        @Option(name: .long, help: "Accession Number")
+        @Option(name: .long, help: "Accession Number (0008,0050)")
         var accessionNumber: String?
         
-        @Option(name: .long, help: "Modality (e.g., CT, MR, US)")
+        @Option(name: .long, help: ArgumentHelp(stringLiteral: ModalityOptionValidator.helpText("filter")))
         var modality: String?
+
+        @Flag(name: .long, help: "Reject a --modality value that is not a current DICOM Defined Term")
+        var strictModality: Bool = false
         
-        @Option(name: .long, help: "Study description (wildcards supported)")
+        @Option(name: .long, help: "Study Description (0008,1030) — wildcards * and ? per PS3.4 C.2.2.2.4")
         var studyDescription: String?
         
         // Output options
         @Option(name: .shortAndLong, help: "Output directory for retrieved files")
         var output: String = "."
         
-        @Flag(name: .long, help: "Organize files hierarchically (Patient/Study/Series)")
+        @Flag(name: .long, help: "Organize C-GET output hierarchically (<output>/<Study Instance UID>/); C-MOVE output is stored by the move destination")
         var hierarchical: Bool = false
         
         // Mode options
@@ -134,8 +138,11 @@ extension DICOMQR {
         @Option(name: .long, help: "Connection timeout in seconds (default: 60)")
         var timeout: Int = 60
         
-        @Option(name: .long, help: "Maximum concurrent retrievals (default: 1)")
+        @Option(name: .long, help: "Maximum concurrent retrievals: up to N studies are retrieved at once, each on its own association; per-study lines are printed in study order (default: 1)")
         var parallel: Int = 1
+
+        @Option(name: .long, help: "Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ: low (0002H), medium (0000H), high (0001H) — PS3.7 Tables 9.3-9 / 9.3-6 (default: medium)")
+        var priority: QRPriorityOption = .medium
         
         @Flag(name: .long, help: "Validate retrieved files")
         var validate: Bool = false
@@ -145,6 +152,9 @@ extension DICOMQR {
 
         @Flag(name: .long, help: "Show verbose output")
         var verbose: Bool = false
+
+        @Flag(name: .long, help: "Non-baseline: also request parent-level attributes as return keys at SERIES/INSTANCE level (dicom-qr queries at STUDY level, where every requested key is already level-appropriate; accepted for parity with dicom-query)")
+        var includeParentKeys: Bool = false
         
         /// Resolves the final host and port.
         func resolveHostPort() -> (host: String, port: UInt16) {
@@ -152,6 +162,11 @@ extension DICOMQR {
         }
         
         mutating func run() async throws {
+            // Validate --modality up front: an unrecognized code otherwise
+            // reaches the PACS as a filter that silently matches nothing.
+            modality = try ModalityOptionValidator.resolve(
+                modality, strict: strictModality, verbose: verbose)
+
             #if canImport(Network)
             // Validate mode selection
             let modeCount = [interactive, auto, review].filter { $0 }.count
@@ -162,6 +177,11 @@ extension DICOMQR {
                 throw ValidationError("Cannot specify multiple modes (--interactive, --auto, --review)")
             }
             
+            // --parallel sizes the concurrent batches; 0 or less would never retrieve.
+            guard parallel >= 1 else {
+                throw ValidationError("--parallel must be at least 1")
+            }
+
             // Validate retrieval method
             let retrievalMethod: RetrievalMethod
             switch method.lowercased() {
@@ -273,7 +293,8 @@ extension DICOMQR {
                 outputPath: output,
                 hierarchical: hierarchical,
                 verbose: verbose,
-                preferredTransferSyntaxUID: preferredTransferSyntaxUID
+                preferredTransferSyntaxUID: preferredTransferSyntaxUID,
+                priority: priority.dimseValue
             )
 
             // Save state if requested before retrieval
@@ -292,29 +313,41 @@ extension DICOMQR {
                 )
             }
             
-            // Execute retrievals
+            // Execute retrievals. Each retrieval opens its own association
+            // (DICOMRetrieveService), so up to --parallel of them run at once; the
+            // per-study lines are printed in study order once a batch is done
+            // (with --parallel 1 each line is printed before its retrieval starts).
             var successCount = 0
             var failureCount = 0
-            
-            for (index, result) in studiesToRetrieve.enumerated() {
-                let s = result.toStudyResult()
-                guard let studyUID = s.studyInstanceUID else {
-                    print(NetworkConsole.qrMissingStudyUID(index: index + 1, total: studiesToRetrieve.count), terminator: "")
-                    failureCount += 1
+            let total = studiesToRetrieve.count
+            let numbered = Array(studiesToRetrieve.enumerated())
+
+            for batch in stride(from: 0, to: numbered.count, by: parallel).map({ Array(numbered[$0 ..< Swift.min($0 + parallel, numbered.count)]) }) {
+                if parallel == 1, let (index, result) = batch.first {
+                    let s = result.toStudyResult()
+                    if let studyUID = s.studyInstanceUID {
+                        print(NetworkConsole.qrRetrieveLine(
+                            index: index + 1, total: total,
+                            patientName: s.patientName, studyUID: studyUID), terminator: "")
+                    }
+                    let outcome = await Self.retrieve(result, executor: retrieveExecutor, method: retrievalMethod)
+                    Self.printOutcome(outcome, index: index, total: total, result: result, lineAlreadyPrinted: true)
+                    if case .success = outcome { successCount += 1 } else { failureCount += 1 }
                     continue
                 }
-
-                print(NetworkConsole.qrRetrieveLine(
-                    index: index + 1, total: studiesToRetrieve.count,
-                    patientName: s.patientName, studyUID: studyUID), terminator: "")
-
-                do {
-                    try await retrieveExecutor.retrieveStudy(studyUID: studyUID, method: retrievalMethod)
-                    successCount += 1
-                    print(NetworkConsole.qrRetrieveOutcome(success: true, error: nil), terminator: "")
-                } catch {
-                    failureCount += 1
-                    print(NetworkConsole.qrRetrieveOutcome(success: false, error: error.localizedDescription), terminator: "")
+                var outcomes: [Int: StudyRetrieveOutcome] = [:]
+                await withTaskGroup(of: (Int, StudyRetrieveOutcome).self) { group in
+                    for (index, result) in batch {
+                        group.addTask {
+                            (index, await Self.retrieve(result, executor: retrieveExecutor, method: retrievalMethod))
+                        }
+                    }
+                    for await (index, outcome) in group { outcomes[index] = outcome }
+                }
+                for (index, result) in batch {
+                    let outcome = outcomes[index] ?? .failed("not run")
+                    Self.printOutcome(outcome, index: index, total: total, result: result, lineAlreadyPrinted: false)
+                    if case .success = outcome { successCount += 1 } else { failureCount += 1 }
                 }
             }
 
@@ -326,52 +359,79 @@ extension DICOMQR {
                 print(NetworkConsole.qrValidatingHeader(), terminator: "")
                 try validateRetrievedFiles(in: output)
             }
+
+            // A study whose final C-MOVE/C-GET response was not Success with no
+            // failed sub-operations (PS3.4 C.4.2.2.1 / C.4.3.2.1), or that could
+            // not be requested at all, must not leave the exit code at 0.
+            if failureCount > 0 {
+                throw DICOMQRError.retrievalIncomplete(succeeded: successCount, failed: failureCount)
+            }
             #else
             print("Error: Network operations not supported on this platform")
             throw ExitCode(1)
             #endif
         }
         
+        // MARK: - Retrieval
+
+        enum StudyRetrieveOutcome: Sendable {
+            case missingStudyUID
+            case success
+            case failed(String)
+        }
+
+        /// Retrieves one study; never throws, so a batch always completes.
+        static func retrieve(_ result: GenericQueryResult, executor: RetrieveExecutor,
+                             method: RetrievalMethod) async -> StudyRetrieveOutcome {
+            guard let studyUID = result.toStudyResult().studyInstanceUID else { return .missingStudyUID }
+            do {
+                try await executor.retrieveStudy(studyUID: studyUID, method: method)
+                return .success
+            } catch {
+                return .failed(error.localizedDescription)
+            }
+        }
+
+        /// The per-study lines via the shared NetworkConsole formatter.
+        static func printOutcome(_ outcome: StudyRetrieveOutcome, index: Int, total: Int,
+                                 result: GenericQueryResult, lineAlreadyPrinted: Bool) {
+            let s = result.toStudyResult()
+            switch outcome {
+            case .missingStudyUID:
+                print(NetworkConsole.qrMissingStudyUID(index: index + 1, total: total), terminator: "")
+            case .success, .failed:
+                if !lineAlreadyPrinted, let studyUID = s.studyInstanceUID {
+                    print(NetworkConsole.qrRetrieveLine(
+                        index: index + 1, total: total,
+                        patientName: s.patientName, studyUID: studyUID), terminator: "")
+                }
+                if case .failed(let message) = outcome {
+                    print(NetworkConsole.qrRetrieveOutcome(success: false, error: message), terminator: "")
+                } else {
+                    print(NetworkConsole.qrRetrieveOutcome(success: true, error: nil), terminator: "")
+                }
+            }
+        }
+
         // MARK: - Helper Methods
         
         private func buildQueryKeys() -> QueryKeys {
-            // Always request all standard return keys first, then add
-            // matching keys for user-supplied filter values.  This mirrors
-            // the approach used by the DICOMStudio ViewModel.
-            var keys = QueryKeys(level: .study)
-                .requestStudyInstanceUID()
-                .requestPatientName()
-                .requestPatientID()
-                .requestStudyDate()
-                .requestStudyDescription()
-                .requestAccessionNumber()
-                .requestModalitiesInStudy()
-                .requestNumberOfStudyRelatedSeries()
-                .requestNumberOfStudyRelatedInstances()
-            
-            if let name = patientName {
-                keys = keys.patientName(name.uppercased())
-            }
-            if let id = patientId {
-                keys = keys.patientID(id)
-            }
-            if let date = studyDate {
-                keys = keys.studyDate(date)
-            }
-            if let uid = studyUid {
-                keys = keys.studyInstanceUID(uid)
-            }
-            if let accession = accessionNumber {
-                keys = keys.accessionNumber(accession)
-            }
-            if let mod = modality {
-                keys = keys.modalitiesInStudy(mod)
-            }
-            if let desc = studyDescription {
-                keys = keys.studyDescription(desc)
-            }
-            
-            return keys
+            // dicom-qr always queries at STUDY level, so every filter here is a
+            // level-appropriate key (PS3.4 C.4.1.2.1). Keys are built through the
+            // SHARED DICOMNetwork mapping (the same one dicom-query and the app
+            // use) so the input→C-FIND mapping cannot drift; the patient-name
+            // match key is upper-cased as before.
+            DICOMQueryService.buildQueryKeys(
+                level: .study,
+                patientName: patientName?.uppercased() ?? "",
+                patientID: patientId ?? "",
+                studyDate: studyDate ?? "",
+                modality: modality ?? "",
+                accession: accessionNumber ?? "",
+                studyDescription: studyDescription ?? "",
+                studyUID: studyUid ?? "",
+                includeParentLevelReturnKeys: includeParentKeys
+            )
         }
 
         /// Applied, non-empty match filters in the canonical order shared with the
@@ -523,6 +583,12 @@ extension DICOMQR {
         @Option(name: .shortAndLong, help: "Path to saved state file")
         var state: String
         
+        @Option(name: .long, help: "Connection timeout in seconds (default: 60)")
+        var timeout: Int = 60
+
+        @Option(name: .long, help: "Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ: low (0002H), medium (0000H), high (0001H) — PS3.7 Tables 9.3-9 / 9.3-6 (default: medium)")
+        var priority: QRPriorityOption = .medium
+        
         @Flag(name: .long, help: "Show verbose output")
         var verbose: Bool = false
         
@@ -543,11 +609,12 @@ extension DICOMQR {
                 callingAE: retrievalState.callingAE,
                 calledAE: retrievalState.calledAE,
                 moveDestination: retrievalState.moveDestination,
-                timeout: 60,
+                timeout: TimeInterval(timeout),
                 outputPath: retrievalState.outputPath,
                 hierarchical: retrievalState.hierarchical,
                 verbose: verbose,
-                preferredTransferSyntaxUID: nil
+                preferredTransferSyntaxUID: nil,
+                priority: priority.dimseValue
             )
             
             var successCount = 0
@@ -581,6 +648,11 @@ extension DICOMQR {
             print("  Total: \(retrievalState.studies.count)")
             print("  Success: \(successCount)")
             print("  Failed: \(failureCount)")
+
+            // Same exit-code rule as `query`: any failed study exits non-zero.
+            if failureCount > 0 {
+                throw DICOMQRError.retrievalIncomplete(succeeded: successCount, failed: failureCount)
+            }
             #else
             print("Error: Network operations not supported on this platform")
             throw ExitCode(1)
@@ -622,15 +694,46 @@ private func resolveHostPort(host: String, port: UInt16?) -> (host: String, port
 // the other. Local names are kept as typealiases.
 typealias RetrievalMethod = QRRetrievalMethod
 
-enum DICOMQRError: Error, CustomStringConvertible {
+/// The `--priority` values, mapped to the Priority (0000,0700) values of PS3.7
+/// Tables 9.3-9 (C-MOVE-RQ) / 9.3-6 (C-GET-RQ): LOW = 0002H, MEDIUM = 0000H,
+/// HIGH = 0001H.
+enum QRPriorityOption: String, ExpressibleByArgument, CaseIterable {
+    case low
+    case medium
+    case high
+
+    var dimseValue: DIMSEPriority {
+        switch self {
+        case .low: return .low
+        case .medium: return .medium
+        case .high: return .high
+        }
+    }
+}
+
+enum DICOMQRError: Error, CustomStringConvertible, LocalizedError {
     case missingMoveDestination
+    /// The SCP's final response was not a full success (PS3.4 C.4.2.2.1 / C.4.3.2.1);
+    /// `summary` is the shared dicom-retrieve wording (D262).
+    case retrievalFailed(summary: String, failedSOPInstanceUIDs: [String])
+    /// One or more studies of the run failed; reported after the summary so the
+    /// process exits non-zero.
+    case retrievalIncomplete(succeeded: Int, failed: Int)
     
     var description: String {
         switch self {
         case .missingMoveDestination:
             return "Move destination AE title is required for C-MOVE retrieval"
+        case .retrievalFailed(let summary, _):
+            // `summary` is NetworkConsole.retrieveFinalResponse's failure text (D262),
+            // which already carries the Failed SOP Instance UID List (0008,0058).
+            return summary
+        case .retrievalIncomplete(let succeeded, let failed):
+            return "Retrieval incomplete: \(succeeded) study(ies) succeeded, \(failed) failed"
         }
     }
+
+    var errorDescription: String? { description }
 }
 
 #if canImport(Network)
@@ -679,6 +782,21 @@ struct RetrieveExecutor {
     /// (parsed from `--transfer-syntax` via the shared `TransferSyntax.parse`).
     /// C-MOVE is unaffected: the destination SCP negotiates its own contexts.
     let preferredTransferSyntaxUID: String?
+    /// Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ (PS3.7 Tables 9.3-9 / 9.3-6)
+    var priority: DIMSEPriority = .medium
+
+    /// Study Root configuration carrying the requested Priority. Relational-retrieval
+    /// is not offered: dicom-qr retrieves at STUDY level, where the Identifier
+    /// already holds the level's Unique Key (PS3.4 C.4.2.2.1).
+    func retrieveConfiguration() throws -> RetrieveConfiguration {
+        RetrieveConfiguration(
+            callingAETitle: try AETitle(callingAE),
+            calledAETitle: try AETitle(calledAE),
+            timeout: timeout,
+            informationModel: .studyRoot,
+            priority: priority
+        )
+    }
 
     func retrieveStudy(studyUID: String, method: RetrievalMethod) async throws {
         // Silent per-study retrieval: the calling loop renders the `[i/N] Retrieving…`
@@ -690,25 +808,26 @@ struct RetrieveExecutor {
             guard let moveDestination = moveDestination else {
                 throw DICOMQRError.missingMoveDestination
             }
-            _ = try await DICOMRetrieveService.moveStudy(
+            let result = try await DICOMRetrieveService.move(
                 host: host,
                 port: port,
-                callingAE: callingAE,
-                calledAE: calledAE,
-                studyInstanceUID: studyUID,
-                moveDestination: moveDestination,
-                timeout: timeout
+                configuration: try retrieveConfiguration(),
+                keys: RetrieveKeys.forStudy(studyUID),
+                moveDestination: moveDestination
             )
+            // PS3.4 C.4.2.2.1: a failure/warning status or any failed
+            // sub-operation is not success; surface counts and the Failed SOP
+            // Instance UID List instead of ignoring the result.
+            try Self.checkRetrieveResult(result, service: .cMove)
         case .cGet:
-            let stream = try await DICOMRetrieveService.getStudy(
+            let stream = DICOMRetrieveService.get(
                 host: host,
                 port: port,
-                callingAE: callingAE,
-                calledAE: calledAE,
-                studyInstanceUID: studyUID,
-                preferredTransferSyntaxUID: preferredTransferSyntaxUID,
-                timeout: timeout
+                configuration: try retrieveConfiguration(),
+                keys: RetrieveKeys.forStudy(studyUID),
+                preferredTransferSyntaxUID: preferredTransferSyntaxUID
             )
+            var finalResult: RetrieveResult?
             for await event in stream {
                 switch event {
                 case .instance(let sopInstanceUID, let sopClassUID, let transferSyntaxUID, let data):
@@ -719,12 +838,36 @@ struct RetrieveExecutor {
                         data: data,
                         studyUID: studyUID
                     )
-                case .progress, .completed:
+                case .progress:
                     break
+                case .completed(let result):
+                    finalResult = result
                 case .error(let err):
                     throw err
                 }
             }
+            // PS3.4 C.4.3.2.1: check the final status and sub-operation counts.
+            if let result = finalResult {
+                try Self.checkRetrieveResult(result, service: .cGet)
+            }
+        }
+    }
+
+    /// Throws `DICOMQRError.retrievalFailed` unless the result is a full success
+    /// (status 0x0000 and no failed sub-operations, PS3.4 C.4.2.2.1 / C.4.3.2.1).
+    /// A warning status (0xB000) is therefore a failure for the exit code. The
+    /// status is worded per PS3.4 2026a Table C.4-2 (C-MOVE) / C.4-3 (C-GET) and
+    /// the counters per PS3.7 Tables 9.3-10 / 9.3-7; the Failed SOP Instance UID
+    /// List (0008,0058) and the `Final … response:` line go to stderr first. Lines and
+    /// error text are the shared `NetworkConsole.retrieveFinalResponse(_:service:)`,
+    /// in dicom-retrieve's wording (D262).
+    static func checkRetrieveResult(_ result: RetrieveResult, service: DIMSEStatusService) throws {
+        let report = NetworkConsole.retrieveFinalResponse(result, service: service)
+        if !report.lines.isEmpty {
+            FileHandle.standardError.write(report.lines.map { $0 + "\n" }.joined().data(using: .utf8) ?? Data())
+        }
+        if let failure = report.failure {
+            throw DICOMQRError.retrievalFailed(summary: failure, failedSOPInstanceUIDs: result.failedSOPInstanceUIDs)
         }
     }
     

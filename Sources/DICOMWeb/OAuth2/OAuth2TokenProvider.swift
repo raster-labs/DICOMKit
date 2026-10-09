@@ -3,6 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (RFC 6749 token fetch and refresh)
 /// Protocol for providing OAuth2 tokens with automatic refresh
 ///
 /// Conforming types manage the OAuth2 token lifecycle including

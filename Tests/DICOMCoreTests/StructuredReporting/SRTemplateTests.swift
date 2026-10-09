@@ -51,7 +51,8 @@ struct TemplateIdentifierTests {
     @Test("Well-known template identifiers")
     func testWellKnownIdentifiers() {
         #expect(TemplateIdentifier.measurement.templateID == "300")
-        #expect(TemplateIdentifier.imageLibraryEntry.templateID == "320")
+        #expect(TemplateIdentifier.imageOrSpatialCoordinates.templateID == "320")
+        #expect(TemplateIdentifier.imageLibraryEntry.templateID == "1601")
         #expect(TemplateIdentifier.observationContext.templateID == "1001")
         #expect(TemplateIdentifier.observerContext.templateID == "1002")
         #expect(TemplateIdentifier.languageOfContent.templateID == "1204")
@@ -87,38 +88,74 @@ struct TemplateIdentifierTests {
 @Suite("Requirement Level Tests")
 struct RequirementLevelTests {
     
-    @Test("Requirement level raw values")
+    @Test("Requirement types are the four symbols of PS3.16 2026a §6.1.7")
     func testRawValues() {
         #expect(RequirementLevel.mandatory.rawValue == "M")
         #expect(RequirementLevel.mandatoryConditional.rawValue == "MC")
-        #expect(RequirementLevel.userConditional.rawValue == "U")
-        #expect(RequirementLevel.conditional.rawValue == "C")
+        #expect(RequirementLevel.userOption.rawValue == "U")
+        #expect(RequirementLevel.userOptionConditional.rawValue == "UC")
+        // "C" is not a PS3.16 requirement type and must not be among allCases.
+        #expect(RequirementLevel.allCases.count == 4)
     }
-    
+
     @Test("Requirement level display names")
     func testDisplayNames() {
         #expect(RequirementLevel.mandatory.displayName == "Mandatory")
         #expect(RequirementLevel.mandatoryConditional.displayName == "Mandatory Conditional")
-        #expect(RequirementLevel.userConditional.displayName == "User Conditional")
-        #expect(RequirementLevel.conditional.displayName == "Conditional")
+        #expect(RequirementLevel.userOption.displayName == "User Option")
+        #expect(RequirementLevel.userOptionConditional.displayName == "User Option Conditional")
     }
-    
+
     @Test("Mandatory property")
     func testIsMandatory() {
         #expect(RequirementLevel.mandatory.isMandatory == true)
         #expect(RequirementLevel.mandatoryConditional.isMandatory == false)
-        #expect(RequirementLevel.userConditional.isMandatory == false)
-        #expect(RequirementLevel.conditional.isMandatory == false)
+        #expect(RequirementLevel.userOption.isMandatory == false)
+        #expect(RequirementLevel.userOptionConditional.isMandatory == false)
     }
-    
+
     @Test("All cases")
     func testAllCases() {
-        let allCases = RequirementLevel.allCases
-        #expect(allCases.count == 4)
-        #expect(allCases.contains(.mandatory))
-        #expect(allCases.contains(.mandatoryConditional))
-        #expect(allCases.contains(.userConditional))
-        #expect(allCases.contains(.conditional))
+        #expect(RequirementLevel.allCases == [.mandatory, .mandatoryConditional, .userOption, .userOptionConditional])
+    }
+
+    @Test("Well-known template identifiers carry the TID numbers of PS3.16 2026a Annex A")
+    func testWellKnownTIDsMatchAnnexA() {
+        // (constant, TID, PS3.16 2026a section title)
+        let expected: [(TemplateIdentifier, Int, String)] = [
+            (.measurement, 300, "Measurement"),
+            (.imageOrSpatialCoordinates, 320, "Image or Spatial Coordinates"),
+            (.observationContext, 1001, "Observation Context"),
+            (.observerContext, 1002, "Observer Context"),
+            (.languageOfContent, 1204, "Language of Content Item and Descendants"),
+            (.linearMeasurements, 1400, "Linear Measurement"),
+            (.planarROIMeasurements, 1410, "Planar ROI Measurements and Qualitative Evaluations"),
+            (.volumetricROIMeasurements, 1411, "Volumetric ROI Measurements and Qualitative Evaluations"),
+            (.roiMeasurements, 1419, "ROI Measurements"),
+            (.multipleROIMeasurements, 1420, "Measurements Derived From Multiple ROI Measurements"),
+            (.measurementReport, 1500, "Measurement Report"),
+            (.measurementGroup, 1501, "Measurement and Qualitative Evaluation Group"),
+            (.imageLibrary, 1600, "Image Library"),
+            (.imageLibraryEntry, 1601, "Image Library Entry"),
+            (.mammographyCADDocumentRoot, 4000, "Mammography CAD Document Root"),
+            (.algorithmIdentification, 4019, "Algorithm Identification"),
+            (.areaMeasurement, 1401, "Area Measurement"),
+            (.volumeMeasurement, 1402, "Volume Measurement"),
+            (.mammographyCADSingleImageFinding, 4006, "Mammography CAD Single Image Finding"),
+            (.cadImageLibraryEntry, 4020, "CAD Image Library Entry"),
+            (.chestCADDocumentRoot, 4100, "Chest CAD Document Root"),
+            (.chestCADSingleImageFinding, 4104, "Chest CAD Single Image Finding"),
+            (.responseEvaluation, 4106, "Response Evaluation"),
+            (.chestCADGeometry, 4107, "Chest CAD Geometry"),
+        ]
+        for (identifier, tid, title) in expected {
+            #expect(identifier.templateID == String(tid), Comment(rawValue: title))
+            #expect(identifier.mappingResource == "DCMR", Comment(rawValue: title))
+            // Registered templates carry the same title (display names are generated from PS3.16)
+            if let template = TemplateRegistry.shared.template(tid: tid) {
+                #expect(template.displayName == title, Comment(rawValue: "TID \(tid)"))
+            }
+        }
     }
 }
 
@@ -305,7 +342,9 @@ struct TemplateRegistryTests {
         let registry = TemplateRegistry.shared
         let templates = registry.registeredTemplates
         
-        #expect(templates.count >= 10)
+        #expect(templates.count == 73)
+        #expect(templates.contains(.mammographyCADDocumentRoot))
+        #expect(templates.contains(.chestCADDocumentRoot))
         #expect(templates.contains(.measurement))
         #expect(templates.contains(.imageLibraryEntry))
         #expect(templates.contains(.observationContext))
@@ -354,163 +393,281 @@ struct TemplateRegistryTests {
     }
 }
 
-// MARK: - Core Template Tests
+// MARK: - Template Definition Tests (PS3.16 2026a)
 
-@Suite("Core Template Tests")
-struct CoreTemplateTests {
-    
-    @Test("TID 300 Measurement template")
+/// The template rows are generated from the PS3.16 2026a TID tables by
+/// Scripts/generate_sr_templates.py. These tests pin facts read from those tables.
+@Suite("Template Definition Tests (PS3.16 2026a)")
+struct TemplateDefinitionTests {
+
+    /// Number of rows in each 2026a TID table.
+    static let rowCounts: [Int: Int] = [
+        300: 2, 301: 19, 310: 6, 311: 4, 312: 4, 315: 3, 320: 6, 321: 5, 1000: 3, 1001: 3,
+        1002: 4, 1003: 6, 1004: 12, 1005: 9, 1006: 5, 1007: 12, 1008: 6, 1009: 6, 1010: 6,
+        1015: 2, 1204: 2, 1400: 8, 1410: 22, 1411: 23, 1419: 23, 1420: 5, 1500: 18, 1501: 26,
+        1502: 7, 1600: 4, 1601: 2, 1602: 17, 1603: 8, 1604: 13, 1605: 2, 1606: 7, 1607: 16,
+        1608: 3, 4019: 6, 4108: 2,
+        // TID 4000 and TID 4100 with the templates they include (D50)
+        1401: 8, 1402: 8, 4000: 9, 4001: 3, 4002: 15, 4003: 5, 4004: 7, 4005: 27, 4006: 26,
+        4007: 2, 4008: 4, 4009: 4, 4010: 6, 4011: 6, 4012: 4, 4013: 4, 4014: 4, 4015: 4, 4016: 4,
+        4017: 9, 4018: 9, 4020: 28, 4021: 6, 4022: 3, 4023: 9, 4100: 9, 4101: 4, 4102: 14,
+        4103: 13, 4104: 24, 4105: 20, 4106: 5, 4107: 6,
+    ]
+
+    @Test("All 73 templates are registered with the row count of their 2026a table")
+    func testRowCounts() {
+        #expect(TemplateRegistry.builtInTemplates.count == 73)
+        #expect(Self.rowCounts.count == 73)
+        for (tid, count) in Self.rowCounts {
+            let rows = TemplateRegistry.shared.template(tid: tid)?.rows.count
+            #expect(rows == count, Comment(rawValue: "TID \(tid)"))
+        }
+    }
+
+    @Test("Every INCLUDE row names a registered template")
+    func testIncludesAreClosed() {
+        var includes = 0
+        for template in TemplateRegistry.builtInTemplates {
+            for row in template.rows where row.isInclude {
+                includes += 1
+                #expect(row.valueType == nil)
+                let found = TemplateRegistry.shared.template(for: row.includedTemplate!) != nil
+                #expect(found, Comment(rawValue: "\(template.identifier) row \(row.rowID ?? "?")"))
+            }
+        }
+        #expect(includes == 147)
+    }
+
+    @Test("Display names are the PS3.16 2026a TID titles")
+    func testTitles() {
+        #expect(TID300Measurement.displayName == "Measurement")
+        #expect(TID1204LanguageOfContent.displayName == "Language of Content Item and Descendants")
+        #expect(TID1400LinearMeasurements.displayName == "Linear Measurement")
+        #expect(TID1410PlanarROIMeasurements.displayName == "Planar ROI Measurements and Qualitative Evaluations")
+        #expect(TID1411VolumetricROIMeasurements.displayName == "Volumetric ROI Measurements and Qualitative Evaluations")
+        #expect(TID1420MultipleROIMeasurements.displayName == "Measurements Derived From Multiple ROI Measurements")
+        #expect(TID1501MeasurementGroup.displayName == "Measurement and Qualitative Evaluation Group")
+        #expect(TID320ImageOrSpatialCoordinates.displayName == "Image or Spatial Coordinates")
+        #expect(TID1601ImageLibraryEntry.identifier.templateID == "1601")
+    }
+
+    @Test("Type, Order and Root come from the template headers")
+    func testTemplateHeaders() {
+        #expect(TID1500MeasurementReport.isRoot)
+        #expect(TID1500MeasurementReport.isExtensible)
+        #expect(!TID1500MeasurementReport.isOrderSignificant)
+        #expect(!TID1204LanguageOfContent.isExtensible)
+        #expect(!TID1002ObserverContext.isExtensible)
+        #expect(!TID4019AlgorithmIdentification.isExtensible)
+        #expect(TID300Measurement.isOrderSignificant)
+        #expect(!TID300Measurement.isRoot)
+    }
+
+    @Test("TID 300 is a NUM root that includes TID 301")
     func testTID300() {
-        let template = TID300Measurement.self
-        
-        #expect(template.identifier == .measurement)
-        #expect(template.displayName == "Measurement")
-        #expect(template.rootValueType == .num)
-        #expect(template.isExtensible == true)
-        #expect(!template.rows.isEmpty)
-        
-        // Check first row is the measurement itself
-        let firstRow = template.rows[0]
-        #expect(firstRow.valueType == .num)
-        #expect(firstRow.relationshipType == .contains)
+        let rows = TID300Measurement.rows
+        #expect(TID300Measurement.rootValueType == .num)
+        #expect(rows[0].relationshipType == nil)
+        #expect(rows[0].conceptName == .parameter("Measurement"))
+        #expect(rows[0].valueConstraint == .units(.parameter("Units")))
+        #expect(rows[1].rowID == "1b")
+        #expect(rows[1].nestingLevel == 1)
+        #expect(rows[1].includedTemplate == .measurementContent)
+        #expect(rows[1].includeParameters.count == 15)
+        #expect(TID300Measurement.parameters.first == TemplateParameter(
+            name: "Measurement", usage: "Coded term or Context Group for Concept Name of measurement"))
     }
-    
-    @Test("TID 320 Image Library Entry template")
-    func testTID320() {
-        let template = TID320ImageLibraryEntry.self
-        
-        #expect(template.identifier == .imageLibraryEntry)
-        #expect(template.displayName == "Image Library Entry")
-        #expect(template.rootValueType == .image)
-        #expect(!template.rows.isEmpty)
+
+    @Test("TID 1500 rows: root, INCLUDEs and parameter bindings")
+    func testTID1500() {
+        let rows = TID1500MeasurementReport.rows
+        #expect(rows[0].valueType == .container)
+        #expect(rows[0].conceptName == .fromContextGroup(contextGroupID: 7021))
+        #expect(rows[0].valueSetText == "Root node")
+
+        let observationContext = rows.first { $0.rowID == "3" }
+        #expect(observationContext?.includedTemplate == .observationContext)
+        #expect(observationContext?.relationshipType == .hasObsContext)
+        #expect(observationContext?.requirementLevel == .mandatory)
+
+        let groups = rows.first { $0.rowID == "9" }
+        #expect(groups?.nestingLevel == 2)
+        #expect(groups?.includedTemplate == .measurementGroup)
+        #expect(groups?.valueMultiplicity == .oneOrMore)
+        #expect(groups?.cardinality == .zeroOrMore)
+        #expect(groups?.includeParameters.first == TemplateParameterBinding(
+            name: "Measurement", value: .baselineContextGroup(218),
+            text: "BCID 218 \"Quantitative Image Feature\""))
+
+        let imagingMeasurements = rows.first { $0.rowID == "6" }
+        #expect(imagingMeasurements?.requirementLevel == .mandatoryConditional)
+        #expect(imagingMeasurements?.condition == .custom(description: "IF Row 10 and Row 12 are absent"))
+        #expect(imagingMeasurements?.conceptName == .exact(
+            CodedConcept(codeValue: "126010", codingSchemeDesignator: "DCM", codeMeaning: "Imaging Measurements")))
     }
-    
-    @Test("TID 1001 Observation Context template")
-    func testTID1001() {
-        let template = TID1001ObservationContext.self
-        
-        #expect(template.identifier == .observationContext)
-        #expect(template.displayName == "Observation Context")
-        #expect(template.rootValueType == .container)
-        #expect(!template.rows.isEmpty)
+
+    @Test("TID 1400 keeps by-reference relationships and VM 2-n")
+    func testTID1400() {
+        let rows = TID1400LinearMeasurements.rows
+        #expect(rows[0].conceptName == .fromContextGroup(contextGroupID: 7470))
+        let byReference = rows.first { $0.rowID == "3" }
+        #expect(byReference?.relationshipType == .selectedFrom)
+        #expect(byReference?.isByReference == true)
+        let vertices = rows.first { $0.rowID == "5" }
+        #expect(vertices?.valueMultiplicity == Cardinality(minimum: 2))
+        #expect(vertices?.requirementLevel == .userOptionConditional)
     }
-    
-    @Test("TID 1002 Observer Context template")
-    func testTID1002() {
-        let template = TID1002ObserverContext.self
-        
-        #expect(template.identifier == .observerContext)
-        #expect(template.displayName == "Observer Context")
-        #expect(template.rootValueType == .container)
-        #expect(template.isExtensible == false)
-        #expect(!template.rows.isEmpty)
-        
-        // Check observer type row
-        let typeRow = template.rows.first { $0.rowID == "1" }
-        #expect(typeRow != nil)
-        #expect(typeRow?.valueType == .code)
-        #expect(typeRow?.requirementLevel == .mandatory)
+
+    @Test("A value set of one code per paragraph accepts each (TID 1000 row 1, TID 4020 rows 11-12)")
+    func testMultiCodeValueSets() {
+        let document = CodedConcept(codeValue: "121003", codingSchemeDesignator: "DCM", codeMeaning: "Document")
+        let verbal = CodedConcept(codeValue: "121004", codingSchemeDesignator: "DCM", codeMeaning: "Verbal")
+        #expect(TID1000Quotation.rows[0].valueConstraint == .oneOfCodes([document, verbal]))
+        let micrometer = CodedConcept(codeValue: "um", codingSchemeDesignator: "UCUM", codeMeaning: "micrometer")
+        let millimeter = CodedConcept(codeValue: "mm", codingSchemeDesignator: "UCUM", codeMeaning: "millimeter")
+        for rowID in ["11", "12"] {
+            let row = TID4020CADImageLibraryEntry.rows.first { $0.rowID == rowID }
+            #expect(row?.valueConstraint == .units(.oneOfCodes([micrometer, millimeter])))
+        }
+        let mode = CodedConcept(codeValue: "121001", codingSchemeDesignator: "DCM", codeMeaning: "Quotation Mode")
+        for (value, valid) in [(document, true), (verbal, true), (millimeter, false)] {
+            let item = AnyContentItem.code(conceptName: mode, value: value, relationshipType: .hasObsContext)
+            let result = TemplateValidator(mode: .strict).validate([item], against: .quotation)
+            #expect(result.errors.contains { $0.templateRowID == "1" } == !valid, Comment(rawValue: value.codeMeaning))
+        }
     }
-    
-    @Test("TID 1204 Language of Content template")
-    func testTID1204() {
-        let template = TID1204LanguageOfContent.self
-        
-        #expect(template.identifier == .languageOfContent)
-        #expect(template.displayName == "Language of Content")
-        #expect(template.rootValueType == .code)
-        #expect(template.isExtensible == false)
-        #expect(template.rows.count >= 2)
+
+    @Test("Defined Terms and Baseline groups are distinguished")
+    func testDefinedTermsAndBaselineGroups() {
+        let trackingIdentifier = TID1501MeasurementGroup.rows.first { $0.rowID == "2" }
+        #expect(trackingIdentifier?.conceptName == .definedTerm(
+            CodedConcept(codeValue: "112039", codingSchemeDesignator: "DCM", codeMeaning: "Tracking Identifier")))
+        let procedure = TID1500MeasurementReport.rows.first { $0.rowID == "4" }
+        #expect(procedure?.valueConstraint == .fromBaselineContextGroup(contextGroupID: 100))
+    }
+
+    @Test("Rows nest by nesting level")
+    func testTree() {
+        let tree = TemplateMatcher.tree(TID1500MeasurementReport.rows)
+        #expect(tree.count == 1)
+        #expect(tree[0].children.map { $0.row.rowID } == ["2", "3", "4", "5", "6", "10", "12"])
+        let qualitative = tree[0].children.last!
+        #expect(qualitative.children.map { $0.row.rowID } == ["12b", "13", "14"])
+        #expect(qualitative.children[1].children.map { $0.row.rowID } == ["13b"])
     }
 }
 
-// MARK: - Measurement Template Tests
+// MARK: - Template Validation Against 2026a Rows
 
-@Suite("Measurement Template Tests")
-struct MeasurementTemplateTests {
-    
-    @Test("TID 1400 Linear Measurements template")
-    func testTID1400() {
-        let template = TID1400LinearMeasurements.self
-        
-        #expect(template.identifier == .linearMeasurements)
-        #expect(template.displayName == "Linear Measurements")
-        #expect(template.rootValueType == .container)
-        #expect(!template.rows.isEmpty)
-        
-        // Check for length measurement row
-        let measurementRow = template.rows.first { row in
-            row.valueType == .num && row.includedTemplate == .measurement
-        }
-        #expect(measurementRow != nil)
+@Suite("Template Validation Tests (PS3.16 2026a)")
+struct TemplateValidationBehaviourTests {
+    let dcm = { (value: String, meaning: String) in
+        CodedConcept(codeValue: value, codingSchemeDesignator: "DCM", codeMeaning: meaning)
     }
-    
-    @Test("TID 1410 Planar ROI Measurements template")
-    func testTID1410() {
-        let template = TID1410PlanarROIMeasurements.self
-        
-        #expect(template.identifier == .planarROIMeasurements)
-        #expect(template.displayName == "Planar ROI Measurements")
-        #expect(template.rootValueType == .container)
-        #expect(!template.rows.isEmpty)
-        
-        // Check for area measurement row
-        let areaRow = template.rows.first { row in
-            if case .exact(let concept) = row.conceptName {
-                return concept.codeValue == "42798000" // Area
-            }
-            return false
-        }
-        #expect(areaRow != nil)
+
+    @Test("A minimal TID 1500 tree is compliant")
+    func testMinimalMeasurementReport() {
+        let group = AnyContentItem.container(
+            conceptName: dcm("125007", "Measurement Group"),
+            items: [
+                .text(conceptName: dcm("112039", "Tracking Identifier"), value: "Lesion 1",
+                      relationshipType: .hasObsContext),
+                .numeric(conceptName: CodedConcept(codeValue: "103339001", codingSchemeDesignator: "SCT",
+                                                   codeMeaning: "Long Axis"),
+                         value: 12.5,
+                         units: CodedConcept(codeValue: "mm", codingSchemeDesignator: "UCUM", codeMeaning: "mm"),
+                         relationshipType: .contains),
+            ],
+            relationshipType: .contains
+        )
+        let report = AnyContentItem.container(
+            conceptName: dcm("126000", "Imaging Measurement Report"),
+            items: [.container(conceptName: dcm("126010", "Imaging Measurements"), items: [group],
+                               relationshipType: .contains)]
+        )
+        let result = TemplateValidator(mode: .strict).validate([report], against: .measurementReport)
+        #expect(result.isFullyCompliant, Comment(rawValue: result.violations.map(\.description).joined(separator: "\n")))
     }
-    
-    @Test("TID 1411 Volumetric ROI Measurements template")
-    func testTID1411() {
-        let template = TID1411VolumetricROIMeasurements.self
-        
-        #expect(template.identifier == .volumetricROIMeasurements)
-        #expect(template.displayName == "Volumetric ROI Measurements")
-        #expect(template.rootValueType == .container)
-        #expect(!template.rows.isEmpty)
-        
-        // Check for volume measurement row
-        let volumeRow = template.rows.first { row in
-            if case .exact(let concept) = row.conceptName {
-                return concept.codeValue == "118565006" // Volume
-            }
-            return false
-        }
-        #expect(volumeRow != nil)
+
+    @Test("A missing M row is reported")
+    func testMissingMandatoryRow() {
+        let result = TemplateValidator().validate([], against: .languageOfContent)
+        #expect(result.errors.map(\.templateRowID) == ["1"])
     }
-    
-    @Test("TID 1419 ROI Measurements template")
-    func testTID1419() {
-        let template = TID1419ROIMeasurements.self
-        
-        #expect(template.identifier == .roiMeasurements)
-        #expect(template.displayName == "ROI Measurements")
-        #expect(template.rootValueType == .container)
-        #expect(template.isExtensible == true)
-        #expect(!template.rows.isEmpty)
+
+    @Test("M rows of an optional INCLUDE apply once it has content")
+    func testOptionalIncludeWithContent() {
+        // TID 1500 row 6b includes TID 4019 (U). Algorithm Name without Algorithm Version
+        // violates TID 4019 row 2 (M).
+        let report = AnyContentItem.container(
+            conceptName: dcm("126000", "Imaging Measurement Report"),
+            items: [.container(
+                conceptName: dcm("126010", "Imaging Measurements"),
+                items: [.text(conceptName: dcm("111001", "Algorithm Name"), value: "Seg",
+                              relationshipType: .hasConceptMod)],
+                relationshipType: .contains
+            )]
+        )
+        let result = TemplateValidator().validate([report], against: .measurementReport)
+        #expect(result.errors.map(\.templateRowID) == ["2"])
+        #expect(result.errors.first?.message.contains("Algorithm Version") == true)
     }
-    
-    @Test("TID 1420 Multiple ROI Measurements template")
-    func testTID1420() {
-        let template = TID1420MultipleROIMeasurements.self
-        
-        #expect(template.identifier == .multipleROIMeasurements)
-        #expect(template.displayName == "Measurements from Multiple ROIs")
-        #expect(template.rootValueType == .container)
-        #expect(!template.rows.isEmpty)
-        
-        // Check for statistical measurements
-        let meanRow = template.rows.first { row in
-            if case .exact(let concept) = row.conceptName {
-                return concept.codeValue == "373098007" // Mean Value
-            }
-            return false
-        }
-        #expect(meanRow != nil)
+
+    @Test("Extra content is reported only in a non-extensible template")
+    func testExtensibility() {
+        let language = AnyContentItem.code(
+            conceptName: dcm("121049", "Language of Content Item and Descendants"),
+            value: CodedConcept(codeValue: "en", codingSchemeDesignator: "RFC5646", codeMeaning: "English"),
+            relationshipType: .hasConceptMod
+        )
+        let extra = AnyContentItem.text(conceptName: dcm("121106", "Comment"), value: "x",
+                                        relationshipType: .hasConceptMod)
+        let nonExtensible = TemplateValidator(mode: .strict).validate([language, extra], against: .languageOfContent)
+        #expect(nonExtensible.warnings.count == 1)
+        #expect(nonExtensible.isCompliant)
+
+        let lenient = TemplateValidator(mode: .lenient).validate([language, extra], against: .languageOfContent)
+        #expect(lenient.isFullyCompliant)
+
+        let extensible = TemplateValidator(mode: .strict).validate([extra], against: .measurementContent)
+        #expect(extensible.isFullyCompliant)
+    }
+
+    @Test("NUM units are checked against UNITS = EV")
+    func testUnits() {
+        // TID 1008 row 5: Number of Fetuses by US, UNITS = EV (1, UCUM, "no units")
+        let concept = CodedConcept(codeValue: "11878-6", codingSchemeDesignator: "LN",
+                                   codeMeaning: "Number of Fetuses by US")
+        let good = AnyContentItem.numeric(
+            conceptName: concept, value: 2,
+            units: CodedConcept(codeValue: "1", codingSchemeDesignator: "UCUM", codeMeaning: "no units"))
+        let bad = AnyContentItem.numeric(
+            conceptName: concept, value: 2,
+            units: CodedConcept(codeValue: "mm", codingSchemeDesignator: "UCUM", codeMeaning: "mm"))
+        let validator = TemplateValidator()
+        #expect(validator.validate([good], against: .subjectContextFetus).isFullyCompliant)
+        #expect(validator.validate([bad], against: .subjectContextFetus).errors.map(\.templateRowID) == ["5"])
+    }
+
+    @Test("Code Meaning is not significant when matching codes")
+    func testCodeMeaningIgnored() {
+        let language = AnyContentItem.code(
+            conceptName: dcm("121049", "Language of Content"),
+            value: CodedConcept(codeValue: "en", codingSchemeDesignator: "RFC5646", codeMeaning: "English"),
+            relationshipType: .hasConceptMod
+        )
+        #expect(TemplateValidator().validate([language], against: .languageOfContent).isFullyCompliant)
+    }
+
+    @Test("Detection finds TID 1204 for a language item")
+    func testDetection() {
+        let language = AnyContentItem.code(
+            conceptName: dcm("121049", "Language of Content Item and Descendants"),
+            value: CodedConcept(codeValue: "en", codingSchemeDesignator: "RFC5646", codeMeaning: "English"),
+            relationshipType: .hasConceptMod
+        )
+        let detected = TemplateDetector().detectTemplates([language]).map(\.template)
+        #expect(detected.contains(.languageOfContent))
     }
 }
 

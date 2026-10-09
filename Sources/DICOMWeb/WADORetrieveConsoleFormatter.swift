@@ -1,6 +1,7 @@
 import Foundation
 import DICOMCore
 
+// NEMA-verified: 2026a, checked 2026-09-28 — console text only; the mode names are the PS3.18 2026a Table 10.1-1 resource names; the WADO-URI protocol label corrected to Chapter 9
 /// Console renderings shared by the `dicom-wado retrieve` CLI (WADO-RS / WADO-URI)
 /// and DICOMStudio's in-app retrieve, so both produce identical text for the same
 /// retrieval. This is the retrieve-side peer of `QIDOResultFormatter` (query) and
@@ -42,7 +43,7 @@ public struct WADORetrieveConsoleFormatter {
                                    instanceUID: String, contentType: String, frame: Int?) -> String {
         var lines = [
             "WADO-URI Server: \(baseURL)",
-            "Protocol:     WADO-URI (PS3.18 §8)",
+            "Protocol:     WADO-URI (PS3.18 §9)",
             "Study UID:    \(studyUID)",
             "Series UID:   \(seriesUID)",
             "Instance UID: \(instanceUID)",

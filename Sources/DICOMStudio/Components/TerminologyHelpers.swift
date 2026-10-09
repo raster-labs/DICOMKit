@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent coded terminology helpers
-// Reference: DICOM PS3.16 (Content Mapping Resources), CID 7181, CID 7464, CID 7469
+// Reference: DICOM PS3.16 (Content Mapping Resources), Table 8-1, CID 4, CID 7000, CID 7001, CID 7181, CID 7460-7462, CID 7469
+// NEMA-verified: 2026a, checked 2026-10-05 — the 77 (code, scheme, meaning) entries diffed by script against every PS3.16 2026a CID table: SCT 26 (17 match, 3 corrected — Liver 816092008 (that id is "Pelvis" in CID 4031) -> 10200004 (CID 644), Thorax 51185008 -> (816094009, "Chest", CID 4), Nodule 129748003 -> 27925004 (CID 6104); 6 in no CID table, left as external SNOMED CT ids not verifiable from NEMA text); LN 15 (1 match, 9 meanings corrected to the CID 7000 / 7001 / 6052 / 100 meaning of the code, 5 in no CID table); RADLEX 18 (none in a CID table; RADLEX is a Table 8-1 scheme, codes not verifiable from NEMA text); UCUM 18 (14 match, m -> "m" per CID 7063; ml, l, g, kg in no CID table); scheme names against Table 8-1 (6/6: SRT is "SNOMED CT", DCM is "DICOM Controlled Terminology"); conversion factors are arithmetic
 
 import Foundation
 
@@ -19,10 +20,10 @@ public enum TerminologyHelpers: Sendable {
         entry(code: "39607008", scheme: "SCT", meaning: "Lung", category: "Body Part"),
         entry(code: "14975008", scheme: "SCT", meaning: "Forearm", category: "Body Part"),
         entry(code: "69536005", scheme: "SCT", meaning: "Head", category: "Body Part"),
-        entry(code: "816092008", scheme: "SCT", meaning: "Liver", category: "Body Part"),
+        entry(code: "10200004", scheme: "SCT", meaning: "Liver", category: "Body Part"),
         entry(code: "64033007", scheme: "SCT", meaning: "Kidney", category: "Body Part"),
         entry(code: "76752008", scheme: "SCT", meaning: "Breast", category: "Body Part"),
-        entry(code: "51185008", scheme: "SCT", meaning: "Thorax", category: "Body Part"),
+        entry(code: "816094009", scheme: "SCT", meaning: "Chest", category: "Body Part"),
         entry(code: "818981001", scheme: "SCT", meaning: "Abdomen", category: "Body Part"),
         entry(code: "12738006", scheme: "SCT", meaning: "Brain", category: "Body Part"),
         entry(code: "410668003", scheme: "SCT", meaning: "Length", category: "Measurement"),
@@ -34,7 +35,7 @@ public enum TerminologyHelpers: Sendable {
         entry(code: "255605001", scheme: "SCT", meaning: "Minimum", category: "Statistics"),
         entry(code: "56851009", scheme: "SCT", meaning: "Maximum", category: "Statistics"),
         entry(code: "4147007", scheme: "SCT", meaning: "Mass", category: "Finding"),
-        entry(code: "129748003", scheme: "SCT", meaning: "Nodule", category: "Finding"),
+        entry(code: "27925004", scheme: "SCT", meaning: "Nodule", category: "Finding"),
         entry(code: "44643006", scheme: "SCT", meaning: "Calcification", category: "Finding"),
         entry(code: "3723001", scheme: "SCT", meaning: "Arthritis", category: "Finding"),
         entry(code: "233604007", scheme: "SCT", meaning: "Pneumonia", category: "Finding"),
@@ -49,20 +50,21 @@ public enum TerminologyHelpers: Sendable {
     /// Common LOINC observation codes for radiology.
     public static let loincConcepts: [TerminologyEntry] = [
         entry(code: "18782-3", scheme: "LN", meaning: "Radiology Study Observation", category: "Observation"),
-        entry(code: "59776-5", scheme: "LN", meaning: "Procedure Findings", category: "Finding"),
-        entry(code: "19005-8", scheme: "LN", meaning: "Radiology Impression", category: "Impression"),
-        entry(code: "18834-2", scheme: "LN", meaning: "Radiology Report", category: "Report"),
-        entry(code: "11525-3", scheme: "LN", meaning: "US Pelvis Findings", category: "Finding"),
+        entry(code: "59776-5", scheme: "LN", meaning: "Findings", category: "Heading"),
+        entry(code: "19005-8", scheme: "LN", meaning: "Impressions", category: "Heading"),
+        entry(code: "18834-2", scheme: "LN", meaning: "Previous Findings", category: "Heading"),
+        entry(code: "11525-3", scheme: "LN", meaning: "Ultrasound Obstetric and Gyn Report", category: "Report"),
         entry(code: "36643-5", scheme: "LN", meaning: "CT Chest Findings", category: "Finding"),
         entry(code: "24604-1", scheme: "LN", meaning: "MR Brain Findings", category: "Finding"),
         entry(code: "36554-4", scheme: "LN", meaning: "CT Abdomen Findings", category: "Finding"),
         entry(code: "24566-2", scheme: "LN", meaning: "XR Knee Findings", category: "Finding"),
-        entry(code: "44136-0", scheme: "LN", meaning: "CT Head Findings", category: "Finding"),
-        entry(code: "18748-4", scheme: "LN", meaning: "Diagnostic Imaging Study", category: "Study"),
-        entry(code: "55111-9", scheme: "LN", meaning: "Current Procedure Descriptions", category: "Procedure"),
-        entry(code: "55115-0", scheme: "LN", meaning: "Requested Procedure Description", category: "Procedure"),
+        entry(code: "44136-0", scheme: "LN", meaning: "PET Scan Report", category: "Report"),
+        entry(code: "18748-4", scheme: "LN", meaning: "Diagnostic Imaging Report", category: "Report"),
+        entry(code: "11528-7", scheme: "LN", meaning: "Radiology Report", category: "Report"),
+        entry(code: "55111-9", scheme: "LN", meaning: "Current Procedure Descriptions", category: "Heading"),
+        entry(code: "55115-0", scheme: "LN", meaning: "Request", category: "Heading"),
         entry(code: "59768-2", scheme: "LN", meaning: "Procedure Indications", category: "Indication"),
-        entry(code: "18785-6", scheme: "LN", meaning: "Radiology Reason for Study", category: "Reason"),
+        entry(code: "18785-6", scheme: "LN", meaning: "Indications for Procedure", category: "Heading"),
     ]
 
     // MARK: - RadLex Concepts
@@ -95,7 +97,7 @@ public enum TerminologyHelpers: Sendable {
     public static let ucumUnits: [TerminologyEntry] = [
         entry(code: "mm", scheme: "UCUM", meaning: "Millimeter", category: "Length"),
         entry(code: "cm", scheme: "UCUM", meaning: "Centimeter", category: "Length"),
-        entry(code: "m", scheme: "UCUM", meaning: "Meter", category: "Length"),
+        entry(code: "m", scheme: "UCUM", meaning: "m", category: "Length"),
         entry(code: "mm2", scheme: "UCUM", meaning: "Square Millimeter", category: "Area"),
         entry(code: "cm2", scheme: "UCUM", meaning: "Square Centimeter", category: "Area"),
         entry(code: "mm3", scheme: "UCUM", meaning: "Cubic Millimeter", category: "Volume"),
@@ -187,8 +189,8 @@ public enum TerminologyHelpers: Sendable {
         case "LN": return "LOINC"
         case "RADLEX": return "RadLex"
         case "UCUM": return "UCUM"
-        case "DCM": return "DICOM"
-        case "SRT": return "SNOMED RT"
+        case "DCM": return "DICOM Controlled Terminology"
+        case "SRT": return "SNOMED CT"   // PS3.16 Table 8-1: SRT codes are SNOMED CT (SNOMED-RT style identifiers)
         default: return designator
         }
     }
@@ -226,7 +228,7 @@ public enum TerminologyHelpers: Sendable {
         "SCT:4147007": [
             CodedConcept(codeValue: "RID3874", codingSchemeDesignator: "RADLEX", codeMeaning: "Mass"),
         ],
-        "SCT:129748003": [
+        "SCT:27925004": [
             CodedConcept(codeValue: "RID3875", codingSchemeDesignator: "RADLEX", codeMeaning: "Nodule"),
         ],
         "SCT:44643006": [
@@ -236,7 +238,7 @@ public enum TerminologyHelpers: Sendable {
             CodedConcept(codeValue: "4147007", codingSchemeDesignator: "SCT", codeMeaning: "Mass"),
         ],
         "RADLEX:RID3875": [
-            CodedConcept(codeValue: "129748003", codingSchemeDesignator: "SCT", codeMeaning: "Nodule"),
+            CodedConcept(codeValue: "27925004", codingSchemeDesignator: "SCT", codeMeaning: "Nodule"),
         ],
     ]
 

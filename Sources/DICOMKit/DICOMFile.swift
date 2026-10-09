@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.10 2026a 7.1 preamble and prefix rules; the VR sniff list is the 34 VRs of PS3.5 2026a Table 6.2-1 (OV, SV, UV added)
 import Foundation
 
 /// DICOM File
@@ -285,10 +286,11 @@ public struct DICOMFile: Sendable {
     
     /// Checks if a string is a known DICOM VR code
     private static func isKnownVR(_ vrString: String) -> Bool {
+        // The 34 VRs of PS3.5 Table 6.2-1
         let knownVRs = [
             "AE", "AS", "AT", "CS", "DA", "DS", "DT", "FL", "FD", "IS",
-            "LO", "LT", "OB", "OD", "OF", "OL", "OW", "PN", "SH", "SL",
-            "SQ", "SS", "ST", "TM", "UC", "UI", "UL", "UN", "UR", "US", "UT"
+            "LO", "LT", "OB", "OD", "OF", "OL", "OV", "OW", "PN", "SH", "SL",
+            "SQ", "SS", "ST", "SV", "TM", "UC", "UI", "UL", "UN", "UR", "US", "UT", "UV"
         ]
         return knownVRs.contains(vrString)
     }

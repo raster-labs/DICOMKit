@@ -17,6 +17,15 @@ struct DataExchangeViewModelTests {
         #expect(vm.activeTab == .jsonConversion)
     }
 
+    @Test("Secondary Capture modality defaults to OT, a PS3.3 2026a C.7.3.1.1.1 Defined Term (not SC)")
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    func testSecondaryCaptureModalityDefaultIsOT() {
+        let vm = DataExchangeViewModel()
+        #expect(vm.secondaryCaptureModality == "OT")
+        vm.runSecondaryCapture()
+        #expect(vm.secondaryCaptureResult.contains("--modality OT"))
+    }
+
     @Test("isLoading starts false")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testIsLoadingStartsFalse() {

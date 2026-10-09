@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — character set names checked against PS3.18 2026a Table D-1; states against PS3.3 C.30.1; the default DICOM version is the package target edition (was 2024c)
 /// DICOM Conformance Statement for DICOMweb services
 ///
 /// Represents a conformance statement document that describes the capabilities
@@ -121,7 +122,7 @@ extension ConformanceStatement {
             vendor: String,
             description: String? = nil,
             informationURL: URL? = nil,
-            dicomVersion: String = "2024c",
+            dicomVersion: String = "2026a",
             implementationClassUID: String? = nil,
             implementationVersionName: String? = nil
         ) {
@@ -142,7 +143,7 @@ extension ConformanceStatement {
             vendor: "DICOMKit Contributors",
             description: "A pure Swift DICOM toolkit for Apple platforms",
             informationURL: URL(string: "https://github.com/DICOMKit/DICOMKit"),
-            dicomVersion: "2024c",
+            dicomVersion: "2026a",
             implementationClassUID: "1.2.826.0.1.3680043.8.1234.1",
             implementationVersionName: "DICOMKIT_0_8_8"
         )

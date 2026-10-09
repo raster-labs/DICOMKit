@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — waveform module reads per PS3.3 2026a Table C.10-9 (Waveform Bits Stored (003A,021A) from the Channel Definition Item, Sample Interpretation terms of Table C.10-10) and Table C.10-8 (Acquisition DateTime); Referenced Sample Positions (0040,A132) read as UL per PS3.6 Table 6-1
 //
 // WaveformParser.swift
 // DICOMKit
@@ -58,9 +59,10 @@ public struct WaveformParser {
             seriesNumber = nil
         }
 
-        // Parse content date/time
+        // Waveform Identification Module (PS3.3 Table C.10-8)
         let contentDate = dataSet.date(for: .contentDate)
         let contentTime = dataSet.time(for: .contentTime)
+        let acquisitionDateTime = dataSet.dateTime(for: .acquisitionDateTime)
 
         // Parse Waveform Sequence (required)
         let multiplexGroups = try parseWaveformSequence(from: dataSet)
@@ -81,6 +83,7 @@ public struct WaveformParser {
             seriesNumber: seriesNumber,
             contentDate: contentDate,
             contentTime: contentTime,
+            acquisitionDateTime: acquisitionDateTime,
             multiplexGroups: multiplexGroups,
             annotations: annotations
         )
@@ -142,25 +145,28 @@ public struct WaveformParser {
         numberOfSamples: Int
     ) throws -> WaveformMultiplexGroup {
         // Waveform Sample Interpretation (5400,1006) - VR: CS
-        // Values: SB, SS, UB, US, MB, AB
+        // Defined Terms (PS3.3 Table C.10-10): SB, UB, MB, AB, SS, US, SL, UL, SV, UV
         let sampleInterpretation: WaveformSampleInterpretation
         if let interpStr = item.elements[.waveformSampleInterpretation]?.stringValue,
            let interp = WaveformSampleInterpretation(dicomValue: interpStr) {
             sampleInterpretation = interp
         } else {
-            sampleInterpretation = .signedInteger // Default to signed 16-bit
+            sampleInterpretation = .signed16 // Default to signed 16-bit
         }
 
-        // Waveform Bits Allocated (5400,1004) - VR: US
+        // Waveform Bits Allocated (5400,1004) - VR: US. When absent, the width
+        // Table C.10-10 pairs with the Sample Interpretation.
         let waveformBitsAllocated: UInt16
         if let bitsAlloc = item.elements[.waveformBitsAllocated]?.uint16Value {
             waveformBitsAllocated = bitsAlloc
         } else {
-            waveformBitsAllocated = 16 // Default to 16-bit
+            waveformBitsAllocated = sampleInterpretation.bitsAllocated
         }
 
-        // Waveform Bits Stored - use bitsAllocated as fallback
-        let waveformBitsStored = waveformBitsAllocated
+        // Waveform Bits Stored (003A,021A) — Type 1 in each Channel Definition Sequence
+        // Item (PS3.3 Table C.10-9); read from the first channel, Bits Allocated as fallback.
+        let waveformBitsStored = item.elements[.channelDefinitionSequence]?.sequenceItems?
+            .first?.elements[.waveformBitsStored]?.uint16Value ?? waveformBitsAllocated
 
         // Waveform Data (required)
         let waveformData = item.elements[.waveformData]?.valueData ?? Data()
@@ -283,7 +289,11 @@ public struct WaveformParser {
 
     /// Parse a single annotation
     private static func parseAnnotation(from item: SequenceItem) -> WaveformAnnotation {
+        // Unformatted Text Value (0070,0006) per PS3.3 C.10.9; (0040,A160) is
+        // SR's Text Value, read as a fallback for files DICOMKit wrote before
+        // the two were distinguished.
         let textValue = item.elements[.unformattedTextValue]?.stringValue
+            ?? item.elements[.textValue]?.stringValue
 
         let conceptNameCode = parseCodedConceptDirect(from: item, tag: .conceptNameCodeSequence)
 
@@ -305,9 +315,17 @@ public struct WaveformParser {
             temporalRangeType = nil
         }
 
+        // Referenced Sample Positions (0040,A132) — VR UL, VM 1-n (PS3.6 Table 6-1).
+        // A US-encoded value from a non-conformant writer is accepted as a fallback.
         let referencedSamplePositions: [UInt32]?
-        if let posValues = item.elements[.referencedSamplePositions]?.uint16Values {
-            referencedSamplePositions = posValues.map { UInt32($0) }
+        if let positionElement = item.elements[.referencedSamplePositions] {
+            if let posValues = positionElement.uint32Values {
+                referencedSamplePositions = posValues
+            } else if let posValues = positionElement.uint16Values {
+                referencedSamplePositions = posValues.map { UInt32($0) }
+            } else {
+                referencedSamplePositions = nil
+            }
         } else {
             referencedSamplePositions = nil
         }

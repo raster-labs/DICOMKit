@@ -54,6 +54,7 @@ public enum J2KSwiftEncodeMode: String, Sendable, CaseIterable, Identifiable {
 ///
 /// This provides the Phase 1 pure-Swift JPEG 2000 path for DICOMKit and establishes
 /// the foundation for HTJ2K and Part 2 expansion without masking upstream codec issues.
+/// NEMA-verified: 2026a, checked 2026-09-25 — JPEG 2000 / HTJ2K UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1); the lossless-only set (.90, .92, .201, .202) and the RPCL requirement for .202 match PS3.5 2026a A.4.4. One citation said A.4.6 (MPEG-4); corrected. The codec itself implements ISO/IEC 15444, outside DICOM.
 public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpeg2000Lossless.uid,
@@ -181,15 +182,17 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         let encoder = J2KEncoder(
             encodingConfiguration: Self.makeEncodingConfiguration(
                 from: configuration,
-                transferSyntaxUID: transferSyntaxUID
+                transferSyntaxUID: transferSyntaxUID,
+                descriptor: descriptor
             )
         )
-        return try Self.awaitJ2KResult {
+        let encoded = try Self.awaitJ2KResult {
             switch mode {
             case .cpu: return try await encoder.encode(image)
             case .gpu: return try await encoder.encodeGPU(image)
             }
         }
+        return Self.conformingCodestream(encoded, transferSyntaxUID: transferSyntaxUID)
         #else
         throw DICOMError.unsupportedTransferSyntax("JPEG 2000 encoding requires J2KSwift support in this build")
         #endif
@@ -231,7 +234,8 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         let encoder = J2KEncoder(
             encodingConfiguration: Self.makeEncodingConfiguration(
                 from: configuration,
-                transferSyntaxUID: transferSyntaxUID
+                transferSyntaxUID: transferSyntaxUID,
+                descriptor: descriptor
             )
         )
         do {
@@ -392,14 +396,17 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         let encoder = J2KEncoder(
             encodingConfiguration: Self.makeEncodingConfiguration(
                 from: configuration,
-                transferSyntaxUID: encodingTransferSyntaxUID
+                transferSyntaxUID: encodingTransferSyntaxUID,
+                descriptor: descriptor
             )
         )
-        let encoded = try Self.awaitJ2KResult {
+        let raw = try Self.awaitJ2KResult {
             plan.useGPU ? try await encoder.encodeGPU(image)
                         : try await encoder.encode(image)
         }
-        try Self.verifyEncodedRoundTrip(encoded, original: frameData, descriptor: descriptor, configuration: configuration)
+        // PS3.5 2026a 10.18.1 markers for .202 (RPCL label, TLM); verified by the round trip below.
+        let encoded = Self.conformingCodestream(raw, transferSyntaxUID: encodingTransferSyntaxUID)
+        try Self.verifyEncodedRoundTrip(encoded, original: frameData, descriptor: descriptor, requireExact: plan.lossless)
         return encoded
         #else
         throw DICOMError.unsupportedTransferSyntax("JPEG 2000 encoding requires J2KSwift support in this build")
@@ -498,7 +505,8 @@ private extension J2KSwiftCodec {
 
     static func makeEncodingConfiguration(
         from configuration: CompressionConfiguration,
-        transferSyntaxUID: String?
+        transferSyntaxUID: String?,
+        descriptor: PixelDataDescriptor? = nil
     ) -> J2KEncodingConfiguration {
         // All (type, intent, backend) routing lives in `J2KRoutePlanner` — the
         // single source of truth (see J2K_ROUTING_ARCHITECTURE.md). This method
@@ -509,7 +517,7 @@ private extension J2KSwiftCodec {
         // crippled compression — single-resolution wavelet means no multi-band
         // refinement, and HTJ2K in particular collapsed to ~1.24× ratios on
         // 16-bit MG mammograms vs ~6× from the same library via its CLI. RPCL
-        // is required for `htj2kRPCLLossless` (PS3.5 §A.4.6) and is what
+        // is required for `htj2kRPCLLossless` (PS3.5 §A.4.4) and is what
         // J2KSwift's CLI uses everywhere else.
         let plan = J2KRoutePlanner.planEncode(
             transferSyntaxUID: transferSyntaxUID,
@@ -518,11 +526,30 @@ private extension J2KSwiftCodec {
         return J2KEncodingConfiguration(
             quality: plan.quality,
             lossless: plan.lossless,
+            decompositionLevels: decompositionLevels(transferSyntaxUID: transferSyntaxUID, descriptor: descriptor),
             progressionOrder: progressionOrder(for: plan.progression),
             useHTJ2K: plan.useHTJ2K,
             useReversibleFilter: plan.useReversibleFilter,
             htj2kBlockFormat: blockFormat(for: plan.blockFormat)
         )
+    }
+
+    /// The library default of 5 decomposition levels, raised for HTJ2K Lossless RPCL (.202) to
+    /// what PS3.5 2026a 10.18.1 requires: "The number of decompositions shall be sufficient for
+    /// the width or height of the base resolution to be <= 64" (J2KSwift allows up to 10).
+    static func decompositionLevels(transferSyntaxUID: String?, descriptor: PixelDataDescriptor?) -> Int {
+        guard transferSyntaxUID == TransferSyntax.htj2kRPCLLossless.uid, let descriptor else { return 5 }
+        let need = J2KCodestreamInspector.minimumDecompositionLevelsForRPCL(
+            rows: descriptor.rows, columns: descriptor.columns)
+        return min(10, max(5, need))
+    }
+
+    /// J2KSwift writes SGcod progression LRCP whatever `progressionOrder` says and no TLM
+    /// (D187). For .202 the codestream is brought to PS3.5 2026a 10.18.1 by
+    /// ``J2KCodestreamInspector/conformingToHTJ2KRPCL(_:)``; other syntaxes are returned as is.
+    static func conformingCodestream(_ codestream: Data, transferSyntaxUID: String?) -> Data {
+        guard transferSyntaxUID == TransferSyntax.htj2kRPCLLossless.uid else { return codestream }
+        return J2KCodestreamInspector.conformingToHTJ2KRPCL(codestream)
     }
 
     /// Translates a planner progression choice into the J2KCodec enum.
@@ -541,11 +568,15 @@ private extension J2KSwiftCodec {
         }
     }
 
+    /// Decodes the encoded frame and checks its size; when the planned encode is reversible
+    /// (`J2KRoutePlanner.EncodePlan.lossless`, the 5-3 filter of PS3.5 2026a 8.2.4) the decoded
+    /// samples must equal the source exactly. An irreversible 9-7 encode is lossy by definition,
+    /// so it is not held to bit-exactness even when the quality preset is "maximum" (D234).
     static func verifyEncodedRoundTrip(
         _ encoded: Data,
         original: Data,
         descriptor: PixelDataDescriptor,
-        configuration: CompressionConfiguration
+        requireExact: Bool
     ) throws {
         let decoded = try decodeWithJ2KSwift(encoded, descriptor: descriptor)
         guard decoded.count == descriptor.bytesPerFrame else {
@@ -554,7 +585,7 @@ private extension J2KSwiftCodec {
             )
         }
 
-        if configuration.preferLossless || configuration.quality.isLossless {
+        if requireExact {
             guard decoded == original else {
                 throw DICOMError.parsingFailed("J2KSwift lossless round-trip validation failed")
             }

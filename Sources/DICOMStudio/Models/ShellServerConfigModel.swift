@@ -2,6 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Data models for Server Configuration Management (Milestone 19)
+// NEMA-verified: 2026a, checked 2026-10-05 — the only standard-derived value is the default DICOM port 11112, the
+// PS3.8 2026a 9.1.1 registered port; everything else is UI state (server types, auth methods, validation
+// fields, tool names). AE titles are validated in ShellServerConfigHelpers.swift against PS3.5 Table 6.2-1.
 
 import Foundation
 

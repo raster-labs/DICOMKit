@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — Image Pixel (C.7.6.3), Modality LUT (C.11.1), VOI (C.11.2), Palette (C.7.9) and functional-group (C.7.6.16) reads checked against PS3.3 2026a; rescale(_:frameIndex:) reads the per-frame Pixel Value Transformation Sequence (C.7.6.16.2.9, D197); defaults for absent Type 1 attributes are recorded as robustness choices
 import Foundation
 import DICOMCore
 
@@ -473,10 +474,21 @@ extension DataSet {
     /// - Parameter storedValue: The stored pixel value
     /// - Returns: The transformed value in output units (e.g., Hounsfield Units for CT)
     public func rescale(_ storedValue: Double) -> Double {
+        rescale(storedValue, frameIndex: nil)
+    }
+
+    /// Applies the modality transformation of frame `frameIndex` (0-based) to a pixel value.
+    ///
+    /// As ``rescale(_:)``, with Rescale Slope / Intercept taken from the frame's Pixel Value
+    /// Transformation Sequence (0028,9145) when it is in the Per-Frame Functional Groups
+    /// Sequence (PS3.3 2026a C.7.6.16.2.9, Table C.7.6.16-10; Table C.8-126 CT Pixel Value
+    /// Transformation Macro), so every frame uses its own values (D197). `nil` uses the top-level
+    /// or Shared Functional Groups value (the first frame's, when only per-frame values exist).
+    public func rescale(_ storedValue: Double, frameIndex: Int?) -> Double {
         if let lut = modalityLUTData() {
             return lut.lookup(Int(storedValue.rounded()))
         }
-        return rescaleSlope() * storedValue + rescaleIntercept()
+        return rescaleSlope(frameIndex: frameIndex) * storedValue + rescaleIntercept(frameIndex: frameIndex)
     }
     
     // MARK: - Image Dimensions

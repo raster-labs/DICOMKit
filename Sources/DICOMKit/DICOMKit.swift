@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — the four supported Transfer Syntax UIDs and their names match PS3.6 2026a Table A-1; dicomStandardEdition is the package target
 /// DICOMKit - A pure Swift DICOM toolkit for Apple platforms
 ///
 /// Version 0.5.0

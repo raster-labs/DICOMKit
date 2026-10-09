@@ -2,6 +2,10 @@
 // DICOMStudio
 //
 // DICOM Studio — Series-level metadata model
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — fields mirror PS3.6 2026a Table 6-1 attributes (Series Instance UID,
+// Series Number, Modality, Series Description, Body Part Examined); default Modality "OT" is a PS3.3 2026a
+// C.7.3.1.1.1 Defined Term.
 
 import Foundation
 

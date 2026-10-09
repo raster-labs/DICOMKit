@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — 60xx overlay attributes and VRs match PS3.6 2026a Table 6-1; the PS3.3 C.9 multi-frame overlay rule is recorded
 // OverlayPlaneRenderer.swift
 // DICOMKit
 //

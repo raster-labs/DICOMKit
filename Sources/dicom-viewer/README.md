@@ -17,7 +17,7 @@ Terminal-based DICOM image viewer for quick inspection and triage.
 - **Multi-frame Navigation**: View specific frames from multi-frame images
 - **Thumbnail Grid**: Display multiple files or frames as a grid
 - **Information Overlay**: Show patient and study metadata
-- **Image Inversion**: Invert pixel values for better visibility
+- **Image Inversion**: Invert pixel values for better visibility (MONOCHROME1 images are already shown with the minimum as white, PS3.3 C.7.6.3.1.2)
 - **CodecRegistry Integration**: All registered codecs (J2K, HTJ2K, Part 2, JPEG-LS, RLE) used automatically _(v1.5)_
 - **Resolution Reduce (`--reduce`)**: Fast low-resolution preview at 1/2ⁿ resolution _(v1.5)_
 - **Region of Interest (`--roi`)**: Crop and display a rectangular subregion _(v1.5)_
@@ -78,8 +78,8 @@ dicom-viewer ct.dcm --window-center 40 --window-width 80
 ### Multi-frame Images
 
 ```bash
-# View specific frame
-dicom-viewer multiframe.dcm --frame 5
+# View Frame number 6 (frames are numbered from 1, PS3.3 Table 10-3)
+dicom-viewer multiframe.dcm --frame-number 6
 
 # View all frames as thumbnails
 dicom-viewer multiframe.dcm --thumbnail
@@ -201,14 +201,16 @@ dicom-viewer --jpip "jpip://server/image" --mode ansi --roi 0,0,512,512
 | `--mode` | Display mode (ascii, ansi, iterm2, kitty, sixel) | ascii |
 | `--quality` | ASCII quality (low, high) | high |
 | `--color` | ANSI color depth (256, 24bit) | 24bit |
-| `--window-center` | Window center (level) | Auto |
-| `--window-width` | Window width | Auto |
-| `--frame` | Frame number (0-based) | 0 |
+| `--window-center` | Window Center (level), Modality LUT output units | file, else auto |
+| `--window-width` | Window Width (>= 1 for LINEAR, > 0 for LINEAR_EXACT / SIGMOID) | file, else auto |
+| `--voi-lut-function` | VOI LUT Function: LINEAR, LINEAR_EXACT, SIGMOID (PS3.3 C.11.2.1.3) | file, else LINEAR |
+| `--frame-number` | Frame number to display, 1-based (PS3.3 Table 10-3: the first Frame is Frame number 1); labels read "Frame number N" | 1 |
+| `--frame` | **Deprecated**: 0-based index (0 = Frame number 1); prints a note; giving it with `--frame-number` is refused (exit 1) | — |
 | `--width` | Output width in characters | Auto |
 | `--height` | Output height in characters | Auto |
 | `--invert` | Invert pixel values | false |
 | `--show-info` | Show patient/study info | false |
-| `--show-overlay` | Show overlay at bottom | false |
+| `--show-overlay` | Draw overlay planes (60xx) and a frame/size status line | false |
 | `--thumbnail` | Display as thumbnail grid | false |
 | `--size` | Thumbnail grid size (WxH) | Auto |
 | `--force` | Force parse without DICM prefix | false |

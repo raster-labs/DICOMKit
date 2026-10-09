@@ -35,16 +35,19 @@ final class SIMDImageProcessorTests: XCTestCase {
     
     func testWindowLevelZeroWidth() {
         let pixelData: [UInt16] = [0, 50, 100, 150, 200]
-        
-        // Zero width window should return zeros
+
+        // PS3.3 C.11.2.1.2.1: "Window Width (0028,1051) shall always be greater
+        // than or equal to 1". A width below 1 is clamped to 1 exactly as
+        // WindowSettings.init does, which makes the window a threshold at
+        // c - 0.5 = 99.5: x <= 99.5 → 0, x > 99.5 → 255.
         let result = SIMDImageProcessor.applyWindowLevel(
             to: pixelData,
             windowCenter: 100,
             windowWidth: 0,
             bitsStored: 16
         )
-        
-        XCTAssertEqual(result, [0, 0, 0, 0, 0])
+
+        XCTAssertEqual(result, [0, 0, 255, 255, 255])
     }
     
     func testInvertPixels() {

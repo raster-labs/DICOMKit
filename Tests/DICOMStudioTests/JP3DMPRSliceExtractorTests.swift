@@ -6,6 +6,7 @@
 import Testing
 @testable import DICOMStudio
 import DICOMKit
+import DICOMCore
 import Foundation
 
 // MARK: - Test Volume Factory
@@ -370,6 +371,32 @@ struct JP3DMPRWindowLevelTests {
         #expect(out[1] == 255)
     }
 
+    @Test("The mapping is the PS3.3 C.11.2.1.2.1 default LINEAR function")
+    func testLinearFunctionPerPS3_3() {
+        // PS3.3 2026a C.11.2.1.2.1, c = 128, w = 101: x <= 128 - 0.5 - 50 = 77.5 → 0;
+        // x > 128 - 0.5 + 50 = 177.5 → 255; x = 127.5 (the centre, c - 0.5) → 127.5 → 128;
+        // x = 100 → ((100 - 127.5) / 100 + 0.5) * 255 = 57.375 → 57.
+        let slice = makeSlice(values: [77, 78, 100, 127, 128, 177, 178])
+        let out = JP3DMPRSliceExtractor.applyWindowLevel(to: slice, windowCenter: 128, windowWidth: 101)
+        #expect(out[0] == 0)
+        #expect(out[1] == 1)    // ((78 - 127.5)/100 + 0.5) * 255 = 1.275
+        #expect(out[2] == 57)
+        #expect(out[3] == 126)  // ((127 - 127.5)/100 + 0.5) * 255 = 126.225
+        #expect(out[4] == 129)  // ((128 - 127.5)/100 + 0.5) * 255 = 128.775
+        #expect(out[5] == 254)  // ((177 - 127.5)/100 + 0.5) * 255 = 253.725
+        #expect(out[6] == 255)
+    }
+
+    @Test("Width 1 is a threshold at c - 0.5, never a division by zero")
+    func testWidthOneIsThreshold() {
+        // PS3.3 2026a C.11.2.1.2.1: "the value of 1 for w does not cause division by zero".
+        let slice = makeSlice(values: [99, 100, 101])
+        let out = JP3DMPRSliceExtractor.applyWindowLevel(to: slice, windowCenter: 100, windowWidth: 1)
+        #expect(out[0] == 0)    // 99 <= 99.5
+        #expect(out[1] == 255)  // 100 > 99.5
+        #expect(out[2] == 255)
+    }
+
     @Test("Output count equals pixel count")
     func testOutputCount() {
         let slice = makeSlice(values: [10, 20, 30, 40])
@@ -589,5 +616,46 @@ struct JP3DMPRViewModelTests {
             #expect(t >= 0.0)
             #expect(t <= 1.0)
         }
+    }
+}
+
+// MARK: - MONOCHROME1 display (PS3.3 C.7.6.3.1.2)
+
+@Suite("MONOCHROME1 volume display")
+struct Monochrome1VolumeDisplayTests {
+
+    /// 2x1x1, 8-bit: stored values 0 and 255.
+    private func volume(_ photometric: PhotometricInterpretation) -> DICOMVolume {
+        DICOMVolume(width: 2, height: 1, depth: 1, bitsAllocated: 8, bitsStored: 8,
+                    photometricInterpretation: photometric, pixelData: Data([0, 255]))
+    }
+
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    @Test("MPR buffer of a MONOCHROME1 volume shows the minimum as white, after windowing")
+    @MainActor
+    func mprBufferInverted() {
+        let mono2 = JP3DMPRViewModel()
+        mono2.setVolume(volume(.monochrome2))
+        mono2.setWindowLevel(center: 127.5, width: 255)
+        let mono1 = JP3DMPRViewModel()
+        mono1.setVolume(volume(.monochrome1))
+        mono1.setWindowLevel(center: 127.5, width: 255)
+        #expect(mono2.axialBuffer.map { Array($0) } == [0, 255])
+        #expect(mono1.axialBuffer.map { Array($0) } == [255, 0])
+    }
+
+    @Test("thick-slab projection of a MONOCHROME1 volume is inverted after projection")
+    func thickSlabInverted() {
+        let v1 = volume(.monochrome1)
+        let dims = JP3DMPRSliceExtractor.dimensionsModel(for: v1)
+        let out = EnterpriseRenderHelpers.thickSlabBuffer(
+            volume: v1, plane: .axial, centerIndex: 0, slabThicknessMM: 1,
+            projectionMode: .mip, windowCenter: 127.5, windowWidth: 255, dimensions: dims)
+        #expect(out.map { Array($0) } == [255, 0])
+        let v2 = volume(.monochrome2)
+        let out2 = EnterpriseRenderHelpers.thickSlabBuffer(
+            volume: v2, plane: .axial, centerIndex: 0, slabThicknessMM: 1,
+            projectionMode: .mip, windowCenter: 127.5, windowWidth: 255, dimensions: dims)
+        #expect(out2.map { Array($0) } == [0, 255])
     }
 }

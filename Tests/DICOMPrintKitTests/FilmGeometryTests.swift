@@ -21,6 +21,17 @@ final class FilmSheetTests: XCTestCase {
         XCTAssertEqual(sheet.pixelHeight, 5100)
     }
 
+    /// PS3.3 Table C.13-3: "10INX14IN corresponds with 25.7CMX36.4CM" — the
+    /// sheet sold as 10×14 is JIS B4, not 254 × 355.6 mm.
+    func testTenByFourteenIsTheSizeTheStandardStates() {
+        let size = FilmSheet.portraitSizeMillimeters(for: .size10InX14In)
+        XCTAssertEqual(size.width, 257, accuracy: 0.001)
+        XCTAssertEqual(size.height, 364, accuracy: 0.001)
+        // A3 is stated in the same row.
+        XCTAssertEqual(FilmSheet.portraitSizeMillimeters(for: .a3).width, 297, accuracy: 0.001)
+        XCTAssertEqual(FilmSheet.portraitSizeMillimeters(for: .a3).height, 420, accuracy: 0.001)
+    }
+
     func testMetricAndISOFilmSizes() {
         XCTAssertEqual(FilmSheet.portraitSizeMillimeters(for: .a4).width, 210, accuracy: 0.001)
         XCTAssertEqual(FilmSheet.portraitSizeMillimeters(for: .a4).height, 297, accuracy: 0.001)

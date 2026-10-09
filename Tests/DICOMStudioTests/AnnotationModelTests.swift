@@ -96,6 +96,27 @@ struct GraphicAnnotationTests {
     }
 }
 
+@Suite("TextAnchorType Tests")
+struct TextAnchorTypeTests {
+
+    // PS3.3 2026a C.10.5 Table C.10-5 Bounding Box / Anchor Point Annotation Units: PIXEL, DISPLAY, MATRIX
+    @Test("Raw values are the Annotation Units Enumerated Values")
+    func testRawValues() {
+        #expect(TextAnchorType.imageRelative.rawValue == "PIXEL")
+        #expect(TextAnchorType.displayRelative.rawValue == "DISPLAY")
+        #expect(TextAnchorType.matrixRelative.rawValue == "MATRIX")
+        #expect(TextAnchorType(rawValue: "PIXEL") == .imageRelative)
+        #expect(TextAnchorType(rawValue: "DISPLAY") == .displayRelative)
+        #expect(TextAnchorType(rawValue: "MATRIX") == .matrixRelative)
+    }
+
+    @Test("Legacy IMAGE still decodes as PIXEL")
+    func testLegacyImage() {
+        #expect(TextAnchorType(rawValue: "IMAGE") == .imageRelative)
+        #expect(TextAnchorType(rawValue: "SCREEN") == nil)
+    }
+}
+
 @Suite("TextAnnotation Tests")
 struct TextAnnotationTests {
 

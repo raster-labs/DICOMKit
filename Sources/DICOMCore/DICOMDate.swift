@@ -5,6 +5,8 @@ import Foundation
 /// Represents a date in DICOM format (YYYYMMDD).
 /// Reference: DICOM PS3.5 Section 6.2 - DA Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the DA row of PS3.5 2026a Table 6.2-1 (YYYYMMDD, 8 bytes fixed). The ACR-NEMA YYYY.MM.DD form is accepted on read; the row calls it non-compliant, and `dicomString` never emits it.
+///
 /// The DA format is a string of characters with format YYYYMMDD where:
 /// - YYYY = year (e.g., 2025)
 /// - MM = month (01-12)

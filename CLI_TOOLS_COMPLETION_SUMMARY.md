@@ -93,8 +93,14 @@ dicom-validate scan.dcm --level 3 --iod CTImageStorage --detailed
 
 **Example**:
 ```bash
-dicom-anon study/ --output anon_study/ --profile clinical-trial --shift-dates 100 --recursive
+dicom-anon study/ --output anon_study/ --profile ps315 --retain-modified-dates --shift-dates 100 --recursive
 ```
+
+> **Note (2026-10-01):** `dicom-anon --profile` now defaults to `ps315`, the PS3.15 2026a Basic Application Level
+> Confidentiality Profile (Table E.1-1), and `basic` is an alias of it. The old fixed lists are `legacy-basic`,
+> `legacy-clinical-trial` and `legacy-research` (deprecated, not PS3.15 profiles); `clinical-trial` and `research`
+> still select them with a deprecation note. With `ps315`, `--shift-dates` needs `--retain-modified-dates` and
+> `--keep` / `--regenerate-uids` apply to the legacy lists only.
 
 ---
 
@@ -398,7 +404,7 @@ dicom-info scan.dcm --statistics
 dicom-validate scan.dcm --level 3
 
 # 3. Anonymize
-dicom-anon scan.dcm --output anon.dcm --profile basic
+dicom-anon scan.dcm --output anon.dcm --profile ps315   # PS3.15 Basic Profile (basic is an alias)
 
 # 4. Send to PACS
 dicom-send pacs://server:11112 --aet MY_SCU anon.dcm --verify

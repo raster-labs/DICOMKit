@@ -39,124 +39,86 @@ struct DICOMCodeTests {
         #expect(code.description.contains("DCM"))
     }
     
-    // MARK: - SR Document Concepts
-    
-    @Test("Document structure codes")
-    func testDocumentStructureCodes() {
-        #expect(DICOMCode.report.codeValue == "121060")
-        #expect(DICOMCode.finding.codeValue == "121071")
-        #expect(DICOMCode.measurement.codeValue == "125007")
-        #expect(DICOMCode.procedureReported.codeValue == "121058")
-        #expect(DICOMCode.imagingMeasurements.codeValue == "126010")
-        #expect(DICOMCode.summary.codeValue == "121070")
-        #expect(DICOMCode.conclusion.codeValue == "121076")
-        #expect(DICOMCode.impression.codeValue == "121077")
-        #expect(DICOMCode.recommendation.codeValue == "121074")
+    // MARK: - Constants vs PS3.16 2026a Annex D
+
+    /// Every remaining constant, with its code value and code meaning as PS3.16 2026a
+    /// Table D-1 gives them.
+    private static let annexD: [(DICOMCode, String, String)] = [
+        (DICOMCode.addendum, "121078", "Addendum"),
+        (DICOMCode.attenuationCoefficient, "112031", "Attenuation Coefficient"),
+        (DICOMCode.chestCADReport, "112000", "Chest CAD Report"),
+        (DICOMCode.clinicalHistory, "121060", "History"),
+        (DICOMCode.colonCADReport, "112220", "Colon CAD Report"),
+        (DICOMCode.conclusion, "121077", "Conclusion"),
+        (DICOMCode.countryOfLanguage, "121046", "Country of Language"),
+        (DICOMCode.ctDoseLengthProductTotal, "113813", "CT Dose Length Product Total"),
+        (DICOMCode.currentProcedureDescriptions, "121064", "Current Procedure Descriptions"),
+        (DICOMCode.depth, "111020", "Depth"),
+        (DICOMCode.derivation, "121401", "Derivation"),
+        (DICOMCode.derivedImagingMeasurements, "126011", "Derived Imaging Measurements"),
+        (DICOMCode.device, "121007", "Device"),
+        (DICOMCode.deviceObserverManufacturer, "121014", "Device Observer Manufacturer"),
+        (DICOMCode.deviceObserverModelName, "121015", "Device Observer Model Name"),
+        (DICOMCode.deviceObserverName, "121013", "Device Observer Name"),
+        (DICOMCode.deviceObserverSerialNumber, "121016", "Device Observer Serial Number"),
+        (DICOMCode.deviceObserverUID, "121012", "Device Observer UID"),
+        (DICOMCode.finding, "121071", "Finding"),
+        (DICOMCode.height, "121207", "Height"),
+        (DICOMCode.imageRegion, "111030", "Image Region"),
+        (DICOMCode.imagingMeasurements, "126010", "Imaging Measurements"),
+        (DICOMCode.impression, "121073", "Impression"),
+        (DICOMCode.languageOfContentItemAndDescendants, "121049", "Language of Content Item and Descendants"),
+        (DICOMCode.mammographyCADReport, "111036", "Mammography CAD Report"),
+        (DICOMCode.measurementGroup, "125007", "Measurement Group"),
+        (DICOMCode.median, "130290", "Median"),
+        (DICOMCode.observerType, "121005", "Observer Type"),
+        (DICOMCode.person, "121006", "Person"),
+        (DICOMCode.personObserverName, "121008", "Person Observer Name"),
+        (DICOMCode.probabilityOfCancer, "111047", "Probability of cancer"),
+        (DICOMCode.procedureReported, "121058", "Procedure reported"),
+        (DICOMCode.recommendation, "121075", "Recommendation"),
+        (DICOMCode.request, "121062", "Request"),
+        (DICOMCode.series, "113015", "Series"),
+        (DICOMCode.sourceImageForSegmentation, "121233", "Source image for segmentation"),
+        (DICOMCode.sourceOfMeasurement, "121112", "Source of Measurement"),
+        (DICOMCode.sourceSeriesForSegmentation, "121232", "Source series for segmentation"),
+        (DICOMCode.standardDeviation, "113061", "Standard Deviation"),
+        (DICOMCode.study, "113014", "Study"),
+        (DICOMCode.subjectBirthDate, "121031", "Subject Birth Date"),
+        (DICOMCode.subjectBreed, "121035", "Subject Breed"),
+        (DICOMCode.subjectID, "121030", "Subject ID"),
+        (DICOMCode.subjectName, "121029", "Subject Name"),
+        (DICOMCode.subjectSex, "121032", "Subject Sex"),
+        (DICOMCode.subjectSpecies, "121034", "Subject Species"),
+        (DICOMCode.summary, "121111", "Summary"),
+        (DICOMCode.trackingIdentifier, "112039", "Tracking Identifier"),
+        (DICOMCode.trackingUniqueIdentifier, "112040", "Tracking Unique Identifier"),
+        (DICOMCode.xRayRadiationDoseReport, "113701", "X-Ray Radiation Dose Report"),
+    ]
+
+    @Test("Every DICOMCode constant carries its Annex D code value and meaning", arguments: annexD)
+    func testConstantMatchesAnnexD(entry: (DICOMCode, String, String)) {
+        let (code, value, meaning) = entry
+        #expect(code.codeValue == value)
+        #expect(code.codeMeaning == meaning)
+        #expect(code.concept.codingSchemeDesignator == "DCM")
     }
-    
-    @Test("Observer context codes")
-    func testObserverContextCodes() {
-        #expect(DICOMCode.observerType.codeValue == "121005")
-        #expect(DICOMCode.personObserverName.codeValue == "121008")
-        #expect(DICOMCode.deviceObserverUID.codeValue == "121012")
-        #expect(DICOMCode.deviceObserverName.codeValue == "121013")
-        #expect(DICOMCode.deviceObserverManufacturer.codeValue == "121014")
-        #expect(DICOMCode.person.codeValue == "121006")
-        #expect(DICOMCode.device.codeValue == "121007")
+
+    @Test("No two constants share a code value")
+    func testNoDuplicateCodeValues() {
+        let values = Self.annexD.map { $0.1 }
+        #expect(Set(values).count == values.count)
     }
-    
-    @Test("Subject context codes")
-    func testSubjectContextCodes() {
-        #expect(DICOMCode.subjectName.codeValue == "121029")
-        #expect(DICOMCode.subjectID.codeValue == "121030")
-        #expect(DICOMCode.subjectBirthDate.codeValue == "121031")
-        #expect(DICOMCode.subjectSex.codeValue == "121032")
-    }
-    
-    @Test("Language context codes")
-    func testLanguageContextCodes() {
-        #expect(DICOMCode.languageOfContentItemAndDescendants.codeValue == "121049")
-        #expect(DICOMCode.countryOfLanguage.codeValue == "121046")
-    }
-    
-    // MARK: - Measurement Concepts
-    
-    @Test("Measurement type codes")
-    func testMeasurementTypeCodes() {
-        #expect(DICOMCode.diameter.codeValue == "131190")
-        #expect(DICOMCode.longAxis.codeValue == "103340")
-        #expect(DICOMCode.shortAxis.codeValue == "103339")
-        #expect(DICOMCode.area.codeValue == "131184")
-        #expect(DICOMCode.volume.codeValue == "118565")
-        #expect(DICOMCode.circumference.codeValue == "131183")
-        #expect(DICOMCode.length.codeValue == "118558")
-        #expect(DICOMCode.width.codeValue == "118559")
-    }
-    
-    @Test("Statistical measurement codes")
-    func testStatisticalMeasurementCodes() {
-        #expect(DICOMCode.meanValue.codeValue == "121401")
-        #expect(DICOMCode.maximumValue.codeValue == "121403")
-        #expect(DICOMCode.minimumValue.codeValue == "121402")
-        #expect(DICOMCode.standardDeviation.codeValue == "121404")
-        #expect(DICOMCode.median.codeValue == "121405")
-        #expect(DICOMCode.mode.codeValue == "121406")
-        #expect(DICOMCode.count.codeValue == "121407")
-    }
-    
-    @Test("Measurement property codes")
-    func testMeasurementPropertyCodes() {
-        #expect(DICOMCode.sourceOfMeasurement.codeValue == "121112")
-        #expect(DICOMCode.derivation.codeValue == "121401")
-        #expect(DICOMCode.trackingIdentifier.codeValue == "112039")
-        #expect(DICOMCode.trackingUniqueIdentifier.codeValue == "112040")
-    }
-    
-    // MARK: - Reference Concepts
-    
-    @Test("Reference codes")
-    func testReferenceCodes() {
-        #expect(DICOMCode.imageReference.codeValue == "121191")
-        #expect(DICOMCode.compositeReference.codeValue == "121190")
-        #expect(DICOMCode.waveformReference.codeValue == "121192")
-        #expect(DICOMCode.sourceImageForSegmentation.codeValue == "121324")
-    }
-    
-    // MARK: - Qualitative Evaluation
-    
-    @Test("Assessment codes")
-    func testAssessmentCodes() {
-        #expect(DICOMCode.assessment.codeValue == "121073")
-        #expect(DICOMCode.abnormality.codeValue == "121072")
-        #expect(DICOMCode.noChange.codeValue == "121056")
-        #expect(DICOMCode.progression.codeValue == "121057")
-        #expect(DICOMCode.improvement.codeValue == "121055")
-    }
-    
-    // MARK: - Relationship Type Codes
-    
-    @Test("Relationship type codes")
-    func testRelationshipTypeCodes() {
-        #expect(DICOMCode.contains.codeValue == "121311")
-        #expect(DICOMCode.hasProperties.codeValue == "121309")
-        #expect(DICOMCode.hasObservationContext.codeValue == "121310")
-        #expect(DICOMCode.hasAcquisitionContext.codeValue == "121312")
-        #expect(DICOMCode.inferredFrom.codeValue == "121307")
-        #expect(DICOMCode.selectedFrom.codeValue == "121308")
-        #expect(DICOMCode.hasConceptModifier.codeValue == "121313")
-    }
-    
-    // MARK: - SR Document Title Codes
-    
-    @Test("SR document title codes")
-    func testSRDocumentTitleCodes() {
-        #expect(DICOMCode.basicDiagnosticImagingReport.codeValue == "126000")
-        #expect(DICOMCode.comprehensiveSR.codeValue == "121181")
-        #expect(DICOMCode.mammographyCADReport.codeValue == "111001")
-        #expect(DICOMCode.chestCADReport.codeValue == "111002")
-        #expect(DICOMCode.colonCADReport.codeValue == "111003")
-        #expect(DICOMCode.procedureLog.codeValue == "121184")
-        #expect(DICOMCode.xRayRadiationDoseReport.codeValue == "113701")
+
+    @Test("Corrected codes")
+    func testCorrectedCodes() {
+        #expect(DICOMCode.summary.codeValue == "121111")
+        #expect(DICOMCode.impression.codeValue == "121073")
+        #expect(DICOMCode.conclusion.codeValue == "121077")
+        #expect(DICOMCode.recommendation.codeValue == "121075")
+        #expect(DICOMCode.mammographyCADReport.codeValue == "111036")
+        #expect(DICOMCode.clinicalHistory.codeMeaning == "History")
+        #expect(DICOMCode.imagingMeasurementReport.codeValue == "126000")
     }
     
     // MARK: - CodedConcept Convenience
@@ -185,7 +147,7 @@ struct DICOMCodeTests {
     func testEquatable() {
         let code1 = DICOMCode(codeValue: "121071", codeMeaning: "Finding")
         let code2 = DICOMCode.finding
-        let code3 = DICOMCode.measurement
+        let code3 = DICOMCode.measurementGroup
         
         #expect(code1 == code2)
         #expect(code1 != code3)

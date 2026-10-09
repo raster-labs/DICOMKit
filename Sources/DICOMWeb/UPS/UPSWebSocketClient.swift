@@ -3,11 +3,12 @@ import Foundation
 import FoundationNetworking
 #endif
 
+// NEMA-verified: 2026a, checked 2026-09-28 — Event Type IDs 1-5 decoded per PS3.4 2026a Table CC.2.4-1; the /ws/subscribers path and the /rs stripping are dcm4chee conventions, PS3.18 8.10.4 leaves the WebSocket URL to the origin server
 // MARK: - UPSWebSocketEvent
 
 /// A parsed UPS event received over a WebSocket channel.
 ///
-/// The DICOMweb UPS-RS WebSocket channel (PS3.18 §11.11) delivers events
+/// The DICOMweb UPS-RS WebSocket channel (PS3.18 §8.10 Notifications) delivers events
 /// as DICOM JSON messages. This struct wraps the parsed result.
 public struct UPSWebSocketEvent: Sendable, Equatable {
     /// The type of event
@@ -164,7 +165,7 @@ public struct UPSWebSocketConfiguration: Sendable {
 /// Client for receiving UPS event notifications over WebSocket
 ///
 /// Implements the client side of the UPS-RS WebSocket event channel
-/// as specified in DICOM PS3.18 §11.11.
+/// as specified in DICOM PS3.18 §8.10.4 (Open Notification Connection).
 ///
 /// After subscribing to workitem events via the REST API (UPSClient.subscribe),
 /// open a WebSocket channel to receive real-time event notifications when
@@ -195,7 +196,7 @@ public struct UPSWebSocketConfiguration: Sendable {
 /// }
 /// ```
 ///
-/// Reference: DICOM PS3.18 §11.11 - Open Event Channel Transaction
+/// Reference: DICOM PS3.18 §8.10.4 - Open Notification Connection Transaction
 #if canImport(FoundationNetworking) || os(macOS) || os(iOS) || os(visionOS) || os(tvOS) || os(watchOS)
 public final class UPSWebSocketClient: @unchecked Sendable {
     
@@ -323,7 +324,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
     /// You must subscribe to workitem events via `UPSClient.subscribe()`
     /// before opening the event channel, or subscribe globally.
     ///
-    /// Reference: PS3.18 §11.11 - Open Event Channel Transaction
+    /// Reference: PS3.18 §8.10.4 - Open Notification Connection Transaction
     ///
     /// - Throws: UPSWebSocketError if connection fails
     public func connect() async throws {
@@ -372,7 +373,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
     
     /// Builds the WebSocket URL for the UPS event channel
     ///
-    /// Per PS3.18 §11.11, the WebSocket URL is constructed by changing
+    /// PS3.18 §8.10.4 leaves the WebSocket URL to the origin server; dcm4chee's is built by changing
     /// the HTTP scheme to WS (or HTTPS to WSS) on the subscriber's
     /// subscription URL.
     ///
@@ -384,7 +385,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
             throw UPSWebSocketError.connectionFailed(reason: "Invalid base URL: \(baseURL)")
         }
         
-        // Convert HTTP(S) scheme to WS(S) per PS3.18 §11.11
+        // Convert HTTP(S) scheme to WS(S) (RFC 6455)
         switch components.scheme?.lowercased() {
         case "https":
             components.scheme = "wss"
@@ -397,7 +398,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
         }
         
         // Build the WebSocket event channel path
-        // PS3.18 §11.11: /ws/subscribers/{aeTitle}
+        // dcm4chee convention: /ws/subscribers/{aeTitle} (not a PS3.18 template)
         // The WebSocket endpoint is a sibling of the REST endpoint, not a child.
         // For example, dcm4chee-arc uses:
         //   REST:      /dcm4chee-arc/aets/DCM4CHEE/rs
@@ -436,7 +437,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
         }
         
         // NOTE: Do NOT set a custom Sec-WebSocket-Protocol header here.
-        // The DICOM standard (PS3.18 §11.11) does not mandate a subprotocol,
+        // The DICOM standard (PS3.18 §8.10.4) does not mandate a subprotocol,
         // and dcm4chee-arc rejects connections with unknown subprotocols.
         // The subscriber identity is conveyed via the AE Title in the URL path.
         
@@ -446,7 +447,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
         webSocketTask = task
         task.resume()
         
-        // Per PS3.18 §11.11 the subscriber is identified by the AE Title
+        // Per PS3.18 Table 11.1.1-1 the subscriber is identified by the AE Title
         // embedded in the WebSocket URL path (/ws/subscribers/{aeTitle}).
         // No additional handshake message is required or expected.
         
@@ -461,7 +462,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
     }
     
     // Subscriber identification is conveyed by the AE Title in the
-    // WebSocket URL path per PS3.18 §11.11.  No post-connect message
+    // WebSocket URL path per dcm4chee (PS3.18 §8.10.4 does not fix it).  No post-connect message
     // is sent — dcm4chee-arc (and the standard) do not define one,
     // and unexpected data frames cause a Connection reset.
     
@@ -539,13 +540,13 @@ public final class UPSWebSocketClient: @unchecked Sendable {
     ///
     /// UPS event messages are delivered as DICOM JSON objects per PS3.18 §F.2.
     /// The event contains:
-    /// - Event Type ID (00000100) or EventType attribute
+    /// - Event Type ID (00001002) or EventType attribute
     /// - Affected SOP Instance UID (00001000) — the workitem UID
     /// - Transaction UID (00081195)
     /// - Procedure Step State (00741000) for state reports
     /// - Progress information for progress reports
     ///
-    /// Reference: PS3.18 §11.6 and PS3.4 Annex CC.2.6
+    /// Reference: PS3.18 §8.10.5 and PS3.4 Table CC.2.4-1
     internal func parseEvent(from data: Data) throws -> UPSWebSocketEvent {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw UPSWebSocketError.malformedEvent(reason: "Invalid JSON data")
@@ -594,26 +595,24 @@ public final class UPSWebSocketClient: @unchecked Sendable {
     
     /// Parses the event type from DICOM JSON
     ///
-    /// PS3.4 CC.2.6 defines Event Type IDs:
+    /// PS3.4 Table CC.2.4-1 defines Event Type IDs:
     ///   1 = UPS State Report
     ///   2 = UPS Cancel Request
     ///   3 = UPS Progress Report
     ///   4 = SCP Status Change
-    /// PS3.18 §11.6 also uses string-based event types in JSON.
+    ///   5 = UPS Assigned
+    /// The string-based EventType field is a DICOMKit convention, not PS3.18.
     private func parseEventType(from json: [String: Any]) throws -> UPSEventType {
-        // Try DICOM Event Type ID (0000,0100)
-        if let element = json["00000100"] as? [String: Any],
+        // Try DICOM Event Type ID (0000,1002). (0000,0100) is Command Field.
+        if let element = json["00001002"] as? [String: Any],
            let values = element["Value"] as? [Int],
            let typeID = values.first {
-            switch typeID {
-            case 1: return .stateReport
-            case 2: return .cancelRequested
-            case 3: return .progressReport
-            default: break
+            if let type = UPSEventType(eventTypeID: typeID) {
+                return type
             }
         }
         
-        // Try string-based EventType field (PS3.18 JSON format)
+        // Try string-based EventType field (DICOMKit convention)
         if let element = json["EventType"] as? [String: Any],
            let values = element["Value"] as? [String],
            let typeString = values.first,
@@ -634,7 +633,7 @@ public final class UPSWebSocketClient: @unchecked Sendable {
             return .stateReport
         }
         
-        if let _ = json["00741004"] as? [String: Any] {
+        if json["00741002"] != nil || json["00741004"] != nil {
             // Has Procedure Step Progress Information Sequence → progress report
             return .progressReport
         }

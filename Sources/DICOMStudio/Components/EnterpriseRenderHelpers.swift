@@ -4,6 +4,8 @@
 // Rendering helpers for the enterprise 3D viewer:
 // thick-slab MIP/MinIP/AvgIP projection, buffer inversion,
 // and color-LUT CGImage creation.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the one standard claim checked: a MONOCHROME1 volume is shown with the minimum sample as white, i.e. inverted after the VOI (PS3.3 2026a C.7.6.3.1.2: "The minimum sample value is intended to be displayed as white"); MIP/MinIP/AvgIP projection and the colour-LUT bitmap carry no standard data
 
 #if canImport(CoreGraphics)
 import Foundation
@@ -17,7 +19,8 @@ public enum EnterpriseRenderHelpers: Sendable {
     /// Extracts a thick slab centred on `centerIndex` and projects it using MIP, MinIP, or AvgIP.
     ///
     /// Each slice in the slab is individually windowed to 8-bit, then the per-pixel max/min/avg
-    /// is computed across all slices.  The result is a ready-to-display 8-bit grayscale buffer.
+    /// is computed across all slices.  The result is a ready-to-display 8-bit grayscale buffer,
+    /// inverted for a MONOCHROME1 volume (PS3.3 C.7.6.3.1.2).
     public static func thickSlabBuffer(
         volume: DICOMVolume,
         plane: MPRPlane,
@@ -67,13 +70,18 @@ public enum EnterpriseRenderHelpers: Sendable {
 
         guard sliceCount > 0 else { return nil }
 
+        let projected: Data
         switch projectionMode {
-        case .mip:   return Data(projMax)
-        case .minIP: return Data(projMin)
+        case .mip:   projected = Data(projMax)
+        case .minIP: projected = Data(projMin)
         case .avgIP:
             let avg = projSum.map { UInt8(clamping: $0 / Int32(sliceCount)) }
-            return Data(avg)
+            projected = Data(avg)
         }
+        // The projection runs on the windowed stored values (MIP = highest stored
+        // value); a MONOCHROME1 volume is then displayed with the minimum as white
+        // (PS3.3 C.7.6.3.1.2), i.e. inverted after the VOI transformation.
+        return volume.isMonochrome1 ? invertBuffer(projected) : projected
     }
 
     // MARK: - Buffer Inversion

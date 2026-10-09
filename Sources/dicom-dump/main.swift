@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — --tag/--highlight accept (gggg,eeee) or a PS3.6 2026a Table 6-1/7-1 keyword (exact); the --tag header (name, VR) and --annotate keywords/VRs of a CT fixture match PS3.6 Table 6-1/7-1 31/31; layout follows PS3.10 7.1 (128-byte preamble, "DICM", group 0002); --offset annotations come from a whole-file element walk (DICOMKit HexDumper, D144); hex layout options carry no DICOM-standard data
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -15,6 +16,7 @@ struct DICOMDump: ParsableCommand {
             Examples:
               dicom-dump file.dcm
               dicom-dump file.dcm --tag 7FE0,0010
+              dicom-dump file.dcm --tag PatientName --verbose
               dicom-dump file.dcm --offset 0x1000 --length 256
               dicom-dump file.dcm --no-color > dump.txt
             """,
@@ -24,7 +26,7 @@ struct DICOMDump: ParsableCommand {
     @Argument(help: "Path to DICOM file")
     var filePath: String
     
-    @Option(name: .long, help: "Dump specific tag (format: 0010,0010)")
+    @Option(name: .long, help: "Dump specific tag (format: 0010,0010 or PS3.6 keyword, e.g. PatientName)")
     var tag: String?
     
     @Option(name: .long, help: "Start offset in bytes (hex or decimal)")
@@ -36,7 +38,7 @@ struct DICOMDump: ParsableCommand {
     @Option(name: .long, help: "Bytes per line (default: 16)")
     var bytesPerLine: Int = 16
     
-    @Option(name: .long, help: "Highlight specific tag")
+    @Option(name: .long, help: "Highlight specific tag (format: 0010,0010 or PS3.6 keyword)")
     var highlight: String?
     
     @Flag(name: .long, help: "Disable color output")
@@ -51,6 +53,15 @@ struct DICOMDump: ParsableCommand {
     @Flag(name: .long, help: "Verbose output with VR and length details")
     var verbose: Bool = false
     
+    func validate() throws {
+        if let length, length < 0 {
+            throw ValidationError("--length must be zero or more (got \(length))")
+        }
+        if bytesPerLine < 1 {
+            throw ValidationError("--bytes-per-line must be at least 1 (got \(bytesPerLine))")
+        }
+    }
+
     mutating func run() throws {
         let fileURL = URL(fileURLWithPath: filePath)
         
@@ -108,10 +119,12 @@ struct DICOMDump: ParsableCommand {
             }
         }
         
-        // Dump the data
+        // Dump the data. The whole file goes to the dumper so annotations and the
+        // highlight are found by walking the file from its start (D144).
         var output = dumper.dump(
-            data: dataToShow,
+            fileData: fileData,
             startOffset: startOffset,
+            length: dataToShow.count,
             dicomFile: dicomFile,
             highlightTag: try parseHighlightTag()
         )
@@ -154,22 +167,30 @@ struct DICOMDump: ParsableCommand {
     }
     
     private func parseTag(_ string: String) throws -> Tag {
-        // Try parsing as hex format (0010,0010) or 00100010
+        try Self.parseTagArgument(string)
+    }
+
+    /// Parses `0010,0010`, `(0010,0010)`, `00100010`, or a PS3.6 keyword (exact case).
+    static func parseTagArgument(_ string: String) throws -> Tag {
         let cleanString = string.replacingOccurrences(of: ",", with: "")
             .replacingOccurrences(of: "(", with: "")
             .replacingOccurrences(of: ")", with: "")
             .replacingOccurrences(of: " ", with: "")
             .trimmingCharacters(in: .whitespaces)
-        
-        if cleanString.count == 8, let value = UInt32(cleanString, radix: 16) {
+
+        if cleanString.count == 8, cleanString.allSatisfy(\.isHexDigit),
+           let value = UInt32(cleanString, radix: 16) {
             let group = UInt16((value >> 16) & 0xFFFF)
             let element = UInt16(value & 0xFFFF)
             return Tag(group: group, element: element)
         }
-        
-        throw ValidationError("Invalid tag format: \(string). Use format: 0010,0010")
+        if let entry = DataElementDictionary.lookup(keyword: string.trimmingCharacters(in: .whitespaces)) {
+            return entry.tag
+        }
+
+        throw ValidationError("Invalid tag format: \(string). Use format: 0010,0010 or a PS3.6 keyword such as PatientName")
     }
-    
+
     private func dumpTag(fileData: Data, tagString: String) throws {
         let targetTag = try parseTag(tagString)
         let dicomFile = try DICOMFile.read(from: fileData, force: force)

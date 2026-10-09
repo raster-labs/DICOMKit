@@ -2,6 +2,7 @@
 ///
 /// Tags specific to DICOM Waveform storage and data
 /// Reference: DICOM PS3.6 - Registry of DICOM Data Elements (Waveform group 0x003A)
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - Waveform Identification Module
 
@@ -35,9 +36,13 @@ extension Tag {
     /// VR: CS, VM: 1
     public static let synchronizationTrigger = Tag(group: 0x0018, element: 0x106A)
 
-    /// Trigger Sample Position (0018,106C)
-    /// VR: US, VM: 1
-    public static let triggerSamplePosition = Tag(group: 0x0018, element: 0x106C)
+    /// Synchronization Channel (0018,106C)
+    /// VR: US, VM: 2
+    public static let synchronizationChannel = Tag(group: 0x0018, element: 0x106C)
+
+    /// Trigger Sample Position (0018,106E)
+    /// VR: UL, VM: 1
+    public static let triggerSamplePosition = Tag(group: 0x0018, element: 0x106E)
 
     /// Waveform Originality (003A,0004)
     /// VR: CS, VM: 1
@@ -150,9 +155,9 @@ extension Tag {
     /// VR: DS, VM: 1
     public static let notchFilterBandwidth = Tag(group: 0x003A, element: 0x0223)
 
-    /// Waveform Data Display Scale (5400,1014)
-    /// VR: DS, VM: 1
-    public static let waveformDataDisplayScale = Tag(group: 0x5400, element: 0x1014)
+    /// Waveform Data Display Scale (003A,0230)
+    /// VR: FL, VM: 1
+    public static let waveformDataDisplayScale = Tag(group: 0x003A, element: 0x0230)
 
     // MARK: - Waveform Presentation Module (group 0x003A)
 
@@ -202,10 +207,12 @@ extension Tag {
     /// VR: SQ, VM: 1
     public static let waveformAnnotationSequence = Tag(group: 0x0040, element: 0xB020)
 
-    /// Unformatted Text Value (0040,A160)
-    /// VR: UT, VM: 1
-    /// Note: This is the same as textValue in SR module
-    public static let unformattedTextValue = Tag(group: 0x0040, element: 0xA160)
+    /// Text Value (0040,A160) — SR content item text. Defined as
+    /// `Tag.textValue` in Tag+StructuredReporting.swift.
+    ///
+    /// The Waveform Annotation Module (PS3.3 C.10.9) carries its text in
+    /// Unformatted Text Value (0070,0006) — see `Tag.unformattedTextValue` in
+    /// Tag+PresentationState.swift. (0040,A160) is not part of that module.
 
     /// Annotation Group Number (0040,A180)
     /// VR: US, VM: 1

@@ -94,13 +94,20 @@ final class VideoTransferSyntaxTests: XCTestCase {
         }
     }
 
-    func test_hevcHasNoFragmentableTwins() {
-        // ".107.1" and ".108.1" are not registered UIDs; writing them would make
-        // an object no other implementation recognises.
-        XCTAssertNil(TransferSyntax.from(uid: "1.2.840.10008.1.2.4.107.1"))
-        XCTAssertNil(TransferSyntax.from(uid: "1.2.840.10008.1.2.4.108.1"))
-        XCTAssertFalse(TransferSyntax.allKnown.contains { $0.uid.hasPrefix("1.2.840.10008.1.2.4.107.") })
-        XCTAssertFalse(TransferSyntax.allKnown.contains { $0.uid.hasPrefix("1.2.840.10008.1.2.4.108.") })
+    func test_hevcIsFragmentableInItsOwnRight_andTheUnregisteredTwinsAreOnlyKept() {
+        // PS3.5 8.2.10 / 8.2.11: .107 and .108 are Fragmentable Encapsulated Transfer Syntaxes
+        // in their own right.
+        XCTAssertTrue(TransferSyntax.hevcH265MainProfile.allowsMultipleFragments)
+        XCTAssertTrue(TransferSyntax.hevcH265Main10Profile.allowsMultipleFragments)
+        // ".107.1" and ".108.1" are not registered UIDs (PS3.6 Table A-1). Origin/main removed
+        // the constants; this branch keeps them by decision (TransferSyntax.swift, Standard2026aTests)
+        // and `dicom-video` refuses them, so the library only recognises them, never offers them.
+        XCTAssertEqual(TransferSyntax.from(uid: "1.2.840.10008.1.2.4.107.1"), .hevcH265MainProfileFragmentable)
+        XCTAssertEqual(TransferSyntax.from(uid: "1.2.840.10008.1.2.4.108.1"), .hevcH265Main10ProfileFragmentable)
+        XCTAssertFalse(VideoConformanceValidator.candidates(for: VideoStreamInfo(
+            codec: .h265, width: 1920, height: 1080, profileIDC: 1, levelTimesTen: 51,
+            chromaFormat: .yuv420, bitDepthLuma: 8, bitDepthChroma: 8, frameRate: 30,
+            isProgressive: true)).contains(.hevcH265MainProfileFragmentable))
     }
 
     func test_allowsMultipleFragments_isFalseForNonVideoSyntaxes() {

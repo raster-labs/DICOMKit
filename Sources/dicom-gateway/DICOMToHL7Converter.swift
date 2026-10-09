@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — DICOM side only: Patient's Name is read per PS3.5 2026a 6.2.1 (first component group, prefix/suffix order) via DICOMValueMapping; the HL7 v2 segments, fields and trigger events are not NEMA (plumbing; ADT^AA01 double prefix fixed)
 import Foundation
 import DICOMKit
 import DICOMCore
@@ -15,6 +16,9 @@ class DICOMToHL7Converter {
     
     func convertToADT(dicomFile: DICOMFile, eventType: String = "A01") throws -> HL7Message {
         let builder = HL7MessageBuilder()
+        // `--event-type` takes the trigger event as documented ("A01"); a bare "01" is also
+        // accepted. The former code prefixed another "A" and sent "ADT^AA01".
+        let event = Self.adtTriggerEvent(eventType)
         
         // MSH - Message Header
         _  = builder.addMSH(
@@ -22,14 +26,14 @@ class DICOMToHL7Converter {
             sendingFacility: "IMAGING",
             receivingApplication: "HIS",
             receivingFacility: "HOSPITAL",
-            messageType: "ADT^A\(eventType)",
+            messageType: "ADT^\(event)",
             messageControlId: UUID().uuidString.prefix(20).uppercased()
         )
         
         // EVN - Event Type
         let eventTimestamp = formatHL7Timestamp(Date())
         _  = builder.addSegment(id: "EVN", fields: [
-            "A\(eventType)",
+            event,
             eventTimestamp
         ])
         
@@ -277,14 +281,16 @@ class DICOMToHL7Converter {
         return date
     }
     
+    /// DICOM PN to HL7 XPN: first component group only, prefix and suffix swapped
+    /// (PS3.5 6.2.1 orders prefix before suffix; XPN has suffix at 4, prefix at 5).
     private func formatHL7Name(_ dicomName: String) -> String {
-        // DICOM format: LastName^FirstName^MiddleName^Prefix^Suffix
-        // HL7 format: LastName^FirstName^MiddleName^Suffix^Prefix
-        let components = dicomName.split(separator: "^", omittingEmptySubsequences: false)
-        if components.count >= 5 {
-            return "\(components[0])^\(components[1])^\(components[2])^\(components[4])^\(components[3])"
-        }
-        return dicomName
+        DICOMValueMapping.hl7XPN(fromDICOM: dicomName)
+    }
+    
+    /// ADT trigger event code: "A01" stays "A01"; "01" becomes "A01".
+    static func adtTriggerEvent(_ eventType: String) -> String {
+        let e = eventType.trimmingCharacters(in: .whitespaces).uppercased()
+        return e.hasPrefix("A") ? e : "A" + e
     }
     
     private func formatHL7Timestamp(_ date: Date) -> String {

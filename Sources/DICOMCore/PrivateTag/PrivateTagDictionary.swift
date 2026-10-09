@@ -35,6 +35,12 @@ public struct PrivateTagDefinition: Sendable, Hashable {
 /// Maps private creator IDs to their tag definitions.
 ///
 /// Reference: DICOM PS3.5 Section 7.8 - Private Data Elements
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the PS3.5 §7.8 citation is correct; the
+/// private-tag mechanism it describes is unchanged in 2026a. The vendor definitions below
+/// are outside NEMA's scope and were checked instead against the DCMTK private dictionary
+/// (dcmdata/data/private.dic) and, for SIEMENS MR HEADER, GDCM's privatedicts.xml. Eight
+/// entries that disagreed with both were corrected on 2026-09-25.
 public struct PrivateTagDictionary: Sendable {
     /// Private tag definitions indexed by creator ID
     private let definitions: [String: [Tag: PrivateTagDefinition]]
@@ -95,7 +101,7 @@ extension PrivateTagDictionary {
         defs[Tag(group: 0x0029, element: 0x1009)] = PrivateTagDefinition(
             tag: Tag(group: 0x0029, element: 0x1009),
             name: "CSA Image Header Version",
-            vr: .CS,
+            vr: .LO,
             description: "Version of CSA header format"
         )
         
@@ -116,7 +122,7 @@ extension PrivateTagDictionary {
         defs[Tag(group: 0x0029, element: 0x1019)] = PrivateTagDefinition(
             tag: Tag(group: 0x0029, element: 0x1019),
             name: "CSA Series Header Version",
-            vr: .CS,
+            vr: .LO,
             description: "Version of series CSA header"
         )
         
@@ -144,15 +150,22 @@ extension PrivateTagDictionary {
         
         defs[Tag(group: 0x0019, element: 0x100d)] = PrivateTagDefinition(
             tag: Tag(group: 0x0019, element: 0x100d),
-            name: "Diffusion Gradient Direction",
-            vr: .FD,
-            description: "Diffusion gradient direction vector"
+            name: "Diffusion Directionality",
+            vr: .CS,
+            description: "Diffusion directionality"
         )
         
         defs[Tag(group: 0x0019, element: 0x100e)] = PrivateTagDefinition(
             tag: Tag(group: 0x0019, element: 0x100e),
+            name: "Diffusion Gradient Direction",
+            vr: .FD,
+            description: "Diffusion gradient direction vector (VM 3)"
+        )
+        
+        defs[Tag(group: 0x0019, element: 0x100f)] = PrivateTagDefinition(
+            tag: Tag(group: 0x0019, element: 0x100f),
             name: "Gradient Mode",
-            vr: .CS,
+            vr: .SH,
             description: "Gradient mode"
         )
         
@@ -167,7 +180,7 @@ extension PrivateTagDictionary {
         defs[Tag(group: 0x0009, element: 0x1001)] = PrivateTagDefinition(
             tag: Tag(group: 0x0009, element: 0x1001),
             name: "Full Fidelity",
-            vr: .CS,
+            vr: .LO,
             description: "Full fidelity flag"
         )
         
@@ -195,9 +208,9 @@ extension PrivateTagDictionary {
         // GE Acquisition tags (group 0x0019, block 0x10)
         defs[Tag(group: 0x0019, element: 0x100f)] = PrivateTagDefinition(
             tag: Tag(group: 0x0019, element: 0x100f),
-            name: "Protocol Data Block",
-            vr: .OB,
-            description: "GE protocol data block"
+            name: "Horizontal Frame Of Reference",
+            vr: .DS,
+            description: "Horizontal frame of reference (the Protocol Data Block is (0025,xx1B) under GEMS_SERS_01)"
         )
         
         return PrivateTagDictionary(definitions: ["GEMS_ACQU_01": defs])
@@ -208,18 +221,25 @@ extension PrivateTagDictionary {
         var defs: [Tag: PrivateTagDefinition] = [:]
         
         // Philips private tags (group 0x2001, block 0x10)
-        defs[Tag(group: 0x2001, element: 0x1003)] = PrivateTagDefinition(
-            tag: Tag(group: 0x2001, element: 0x1003),
+        defs[Tag(group: 0x2001, element: 0x1001)] = PrivateTagDefinition(
+            tag: Tag(group: 0x2001, element: 0x1001),
             name: "Chemical Shift",
             vr: .FL,
             description: "Chemical shift value"
         )
         
+        defs[Tag(group: 0x2001, element: 0x1003)] = PrivateTagDefinition(
+            tag: Tag(group: 0x2001, element: 0x1003),
+            name: "Diffusion B-Factor",
+            vr: .FL,
+            description: "Diffusion b-factor"
+        )
+        
         defs[Tag(group: 0x2001, element: 0x1008)] = PrivateTagDefinition(
             tag: Tag(group: 0x2001, element: 0x1008),
-            name: "Stack Radial Angle",
-            vr: .FL,
-            description: "Stack radial angle"
+            name: "Phase Number",
+            vr: .IS,
+            description: "Phase number"
         )
         
         return PrivateTagDictionary(definitions: ["Philips Imaging DD 001": defs])

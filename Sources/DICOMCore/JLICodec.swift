@@ -3,7 +3,7 @@ import JLISwift
 
 /// JPEG codec backed by the JLISwift native-Swift JPEG package.
 ///
-/// Bridges DICOM pixel data (PS3.5 §A.4.1–A.4.3) to JLISwift's pure-Swift
+/// Bridges DICOM pixel data (PS3.5 §A.4.1, JPEG Image Compression) to JLISwift's pure-Swift
 /// implementation of ITU-T T.81 for all four DICOM JPEG transfer syntaxes —
 /// **both lossy and lossless**:
 ///
@@ -25,6 +25,7 @@ import JLISwift
 /// Pixel bridging: `JLIImage.data` is channel-interleaved `[UInt8]`, row-major,
 /// 16-bit samples little-endian — matching DICOM little-endian storage, so only
 /// planar→interleaved reshuffling (handled by `interleavedFrameBytes`) is needed.
+/// NEMA-verified: 2026a, checked 2026-10-01 — the four JPEG UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` admits a subset of PS3.5 2026a Tables 8.2.1-1/8.2.1-2: Baseline 8/8 (colour written YCbCr 4:2:2 = YBR_FULL_422, D190), Extended 8/8 or 16/12 monochrome only (Table 8.2.1-1 has no 3-sample .51 row), Lossless 8-or-16 allocated with 2–16 stored (the tables allow 1–16; 1 is a JLISwift limit), YBR_FULL_422 only with Baseline. The "§A.4.1–A.4.3" citation was narrowed to §A.4.1 (A.4.2 is RLE, A.4.3 JPEG-LS). The codec implements ITU-T T.81, outside DICOM.
 public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     /// All four DICOM JPEG transfer syntaxes can be decoded.
     public static let supportedTransferSyntaxes: [String] = [
@@ -89,7 +90,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     /// Constraints follow each JPEG process plus JLISwift's input rules:
     ///   • samples per pixel must be 1 (grayscale) or 3 (RGB);
     ///   • Baseline (.50): 8-bit unsigned only;
-    ///   • Extended (.51): ≤12-bit unsigned (the SOF1 precision ceiling);
+    ///   • Extended (.51): ≤12-bit unsigned (the SOF1 precision ceiling), monochrome only;
     ///   • Lossless (.57/.70): 2–16 bit, signed or unsigned (bytes preserved exactly);
     ///   • the lossy DCT path rejects signed samples (undefined level shift).
     public func canEncode(with configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Bool {
@@ -119,7 +120,10 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             // Process 1 — 8-bit baseline sequential.
             return descriptor.bitsAllocated == 8 && descriptor.bitsStored <= 8
         }
-        // Extended (Process 2 & 4) — up to 12-bit.
+        // Extended (Process 2 & 4) — up to 12-bit, monochrome only: PS3.5 2026a Table 8.2.1-1 has
+        // no 3-sample row for 1.2.840.10008.1.2.4.51 ("No other Standard Photometric
+        // Interpretation Values shall be used", 8.2.1).
+        guard descriptor.samplesPerPixel == 1 else { return false }
         guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else {
             return false
         }
@@ -173,7 +177,8 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                                      data: interleaved, isSigned: descriptor.isSigned)
             let cfg = encoderConfiguration(descriptor: descriptor, configuration: configuration,
                                            pixelFormat: pixelFormat)
-            return Data(try JLIEncoder().encode(image, configuration: cfg))
+            // JLISwift writes a JFIF APP0 segment; PS3.5 2026a 8.2.1 recommends it be absent (D190).
+            return JPEGInterchangeFormat.removingJFIFSegments(Data(try JLIEncoder().encode(image, configuration: cfg)))
         } catch {
             throw DICOMError.parsingFailed("JLISwift encode failed: \(error)")
         }
@@ -202,12 +207,16 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         // Lossy DCT — start from the tuned perceptual defaults, then force the
         // properties the DICOM JPEG processes mandate:
         //   • sequential, never progressive (Baseline/Extended are non-progressive);
-        //   • 4:4:4 chroma — no extra chrominance loss for diagnostic color.
+        //   • colour as YCbCr 4:2:2 — PS3.5 2026a Table 8.2.1-1 allows a 3-sample JPEG Baseline
+        //     stream only as YBR_FULL_422 or RGB (components stored as RGB). JLISwift's lossy
+        //     path always applies the RGB → YCbCr transform, so the stream is written 4:2:2 and
+        //     labelled YBR_FULL_422 by the transcoders (D190 / D-CORE-2). 4:4:4 YCbCr has no
+        //     valid label.
         // Sample precision (SOF0 8-bit vs SOF1 12-bit) follows the pixel format.
         var cfg = JLIEncoderConfiguration.default
         cfg.lossless = false
         cfg.progressive = false
-        cfg.chromaSubsampling = .yuv444
+        cfg.chromaSubsampling = descriptor.samplesPerPixel == 3 ? .yuv422 : .yuv444
         cfg.distance = nil
         cfg.quality = Self.jpegQuality(from: configuration.quality)
         return cfg

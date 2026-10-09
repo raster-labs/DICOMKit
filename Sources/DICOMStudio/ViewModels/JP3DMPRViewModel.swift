@@ -4,6 +4,8 @@
 // ViewModel for the JP3D MPR three-panel view.
 // Manages slice indices, crosshair synchronisation, window/level,
 // and slice image generation using JP3DMPRSliceExtractor.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — MONOCHROME1 is inverted after windowing, as PS3.3 2026a C.7.6.3.1.2 requires ("displayed as white after any VOI gray scale transformations"; quote text-checked); the rest is MPR view state
 
 import Foundation
 import Observation
@@ -274,11 +276,15 @@ public final class JP3DMPRViewModel {
         guard let raw = JP3DMPRSliceExtractor.extractSlice(from: vol, plane: plane, at: index) else {
             return nil
         }
-        return JP3DMPRSliceExtractor.applyWindowLevel(
+        let windowed = JP3DMPRSliceExtractor.applyWindowLevel(
             to: raw,
             windowCenter: windowCenter,
             windowWidth: windowWidth
         )
+        // MONOCHROME1: "The minimum sample value is intended to be displayed as
+        // white after any VOI gray scale transformations have been performed"
+        // (PS3.3 C.7.6.3.1.2) — invert after windowing, never the stored values.
+        return vol.isMonochrome1 ? EnterpriseRenderHelpers.invertBuffer(windowed) : windowed
     }
 
     /// Returns the current slice index for a given plane.

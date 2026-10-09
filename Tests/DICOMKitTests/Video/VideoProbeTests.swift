@@ -203,6 +203,31 @@ final class VideoProbeTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(result.frameRate), 25.0, accuracy: 0.001)
     }
 
+    /// D179: a raw MPEG-2 stream whose slice start code 0x07 also reads as an H.264
+    /// SPS NAL unit (type 7) is still MPEG-2: the sequence header (00 00 01 B3) is
+    /// checked first, and the stream is offered to MPEG2 MP@ML (PS3.5 2026a 8.2.5).
+    func test_probe_mpeg2ElementaryStreamIsNotTakenForH264() throws {
+        var stream = mpeg2ElementaryStream(frames: 1)
+        for slice in UInt8(1)...7 {
+            stream.append(contentsOf: [0x00, 0x00, 0x01, slice, 0x33, 0x00, 0x7D])
+            stream.append(contentsOf: [UInt8](repeating: 0xFF, count: 8))
+        }
+        XCTAssertNotNil(H264Parser.parseFirstSPS(annexB: stream),
+                        "fixture: slice 0x07 parses as an H.264 SPS, the case that was misreported")
+        let result = try VideoProbe.probe(stream)
+        XCTAssertEqual(result.container, .elementaryStream)
+        XCTAssertEqual(result.stream.codec, .mpeg2)
+        XCTAssertEqual(result.stream.width, 720)
+        XCTAssertEqual(result.stream.levelDescription, "Main")
+        XCTAssertEqual(result.suggestedTransferSyntax, .mpeg2MainProfile)
+
+        // D177: the MPEG-2 container is not constrained (8.2.5), so the raw stream is
+        // planned for encapsulation; an H.264 elementary stream is still refused (8.2.7).
+        let plan = try VideoWorkflow.planConversion(bitstream: stream)
+        XCTAssertEqual(plan.transferSyntax, .mpeg2MainProfile)
+        XCTAssertThrowsError(try VideoWorkflow.planConversion(bitstream: h264ElementaryStream(frames: 2)))
+    }
+
     func test_probe_detectsCodecByContentNotExtension() throws {
         // The same bytes are identified regardless of what a filename claims.
         let h264 = try VideoProbe.probe(h264ElementaryStream(frames: 3))

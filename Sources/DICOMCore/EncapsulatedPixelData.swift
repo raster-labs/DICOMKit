@@ -6,6 +6,12 @@ import Foundation
 /// Encapsulated pixel data consists of fragments stored in an Item/Delimiter structure.
 ///
 /// Reference: DICOM PS3.5 Section A.4 - Transfer Syntaxes For Encapsulation of Encoded Pixel Data
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — Basic Offset Table semantics (offsets to each
+/// frame's first Item Tag, counted from the first Item after the table) match PS3.5 2026a
+/// §A.4; Extended Offset Table semantics match PS3.3 2026a C.7.6.3.1.8, which uses the same
+/// reference point. The code treated Extended Offset Table values as header-less until
+/// 2026-09-25, which made every conformant table fail closed; fixed.
 public struct EncapsulatedPixelData: Sendable, Equatable {
     /// The Basic Offset Table containing byte offsets to each frame
     ///
@@ -126,9 +132,11 @@ public struct EncapsulatedPixelData: Sendable, Equatable {
 
     /// Builds a validated frame index, failing closed on inconsistent mappings
     ///
-    /// Resolution order (PS3.5 A.4 / C.7.6.3.1.8):
-    /// 1. Extended Offset Table when supplied — 64-bit byte offsets of each
-    ///    frame's first fragment within the (headerless) fragment stream.
+    /// Resolution order (PS3.5 A.4 / PS3.3 C.7.6.3.1.8):
+    /// 1. Extended Offset Table when supplied — 64-bit byte offsets to the first
+    ///    byte of the Item Tag of each frame's fragment, measured from the first
+    ///    Item Tag after the Basic Offset Table Item, so they include the 8-byte
+    ///    item headers exactly as Basic Offset Table offsets do (C.7.6.3.1.8).
     /// 2. Basic Offset Table — 32-bit offsets including 8-byte item headers.
     /// 3. One fragment per frame.
     /// 4. Single frame — all fragments.
@@ -138,15 +146,17 @@ public struct EncapsulatedPixelData: Sendable, Equatable {
     /// the wrong frame silently is never acceptable.
     ///
     /// - Parameter extendedOffsets: values of (7FE0,0001) Extended Offset Table,
-    ///   when present: byte offsets *excluding* item headers.
+    ///   when present. Until 2026-09-25 these were wrongly treated as excluding the
+    ///   item headers, so every conformant table failed closed.
     public func makeFrameIndex(extendedOffsets: [UInt64]? = nil) -> FrameIndex? {
         let frames = descriptor.numberOfFrames
         guard frames > 0, !fragments.isEmpty else { return nil }
 
-        // 1. Extended Offset Table: offsets exclude the 8-byte item headers.
+        // 1. Extended Offset Table: offsets point at each Item Tag, so they include
+        //    the 8-byte item headers (PS3.3 C.7.6.3.1.8).
         if let eot = extendedOffsets, eot.count >= frames {
             if let map = groupFragments(byFrameStartOffsets: eot.prefix(frames).map { Int($0) },
-                                        headerBytesPerFragment: 0) {
+                                        headerBytesPerFragment: 8) {
                 return FrameIndex(fragmentsPerFrame: map, source: .extendedOffsetTable)
             }
             return nil // EOT present but inconsistent — fail closed

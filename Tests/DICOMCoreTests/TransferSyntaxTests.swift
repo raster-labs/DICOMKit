@@ -406,8 +406,10 @@ struct TransferSyntaxCapabilityTests {
         #expect(lossy != nil)
         #expect(lossless?.isLossless == true)
         #expect(lossy?.isLossless == false)
-        #expect(lossless?.displayName == "JPEG 2000 Lossless")
-        #expect(lossy?.displayName == "JPEG 2000 Lossy")
+        #expect(lossless?.displayName == "JPEG 2000 Image Compression (lossless)")
+        #expect(lossy?.displayName == "JPEG 2000 Image Compression (lossy)")
+        #expect(lossless?.shortName == "JPEG 2000 Lossless")
+        #expect(lossy?.shortName == "JPEG 2000 Lossy")
         // Distinct identity so pickers/result maps can key on them independently.
         #expect(lossless?.id != lossy?.id)
         #expect(lossless?.id == "1.2.840.10008.1.2.4.91#lossless")
@@ -418,14 +420,18 @@ struct TransferSyntaxCapabilityTests {
         let row = TransferSyntax.selectableEncodings.first { $0.uid == "1.2.840.10008.1.2.4.90" }
         #expect(row?.intent == .notApplicable)
         #expect(row?.isLossless == true)
-        #expect(row?.displayName == "JPEG 2000 Lossless Only")
+        #expect(row?.displayName == "JPEG 2000 Image Compression (Lossless Only)")
     }
 
     @Test("Canonical HTJ2K display names")
     func testHTJ2KDisplayNames() {
-        #expect(TransferSyntax.htj2kLossless.displayName == "HTJ2K Lossless Only")
-        #expect(TransferSyntax.htj2kRPCLLossless.displayName == "HTJ2K Lossless Only (RPCL)")
-        #expect(TransferSyntax.htj2kLossy.displayName == "HTJ2K")
+        // PS3.6 2026a Table A-1 names (D176); the old labels are `shortName`.
+        #expect(TransferSyntax.htj2kLossless.displayName == "High-Throughput JPEG 2000 Image Compression (Lossless Only)")
+        #expect(TransferSyntax.htj2kRPCLLossless.displayName == "High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)")
+        #expect(TransferSyntax.htj2kLossy.displayName == "High-Throughput JPEG 2000 Image Compression")
+        #expect(TransferSyntax.htj2kLossless.shortName == "HTJ2K Lossless Only")
+        #expect(TransferSyntax.htj2kRPCLLossless.shortName == "HTJ2K Lossless Only (RPCL)")
+        #expect(TransferSyntax.htj2kLossy.shortName == "HTJ2K")
     }
 
     @Test("from(uid:) stays deterministic despite two rows sharing a UID")
@@ -472,5 +478,162 @@ struct TransferSyntaxCapabilityTests {
         // parseEncoding carries the intent split:
         #expect(TransferSyntax.parseEncoding("htj2k-lossless")?.uid == "1.2.840.10008.1.2.4.203")
         #expect(TransferSyntax.parseEncoding("htj2k-lossless")?.isLossless == true)
+    }
+}
+
+// MARK: - PS3.6 2026a Table A-1 registry completeness (Q2, 2026-09-25)
+
+@Suite("TransferSyntax registry vs PS3.6 2026a Table A-1")
+struct TransferSyntaxRegistryCompletenessTests {
+
+    @Test("allKnown covers every Transfer Syntax of Table A-1, plus exactly the 4 known non-registry UIDs")
+    func testCoversTableA1() {
+        let known = Set(TransferSyntax.allKnown.map(\.uid))
+        let registry = DICOMUniqueIdentifier.transferSyntaxUIDs
+        #expect(registry.subtracting(known).isEmpty, "missing: \(registry.subtracting(known).sorted())")
+        let extras = known.subtracting(registry)
+        #expect(extras == [TransferSyntax.jp3dLossless.uid, TransferSyntax.jp3dLossy.uid,
+                           TransferSyntax.hevcH265MainProfileFragmentable.uid,
+                           TransferSyntax.hevcH265Main10ProfileFragmentable.uid])
+    }
+
+    @Test("Every allKnown entry round-trips through from(uid:) and has a display name")
+    func testRoundTrip() {
+        for syntax in TransferSyntax.allKnown {
+            #expect(TransferSyntax.from(uid: syntax.uid)?.uid == syntax.uid)
+            #expect(syntax.displayName != syntax.description, Comment(rawValue: syntax.uid))
+        }
+        #expect(Set(TransferSyntax.allKnown.map(\.uid)).count == TransferSyntax.allKnown.count)
+    }
+
+    @Test("Retired syntaxes are flagged: Big Endian, 14 JPEG processes, MIME, XML, Papyrus")
+    func testRetired() {
+        let retired = TransferSyntax.allKnown.filter(\.isRetired)
+        #expect(retired.count == 18)
+        #expect(TransferSyntax.explicitVRBigEndian.isRetired)
+        #expect(TransferSyntax.papyrus3ImplicitVRLittleEndianRetired.isRetired)
+        #expect(!TransferSyntax.papyrus3ImplicitVRLittleEndianRetired.isExplicitVR)
+        #expect(!TransferSyntax.jpegBaseline.isRetired)
+        #expect(!TransferSyntax.encapsulatedUncompressedExplicitVRLittleEndian.isRetired)
+    }
+
+    @Test("New syntaxes carry the right encoding properties")
+    func testNewProperties() {
+        #expect(TransferSyntax.encapsulatedUncompressedExplicitVRLittleEndian.isEncapsulated)
+        #expect(TransferSyntax.encapsulatedUncompressedExplicitVRLittleEndian.isLossless)
+        #expect(TransferSyntax.deflatedImageFrameCompression.isEncapsulated)
+        #expect(TransferSyntax.deflatedImageFrameCompression.isLossless)
+        #expect(TransferSyntax.jpipHTJ2KReferencedDeflate.isDeflated)
+        #expect(!TransferSyntax.jpipHTJ2KReferenced.isEncapsulated)
+        #expect(TransferSyntax.jpegLosslessProcess15Retired.isLossless)
+        #expect(TransferSyntax.jpegExtendedProcess3And5Retired.lossyImageCompressionMethod == "ISO_10918_1")
+        #expect(TransferSyntax.jpegLosslessProcess15Retired.lossyImageCompressionMethod == nil)
+        #expect(TransferSyntax.from(uid: "1.2.840.10008.1.2.7.3")?.displayName == "SMPTE ST 2110-30 PCM Digital Audio")
+    }
+}
+
+// MARK: - PS3.6 2026a Table A-1 keywords in parse / parseEncoding (P-CONVERT-TS-KEYWORDS, 2026-10-01)
+
+@Suite("TransferSyntax.parse / parseEncoding: Table A-1 keywords select their Table A-1 UID")
+struct TransferSyntaxTableA1KeywordTests {
+
+    /// Every Transfer Syntax row of PS3.6 2026a Table A-1 (keyword → UID, 63 rows), dumped by
+    /// Scripts/nema_docbook.py from part06_2026a.xml.
+    static let tableA1: [String: String] = [
+        "ImplicitVRLittleEndian": "1.2.840.10008.1.2",
+        "ExplicitVRLittleEndian": "1.2.840.10008.1.2.1",
+        "EncapsulatedUncompressedExplicitVRLittleEndian": "1.2.840.10008.1.2.1.98",
+        "DeflatedExplicitVRLittleEndian": "1.2.840.10008.1.2.1.99",
+        "ExplicitVRBigEndian": "1.2.840.10008.1.2.2",
+        "MPEG2MPML": "1.2.840.10008.1.2.4.100",
+        "MPEG2MPMLF": "1.2.840.10008.1.2.4.100.1",
+        "MPEG2MPHL": "1.2.840.10008.1.2.4.101",
+        "MPEG2MPHLF": "1.2.840.10008.1.2.4.101.1",
+        "MPEG4HP41": "1.2.840.10008.1.2.4.102",
+        "MPEG4HP41F": "1.2.840.10008.1.2.4.102.1",
+        "MPEG4HP41BD": "1.2.840.10008.1.2.4.103",
+        "MPEG4HP41BDF": "1.2.840.10008.1.2.4.103.1",
+        "MPEG4HP422D": "1.2.840.10008.1.2.4.104",
+        "MPEG4HP422DF": "1.2.840.10008.1.2.4.104.1",
+        "MPEG4HP423D": "1.2.840.10008.1.2.4.105",
+        "MPEG4HP423DF": "1.2.840.10008.1.2.4.105.1",
+        "MPEG4HP42STEREO": "1.2.840.10008.1.2.4.106",
+        "MPEG4HP42STEREOF": "1.2.840.10008.1.2.4.106.1",
+        "HEVCMP51": "1.2.840.10008.1.2.4.107",
+        "HEVCM10P51": "1.2.840.10008.1.2.4.108",
+        "JPEGXLLossless": "1.2.840.10008.1.2.4.110",
+        "JPEGXLJPEGRecompression": "1.2.840.10008.1.2.4.111",
+        "JPEGXL": "1.2.840.10008.1.2.4.112",
+        "HTJ2KLossless": "1.2.840.10008.1.2.4.201",
+        "HTJ2KLosslessRPCL": "1.2.840.10008.1.2.4.202",
+        "HTJ2K": "1.2.840.10008.1.2.4.203",
+        "JPIPHTJ2KReferenced": "1.2.840.10008.1.2.4.204",
+        "JPIPHTJ2KReferencedDeflate": "1.2.840.10008.1.2.4.205",
+        "JPEGBaseline8Bit": "1.2.840.10008.1.2.4.50",
+        "JPEGExtended12Bit": "1.2.840.10008.1.2.4.51",
+        "JPEGExtended35": "1.2.840.10008.1.2.4.52",
+        "JPEGSpectralSelectionNonHierarchical68": "1.2.840.10008.1.2.4.53",
+        "JPEGSpectralSelectionNonHierarchical79": "1.2.840.10008.1.2.4.54",
+        "JPEGFullProgressionNonHierarchical1012": "1.2.840.10008.1.2.4.55",
+        "JPEGFullProgressionNonHierarchical1113": "1.2.840.10008.1.2.4.56",
+        "JPEGLossless": "1.2.840.10008.1.2.4.57",
+        "JPEGLosslessNonHierarchical15": "1.2.840.10008.1.2.4.58",
+        "JPEGExtendedHierarchical1618": "1.2.840.10008.1.2.4.59",
+        "JPEGExtendedHierarchical1719": "1.2.840.10008.1.2.4.60",
+        "JPEGSpectralSelectionHierarchical2022": "1.2.840.10008.1.2.4.61",
+        "JPEGSpectralSelectionHierarchical2123": "1.2.840.10008.1.2.4.62",
+        "JPEGFullProgressionHierarchical2426": "1.2.840.10008.1.2.4.63",
+        "JPEGFullProgressionHierarchical2527": "1.2.840.10008.1.2.4.64",
+        "JPEGLosslessHierarchical28": "1.2.840.10008.1.2.4.65",
+        "JPEGLosslessHierarchical29": "1.2.840.10008.1.2.4.66",
+        "JPEGLosslessSV1": "1.2.840.10008.1.2.4.70",
+        "JPEGLSLossless": "1.2.840.10008.1.2.4.80",
+        "JPEGLSNearLossless": "1.2.840.10008.1.2.4.81",
+        "JPEG2000Lossless": "1.2.840.10008.1.2.4.90",
+        "JPEG2000": "1.2.840.10008.1.2.4.91",
+        "JPEG2000MCLossless": "1.2.840.10008.1.2.4.92",
+        "JPEG2000MC": "1.2.840.10008.1.2.4.93",
+        "JPIPReferenced": "1.2.840.10008.1.2.4.94",
+        "JPIPReferencedDeflate": "1.2.840.10008.1.2.4.95",
+        "RLELossless": "1.2.840.10008.1.2.5",
+        "RFC2557MIMEEncapsulation": "1.2.840.10008.1.2.6.1",
+        "XMLEncoding": "1.2.840.10008.1.2.6.2",
+        "SMPTEST211020UncompressedProgressiveActiveVideo": "1.2.840.10008.1.2.7.1",
+        "SMPTEST211020UncompressedInterlacedActiveVideo": "1.2.840.10008.1.2.7.2",
+        "SMPTEST211030PCMDigitalAudio": "1.2.840.10008.1.2.7.3",
+        "DeflatedImageFrameCompression": "1.2.840.10008.1.2.8.1",
+        "Papyrus3ImplicitVRLittleEndian": "1.2.840.10008.1.20",
+    ]
+
+    @Test("Every Table A-1 keyword parse accepts resolves to its Table A-1 UID")
+    func everyAcceptedKeyword() {
+        var accepted = 0
+        for (keyword, uid) in Self.tableA1 {
+            guard let ts = TransferSyntax.parse(keyword) else { continue }
+            accepted += 1
+            #expect(ts.uid == uid, "\(keyword)")
+            #expect(TransferSyntax.parseEncoding(keyword)?.transferSyntax.uid == uid, "\(keyword) (parseEncoding)")
+        }
+        #expect(accepted >= 21)
+    }
+
+    @Test("JPEG2000Lossless / HTJ2KLossless / JPEGXLLossless select .90 / .201 / .110; …Reversible the old meaning")
+    func reassigned() throws {
+        #expect(TransferSyntax.reassignedTableA1Keywords.count == 3)
+        for row in TransferSyntax.reassignedTableA1Keywords {
+            #expect(Self.tableA1[row.keyword] == row.uid, "\(row.keyword)")
+            let enc = try #require(TransferSyntax.parseEncoding(row.keyword))
+            #expect(enc.transferSyntax.uid == row.uid)
+            #expect(enc.isLossless)
+            let old = try #require(TransferSyntax.parseEncoding(row.reversibleName))
+            #expect(old.transferSyntax.uid == row.generalUID)
+            #expect(old.intent == .lossless)
+            let note = try #require(TransferSyntax.reassignedKeywordNote(for: row.keyword.uppercased()))
+            #expect(note.contains(row.uid) && note.contains(row.name) && note.contains(row.reversibleName))
+        }
+        // The kebab aliases keep their meaning.
+        #expect(TransferSyntax.parseEncoding("jpeg2000-lossless")?.uid == "1.2.840.10008.1.2.4.91")
+        #expect(TransferSyntax.parseEncoding("htj2k-lossless")?.uid == "1.2.840.10008.1.2.4.203")
+        #expect(TransferSyntax.reassignedKeywordNote(for: "jpeg2000-lossless") == nil)
     }
 }

@@ -30,9 +30,10 @@ final class PDFRoundTripTests: XCTestCase {
         title: String? = nil,
         seriesDescription: String? = nil,
         seriesNumber: Int? = nil,
-        instanceNumber: Int? = nil
+        instanceNumber: Int? = nil,
+        hl7InstanceIdentifier: String? = nil
     ) throws -> (parsed: EncapsulatedDocument, file: DICOMFile, bytes: Data) {
-        let builder = EncapsulatedDocumentBuilder(
+        var builder = EncapsulatedDocumentBuilder(
             documentData: data,
             mimeType: type.expectedMIMEType,
             documentType: type,
@@ -48,6 +49,11 @@ final class PDFRoundTripTests: XCTestCase {
             seriesNumber: seriesNumber,
             instanceNumber: instanceNumber
         )
+        // HL7 Instance Identifier (0040,E001) is Type 1C, "Required if
+        // encapsulated document is a CDA document" (PS3.3 Table C.24-2).
+        if let hl7InstanceIdentifier {
+            builder = builder.setHL7InstanceIdentifier(hl7InstanceIdentifier)
+        }
         let dataSet = try builder.buildDataSet()
         let dicomFile = DICOMFile.create(
             dataSet: dataSet,
@@ -124,35 +130,40 @@ final class PDFRoundTripTests: XCTestCase {
         XCTAssertEqual(rt.parsed.mimeType, "application/pdf")
     }
 
-    // Oracle: nil optional fields (title/seriesDescription/seriesNumber/instanceNumber)
-    // never appear in the serialized dataset, and required fields carry the correct VR.
-    func testOmittedOptionalFieldsAbsent() throws {
+    // Oracle: attributes the caller did not set are written as their Type requires
+    // (PS3.3 2026a Tables C.24-1, C.24-2): Series Number and Instance Number are
+    // Type 1 and default to 1; Document Title is Type 2, present and empty
+    // (PS3.5 7.4.3); Series Description is Type 3 and stays absent. Required fields
+    // carry the correct VR.
+    func testUnsetFieldsFollowTheirType() throws {
         let rt = try roundTrip(data: minimalPDF(), type: .pdf)
-        XCTAssertNil(rt.parsed.documentTitle)
         XCTAssertNil(rt.parsed.seriesDescription)
-        XCTAssertNil(rt.parsed.seriesNumber)
-        XCTAssertNil(rt.parsed.instanceNumber)
-        XCTAssertNil(rt.file.dataSet[.documentTitle])
-        XCTAssertNil(rt.file.dataSet[.seriesNumber])
-        XCTAssertNil(rt.file.dataSet[.instanceNumber])
+        XCTAssertEqual(rt.parsed.seriesNumber, 1)
+        XCTAssertEqual(rt.parsed.instanceNumber, 1)
+        XCTAssertEqual(rt.file.dataSet[.documentTitle]?.length, 0, "Type 2: present, empty")
+        XCTAssertEqual(rt.parsed.documentTitle ?? "", "")
+        XCTAssertNil(rt.file.dataSet[.seriesDescription])
         // Present required fields serialize with their correct VR.
         XCTAssertEqual(rt.file.dataSet[.patientName]?.vr, .PN)
         XCTAssertEqual(rt.file.dataSet[.patientID]?.vr, .LO)
         XCTAssertEqual(rt.file.dataSet[.modality]?.vr, .CS)
     }
 
-    // Oracle: a CDA (XML) document round-trips byte-exact with the CDA SOP class + text/xml MIME.
+    // Oracle: a CDA (XML) document round-trips byte-exact with the CDA SOP class + text/XML MIME.
     func testWrapExtractCDABytesIdentical() throws {
         let xml = Data("<ClinicalDocument>hello</ClinicalDocument>".utf8)
         let rt = try roundTrip(
             data: xml,
             type: .cda,
-            title: "Discharge Summary"
+            title: "Discharge Summary",
+            hl7InstanceIdentifier: "2.16.840.1.113883.19.999.1"
         )
         XCTAssertEqual(rt.parsed.documentData, xml)
         XCTAssertEqual(rt.parsed.documentType, .cda)
         XCTAssertEqual(rt.parsed.sopClassUID, "1.2.840.10008.5.1.4.1.1.104.2")
-        XCTAssertEqual(rt.parsed.mimeType, "text/xml")
+        // PS3.3 A.45.2.4: MIME Type of Encapsulated Document is Enumerated "text/XML"
+        // (the attribute value; `expectedMIMEType` is the media type for extraction).
+        XCTAssertEqual(rt.parsed.mimeType, "text/XML")
         XCTAssertEqual(rt.file.sopClassUID, "1.2.840.10008.5.1.4.1.1.104.2")
     }
 
@@ -160,7 +171,8 @@ final class PDFRoundTripTests: XCTestCase {
     func testMIMETypeMapping() {
         XCTAssertEqual(EncapsulatedDocumentType.pdf.expectedMIMEType, "application/pdf")
         XCTAssertEqual(EncapsulatedDocumentType.cda.expectedMIMEType, "text/xml")
-        XCTAssertEqual(EncapsulatedDocumentType.stl.expectedMIMEType, "application/sla")
+        // PS3.3 A.85.1.4.2: MIME Type of Encapsulated Document is Enumerated "model/stl".
+        XCTAssertEqual(EncapsulatedDocumentType.stl.expectedMIMEType, "model/stl")
         XCTAssertEqual(EncapsulatedDocumentType.obj.expectedMIMEType, "model/obj")
         XCTAssertEqual(EncapsulatedDocumentType.mtl.expectedMIMEType, "model/mtl")
     }
@@ -195,14 +207,14 @@ final class PDFRoundTripTests: XCTestCase {
     }
 
     // Oracle: an STL (3D model) payload round-trips byte-exact with the STL SOP class,
-    // application/sla MIME, and the M3D default modality.
+    // model/stl MIME (A.85.1.4.2), and the M3D default modality.
     func testWrapExtractSTLBytesIdentical() throws {
         let stl = Data((0..<512).map { UInt8($0 % 256) })
         let rt = try roundTrip(data: stl, type: .stl)
         XCTAssertEqual(rt.parsed.documentData, stl)
         XCTAssertEqual(rt.parsed.documentType, .stl)
         XCTAssertEqual(rt.parsed.sopClassUID, "1.2.840.10008.5.1.4.1.1.104.3")
-        XCTAssertEqual(rt.parsed.mimeType, "application/sla")
+        XCTAssertEqual(rt.parsed.mimeType, "model/stl")
         XCTAssertEqual(rt.parsed.modality, "M3D")
     }
 

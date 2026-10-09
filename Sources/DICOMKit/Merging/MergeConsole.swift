@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-30 — carries no DICOM-standard data (console output; the MONOCHROME1/MONOCHROME2 terms it prints come from the conversion in Monochrome1Conversion.swift)
 import Foundation
 
 /// Console lines and validation messages for `dicom-merge` — the single source of
@@ -105,6 +106,12 @@ public enum MergeConsole {
     /// Verbose line when the inputs were concatenation parts and were reassembled.
     public static func concatenationReassembledLine(parts: Int, frames: Int, sopInstanceUID: String) -> String {
         "Reassembled concatenation: \(parts) part(s), \(frames) frame(s) -> \(sopInstanceUID)"
+    }
+
+    /// Verbose line when MONOCHROME1 frames were inverted to MONOCHROME2 for a target
+    /// that allows only MONOCHROME2.
+    public static func monochrome1ConvertedLine(frames: Int) -> String {
+        "Converted \(frames) MONOCHROME1 frame(s) to MONOCHROME2 (pixel values and window inverted)"
     }
 
     /// Verbose line for the legacy multi-frame targets (US / SC multi-frame).

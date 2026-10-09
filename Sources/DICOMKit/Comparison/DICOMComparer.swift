@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — Pixel Data compared per Pixel Sample Value (Bits Allocated / Bits Stored / High Bit / Pixel Representation, PS3.5 2026a 8.1.1; Planar Configuration, PS3.3 C.7.6.3.1.3; encapsulated data decoded, PS3.5 8.2) (D153); --ignore-private applies inside Sequence Items (PS3.5 7.8, D152)
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -138,8 +139,10 @@ public struct DICOMComparer {
     }
 
     private func areSequenceItemsEqual(_ item1: SequenceItem, _ item2: SequenceItem) -> Bool {
-        let tags1 = Set(item1.elements.keys)
-        let tags2 = Set(item2.elements.keys)
+        // --ignore-private applies at every nesting level: Private Data Elements (and
+        // their Private Creators) inside Items are skipped too (PS3.5 7.8, D152).
+        let tags1 = Set(item1.elements.keys.filter { !(ignorePrivate && $0.isPrivate) })
+        let tags2 = Set(item2.elements.keys.filter { !(ignorePrivate && $0.isPrivate) })
 
         guard tags1 == tags2 else {
             return false
@@ -156,45 +159,123 @@ public struct DICOMComparer {
         return true
     }
 
+    /// Compares Pixel Data sample by sample (D153).
+    ///
+    /// Both files are decoded (`DICOMFile.pixelData()`, which decompresses encapsulated
+    /// Pixel Data, PS3.5 8.2 / A.4) and each Pixel Sample Value is read from its Pixel
+    /// Cell per Bits Allocated, Bits Stored, High Bit and Pixel Representation (PS3.5
+    /// 2026a 8.1.1), in frame / pixel / sample order whatever the Planar Configuration
+    /// (PS3.3 C.7.6.3.1.3). `--tolerance`, the maximum and the mean are in sample values;
+    /// "Different pixels" counts the pixels with at least one differing sample. When
+    /// either file cannot be decoded the raw Pixel Data bytes are compared as before.
     private func comparePixelData(_ ds1: DataSet, _ ds2: DataSet) throws -> PixelDifference? {
         guard let pixelElem1 = ds1[Tag.pixelData],
               let pixelElem2 = ds2[Tag.pixelData] else {
             return nil
         }
+        if let pixels1 = file1.pixelData(), let pixels2 = file2.pixelData(),
+           let samples1 = SampleReader(pixels1), let samples2 = SampleReader(pixels2) {
+            return Self.compareSamples(samples1, samples2)
+        }
+        return Self.compareBytes(pixelElem1.valueData, pixelElem2.valueData)
+    }
 
-        let pixelData1 = pixelElem1.valueData
-        let pixelData2 = pixelElem2.valueData
+    /// Per-sample statistics over two decoded images.
+    static func compareSamples(_ a: SampleReader, _ b: SampleReader) -> PixelDifference {
+        let common = min(a.pixelCount, b.pixelCount)
+        let commonSpp = min(a.samplesPerPixel, b.samplesPerPixel)
+        var maxDiff: Double = 0
+        var totalDiff: Double = 0
+        var diffSamples = 0
+        var diffPixels = 0
+        for pixel in 0..<common {
+            var pixelDiffers = a.samplesPerPixel != b.samplesPerPixel
+            for sample in 0..<commonSpp {
+                let diff = abs(Double(a.value(pixel: pixel, sample: sample)) - Double(b.value(pixel: pixel, sample: sample)))
+                if diff > 0 {
+                    maxDiff = max(maxDiff, diff)
+                    totalDiff += diff
+                    diffSamples += 1
+                    pixelDiffers = true
+                }
+            }
+            if pixelDiffers { diffPixels += 1 }
+        }
+        // Pixels present in one image only are different.
+        let total = max(a.pixelCount, b.pixelCount)
+        diffPixels += total - common
+        return PixelDifference(
+            maxDifference: maxDiff,
+            meanDifference: diffSamples > 0 ? totalDiff / Double(diffSamples) : 0,
+            differentPixelCount: diffPixels,
+            totalPixels: total
+        )
+    }
 
-        // Simple byte comparison for now
-        let minLength = min(pixelData1.count, pixelData2.count)
-
+    /// The pre-D153 byte comparison, kept for Pixel Data that cannot be decoded.
+    static func compareBytes(_ pixelData1: Data, _ pixelData2: Data) -> PixelDifference {
+        let bytes1 = [UInt8](pixelData1), bytes2 = [UInt8](pixelData2)
+        let minLength = min(bytes1.count, bytes2.count)
         var maxDiff: Double = 0
         var totalDiff: Double = 0
         var diffCount = 0
-
         for i in 0..<minLength {
-            let diff = abs(Double(pixelData1[i]) - Double(pixelData2[i]))
+            let diff = abs(Double(bytes1[i]) - Double(bytes2[i]))
             if diff > 0 {
                 maxDiff = max(maxDiff, diff)
                 totalDiff += diff
                 diffCount += 1
             }
         }
-
-        // Account for different lengths
-        if pixelData1.count != pixelData2.count {
-            diffCount += abs(pixelData1.count - pixelData2.count)
-        }
-
-        let totalPixels = max(pixelData1.count, pixelData2.count)
         let meanDiff = diffCount > 0 ? totalDiff / Double(diffCount) : 0
-
+        diffCount += abs(bytes1.count - bytes2.count)
         return PixelDifference(
             maxDifference: maxDiff,
             meanDifference: meanDiff,
             differentPixelCount: diffCount,
-            totalPixels: totalPixels
+            totalPixels: max(bytes1.count, bytes2.count)
         )
+    }
+
+    /// Reads Pixel Sample Values out of native (decoded) Pixel Data.
+    struct SampleReader {
+        let bytes: [UInt8]
+        let descriptor: PixelDataDescriptor
+        let pixelCount: Int
+        var samplesPerPixel: Int { descriptor.samplesPerPixel }
+
+        init?(_ pixels: PixelData) {
+            let d = pixels.descriptor
+            guard [1, 8, 16, 32].contains(d.bitsAllocated), d.samplesPerPixel >= 1,
+                  d.bitsStored >= 1, d.bitsStored <= d.bitsAllocated,
+                  d.rows > 0, d.columns > 0 else { return nil }
+            let bytes = [UInt8](pixels.data)
+            let samples = d.pixelsPerFrame * d.numberOfFrames * d.samplesPerPixel
+            let needed = d.bitsAllocated == 1 ? (samples + 7) / 8 : samples * d.bytesPerSample
+            guard bytes.count >= needed else { return nil }
+            self.bytes = bytes
+            self.descriptor = d
+            self.pixelCount = d.pixelsPerFrame * d.numberOfFrames
+        }
+
+        /// The Pixel Sample Value of `sample` of pixel `pixel` (frames concatenated).
+        func value(pixel: Int, sample: Int) -> Int {
+            let d = descriptor
+            let frame = pixel / d.pixelsPerFrame
+            let inFrame = pixel % d.pixelsPerFrame
+            // Index of the sample in Pixel Data order (PS3.3 C.7.6.3.1.3).
+            let samplesPerFrame = d.pixelsPerFrame * d.samplesPerPixel
+            let index = frame * samplesPerFrame + (d.planarConfiguration == 1
+                ? sample * d.pixelsPerFrame + inFrame
+                : inFrame * d.samplesPerPixel + sample)
+            if d.bitsAllocated == 1 {
+                // PS3.5 8.1.1 / D.1: single-bit cells packed from the least significant bit.
+                return Int((bytes[index / 8] >> UInt8(index % 8)) & 1)
+            }
+            let offset = index * d.bytesPerSample
+            let cell = bytes.withUnsafeBytes { d.cellValue(in: $0, at: offset) }
+            return d.storedValue(fromCell: cell)
+        }
     }
 }
 

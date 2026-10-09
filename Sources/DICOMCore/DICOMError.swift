@@ -1,12 +1,16 @@
 import Foundation
 
 /// Errors that can occur during DICOM parsing and processing
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the only standard facts here are the 128-byte
+/// preamble and the 4-byte "DICM" prefix, both from PS3.10 2026a §7.1 "DICOM File Meta
+/// Information". No other standard data. C1 classification confirmed.
 public enum DICOMError: Error, Sendable {
     /// Invalid or missing 128-byte preamble
     ///
     /// Reference: PS3.10 Section 7.1 - DICOM File Meta Information
     case invalidPreamble
-    
+
     /// Invalid or missing "DICM" prefix after preamble
     ///
     /// Reference: PS3.10 Section 7.1 - DICOM File Meta Information
@@ -20,8 +24,10 @@ public enum DICOMError: Error, Sendable {
     
     /// Unsupported Transfer Syntax UID
     ///
-    /// v0.1 supports Explicit VR Little Endian (1.2.840.10008.1.2.1)
-    /// and Implicit VR Little Endian (1.2.840.10008.1.2)
+    /// The Transfer Syntax UID in the File Meta Information names a syntax whose
+    /// data-set encoding this library cannot parse. The registered syntaxes are
+    /// those of `TransferSyntax`; pixel-data codec availability is a separate
+    /// question, reported through `PixelDataError.unsupportedTransferSyntax`.
     case unsupportedTransferSyntax(String)
     
     /// Invalid tag structure or value

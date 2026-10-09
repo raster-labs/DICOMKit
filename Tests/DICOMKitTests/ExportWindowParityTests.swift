@@ -6,10 +6,12 @@ import CoreGraphics
 #endif
 
 /// Regression: dicom-export must window an image the same way the on-screen viewer
-/// does. Both apply the file's VOI Window Center/Width converted from output (HU)
-/// units to stored-pixel space via Rescale Slope/Intercept. A CT with a non-zero
-/// Rescale Intercept previously exported washed-out / near-blank because
-/// `determineWindowSettings` used the raw HU window directly on stored values.
+/// does. Both apply the file's VOI Window Center/Width after the Modality LUT /
+/// Rescale Slope/Intercept (PS3.3 C.11.2.1.2.1). A CT with a non-zero Rescale
+/// Intercept previously exported washed-out / near-blank because the HU window was
+/// applied directly to stored values. The deprecated stored-unit
+/// `determineWindowSettings` is still pinned here (its callers in DICOMStudio consume
+/// it until that module is rewired to `determineModalityWindow`, A6 / D65).
 final class ExportWindowParityTests: XCTestCase {
 
     /// 32×32 16-bit MONOCHROME2 CT-like frame with Rescale Intercept −1024,
@@ -47,6 +49,7 @@ final class ExportWindowParityTests: XCTestCase {
 
     /// determineWindowSettings converts the HU window (40/400) to stored space using
     /// the −1024 intercept → center 1064, width 400.
+    @available(*, deprecated)
     func testWindowConvertedToStoredSpace() throws {
         let file = try makeFile()
         let pd = try XCTUnwrap(file.pixelData())
@@ -68,6 +71,7 @@ final class ExportWindowParityTests: XCTestCase {
     /// `windowSettings()` parses only a single DS and returns nil for these files,
     /// so reading it alone silently discarded the VOI and auto-stretched the full
     /// pixel range instead — a flat render that disagreed with the viewer.
+    @available(*, deprecated)
     func testFirstOfSeveralWindowsIsUsed() throws {
         var els = ctElements().filter { $0.tag != .windowCenter && $0.tag != .windowWidth }
         els.append(.string(tag: .windowCenter, vr: .DS, value: "-600\\50"))
@@ -87,15 +91,12 @@ final class ExportWindowParityTests: XCTestCase {
     }
 
     /// The exported raster (default + apply-window) must equal the viewer's render
-    /// (file VOI window, rescale-adjusted).
+    /// (file VOI window in modality units, applied after the rescale — D243).
     func testExportMatchesViewerRender() throws {
         #if canImport(CoreGraphics)
         let file = try makeFile()
         let pd = try XCTUnwrap(file.pixelData())
-        let slope = file.rescaleSlope(); let intercept = file.rescaleIntercept()
-        let stored = try XCTUnwrap(file.windowSettings())
-        let viewerWindow = WindowSettings(center: (stored.center - intercept) / slope,
-                                          width: stored.width / abs(slope))
+        let viewerWindow = try XCTUnwrap(file.windowSettings())
 
         let viewer = try XCTUnwrap(file.renderFrame(0, window: viewerWindow))
         let exportDefault = try DICOMImageExporter.renderFrameForExport(

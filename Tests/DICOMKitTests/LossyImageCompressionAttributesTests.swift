@@ -140,7 +140,7 @@ final class LossyImageCompressionAttributesTests: XCTestCase {
         let info = try mgr.getCompressionInfo(data: out)
         XCTAssertEqual(info.transferSyntaxUID, "1.2.840.10008.1.2.4.91")
         XCTAssertTrue(info.isLossless, "reversible .91 must report lossless")
-        XCTAssertEqual(info.transferSyntaxName, "JPEG 2000 Lossless")
+        XCTAssertEqual(info.transferSyntaxName, "JPEG 2000 Image Compression (lossless)")  // PS3.6 Table A-1 name + intent (D176)
     }
 
     /// A lossy general (.91) file sets (0028,2110)="01", so it must report lossy.
@@ -151,7 +151,7 @@ final class LossyImageCompressionAttributesTests: XCTestCase {
         let info = try mgr.getCompressionInfo(data: out)
         XCTAssertEqual(info.transferSyntaxUID, "1.2.840.10008.1.2.4.91")
         XCTAssertFalse(info.isLossless, "lossy .91 must report lossy")
-        XCTAssertEqual(info.transferSyntaxName, "JPEG 2000 Lossy")
+        XCTAssertEqual(info.transferSyntaxName, "JPEG 2000 Image Compression (lossy)")
     }
 
     /// The reversible-only UID (.90) is authoritative on its own — no 0028,2110 needed.

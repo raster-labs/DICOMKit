@@ -3,6 +3,9 @@
 //
 // DICOM Studio — Data models for Archive Management (dicom-archive)
 // Reference: DICOM PS3.10 (Media Storage and File Format)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (dicom-archive index entries, options
+// and search fields; `indexVersion` is dicom-archive's).
 
 import Foundation
 

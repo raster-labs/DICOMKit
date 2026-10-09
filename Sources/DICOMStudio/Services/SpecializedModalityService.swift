@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Service for Specialized Modality state management
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (thread-safe display state over the SpecializedModalityModel types verified there)
 
 import Foundation
 

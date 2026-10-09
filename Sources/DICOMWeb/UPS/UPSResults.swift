@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-10-01 — WorkitemResult keeps the DICOM JSON object (PS3.18 F.2, D213) and takes the requested UID when a Retrieve Workitem response has no SOP Instance UID (PS3.4 2026a Table CC.2.5-3 N-GET "Not allowed"); checked 2026-09-28 — the 19 tags diffed against PS3.6 2026a Table 6-1; the Transaction UID a server returns is read but PS3.18 11.5.2 says it is not returned
 // MARK: - UPSQueryResult
 
 /// Result from a UPS-RS workitem search query
@@ -139,6 +140,19 @@ public struct WorkitemResult: Sendable, Equatable {
     /// Transaction UID (0008,1195)
     public let transactionUID: String?
     
+    // MARK: - DICOM JSON
+    
+    /// The workitem's DICOM JSON Model object (PS3.18 2026a F.2) as the origin server sent
+    /// it, serialized; nil for a result built in code. Kept so that a renderer can produce
+    /// `dicom-json` from the parsed result (D213).
+    public let dicomJSON: Data?
+    
+    /// The DICOM JSON Model object of `dicomJSON`, or nil when there is none.
+    public var attributes: [String: Any]? {
+        guard let dicomJSON else { return nil }
+        return (try? JSONSerialization.jsonObject(with: dicomJSON)) as? [String: Any]
+    }
+    
     // MARK: - Initialization
     
     /// Creates a workitem result with required and optional attributes
@@ -161,7 +175,8 @@ public struct WorkitemResult: Sendable, Equatable {
         studyInstanceUID: String? = nil,
         accessionNumber: String? = nil,
         referringPhysicianName: String? = nil,
-        transactionUID: String? = nil
+        transactionUID: String? = nil,
+        dicomJSON: Data? = nil
     ) {
         self.workitemUID = workitemUID
         self.state = state
@@ -182,6 +197,7 @@ public struct WorkitemResult: Sendable, Equatable {
         self.accessionNumber = accessionNumber
         self.referringPhysicianName = referringPhysicianName
         self.transactionUID = transactionUID
+        self.dicomJSON = dicomJSON
     }
 }
 
@@ -244,8 +260,15 @@ extension WorkitemResult {
     /// - Parameter json: The DICOM JSON object
     /// - Returns: Parsed workitem result, or nil if parsing fails
     public static func parse(json: [String: Any]) -> WorkitemResult? {
-        // SOP Instance UID is required
-        guard let workitemUID = extractString(from: json, tag: Tag.sopInstanceUID) else {
+        parse(json: json, requestedUID: nil)
+    }
+
+    /// `requestedUID`: the workitem UID of a Retrieve Workitem request (PS3.18 11.5). Its
+    /// response follows the N-GET column of PS3.4 Table CC.2.5-3, where SOP Instance UID
+    /// (0008,0018) is "Not allowed" (conveyed in the request), so the requested UID stands in.
+    static func parse(json: [String: Any], requestedUID: String?) -> WorkitemResult? {
+        // SOP Instance UID is required (a Search result always carries it, Return Key Type 1)
+        guard let workitemUID = extractString(from: json, tag: Tag.sopInstanceUID) ?? requestedUID else {
             return nil
         }
         
@@ -280,7 +303,8 @@ extension WorkitemResult {
             studyInstanceUID: extractString(from: json, tag: Tag.studyInstanceUID),
             accessionNumber: extractString(from: json, tag: Tag.accessionNumber),
             referringPhysicianName: extractPersonName(from: json, tag: Tag.referringPhysicianName),
-            transactionUID: extractString(from: json, tag: Tag.transactionUID)
+            transactionUID: extractString(from: json, tag: Tag.transactionUID),
+            dicomJSON: try? JSONSerialization.data(withJSONObject: json)
         )
     }
     

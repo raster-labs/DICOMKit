@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Dose Units, Dose Type, Dose Summation Type, Tissue Heterogeneity Correction per PS3.3 2026a Table C.8-39; DVH Type, DVH Volume Units per Table C.8-40
 //
 // RTDose.swift
 // DICOMKit
@@ -27,17 +28,35 @@ public struct RTDose: Sendable {
     /// SOP Class UID (should be RT Dose Storage: 1.2.840.10008.5.1.4.1.1.481.2)
     public let sopClassUID: String
     
-    /// Dose Comment
+    /// Dose Comment (3004,0006)
     public let comment: String?
-    
-    /// Dose Summation Type (PLAN, MULTI_PLAN, FRACTION, BEAM, BRACHY, etc.)
+
+    /// Dose Summation Type (3004,000A) as written in the data set.
+    /// Standard terms: see ``DoseSummationType`` (PS3.3 Table C.8-39).
     public let summationType: String?
-    
-    /// Dose Type (PHYSICAL, EFFECTIVE, BIOLOGICAL)
+
+    /// Dose Summation Type (3004,000A) as a standard term, `nil` when absent or non-standard.
+    public var doseSummationType: DoseSummationType? {
+        summationType.flatMap(DoseSummationType.init(rawValue:))
+    }
+
+    /// Dose Type (3004,0004) as written in the data set.
+    /// Standard terms: see ``DoseType`` (PS3.3 Table C.8-39).
     public let type: String?
-    
-    /// Dose Units (GY, RELATIVE)
+
+    /// Dose Type (3004,0004) as a standard term, `nil` when absent or non-standard.
+    public var doseType: DoseType? {
+        type.flatMap(DoseType.init(rawValue:))
+    }
+
+    /// Dose Units (3004,0002) as written in the data set.
+    /// Standard terms: see ``DoseUnits`` (PS3.3 Table C.8-39).
     public let units: String?
+
+    /// Dose Units (3004,0002) as a standard term, `nil` when absent or non-standard.
+    public var doseUnits: DoseUnits? {
+        units.flatMap(DoseUnits.init(rawValue:))
+    }
     
     // MARK: - Referenced Objects
     
@@ -99,8 +118,17 @@ public struct RTDose: Sendable {
     /// Multiply raw pixel values by this factor to get dose in units specified by Dose Units
     public let doseGridScaling: Double
     
-    /// Tissue Heterogeneity Correction (YES, NO)
+    /// Tissue Heterogeneity Correction (3004,0014) as written in the data set (VM 1-3, backslash-separated).
+    /// Standard terms: see ``TissueHeterogeneityCorrection`` (PS3.3 Table C.8-39).
     public let tissueHeterogeneityCorrection: String?
+
+    /// Tissue Heterogeneity Correction (3004,0014) values as standard terms; non-standard values are dropped.
+    public var tissueHeterogeneityCorrections: [TissueHeterogeneityCorrection] {
+        guard let raw = tissueHeterogeneityCorrection else { return [] }
+        return raw.split(separator: "\\").compactMap {
+            TissueHeterogeneityCorrection(rawValue: $0.trimmingCharacters(in: .whitespaces))
+        }
+    }
     
     // MARK: - Dose Statistics
     
@@ -253,26 +281,165 @@ public struct RTDose: Sendable {
     }
 }
 
+// MARK: - Dose Terms
+
+/// Dose Units (3004,0002) Enumerated Values.
+///
+/// In the RT Dose Module the values are GY, RELATIVE and CODED (Table C.8-39); in the
+/// RT DVH Module only GY and RELATIVE are enumerated (Table C.8-40).
+///
+/// Reference: PS3.3 C.8.8.3 RT Dose Module, Table C.8-39; C.8.8.4 RT DVH Module, Table C.8-40
+public enum DoseUnits: String, Sendable, Hashable, CaseIterable {
+    /// Gray
+    case gray = "GY"
+
+    /// dose relative to implicit reference value (RT Dose) or to DVH Normalization Dose Value (3004,0042) (RT DVH)
+    case relative = "RELATIVE"
+
+    /// unit described by code in Dose Units Code Sequence (3004,0020) (RT Dose Module only)
+    case coded = "CODED"
+}
+
+/// Dose Type (3004,0004) Defined Terms.
+///
+/// In the RT Dose Module the terms are PHYSICAL, EFFECTIVE, ERROR and CODED (Table C.8-39); in the
+/// RT DVH Module only PHYSICAL, EFFECTIVE and ERROR are listed (Table C.8-40).
+///
+/// Reference: PS3.3 C.8.8.3 RT Dose Module, Table C.8-39 and C.8.8.3.6; C.8.8.4 RT DVH Module, Table C.8-40
+public enum DoseType: String, Sendable, Hashable, CaseIterable {
+    /// physical dose
+    case physical = "PHYSICAL"
+
+    /// physical dose after correction for biological effect using user-defined modeling technique
+    case effective = "EFFECTIVE"
+
+    /// difference between desired and planned dose
+    case error = "ERROR"
+
+    /// described by code in RT Dose Interpreted Type Code Sequence (3004,0021) (RT Dose Module only)
+    case coded = "CODED"
+}
+
+/// Dose Summation Type (3004,000A) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.3 RT Dose Module, Table C.8-39
+public enum DoseSummationType: String, Sendable, Hashable, CaseIterable {
+    /// dose calculated for entire delivery of all fraction groups of RT Plan
+    case plan = "PLAN"
+
+    /// dose calculated for entire delivery of 2 or more RT Plans
+    case multiPlan = "MULTI_PLAN"
+
+    /// dose calculated with respect to plan overview parameters
+    case planOverview = "PLAN_OVERVIEW"
+
+    /// dose calculated for entire delivery of a single Fraction Group within RT Plan
+    case fraction = "FRACTION"
+
+    /// dose calculated for entire delivery of one or more Beams within RT Plan
+    case beam = "BEAM"
+
+    /// dose calculated for entire delivery of one or more Brachy Application Setups within RT Plan
+    case brachy = "BRACHY"
+
+    /// dose calculated for a single session ("fraction") of a single Fraction Group within RT Plan
+    case fractionSession = "FRACTION_SESSION"
+
+    /// dose calculated for a single session ("fraction") of one or more Beams within RT Plan
+    case beamSession = "BEAM_SESSION"
+
+    /// dose calculated for a single session ("fraction") of one or more Brachy Application Setups within RT Plan
+    case brachySession = "BRACHY_SESSION"
+
+    /// dose calculated for one or more Control Points within a Beam for a single fraction
+    case controlPoint = "CONTROL_POINT"
+
+    /// dose calculated for RT Beams Treatment Record
+    case record = "RECORD"
+}
+
+/// Tissue Heterogeneity Correction (3004,0014) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.3 RT Dose Module, Table C.8-39
+public enum TissueHeterogeneityCorrection: String, Sendable, Hashable, CaseIterable {
+    /// image data
+    case image = "IMAGE"
+
+    /// one or more ROI densities override image or water values where they exist
+    case roiOverride = "ROI_OVERRIDE"
+
+    /// entire volume treated as water equivalent
+    case water = "WATER"
+}
+
+/// DVH Type (3004,0001) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.4 RT DVH Module, Table C.8-40
+public enum DVHType: String, Sendable, Hashable, CaseIterable {
+    /// differential dose-volume histogram
+    case differential = "DIFFERENTIAL"
+
+    /// cumulative dose-volume histogram
+    case cumulative = "CUMULATIVE"
+
+    /// natural dose volume histogram
+    case natural = "NATURAL"
+}
+
+/// DVH Volume Units (3004,0054) Defined Terms.
+///
+/// Reference: PS3.3 C.8.8.4 RT DVH Module, Table C.8-40 and C.8.8.4.3
+public enum DVHVolumeUnits: String, Sendable, Hashable, CaseIterable {
+    /// cubic centimeters
+    case cubicCentimeters = "CM3"
+
+    /// percent
+    case percent = "PERCENT"
+
+    /// volume per u with u(dose) = dose^-3/2 (Anderson, Medical Physics 13(6), 1986)
+    case perU = "PER_U"
+}
+
 // MARK: - DVHData
 
 /// DVH (Dose Volume Histogram) Data
 ///
 /// Represents a dose-volume histogram for a specific structure.
 ///
-/// Reference: PS3.3 C.8.8.3 - RT Dose Module
+/// Reference: PS3.3 C.8.8.4 - RT DVH Module, Table C.8-40
 public struct DVHData: Sendable {
-    
-    /// DVH Type (CUMULATIVE, DIFFERENTIAL)
+
+    /// DVH Type (3004,0001) as written in the data set. Standard terms: see ``DVHType``.
     public let type: String?
-    
-    /// Dose Units (GY, RELATIVE, etc.)
+
+    /// DVH Type (3004,0001) as a standard term, `nil` when absent or non-standard.
+    public var dvhType: DVHType? {
+        type.flatMap(DVHType.init(rawValue:))
+    }
+
+    /// Dose Units (3004,0002) as written in the data set. Standard terms: GY, RELATIVE (see ``DoseUnits``).
     public let doseUnits: String?
-    
-    /// Dose Type (PHYSICAL, EFFECTIVE, etc.)
+
+    /// Dose Units (3004,0002) as a standard term, `nil` when absent or non-standard.
+    public var doseUnitsTerm: DoseUnits? {
+        doseUnits.flatMap(DoseUnits.init(rawValue:))
+    }
+
+    /// Dose Type (3004,0004) as written in the data set. Standard terms: PHYSICAL, EFFECTIVE, ERROR (see ``DoseType``).
     public let doseType: String?
-    
-    /// Volume Units (CM3, PERCENT)
+
+    /// Dose Type (3004,0004) as a standard term, `nil` when absent or non-standard.
+    public var doseTypeTerm: DoseType? {
+        doseType.flatMap(DoseType.init(rawValue:))
+    }
+
+    /// DVH Volume Units (3004,0054) as written in the data set. Standard terms: see ``DVHVolumeUnits``.
     public let volumeUnits: String?
+
+    /// DVH Volume Units (3004,0054) as a standard term, `nil` when absent or non-standard.
+    public var dvhVolumeUnits: DVHVolumeUnits? {
+        volumeUnits.flatMap(DVHVolumeUnits.init(rawValue:))
+    }
     
     /// Referenced ROI Number
     public let referencedROINumber: Int?

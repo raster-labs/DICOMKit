@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — concatenation and Number of Frames rules per PS3.3 2026a C.7.6.16 and C.7.6.6
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -260,7 +261,7 @@ public struct FrameSplitter {
                 failureCount += 1
                 result.failed += 1
                 if verbose {
-                    log("  Failed to extract frame \(frameIndex): \(error)")
+                    log("  Failed to extract Frame number \(frameIndex + 1): \(error)")
                 }
             }
         }
@@ -412,7 +413,7 @@ public struct FrameSplitter {
         }
 
         if verbose {
-            log("  Extracted frame \(frameIndex) -> \(filename)")
+            log("  Extracted Frame number \(frameIndex + 1) -> \(filename)")
         }
 
         return outputFilePath
@@ -567,7 +568,7 @@ public struct FrameSplitter {
                 let filename: String
                 if let pattern = namingPattern {
                     filename = Self.expandPattern(pattern, frameIndex: part.index, instance: String(part.index + 1), stack: "1",
-                                                  modality: source.string(for: .modality) ?? "XX",
+                                                  modality: source.string(for: .modality) ?? Modality.ot.rawValue,
                                                   series: source.string(for: .seriesNumber) ?? "0")
                 } else {
                     filename = "\(baseName)_part_\(String(format: "%04d", part.index + 1)).dcm"
@@ -669,7 +670,8 @@ public struct FrameSplitter {
         plan: SplitPlan
     ) -> String {
         let baseName = (originalPath as NSString).deletingPathExtension.components(separatedBy: "/").last ?? "frame"
-        let modality = dicomFile.dataSet.string(for: .modality) ?? "XX"
+        // "XX" is not a DICOM code; OT (Other) is the standard unknown.
+        let modality = dicomFile.dataSet.string(for: .modality) ?? Modality.ot.rawValue
         let seriesNumber = dicomFile.dataSet.string(for: .seriesNumber) ?? "0"
 
         if let pattern = namingPattern {
@@ -799,9 +801,9 @@ public enum SplitError: Error, CustomStringConvertible {
         case .missingPixelData:
             return "Missing pixel data in DICOM file"
         case .frameExtractionFailed(let frameIndex):
-            return "Failed to extract frame \(frameIndex)"
+            return "Failed to extract Frame number \(frameIndex + 1)"
         case .renderingFailed(let frameIndex):
-            return "Failed to render frame \(frameIndex) as image"
+            return "Failed to render Frame number \(frameIndex + 1) as image"
         case .imageWriteFailed(let path):
             return "Failed to write image to \(path)"
         case .directoryAccessFailed(let path):

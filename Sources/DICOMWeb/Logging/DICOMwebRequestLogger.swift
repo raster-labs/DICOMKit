@@ -3,6 +3,7 @@ import Foundation
 import os
 #endif
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (request/response logging)
 /// Protocol for logging DICOMweb requests and responses
 public protocol DICOMwebRequestLogger: Sendable {
     /// Logs a request about to be sent

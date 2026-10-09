@@ -206,6 +206,29 @@ struct DICOMDIRParserTests {
 
     // MARK: - Known Record Types
 
+    /// PS3.3 2026a Table F.4-1: the 35 Directory Record Types (first column; the Enumerated
+    /// Values of Directory Record Type (0004,1430), Table F.3-3).
+    static let tableF41: Set<String> = [
+        "PATIENT", "STUDY", "SERIES", "IMAGE", "RT DOSE", "RT STRUCTURE SET", "RT PLAN",
+        "RT TREAT RECORD", "PRESENTATION", "WAVEFORM", "SR DOCUMENT", "KEY OBJECT DOC",
+        "SPECTROSCOPY", "RAW DATA", "REGISTRATION", "FIDUCIAL", "HANGING PROTOCOL", "ENCAP DOC",
+        "VALUE MAP", "STEREOMETRIC", "PALETTE", "IMPLANT", "IMPLANT ASSY", "IMPLANT GROUP", "PLAN",
+        "MEASUREMENT", "SURFACE", "SURFACE SCAN", "TRACT", "ASSESSMENT", "RADIOTHERAPY",
+        "ANNOTATION", "INVENTORY", "WF PRESENTATION", "PRIVATE",
+    ]
+
+    @Test("Known record types are exactly PS3.3 2026a Table F.4-1 plus the retired HL7 STRUC DOC")
+    func testKnownRecordTypesMatchTableF41() {
+        #expect(Self.tableF41.count == 35)
+        #expect(DICOMDIRParser.knownRecordTypes.isSuperset(of: Self.tableF41))
+        let extras = DICOMDIRParser.knownRecordTypes.subtracting(Self.tableF41)
+        #expect(extras == ["HL7 STRUC DOC"], "only the retired F.5.33 type may be carried in addition")
+        // Types added on 2026-10-05 that were missing before:
+        for added in ["RT TREAT RECORD", "WAVEFORM", "PLAN", "ANNOTATION", "INVENTORY", "WF PRESENTATION"] {
+            #expect(DICOMDIRParser.isKnownRecordType(added), "\(added)")
+        }
+    }
+
     @Test("Known record types includes all standard types")
     func testKnownRecordTypesSet() {
         #expect(DICOMDIRParser.knownRecordTypes.contains("PATIENT"))

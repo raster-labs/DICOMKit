@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — PDI presence check compared with PS3.3 2026a Tables C.7-1, C.7-3, C.7-5a, C.12-1 (Patient ID and Patient's Name are Type 2, not Type 1; Birth Date and Study Date are Type 2, not 'recommended'); Timezone Offset From UTC is '&ZZXX' with minutes (C.12.1.1.8); the Instance Creator UID example under another vendor's root removed (PS3.5 9.1). IHE profiles are not NEMA
 import Foundation
 import DICOMKit
 import DICOMCore
@@ -62,7 +63,9 @@ struct IHEProfiles {
         static func validate(_ dicomFile: DICOMFile) throws -> [String] {
             var issues: [String] = []
             
-            // Required Type 1 attributes for PDI
+            // Attributes that must be present: Type 1 Study/Series Instance UID, SOP Class/
+            // Instance UID, Modality and Type 2 Patient ID, Patient's Name (PS3.3 2026a
+            // Tables C.7-1, C.7-3, C.7-5a, C.12-1)
             let requiredTags: [Tag] = [
                 .patientID,
                 .patientName,
@@ -79,14 +82,14 @@ struct IHEProfiles {
                 }
             }
             
-            // Check for patient birth date (Type 2 - should be present even if empty)
+            // Patient's Birth Date and Study Date are Type 2 (PS3.3 Tables C.7-1, C.7-3):
+            // present, possibly empty
             if dicomFile.dataSet[.patientBirthDate] == nil {
-                issues.append("Missing recommended tag: Patient Birth Date")
+                issues.append("Missing Type 2 attribute: Patient's Birth Date (0010,0030)")
             }
             
-            // Check for study date and time
             if dicomFile.dataSet[.studyDate] == nil {
-                issues.append("Missing recommended tag: Study Date")
+                issues.append("Missing Type 2 attribute: Study Date (0008,0020)")
             }
             
             return issues
@@ -99,17 +102,18 @@ struct IHEProfiles {
             
             // Check if Instance Creator UID is present
             if dicomFile.dataSet[.instanceCreatorUID] == nil {
-                recommendations.append("Add Instance Creator UID: 1.2.840.113619.DICOMKit")
+                // A UID under the creating organisation's own root (PS3.5 9.1); the former
+                // example "1.2.840.113619.DICOMKit" was under another vendor's root and not
+                // a UID at all (letters).
+                recommendations.append("Add Instance Creator UID (0008,0014): a UID under your organisation's registered root")
             }
             
             // Check for timezone if not present (for proper date/time interpretation)
             if dicomFile.dataSet[.timezoneOffsetFromUTC] == nil {
-                let timezone = TimeZone.current
-                let offset = timezone.secondsFromGMT() / 3600
-                let sign = offset >= 0 ? "+" : "-"
-                let hours = abs(offset)
-                let tzString = String(format: "%@%04d", sign, hours * 100)
-                recommendations.append("Add Timezone Offset From UTC: \(tzString)")
+                // "&ZZXX" with the minutes (PS3.3 C.12.1.1.8); the former hours-only
+                // arithmetic wrote +0500 for +05:30 and -0300 for -03:30
+                let tzString = DICOMValueMapping.timezoneOffsetFromUTC(secondsFromGMT: TimeZone.current.secondsFromGMT())
+                recommendations.append("Add Timezone Offset From UTC (0008,0201): \(tzString)")
             }
             
             return recommendations

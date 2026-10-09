@@ -4,7 +4,7 @@ Convert standard images (JPEG, PNG, TIFF, BMP, GIF) to DICOM Secondary Capture f
 
 ## Overview
 
-`dicom-image` is a command-line tool for converting standard image formats to DICOM Secondary Capture SOP Class (1.2.840.10008.5.1.4.1.1.7). It supports EXIF metadata extraction, batch conversion, and multi-page TIFF handling.
+`dicom-image` is a command-line tool for converting standard image formats to the DICOM Secondary Capture Image IOD, SOP Class "Secondary Capture Image Storage" (1.2.840.10008.5.1.4.1.1.7; PS3.4 Table B.5-1). It supports EXIF metadata extraction, batch conversion, and multi-page TIFF handling.
 
 ## Features
 
@@ -67,9 +67,10 @@ dicom-image photo.jpg --output capture.dcm \
 ```
 
 EXIF metadata mapping:
-- **Date/Time Original** → Acquisition Date/Time
-- **DPI** → Pixel Spacing (converted to mm/pixel)
-- **Image Description** → Study Description (if not specified)
+- **Date/Time Original** → Acquisition Date (0008,0022) / Acquisition Time (0008,0032)
+- **DPI** → Nominal Scanned Pixel Spacing (0018,2010), mm on the scanned medium (SC Image Module,
+  PS3.3 Table C.8-25) — not Pixel Spacing (0028,0030), which is a distance in the patient
+- **User Comment / Image Description** → Study Description (if `--study-description` is not given)
 
 ### Batch Conversion
 
@@ -84,6 +85,10 @@ dicom-image photos/ --output dicoms/ --recursive \
 ```
 
 All images will be grouped into a single series with auto-incrementing instance numbers.
+
+A directory run exits with status 1 after its summary when any image failed to convert (files
+that are not images are skipped, not failed), like `dicom-convert`'s directory run; until
+2026-10-06 it exited 0 whatever the per-file outcomes (D273).
 
 ### Multi-Page TIFF
 
@@ -117,9 +122,25 @@ Each page becomes a separate DICOM instance in the same series.
 - `--series-description <desc>` - Series Description
 - `--study-uid <uid>` - Study Instance UID (auto-generated if not provided)
 - `--series-uid <uid>` - Series Instance UID (auto-generated if not provided)
+- `--study-date <YYYYMMDD>` - Study Date (0008,0020): the date the Study started (DA, Gregorian calendar)
+- `--study-time <HHMMSS[.FFFFFF]>` - Study Time (0008,0030): the time the Study started (TM; HH, HHMM, HHMMSS
+  or HHMMSS with 1-6 fraction digits)
+
+  When neither is given, a new Study (no `--study-uid`) gets the date and time the run started, the
+  same in every file of a batch or TIFF run; with `--study-uid` both are written empty (Type 2,
+  PS3.3 Table C.7-3), since the Study started earlier at a time the tool does not know. When one
+  is given, only that one is written. A fraction is written with six digits (`.5` → `.500000`).
 - `--series-number <num>` - Series Number
 - `--instance-number <num>` - Instance Number (starting value for batch operations)
-- `--modality <modality>` - Modality code (default: OT - Other)
+- `--modality <modality>` - Modality (0008,0060), a PS3.3 C.7.3.1.1.1 Defined Term (default: OT); unknown codes warn
+- `--strict-modality` - Reject a `--modality` value that is not a current Defined Term
+- `--conversion-type <term>` - Conversion Type (0008,0064): DV, DI, DF, WSD, SD, SI, DRW or SYN
+  (PS3.3 Table C.8-24; default WSD = Workstation; e.g. SI for a scanned image, DRW for a drawing)
+
+Values that the written VR cannot hold (PS3.5 Table 6.2-1 and Section 9: a UID that breaks
+PS3.5 9.1, LO/PN over 64 characters or containing a backslash, an Instance/Series Number outside
+the IS range -2^31..2^31-1, a `--study-date` / `--study-time` that is not a DA / TM value) are refused: the tool exits with status 1 and writes nothing. (Until
+2026-10-01 they were written as given with a warning; P-IMAGE-VR.)
 
 ### Processing Options
 
@@ -151,44 +172,29 @@ Note: Platform support varies. CoreGraphics (macOS/iOS) provides the best format
 
 ### DICOM Modules Implemented
 
-1. **SOP Common Module** (M)
-   - SOP Class UID
-   - SOP Instance UID
+Every Type 1 and Type 2 attribute of the mandatory modules of PS3.3 Table A.8-1 (Secondary
+Capture Image IOD) is written:
 
-2. **Patient Module** (M)
-   - Patient Name
-   - Patient ID
+1. **Patient** (C.7.1.1, M): Patient's Name, Patient ID, Patient's Birth Date (empty), Patient's Sex (empty)
+2. **General Study** (C.7.2.1, M): Study Instance UID, Study Date/Time (`--study-date` / `--study-time`;
+   default: the run's start for a new Study, empty with `--study-uid`),
+   Referring Physician's Name, Study ID, Accession Number (empty), Study Description (optional)
+3. **General Series** (C.7.3.1, M): Series Instance UID, Modality, Series Number (empty unless given),
+   Series Description (optional)
+4. **General Equipment** (C.7.5.1, U): Manufacturer "DICOMKit", Manufacturer's Model Name, Software Versions
+5. **SC Equipment** (C.8.6.1, M): Conversion Type (`--conversion-type`, default WSD)
+6. **General Acquisition** (C.7.10.1, M): Acquisition Date/Time from EXIF (`--use-exif`)
+7. **General Image** (C.7.6.1, M): Instance Number, Patient Orientation (empty, Type 2C)
+8. **Image Pixel** (C.7.6.3, M): Samples per Pixel 1 or 3, Photometric Interpretation MONOCHROME2 or RGB,
+   Rows, Columns, Bits Allocated 8, Bits Stored 8, High Bit 7, Pixel Representation 0,
+   Planar Configuration 0 (RGB), Pixel Data
+9. **SC Image** (C.8.6.2, M): Date / Time of Secondary Capture (time of conversion), Nominal Scanned
+   Pixel Spacing from the image DPI (`--use-exif`)
+10. **SOP Common** (C.12.1, M): SOP Class UID, SOP Instance UID (also in Media Storage SOP Instance
+    UID (0002,0003), PS3.10 Table 7.1-1), Instance Creation Date / Time (time of conversion),
+    Specific Character Set "ISO_IR 192" when a text value is not ASCII
 
-3. **Study Module** (M)
-   - Study Instance UID
-   - Study Date
-   - Study Time
-   - Study Description (optional)
-
-4. **Series Module** (M)
-   - Series Instance UID
-   - Modality
-   - Series Description (optional)
-   - Series Number (optional)
-
-5. **General Equipment Module** (U)
-   - Manufacturer: "DICOMKit"
-   - Manufacturer Model Name: "dicom-image CLI"
-   - Software Versions: "1.1.6"
-
-6. **General Image Module** (M)
-   - Instance Number
-
-7. **Image Pixel Module** (M)
-   - Samples Per Pixel (1 or 3)
-   - Photometric Interpretation (MONOCHROME2 or RGB)
-   - Rows, Columns
-   - Bits Allocated: 8
-   - Bits Stored: 8
-   - High Bit: 7
-   - Pixel Representation: 0 (unsigned)
-   - Planar Configuration: 0 (for RGB)
-   - Pixel Data
+Images with more than 8 bits per sample (e.g. 16-bit PNG) are reduced to 8 bits; alpha is composited on white.
 
 Reference: **PS3.3 A.8.1 - Secondary Capture Image IOD**
 
@@ -289,7 +295,8 @@ When not specified, the following metadata is auto-generated:
 - **Study Instance UID**: Generated using timestamp and random component (format: 2.25.{timestamp}{random})
 - **Series Instance UID**: Generated using timestamp and random component
 - **SOP Instance UID**: Auto-generated for each DICOM instance
-- **Study Date/Time**: Current date and time
+- **Study Date/Time**: The date and time the run started, for a new Study (empty with `--study-uid`)
+- **Instance Creation Date/Time, Date/Time of Secondary Capture**: When each instance is converted
 - **Modality**: "OT" (Other) if not specified
 - **Output filename**: Input filename with .dcm extension
 

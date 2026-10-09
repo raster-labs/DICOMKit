@@ -74,7 +74,7 @@ let result = try await DICOMPrintService.printImage(
 let result = try await DICOMPrintService.printImage(
     configuration: config,
     imageData: mammoPixelData,
-    options: .mammography  // 14×17", MAMMO CLEAR film, high priority
+    options: .mammography  // 14×17", MAMMO BLUE FILM, high priority
 )
 
 // Draft printing
@@ -481,7 +481,7 @@ guard status.status == .normal else {
 
 Match film size to clinical requirements:
 - **CT/MR**: 14×17" for detailed anatomy
-- **Mammography**: 14×17" with MAMMO CLEAR film
+- **Mammography**: 14×17" with MAMMO BLUE FILM
 - **Ultrasound**: 11×14" or 10×12"
 - **Documentation**: A4 or 8.5×11" paper
 

@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-10-01 — C-STORE fields per PS3.7 2026a Table 9.3-1 (Move Originator AE Title / Message ID (0000,1030/1031) per 9.1.1.1.6 / 9.1.1.1.7, D156), statuses per PS3.4 Table B.2-1 (StoreResult.success / isStored true for the Success and Warning classes, D72); presentation-context IDs bounded per PS3.8 §9.3.2.2; File Meta Information parse per PS3.10 §7.1
 
 // MARK: - Store Result
 
@@ -7,9 +8,21 @@ import DICOMCore
 ///
 /// Contains information about the completed C-STORE operation.
 ///
+/// A C-STORE-RSP in the Failure class (PS3.4 Table B.2-1: A7xx, A9xx, Cxxx, or
+/// 0122 per PS3.7 9.1.1.1.9) is **returned**, not thrown: `DICOMStorageService.store`
+/// throws only when no response was received (association, transport or
+/// negotiation errors). Test ``isStored`` (or ``isFailure``), not just the status.
+///
 /// Reference: PS3.4 Annex B - Storage Service Class
 public struct StoreResult: Sendable, Hashable {
-    /// Whether the storage was successful
+    /// Whether the SCP stored the instance: true for the Success **and** Warning
+    /// classes of PS3.4 Table B.2-1 (0000; B000 Coercion of Data Elements, B006
+    /// Elements Discarded, B007 Data Set does not match SOP Class), false for a
+    /// Failure — the same meaning as ``FileStoreResult/success``.
+    ///
+    /// Before 2026-10-01 `DICOMStorageService.store` set it true only for 0000, so a
+    /// Warning read as not stored (D72). Prefer ``isStored``, ``isSuccess``,
+    /// ``isWarning`` and ``isFailure``, which are derived from ``status``.
     public let success: Bool
     
     /// The DIMSE status from the response
@@ -30,6 +43,28 @@ public struct StoreResult: Sendable, Hashable {
     /// Whether the store completed with a warning
     public var hasWarning: Bool {
         status.isWarning
+    }
+
+    /// Whether the instance was stored: Success or Warning class (PS3.4 Table B.2-1).
+    public var isStored: Bool {
+        status.isSuccessOrWarning
+    }
+
+    /// Whether the response status is Success (0000) — no warning.
+    public var isSuccess: Bool {
+        status.isSuccess
+    }
+
+    /// Whether the response status is in the Warning class (B000, B006, B007, other Bxxx):
+    /// the instance was stored with a deviation.
+    public var isWarning: Bool {
+        status.isWarning
+    }
+
+    /// Whether the response status is in the Failure class (A7xx, A9xx, Cxxx, 0122, …):
+    /// the instance was not stored.
+    public var isFailure: Bool {
+        !status.isSuccessOrWarning
     }
     
     /// Creates a store result
@@ -52,7 +87,7 @@ public struct StoreResult: Sendable, Hashable {
 
 extension StoreResult: CustomStringConvertible {
     public var description: String {
-        let statusStr = success ? "SUCCESS" : (status.isWarning ? "WARNING" : "FAILED")
+        let statusStr = status.isWarning ? "WARNING" : (success ? "SUCCESS" : "FAILED")
         return "StoreResult(\(statusStr), status=\(status), sop=\(affectedSOPClassUID), rtt=\(String(format: "%.3f", roundTripTime))s, ae=\(remoteAETitle))"
     }
 }
@@ -129,10 +164,35 @@ public struct StorageConfiguration: Sendable, Hashable {
     public let transcodingConfiguration: TranscodingConfiguration?
     
     /// Default Implementation Class UID for DICOMKit
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.1"
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
     
     /// Default Implementation Version Name for DICOMKit
     public static let defaultImplementationVersionName = "DICOMKIT_001"
+
+    /// Move Originator Application Entity Title (0000,1030) put on every C-STORE-RQ,
+    /// or nil (the default) to omit it.
+    ///
+    /// PS3.7 2026a 9.1.1.1.6: set when the C-STORE is a sub-operation of a C-MOVE,
+    /// to the AE Title of the SCU that issued the C-MOVE; with
+    /// ``moveOriginatorMessageID`` it lets the Move Destination tie the instance to
+    /// the originating C-MOVE (Table 9.3-1, both U). Set both with
+    /// ``withMoveOriginator(aeTitle:messageID:)`` (D156, 2026-10-01).
+    public var moveOriginatorAETitle: String? = nil
+
+    /// Move Originator Message ID (0000,1031) put on every C-STORE-RQ, or nil to
+    /// omit it — the Message ID (0000,0110) of the C-MOVE-RQ this store is a
+    /// sub-operation of (PS3.7 2026a 9.1.1.1.7).
+    public var moveOriginatorMessageID: UInt16? = nil
+
+    /// This configuration with Move Originator AE Title (0000,1030) and Move
+    /// Originator Message ID (0000,1031) set, for the C-STORE sub-operations of a
+    /// C-MOVE (PS3.7 2026a 9.1.1.1.6 / 9.1.1.1.7).
+    public func withMoveOriginator(aeTitle: String, messageID: UInt16) -> StorageConfiguration {
+        var copy = self
+        copy.moveOriginatorAETitle = aeTitle
+        copy.moveOriginatorMessageID = messageID
+        return copy
+    }
     
     /// Creates a storage configuration
     ///
@@ -140,7 +200,7 @@ public struct StorageConfiguration: Sendable, Hashable {
     ///   - callingAETitle: The local AE title
     ///   - calledAETitle: The remote AE title
     ///   - timeout: Connection timeout in seconds (default: 60)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - priority: Operation priority (default: medium)
@@ -818,14 +878,17 @@ public enum DICOMStorageService {
                 sopClassUID: sopClassUID,
                 sopInstanceUID: sopInstanceUID,
                 priority: configuration.priority,
-                dataSetData: dataSetData
+                dataSetData: dataSetData,
+                moveOriginatorAETitle: configuration.moveOriginatorAETitle,
+                moveOriginatorMessageID: configuration.moveOriginatorMessageID
             )
 
             try await association.release()
 
             let roundTripTime = Date().timeIntervalSince(startTime)
             return StoreResult(
-                success: response.status.isSuccess,
+                // Stored for Success and Warning, PS3.4 Table B.2-1 (D72)
+                success: response.status.isSuccessOrWarning,
                 status: response.status,
                 affectedSOPClassUID: response.affectedSOPClassUID,
                 affectedSOPInstanceUID: response.affectedSOPInstanceUID,
@@ -914,14 +977,18 @@ public enum DICOMStorageService {
         sopClassUID: String,
         sopInstanceUID: String,
         priority: DIMSEPriority,
-        dataSetData: Data
+        dataSetData: Data,
+        moveOriginatorAETitle: String? = nil,
+        moveOriginatorMessageID: UInt16? = nil
     ) async throws -> CStoreResponse {
         // Create C-STORE request
-        let request = CStoreRequest(
+        let request = cStoreRequest(
             messageID: 1,
-            affectedSOPClassUID: sopClassUID,
-            affectedSOPInstanceUID: sopInstanceUID,
+            sopClassUID: sopClassUID,
+            sopInstanceUID: sopInstanceUID,
             priority: priority,
+            moveOriginatorAETitle: moveOriginatorAETitle,
+            moveOriginatorMessageID: moveOriginatorMessageID,
             presentationContextID: presentationContextID
         )
         
@@ -1088,7 +1155,6 @@ public enum DICOMStorageService {
         
         // Parse all files first to gather SOP Class UIDs for negotiation
         var fileInfos: [(index: Int, data: Data, info: DICOMFileParser.FileInfo)] = []
-        var sopClassUIDs = Set<String>()
         
         for (index, fileData) in files.enumerated() {
             try Task.checkCancellation()
@@ -1097,7 +1163,6 @@ public enum DICOMStorageService {
                 let parser = DICOMFileParser(data: fileData)
                 let info = try parser.parseForStorage()
                 fileInfos.append((index, fileData, info))
-                sopClassUIDs.insert(info.sopClassUID)
             } catch {
                 // Record parse failure
                 let fileResult = FileStoreResult(
@@ -1150,179 +1215,195 @@ public enum DICOMStorageService {
         // Create association configuration
         let associationConfig = configuration.associationConfiguration(host: host, port: port)
         
-        // Create presentation contexts for all SOP Classes
-        var presentationContexts: [PresentationContext] = []
-        var contextID: UInt8 = 1
-        var sopClassToContextID: [String: UInt8] = [:]
-        
-        for sopClassUID in sopClassUIDs {
-            let transferSyntaxes = [
-                explicitVRLittleEndianTransferSyntaxUID,
-                implicitVRLittleEndianTransferSyntaxUID
-            ]
-            
-            do {
-                let context = try PresentationContext(
-                    id: contextID,
-                    abstractSyntax: sopClassUID,
-                    transferSyntaxes: transferSyntaxes
-                )
-                presentationContexts.append(context)
-                sopClassToContextID[sopClassUID] = contextID
-                contextID += 2 // Presentation Context IDs must be odd numbers
-            } catch {
-                // Skip invalid SOP classes
-                continue
-            }
-        }
-        
-        // Establish association
-        let association = Association(configuration: associationConfig)
-        
-        do {
-            var negotiated = try await association.request(presentationContexts: presentationContexts)
-            
-            var filesStoredOnAssociation = 0
-            var messageID: UInt16 = 1
-            
-            // Store each file
-            for (index, fileData, fileInfo) in fileInfos {
-                try Task.checkCancellation()
+        // Presentation context IDs are odd 1...255 (PS3.8 9.3.2.2), so one
+        // association proposes at most `maxPresentationContextsPerAssociation`
+        // SOP Classes; the distinct classes are partitioned into groups and
+        // each group gets its own association (see `presentationContextGroups`).
+        let contextGroups = Self.presentationContextGroups(fileInfos.map { $0.info.sopClassUID })
+        var stopped = false
 
-                let fileStartTime = Date()
-                
-                // Check if we need to start a new association
-                if batchConfiguration.maxFilesPerAssociation > 0 &&
-                   filesStoredOnAssociation >= batchConfiguration.maxFilesPerAssociation {
-                    // Release current association and create new one
-                    try? await association.release()
-                    negotiated = try await association.request(presentationContexts: presentationContexts)
-                    filesStoredOnAssociation = 0
-                    messageID = 1
-                }
-                
-                // Add delay if configured
-                if batchConfiguration.delayBetweenFiles > 0 && index > 0 {
-                    try await Task.sleep(for: .seconds(batchConfiguration.delayBetweenFiles))
-                }
-                
-                // Get the presentation context ID for this SOP Class
-                guard let pcID = sopClassToContextID[fileInfo.sopClassUID],
-                      negotiated.isContextAccepted(pcID) else {
-                    // SOP Class not accepted
-                    let fileResult = FileStoreResult(
-                        index: index,
-                        sopInstanceUID: fileInfo.sopInstanceUID,
-                        sopClassUID: fileInfo.sopClassUID,
-                        success: false,
-                        status: .refusedSOPClassNotSupported,
-                        roundTripTime: Date().timeIntervalSince(fileStartTime),
-                        fileSize: fileData.count,
-                        errorMessage: "SOP Class not supported: \(fileInfo.sopClassUID)"
+        for group in contextGroups where !stopped {
+            let groupSet = Set(group)
+
+            // Create presentation contexts for the SOP Classes of this group
+            var presentationContexts: [PresentationContext] = []
+            var contextID: UInt8 = 1
+            var sopClassToContextID: [String: UInt8] = [:]
+
+            for sopClassUID in group {
+                let transferSyntaxes = [
+                    explicitVRLittleEndianTransferSyntaxUID,
+                    implicitVRLittleEndianTransferSyntaxUID
+                ]
+            
+                do {
+                    let context = try PresentationContext(
+                        id: contextID,
+                        abstractSyntax: sopClassUID,
+                        transferSyntaxes: transferSyntaxes
                     )
-                    fileResults.append(fileResult)
-                    failed += 1
-                    
-                    continuation.yield(.fileResult(fileResult))
-                    continuation.yield(.progress(BatchStoreProgress(
-                        total: total, succeeded: succeeded, failed: failed, warnings: warnings
-                    )))
-                    
-                    if !batchConfiguration.continueOnError {
-                        try? await association.release()
-                        break
-                    }
+                    presentationContexts.append(context)
+                    sopClassToContextID[sopClassUID] = contextID
+                    contextID += 2 // Presentation Context IDs must be odd numbers
+                } catch {
+                    // Skip invalid SOP classes
                     continue
                 }
+            }
+        
+            // Establish association
+            let association = Association(configuration: associationConfig)
+        
+            do {
+                var negotiated = try await association.request(presentationContexts: presentationContexts)
+            
+                var filesStoredOnAssociation = 0
+                var messageID: UInt16 = 1
+            
+                // Store each file of this group's SOP Classes
+                for (index, fileData, fileInfo) in fileInfos where groupSet.contains(fileInfo.sopClassUID) {
+                    try Task.checkCancellation()
+
+                    let fileStartTime = Date()
                 
-                do {
-                    // Perform C-STORE for this file
-                    let response = try await performCStoreWithMessageID(
-                        association: association,
-                        presentationContextID: pcID,
-                        maxPDUSize: negotiated.maxPDUSize,
-                        sopClassUID: fileInfo.sopClassUID,
-                        sopInstanceUID: fileInfo.sopInstanceUID,
-                        priority: configuration.priority,
-                        dataSetData: fileInfo.dataSetData,
-                        messageID: messageID
-                    )
-                    
-                    let roundTripTime = Date().timeIntervalSince(fileStartTime)
-                    messageID += 1
-                    filesStoredOnAssociation += 1
-                    totalBytesTransferred += fileData.count
-                    
-                    let isSuccess = response.status.isSuccess || response.status.isWarning
-                    let fileResult = FileStoreResult(
-                        index: index,
-                        sopInstanceUID: fileInfo.sopInstanceUID,
-                        sopClassUID: fileInfo.sopClassUID,
-                        success: isSuccess,
-                        status: response.status,
-                        roundTripTime: roundTripTime,
-                        fileSize: fileData.count,
-                        errorMessage: isSuccess ? nil : "Store failed with status: \(response.status)"
-                    )
-                    fileResults.append(fileResult)
-                    
-                    // Categorize by status: warnings are counted separately from pure successes
-                    // Both warnings and pure successes have FileStoreResult.success = true
-                    // but are tracked in different counters for reporting purposes
-                    if response.status.isWarning {
-                        warnings += 1
-                    } else if isSuccess {
-                        succeeded += 1
-                    } else {
+                    // Check if we need to start a new association
+                    if batchConfiguration.maxFilesPerAssociation > 0 &&
+                       filesStoredOnAssociation >= batchConfiguration.maxFilesPerAssociation {
+                        // Release current association and create new one
+                        try? await association.release()
+                        negotiated = try await association.request(presentationContexts: presentationContexts)
+                        filesStoredOnAssociation = 0
+                        messageID = 1
+                    }
+                
+                    // Add delay if configured
+                    if batchConfiguration.delayBetweenFiles > 0 && index > 0 {
+                        try await Task.sleep(for: .seconds(batchConfiguration.delayBetweenFiles))
+                    }
+                
+                    // Get the presentation context ID for this SOP Class
+                    guard let pcID = sopClassToContextID[fileInfo.sopClassUID],
+                          negotiated.isContextAccepted(pcID) else {
+                        // SOP Class not accepted
+                        let fileResult = FileStoreResult(
+                            index: index,
+                            sopInstanceUID: fileInfo.sopInstanceUID,
+                            sopClassUID: fileInfo.sopClassUID,
+                            success: false,
+                            status: .refusedSOPClassNotSupported,
+                            roundTripTime: Date().timeIntervalSince(fileStartTime),
+                            fileSize: fileData.count,
+                            errorMessage: "SOP Class not supported: \(fileInfo.sopClassUID)"
+                        )
+                        fileResults.append(fileResult)
                         failed += 1
+                    
+                        continuation.yield(.fileResult(fileResult))
+                        continuation.yield(.progress(BatchStoreProgress(
+                            total: total, succeeded: succeeded, failed: failed, warnings: warnings
+                        )))
+                    
+                        if !batchConfiguration.continueOnError {
+                            try? await association.release()
+                            stopped = true
+                            break
+                        }
+                        continue
                     }
+                
+                    do {
+                        // Perform C-STORE for this file
+                        let response = try await performCStoreWithMessageID(
+                            association: association,
+                            presentationContextID: pcID,
+                            maxPDUSize: negotiated.maxPDUSize,
+                            sopClassUID: fileInfo.sopClassUID,
+                            sopInstanceUID: fileInfo.sopInstanceUID,
+                            priority: configuration.priority,
+                            dataSetData: fileInfo.dataSetData,
+                            messageID: messageID,
+                            moveOriginatorAETitle: configuration.moveOriginatorAETitle,
+                            moveOriginatorMessageID: configuration.moveOriginatorMessageID
+                        )
                     
-                    continuation.yield(.fileResult(fileResult))
-                    continuation.yield(.progress(BatchStoreProgress(
-                        total: total, succeeded: succeeded, failed: failed, warnings: warnings
-                    )))
+                        let roundTripTime = Date().timeIntervalSince(fileStartTime)
+                        messageID += 1
+                        filesStoredOnAssociation += 1
+                        totalBytesTransferred += fileData.count
                     
-                    if !isSuccess && !batchConfiguration.continueOnError {
-                        try? await association.release()
-                        break
-                    }
+                        let isSuccess = response.status.isSuccess || response.status.isWarning
+                        let fileResult = FileStoreResult(
+                            index: index,
+                            sopInstanceUID: fileInfo.sopInstanceUID,
+                            sopClassUID: fileInfo.sopClassUID,
+                            success: isSuccess,
+                            status: response.status,
+                            roundTripTime: roundTripTime,
+                            fileSize: fileData.count,
+                            errorMessage: isSuccess ? nil : "Store failed with status: \(response.status)"
+                        )
+                        fileResults.append(fileResult)
                     
-                } catch {
-                    let roundTripTime = Date().timeIntervalSince(fileStartTime)
-                    let fileResult = FileStoreResult(
-                        index: index,
-                        sopInstanceUID: fileInfo.sopInstanceUID,
-                        sopClassUID: fileInfo.sopClassUID,
-                        success: false,
-                        status: .failedUnableToProcess,
-                        roundTripTime: roundTripTime,
-                        fileSize: fileData.count,
-                        errorMessage: error.localizedDescription
-                    )
-                    fileResults.append(fileResult)
-                    failed += 1
+                        // Categorize by status: warnings are counted separately from pure successes
+                        // Both warnings and pure successes have FileStoreResult.success = true
+                        // but are tracked in different counters for reporting purposes
+                        if response.status.isWarning {
+                            warnings += 1
+                        } else if isSuccess {
+                            succeeded += 1
+                        } else {
+                            failed += 1
+                        }
                     
-                    continuation.yield(.fileResult(fileResult))
-                    continuation.yield(.progress(BatchStoreProgress(
-                        total: total, succeeded: succeeded, failed: failed, warnings: warnings
-                    )))
+                        continuation.yield(.fileResult(fileResult))
+                        continuation.yield(.progress(BatchStoreProgress(
+                            total: total, succeeded: succeeded, failed: failed, warnings: warnings
+                        )))
                     
-                    if !batchConfiguration.continueOnError {
-                        try? await association.release()
-                        break
+                        if !isSuccess && !batchConfiguration.continueOnError {
+                            try? await association.release()
+                            stopped = true
+                            break
+                        }
+                    
+                    } catch {
+                        let roundTripTime = Date().timeIntervalSince(fileStartTime)
+                        let fileResult = FileStoreResult(
+                            index: index,
+                            sopInstanceUID: fileInfo.sopInstanceUID,
+                            sopClassUID: fileInfo.sopClassUID,
+                            success: false,
+                            status: .failedUnableToProcess,
+                            roundTripTime: roundTripTime,
+                            fileSize: fileData.count,
+                            errorMessage: error.localizedDescription
+                        )
+                        fileResults.append(fileResult)
+                        failed += 1
+                    
+                        continuation.yield(.fileResult(fileResult))
+                        continuation.yield(.progress(BatchStoreProgress(
+                            total: total, succeeded: succeeded, failed: failed, warnings: warnings
+                        )))
+                    
+                        if !batchConfiguration.continueOnError {
+                            try? await association.release()
+                            stopped = true
+                            break
+                        }
                     }
                 }
+            
+                // Release association
+                try? await association.release()
+            
+            } catch {
+                // Association establishment failed
+                try? await association.abort()
+                throw error
             }
-            
-            // Release association
-            try? await association.release()
-            
-        } catch {
-            // Association establishment failed
-            try? await association.abort()
-            throw error
-        }
-        
+        } // for group
+
         // Complete the stream
         let totalTime = Date().timeIntervalSince(startTime)
         let result = BatchStoreResult(
@@ -1335,6 +1416,50 @@ public enum DICOMStorageService {
         continuation.finish()
     }
     
+    /// Maximum number of presentation contexts one association can propose:
+    /// PS3.8 9.3.2.2 gives presentation context IDs the odd values 1...255.
+    static let maxPresentationContextsPerAssociation = 128
+
+    /// Partitions SOP Class UIDs into groups that fit one association each
+    /// (at most `maxPresentationContextsPerAssociation` distinct classes),
+    /// preserving first-appearance order and dropping duplicates. Every class
+    /// appears in exactly one group; an empty input yields no groups.
+    static func presentationContextGroups(_ sopClassUIDs: [String]) -> [[String]] {
+        var seen = Set<String>()
+        var unique: [String] = []
+        for uid in sopClassUIDs where seen.insert(uid).inserted {
+            unique.append(uid)
+        }
+        let size = maxPresentationContextsPerAssociation
+        return stride(from: 0, to: unique.count, by: size).map { start in
+            Array(unique[start..<min(start + size, unique.count)])
+        }
+    }
+
+    /// The C-STORE-RQ command (PS3.7 2026a Table 9.3-1). Move Originator AE Title
+    /// (0000,1030) and Move Originator Message ID (0000,1031) are written only as a
+    /// pair, when both are given (9.1.1.1.6 / 9.1.1.1.7). `internal` for unit tests.
+    static func cStoreRequest(
+        messageID: UInt16,
+        sopClassUID: String,
+        sopInstanceUID: String,
+        priority: DIMSEPriority,
+        moveOriginatorAETitle: String?,
+        moveOriginatorMessageID: UInt16?,
+        presentationContextID: UInt8
+    ) -> CStoreRequest {
+        let pair = moveOriginatorAETitle.flatMap { ae in moveOriginatorMessageID.map { (ae, $0) } }
+        return CStoreRequest(
+            messageID: messageID,
+            affectedSOPClassUID: sopClassUID,
+            affectedSOPInstanceUID: sopInstanceUID,
+            priority: priority,
+            moveOriginatorAETitle: pair?.0,
+            moveOriginatorMessageID: pair?.1,
+            presentationContextID: presentationContextID
+        )
+    }
+
     /// Performs the C-STORE request/response exchange with a specific message ID
     private static func performCStoreWithMessageID(
         association: Association,
@@ -1344,14 +1469,18 @@ public enum DICOMStorageService {
         sopInstanceUID: String,
         priority: DIMSEPriority,
         dataSetData: Data,
-        messageID: UInt16
+        messageID: UInt16,
+        moveOriginatorAETitle: String? = nil,
+        moveOriginatorMessageID: UInt16? = nil
     ) async throws -> CStoreResponse {
         // Create C-STORE request
-        let request = CStoreRequest(
+        let request = cStoreRequest(
             messageID: messageID,
-            affectedSOPClassUID: sopClassUID,
-            affectedSOPInstanceUID: sopInstanceUID,
+            sopClassUID: sopClassUID,
+            sopInstanceUID: sopInstanceUID,
             priority: priority,
+            moveOriginatorAETitle: moveOriginatorAETitle,
+            moveOriginatorMessageID: moveOriginatorMessageID,
             presentationContextID: presentationContextID
         )
         
@@ -1453,7 +1582,7 @@ struct DICOMFileParser {
             let valueLength: UInt32
             let vr = VR(rawValue: vrString) ?? .UN
             
-            if vr.uses4ByteLength {
+            if vr.uses32BitLength {
                 // Skip reserved 2 bytes, read 4-byte length
                 guard offset + 6 <= data.count else { break }
                 offset += 2

@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — 2D SCOORD closed shapes are POLYLINE with the first vertex repeated, per PS3.3 2026a C.18.6.1.2 (D18); regionOfInterest, measurementLocation and temporalExtent against PS3.16 2026a Table D-1, CID 9000, CID 10073, TID 1410 row 8b, TID 301 row 5; validation recurses into the Content Sequence (0040,A730) of every value type per PS3.3 2026a Table C.17-6 (D31)
 /// Comprehensive SR Document Builder
 ///
 /// Provides a specialized fluent API for creating DICOM Comprehensive SR documents.
@@ -526,6 +527,10 @@ public struct ComprehensiveSRBuilder: Sendable {
     }
     
     /// Adds a polygon coordinate (closed shape)
+    ///
+    /// PS3.3 C.18.6.1.2 defines no POLYGON Graphic Type for 2D SCOORD; a closed shape is a
+    /// POLYLINE whose first and last vertices are the same, so the first vertex is repeated
+    /// last unless the caller already closed the shape.
     /// - Parameters:
     ///   - conceptName: The concept name for this coordinate
     ///   - points: Array of (column, row) tuples forming the polygon vertices
@@ -534,11 +539,10 @@ public struct ComprehensiveSRBuilder: Sendable {
         conceptName: CodedConcept? = nil,
         points: [(column: Float, row: Float)]
     ) -> ComprehensiveSRBuilder {
-        let graphicData = points.flatMap { [$0.column, $0.row] }
-        return addSpatialCoordinates(
+        addSpatialCoordinates(
             conceptName: conceptName,
-            graphicType: .polygon,
-            graphicData: graphicData
+            graphicType: .polyline,
+            graphicData: ComprehensiveSectionContent.closedPolylineData(points)
         )
     }
     
@@ -1026,7 +1030,10 @@ public struct ComprehensiveSRBuilder: Sendable {
             verificationFlag: verificationFlag,
             preliminaryFlag: preliminaryFlag,
             documentTitle: finalDocumentTitle,
-            rootContent: rootContent
+            rootContent: rootContent,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName
         )
     }
     
@@ -1062,10 +1069,9 @@ public struct ComprehensiveSRBuilder: Sendable {
                 throw BuildError.unsupportedValueType(valueType: item.valueType)
             }
             
-            // Recursively validate container children
-            if let container = item.asContainer {
-                try validateValueTypes(items: container.contentItems)
-            }
+            // Recursively validate children: a CONTAINER's, and the Content Sequence
+            // any other value type may carry (PS3.3 Table C.17-6)
+            try validateValueTypes(items: item.contentItems)
         }
     }
 }
@@ -1254,6 +1260,9 @@ public enum ComprehensiveSectionContent {
     }
     
     /// Creates a polygon coordinate (closed shape)
+    ///
+    /// Encoded as a closed POLYLINE (first vertex repeated last), since PS3.3 C.18.6.1.2
+    /// defines POLYGON only for SCOORD3D.
     /// - Parameters:
     ///   - conceptName: Optional concept name
     ///   - points: Array of (column, row) tuples forming the polygon vertices
@@ -1262,12 +1271,20 @@ public enum ComprehensiveSectionContent {
         conceptName: CodedConcept? = nil,
         points: [(column: Float, row: Float)]
     ) -> AnyContentItem {
-        let graphicData = points.flatMap { [$0.column, $0.row] }
-        return spatialCoordinates(
+        spatialCoordinates(
             conceptName: conceptName,
-            graphicType: .polygon,
-            graphicData: graphicData
+            graphicType: .polyline,
+            graphicData: closedPolylineData(points)
         )
+    }
+
+    static func closedPolylineData(_ points: [(column: Float, row: Float)]) -> [Float] {
+        var vertices = points
+        if let first = points.first, let last = points.last, points.count >= 2,
+           first.column != last.column || first.row != last.row {
+            vertices.append(first)
+        }
+        return vertices.flatMap { [$0.column, $0.row] }
     }
     
     /// Creates a circle coordinate
@@ -1501,24 +1518,37 @@ extension CodedConcept {
         codeMeaning: "Image Region"
     )
     
-    /// Standard concept for region of interest
+    /// Standard concept for a region of interest that is not tied to a particular image
+    ///
+    /// (130488, DCM, "Region in Space") — PS3.16 2026a Table D-1: "A continuous part of space, not
+    /// necessarily associated with a particular image." Used as the concept name of the ROI reference
+    /// in TID 1410 row 8b and TID 1411 row 12b. For an ROI drawn on an image use ``imageRegion``
+    /// (111030, DCM, "Image Region").
     public static let regionOfInterest = CodedConcept(
         codeValue: "130488",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Region of Interest"
+        codeMeaning: "Region in Space"
     )
-    
-    /// Standard concept for measurement location
+
+    /// Standard concept for the anatomic location a measurement was taken at
+    ///
+    /// (363698007, SCT, "Finding Site") — PS3.16 2026a CID 9000 "Physical Quantity Descriptor";
+    /// the HAS CONCEPT MOD concept of TID 301 row 5, TID 1419 row 2 and TID 1501 row 6.
+    /// (The former value 121233 is "Source image for segmentation" in Table D-1.)
     public static let measurementLocation = CodedConcept(
-        codeValue: "121233",
-        codingSchemeDesignator: "DCM",
-        codeMeaning: "Measurement Location"
+        codeValue: "363698007",
+        codingSchemeDesignator: "SCT",
+        codeMeaning: "Finding Site"
     )
-    
-    /// Standard concept for temporal extent
+
+    /// Standard concept for the temporal extent (duration) of a period of time
+    ///
+    /// (130532, DCM, "Duration of Time Period") — PS3.16 2026a CID 10073 "Value Timing";
+    /// Table D-1: "All the points in time throughout a defined period of time".
+    /// (The former value 128178 does not exist in Table D-1.)
     public static let temporalExtent = CodedConcept(
-        codeValue: "128178",
+        codeValue: "130532",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Temporal Extent"
+        codeMeaning: "Duration of Time Period"
     )
 }

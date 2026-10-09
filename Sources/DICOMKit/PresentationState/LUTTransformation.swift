@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a C.11.1.1 (65536 entries written as 0), C.11.4 and C.11.6 citations; table-valued VOI output is normalised by the applicator
 //
 // LUTTransformation.swift
 // DICOMKit
@@ -70,7 +71,7 @@ public enum VOILUT: Sendable, Hashable {
 ///
 /// Final transformation for display, typically IDENTITY or INVERSE for polarity.
 ///
-/// Reference: PS3.3 Section C.11.6 - Presentation LUT Module
+/// Reference: PS3.3 Section C.11.6 - Softcopy Presentation LUT Module (C.11.4 for the Presentation LUT Module)
 public enum PresentationLUT: Sendable, Hashable {
     /// Identity transformation (default)
     case identity

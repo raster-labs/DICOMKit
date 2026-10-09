@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — the 17 string VRs are the character-string VRs of PS3.5 2026a Table 6.2-1; DS is at most 16 bytes; the VR of written elements comes from the DICOMDictionary
 //
 // DataSet+DictionaryVR.swift
 // DICOMKit

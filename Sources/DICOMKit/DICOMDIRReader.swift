@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — PS3.3 2026a Table F.3-3, Table F.4-1 and F.6.1: unknown record types are skipped, not fatal (D14); the tree follows the F.3.2.2 / Table F.3-3 offsets (0004,1200), (0004,1400), (0004,1420) from the first byte of the File Meta Information, sequence order only when they cannot be followed, PRIVATE records kept where the offsets place them, Record In-use Flag other than 0000H read as FFFFH (D240); every Series-level record type of Table F.4-1 is kept under its SERIES and HANGING PROTOCOL / PALETTE / IMPLANT* / INVENTORY at the root (D232); the profile is an assumption, no attribute carries it (D15)
 import Foundation
 import DICOMCore
 
@@ -22,7 +23,7 @@ public struct DICOMDIRReader {
             throw DICOMError.parsingFailed("Not a valid DICOMDIR file (incorrect SOP Class UID)")
         }
         
-        return try parse(dataSet: dicomFile.dataSet)
+        return try parse(dataSet: dicomFile.dataSet, itemByteOffsets: directoryRecordItemOffsets(in: data))
     }
     
     /// Read a DICOMDIR file from URL
@@ -40,7 +41,10 @@ public struct DICOMDIRReader {
     /// - Parameter dataSet: DICOM DataSet containing directory information
     /// - Returns: Parsed DICOMDIR structure
     /// - Throws: DICOMError if parsing fails
-    static func parse(dataSet: DataSet) throws -> DICOMDirectory {
+    /// - Parameter itemByteOffsets: Byte offset of each Directory Record Sequence item, from the
+    ///   first byte of the File Meta Information (PS3.3 F.3.2.2), in sequence order; nil when
+    ///   the file bytes are not at hand, and the tree is then rebuilt from the sequence order.
+    static func parse(dataSet: DataSet, itemByteOffsets: [Int]? = nil) throws -> DICOMDirectory {
         // Extract file-set metadata
         let fileSetID = dataSet.string(for: .fileSetID) ?? ""
         let specificCharacterSet = dataSet.string(for: .specificCharacterSet)
@@ -54,14 +58,13 @@ public struct DICOMDIRReader {
         let isConsistent = (consistencyFlag == 0x0000)
         
         // Parse directory record sequence
-        let rootRecords = try parseDirectoryRecordSequence(dataSet: dataSet)
+        let rootRecords = try parseDirectoryRecordSequence(dataSet: dataSet, itemByteOffsets: itemByteOffsets)
         
-        // Determine profile (would need additional logic to detect from content)
-        let profile = DICOMDIRProfile.standardGeneralCD
-        
+        // No DICOMDIR attribute carries the PS3.11 Application Profile; it is conformance
+        // metadata of the medium. The type's default (STD-GEN-CD) is an assumption, and a
+        // caller that knows the medium sets `profile` itself.
         return DICOMDirectory(
             fileSetID: fileSetID,
-            profile: profile,
             specificCharacterSet: specificCharacterSet,
             fileSetDescriptorFileID: fileSetDescriptorFileID,
             specificCharacterSetOfFileSetDescriptorFile: specificCharacterSetOfFileSetDescriptorFile,
@@ -72,41 +75,195 @@ public struct DICOMDIRReader {
     
     /// Parse the Directory Record Sequence
     ///
-    /// - Parameter dataSet: DataSet containing the sequence
+    /// PS3.3 2026a F.3.2.2: the Root Directory Entity starts at Offset of the First Directory
+    /// Record of the Root Directory Entity (0004,1200); each Directory Entity is a chain of
+    /// records linked by Offset of the Next Directory Record (0004,1400), and a record's
+    /// lower-level entity starts at Offset of Referenced Lower-Level Directory Entity
+    /// (0004,1420). The tree is built from those offsets when the item byte offsets are known
+    /// and every offset lands on an item; otherwise (no file bytes, offsets all zero, or an
+    /// offset that does not resolve) it falls back to the sequence order.
+    ///
+    /// - Parameters:
+    ///   - dataSet: DataSet containing the sequence
+    ///   - itemByteOffsets: Byte offset of each item, in sequence order, when known
     /// - Returns: Array of root directory records
     /// - Throws: DICOMError if parsing fails
-    private static func parseDirectoryRecordSequence(dataSet: DataSet) throws -> [DirectoryRecord] {
+    private static func parseDirectoryRecordSequence(
+        dataSet: DataSet, itemByteOffsets: [Int]?
+    ) throws -> [DirectoryRecord] {
         guard let items = dataSet.sequence(for: .directoryRecordSequence) else {
             // No directory records
             return []
         }
-        
-        // Parse each item as a directory record
-        var recordMap: [Int: (record: DirectoryRecord, nextOffset: UInt32?, lowerOffset: UInt32?)] = [:]
-        
-        // First pass: Parse all records and build a map
-        for (index, item) in items.enumerated() {
-            let record = try parseDirectoryRecord(from: item)
-            
-            // Get offsets for navigation
-            let nextOffset = item[.offsetOfTheNextDirectoryRecord]?.uint32Value
-            let lowerOffset = item[.offsetOfReferencedLowerLevelDirectoryEntity]?.uint32Value
-            
-            recordMap[index] = (record, nextOffset, lowerOffset)
+
+        // First pass: parse every item (nil for a record type this reader does not know)
+        let parsed = try items.map { try parseDirectoryRecord(from: $0) }
+
+        if let offsets = itemByteOffsets, offsets.count == items.count,
+           let roots = recordTree(items: items, parsed: parsed, itemByteOffsets: offsets,
+                                  rootFirstOffset: dataSet.uint32(for: .offsetOfTheFirstDirectoryRecordOfTheRootDirectoryEntity) ?? 0) {
+            return roots
         }
-        
-        // Second pass: Build hierarchy using offsets
-        // For simplicity in this initial implementation, we'll build a flat structure
-        // and assume proper hierarchy based on record types
-        
-        // Build hierarchy: PATIENT -> STUDY -> SERIES -> IMAGE
+        return sequenceOrderTree(parsed)
+    }
+
+    /// Byte offset of each Directory Record Sequence (0004,1220) item — the first byte of its
+    /// Item tag (FFFE,E000) — counted from the first byte of the File Meta Information (the
+    /// File Preamble, PS3.10 7.1), as PS3.3 2026a Table F.3-3 defines the navigation offsets.
+    /// Walks Explicit or Implicit VR Little Endian data, defined or undefined lengths; nil for
+    /// another Transfer Syntax, a file without the 128-byte preamble and "DICM", or bytes that
+    /// do not parse.
+    static func directoryRecordItemOffsets(in data: Data) -> [Int]? {
+        let b = [UInt8](data)
+        let undefined = 0xFFFF_FFFF
+        func u16(_ i: Int) -> Int? { i + 2 <= b.count ? Int(b[i]) | Int(b[i + 1]) << 8 : nil }
+        func u32(_ i: Int) -> Int? {
+            guard i + 4 <= b.count else { return nil }
+            return Int(b[i]) | Int(b[i + 1]) << 8 | Int(b[i + 2]) << 16 | Int(b[i + 3]) << 24
+        }
+        let longVRs: Set<String> = ["OB", "OD", "OF", "OL", "OV", "OW", "SQ", "SV", "UC", "UN", "UR", "UT", "UV"]
+        // (group, element, value start, value length) of the element at `at`
+        func header(_ at: Int, explicit: Bool) -> (Int, Int, Int, Int)? {
+            guard let group = u16(at), let element = u16(at + 2) else { return nil }
+            if group == 0xFFFE || !explicit {
+                guard let length = u32(at + 4) else { return nil }
+                return (group, element, at + 8, length)
+            }
+            guard at + 6 <= b.count, let vr = String(bytes: b[(at + 4)..<(at + 6)], encoding: .ascii) else { return nil }
+            if longVRs.contains(vr) {
+                guard let length = u32(at + 8) else { return nil }
+                return (group, element, at + 12, length)
+            }
+            guard let length = u16(at + 6) else { return nil }
+            return (group, element, at + 8, length)
+        }
+        // End of an undefined-length value (items up to the Sequence Delimitation Item)
+        func endOfUndefinedValue(_ start: Int, explicit: Bool, depth: Int) -> Int? {
+            guard depth < 64 else { return nil }
+            var at = start
+            while case let (group, element, value, length)? = header(at, explicit: explicit), group == 0xFFFE {
+                if element == 0xE0DD { return value }
+                guard element == 0xE000 else { return nil }
+                if length == undefined {
+                    guard let end = endOfUndefinedItem(value, explicit: explicit, depth: depth + 1) else { return nil }
+                    at = end
+                } else {
+                    at = value + length
+                }
+            }
+            return nil
+        }
+        // End of an undefined-length item (elements up to the Item Delimitation Item)
+        func endOfUndefinedItem(_ start: Int, explicit: Bool, depth: Int) -> Int? {
+            var at = start
+            while case let (group, element, value, length)? = header(at, explicit: explicit) {
+                if group == 0xFFFE, element == 0xE00D { return value }
+                if length == undefined {
+                    guard let end = endOfUndefinedValue(value, explicit: explicit, depth: depth + 1) else { return nil }
+                    at = end
+                } else {
+                    at = value + length
+                }
+                guard at <= b.count else { return nil }
+            }
+            return nil
+        }
+
+        guard b.count >= 132, b[128] == 0x44, b[129] == 0x49, b[130] == 0x43, b[131] == 0x4D else { return nil }
+        // File Meta Information: group 0002, always Explicit VR Little Endian (PS3.10 7.1)
+        var at = 132
+        var transferSyntax = ""
+        while case let (group, element, value, length)? = header(at, explicit: true), group == 0x0002 {
+            guard length != undefined, value + length <= b.count else { return nil }
+            if element == 0x0010 {
+                transferSyntax = String(decoding: b[value..<(value + length)], as: UTF8.self)
+                    .trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))
+            }
+            at = value + length
+        }
+        let explicit: Bool
+        switch transferSyntax {
+        case "1.2.840.10008.1.2.1": explicit = true
+        case "1.2.840.10008.1.2": explicit = false
+        default: return nil
+        }
+        // Top-level elements up to the Directory Record Sequence (0004,1220)
+        while case let (group, element, value, length)? = header(at, explicit: explicit) {
+            if group == 0x0004, element == 0x1220 {
+                var offsets: [Int] = []
+                var item = value
+                let end = length == undefined ? nil : value + length
+                while end.map({ item < $0 }) ?? true,
+                      case let (g, e, itemValue, itemLength)? = header(item, explicit: explicit), g == 0xFFFE {
+                    if e == 0xE0DD { break }
+                    guard e == 0xE000 else { return nil }
+                    offsets.append(item)
+                    if itemLength == undefined {
+                        guard let next = endOfUndefinedItem(itemValue, explicit: explicit, depth: 1) else { return nil }
+                        item = next
+                    } else {
+                        item = itemValue + itemLength
+                    }
+                }
+                return offsets
+            }
+            if length == undefined {
+                guard let end = endOfUndefinedValue(value, explicit: explicit, depth: 0) else { return nil }
+                at = end
+            } else {
+                at = value + length
+            }
+        }
+        return nil
+    }
+
+    /// The record tree by the PS3.3 F.3.2.2 offsets, or nil when an offset does not land on an
+    /// item, a record is reached twice, or the root offset is 0 although records exist.
+    /// A record of a type this reader does not know is skipped with its lower-level entity
+    /// (F.6.1); PRIVATE records are kept where the offsets place them.
+    static func recordTree(
+        items: [SequenceItem], parsed: [DirectoryRecord?], itemByteOffsets: [Int], rootFirstOffset: UInt32
+    ) -> [DirectoryRecord]? {
+        guard !items.isEmpty else { return [] }
+        guard rootFirstOffset != 0 else { return nil }
+        var indexByOffset: [Int: Int] = [:]
+        for (index, offset) in itemByteOffsets.enumerated() { indexByOffset[offset] = index }
+        var visited = Set<Int>()
+
+        func entity(startingAt first: UInt32) -> [DirectoryRecord]? {
+            var records: [DirectoryRecord] = []
+            var offset = first
+            while offset != 0 {
+                guard let index = indexByOffset[Int(offset)], visited.insert(index).inserted else { return nil }
+                let item = items[index]
+                let lower = item[.offsetOfReferencedLowerLevelDirectoryEntity]?.uint32Value ?? 0
+                if var record = parsed[index] {
+                    if lower != 0 {
+                        guard let children = entity(startingAt: lower) else { return nil }
+                        record.children = children
+                    }
+                    records.append(record)
+                }
+                offset = item[.offsetOfTheNextDirectoryRecord]?.uint32Value ?? 0
+            }
+            return records
+        }
+        return entity(startingAt: rootFirstOffset)
+    }
+
+    /// The record tree rebuilt from the sequence order (records in depth-first order), for a
+    /// DICOMDIR whose offsets cannot be followed.
+    private static func sequenceOrderTree(_ parsed: [DirectoryRecord?]) -> [DirectoryRecord] {
+        // Build hierarchy: PATIENT -> STUDY -> SERIES -> instance records, plus the other
+        // root-level records (PS3.3 2026a Table F.4-1)
         var patients: [DirectoryRecord] = []
+        var otherRoots: [DirectoryRecord] = []
+        let seriesLevelTypes = (DirectoryRecordType.series.allowedChildTypes ?? []).subtracting([.private])
         var currentPatient: DirectoryRecord?
         var currentStudy: DirectoryRecord?
         var currentSeries: DirectoryRecord?
         
-        for (_, entry) in recordMap.sorted(by: { $0.key < $1.key }) {
-            let record = entry.record
+        for case let record? in parsed {
             
             switch record.recordType {
             case .patient:
@@ -148,15 +305,36 @@ public struct DICOMDIRReader {
                 }
                 currentSeries = record
                 
-            case .image, .presentation, .srDocument, .waveform, .rtDose, .rtStructureSet, .rtPlan:
-                // Add to current series
-                    if var series = currentSeries {
+            case let type where seriesLevelTypes.contains(type):
+                // Every Table F.4-1 record type of the Series Directory Entity (IMAGE, RT DOSE,
+                // KEY OBJECT DOC, ENCAP DOC, RT TREAT RECORD, SPECTROSCOPY, RAW DATA, …)
+                if var series = currentSeries {
                     series.addChild(record)
                     currentSeries = series
                 }
-                
+
+            case let type where DirectoryRecordType.rootLevelTypes.contains(type) && type != .private:
+                // HANGING PROTOCOL, PALETTE, IMPLANT, IMPLANT ASSY, IMPLANT GROUP, INVENTORY
+                otherRoots.append(record)
+
+            case .private:
+                // PS3.3 2026a Table F.4-1: PRIVATE may appear under any record type; in sequence
+                // order it belongs to the deepest open entity
+                if var series = currentSeries {
+                    series.addChild(record)
+                    currentSeries = series
+                } else if var study = currentStudy {
+                    study.addChild(record)
+                    currentStudy = study
+                } else if var patient = currentPatient {
+                    patient.addChild(record)
+                    currentPatient = patient
+                } else {
+                    otherRoots.append(record)
+                }
+
             default:
-                // Handle other record types
+                // retired record types are skipped
                 break
             }
         }
@@ -172,24 +350,32 @@ public struct DICOMDIRReader {
             patients.append(patient)
         }
         
-        return patients
+        return patients + otherRoots
     }
     
     /// Parse a single directory record from a SequenceItem
     ///
     /// - Parameter item: SequenceItem for the record
-    /// - Returns: Parsed directory record
-    /// - Throws: DICOMError if parsing fails
-    private static func parseDirectoryRecord(from item: SequenceItem) throws -> DirectoryRecord {
+    /// - Returns: Parsed directory record, or nil for a Directory Record Type this reader
+    ///   does not know. PS3.3 F.6.1 lets a File-set Reader ignore privately defined
+    ///   records and still find a conformant Directory; a type from a later edition is
+    ///   treated the same way rather than failing the whole DICOMDIR.
+    /// - Throws: DICOMError if the record has no Directory Record Type (Type 1)
+    private static func parseDirectoryRecord(from item: SequenceItem) throws -> DirectoryRecord? {
         // Get record type
-        guard let recordTypeString = item.string(for: .directoryRecordType),
-              let recordType = DirectoryRecordType(rawValue: recordTypeString) else {
-            throw DICOMError.parsingFailed("Missing or invalid Directory Record Type")
+        guard let recordTypeString = item.string(for: .directoryRecordType)?
+                .trimmingCharacters(in: .whitespaces) else {
+            throw DICOMError.parsingFailed("Missing Directory Record Type (0004,1430)")
+        }
+        guard let recordType = DirectoryRecordType(rawValue: recordTypeString) else {
+            return nil
         }
         
         // Get in-use flag
+        // PS3.3 2026a Table F.3-3: values other than FFFFH (and the retired 0000H) "shall be
+        // interpreted as FFFFH by File-set Readers"
         let inUseFlag = item[.recordInUseFlag]?.uint16Value ?? 0xFFFF
-        let isActive = (inUseFlag == 0xFFFF)
+        let isActive = (inUseFlag != 0x0000)
         
         // Get referenced file information
         let referencedFileID = item.strings(for: .referencedFileID)

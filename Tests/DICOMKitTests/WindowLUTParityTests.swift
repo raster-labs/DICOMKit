@@ -35,7 +35,10 @@ final class WindowLUTParityTests: XCTestCase {
         if descriptor.photometricInterpretation == .monochrome1 {
             normalized = 1.0 - normalized
         }
-        return UInt8(max(0, min(255, normalized * 255.0)))
+        // The floor of the exact value (D63, PS3.3 C.11.2.1.2.1): 1e-9 absorbs the
+        // few-ulp shortfall of an exact integer result, written out here rather than
+        // calling WindowLUT.displayByte so the reference stays independent.
+        return UInt8(max(0, min(255, normalized * 255.0 + 1e-9)))
     }
 
     private func descriptor(

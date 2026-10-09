@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent shutter geometry helpers
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — geometry checked against PS3.3 2026a C.7.6.11: rectangle edges inclusive (left/right as column, upper/lower as row), circle by centre (row, column) and radius, polygon by vertices, several shapes ANDed so "the least amount of image remaining shall be visible" (isPixelVisible); normalizedShutterGray maps Shutter Presentation Value (0018,1622) 0000H–FFFFH to 0…1; the 4 shape labels are display text; bitmap shutters (C.7.6.15) need overlay data and are not tested here
 
 import Foundation
 

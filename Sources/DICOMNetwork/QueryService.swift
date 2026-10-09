@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-10-06 — uses4ByteLength duplicate deleted, the 13 32-bit-length VRs are DICOMCore's VR.uses32BitLength (PS3.5 2026a 7.1.2, Tables 7.1-1 / 7.1-2; D276); default return keys diffed against PS3.4 2026a Tables C.6-1..C.6-5 (all R/U keys present); Explicit VR length rule now DICOMCore's (PS3.5 Table 7.1-1, D1); identifier rules per PS3.4 C.4.1.1.3.1 and C.2.2.2; sequence parsing per PS3.5 §7.5; Scripts/diff_network.py
 
 /// Configuration for the DICOM Query Service
 public struct QueryConfiguration: Sendable, Hashable {
@@ -33,9 +34,19 @@ public struct QueryConfiguration: Sendable, Hashable {
     ///
     /// Reference: PS3.7 Section D.3.3.7 - User Identity Negotiation
     public let userIdentity: UserIdentity?
+
+    /// Specific Character Set (0008,0005) to declare in the C-FIND Identifier.
+    ///
+    /// `nil` (the default) lets the service pick the narrowest repertoire that
+    /// represents every text-VR key value (none for pure ISO 646, "ISO_IR 100"
+    /// for Latin-1, "ISO_IR 192" otherwise). A non-nil value forces that defined
+    /// term and encodes all text keys with it.
+    ///
+    /// Reference: PS3.4 C.4.1.1.3.1, PS3.5 6.1.2
+    public let specificCharacterSet: String?
     
     /// Default Implementation Class UID for DICOMKit
-    public static let defaultImplementationClassUID = "1.2.826.0.1.3680043.9.7433.1.1"
+    public static let defaultImplementationClassUID = DICOMNetworkImplementation.classUID
     
     /// Default Implementation Version Name for DICOMKit
     public static let defaultImplementationVersionName = "DICOMKIT_001"
@@ -46,7 +57,7 @@ public struct QueryConfiguration: Sendable, Hashable {
     ///   - callingAETitle: The local AE title
     ///   - calledAETitle: The remote AE title
     ///   - timeout: Connection timeout in seconds (default: 60)
-    ///   - maxPDUSize: Maximum PDU size (default: 16KB)
+    ///   - maxPDUSize: Maximum PDU size (default: 64 KB (`defaultMaxPDUSize`))
     ///   - implementationClassUID: Implementation Class UID
     ///   - implementationVersionName: Implementation Version Name
     ///   - informationModel: The Query/Retrieve Information Model (default: Study Root)
@@ -61,6 +72,38 @@ public struct QueryConfiguration: Sendable, Hashable {
         informationModel: QueryRetrieveInformationModel = .studyRoot,
         userIdentity: UserIdentity? = nil
     ) {
+        self.init(
+            callingAETitle: callingAETitle,
+            calledAETitle: calledAETitle,
+            timeout: timeout,
+            maxPDUSize: maxPDUSize,
+            implementationClassUID: implementationClassUID,
+            implementationVersionName: implementationVersionName,
+            informationModel: informationModel,
+            userIdentity: userIdentity,
+            specificCharacterSet: nil
+        )
+    }
+
+    /// Creates a query configuration with a forced Specific Character Set.
+    ///
+    /// - Parameters:
+    ///   - specificCharacterSet: The (0008,0005) defined term to declare in the
+    ///     C-FIND Identifier and encode text keys with, or nil for automatic
+    ///     selection (PS3.4 C.4.1.1.3.1).
+    ///
+    /// Other parameters are as in the primary initializer.
+    public init(
+        callingAETitle: AETitle,
+        calledAETitle: AETitle,
+        timeout: TimeInterval = 60,
+        maxPDUSize: UInt32 = defaultMaxPDUSize,
+        implementationClassUID: String = defaultImplementationClassUID,
+        implementationVersionName: String? = defaultImplementationVersionName,
+        informationModel: QueryRetrieveInformationModel = .studyRoot,
+        userIdentity: UserIdentity? = nil,
+        specificCharacterSet: String?
+    ) {
         self.callingAETitle = callingAETitle
         self.calledAETitle = calledAETitle
         self.timeout = timeout
@@ -72,6 +115,7 @@ public struct QueryConfiguration: Sendable, Hashable {
         self.tlsConfiguration = nil
 #endif
         self.userIdentity = userIdentity
+        self.specificCharacterSet = specificCharacterSet
     }
 
 #if canImport(Network)
@@ -87,6 +131,34 @@ public struct QueryConfiguration: Sendable, Hashable {
         tlsConfiguration: TLSConfiguration?,
         userIdentity: UserIdentity? = nil
     ) {
+        self.init(
+            callingAETitle: callingAETitle,
+            calledAETitle: calledAETitle,
+            timeout: timeout,
+            maxPDUSize: maxPDUSize,
+            implementationClassUID: implementationClassUID,
+            implementationVersionName: implementationVersionName,
+            informationModel: informationModel,
+            tlsConfiguration: tlsConfiguration,
+            userIdentity: userIdentity,
+            specificCharacterSet: nil
+        )
+    }
+
+    /// Creates a query configuration with an exact TLS transport policy and a
+    /// forced Specific Character Set (see the non-TLS variant).
+    public init(
+        callingAETitle: AETitle,
+        calledAETitle: AETitle,
+        timeout: TimeInterval = 60,
+        maxPDUSize: UInt32 = defaultMaxPDUSize,
+        implementationClassUID: String = defaultImplementationClassUID,
+        implementationVersionName: String? = defaultImplementationVersionName,
+        informationModel: QueryRetrieveInformationModel = .studyRoot,
+        tlsConfiguration: TLSConfiguration?,
+        userIdentity: UserIdentity? = nil,
+        specificCharacterSet: String?
+    ) {
         self.callingAETitle = callingAETitle
         self.calledAETitle = calledAETitle
         self.timeout = timeout
@@ -96,6 +168,7 @@ public struct QueryConfiguration: Sendable, Hashable {
         self.informationModel = informationModel
         self.tlsConfiguration = tlsConfiguration
         self.userIdentity = userIdentity
+        self.specificCharacterSet = specificCharacterSet
     }
 
     /// Builds the exact association configuration used by query operations.
@@ -399,6 +472,16 @@ public enum DICOMQueryService {
     /// modality filter silently returned every study.)
     ///
     /// Return keys are the union needed by all callers; superfluous ones are harmless.
+    ///
+    /// Hierarchical identifier content (PS3.4 C.4.1.2.1, C.4.1.3.2.1): a SERIES or
+    /// IMAGE level Identifier carries only the Unique Keys of the levels above plus
+    /// attributes of its own level. Patient/Study attributes (Patient Name/ID,
+    /// Study Date/Description, Accession) are therefore NOT emitted at those levels
+    /// by default: an SCP may reject them or, worse, silently ignore them. Passing
+    /// `includeParentLevelReturnKeys: true` re-adds them as zero-length return
+    /// keys for lenient SCPs such as dcm4chee that populate parent-level
+    /// attributes in child-level responses. This is a non-baseline extension and
+    /// is never used for matching.
     public static func buildQueryKeys(
         level: QueryLevel,
         patientName: String = "",
@@ -411,7 +494,8 @@ public enum DICOMQueryService {
         studyUID: String = "",
         seriesUID: String = "",
         seriesDate: String = "",
-        instanceUID: String = ""
+        instanceUID: String = "",
+        includeParentLevelReturnKeys: Bool = false
     ) -> QueryKeys {
         var keys = QueryKeys(level: level)
         switch level {
@@ -448,9 +532,11 @@ public enum DICOMQueryService {
             if !seriesDate.isEmpty { keys = keys.seriesDate(seriesDate) }
             keys = keys.requestSeriesNumber().requestSeriesDescription()
                 .requestNumberOfSeriesRelatedInstances()
-                // Parent-level return keys (dcm4chee5 style).
-                .requestPatientName().requestPatientID().requestStudyDate()
-                .requestStudyDescription().requestAccessionNumber()
+            if includeParentLevelReturnKeys {
+                // Non-baseline: parent-level return keys (dcm4chee5 style).
+                keys = keys.requestPatientName().requestPatientID().requestStudyDate()
+                    .requestStudyDescription().requestAccessionNumber()
+            }
 
         case .image:
             keys = studyUID.isEmpty ? keys.requestStudyInstanceUID() : keys.studyInstanceUID(studyUID)
@@ -458,12 +544,42 @@ public enum DICOMQueryService {
             keys = instanceUID.isEmpty ? keys.requestSOPInstanceUID() : keys.sopInstanceUID(instanceUID)
             keys = keys.requestSOPClassUID().requestInstanceNumber().requestContentDate()
                 .requestRows().requestColumns().requestNumberOfFrames()
-                // Parent-level return keys.
-                .requestPatientName().requestPatientID().requestStudyDate()
-                .requestStudyDescription().requestAccessionNumber()
-                .requestModality().requestSeriesNumber().requestSeriesDescription()
+            if includeParentLevelReturnKeys {
+                // Non-baseline: parent-level return keys.
+                keys = keys.requestPatientName().requestPatientID().requestStudyDate()
+                    .requestStudyDescription().requestAccessionNumber()
+                    .requestModality().requestSeriesNumber().requestSeriesDescription()
+            }
         }
         return keys
+    }
+
+    /// Patient/Study filter values that a caller supplied for a SERIES or IMAGE
+    /// level query. Under the hierarchical model (PS3.4 C.4.1.2.1) these attributes
+    /// belong to levels above the Query/Retrieve level and cannot be matched
+    /// there, so `buildQueryKeys` does not emit them. CLIs use this to warn the
+    /// user rather than dropping the filters silently.
+    ///
+    /// - Returns: The human-readable names of the ignored filters, or an empty
+    ///   array when nothing is ignored (including at PATIENT/STUDY level).
+    public static func ignoredParentLevelFilters(
+        level: QueryLevel,
+        patientName: String = "",
+        patientID: String = "",
+        studyDate: String = "",
+        accession: String = "",
+        studyDescription: String = "",
+        referringPhysician: String = ""
+    ) -> [String] {
+        guard level == .series || level == .image else { return [] }
+        var ignored: [String] = []
+        if !patientName.isEmpty { ignored.append("Patient Name") }
+        if !patientID.isEmpty { ignored.append("Patient ID") }
+        if !studyDate.isEmpty { ignored.append("Study Date") }
+        if !accession.isEmpty { ignored.append("Accession Number") }
+        if !studyDescription.isEmpty { ignored.append("Study Description") }
+        if !referringPhysician.isEmpty { ignored.append("Referring Physician") }
+        return ignored
     }
 
     // MARK: - Private Implementation
@@ -482,6 +598,16 @@ public enum DICOMQueryService {
             throw DICOMNetworkError.invalidState(
                 "Query level \(level) is not supported by \(configuration.informationModel)"
             )
+        }
+
+        // PS3.4 C.4.1.2.1 (baseline hierarchical search): the Identifier shall
+        // contain a single value in the Unique Key of every level above the
+        // Query/Retrieve level. Relational queries lift this, but DICOMKit does not
+        // negotiate them, so fail here with a readable message instead of letting
+        // the SCP answer 0xA900.
+        if let missing = missingHigherLevelUniqueKey(level: level, queryKeys: queryKeys,
+                                                     informationModel: configuration.informationModel) {
+            throw DICOMNetworkError.invalidState(missing)
         }
         
         // Create association configuration
@@ -522,7 +648,8 @@ public enum DICOMQueryService {
                 level: level,
                 queryKeys: queryKeys,
                 transferSyntax: acceptedTransferSyntax,
-                sopClassUID: configuration.informationModel.findSOPClassUID
+                sopClassUID: configuration.informationModel.findSOPClassUID,
+                specificCharacterSet: configuration.specificCharacterSet
             )
             
             // Release association gracefully
@@ -545,10 +672,16 @@ public enum DICOMQueryService {
         level: QueryLevel,
         queryKeys: QueryKeys,
         transferSyntax: String,
-        sopClassUID: String
+        sopClassUID: String,
+        specificCharacterSet: String? = nil
     ) async throws -> [GenericQueryResult] {
         // Build the query identifier data set
-        let identifierData = buildQueryIdentifier(level: level, queryKeys: queryKeys, transferSyntax: transferSyntax)
+        let identifierData = buildQueryIdentifier(
+            level: level,
+            queryKeys: queryKeys,
+            transferSyntax: transferSyntax,
+            specificCharacterSet: specificCharacterSet
+        )
         
         // Create C-FIND request using the correct SOP Class UID from the information model
         let request = CFindRequest(
@@ -593,8 +726,9 @@ public enum DICOMQueryService {
                 if status.isPending {
                     // Pending - parse the data set and add to results
                     if let dataSetData = message.dataSet {
-                        let attributes = parseQueryResponse(data: dataSetData, transferSyntax: transferSyntax)
-                        results.append(GenericQueryResult(attributes: attributes, level: level))
+                        let parsed = parseQueryResponseElements(data: dataSetData, transferSyntax: transferSyntax)
+                        results.append(GenericQueryResult(attributes: parsed.attributes, level: level,
+                                                          vrs: parsed.vrs, transferSyntaxUID: transferSyntax))
                     }
                 } else if status.isSuccess {
                     // Success - query complete
@@ -615,25 +749,87 @@ public enum DICOMQueryService {
         return results
     }
     
-    /// Builds the query identifier data set
-    private static func buildQueryIdentifier(
+    /// The PS3.4 C.4.1.2.1 rule: Unique Keys of all levels above `level` must be
+    /// present with a single value (no wildcard, no UID list). Returns a message
+    /// naming the first missing key, or nil when the identifier is well-formed.
+    internal static func missingHigherLevelUniqueKey(
         level: QueryLevel,
         queryKeys: QueryKeys,
-        transferSyntax: String
+        informationModel: QueryRetrieveInformationModel
+    ) -> String? {
+        func singleValue(_ tag: Tag) -> Bool {
+            guard let key = queryKeys.keys.first(where: { $0.tag == tag }) else { return false }
+            let v = key.value.trimmingCharacters(in: .whitespaces)
+            return !v.isEmpty && !v.contains("*") && !v.contains("?") && !v.contains("\\")
+        }
+        var required: [(Tag, String)] = []
+        if informationModel == .patientRoot, level != .patient {
+            required.append((.patientID, "Patient ID (0010,0020)"))
+        }
+        if level == .series || level == .image {
+            required.append((.studyInstanceUID, "Study Instance UID (0020,000D)"))
+        }
+        if level == .image {
+            required.append((.seriesInstanceUID, "Series Instance UID (0020,000E)"))
+        }
+        for (tag, name) in required where !singleValue(tag) {
+            return "A \(level.rawValue)-level query must carry a single value for \(name) "
+                + "(PS3.4 C.4.1.2.1: the Unique Key of every level above the query level is required)"
+        }
+        return nil
+    }
+
+    /// Value Representations whose values are text in the declared character
+    /// repertoire (PS3.5 6.1.2). Every other string VR (UI, CS, DA, TM, DT, IS,
+    /// DS, AE, AS) is restricted to the default repertoire by definition.
+    static let textVRs: Set<VR> = [.PN, .LO, .SH, .ST, .LT, .UT, .UC]
+
+    /// Builds the query identifier data set
+    ///
+    /// Chooses a character set over all text-VR key values (or uses the forced
+    /// `specificCharacterSet` / a caller-supplied (0008,0005) key) and, when the
+    /// default repertoire does not suffice, inserts (0008,0005) into the
+    /// Identifier as PS3.4 C.4.1.1.3.1 requires. Text values are encoded with the
+    /// chosen set so a non-ASCII key never degrades to a zero-length (universal
+    /// match) element.
+    static func buildQueryIdentifier(
+        level: QueryLevel,
+        queryKeys: QueryKeys,
+        transferSyntax: String,
+        specificCharacterSet: String? = nil
     ) -> Data {
         var data = Data()
         let isExplicitVR = transferSyntax == explicitVRLittleEndianTransferSyntaxUID
+
+        // A caller-supplied (0008,0005) matching key wins over the configuration
+        // override; both win over automatic selection.
+        var keys = queryKeys.keys
+        let callerCharacterSetKey = keys.first { $0.tag == .specificCharacterSet }
+        let callerValue = callerCharacterSetKey?.value.trimmingCharacters(in: .whitespaces)
+        let override = (callerValue?.isEmpty == false) ? callerValue : specificCharacterSet
+
+        let textValues = keys.filter { textVRs.contains($0.vr) }.map { $0.value }
+        let characterSet = DIMSECharacterSet.choose(for: textValues, override: override)
+
+        if let chosen = characterSet.specificCharacterSet {
+            keys.removeAll { $0.tag == .specificCharacterSet }
+            keys.append(QueryKey(tag: .specificCharacterSet, value: chosen, vr: .CS))
+        } else if callerCharacterSetKey != nil, callerValue?.isEmpty ?? true {
+            // A (0008,0005) return key is meaningless in a C-FIND request; drop it.
+            keys.removeAll { $0.tag == .specificCharacterSet }
+        }
         
         // Merge Query/Retrieve Level into the key set and sort everything
         // by ascending tag order per DICOM PS3.5 Section 7.1.
         let levelKey = QueryKey(tag: .queryRetrieveLevel, value: level.queryRetrieveLevel, vr: .CS)
-        let allKeys = (queryKeys.keys + [levelKey]).sorted { $0.tag < $1.tag }
+        let allKeys = (keys + [levelKey]).sorted { $0.tag < $1.tag }
         for key in allKeys {
             data.append(encodeElement(
                 tag: key.tag,
                 vr: key.vr,
                 value: key.value,
-                explicit: isExplicitVR
+                explicit: isExplicitVR,
+                characterSet: characterSet
             ))
         }
         
@@ -641,7 +837,17 @@ public enum DICOMQueryService {
     }
     
     /// Encodes a single data element for the query identifier
-    private static func encodeElement(tag: Tag, vr: VR, value: String, explicit: Bool) -> Data {
+    ///
+    /// Text VRs are encoded with `characterSet`; the default-repertoire VRs are
+    /// encoded as ISO 646. In neither case is a non-empty value allowed to become
+    /// a zero-length element: if the bytes cannot be produced, UTF-8 is used.
+    static func encodeElement(
+        tag: Tag,
+        vr: VR,
+        value: String,
+        explicit: Bool,
+        characterSet: DIMSECharacterSet = DIMSECharacterSet(specificCharacterSet: nil)
+    ) -> Data {
         var data = Data()
         
         // Tag (4 bytes, little endian)
@@ -651,7 +857,12 @@ public enum DICOMQueryService {
         data.append(Data(bytes: &element, count: 2))
         
         // Prepare value data with padding
-        var valueData = value.data(using: .ascii) ?? Data()
+        var valueData: Data
+        if textVRs.contains(vr) {
+            valueData = characterSet.encode(value)
+        } else {
+            valueData = value.data(using: .ascii) ?? Data(value.utf8)
+        }
         
         // Pad to even length per DICOM rules
         if valueData.count % 2 != 0 {
@@ -670,7 +881,7 @@ public enum DICOMQueryService {
             }
             
             // Check if VR uses 4-byte length
-            if vr.uses4ByteLength {
+            if vr.uses32BitLength {
                 // Reserved (2 bytes)
                 data.append(Data([0x00, 0x00]))
                 // Value Length (4 bytes)
@@ -694,9 +905,25 @@ public enum DICOMQueryService {
         return data
     }
     
-    /// Parses the query response data set into attributes
-    private static func parseQueryResponse(data: Data, transferSyntax: String) -> [Tag: Data] {
+    /// Parses a response data set (C-FIND Identifier, or the final C-MOVE/C-GET
+    /// response Identifier) into top-level attributes. Shared with
+    /// `DICOMRetrieveService`.
+    ///
+    /// A sequence is one top-level element (PS3.5 7.5): its value — every
+    /// item up to the Sequence Delimitation Item (FFFE,E0DD) for undefined
+    /// length, `length` bytes otherwise — is stored under the SQ tag as raw
+    /// bytes and its nested elements are never merged into the top level, so a
+    /// nested (0008,1150) cannot collide with a top-level tag.
+    static func parseQueryResponse(data: Data, transferSyntax: String) -> [Tag: Data] {
+        parseQueryResponseElements(data: data, transferSyntax: transferSyntax).attributes
+    }
+
+    /// ``parseQueryResponse(data:transferSyntax:)`` plus the VR of each top-level
+    /// element as encoded in an Explicit VR response (PS3.5 7.1.2); `vrs` is empty
+    /// for Implicit VR, where the VR is not in the stream (D210).
+    static func parseQueryResponseElements(data: Data, transferSyntax: String) -> (attributes: [Tag: Data], vrs: [Tag: VR]) {
         var attributes: [Tag: Data] = [:]
+        var vrs: [Tag: VR] = [:]
         var offset = 0
         let isExplicitVR = transferSyntax == explicitVRLittleEndianTransferSyntaxUID
         
@@ -725,9 +952,10 @@ public enum DICOMQueryService {
                 let vrString = String(data: vrBytes, encoding: .ascii) ?? "UN"
                 let vr = VR(rawValue: vrString) ?? .UN
                 offset += 2
+                vrs[tag] = vr
                 
                 // Read length based on VR
-                if vr.uses4ByteLength {
+                if vr.uses32BitLength {
                     // Skip reserved 2 bytes, read 4-byte length
                     guard offset + 6 <= data.count else { break }
                     offset += 2
@@ -752,9 +980,15 @@ public enum DICOMQueryService {
                 offset += 4
             }
             
-            // Handle undefined length
+            // Undefined length: a sequence (or encapsulated pixel data) of items
+            // ending with (FFFE,E0DD). Skip the whole value, honouring nested
+            // undefined-length items, and keep it as one raw element (PS3.5 7.5).
             if valueLength == 0xFFFFFFFF {
-                // Skip sequences with undefined length for now
+                guard let end = skipUndefinedLengthValue(data: data, offset: offset, isExplicitVR: isExplicitVR) else {
+                    break
+                }
+                attributes[tag] = data.subdata(in: offset..<(end - 8))
+                offset = end
                 continue
             }
             
@@ -766,7 +1000,91 @@ public enum DICOMQueryService {
             attributes[tag] = value
         }
         
-        return attributes
+        return (attributes, vrs)
+    }
+
+    /// Returns the offset just past the Sequence Delimitation Item (FFFE,E0DD)
+    /// that ends an undefined-length value whose first item starts at `offset`,
+    /// or nil when the data is truncated or malformed (PS3.5 7.5.2, Table 7.5-3).
+    ///
+    /// Items of undefined length are walked element by element up to their Item
+    /// Delimitation Item (FFFE,E00D), recursing into nested undefined-length
+    /// sequences.
+    static func skipUndefinedLengthValue(data: Data, offset: Int, isExplicitVR: Bool) -> Int? {
+        var offset = offset
+        while offset + 8 <= data.count {
+            let group = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
+            let element = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
+            let length = UInt32(data[offset + 4]) |
+                         (UInt32(data[offset + 5]) << 8) |
+                         (UInt32(data[offset + 6]) << 16) |
+                         (UInt32(data[offset + 7]) << 24)
+            offset += 8
+            guard group == 0xFFFE else { return nil }
+            if element == 0xE0DD { return offset }
+            guard element == 0xE000 else { return nil }
+            if length == 0xFFFFFFFF {
+                guard let itemEnd = skipUndefinedLengthItem(data: data, offset: offset, isExplicitVR: isExplicitVR) else {
+                    return nil
+                }
+                offset = itemEnd
+            } else {
+                guard offset + Int(length) <= data.count else { return nil }
+                offset += Int(length)
+            }
+        }
+        return nil
+    }
+
+    /// Returns the offset just past the Item Delimitation Item (FFFE,E00D) that
+    /// ends an undefined-length item whose first element starts at `offset`.
+    private static func skipUndefinedLengthItem(data: Data, offset: Int, isExplicitVR: Bool) -> Int? {
+        var offset = offset
+        while offset + 8 <= data.count {
+            let group = UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8)
+            let element = UInt16(data[offset + 2]) | (UInt16(data[offset + 3]) << 8)
+            if group == 0xFFFE && element == 0xE00D { return offset + 8 }
+            guard let next = elementEnd(data: data, offset: offset, isExplicitVR: isExplicitVR) else { return nil }
+            offset = next
+        }
+        return nil
+    }
+
+    /// Returns the offset just past the element starting at `offset`.
+    private static func elementEnd(data: Data, offset: Int, isExplicitVR: Bool) -> Int? {
+        var offset = offset + 4
+        var length: UInt32
+        if isExplicitVR {
+            guard offset + 2 <= data.count else { return nil }
+            let vrString = String(data: data[offset..<(offset + 2)], encoding: .ascii) ?? "UN"
+            let vr = VR(rawValue: vrString) ?? .UN
+            offset += 2
+            if vr.uses32BitLength {
+                guard offset + 6 <= data.count else { return nil }
+                offset += 2
+                length = UInt32(data[offset]) |
+                         (UInt32(data[offset + 1]) << 8) |
+                         (UInt32(data[offset + 2]) << 16) |
+                         (UInt32(data[offset + 3]) << 24)
+                offset += 4
+            } else {
+                guard offset + 2 <= data.count else { return nil }
+                length = UInt32(UInt16(data[offset]) | (UInt16(data[offset + 1]) << 8))
+                offset += 2
+            }
+        } else {
+            guard offset + 4 <= data.count else { return nil }
+            length = UInt32(data[offset]) |
+                     (UInt32(data[offset + 1]) << 8) |
+                     (UInt32(data[offset + 2]) << 16) |
+                     (UInt32(data[offset + 3]) << 24)
+            offset += 4
+        }
+        if length == 0xFFFFFFFF {
+            return skipUndefinedLengthValue(data: data, offset: offset, isExplicitVR: isExplicitVR)
+        }
+        guard offset + Int(length) <= data.count else { return nil }
+        return offset + Int(length)
     }
 }
 
@@ -784,14 +1102,8 @@ extension VR {
             return false
         }
     }
-    
-    /// Whether this VR uses 4-byte length in Explicit VR encoding
-    var uses4ByteLength: Bool {
-        switch self {
-        case .OB, .OD, .OF, .OL, .OW, .SQ, .UC, .UN, .UR, .UT:
-            return true
-        default:
-            return false
-        }
-    }
+    // The Explicit VR length rule is DICOMCore's `VR.uses32BitLength` (PS3.5 2026a
+    // 7.1.2, Tables 7.1-1 / 7.1-2: 13 VRs with a 32-bit length — OB, OD, OF, OL, OV,
+    // OW, SQ, SV, UC, UN, UR, UT, UV). The former `uses4ByteLength` duplicate here
+    // omitted OV, SV and UV (D1, D276).
 }

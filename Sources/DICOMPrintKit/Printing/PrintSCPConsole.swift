@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — carries no DICOM-standard data (event log text; status codes come from DICOMNetwork)
 //
 // PrintSCPConsole.swift
 // DICOMPrintKit
@@ -190,7 +191,7 @@ public enum PrintSCPConsole {
             "  Composition:  \(Int(settings.dpi)) DPI, "
                 + "\(densityLabel(settings.densityMapping))"
                 + "\(settings.drawAnnotations ? ", annotations" : "")"
-                + "\(settings.drawTrimMarks ? ", trim marks" : "")",
+                + "\(settings.drawTrimMarks ? ", trim boxes" : "")",
             "  Capability:   \(settings.supportsColor ? "color + grayscale" : "grayscale only")"
                 + "\(settings.acceptPresentationLUT ? ", presentation LUT" : "")"
                 + "\(settings.acceptAnnotationBox ? ", annotation boxes" : "")"

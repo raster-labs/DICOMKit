@@ -1,12 +1,16 @@
 import Foundation
+// NEMA-verified: 2026a, checked 2026-09-28 — the 5 User-Identity-Type values and the RQ/AC sub-item layouts compared with PS3.7 2026a Tables D.3-14 / D.3-15 (Scripts/diff_network.py): 5 of 5 match; Supplement 99 kept as provenance for types 1-4
 
 /// User Identity Type for DICOM User Identity Negotiation
 ///
 /// Defines the type of user identity being used for authentication during
 /// association establishment.
 ///
-/// Reference: PS3.7 Section D.3.3.7 - User Identity Negotiation
-/// Reference: DICOM Supplement 99
+/// Reference: PS3.7 Section D.3.3.7 / Table D.3-14 - User Identity Negotiation
+/// Provenance: types 1-4 come from Supplement 99; type 5 (JSON Web Token) was added later
+/// (PS3.7 2026a Table D.3-14 lists 1-5; the introducing CP is not named in the 2014a-2026c
+/// release notes; CP 2405, 2024e, only clarifies that the DIMSE JWT and the DICOMweb token
+/// may be the same).
 public enum UserIdentityType: UInt8, Sendable, Hashable {
     /// Username only authentication
     case username = 1
@@ -29,8 +33,8 @@ public enum UserIdentityType: UInt8, Sendable, Hashable {
 /// Represents the user identity information that can be included in an
 /// A-ASSOCIATE-RQ PDU for authentication purposes.
 ///
-/// Reference: PS3.7 Section D.3.3.7 - User Identity Negotiation
-/// Reference: DICOM Supplement 99
+/// Reference: PS3.7 Section D.3.3.7 / Tables D.3-14, D.3-15 - User Identity Negotiation
+/// Provenance: Supplement 99 (types 1-4); JWT (type 5) added later, see `UserIdentityType`.
 public struct UserIdentity: Sendable, Hashable {
     /// The type of user identity
     public let identityType: UserIdentityType

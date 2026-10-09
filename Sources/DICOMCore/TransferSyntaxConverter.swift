@@ -174,6 +174,7 @@ extension TranscodingError: CustomStringConvertible {
 /// decompression (compressed to uncompressed), and compression (uncompressed to compressed).
 ///
 /// Reference: DICOM PS3.5 Section 10 - Transfer Syntax Specification
+/// NEMA-verified: 2026a, checked 2026-10-01 — YBR_FULL converted to RGB before a lossy J2K/HTJ2K encode and refused for a reversible one (PS3.5 2026a 8.2.4, Table 8.2.4-1; D-CORE-3); JPEG colour labelled YBR_FULL_422 from the frame header sampling (Table 8.2.1-1; D190); byte-order transcoded and parsed values are marked with their order, Big Endian samples are swapped before encoding (D206); defined-length SQ keep their Items (PS3.5 2026a 7.5.2, D-CORE-5); the byte-swap VR set (16-, 32- and 64-bit binary VRs incl. OV/SV/UV) follows PS3.5 2026a §7.3 and Table 6.2-1; the XYB to RGB relabel after JPEG XL decode follows PS3.3 2026a C.7.6.3.1.2 and PS3.5 Table 8.2.15-1 (fixed under P1/P3 on 2026-09-24). Re-checked for this marker on 2026-09-25.
 public struct TransferSyntaxConverter: Sendable {
     
     /// Configuration for the converter
@@ -466,8 +467,11 @@ public struct TransferSyntaxConverter: Sendable {
             TransferSyntax.htj2kLossy.uid
         ]
 
-        // J2K Part 1 → HTJ2K
-        if j2kPart1UIDs.contains(source.uid) && htj2kUIDs.contains(target.uid) {
+        // J2K Part 1 → HTJ2K. Not to HTJ2K Lossless RPCL (.202): the coefficient re-encode keeps
+        // the source's progression, layers and decomposition levels, which PS3.5 2026a 10.18.1
+        // constrains (RPCL, base resolution ≤ 64, TLM), so .202 is always written by the encoder.
+        if j2kPart1UIDs.contains(source.uid) && htj2kUIDs.contains(target.uid)
+            && target.uid != TransferSyntax.htj2kRPCLLossless.uid {
             return true
         }
         // HTJ2K → J2K Part 1
@@ -759,12 +763,14 @@ public struct TransferSyntaxConverter: Sendable {
         
         // Find pixel data element and decompress if present
         var outputElements: [DataElement] = []
+        var decodedXYB = false
         
         for element in elements {
             if element.tag == .pixelData && element.isEncapsulated,
                let fragments = element.encapsulatedFragments {
                 // Get pixel data descriptor from surrounding elements
                 let descriptor = try extractPixelDataDescriptor(from: elements)
+                decodedXYB = source.isJPEGXL && descriptor.photometricInterpretation == .xyb
                 
                 // Decompress each frame
                 var decompressedData = Data()
@@ -784,6 +790,27 @@ public struct TransferSyntaxConverter: Sendable {
             } else {
                 outputElements.append(element)
             }
+        }
+
+        // The JPEG XL decoder applies the inverse XYB transform and yields RGB samples, and
+        // "Images in XYB transcoded to other Transfer Syntaxes will use RGB" (PS3.3 2026a
+        // C.7.6.3.1.2). Relabel so the tag matches the decoded bytes.
+        if decodedXYB {
+            outputElements = outputElements.map { element in
+                guard element.tag == .photometricInterpretation else { return element }
+                let rgb = Data("RGB ".utf8)
+                return DataElement(tag: element.tag, vr: .CS, length: UInt32(rgb.count), valueData: rgb)
+            }
+        }
+        
+        // JPEG 2000 / HTJ2K decoders invert the Part 1 multi-component transformation, so the
+        // native samples are RGB: "If color components are converted from YBR_ICT or YBR_RCT to
+        // RGB during decompression and Native re-encoding, the Photometric Interpretation will be
+        // changed to RGB" (PS3.5 2026a 8.2.4; 8.2.14 for HTJ2K). YBR_RCT / YBR_ICT are not valid
+        // for native Pixel Data (PS3.3 C.7.6.3.1.2).
+        if source.isJPEG2000 {
+            outputElements = Self.replacingPhotometricInterpretation(
+                in: outputElements, when: ["YBR_RCT", "YBR_ICT"], with: "RGB")
         }
 
         // The JPEG (ImageIO) decoder converts YCbCr to RGB, so a decoded JPEG Baseline /
@@ -859,12 +886,15 @@ public struct TransferSyntaxConverter: Sendable {
         
         // Build output elements, applying bit-depth reduction when necessary
         var outputElements: [DataElement] = []
+        var firstCodestream: Data?
         
         for element in elements {
             if element.tag == .pixelData && !element.isEncapsulated {
                 // Get pixel data descriptor from surrounding elements
                 var descriptor = try extractPixelDataDescriptor(from: elements)
-                var pixelBytes = element.valueData
+                // Encoders take little-endian samples; OW from a Big Endian source is swapped (D206).
+                var pixelBytes = DICOMWriter.value(element.valueData, vr: element.vr,
+                                                   from: element.byteOrder, to: .littleEndian)
                 
                 // Apply bit-depth reduction if pre-scan determined it's needed
                 if needsBitReduction {
@@ -898,11 +928,25 @@ public struct TransferSyntaxConverter: Sendable {
                 
                 // Compress the pixel data
                 let effectiveCompressionConfiguration = target.isLossless ? .lossless : compressionConfiguration
+
+                // J2KSwift applies the Part 1 colour transform to every 3-component image, and
+                // "No other Value of Photometric Interpretation than YBR_RCT or YBR_ICT is permitted
+                // when SGcod Multiple component transformation type is 1" (PS3.5 2026a 8.2.4; 8.2.14).
+                // YBR_FULL needs MCT 0, so its samples are converted to RGB first and the output is
+                // labelled YBR_RCT / YBR_ICT below (D-CORE-3).
+                if target.isJPEG2000, descriptor.photometricInterpretation == .ybrFull {
+                    (pixelBytes, descriptor) = try Self.rgbForJPEG2000Encode(
+                        pixelBytes, descriptor: descriptor,
+                        lossless: effectiveCompressionConfiguration.preferLossless)
+                }
+
                 let compressedFrames = try encoder.encode(
                     pixelBytes,
                     descriptor: descriptor,
                     configuration: effectiveCompressionConfiguration
                 )
+                
+                firstCodestream = compressedFrames.first
                 
                 // Create new encapsulated pixel data element
                 let newElement = DataElement(
@@ -945,6 +989,44 @@ public struct TransferSyntaxConverter: Sendable {
             }
         }
         
+        // JPEG 2000 / HTJ2K: the codestream decides Photometric Interpretation. With the Part 1
+        // multi-component transformation (COD SGcod MCT = 1) "the DICOM Attribute Photometric
+        // Interpretation (0028,0004) shall be YBR_RCT" (reversible) or "YBR_ICT" (irreversible),
+        // and Planar Configuration "shall be set to 0" (PS3.5 2026a 8.2.4, Table 8.2.4-1; 8.2.14,
+        // Table 8.2.14-1 for HTJ2K).
+        if target.isJPEG2000, let codestream = firstCodestream,
+           let style = J2KCodestreamInspector.codingStyle(in: codestream), style.componentCount == 3 {
+            // RGB samples, and YBR_FULL samples converted to RGB before the encode above, are
+            // relabelled: the transformation is defined on RGB (ISO/IEC 15444-1 Annex G).
+            if style.multipleComponentTransform == 1 {
+                outputElements = Self.replacingPhotometricInterpretation(
+                    in: outputElements, when: ["RGB", "YBR_FULL"],
+                    with: style.reversibleWavelet ? "YBR_RCT" : "YBR_ICT")
+            }
+            outputElements = outputElements.map { element in
+                guard element.tag == .planarConfiguration else { return element }
+                var zero = UInt16(0).littleEndian
+                let value = Data(bytes: &zero, count: 2)
+                return DataElement(tag: element.tag, vr: .US, length: 2, valueData: value)
+            }
+        }
+
+        // JPEG lossy colour: the encoder writes YCbCr with chrominance at half the horizontal
+        // rate; Table 8.2.1-1 allows a 3-sample JPEG Baseline stream only as YBR_FULL_422 or RGB,
+        // and "JPEG compressed data streams are always color-by-pixel" (Planar Configuration 0)
+        // (PS3.5 2026a 8.2.1; D190 / D-CORE-2).
+        if target.uid == TransferSyntax.jpegBaseline.uid || target.uid == TransferSyntax.jpegExtended.uid,
+           let codestream = firstCodestream, JPEGInterchangeFormat.isHorizontally422(codestream) {
+            outputElements = Self.replacingPhotometricInterpretation(
+                in: outputElements, when: nil, with: "YBR_FULL_422")
+            outputElements = outputElements.map { element in
+                guard element.tag == .planarConfiguration else { return element }
+                var zero = UInt16(0).littleEndian
+                let value = Data(bytes: &zero, count: 2)
+                return DataElement(tag: element.tag, vr: .US, length: 2, valueData: value)
+            }
+        }
+
         // Write elements in target transfer syntax (Explicit VR Little Endian for encapsulated)
         let writer = DICOMWriter(byteOrder: .littleEndian, explicitVR: true)
         var outputData = Data()
@@ -961,6 +1043,46 @@ public struct TransferSyntaxConverter: Sendable {
         return outputData
     }
     
+    /// Native YBR_FULL samples → RGB for a JPEG 2000 / HTJ2K encode (PS3.5 2026a 8.2.4, Table
+    /// 8.2.4-1: SGcod MCT = 1, which J2KSwift always writes for 3 components, is permitted only
+    /// under YBR_RCT / YBR_ICT; YBR_FULL needs MCT 0). The conversion (PS3.3 2026a C.7.6.3.1.2)
+    /// rounds, so it is refused for a reversible encode, whose pixels must be preserved bit for
+    /// bit: the caller must convert to RGB first, or pick a lossy target.
+    public static func rgbForJPEG2000Encode(
+        _ pixelBytes: Data, descriptor: PixelDataDescriptor, lossless: Bool
+    ) throws -> (Data, PixelDataDescriptor) {
+        guard !lossless else {
+            throw TranscodingError.encodingFailed(
+                "YBR_FULL Pixel Data cannot be encoded reversibly to JPEG 2000 / HTJ2K: the encoder "
+                + "always applies the multi-component transformation (SGcod MCT = 1), which PS3.5 "
+                + "2026a 8.2.4 permits only under YBR_RCT / YBR_ICT, and converting YBR_FULL to RGB "
+                + "first is not bit-preserving. Convert the image to RGB, or use a lossy target.")
+        }
+        guard let rgb = YBRFullConversion.rgb(fromYBRFull: pixelBytes, descriptor: descriptor) else {
+            throw TranscodingError.encodingFailed(
+                "YBR_FULL Pixel Data (Bits Allocated \(descriptor.bitsAllocated), Pixel Representation "
+                + "\(descriptor.isSigned ? 1 : 0)) cannot be converted to RGB for a JPEG 2000 / HTJ2K encode")
+        }
+        return (rgb, YBRFullConversion.rgbDescriptor(for: descriptor))
+    }
+
+    /// Replaces the value of Photometric Interpretation (0028,0004) with `newValue` (padded to an
+    /// even length) when its current value is in `values` (`nil`: whatever it is).
+    static func replacingPhotometricInterpretation(
+        in elements: [DataElement], when values: Set<String>?, with newValue: String
+    ) -> [DataElement] {
+        elements.map { element in
+            guard element.tag == .photometricInterpretation else { return element }
+            let current = String(data: element.valueData, encoding: .ascii)?
+                .trimmingCharacters(in: .whitespaces.union(.controlCharacters)) ?? ""
+            if let values, !values.contains(current) { return element }
+            guard current != newValue else { return element }
+            let padded = newValue.count % 2 == 0 ? newValue : newValue + " "
+            let data = Data(padded.utf8)
+            return DataElement(tag: element.tag, vr: .CS, length: UInt32(data.count), valueData: data)
+        }
+    }
+
     /// Rescales 16-bit pixel data to 8-bit using window/level from the dataset.
     ///
     /// Applies the Rescale Slope/Intercept and Window Center/Width from the dataset
@@ -1231,7 +1353,8 @@ public struct TransferSyntaxConverter: Sendable {
                 // Parse sequence
                 let (items, newOffset) = try parseSequence(from: data, at: offset, transferSyntax: transferSyntax)
                 offset = newOffset
-                return DataElement(tag: tag, vr: vr, length: length, valueData: Data(), sequenceItems: items)
+                return DataElement(tag: tag, vr: vr, length: length, valueData: Data(), sequenceItems: items,
+                                   byteOrder: transferSyntax.byteOrder)
             } else if tag == .pixelData {
                 // Parse encapsulated pixel data
                 let (fragments, offsetTable, newOffset) = try parseEncapsulatedPixelData(from: data, at: offset, transferSyntax: transferSyntax)
@@ -1242,7 +1365,8 @@ public struct TransferSyntaxConverter: Sendable {
                     length: length,
                     valueData: Data(),
                     encapsulatedFragments: fragments,
-                    encapsulatedOffsetTable: offsetTable
+                    encapsulatedOffsetTable: offsetTable,
+                    byteOrder: transferSyntax.byteOrder
                 )
             }
         }
@@ -1260,13 +1384,26 @@ public struct TransferSyntaxConverter: Sendable {
             let availableLength = data.count - offset
             let valueData = data.subdata(in: offset..<offset+availableLength)
             offset = data.count
-            return DataElement(tag: tag, vr: vr, length: UInt32(availableLength), valueData: valueData)
+            return DataElement(tag: tag, vr: vr, length: UInt32(availableLength), valueData: valueData,
+                               byteOrder: transferSyntax.byteOrder)
         }
         
         let valueData = data.subdata(in: offset..<offset+intLength)
         offset += intLength
-        
-        return DataElement(tag: tag, vr: vr, length: length, valueData: valueData)
+
+        // A defined-length Sequence (PS3.5 2026a 7.5.2, "Explicit Length") keeps its Items:
+        // DICOMWriter re-encodes an SQ from its Items, so an SQ element without them was written
+        // as an empty sequence, dropping every defined-length sequence on a transcode (D-CORE-5).
+        if vr == .SQ {
+            let (items, _) = try parseSequence(from: valueData, at: 0, transferSyntax: transferSyntax)
+            return DataElement(tag: tag, vr: vr, length: length, valueData: valueData, sequenceItems: items,
+                               byteOrder: transferSyntax.byteOrder)
+        }
+
+        // Values are marked with the byte order they were read in, so DICOMWriter swaps them
+        // when the target order differs (PS3.5 2026a 7.3; D206).
+        return DataElement(tag: tag, vr: vr, length: length, valueData: valueData,
+                           byteOrder: transferSyntax.byteOrder)
     }
     
     /// Parses a sequence with undefined length
@@ -1413,7 +1550,9 @@ public struct TransferSyntaxConverter: Sendable {
         }
         
         // Only transcode numeric VRs
-        let numericVRs: [VR] = [.US, .SS, .UL, .SL, .FL, .FD, .AT, .OW, .OF, .OL, .OD]
+        // PS3.5 §7.3 lists every multi-byte binary VR: 2-byte US SS OW (and each AT
+        // component), 4-byte OF OL UL SL FL, 8-byte OD OV FD SV UV.
+        let numericVRs: [VR] = [.US, .SS, .UL, .SL, .FL, .FD, .AT, .OW, .OF, .OL, .OD, .OV, .SV, .UV]
 
         guard numericVRs.contains(element.vr) else {
             return element
@@ -1463,7 +1602,7 @@ public struct TransferSyntaxConverter: Sendable {
                 }
             }
             
-        case .FD, .OD:
+        case .FD, .OD, .OV, .SV, .UV:
             // 64-bit values
             for i in stride(from: 0, to: valueData.count, by: 8) {
                 if i + 8 <= valueData.count {
@@ -1486,21 +1625,25 @@ public struct TransferSyntaxConverter: Sendable {
             return element
         }
         
-        // Use the appropriate DataElement constructor based on whether there are sequence items
+        // Use the appropriate DataElement constructor based on whether there are sequence items.
+        // The value is now in `target` order, and says so: DICOMWriter byte-swaps a value whose
+        // order differs from its own (D206), so an unmarked value would be swapped twice.
         if let seqItems = element.sequenceItems {
             return DataElement(
                 tag: element.tag,
                 vr: element.vr,
                 length: UInt32(newData.count),
                 valueData: newData,
-                sequenceItems: seqItems
+                sequenceItems: seqItems,
+                byteOrder: target
             )
         } else {
             return DataElement(
                 tag: element.tag,
                 vr: element.vr,
                 length: UInt32(newData.count),
-                valueData: newData
+                valueData: newData,
+                byteOrder: target
             )
         }
     }

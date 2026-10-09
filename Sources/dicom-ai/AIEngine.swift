@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data beyond reading the Image Pixel Module (Rows, Columns, Bits Allocated, Samples per Pixel, Photometric Interpretation, Pixel Data) of PS3.3 2026a Tables C.7-11a, C.7-11b and C.7-11c with MONOCHROME2 (a C.7.6.3.1.2 Defined Term) as fallback; CoreML inference plumbing
 import Foundation
 import DICOMKit
 import DICOMCore
@@ -65,6 +66,18 @@ class AIEngine {
     private let verbose: Bool
     private let modelURL: URL
     private let preprocessingOptions: PreprocessingOptions
+
+    /// The model's version string from its CoreML metadata, when it has one: the default
+    /// Algorithm Version (111003, DCM) of PS3.16 TID 4019 row 2 in the SR dicom-ai writes
+    var modelVersion: String? {
+        #if canImport(CoreML)
+        let version = model?.modelDescription.metadata[.versionString] as? String
+        let trimmed = version?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? nil : trimmed
+        #else
+        return nil
+        #endif
+    }
     
     init(modelURL: URL, verbose: Bool = false, preprocessingOptions: PreprocessingOptions = .default) throws {
         self.modelURL = modelURL

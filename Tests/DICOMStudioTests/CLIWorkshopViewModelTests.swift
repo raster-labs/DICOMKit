@@ -6,6 +6,10 @@
 import Testing
 @testable import DICOMStudio
 import Foundation
+import DICOMKit
+import DICOMCore
+import DICOMNetwork
+import DICOMWeb
 
 @Suite("CLI Workshop ViewModel Tests")
 @MainActor
@@ -420,5 +424,397 @@ struct CLIWorkshopViewModelTests {
         let vm = CLIWorkshopViewModel()
         let presets = vm.examplePresetsForSelectedTool()
         #expect(presets.isEmpty)
+    }
+
+    // MARK: - File-tool executor helpers mirror the dicom-* CLIs (DICOM 2026a)
+
+    @Test("DICOMDIRFileSetRules (the Workshop's dcmdir rules, D253): File-set ID default and refusal follow PS3.10 8.1 / 8.5 (D132)")
+    func fileSetRules() {
+        #expect(DICOMDIRFileSetRules.defaultFileSetID(fromDirectoryName: "my study-01") == "MY_STUDY_01")
+        #expect(DICOMDIRFileSetRules.defaultFileSetID(fromDirectoryName: "ABCDEFGHIJKLMNOPQRSTUVWXYZ").count == 16)
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal("STUDY_01") == nil)
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal("") == nil)                       // (0004,1130) is Type 2
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal("study-01")?.hasPrefix("Refusing --file-set-id:") == true)
+        #expect(DICOMDIRFileSetRules.fileSetIDRefusal(String(repeating: "A", count: 17))?.contains("at most 16") == true)
+        #expect(DICOMDIRFileSetRules.fileIDViolations(["DICOM", "IM000001"]).isEmpty)
+        #expect(!DICOMDIRFileSetRules.fileIDViolations(["img1.dcm"]).isEmpty)           // '.' is outside PS3.10 8.5
+        #expect(!DICOMDIRFileSetRules.fileIDViolations(["ABCDEFGHI"]).isEmpty)          // 9 characters (PS3.10 8.2)
+    }
+
+    @Test("DICOMDIRFileSetRules: a deprecated --profile spelling gets the CLI's note; a PS3.11 identifier none (D29)")
+    func profileDeprecationNote() throws {
+        let resolved = try #require(DICOMDIRProfile(rawValue: "STD-GEN-DVD"))
+        let note = DICOMDIRFileSetRules.profileDeprecationNote(requested: "STD-GEN-DVD", resolved: resolved)
+        #expect(note?.contains("--profile STD-GEN-DVD is deprecated") == true)
+        #expect(note?.contains("PS3.11 2026a Table H.1-1") == true)
+        #expect(DICOMDIRFileSetRules.profileDeprecationNote(requested: "STD-GEN-CD", resolved: .standardGeneralCD) == nil)
+    }
+
+    @Test("dicom-export animate rate: --fps, else Recommended Display Frame Rate, Cine Rate, 1000 / Frame Time, else 10 (PS3.3 Table C.7-13)")
+    func exportCineFrameRate() {
+        var ds = DataSet()
+        #expect(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds).fps == 10)
+        #expect(DICOMImageExporter.CineFrameRate.resolve(explicit: 12, dataSet: ds).source.label == "--fps")
+        ds.setString("40", for: .frameTime, vr: .DS)
+        let fromFrameTime = DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds)
+        #expect(fromFrameTime.fps == 25)
+        #expect(fromFrameTime.source.label == "Frame Time (0018,1063)")
+        ds.setString("30", for: .cineRate, vr: .IS)
+        #expect(DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds).fps == 30)
+        ds.setString("15", for: .recommendedDisplayFrameRate, vr: .IS)
+        let preferred = DICOMImageExporter.CineFrameRate.resolve(explicit: nil, dataSet: ds)
+        #expect(preferred.fps == 15)
+        #expect(preferred.source.label == "Recommended Display Frame Rate (0008,2144)")
+    }
+
+    @Test("dicom-export texts the Workshop prints are DICOMImageExporter's (D252) (P-EXPORT-1, P-EXPORT-3, Burned In Annotation (0028,0301))")
+    func exportTexts() {
+        #expect(DICOMImageExporter.FrameSelection.deprecationNote(option: "--frame", replacement: "--frame-number")
+                == "warning: --frame is deprecated (0-based index); use --frame-number (numbered from 1, PS3.3 Table 10-3: the first Frame is Frame number 1)")
+        #expect(DICOMImageExporter.FrameSelection.invalidFrameNumberMessage(requested: 5, total: 3)
+                == "Frame number 5 does not exist. The file has 3 frames, numbered 1 to 3.")
+        #expect(DICOMImageExporter.FrameSelectionConflict(zeroBased: "--frame", oneBased: "--frame-number").description
+                == "--frame (deprecated, 0-based) and --frame-number (numbered from 1) cannot be used together")
+        #expect(DICOMImageExporter.ApplyWindowDeprecation.note(subcommand: "bulk").hasPrefix("warning: bulk --apply-window is deprecated"))
+        var ds = DataSet()
+        #expect(!DICOMImageExporter.BurnedInAnnotation.isYes(ds))
+        ds.setString("YES", for: .burnedInAnnotation, vr: .CS)
+        #expect(DICOMImageExporter.BurnedInAnnotation.isYes(ds))
+        #expect(DICOMImageExporter.BurnedInAnnotation.warning(for: "a.dcm").contains("a.dcm: Burned In Annotation (0028,0301) is YES"))
+    }
+
+    @Test("dicom-archive --study-date warning: a DA value or DA range (PS3.4 C.2.2.2.5.1) is silent")
+    func archiveStudyDateWarning() {
+        #expect(ArchiveMatching.studyDateKeyWarning(nil) == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("20240102") == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("20240101-20240201") == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("-20240201") == nil)
+        #expect(ArchiveMatching.studyDateKeyWarning("2024")?.hasPrefix("warning: --study-date '2024'") == true)
+    }
+
+    @Test("dicom-dump tag argument: 0010,0010, (0010,0010), 00100010 or a PS3.6 keyword")
+    func dumpTagParsing() {
+        let patientName = Tag(group: 0x0010, element: 0x0010)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("0010,0010") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("(0010,0010)") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("00100010") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("PatientName") == patientName)
+        #expect(CLIWorkshopViewModel.parseDumpTagStr("nonsense") == nil)
+        #expect(CLIWorkshopViewModel.dumpInvalidTagMessage("x")
+                == "Error: Invalid tag format: x. Use format: 0010,0010 or a PS3.6 keyword such as PatientName\n")
+    }
+
+    @Test("dicom-json / dicom-xml --filter-tag forms and deprecation notes (PS3.18 F.2.2; PS3.19 Table A.1.5-2)")
+    func dataExchangeHelpers() {
+        #expect(CLIWorkshopViewModel.normalizedDataExchangeFilterTags(["00100020", "(0008,0016)", "PatientName", "0010,0010"])
+                == ["0010,0020", "0008,0016", "PatientName", "0010,0010"])
+        #expect(CLIWorkshopViewModel.dataExchangeDeprecationNotes(toolName: "dicom-json", noSortKeys: true, noKeywords: false)
+                == ["dicom-json: warning: --no-sort-keys is deprecated and will be removed: PS3.18 2026a F.2.2 requires attribute objects in ascending tag order"])
+        #expect(CLIWorkshopViewModel.dataExchangeDeprecationNotes(toolName: "dicom-xml", noSortKeys: false, noKeywords: true)
+                == ["dicom-xml: warning: --no-keywords is deprecated and will be removed: PS3.19 2026a Table A.1.5-2 requires the keyword attribute for every PS3.6 Data Element"])
+        #expect(CLIWorkshopViewModel.dataExchangeDeprecationNotes(toolName: "dicom-json", noSortKeys: false, noKeywords: false).isEmpty)
+    }
+
+    @Test("dicom-uid --root: PS3.5 9.1 syntax (digits, single dots, no leading zero) and room for the generated suffix")
+    func uidRootProblems() {
+        #expect(UIDManager.RootRule.problems(root: "1.2.826.0.1.3680043", typed: false).isEmpty)
+        #expect(UIDManager.RootRule.problems(root: "1..2", typed: false).first?.contains("empty component") == true)
+        #expect(UIDManager.RootRule.problems(root: "1.02", typed: false).first?.contains("leading zero") == true)
+        #expect(UIDManager.RootRule.problems(root: "1.a", typed: false).first?.contains("not a number") == true)
+        #expect(UIDManager.RootRule.problems(root: String(repeating: "1.", count: 30) + "1", typed: true)
+                .contains { $0.contains("may not exceed 64") })
+    }
+
+    @Test("dicom-validate --iod: PS3.6 Table A-1 keyword or UID resolves to the engine IOD name")
+    func validateIODEngineName() {
+        #expect(DICOMValidator.iodName(forIODOption: "CTImageStorage") == "CTImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "1.2.840.10008.5.1.4.1.1.4") == "MRImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "ComputedRadiographyImageStorage") == "CRImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "us") == "USImageStorage")
+        #expect(DICOMValidator.iodName(forIODOption: "BasicTextSRStorage") == "StructuredReport")
+        #expect(DICOMValidator.iodName(forIODOption: "ct") == "ct")        // the engine's own short name passes through
+    }
+
+    // MARK: - Network tools (workshop-net, DICOM 2026a)
+
+
+    // MARK: - Pixel / codec executors mirror the dicom-* CLIs (DICOM 2026a)
+
+    @Test("dicom-anon executor rules (DICOMKit AnonCLI, D275): the CLI's legacy profile notice, the 'apply only to --profile ps315' refusal, the E.1-1a action report (PS3.15 2026a Annex E)")
+    func anonMirrorTexts() {
+        #expect(AnonCLI.resolveProfile("legacy-basic") == .legacyBasic)
+        #expect(AnonCLI.resolveProfile("clinical-trial") == .legacyClinicalTrial)
+        #expect(AnonCLI.resolveProfile("basic") == .ps315)                 // P-ANON-PROFILE: the PS3.15 Basic Profile alias
+        #expect(AnonCLI.resolveProfile("nonsense") == nil)
+        #expect(AnonCLI.legacyProfileNotice("ps315") == nil)
+        #expect(AnonCLI.legacyProfileNotice("legacy-basic")?.hasPrefix("Deprecated: --profile legacy-basic is a legacy attribute list, not a PS3.15 Annex E profile") == true)
+        #expect(AnonCLI.legacyProfileNotice("research")?.contains("(now legacy-research)") == true)
+        #expect(throws: AnonCLI.ValidationError(
+            "PS3.15 Annex E Option flags apply only to --profile ps315: --retain-uids, --clean-descriptors")) {
+            try AnonCLI.validate(profile: "legacy-basic", flags: AnonCLI.PS315Flags(retainUids: true, cleanDescriptors: true),
+                                 shiftDates: nil, regenerateUids: false, keep: [])
+        }
+        #expect(WorkshopAnonError.invalidProfile.hasPrefix("Invalid anonymization profile (use ps315, basic"))
+        let lines = AnonCLI.actionLines(path: "/f.dcm", actions: [
+            .init(tag: Tag(group: 0x0010, element: 0x0010), code: "D", name: "Patient's Name")])
+        #expect(lines.contains("PS3.15 Table E.1-1a: D dummy, Z zero length, X removed, C cleaned, U new UID"))
+        #expect(lines.contains("  D        (0010,0010) Patient's Name"))
+        #expect(AnonCLI.name(of: Tag(group: 0x0009, element: 0x0010)) == "Private Data Element")
+    }
+
+    @Test("dicom-image / dicom-pdf / dicom-pixedit refusal rules are the engines' (D274, D272, D270) (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.8-24 / C.24-2, C.7.6.3.1, C.11.2.1.2)")
+    func imagePdfPixeditRules() throws {
+        let v = ImageConverter.OutputRules.valueViolations(
+            patientName: String(repeating: "A", count: 65), patientID: "a\\b", studyDescription: nil, seriesDescription: nil,
+            studyUID: "1.02.3", seriesUID: nil, seriesNumber: Int(Int32.max) + 1, instanceNumber: nil)
+        #expect(v.count == 4)
+        #expect(v[0].contains("--study-uid '1.02.3' is not a valid UID (PS3.5 9.1"))
+        #expect(v[1] == "--patient-id contains a backslash, which LO does not allow (PS3.5 Table 6.2-1)")
+        #expect(v[2].contains("PN allows at most 64 per component group"))
+        #expect(v[3].contains("outside the IS range -2^31...2^31-1"))
+        #expect(ImageConverter.OutputRules.conversionType(nil) == .workstation)
+        #expect(ImageConverter.OutputRules.conversionType("sd") == .scannedDocument)
+        #expect(ImageConverter.OutputRules.conversionType("XYZ") == nil)
+        #expect(try EncapsulatedDocumentBuilder.OptionRules.conversionType("drw") == "DRW")
+        #expect(try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation("no") == false)
+        #expect(throws: EncapsulatedDocumentBuilder.OptionRules.ValidationError.self) { try EncapsulatedDocumentBuilder.OptionRules.burnedInAnnotation("maybe") }
+        let cda = Data("<ClinicalDocument xmlns=\"urn:hl7-org:v3\"><id root=\"2.16.840.1.113883.19\" extension=\"X1\"/></ClinicalDocument>".utf8)
+        #expect(EncapsulatedDocumentBuilder.OptionRules.hl7InstanceIdentifier(fromCDA: cda) == "2.16.840.1.113883.19^X1")
+        #expect(PixelEditInputChecks.storedRange(bitsStored: 12, signed: false) == 0...4095)
+        #expect(PixelEditInputChecks.storedRange(bitsStored: 16, signed: true) == -32768...32767)
+        #expect(PixelEditInputChecks.fillValueViolation(5000, range: 0...4095)?.contains("outside the stored range 0...4095") == true)
+        #expect(PixelEditInputChecks.fillValueViolation(7, range: 0...4095) == nil)
+        #expect(PixelEditInputChecks.windowWidthViolation(0.5)?.contains("shall always be greater than or equal to 1 (PS3.3 C.11.2.1.2)") == true)
+        #expect(PixelEditInputChecks.windowWidthViolation(1) == nil)
+    }
+
+    @Test("dicom-query --level: patient/study/series/image → Query/Retrieve Level (0008,0052); 'instance' is the CLI alias of IMAGE (PS3.4 Table C.6.1-1)")
+    func queryLevelOption() {
+        #expect(CLIWorkshopViewModel.queryLevelOption("patient") == .patient)
+        #expect(CLIWorkshopViewModel.queryLevelOption("study") == .study)
+        #expect(CLIWorkshopViewModel.queryLevelOption("series") == .series)
+        #expect(CLIWorkshopViewModel.queryLevelOption("image") == .image)
+        #expect(CLIWorkshopViewModel.queryLevelOption("instance") == .image)
+        #expect(CLIWorkshopViewModel.queryLevelOption("IMAGE")?.rawValue == "IMAGE")
+        #expect(CLIWorkshopViewModel.queryLevelOption("frame") == nil)
+    }
+
+    @Test("dicom-query validate(): SERIES needs --study-uid, IMAGE needs both (PS3.4 C.4.1.2.1) with the CLI's texts")
+    func queryLevelRefusal() {
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .study, studyUID: "", seriesUID: "") == nil)
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .series, studyUID: "", seriesUID: "")
+                == "--level series requires --study-uid (PS3.4 C.4.1.2.1: the Study Instance UID of the level above must be given)")
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .series, studyUID: "1.2.3", seriesUID: "") == nil)
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .image, studyUID: "1.2.3", seriesUID: "")
+                == "--level image (instance) requires --study-uid and --series-uid (PS3.4 C.4.1.2.1)")
+        #expect(CLIWorkshopViewModel.queryLevelRefusal(level: .image, studyUID: "1.2.3", seriesUID: "1.2.3.4") == nil)
+    }
+
+    @Test("dicom-query --format dicom-json renders the PS3.18 F.2 DICOM JSON Model through DICOMWeb's encoder; --csv-keywords names columns by PS3.6 keyword")
+    func queryResultFormatter() {
+        let fmt = CLIWorkshopViewModel.queryResultFormatter(format: .dicomJSON, level: .study, csvKeywords: false)
+        #expect(fmt.dicomJSONEncoder != nil)
+        #expect(fmt.csvHeader == .tag)
+        let csv = CLIWorkshopViewModel.queryResultFormatter(format: .csv, level: .study, csvKeywords: true)
+        #expect(csv.csvHeader == .keyword)
+    }
+
+    @Test("--modality runs through the shared ModalityOptionValidator: alias noted only with --verbose, unknown warned and sent, rejected under --strict-modality")
+    func resolveModalityOption() {
+        let ct = CLIWorkshopViewModel.resolveModalityOption("CT", strict: true, verbose: true)
+        #expect(ct.value == "CT" && ct.lines.isEmpty && ct.error == nil)
+        let alias = CLIWorkshopViewModel.resolveModalityOption("MRI", strict: false, verbose: false)
+        #expect(alias.value == "MR" && alias.lines.isEmpty && alias.error == nil)
+        #expect(CLIWorkshopViewModel.resolveModalityOption("MRI", strict: false, verbose: true).lines.count == 1)
+        let unknown = CLIWorkshopViewModel.resolveModalityOption("ZZ", strict: false, verbose: false)
+        #expect(unknown.value == "ZZ" && unknown.error == nil)
+        #expect(unknown.lines.first?.hasPrefix("warning: ") == true && unknown.lines.first?.hasSuffix(" Sending it as-is.") == true)
+        let strict = CLIWorkshopViewModel.resolveModalityOption("ZZ", strict: true, verbose: false)
+        #expect(strict.error?.hasSuffix(" Rejected because --strict-modality is set.") == true)
+        #expect(CLIWorkshopViewModel.resolveModalityOption("", strict: true, verbose: false).error == nil)
+    }
+
+    @Test("dicom-send classes a C-STORE response per PS3.4 Table B.2-1 (NetworkConsole.CStoreOutcome, D261): 0000 stored, B000/B006/B007 stored with warning, A7xx/A9xx/Cxxx/0122 not stored")
+    func sendStoreOutcomeClasses() {
+        typealias Outcome = NetworkConsole.CStoreOutcome
+        #expect(Outcome(status: .from(0x0000)) == .stored)
+        for warning: UInt16 in [0xB000, 0xB006, 0xB007] {
+            #expect(Outcome(status: .from(warning)) == .storedWithWarning, Comment(rawValue: String(warning, radix: 16)))
+        }
+        for failure: UInt16 in [0xA700, 0xA900, 0xC000, 0xC123, 0x0122] {
+            #expect(Outcome(status: .from(failure)) == .failed, Comment(rawValue: String(failure, radix: 16)))
+        }
+        // The texts dicom-send prints (D261): the ❌ line in the Table B.2-1 C-STORE wording and the
+        // partial-failure error, printed as `Error: …`.
+        #expect(NetworkConsole.sendFileResultSuffix(success: false, rtt: 0, error: NetworkConsole.sendStoreFailedText(status: .from(0xA700)))
+                == " ❌ C-STORE response status Failure (0xA700): Refused: Out of resources — not stored (PS3.4 Table B.2-1)\n")
+        #expect(NetworkConsole.sendPartialFailureText(succeeded: 2, failed: 1) == "Send completed with 2 succeeded and 1 failed")
+    }
+
+    @Test("dicom-retrieve / dicom-qr --priority words → Priority (0000,0700) LOW 0002H / MEDIUM 0000H / HIGH 0001H (PS3.7 Tables 9.3-9 / 9.3-6)")
+    func retrievePriorityOption() {
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("low") == .low)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("medium") == .medium)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("high") == .high)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("") == .medium)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("low").rawValue == 0x0002)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("medium").rawValue == 0x0000)
+        #expect(CLIWorkshopViewModel.retrievePriorityOption("high").rawValue == 0x0001)
+    }
+
+    @Test("dicom-retrieve UID rules: baseline needs the Unique Keys of the levels above (PS3.4 C.4.2.2.1); --relational-retrieve relaxes them (C.4.2.2.2.1) — the CLI's texts")
+    func retrieveUIDRefusal() {
+        typealias VM = CLIWorkshopViewModel
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "", instanceUID: "", uidList: "", relationalRetrieve: false)
+                == "Must specify either --study-uid or --uid-list")
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "", instanceUID: "", uidList: "", relationalRetrieve: true)
+                == "Must specify --study-uid, --series-uid, --instance-uid or --uid-list")
+        // Without --study-uid (or --uid-list) the CLI's first guard answers; the per-level texts
+        // are reached when a --uid-list run also names a series / instance without its parents.
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "1.2", instanceUID: "", uidList: "", relationalRetrieve: false)
+                == "Must specify either --study-uid or --uid-list")
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "1.2", instanceUID: "", uidList: "uids.txt", relationalRetrieve: false)
+                == "--series-uid requires --study-uid (PS3.4 C.4.2.2.1), or --relational-retrieve")
+        #expect(VM.retrieveUIDRefusal(studyUID: "1", seriesUID: "", instanceUID: "1.2.3", uidList: "", relationalRetrieve: false)
+                == "--instance-uid requires both --study-uid and --series-uid (PS3.4 C.4.2.2.1), or --relational-retrieve")
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "1.2", instanceUID: "", uidList: "", relationalRetrieve: true) == nil)
+        #expect(VM.retrieveUIDRefusal(studyUID: "1", seriesUID: "1.2", instanceUID: "1.2.3", uidList: "", relationalRetrieve: false) == nil)
+        #expect(VM.retrieveUIDRefusal(studyUID: "", seriesUID: "", instanceUID: "", uidList: "uids.txt", relationalRetrieve: false) == nil)
+        // The Identifier's level follows the most specific UID (PS3.4 Table C.6.1-1).
+        #expect(VM.retrieveKeys(studyUID: "1", seriesUID: nil, sopUID: nil).level == .study)
+        #expect(VM.retrieveKeys(studyUID: nil, seriesUID: "1.2", sopUID: nil).level == .series)
+        #expect(VM.retrieveKeys(studyUID: "1", seriesUID: "1.2", sopUID: "1.2.3").level == .image)
+    }
+
+    @Test("C-MOVE / C-GET final response: success only for 0000 with no failed sub-operations (PS3.4 C.4.2.2.1); failures worded by DIMSEServiceStatusText (Tables C.4-2 / C.4-3) with the PS3.7 counters")
+    func retrieveCheckTexts() {
+        typealias VM = NetworkConsole
+        let ok = RetrieveResult(status: .from(0x0000), progress: RetrieveProgress(completed: 3))
+        #expect(VM.retrieveFinalResponse(ok, service: .cMove).failure == nil)
+        #expect(VM.retrieveFinalResponse(ok, service: .cMove).lines.isEmpty)
+        #expect(VM.retrieveFinalResponse(ok, service: .cGet).failure == nil)
+
+        let warning = RetrieveResult(status: .from(0xB000), progress: RetrieveProgress(completed: 2, failed: 1),
+                                     failedSOPInstanceUIDs: ["1.2.3"])
+        let check = VM.retrieveFinalResponse(warning, service: .cMove)
+        let described = DIMSEServiceStatusText.describe(.from(0xB000), service: .cMove)
+        let counts = DIMSEServiceStatusText.subOperationCounts(warning.progress)
+        #expect(check.lines == ["Failed SOP Instance UID List (0008,0058), 1 UID(s):", "  1.2.3",
+                                "Final C-MOVE response: " + described + " — " + counts])
+        #expect(check.failure == "C-MOVE final response " + described + " (" + counts + "); Failed SOP Instance UID List (0008,0058): 1.2.3")
+        #expect(described.hasPrefix("Warning (0xB000): "))
+        #expect(counts == "Number of Completed Sub-operations: 2, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 0")
+
+        let qr = VM.retrieveFinalResponse(warning, service: .cGet)
+        let describedGet = DIMSEServiceStatusText.describe(.from(0xB000), service: .cGet)
+        // dicom-qr reports in dicom-retrieve's wording since D262.
+        #expect(qr.lines == ["Failed SOP Instance UID List (0008,0058), 1 UID(s):", "  1.2.3",
+                             "Final C-GET response: " + describedGet + " — " + counts])
+        #expect(qr.failure == "C-GET final response " + describedGet + " (" + counts + "); Failed SOP Instance UID List (0008,0058): 1.2.3")
+
+        // A failed sub-operation makes a 0000 status a failure too (PS3.4 C.4.2.2.1).
+        let partial = RetrieveResult(status: .from(0x0000), progress: RetrieveProgress(completed: 1, failed: 1))
+        #expect(VM.retrieveFinalResponse(partial, service: .cGet).failure != nil)
+    }
+
+    @Test("dicom-mwl --sps-status: a PS3.3 Table C.4-10 Defined Term is silent; a PPS word (Table C.4-14) gets the CLI's warning")
+    func mwlSPSStatusWarning() {
+        #expect(WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms == ["SCHEDULED", "ARRIVED", "READY", "STARTED", "DEPARTED"])
+        for term in WorklistQueryKeys.scheduledProcedureStepStatusDefinedTerms {
+            #expect(WorklistQueryKeys.spsStatusWarning(term) == nil, Comment(rawValue: term))
+        }
+        #expect(WorklistQueryKeys.spsStatusWarning("") == nil)
+        #expect(WorklistQueryKeys.spsStatusWarning(nil) == nil)
+        let warning = WorklistQueryKeys.spsStatusWarning("COMPLETED")
+        #expect(warning == "warning: --sps-status 'COMPLETED' is not a Scheduled Procedure Step Status Defined Term "
+                + "(PS3.3 Table C.4-10: SCHEDULED, ARRIVED, READY, STARTED, DEPARTED); "
+                + "it is sent as given and will match only an SCP that uses that private term\n")
+    }
+
+    @Test("dicom-mpps value rules: status words (PS3.3 Table C.4-14), Patient's Sex M/F/O (Table C.2-3), birth date DA (PS3.5 Table 6.2-1), warning wording via DIMSEServiceStatusText")
+    func mppsValueRules() {
+        typealias VM = DICOMMPPSService
+        #expect(VM.parseStatus("IN PROGRESS") == .inProgress)
+        #expect(VM.parseStatus("in_progress") == .inProgress)
+        #expect(VM.parseStatus("completed") == .completed)
+        #expect(VM.parseStatus("DISCONTINUED") == .discontinued)
+        #expect(VM.parseStatus("STARTED") == nil)
+        #expect(VM.invalidStatusMessage == "Invalid status. Use 'IN PROGRESS', 'COMPLETED', or 'DISCONTINUED'")
+        #expect(VM.canonicalPatientSex("f") == "F")
+        #expect(VM.canonicalPatientSex("U") == nil)
+        #expect(VM.patientSexErrorMessage("U") == "--patient-sex must be one of M, F, O (Patient's Sex (0010,0040) Enumerated Values, PS3.3 Table C.2-3), got 'U'")
+        #expect(VM.isValidBirthDate("19800115"))
+        #expect(!VM.isValidBirthDate("1980-01-15"))
+        #expect(VM.birthDateErrorMessage("1980-01-15") == "--patient-birth-date must be YYYYMMDD (VR DA, PS3.5 Table 6.2-1), got '1980-01-15'")
+        let line = VM.warningLine(.from(0x0107), operation: "N-SET")
+        #expect(line == "warning: SCP completed the N-SET with "
+                + DIMSEServiceStatusText.describe(.from(0x0107), service: .mppsNSet)
+                + " — attributes may have been coerced or dropped\n")
+        #expect(VM.warningLine(.from(0x0107), operation: "N-CREATE").contains(DIMSEServiceStatusText.describe(.from(0x0107), service: .dimseN)))
+    }
+
+    @Test("dicom-wado ups --state: IN PROGRESS / COMPLETED / CANCELED are Change State targets (PS3.18 11.7.1.4); SCHEDULED is refused with the CLI's text (PS3.4 Table CC.1.1-2, C303H), exit 1")
+    func upsChangeStateRefusal() throws {
+        typealias Rules = DICOMwebOptionRules
+        // The Workshop calls DICOMWeb's UPSState (reached as WebUPSState, D259) and DICOMwebOptionRules (D255, D265).
+        #expect(try WebUPSState.changeStateTarget(optionValue: "IN PROGRESS") == .inProgress)
+        #expect(try WebUPSState.changeStateTarget(optionValue: "in_progress") == .inProgress)
+        #expect(try WebUPSState.changeStateTarget(optionValue: "completed") == .completed)
+        #expect(try WebUPSState.changeStateTarget(optionValue: "CANCELED") == .canceled)
+        #expect(WebUPSState.changeStateTargets == [.inProgress, .completed, .canceled])
+        #expect(WebUPSState.changeStateTargets.map(\.rawValue) == ["IN PROGRESS", "COMPLETED", "CANCELED"])
+        #expect(WebUPSState(optionValue: "SCHEDULED") == .scheduled)
+        #expect(WebUPSState(optionValue: "SCHEDULED")?.rawValue == "SCHEDULED")
+        do {
+            _ = try WebUPSState.changeStateTarget(optionValue: "SCHEDULED")
+            Issue.record("SCHEDULED must be refused")
+        } catch let e as DICOMwebOptionRefusal {
+            #expect(e.exitCode == 1)
+            #expect(e.message == "SCHEDULED is not a Change Workitem State target: PS3.18 2026a 11.7.1.4 "
+                    + "allows IN PROGRESS, COMPLETED or CANCELED, and PS3.4 2026a Table CC.1.1-2 refuses a change "
+                    + "to SCHEDULED (C303H)")
+        }
+        do {
+            _ = try WebUPSState.changeStateTarget(optionValue: "DONE")
+            Issue.record("an unknown state must be refused")
+        } catch let e as DICOMwebOptionRefusal {
+            #expect(e.message == "Invalid state: DONE. Valid states: IN PROGRESS (or IN_PROGRESS), COMPLETED, CANCELED (PS3.18 2026a 11.7.1.4)")
+        }
+        #expect(DICOMwebUPSHelpers.changeStateRefusal(from: .inProgress, to: .scheduled) == WebUPSState.scheduled.changeStateRefusal)
+        // --change-state / --update: one or the other (deprecated alias), never both.
+        #expect(try Rules.changeStateWorkitem(changeState: "1.2", update: nil) == "1.2")
+        #expect(try Rules.changeStateWorkitem(changeState: nil, update: "1.2") == "1.2")
+        #expect(try Rules.changeStateWorkitem(changeState: nil, update: nil) == nil)
+        #expect(throws: DICOMwebOptionRefusal.self) { try Rules.changeStateWorkitem(changeState: "1", update: "2") }
+        #expect(Rules.updateDeprecationNote.hasPrefix("Note: --update is deprecated; use --change-state"))
+    }
+
+    @Test("dicom-wado retrieve --uri rules: contentType per PS3.18 9.1.2.2.1 / Table 8.7.4-1, frameNumber a positive integer (9.5.1.2.1), limit / offset unsigned (8.3.4.4) — the CLI's texts")
+    func wadoURIRules() throws {
+        typealias Rules = DICOMwebOptionRules
+        #expect(try Rules.uriContentType(nil) == .dicom)
+        #expect(try Rules.uriContentType("") == .dicom)
+        #expect(try Rules.uriContentType("image/jpeg") == .jpeg)
+        #expect(try Rules.uriContentType("pdf") == .pdf)
+        #expect(Rules.uriContentTypes.count == 15)                                   // application/dicom + 14 Rendered Media Types
+        do {
+            _ = try Rules.uriContentType("image/bmp")
+            Issue.record("image/bmp is not a Rendered Media Type")
+        } catch let e as DICOMwebOptionRefusal {
+            #expect(e.exitCode == 64)
+            #expect(e.message.hasPrefix("--content-type 'image/bmp' cannot be requested over WADO-URI. Use one of: application/dicom, image/jpeg"))
+            #expect(e.message.hasSuffix("(PS3.18 9.1.2.2.1: application/dicom or a Rendered Media Type of Table 8.7.4-1)"))
+        }
+        #expect(try Rules.uriFrameNumber(nil) == nil)
+        #expect(try Rules.uriFrameNumber("3")?.frame == 3)
+        #expect(try Rules.uriFrameNumber("2, 4, 6")?.notSent == 2)
+        #expect(throws: DICOMwebOptionRefusal.self) { try Rules.uriFrameNumber("0") }
+        #expect(throws: DICOMwebOptionRefusal.self) { try Rules.uriFrameNumber("a") }
+        #expect(Rules.pagingProblem(limit: 0, offset: 0) == nil)
+        #expect(Rules.pagingProblem(limit: -1, offset: 0) == "--limit must be 0 or more (PS3.18 8.3.4.4: limit is an unsigned integer)")
+        #expect(Rules.pagingProblem(limit: 1, offset: -1) == "--offset must be 0 or more (PS3.18 8.3.4.4: offset is an unsigned integer)")
+        let warnings = Rules.uriParameterWarnings(contentType: .dicom, frame: 1, rows: nil, columns: nil, transferSyntax: nil, anonymize: false)
+        #expect(warnings == ["frameNumber (--frames) is a Retrieve Rendered Instance parameter (PS3.18 Table 9.5.1-1), not defined for application/dicom (Table 9.4.1-1); the server may ignore it"])
+        #expect(Rules.timeouts(seconds: 90).readTimeout == 90)
     }
 }

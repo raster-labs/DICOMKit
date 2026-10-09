@@ -144,7 +144,8 @@ struct DICOMwebClientTests {
         
         #expect(options.viewportWidth == 256)
         #expect(options.viewportHeight == 256)
-        #expect(options.quality == 80)
+        // PS3.18 Table 8.3.5-2: a Thumbnail resource takes only accept, charset and viewport
+        #expect(options.quality == nil)
     }
     
     @Test("RenderOptions custom initialization")
@@ -302,8 +303,7 @@ struct DICOMwebClientRenderOptionsTests {
             windowWidth: 400
         )
         
-        #expect(url.absoluteString.contains("windowcenter=40"))
-        #expect(url.absoluteString.contains("windowwidth=400"))
+        #expect(url.absoluteString.contains("window=40,400,linear"))
     }
     
     @Test("Render options URL with viewport parameters")
@@ -315,8 +315,7 @@ struct DICOMwebClientRenderOptionsTests {
             viewportHeight: 512
         )
         
-        #expect(url.absoluteString.contains("columns=512"))
-        #expect(url.absoluteString.contains("rows=512"))
+        #expect(url.absoluteString.contains("viewport=512,512"))
     }
     
     @Test("Render options URL with quality parameter")
@@ -342,10 +341,8 @@ struct DICOMwebClientRenderOptionsTests {
             quality: 90
         )
         
-        #expect(url.absoluteString.contains("windowcenter=40"))
-        #expect(url.absoluteString.contains("windowwidth=400"))
-        #expect(url.absoluteString.contains("columns=256"))
-        #expect(url.absoluteString.contains("rows=256"))
+        #expect(url.absoluteString.contains("window=40,400,linear"))
+        #expect(url.absoluteString.contains("viewport=256,256"))
         #expect(url.absoluteString.contains("quality=90"))
     }
     
@@ -357,9 +354,9 @@ struct DICOMwebClientRenderOptionsTests {
         let urlOver = DICOMwebURLBuilder.renderedURL(base: baseURL, quality: 150)
         #expect(urlOver.absoluteString.contains("quality=100"))
         
-        // Quality under 0 should be clamped to 0
+        // PS3.18 8.3.5.1.2: quality is an integer between 1 and 100 inclusive
         let urlUnder = DICOMwebURLBuilder.renderedURL(base: baseURL, quality: -50)
-        #expect(urlUnder.absoluteString.contains("quality=0"))
+        #expect(urlUnder.absoluteString.contains("quality=1"))
     }
 }
 

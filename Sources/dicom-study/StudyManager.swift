@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — thin adapters over DICOMKit StudyScanner / StudyReport; the file itself carries no DICOM-standard data (paths, error text, printing)
 import Foundation
 import DICOMCore
 import DICOMKit
@@ -19,7 +20,7 @@ struct StudyAnalyzer {
         guard FileManager.default.fileExists(atPath: path) else {
             throw StudyError.directoryNotFound(path)
         }
-        let studies = StudyScanner.scanStudies(at: path)
+        let studies = scanReportingSkipped(at: path)
         if studies.isEmpty { throw StudyError.noFilesFound }
         print(try StudyReport.renderSummary(studies: studies, format: format, verbose: verbose), terminator: "")
     }
@@ -41,7 +42,7 @@ struct CompletenessChecker {
         if verbose {
             print("Checking study completeness: \(studyPath)")
         }
-        let studies = StudyScanner.scanStudies(at: studyPath)
+        let studies = scanReportingSkipped(at: studyPath)
         guard let study = studies.first else {
             throw StudyError.noFilesFound
         }
@@ -64,7 +65,7 @@ struct StatsCalculator {
         guard FileManager.default.fileExists(atPath: studyPath) else {
             throw StudyError.directoryNotFound(studyPath)
         }
-        let studies = StudyScanner.scanStudies(at: studyPath)
+        let studies = scanReportingSkipped(at: studyPath)
         guard let study = studies.first else {
             throw StudyError.noFilesFound
         }
@@ -81,8 +82,8 @@ struct StudyComparator {
         guard FileManager.default.fileExists(atPath: study2Path) else {
             throw StudyError.directoryNotFound(study2Path)
         }
-        let studies1 = StudyScanner.scanStudies(at: study1Path)
-        let studies2 = StudyScanner.scanStudies(at: study2Path)
+        let studies1 = scanReportingSkipped(at: study1Path)
+        let studies2 = scanReportingSkipped(at: study2Path)
         guard let study1 = studies1.first else { throw StudyError.noFilesFound }
         guard let study2 = studies2.first else { throw StudyError.noFilesFound }
         let comparison = StudyReport.compareStudies(study1, study2)
@@ -91,6 +92,16 @@ struct StudyComparator {
 }
 
 // MARK: - Helper Functions
+
+/// Scans with the shared engine and writes one warning per DICOM file it left out (no
+/// Study / Series / SOP Instance UID, Type 1 in PS3.3 Tables C.7-3, C.7-5a, C.12-1; or unreadable).
+func scanReportingSkipped(at path: String) -> [StudyMetadata] {
+    let result = StudyScanner.scan(at: path)
+    for skip in result.skipped {
+        fprintln("warning: skipped \(skip.path): \(skip.reason)")
+    }
+    return result.studies
+}
 
 private func fprintln(_ message: String) {
     FileHandle.standardError.write((message + "\n").data(using: .utf8) ?? Data())

@@ -370,8 +370,11 @@ final class SplitRoundTripTests: XCTestCase {
             return try Data(contentsOf: URL(fileURLWithPath: p))
         }
 
+        // Frame 0 is flat (40). The auto window is C.11.2.1.2.1's full-range window, for a
+        // single value the unit-width threshold at 40.5, so it renders black (D66); 40 / 80
+        // puts 40 mid-ramp, a grey that differs from it.
         let plain = try await renderPNG(applyWindow: false, wc: nil, ww: nil)
-        let windowed = try await renderPNG(applyWindow: true, wc: 100, ww: 80)
+        let windowed = try await renderPNG(applyWindow: true, wc: 40, ww: 80)
         try XCTSkipIf(plain == nil || windowed == nil, "PNG rendering unavailable on this platform")
         let pngSignature: [UInt8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
         XCTAssertEqual(Array(windowed!.prefix(8)), pngSignature, "windowed output is a valid PNG")

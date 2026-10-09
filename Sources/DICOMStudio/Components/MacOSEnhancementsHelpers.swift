@@ -2,6 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent helpers for macOS-Specific Enhancements (Milestone 14)
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — carries no DICOM-standard data (menu, shortcut, Dock, automation and Quick Look helpers)
 
 import Foundation
 

@@ -2,6 +2,7 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent measurement calculation helpers
+// NEMA-verified: 2026a, checked 2026-10-05 — geometry only (PS3.3 2026a C.18.6 pixel coordinates; the physical distance uses the row and column spacing per axis as C.7.6.2 / 10.7.1.3 define them); formatLength prints the MeasurementUnit raw value, which for mm and cm is the PS3.16 2026a CID 7460 UCUM code (inches have no PS3.16 code); no coded concepts or defined terms
 
 import Foundation
 
@@ -245,6 +246,8 @@ public enum MeasurementHelpers: Sendable {
             return mm / 10.0
         case .inches:
             return mm / 25.4
+        case .micrometers:
+            return mm * 1000.0
         }
     }
 
@@ -264,7 +267,7 @@ public enum MeasurementHelpers: Sendable {
     ) -> String {
         if let mm = mm {
             let converted = convert(mm: mm, to: unit)
-            return String(format: "%.1f %@", converted, unit.rawValue)
+            return String(format: "%.1f ", converted) + unit.displaySymbol
         }
         return String(format: "%.1f px", pixels)
     }

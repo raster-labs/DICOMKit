@@ -168,9 +168,9 @@ final class JSONRoundTripTests: XCTestCase {
         let pdKey = tagKey(0x7FE0, 0x0010)
         let pd = try XCTUnwrap(elementObject(obj, pdKey), "PixelData present")
         XCTAssertEqual(pd["vr"] as? String, "OB")
-        let value = try XCTUnwrap(pd["Value"] as? [Any])
-        let first = try XCTUnwrap(value.first as? [String: Any])
-        let b64 = try XCTUnwrap(first["InlineBinary"] as? String, "inline base64 present")
+        // PS3.18 F.2.2: InlineBinary is a sibling of vr, not an element of Value
+        XCTAssertNil(pd["Value"], "binary VRs carry no Value array")
+        let b64 = try XCTUnwrap(pd["InlineBinary"] as? String, "inline base64 present")
         XCTAssertEqual(Data(base64Encoded: b64), pixels, "inline base64 decodes to original bytes")
 
         // Full decode path yields the same bytes.
@@ -255,10 +255,11 @@ final class JSONRoundTripTests: XCTestCase {
         XCTAssertLessThan(idxModality, idxRows, "sortedKeys orders 0008,0060 before 0028,0010")
     }
 
-    // Oracle: --include-empty controls whether an empty element emits a "Value".
-    // The element key is always present (its vr is emitted); with
-    // includeEmptyValues=false the empty value carries no "Value" field, while
-    // with =true an empty "Value" array appears.
+    // Oracle: --include-empty controls whether an empty element is kept.
+    // PS3.18 F.2.5: an empty attribute "shall be preserved in the DICOM JSON
+    // attribute object containing no Value, BulkDataURI or InlineBinary", so
+    // with includeEmptyValues=true (the default) the element is {"vr": "LO"};
+    // with =false it is dropped from the object altogether.
     func testIncludeEmptyValuesToggle() throws {
         var ds = DataSet()
         ds.setString("MR", for: .modality, vr: .CS)
@@ -270,15 +271,13 @@ final class JSONRoundTripTests: XCTestCase {
 
         let excluding = DICOMJSONEncoder(configuration: .init(includeEmptyValues: false))
         let objExcl = try excluding.encodeToObject(ds.allElements)
-        let emptyExcl = try XCTUnwrap(elementObject(objExcl, emptyKey))
-        XCTAssertEqual(emptyExcl["vr"] as? String, "LO")
-        XCTAssertNil(emptyExcl["Value"], "no Value emitted for empty element when includeEmptyValues=false")
+        XCTAssertNil(elementObject(objExcl, emptyKey), "empty element dropped when includeEmptyValues=false")
 
         let including = DICOMJSONEncoder(configuration: .init(includeEmptyValues: true))
         let objIncl = try including.encodeToObject(ds.allElements)
         let emptyIncl = try XCTUnwrap(elementObject(objIncl, emptyKey))
-        let value = try XCTUnwrap(emptyIncl["Value"] as? [Any], "empty Value array emitted when includeEmptyValues=true")
-        XCTAssertTrue(value.isEmpty)
+        XCTAssertEqual(emptyIncl["vr"] as? String, "LO")
+        XCTAssertNil(emptyIncl["Value"], "PS3.18 F.2.5: an empty attribute carries no Value")
     }
 
     // Oracle: --bulk-data-url routes large OB data to a BulkDataURI referencing
@@ -294,12 +293,12 @@ final class JSONRoundTripTests: XCTestCase {
         let obj = try encoder.encodeToObject(ds.allElements)
 
         let pd = try XCTUnwrap(elementObject(obj, tagKey(0x7FE0, 0x0010)))
-        let value = try XCTUnwrap(pd["Value"] as? [Any])
-        let first = try XCTUnwrap(value.first as? [String: Any])
-        let uri = try XCTUnwrap(first["BulkDataURI"] as? String, "BulkDataURI emitted for large binary")
+        // PS3.18 F.2.2: BulkDataURI is a sibling of vr, not an element of Value
+        XCTAssertNil(pd["Value"], "binary VRs carry no Value array")
+        let uri = try XCTUnwrap(pd["BulkDataURI"] as? String, "BulkDataURI emitted for large binary")
         XCTAssertTrue(uri.hasPrefix("https://example.org/bulk"))
         XCTAssertTrue(uri.contains(tagKey(0x7FE0, 0x0010)), "URI references the element tag")
-        XCTAssertNil(first["InlineBinary"], "large binary not inlined when a bulk URL is set")
+        XCTAssertNil(pd["InlineBinary"], "large binary not inlined when a bulk URL is set")
     }
 
     // Oracle: reverse mode (JSON → DICOM) produces a valid Part 10 file whose

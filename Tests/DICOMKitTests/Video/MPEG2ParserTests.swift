@@ -122,6 +122,31 @@ final class MPEG2ParserTests: XCTestCase {
         XCTAssertFalse(header.isMainProfileMainLevel)
     }
 
+    /// D178: PS3.5 2026a 8.2.5 / 8.2.6 name the levels "Main Level" / "High Level".
+    func test_levelDescription_namesTheLevel() throws {
+        let main = try XCTUnwrap(MPEG2Parser.parseSequenceHeader(Data(Self.mpML720x576))).streamInfo
+        let high = try XCTUnwrap(MPEG2Parser.parseSequenceHeader(Data(Self.mpHL1920x1080))).streamInfo
+        XCTAssertEqual(main.levelDescription, "Main")
+        XCTAssertEqual(high.levelDescription, "High")
+        XCTAssertEqual(main.profileName, "Main")
+    }
+
+    /// The level ceiling compares level_identification values, where a higher level is a
+    /// smaller number: MP@HL is above the Main Level ceiling of MP@ML, not below it.
+    func test_levelCeiling_comparesLevelIdentifiers() throws {
+        let main = try XCTUnwrap(MPEG2Parser.parseSequenceHeader(Data(Self.mpML720x576))).streamInfo
+        let high = try XCTUnwrap(MPEG2Parser.parseSequenceHeader(Data(Self.mpHL1920x1080))).streamInfo
+        let highInMainSyntax = VideoConformanceValidator.validate(
+            stream: high, transferSyntax: .mpeg2MainProfile, numberOfFrames: 1)
+        XCTAssertTrue(highInMainSyntax.violations.contains(.levelExceedsMaximum(
+            observed: "High", maximum: "Main", codec: .mpeg2, pictureFitsMaximum: false)),
+                      "\(highInMainSyntax.violations)")
+        let mainInHighSyntax = VideoConformanceValidator.validate(
+            stream: main, transferSyntax: .mpeg2MainProfileHighLevel, numberOfFrames: 1)
+        XCTAssertFalse(mainInHighSyntax.violations.contains { if case .levelExceedsMaximum = $0 { return true }; return false },
+                       "\(mainInHighSyntax.violations)")
+    }
+
     func test_mpeg1StyleHeader_hasNoProfileOrLevel() throws {
         // Without a sequence extension there is no profile_and_level_indication,
         // so neither DICOM MPEG-2 transfer syntax's constraint can be satisfied.

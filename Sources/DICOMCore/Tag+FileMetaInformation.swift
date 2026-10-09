@@ -2,6 +2,7 @@
 ///
 /// Tags from Group 0002 (File Meta Information)
 /// Reference: DICOM PS3.10 - Media Storage and File Format
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - File Meta Information Header
     

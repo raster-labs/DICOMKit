@@ -3,7 +3,7 @@ import JPEGLS
 
 /// JPEG-LS codec backed by the JLSwift `JPEGLS` package.
 ///
-/// Bridges DICOM pixel data (PS3.5 §A.4.5) to JLSwift's pure-Swift JPEG-LS
+/// Bridges DICOM pixel data (PS3.5 §A.4.3, JPEG-LS Image Compression) to JLSwift's pure-Swift JPEG-LS
 /// implementation (ITU-T T.87 / ISO/IEC 14495-1) for both lossless and
 /// near-lossless encode/decode. The previous in-tree JPEG-LS implementation
 /// (markers, bit I/O, context modelling) was retired in favour of JLSwift.
@@ -11,6 +11,7 @@ import JPEGLS
 /// Transfer syntaxes:
 ///   • 1.2.840.10008.1.2.4.80  JPEG-LS Lossless
 ///   • 1.2.840.10008.1.2.4.81  JPEG-LS Near-Lossless
+/// NEMA-verified: 2026a, checked 2026-09-25 — the two JPEG-LS UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` (8 or 16 allocated, 2–16 stored, 1 or 3 samples) matches PS3.5 2026a Table 8.2.3-1. The header citation said §A.4.5 (MPEG2); corrected to §A.4.3. The codec implements ITU-T T.87, outside DICOM.
 public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// Supported JPEG-LS transfer syntaxes for decoding
     public static let supportedTransferSyntaxes: [String] = [

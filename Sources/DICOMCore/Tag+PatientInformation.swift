@@ -2,6 +2,7 @@
 ///
 /// Tags from Group 0010 (Patient Module)
 /// Reference: DICOM PS3.3 - Information Object Definitions
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
     // MARK: - Patient Identification
     
@@ -142,6 +143,7 @@ extension Tag {
     
     /// Ethnic Group (0010,2160)
     /// VR: SH, VM: 1
+    /// Retired in PS3.6 2026a Table 6-1 (RET (2025a)). Kept for reading legacy objects.
     public static let ethnicGroup = Tag(group: 0x0010, element: 0x2160)
     
     /// Occupation (0010,2180)

@@ -1,4 +1,5 @@
 import Foundation
+import DICOMCore
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -8,7 +9,13 @@ import FoundationNetworking
 /// Implements the WADO-RS (Web Access to DICOM Objects - RESTful Services)
 /// specification for retrieving studies, series, instances, and frames.
 ///
-/// Reference: PS3.18 Section 10.4 - WADO-RS
+/// NEMA-verified: 2026a, checked 2026-09-28 — Accept media types diffed against PS3.18 2026a
+/// Table 10.4.4-1 (instances, metadata, pixel data, thumbnails) and Table 8.7.3-5 (frames);
+/// rendered parameters per 8.3.5.1.2-8.3.5.1.4; STOW-RS status handling per Table 10.5.3-1;
+/// UPS-RS methods, resources and status codes per Tables 11.3-1, 11.4.3-1, 11.6.3-1,
+/// 11.7.3-1, 11.8.3-1, 11.10.1-2 and 11.10.3-1; Transaction UID rule per PS3.4 CC.2.1.2.
+///
+/// Reference: PS3.18 Section 10.4 - Retrieve Transaction (WADO-RS)
 ///
 /// ## Example Usage
 ///
@@ -144,12 +151,12 @@ public final class DICOMwebClient: @unchecked Sendable {
         /// Default options
         public static let `default` = RenderOptions()
         
-        /// Options for thumbnails
+        /// Options for thumbnails: only `viewport` applies to Thumbnail resources
+        /// (PS3.18 Table 8.3.5-2), so no windowing or quality is sent.
         public static func thumbnail(size: Int = 128) -> RenderOptions {
             return RenderOptions(
                 viewportWidth: size,
                 viewportHeight: size,
-                quality: 80,
                 format: .jpeg
             )
         }
@@ -379,7 +386,7 @@ public final class DICOMwebClient: @unchecked Sendable {
             frames: frames
         )
         
-        let headers = buildAcceptHeader(transferSyntax: transferSyntax)
+        let headers = buildFramesAcceptHeader(transferSyntax: transferSyntax)
         let response = try await httpClient.get(url, headers: headers)
         
         // Parse multipart response
@@ -652,6 +659,25 @@ public final class DICOMwebClient: @unchecked Sendable {
         return ["Accept": accept]
     }
     
+    /// Builds the Accept header for a Frames (pixel data) resource.
+    ///
+    /// PS3.18 Table 10.4.4-1: pixel data is `multipart/related; type="application/octet-stream"`
+    /// (uncompressed, Table 8.7.3-4) or a compressed bulk data media type of Table 8.7.3-5;
+    /// `application/dicom` is not a pixel data representation. A transfer syntax picks the
+    /// media type of Table 8.7.3-5 and is sent as its transfer-syntax parameter.
+    private func buildFramesAcceptHeader(transferSyntax: String? = nil) -> [String: String] {
+        let requested = transferSyntax ?? configuration.preferredTransferSyntaxes.first
+        var mediaType = DICOMMediaType.octetStream
+        if let ts = requested, let bulk = DICOMMediaType.bulkDataMediaType(forTransferSyntax: ts) {
+            mediaType = bulk
+        }
+        var accept = "multipart/related; type=\"\(mediaType.description)\""
+        if let ts = requested {
+            accept += "; transfer-syntax=\(ts)"
+        }
+        return ["Accept": accept]
+    }
+    
     /// Retrieves DICOM objects from a URL
     private func retrieveDICOM(
         from url: URL,
@@ -724,26 +750,13 @@ public final class DICOMwebClient: @unchecked Sendable {
         return multipart.parts
     }
     
-    /// Applies render options to a URL as query parameters
+    /// Applies render options to a URL as the query parameters of PS3.18 Table 8.3.5-1
+    /// (`window=center,width,function`, `viewport=vw,vh`, `quality`)
     private func applyRenderOptions(to url: URL, options: RenderOptions) -> URL {
-        var params: [String: String] = [:]
-        
-        if let wc = options.windowCenter {
-            params[DICOMwebURLBuilder.QueryParameter.windowCenter] = String(wc)
-        }
-        if let ww = options.windowWidth {
-            params[DICOMwebURLBuilder.QueryParameter.windowWidth] = String(ww)
-        }
-        if let vw = options.viewportWidth {
-            params[DICOMwebURLBuilder.QueryParameter.viewportWidth] = String(vw)
-        }
-        if let vh = options.viewportHeight {
-            params[DICOMwebURLBuilder.QueryParameter.viewportHeight] = String(vh)
-        }
-        if let q = options.quality {
-            params[DICOMwebURLBuilder.QueryParameter.quality] = String(min(100, max(0, q)))
-        }
-        
+        let params = DICOMwebURLBuilder.renderedParameters(
+            windowCenter: options.windowCenter, windowWidth: options.windowWidth,
+            viewportWidth: options.viewportWidth, viewportHeight: options.viewportHeight,
+            quality: options.quality)
         return DICOMwebURLBuilder.appendQueryParameters(to: url, parameters: params)
     }
 }
@@ -1381,13 +1394,46 @@ extension DICOMwebClient {
     
     // MARK: - UPS-RS Methods (Unified Procedure Step)
     
+    /// Searches for workitems and returns the matches as the DICOM JSON Model objects
+    /// the origin server sent (PS3.18 F.2), unparsed — for `--format dicom-json`.
+    ///
+    /// - Parameter query: The UPS query parameters
+    /// - Returns: One DICOM JSON Model object per matching workitem (empty if none)
+    /// - Throws: DICOMwebError on failure
+    ///
+    /// Reference: PS3.18 Section 11.9 - Search Transaction; Annex F.2
+    public func searchWorkitemsDICOMJSON(query: UPSQuery = UPSQuery()) async throws -> [[String: Any]] {
+        let url = urlBuilder.searchWorkitemsURL(parameters: query.toParameters())
+        let request = HTTPClient.Request(
+            url: url,
+            method: .get,
+            headers: ["Accept": DICOMMediaType.dicomJSON.description]
+        )
+        let response: HTTPClient.Response
+        do {
+            response = try await httpClient.execute(request)
+        } catch let error as DICOMwebError {
+            if case .notFound = error {
+                return []
+            }
+            throw error
+        }
+        if response.body.isEmpty {
+            return []
+        }
+        guard let jsonArray = try? JSONSerialization.jsonObject(with: response.body) as? [[String: Any]] else {
+            throw DICOMwebError.invalidJSON(reason: "Expected JSON array of workitem objects")
+        }
+        return jsonArray
+    }
+
     /// Searches for workitems matching the query
     ///
     /// - Parameter query: The UPS query parameters
     /// - Returns: Query results with matching workitems
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.2 - Search Transaction
+    /// Reference: PS3.18 Section 11.9 - Search Transaction
     public func searchWorkitems(query: UPSQuery = UPSQuery()) async throws -> UPSQueryResult {
         let url = urlBuilder.searchWorkitemsURL(parameters: query.toParameters())
         
@@ -1437,7 +1483,7 @@ extension DICOMwebClient {
     /// - Returns: The workitem data as DICOM JSON
     /// - Throws: DICOMwebError on failure, UPSError.workitemNotFound if not found
     ///
-    /// Reference: PS3.18 Section 11.3 - Retrieve Transaction
+    /// Reference: PS3.18 Section 11.5 - Retrieve Workitem Transaction
     public func retrieveWorkitem(uid: String) async throws -> [String: Any] {
         let url = urlBuilder.workitemURL(workitemUID: uid)
         
@@ -1478,7 +1524,8 @@ extension DICOMwebClient {
     /// - Throws: DICOMwebError on failure, UPSError.workitemNotFound if not found
     public func retrieveWorkitemResult(uid: String) async throws -> WorkitemResult {
         let json = try await retrieveWorkitem(uid: uid)
-        guard let result = WorkitemResult.parse(json: json) else {
+        // PS3.4 Table CC.2.5-3 N-GET: (0008,0018) is not in a Retrieve Workitem response
+        guard let result = WorkitemResult.parse(json: json, requestedUID: uid) else {
             throw DICOMwebError.invalidJSON(reason: "Failed to parse workitem JSON")
         }
         return result
@@ -1492,7 +1539,7 @@ extension DICOMwebClient {
     /// - Returns: Response with the created workitem UID
     /// - Throws: DICOMwebError on failure, UPSError.workitemAlreadyExists if UID conflicts
     ///
-    /// Reference: PS3.18 Section 11.4 - Create Transaction
+    /// Reference: PS3.18 Section 11.4 - Create Workitem Transaction
     public func createWorkitem(
         workitem: [String: Any],
         uid: String? = nil
@@ -1606,7 +1653,7 @@ extension DICOMwebClient {
     /// - Returns: Response with the new state and transaction UID if applicable
     /// - Throws: DICOMwebError on failure, UPSError for invalid state transitions
     ///
-    /// Reference: PS3.18 Section 11.6 - Change State Transaction
+    /// Reference: PS3.18 Section 11.7 - Change Workitem State Transaction
     public func changeWorkitemState(
         uid: String,
         state: UPSState,
@@ -1614,6 +1661,10 @@ extension DICOMwebClient {
         requestingAE: String? = nil
     ) async throws -> UPSStateChangeResponse {
         let url = urlBuilder.workitemStateURL(workitemUID: uid, requestingAE: requestingAE)
+        
+        // PS3.4 CC.2.1.2: to claim a SCHEDULED UPS the SCU generates the Transaction UID and
+        // sends it with the change to IN PROGRESS; PS3.18 11.7.1.4: the payload shall include it
+        let transactionUID = transactionUID ?? (state == .inProgress ? UIDGenerator.generateUID().value : nil)
         
         // Build state change JSON
         let stateChangeJSON = buildUPSStateChangeJSON(state: state, transactionUID: transactionUID)
@@ -1759,7 +1810,7 @@ extension DICOMwebClient {
     /// - Returns: Response indicating if cancellation was accepted
     /// - Throws: DICOMwebError on failure, UPSError.workitemNotFound if not found
     ///
-    /// Reference: PS3.18 Section 11.7 - Request Cancellation Transaction
+    /// Reference: PS3.18 Section 11.8 - Request Cancellation Transaction
     public func requestWorkitemCancellation(
         uid: String,
         reason: String? = nil,
@@ -1777,9 +1828,10 @@ extension DICOMwebClient {
         )
         let body = try JSONSerialization.data(withJSONObject: cancellationJSON)
         
+        // PS3.18 Table 11.3-1 / 11.8.1: POST /workitems/{workitem}/cancelrequest
         let request = HTTPClient.Request(
             url: url,
-            method: .put,
+            method: .post,
             headers: [
                 "Content-Type": DICOMMediaType.dicomJSON.description,
                 "Accept": DICOMMediaType.dicomJSON.description
@@ -1845,28 +1897,29 @@ extension DICOMwebClient {
     ///   - deletionLock: Whether to lock the workitem from deletion while subscribed
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.8 - Subscribe Transaction
+    /// Reference: PS3.18 Section 11.10 - Subscribe Transaction
     public func subscribeToWorkitem(
         workitemUID: String?,
         aeTitle: String,
         deletionLock: Bool = false
     ) async throws {
-        let url: URL
+        var url: URL
         if let workitemUID = workitemUID {
             url = urlBuilder.workitemSubscriptionURL(workitemUID: workitemUID, aeTitle: aeTitle)
         } else {
             url = urlBuilder.globalWorkitemSubscriptionURL(aeTitle: aeTitle)
         }
         
-        var headers: [String: String] = [:]
+        // PS3.18 11.10.1.2: the Deletion Lock is the query parameter deletionlock=true
         if deletionLock {
-            headers["Deletion-Lock"] = "true"
+            url = DICOMwebURLBuilder.appendQueryParameters(
+                to: url, parameters: [DICOMwebURLBuilder.QueryParameter.deletionlock: "true"])
         }
         
         let request = HTTPClient.Request(
             url: url,
             method: .post,
-            headers: headers
+            headers: [:]
         )
         
         do {
@@ -1898,7 +1951,7 @@ extension DICOMwebClient {
     ///   - aeTitle: The subscribing AE Title
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.9 - Unsubscribe Transaction
+    /// Reference: PS3.18 Section 11.11 - Unsubscribe Transaction
     public func unsubscribeFromWorkitem(workitemUID: String?, aeTitle: String) async throws {
         let url: URL
         if let workitemUID = workitemUID {
@@ -1939,7 +1992,7 @@ extension DICOMwebClient {
     ///   - aeTitle: The subscribing AE Title
     /// - Throws: DICOMwebError on failure
     ///
-    /// Reference: PS3.18 Section 11.10 - Suspend Subscription Transaction
+    /// Reference: PS3.18 Section 11.12 - Suspend Global Subscription Transaction
     public func suspendWorkitemSubscription(uid: String, aeTitle: String) async throws {
         let url = urlBuilder.workitemSubscriptionSuspendURL(workitemUID: uid, aeTitle: aeTitle)
         
@@ -2038,15 +2091,15 @@ extension DICOMwebClient {
             
             if let name = contactDisplayName {
                 // Contact Display Name
-                contactItem["00401006"] = [
-                    "vr": "SH",
+                contactItem["0074100C"] = [
+                    "vr": "LO",
                     "Value": [name]
                 ]
             }
             
             if let uri = contactURI {
                 // Contact URI
-                contactItem["00401005"] = [
+                contactItem["0074100A"] = [
                     "vr": "UR",
                     "Value": [uri]
                 ]

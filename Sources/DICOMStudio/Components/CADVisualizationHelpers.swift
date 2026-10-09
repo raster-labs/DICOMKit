@@ -2,7 +2,8 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent CAD findings visualization helpers
-// Reference: DICOM PS3.3 C.17.3 (CAD SR), PS3.16 TID 4015/4016/4018/4019
+// Reference: DICOM PS3.3 A.35.5 (Mammography CAD SR IOD), A.35.6 (Chest CAD SR IOD), PS3.16 TID 4000 / TID 4100, TID 4015 / 4016 / 4018 (CAD Detections / Analyses Performed), TID 4019 (Algorithm Identification)
+// NEMA-verified: 2026a, checked 2026-10-05 — citations checked against PS3.3 / PS3.16 2026a titles (C.17.3 is the SR Document Content Module, replaced by the CAD SR IOD and template references); carries no DICOM-standard data: colours, opacities, severity labels and the ACR BI-RADS category descriptions are display conventions, and CADFinding / CADFindingType are not coded concepts (TID 4000 / 4100 content is built elsewhere)
 
 import Foundation
 

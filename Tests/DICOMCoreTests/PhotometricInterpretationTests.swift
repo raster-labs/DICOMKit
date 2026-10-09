@@ -117,4 +117,22 @@ struct PhotometricInterpretationTests {
         set.insert(.monochrome1)
         #expect(set.count == 2)
     }
+
+    // MARK: - XYB (PS3.3 2026a C.7.6.3.1.2, Sup 232)
+
+    @Test("Parse XYB")
+    func testParseXYB() {
+        #expect(PhotometricInterpretation.parse("XYB") == .xyb)
+        #expect(PhotometricInterpretation.xyb.rawValue == "XYB")
+    }
+
+    @Test("XYB is a 3-sample color model, not YBR or palette")
+    func testXYBProperties() {
+        let pi = PhotometricInterpretation.xyb
+        #expect(pi.isColor)
+        #expect(!pi.isMonochrome)
+        #expect(!pi.isYBR)
+        #expect(!pi.isPaletteColor)
+        #expect(pi.expectedSamplesPerPixel == 3)
+    }
 }

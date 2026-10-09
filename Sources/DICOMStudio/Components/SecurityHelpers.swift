@@ -2,8 +2,9 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent helpers for the Security & Privacy Center display
-// Reference: DICOM PS3.15 (Security and System Management Profiles)
-// Reference: HIPAA Security Rule §164.312
+// Reference: DICOM PS3.15 (Security and System Management Profiles), B.12 / B.13 (TLS); HIPAA Security Rule §164.312 (law)
+// NEMA-verified: 2026a, checked 2026-10-05 — the anonymization preview lists are diffed by script against the DICOMKit Anonymizer profiles the app runs (basic 14 attributes, clinical trial + 8 date/time attributes, research 3) and their names against PS3.6 2026a Table 6-1 (22/22); the former "18 HIPAA direct identifiers" list named 18 tags of which the engine removed 7 (45 CFR §164.514(b)(2)(i) lists identifier categories, not DICOM attributes, and none of these profiles is PS3.15 Annex E); the 3 cipher suites shown are PS3.15 2026a B.13 TLS 1.3 suites (3/3); the rest is display formatting
+// NEMA-verified: 2026a, checked 2026-10-06 — basicProfileTags (renamed from hipaaDirectIdentifierTags, deprecated; P-STUDIO-ANON-TAGLIST-NAME): its 14 tags compared by script with PS3.15 2026a Table E.1-1 (14/14 are rows of the table; the list is not the table, which --profile ps315 applies whole)
 
 import Foundation
 
@@ -12,7 +13,8 @@ import Foundation
 /// Platform-independent helpers for TLS configuration display and validation.
 public enum SecurityTLSHelpers: Sendable {
 
-    /// Well-known cipher suites for display.
+    /// TLS 1.3 cipher suites for display: three of the five PS3.15 B.13 (Modified BCP 195) suites
+    /// every server shall support.
     public static let strongCipherSuites: [String] = [
         "TLS_AES_256_GCM_SHA384",
         "TLS_CHACHA20_POLY1305_SHA256",
@@ -95,34 +97,67 @@ public enum SecurityTLSHelpers: Sendable {
 /// Platform-independent helpers for anonymization display and validation.
 public enum AnonymizationHelpers: Sendable {
 
-    /// The 18 HIPAA direct identifiers (tag, name) pairs.
-    /// Reference: HIPAA 45 CFR §164.514(b)(2)(i)
-    public static let hipaaDirectIdentifierTags: [(tag: String, name: String)] = [
-        ("0010,0010", "Patient Name"),
+    /// The attributes the Basic profile removes: exactly the DICOMKit `Anonymizer` `.basic` profile
+    /// (`--profile legacy-basic`), which the app runs through `SecurityViewModel.engineProfile`.
+    /// Names are the PS3.6 Table 6-1 names. This is the app's fixed list, not a PS3.15 Annex E profile
+    /// and not the 18 identifier categories of 45 CFR §164.514(b)(2)(i) (which name kinds of
+    /// information, not DICOM attributes).
+    ///
+    /// Public since P-STUDIO-ANON-TAGLIST-NAME (2026-10-06), replacing `hipaaDirectIdentifierTags`.
+    /// Each of the 14 attributes is a row of PS3.15 2026a Table E.1-1 (checked by script against
+    /// the DocBook, 14/14), but the list is not that table: `--profile ps315` (the
+    /// `.ps315` profile) applies every row.
+    public static let basicProfileTags: [(tag: String, name: String)] = [
+        ("0010,0010", "Patient's Name"),
         ("0010,0020", "Patient ID"),
-        ("0010,0030", "Patient Birth Date"),
-        ("0010,0040", "Patient Sex"),
+        ("0010,0030", "Patient's Birth Date"),
+        ("0010,0032", "Patient's Birth Time"),
         ("0010,1000", "Other Patient IDs"),
-        ("0010,1010", "Patient Age"),
-        ("0010,1040", "Patient Telephone Numbers"),
-        ("0010,2160", "Ethnic Group"),
-        ("0010,21B0", "Additional Patient History"),
+        ("0010,1001", "Other Patient Names"),
         ("0010,4000", "Patient Comments"),
-        ("0008,0014", "Instance Creator UID"),
+        ("0008,0090", "Referring Physician's Name"),
+        ("0008,1050", "Performing Physician's Name"),
+        ("0008,1070", "Operators' Name"),
         ("0008,0080", "Institution Name"),
         ("0008,0081", "Institution Address"),
-        ("0008,0090", "Referring Physician Name"),
         ("0008,1010", "Station Name"),
-        ("0008,1070", "Operator Name"),
-        ("0008,103E", "Series Description"),
-        ("0032,1032", "Requesting Physician")
+        ("0018,1000", "Device Serial Number"),
     ]
 
-    /// Returns default rules for the given anonymization profile.
+    /// The date and time attributes the Clinical Trial profile removes in addition to
+    /// `basicProfileTags` (DICOMKit `Anonymizer` `.clinicalTrial`, `--profile legacy-clinical-trial`).
+    static let clinicalTrialDateTags: [(tag: String, name: String)] = [
+        ("0008,0020", "Study Date"),
+        ("0008,0021", "Series Date"),
+        ("0008,0022", "Acquisition Date"),
+        ("0008,0023", "Content Date"),
+        ("0008,0030", "Study Time"),
+        ("0008,0031", "Series Time"),
+        ("0008,0032", "Acquisition Time"),
+        ("0008,0033", "Content Time"),
+    ]
+
+    /// The (tag, name) pairs the Basic and HIPAA Safe Harbor profiles remove: `basicProfileTags`.
+    ///
+    /// The name is historical: the list is the engine's basic profile (14 attributes), not the 18
+    /// identifier categories of 45 CFR §164.514(b)(2)(i), which the earlier 18-tag list did not
+    /// implement either (the engine removed only 7 of those tags). Deprecated, renamed
+    /// `basicProfileTags` (P-STUDIO-ANON-TAGLIST-NAME, 2026-10-06); kept for source compatibility.
+    @available(*, deprecated, renamed: "basicProfileTags")
+    public static let hipaaDirectIdentifierTags: [(tag: String, name: String)] = basicProfileTags
+
+    /// Returns the default rules for an anonymization profile: the attributes the DICOMKit
+    /// `Anonymizer` profile the app runs for it removes (so the preview matches the output).
+    ///
+    /// `.ps315` returns no rules: the PS3.15 Basic Profile is every row of PS3.15 2026a Table E.1-1
+    /// with per-row actions (D, Z, X, U, C) and option columns, which a remove-only tag list cannot
+    /// state; the engine's table (DICOMKit `ConfidentialityProfile.table`) is the reference.
     public static func defaultRules(for profile: AnonymizationProfile) -> [AnonymizationTagRule] {
         switch profile {
+        case .ps315:
+            return []
         case .basic, .hipaaeSafeHarbor:
-            return hipaaDirectIdentifierTags.map { tagPair in
+            return basicProfileTags.map { tagPair in
                 AnonymizationTagRule(
                     tag: tagPair.tag,
                     tagName: tagPair.name,
@@ -130,7 +165,7 @@ public enum AnonymizationHelpers: Sendable {
                 )
             }
         case .clinicalTrial:
-            return hipaaDirectIdentifierTags.map { tagPair in
+            return (basicProfileTags + clinicalTrialDateTags).map { tagPair in
                 AnonymizationTagRule(
                     tag: tagPair.tag,
                     tagName: tagPair.name,

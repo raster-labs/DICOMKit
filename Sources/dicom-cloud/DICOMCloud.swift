@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — carries no DICOM-standard data (cloud CLI plumbing: s3/gs/azure URLs, endpoint, region, encryption, parallelism, sync direction; no DICOMweb endpoint, transfer syntax, de-identification profile or SOP Class filter); Scripts/diff_cli.py: 0 UID, tag or code literals
 import Foundation
 import ArgumentParser
 import DICOMKit
@@ -337,8 +338,9 @@ struct Sync: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Synchronize local and cloud storage",
         discussion: """
-            Bidirectionally sync DICOM files between local storage and cloud.
-            Only uploads/downloads files that have changed.
+            Sync DICOM files between local storage and cloud: uploads local files missing
+            from the cloud; with --bidirectional also downloads cloud files missing locally.
+            Files are compared by relative path only.
             """
     )
     

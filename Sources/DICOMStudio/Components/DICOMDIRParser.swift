@@ -2,6 +2,15 @@
 // DICOMStudio
 //
 // DICOM Studio — Platform-independent DICOMDIR parsing helper
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — `knownRecordTypes` diffed against the 35 Directory Record Types of
+// PS3.3 2026a Table F.4-1 (= Enumerated Values of (0004,1430), Table F.3-3): 29 matched, 6 added (RT TREAT
+// RECORD, WAVEFORM, PLAN, ANNOTATION, INVENTORY, WF PRESENTATION), HL7 STRUC DOC kept as retired (F.5.33,
+// PS3.3-2018b); Referenced File ID (0004,1500) split on the backslash component separator and the DICOMDIR
+// file name per PS3.10 2026a 8.2 / 8.6; the record keys the struct carries are F.5-1 (Patient's Name, Patient ID),
+// F.5-2 (Study Date, Study Description, Study Instance UID), F.5-3 (Modality, Series Instance UID) keys and the
+// Referenced SOP Instance UID in File (0004,1511) of Table F.3-3; DICOMCore `DirectoryRecordType` carries the same
+// 35 values plus the retired ones.
 
 import Foundation
 
@@ -72,18 +81,24 @@ public enum DICOMDIRParser: Sendable {
         }
     }
 
-    /// Known DICOMDIR record types per PS3.3 F.3.
+    /// Known DICOMDIR record types: the 35 Directory Record Types of PS3.3 2026a Table F.4-1
+    /// (the Enumerated Values of Directory Record Type (0004,1430), Table F.3-3), plus the
+    /// retired `HL7 STRUC DOC` (PS3.3 F.5.33, retired in PS3.3-2018b) so that older
+    /// DICOMDIRs still read.
     public static let knownRecordTypes: Set<String> = [
         "PATIENT", "STUDY", "SERIES", "IMAGE",
-        "RT DOSE", "RT STRUCTURE SET", "RT PLAN",
-        "PRESENTATION", "SR DOCUMENT", "KEY OBJECT DOC",
+        "RT DOSE", "RT STRUCTURE SET", "RT PLAN", "RT TREAT RECORD",
+        "PRESENTATION", "WAVEFORM", "SR DOCUMENT", "KEY OBJECT DOC",
         "SPECTROSCOPY", "RAW DATA", "REGISTRATION",
         "FIDUCIAL", "HANGING PROTOCOL", "ENCAP DOC",
-        "HL7 STRUC DOC", "VALUE MAP", "STEREOMETRIC",
+        "VALUE MAP", "STEREOMETRIC",
         "PALETTE", "IMPLANT", "IMPLANT GROUP",
-        "IMPLANT ASSY", "MEASUREMENT", "SURFACE",
+        "IMPLANT ASSY", "PLAN", "MEASUREMENT", "SURFACE",
         "SURFACE SCAN", "TRACT", "ASSESSMENT",
-        "RADIOTHERAPY", "PRIVATE"
+        "RADIOTHERAPY", "ANNOTATION", "INVENTORY", "WF PRESENTATION",
+        "PRIVATE",
+        // Retired (PS3.3-2018b), kept for legacy file-sets.
+        "HL7 STRUC DOC"
     ]
 
     /// Checks whether a file name matches the DICOMDIR naming convention.

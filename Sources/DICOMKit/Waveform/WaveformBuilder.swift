@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — writes every Type 1 attribute of PS3.3 2026a Table C.10-8 (Instance Number, Content Date/Time, Acquisition DateTime) and Table C.10-9 (Waveform Originality, Number of Channels/Samples, Sampling Frequency, Channel Definition Sequence with Channel Source Sequence and Waveform Bits Stored, one of Channel Time/Sample Skew, Waveform Bits Allocated, Sample Interpretation, Waveform Data); (0070,0006) as ST and (0040,A132) as UL per PS3.6 Table 6-1; Modality per A.34.x content constraints
 //
 // WaveformBuilder.swift
 // DICOMKit
@@ -27,7 +28,7 @@ import DICOMCore
 /// .addMultiplexGroup(
 ///     samplingFrequency: 500.0,
 ///     bitsAllocated: 16,
-///     sampleInterpretation: .signedInteger,
+///     sampleInterpretation: .signed16,
 ///     channels: [
 ///         WaveformChannel(channelLabel: "Lead I",
 ///                        channelSource: WaveformCodedConcept(
@@ -40,7 +41,13 @@ import DICOMCore
 /// .build()
 /// ```
 ///
+/// Every channel needs a `channelSource`: Channel Source Sequence (003A,0208) is Type 1 in
+/// the Channel Definition Sequence (PS3.3 Table C.10-9), and `build()` throws without it.
+/// Instance Number, Content Date, Content Time and Acquisition DateTime (Type 1 in the
+/// Waveform Identification Module, Table C.10-8) are filled in from the clock when not set.
+///
 /// Reference: PS3.3 A.34 - Waveform IODs
+/// Reference: PS3.3 C.10.8 - Waveform Identification Module
 /// Reference: PS3.3 C.10.9 - Waveform Module
 public final class WaveformBuilder {
 
@@ -61,6 +68,7 @@ public final class WaveformBuilder {
     private var seriesNumber: Int?
     private var contentDate: DICOMDate?
     private var contentTime: DICOMTime?
+    private var acquisitionDateTime: DICOMDateTime?
     private var multiplexGroups: [WaveformMultiplexGroup] = []
     private var annotations: [WaveformAnnotation] = []
 
@@ -147,22 +155,34 @@ public final class WaveformBuilder {
         return self
     }
 
+    /// Sets Acquisition DateTime (0008,002A), the start of the acquisition and the
+    /// reference for Multiplex Group Time Offset (PS3.3 Table C.10-8, Type 1)
+    @discardableResult
+    public func setAcquisitionDateTime(_ dateTime: DICOMDateTime) -> Self {
+        self.acquisitionDateTime = dateTime
+        return self
+    }
+
     /// Adds a multiplex group with channel data
     ///
     /// - Parameters:
     ///   - samplingFrequency: Sampling frequency in Hz
-    ///   - bitsAllocated: Bits allocated per sample (8 or 16)
-    ///   - sampleInterpretation: How samples should be interpreted
-    ///   - channels: Channel definitions
+    ///   - bitsAllocated: Waveform Bits Allocated (5400,1004): 8, 16, 32 or 64, matching
+    ///     `sampleInterpretation` per PS3.3 Table C.10-10
+    ///   - sampleInterpretation: Waveform Sample Interpretation (5400,1006)
+    ///   - bitsStored: Waveform Bits Stored (003A,021A), the significant bits per sample;
+    ///     defaults to `bitsAllocated`
+    ///   - channels: Channel definitions; each needs a `channelSource` (Type 1)
     ///   - waveformData: Raw interleaved waveform data
-    ///   - originality: Whether the data is original or derived
+    ///   - originality: Waveform Originality (003A,0004); `nil` is written as ORIGINAL
     ///   - label: Label for the multiplex group
     /// - Returns: Self for method chaining
     @discardableResult
     public func addMultiplexGroup(
         samplingFrequency: Double,
         bitsAllocated: UInt16 = 16,
-        sampleInterpretation: WaveformSampleInterpretation = .signedInteger,
+        sampleInterpretation: WaveformSampleInterpretation = .signed16,
+        bitsStored: UInt16? = nil,
         channels: [WaveformChannel],
         waveformData: Data,
         originality: WaveformOriginality? = .original,
@@ -181,7 +201,7 @@ public final class WaveformBuilder {
             samplingFrequency: samplingFrequency,
             numberOfSamples: numberOfSamples,
             waveformBitsAllocated: bitsAllocated,
-            waveformBitsStored: bitsAllocated,
+            waveformBitsStored: bitsStored ?? bitsAllocated,
             waveformSampleInterpretation: sampleInterpretation,
             channels: channels,
             waveformData: waveformData,
@@ -250,28 +270,67 @@ public final class WaveformBuilder {
 
     /// Builds the Waveform
     ///
+    /// Type 1 attributes of the Waveform Identification Module (PS3.3 Table C.10-8) that
+    /// were not set are defaulted: Instance Number to 1, Content Date/Time to the current
+    /// clock, Acquisition DateTime to Content Date + Content Time.
+    ///
     /// - Returns: The constructed Waveform
-    /// - Throws: DICOMError if required data is invalid
+    /// - Throws: DICOMError if no multiplex group was added, a multiplex group has no
+    ///   channel (Channel Definition Sequence is Type 1, one or more Items), or a channel
+    ///   has no `channelSource` (Channel Source Sequence (003A,0208) is Type 1)
     public func build() throws -> Waveform {
         guard !multiplexGroups.isEmpty else {
             throw DICOMError.parsingFailed("At least one multiplex group is required")
         }
 
+        for (groupIndex, group) in multiplexGroups.enumerated() {
+            guard !group.channels.isEmpty else {
+                throw DICOMError.parsingFailed(
+                    "Multiplex group \(groupIndex + 1) has no channels; Channel Definition Sequence (003A,0200) is Type 1 (PS3.3 Table C.10-9)")
+            }
+            for (channelIndex, channel) in group.channels.enumerated() where channel.channelSource == nil {
+                throw DICOMError.parsingFailed(
+                    "Channel \(channelIndex + 1) of multiplex group \(groupIndex + 1) has no channelSource; Channel Source Sequence (003A,0208) is Type 1 (PS3.3 Table C.10-9)")
+            }
+        }
+
         let instanceUID = sopInstanceUID ?? UIDGenerator.generateSOPInstanceUID().value
+
+        let now = Date()
+        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: now)
+        let finalContentDate = contentDate ?? DICOMDate(
+            year: components.year ?? 1970,
+            month: components.month ?? 1,
+            day: components.day ?? 1
+        )
+        let finalContentTime = contentTime ?? DICOMTime(
+            hour: components.hour ?? 0,
+            minute: components.minute ?? 0,
+            second: components.second ?? 0
+        )
+        let finalAcquisitionDateTime = acquisitionDateTime ?? DICOMDateTime(
+            year: finalContentDate.year,
+            month: finalContentDate.month,
+            day: finalContentDate.day,
+            hour: finalContentTime.hour,
+            minute: finalContentTime.minute,
+            second: finalContentTime.second
+        )
 
         return Waveform(
             sopInstanceUID: instanceUID,
             sopClassUID: waveformType.sopClassUID,
             studyInstanceUID: studyInstanceUID,
             seriesInstanceUID: seriesInstanceUID,
-            instanceNumber: instanceNumber,
+            instanceNumber: instanceNumber ?? 1,
             patientName: patientName,
             patientID: patientID,
             modality: modality ?? defaultModality(),
             seriesDescription: seriesDescription,
             seriesNumber: seriesNumber,
-            contentDate: contentDate,
-            contentTime: contentTime,
+            contentDate: finalContentDate,
+            contentTime: finalContentTime,
+            acquisitionDateTime: finalAcquisitionDateTime,
             multiplexGroups: multiplexGroups,
             annotations: annotations
         )
@@ -286,24 +345,10 @@ public final class WaveformBuilder {
         return waveform.toDataSet()
     }
 
-    /// Returns the default modality for the waveform type
+    /// Returns the Modality the IOD's content constraints require (PS3.3 A.34.x.4.1),
+    /// OT for an unknown SOP Class
     private func defaultModality() -> String {
-        switch waveformType {
-        case .twelveLeadECG, .generalECG, .ambulatoryECG:
-            return "ECG"
-        case .hemodynamic:
-            return "HD"
-        case .cardiacElectrophysiology:
-            return "EPS"
-        case .basicVoiceAudio, .generalAudio:
-            return "AU"
-        case .arterialPulse:
-            return "HD"
-        case .respiratoryWaveform:
-            return "RESP"
-        case .unknown:
-            return "OT"
-        }
+        (waveformType.modality ?? Modality.ot).rawValue
     }
 }
 
@@ -353,12 +398,16 @@ extension Waveform {
             dataSet.setString(String(instanceNumber), for: .instanceNumber, vr: .IS)
         }
 
-        // Content Date/Time
+        // Waveform Identification Module (PS3.3 Table C.10-8): Content Date, Content
+        // Time and Acquisition DateTime are Type 1; WaveformBuilder.build() fills them.
         if let contentDate = contentDate {
             dataSet.setString(contentDate.dicomString, for: .contentDate, vr: .DA)
         }
         if let contentTime = contentTime {
             dataSet.setString(contentTime.dicomString, for: .contentTime, vr: .TM)
+        }
+        if let acquisitionDateTime = acquisitionDateTime {
+            dataSet.setString(acquisitionDateTime.dicomString, for: .acquisitionDateTime, vr: .DT)
         }
 
         // Waveform Sequence
@@ -417,14 +466,14 @@ extension Waveform {
             value: group.waveformSampleInterpretation.rawValue
         ))
 
-        // Waveform Originality
-        if let originality = group.originality {
-            elements.append(DataElement.string(
-                tag: .waveformOriginality,
-                vr: .CS,
-                value: originality.rawValue
-            ))
-        }
+        // Waveform Originality (003A,0004) — Type 1 (PS3.3 Table C.10-9). A group built
+        // without a value is written as ORIGINAL, the term for source sample data
+        // (C.10.9.1.3).
+        elements.append(DataElement.string(
+            tag: .waveformOriginality,
+            vr: .CS,
+            value: (group.originality ?? .original).rawValue
+        ))
 
         // Multiplex Group Label
         if let label = group.multiplexGroupLabel {
@@ -453,10 +502,10 @@ extension Waveform {
             ))
         }
 
-        // Channel Definition Sequence
+        // Channel Definition Sequence (003A,0200) — Type 1, one Item per channel
         if !group.channels.isEmpty {
             let channelItems = group.channels.map { channel -> SequenceItem in
-                serializeChannel(channel)
+                serializeChannel(channel, bitsStored: group.waveformBitsStored)
             }
             // Serialize channel sequence
             let writer = DICOMWriter()
@@ -473,20 +522,24 @@ extension Waveform {
             ))
         }
 
-        // Waveform Data
-        if !group.waveformData.isEmpty {
-            elements.append(DataElement.data(
-                tag: .waveformData,
-                vr: .OW,
-                data: group.waveformData
-            ))
-        }
+        // Waveform Data (5400,1010) — Type 1; OB or OW (PS3.6 Table 6-1). OB for 8-bit
+        // samples, OW otherwise.
+        elements.append(DataElement.data(
+            tag: .waveformData,
+            vr: group.waveformBitsAllocated == 8 ? .OB : .OW,
+            data: group.waveformData
+        ))
 
         return SequenceItem(elements: elements)
     }
 
     /// Serializes a channel definition to a SequenceItem
-    private func serializeChannel(_ channel: WaveformChannel) -> SequenceItem {
+    ///
+    /// Writes the Type 1 attributes of a Channel Definition Sequence Item (PS3.3 Table
+    /// C.10-9): Channel Source Sequence (003A,0208) and Waveform Bits Stored (003A,021A),
+    /// plus one of Channel Time Skew / Channel Sample Skew (each 1C, required if the other
+    /// is absent) — Channel Sample Skew 0 when neither was given.
+    private func serializeChannel(_ channel: WaveformChannel, bitsStored: UInt16) -> SequenceItem {
         var elements: [DataElement] = []
 
         if let label = channel.channelLabel {
@@ -496,6 +549,9 @@ extension Waveform {
         if let status = channel.channelStatus {
             elements.append(DataElement.string(tag: .channelStatus, vr: .CS, value: status.joined(separator: "\\")))
         }
+
+        // Waveform Bits Stored (003A,021A) — Type 1, VR US
+        elements.append(DataElement.uint16(tag: .waveformBitsStored, value: bitsStored))
 
         if let source = channel.channelSource {
             let sourceItem = createCodeSequenceItem(source)
@@ -543,12 +599,19 @@ extension Waveform {
             ))
         }
 
+        // Channel Sensitivity Correction Factor (003A,0212) and Channel Baseline (003A,0213)
+        // are 1C, required if Channel Sensitivity is present: identity values (1, 0) are
+        // written when the caller gave a sensitivity but not these.
         if let factor = channel.channelSensitivityCorrectionFactor {
             elements.append(DataElement.string(tag: .channelSensitivityCorrectionFactor, vr: .DS, value: String(factor)))
+        } else if channel.channelSensitivity != nil {
+            elements.append(DataElement.string(tag: .channelSensitivityCorrectionFactor, vr: .DS, value: "1"))
         }
 
         if let baseline = channel.channelBaseline {
             elements.append(DataElement.string(tag: .channelBaseline, vr: .DS, value: String(baseline)))
+        } else if channel.channelSensitivity != nil {
+            elements.append(DataElement.string(tag: .channelBaseline, vr: .DS, value: "0"))
         }
 
         if let skew = channel.channelTimeSkew {
@@ -557,6 +620,8 @@ extension Waveform {
 
         if let skew = channel.channelSampleSkew {
             elements.append(DataElement.string(tag: .channelSampleSkew, vr: .DS, value: String(skew)))
+        } else if channel.channelTimeSkew == nil {
+            elements.append(DataElement.string(tag: .channelSampleSkew, vr: .DS, value: "0"))
         }
 
         if let offset = channel.channelOffset {
@@ -587,7 +652,7 @@ extension Waveform {
         var elements: [DataElement] = []
 
         if let text = annotation.textValue {
-            elements.append(DataElement.string(tag: .unformattedTextValue, vr: .UT, value: text))
+            elements.append(DataElement.string(tag: .unformattedTextValue, vr: .ST, value: text))
         }
 
         if let concept = annotation.conceptNameCode {

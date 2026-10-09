@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Burned In Annotation and Code Sequence Macro citations checked against PS3.3 2026a
+// NEMA-verified: 2026a, checked 2026-10-01 — Clean Recognizable Visual Features Option per PS3.15 2026a E.3.2 (operator-directed: "may require intervention of or approval by a human operator"): the operator's regions are blanked on every frame, Icon Image Sequence removed, Recognizable Visual Features (0028,0302) set to NO and CID 7050 113102 recorded only then; no regions refused (D159)
 import Foundation
 import DICOMCore
 
@@ -68,6 +70,66 @@ public struct PixelRedactor {
         }
     }
 
+    /// Clean Recognizable Visual Features Option (PS3.15 2026a E.3.2), operator-directed.
+    ///
+    /// E.3.2: "if there is sufficient visual information within the Pixel Data of a set of
+    /// instances to allow an individual to be recognized from the instances themselves or a
+    /// reconstruction of a set of instances, then sufficient removal or distortion of the
+    /// Pixel Data shall be applied to prevent recognition. This may require intervention of
+    /// or approval by a human operator." DICOMKit has no detector of recognizable features
+    /// (faces, facial surfaces of head volumes), so the operator names the regions; their
+    /// stored pixel values are blanked on every frame (as for Clean Pixel Data, an overlay
+    /// or shutter would not do), the Icon Image Sequence, which shows the same features, is
+    /// removed, Recognizable Visual Features (0028,0302) is set to "NO" ("shall be added to
+    /// the Data Set with a Value of NO") and DCM 113102 "Clean Recognizable Visual Features
+    /// Option" is appended to De-identification Method Code Sequence (0012,0064). Whether the
+    /// regions are sufficient to prevent recognition is the operator's judgement.
+    ///
+    /// Burned In Annotation (0028,0301) and 113101 are not written: these regions are not a
+    /// claim that burned-in text was removed (that is ``redact(fileData:plan:fillValue:)``).
+    ///
+    /// - Throws: ``PixelRedactionError/noRecognizableVisualFeatureRegions`` when `regions` is
+    ///   empty — no pixels changed, so (0028,0302) NO and 113102 would be a false claim.
+    public func redactRecognizableVisualFeatures(
+        fileData: Data,
+        regions: [PixelRedactionPlan.Region],
+        fillValue: Int? = nil
+    ) throws -> (data: Data, outcome: Outcome) {
+        guard !regions.isEmpty else { throw PixelRedactionError.noRecognizableVisualFeatureRegions }
+        let sourceFile = try DICOMFile.read(from: fileData)
+        let frameCount = max(1, sourceFile.dataSet.numberOfFrames ?? 1)
+        let operations = regions.map {
+            PixelOperation.mask(x: $0.x, y: $0.y, width: $0.width, height: $0.height,
+                                fillValue: fillValue ?? 0)
+        }
+        let (maskedData, _) = try PixelEditor(verbose: false)
+            .processData(fileData, operations: operations, derivation: nil)
+        var file = try DICOMFile.read(from: maskedData)
+        var dataSet = file.dataSet
+        let removedIcon = dataSet[.iconImageSequence] != nil
+        if removedIcon { dataSet.remove(tag: .iconImageSequence) }
+        dataSet.setString("NO", for: .recognizableVisualFeatures, vr: .CS)
+        Self.appendMethodCode(.cleanRecognizableVisualFeaturesOption, to: &dataSet)
+        file = DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: dataSet)
+        let outcome = Outcome(
+            regions: regions, basis: .explicit,
+            note: "operator-specified region (Clean Recognizable Visual Features Option, PS3.15 E.3.2)",
+            frameCount: frameCount, removedIconImage: removedIcon, removedOverlays: false)
+        return (try file.write(), outcome)
+    }
+
+    /// Appends a CID 7050 Item to (0012,0064) unless that Code Value is already recorded.
+    private static func appendMethodCode(_ code: ConfidentialityProfile.DeidentificationMethodCode,
+                                         to dataSet: inout DataSet) {
+        var items = dataSet.sequence(for: Tag(group: 0x0012, element: 0x0064)) ?? []
+        let recorded = items.contains {
+            $0.string(for: .codeValue)?.trimmingCharacters(in: .whitespaces) == code.codeValue
+        }
+        guard !recorded else { return }
+        items.append(code.sequenceItem)
+        dataSet.setSequence(items, for: Tag(group: 0x0012, element: 0x0064))
+    }
+
     // MARK: - Application
 
     private func apply(
@@ -88,7 +150,10 @@ public struct PixelRedactor {
             PixelOperation.mask(x: $0.x, y: $0.y, width: $0.width, height: $0.height,
                                 fillValue: fillValue ?? 0)
         }
-        let (maskedData, _) = try editor.processData(fileData, operations: operations)
+        // derivation: nil — redaction keeps the instance identity and must not write a
+        // Source Image Sequence naming the identified original (the de-identification
+        // profile decides the UIDs).
+        let (maskedData, _) = try editor.processData(fileData, operations: operations, derivation: nil)
 
         // Re-read so the attestation is written onto the masked result.
         var file = try DICOMFile.read(from: maskedData)
@@ -175,6 +240,8 @@ public struct PixelRedactor {
 public enum PixelRedactionError: Error, LocalizedError, Equatable {
     /// The image declares burned-in identifiers but no strategy located them.
     case unresolvedRegion(String)
+    /// The Clean Recognizable Visual Features Option was asked for without a region to blank.
+    case noRecognizableVisualFeatureRegions
 
     public var errorDescription: String? {
         switch self {
@@ -188,6 +255,13 @@ public enum PixelRedactionError: Error, LocalizedError, Equatable {
 
                 Refusing rather than guessing: passing the file through unchanged would \
                 leave the identifiers in place while the output looked de-identified.
+                """
+        case .noRecognizableVisualFeatureRegions:
+            return """
+                Clean Recognizable Visual Features Option (PS3.15 E.3.2) needs one or more \
+                regions to blank: recognizable features are not detected automatically, and \
+                Recognizable Visual Features (0028,0302) = NO with code 113102 is written only \
+                when pixels were actually removed.
                 """
         }
     }

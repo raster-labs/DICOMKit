@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — 37 SOP Class UIDs and names match PS3.6 2026a Table A-1; Sup 157 kept as provenance
 import Foundation
 import DICOMCore
 
@@ -217,14 +218,14 @@ public enum MultiframeSOPClassMap {
     }
 
     /// The Modality expected for a merge target (used for the Enhanced Series module).
-    public static func modality(forTarget targetSOPClassUID: String) -> String? {
+    public static func modality(forTarget targetSOPClassUID: String) -> Modality? {
         switch normalize(targetSOPClassUID) {
-        case UID.enhancedCT, UID.legacyConvertedEnhancedCT: return "CT"
-        case UID.enhancedMR, UID.legacyConvertedEnhancedMR: return "MR"
-        case UID.enhancedPET, UID.legacyConvertedEnhancedPET: return "PT"
-        case UID.enhancedXA: return "XA"
-        case UID.enhancedXRF: return "RF"
-        case UID.usMultiframe: return "US"
+        case UID.enhancedCT, UID.legacyConvertedEnhancedCT: return .ct
+        case UID.enhancedMR, UID.legacyConvertedEnhancedMR: return .mr
+        case UID.enhancedPET, UID.legacyConvertedEnhancedPET: return .pt
+        case UID.enhancedXA: return .xa
+        case UID.enhancedXRF: return .rf
+        case UID.usMultiframe: return .us
         default: return nil
         }
     }

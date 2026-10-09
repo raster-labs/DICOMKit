@@ -12,6 +12,7 @@
 
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — grayscale and colour image-box pixel enumerations checked against PS3.3 2026a Table C.13-5 (Bits Allocated 8/16 vs 8, Planar Configuration 1); film session/box terms per Tables C.13-1/C.13-3
 
 /// Decodes Print Management attributes from a walked data set.
 ///
@@ -42,7 +43,9 @@ public enum PrintSCPParser {
             session.printPriority = try enumeration(PrintPriority.self, priority, tag: "Print Priority")
         }
         if let medium = attributes.string(for: .mediumType) {
-            let value = try enumeration(MediumType.self, medium, tag: "Medium Type")
+            // A deprecated spelling (MAMMO CLEAR / MAMMO BLUE) is read as the
+            // Table C.13-1 term it stands for.
+            let value = try enumeration(MediumType.self, medium, tag: "Medium Type").normalized
             guard configuration.supportedMediumTypes.contains(value) else {
                 throw PrintSCPFailure(.invalidAttributeValue, comment: "Unsupported Medium Type: \(medium)")
             }
@@ -173,8 +176,8 @@ public enum PrintSCPParser {
         ///
         /// Empty for the ordinary image box. A non-empty list means the film
         /// was still printed — see ``PixelDepthConformance`` for why clamping
-        /// beats rejecting — but the SCU sent something PS3.3 Table C.13-3 or
-        /// C.13-5 does not allow, and it is told so in the log.
+        /// beats rejecting — but the SCU sent something PS3.3 Table C.13-5
+        /// does not allow, and it is told so in the log.
         public var conformanceNotes: [String]
 
         public init(
@@ -264,10 +267,22 @@ public enum PrintSCPParser {
         guard let bitsAllocated = item.uint16(for: .bitsAllocated) else {
             throw PrintSCPFailure(.missingAttribute, comment: "Bits Allocated (0028,0100) is required")
         }
-        guard bitsAllocated == 8 || bitsAllocated == 16 else {
-            throw PrintSCPFailure(
-                .invalidAttributeValue,
-                comment: "Bits Allocated must be 8 or 16, got \(bitsAllocated)")
+        // PS3.3 Table C.13-5: the Basic Grayscale Image Sequence enumerates
+        // Bits Allocated 8 or 16; the Basic Color Image Sequence enumerates 8
+        // only, so 16 on the colour box is an invalid attribute value.
+        if isColor {
+            guard bitsAllocated == 8 else {
+                throw PrintSCPFailure(
+                    .invalidAttributeValue,
+                    comment: "Bits Allocated must be 8 on the Basic Color Image Box "
+                        + "(PS3.3 Table C.13-5), got \(bitsAllocated)")
+            }
+        } else {
+            guard bitsAllocated == 8 || bitsAllocated == 16 else {
+                throw PrintSCPFailure(
+                    .invalidAttributeValue,
+                    comment: "Bits Allocated must be 8 or 16, got \(bitsAllocated)")
+            }
         }
         let samplesPerPixel = item.uint16(for: .samplesPerPixel) ?? (isColor ? 3 : 1)
         if !isColor && samplesPerPixel != 1 {
@@ -286,6 +301,11 @@ public enum PrintSCPParser {
 
         let bitsStored = item.uint16(for: .bitsStored) ?? bitsAllocated
         let highBit = item.uint16(for: .highBit) ?? (bitsStored - 1)
+        // Photometric Interpretation: PS3.3 Table C.13-5 enumerates RGB for
+        // the Basic Color Image Sequence and MONOCHROME1 / MONOCHROME2 for the
+        // grayscale one. YBR variants are a documented leniency — third-party
+        // SCUs send them, and the composer converts — not a value the table
+        // allows.
         let photometric = item.string(for: .photometricInterpretation)
             ?? (isColor ? "RGB" : "MONOCHROME2")
         let pixelRepresentation = item.uint16(for: .pixelRepresentation) ?? 0
@@ -298,6 +318,37 @@ public enum PrintSCPParser {
         // samples. Our own SCU converts to RGB before sending, but third-party
         // SCUs do send packed 4:2:2, and rejecting it here would be wrong.
         let isSubsampled = photometric.hasSuffix("_422") || photometric.hasSuffix("_420")
+
+        // Planar Configuration (0028,0006): PS3.3 Table C.13-5 enumerates the
+        // single value 1 (color-by-plane) for the Basic Color Image Sequence.
+        // A sender that omits it is taken at the enumerated value, with a note
+        // in the log; a sender that says 0 (color-by-pixel) is accepted and
+        // its layout honoured, also with a note. `PrintImageData.pixelData`
+        // is always color-by-pixel in memory, so planar samples are
+        // de-interleaved below.
+        var planarNotes: [String] = []
+        var isPlanar = false
+        if isColor || samplesPerPixel == 3 {
+            switch item.uint16(for: .planarConfiguration) {
+            case 1:
+                isPlanar = true
+            case 0:
+                planarNotes.append(
+                    "Planar Configuration (0028,0006) is 0 (color-by-pixel); PS3.3 Table "
+                    + "C.13-5 enumerates 1 (color-by-plane) for the Basic Color Image "
+                    + "Sequence. Accepted as sent; the sender should correct its Image Box.")
+            case nil:
+                isPlanar = true
+                planarNotes.append(
+                    "Planar Configuration (0028,0006) is absent from the Basic Color Image "
+                    + "Sequence; PS3.3 Table C.13-5 enumerates 1 (color-by-plane), which "
+                    + "is assumed. The sender should send the attribute.")
+            case let other?:
+                throw PrintSCPFailure(
+                    .invalidAttributeValue,
+                    comment: "Planar Configuration must be 1 (PS3.3 Table C.13-5), got \(other)")
+            }
+        }
         let bytesPerPixel = isSubsampled
             ? 2 * Int(bitsAllocated) / 8
             : Int(samplesPerPixel) * Int(bitsAllocated) / 8
@@ -317,6 +368,11 @@ public enum PrintSCPParser {
             bitsStored: bitsStored, bitsAllocated: bitsAllocated, isColor: isColor)
 
         var samples = pixelData
+        if isPlanar && samplesPerPixel == 3 && !isSubsampled {
+            samples = interleaved(
+                fromPlanar: samples, pixelCount: Int(rows) * Int(columns),
+                bytesPerSample: Int(bitsAllocated) / 8)
+        }
         if depth.bitsStored != bitsStored {
             // Relabelling alone would be a lie: a value filling 16 bits read as
             // a 12-bit value is four times too bright. The samples are scaled
@@ -339,7 +395,33 @@ public enum PrintSCPParser {
             pixelRepresentation: pixelRepresentation,
             photometricInterpretation: photometric
         )
-        return ParsedPixelModule(image: image, notes: depth.notes)
+        return ParsedPixelModule(image: image, notes: planarNotes + depth.notes)
+    }
+
+    /// Re-orders color-by-plane samples (RRR…GGG…BBB…) into color-by-pixel
+    /// (RGBRGB…), the layout `PrintImageData` carries in memory.
+    ///
+    /// Only the first `pixelCount * 3 * bytesPerSample` bytes are laid out;
+    /// any trailing bytes are dropped, since they cannot belong to a plane.
+    static func interleaved(fromPlanar planar: Data, pixelCount: Int, bytesPerSample: Int) -> Data {
+        let planeBytes = pixelCount * bytesPerSample
+        guard planar.count >= planeBytes * 3, bytesPerSample > 0 else { return planar }
+        var output = Data(count: planeBytes * 3)
+        output.withUnsafeMutableBytes { destination in
+            planar.withUnsafeBytes { source in
+                guard let dst = destination.bindMemory(to: UInt8.self).baseAddress,
+                      let src = source.bindMemory(to: UInt8.self).baseAddress else { return }
+                for pixel in 0..<pixelCount {
+                    for plane in 0..<3 {
+                        for byte in 0..<bytesPerSample {
+                            dst[(pixel * 3 + plane) * bytesPerSample + byte]
+                                = src[plane * planeBytes + pixel * bytesPerSample + byte]
+                        }
+                    }
+                }
+            }
+        }
+        return output
     }
 
     /// Scales samples from one stored depth to a shallower one.

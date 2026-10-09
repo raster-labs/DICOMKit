@@ -5,6 +5,7 @@
 // the renderer, each hoisted over its single input so they can be evaluated once
 // per possible sample instead of once per pixel — and so a shader can consume them
 // without doing any floating-point work.
+// NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (transcribed renderer arithmetic). C1 classification confirmed.
 
 import Foundation
 

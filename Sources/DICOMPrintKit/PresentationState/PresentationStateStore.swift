@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — D27/D36: Displayed Area (Table C.10-4) from the image size, state Modality LUT per PS3.4 2026a N.2.1.1, Color Softcopy PS for colour images per PS3.3 A.33.1.1 and Table A.33.2-1; shutter pixel positions per Table C.7-17a; SOP Classes 11.1/11.2/11.3 per PS3.6 Table A-1 (Scripts/diff_printkit.py)
 // PresentationStateStore.swift
 // DICOMPrintKit
 //
@@ -350,6 +351,49 @@ public struct PresentationStateStore: Sendable {
         /// Whether frame numbers belong in this image's annotations.
         var isMultiFrame: Bool { numberOfFrames > 1 }
 
+        /// Photometric Interpretation (0028,0004) of the image, when the caller
+        /// knows it.
+        ///
+        /// Decides the IOD: a Grayscale (or Pseudo-Color) Softcopy Presentation
+        /// State "may only be used to reference monochrome images" (PS3.3
+        /// A.33.1.1), so any other photometric is saved as a Color Softcopy
+        /// Presentation State (A.33.2). `nil` keeps the monochrome reading every
+        /// caller had before this was recorded.
+        public let photometricInterpretation: String?
+
+        /// Rescale Type (0028,1054) of the image — `HU` for CT — written with
+        /// the state's own Modality LUT. `nil` writes `US` (unspecified).
+        public let rescaleType: String?
+
+        /// Whether the image is a colour image, so only a Color Softcopy
+        /// Presentation State may describe it.
+        var isColor: Bool {
+            guard let photometric = photometricInterpretation?
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")).uppercased(),
+                  !photometric.isEmpty else { return false }
+            return photometric != "MONOCHROME1" && photometric != "MONOCHROME2"
+        }
+
+        /// The Modality LUT the state carries: the image's own rescale.
+        ///
+        /// PS3.4 N.2.1.1: under a presentation state the image's Modality LUT
+        /// "shall not be used", and an absent one is the identity. The window
+        /// this app captures is in rescaled units, so a state without the
+        /// rescale would window stored values. Left out when the rescale is
+        /// the identity (nothing to apply) and for colour images, whose IOD
+        /// has no Modality LUT module (Table A.33.2-1).
+        var modalityLUT: ModalityLUT? {
+            guard !isColor, rescaleSlope != 0,
+                  rescaleSlope != 1 || rescaleIntercept != 0 else { return nil }
+            return .rescale(slope: rescaleSlope, intercept: rescaleIntercept, type: rescaleType)
+        }
+
+        /// The image size the builders write the Type 1 Displayed Area from
+        /// when the view records none (PS3.3 Table C.10-4); `nil` when unknown.
+        var imageSize: (columns: Int, rows: Int)? {
+            imageWidth > 0 && imageHeight > 0 ? (imageWidth, imageHeight) : nil
+        }
+
         public init(
             sopClassUID: String,
             sopInstanceUID: String,
@@ -364,7 +408,9 @@ public struct PresentationStateStore: Sendable {
             isSigned: Bool = false,
             rescaleSlope: Double = 1,
             rescaleIntercept: Double = 0,
-            numberOfFrames: Int = 1
+            numberOfFrames: Int = 1,
+            photometricInterpretation: String? = nil,
+            rescaleType: String? = nil
         ) {
             self.sopClassUID = sopClassUID
             self.sopInstanceUID = sopInstanceUID
@@ -385,6 +431,8 @@ public struct PresentationStateStore: Sendable {
             // negative count is not a picture — either way the un-framed form
             // is what gets written.
             self.numberOfFrames = max(1, numberOfFrames)
+            self.photometricInterpretation = photometricInterpretation
+            self.rescaleType = rescaleType
         }
     }
 
@@ -464,19 +512,25 @@ public struct PresentationStateStore: Sendable {
                 referencedImage: referencedImage,
                 isMultiFrame: image.isMultiFrame)
 
-            // Which presentation state IOD this image needs. A non-grey
-            // palette has to leave in a Pseudo-Color object (…11.3) or it does
-            // not leave at all — GSPS has no colour vocabulary, which is why
-            // the palette used to survive only in the private sidecar and
-            // vanished from every exported study. Grey stays GSPS: same file
-            // another viewer already reads, no palette module carrying nothing.
+            // Which presentation state IOD this image needs. A colour image
+            // takes the Color Softcopy object (…11.2): GSPS and Pseudo-Color
+            // "may only be used to reference monochrome images" (A.33.1.1). A
+            // non-grey palette on a monochrome image has to leave in a
+            // Pseudo-Color object (…11.3) or it does not leave at all — GSPS
+            // has no colour vocabulary, which is why the palette used to
+            // survive only in the private sidecar and vanished from every
+            // exported study. Grey stays GSPS: same file another viewer
+            // already reads, no palette module carrying nothing.
             let colourPalette: PseudoColorPalette? = {
-                guard let palette = image.palette, !palette.isGrayscale else { return nil }
+                guard !image.isColor,
+                      let palette = image.palette, !palette.isGrayscale else { return nil }
                 return palette
             }()
-            let sopClassUID = colourPalette == nil
-                ? GrayscalePresentationStateBuilder.sopClassUID
-                : PseudoColorPresentationStateBuilder.sopClassUID
+            let sopClassUID = image.isColor
+                ? ColorPresentationStateBuilder.sopClassUID
+                : colourPalette == nil
+                    ? GrayscalePresentationStateBuilder.sopClassUID
+                    : PseudoColorPresentationStateBuilder.sopClassUID
 
             let state = GrayscalePresentationState(
                 sopInstanceUID: sopInstanceUID,
@@ -491,6 +545,7 @@ public struct PresentationStateStore: Sendable {
                         seriesInstanceUID: image.seriesInstanceUID,
                         referencedImages: [referencedImage])
                 ],
+                modalityLUT: image.modalityLUT,
                 voiLUT: image.display.voiLUT,
                 presentationLUT: image.display.presentationLUT,
                 spatialTransformation: image.display.spatialTransformation,
@@ -499,8 +554,22 @@ public struct PresentationStateStore: Sendable {
                     ? [] : PrintOverlayAnnotationGSPS.graphicLayers(for: image.annotations),
                 graphicAnnotations: graphicAnnotations)
 
+            // The Displayed Area Selection Sequence is Type 1 (Table C.10-4):
+            // a view that records no area (the whole image, fitted) is written
+            // as the whole image, which the builders do from the image size.
             let dataSet: DataSet
-            if let colourPalette {
+            if image.isColor {
+                // Table A.33.2-1 has no Modality, VOI or Presentation LUT
+                // module; the builder writes the shared modules and the ICC
+                // Profile. An inversion the reader applied is kept in the
+                // sidecar, the one place that can say it for a colour image.
+                dataSet = ColorPresentationStateBuilder().buildDataSet(
+                    from: ColorPresentationState(parsed: state),
+                    patient: context,
+                    seriesInstanceUID: seriesInstanceUID,
+                    seriesNumber: Self.presentationSeriesNumber,
+                    imageSize: image.imageSize)
+            } else if let colourPalette {
                 dataSet = PseudoColorPresentationStateBuilder().buildDataSet(
                     from: state,
                     palette: colourPalette,
@@ -514,13 +583,15 @@ public struct PresentationStateStore: Sendable {
                         : nil,
                     patient: context,
                     seriesInstanceUID: seriesInstanceUID,
-                    seriesNumber: Self.presentationSeriesNumber)
+                    seriesNumber: Self.presentationSeriesNumber,
+                    imageSize: image.imageSize)
             } else {
                 dataSet = GrayscalePresentationStateBuilder().buildDataSet(
                     from: state,
                     patient: context,
                     seriesInstanceUID: seriesInstanceUID,
-                    seriesNumber: Self.presentationSeriesNumber)
+                    seriesNumber: Self.presentationSeriesNumber,
+                    imageSize: image.imageSize)
             }
 
             let url = directory.appendingPathComponent("\(sopInstanceUID).dcm")
@@ -539,12 +610,21 @@ public struct PresentationStateStore: Sendable {
                 let drawn = annotations.filter { !$0.isBlank }
                 if !drawn.isEmpty { drawnByFrame[frame] = drawn }
             }
-            let sidecar = AnnotationSidecar.Contents(
+            let invertedColour = image.isColor && image.display.presentationLUT == .inverse
+            var sidecar = AnnotationSidecar.Contents(
                 palette: image.palette, annotationsByFrame: drawnByFrame)
+            sidecar.inverted = invertedColour
             try? AnnotationSidecar.write(sidecar, forStateAt: url)
 
+            // The model handed back is what a later read of the file yields:
+            // a colour object carries no LUT, and its inversion (if any) comes
+            // back from the sidecar.
+            let written = image.isColor
+                ? Self.replacingPresentationLUT(
+                    Self.withoutLUTs(state), with: invertedColour ? .inverse : nil)
+                : state
             stored.append(StoredPresentationState(
-                state: state, url: url,
+                state: written, url: url,
                 annotationsByFrame: drawnByFrame,
                 palette: image.palette,
                 seriesInstanceUID: seriesInstanceUID,
@@ -571,12 +651,12 @@ public struct PresentationStateStore: Sendable {
         for url in urls where url.pathExtension.lowercased() == "dcm" {
             guard let file = try? DICOMFile.read(from: url),
                   let state = try? parser.parse(dataSet: file.dataSet) else { continue }
-            // Presentation Label (0070,0080) is CS-valued, so what the reader
+            // Content Label (0070,0080) is CS-valued, so what the reader
             // typed was folded to uppercase when it was written. The unfolded
             // name lives in Content Description (0070,0081) — read it back, or
             // "Lung window" returns as "LUNG WINDOW" and no longer matches the
             // label a delete or a re-save is looking for.
-            let displayLabel = file.dataSet.string(for: .presentationDescription)?
+            let displayLabel = file.dataSet.string(for: .contentDescription)?
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             let sidecar = AnnotationSidecar.read(forStateAt: url)
 
@@ -601,6 +681,11 @@ public struct PresentationStateStore: Sendable {
                 }
             } else {
                 palette = nil
+            }
+            // A Color Softcopy object has no Presentation LUT; an inversion the
+            // reader applied to a colour image travels in the sidecar.
+            if sidecar.inverted, resolvedState.presentationLUT == nil {
+                resolvedState = Self.replacingPresentationLUT(resolvedState, with: .inverse)
             }
 
             stored.append(StoredPresentationState(
@@ -858,10 +943,18 @@ public struct PresentationStateStore: Sendable {
 
     /// A display shutter as the overlay that paints its outside.
     ///
-    /// The presentation value is a 16-bit P-value (PS3.3 C.7.6.11); absent, the
-    /// shutter is black, which is what every viewer shows for it. Bitmap
+    /// The presentation value is a 16-bit P-value (PS3.3 Table C.7-17a); absent,
+    /// the shutter is black, which is what every viewer shows for it. Bitmap
     /// shutters need the overlay plane they name, which the sidecar cannot
     /// carry — those are left to the overlay-plane renderer.
+    ///
+    /// Shutter edges, centres and vertices are *pixel positions* — "with
+    /// respect to pixels in the image given as column/row" (Table C.7-17a) —
+    /// counted from 1, and the edge pixels are inside the open region (the
+    /// same reading ``DisplayShutter/contains(column:row:)`` applies). Pixel
+    /// `c` covers `c − 1 ..< c` of the image's width, so a rectangle opens from
+    /// the left edge of its first pixel to the right edge of its last, and a
+    /// centre or vertex sits at the middle of its pixel.
     static func shutterOverlay(
         _ shutter: DisplayShutter, imageWidth: Int, imageHeight: Int
     ) -> PrintOverlayAnnotation? {
@@ -870,23 +963,31 @@ public struct PresentationStateStore: Sendable {
         let height = Double(imageHeight)
         let grey = Double(shutter.presentationValue ?? 0) / 65535
         let color = PrintOverlayColor(red: grey, green: grey, blue: grey)
-        func point(_ column: Int, _ row: Int) -> PrintOverlayPoint {
-            PrintOverlayPoint(x: Double(column) / width, y: Double(row) / height)
+        func point(x: Double, y: Double) -> PrintOverlayPoint {
+            PrintOverlayPoint(x: x / width, y: y / height)
+        }
+        /// The middle of 1-based pixel (column, row).
+        func centre(_ column: Int, _ row: Int) -> PrintOverlayPoint {
+            point(x: Double(column) - 0.5, y: Double(row) - 0.5)
         }
         switch shutter {
         case .rectangular(let left, let right, let top, let bottom, _):
             return PrintOverlayAnnotation(
-                shape: .shutter, points: [point(left, top), point(right, bottom)],
+                shape: .shutter,
+                points: [point(x: Double(left - 1), y: Double(top - 1)),
+                         point(x: Double(right), y: Double(bottom))],
                 filled: false, color: color)
         case .circular(let centerColumn, let centerRow, let radius, _):
+            // The radius is "a number of pixels along the row direction".
             return PrintOverlayAnnotation(
                 shape: .shutter,
-                points: [point(centerColumn, centerRow), point(centerColumn + radius, centerRow)],
+                points: [centre(centerColumn, centerRow),
+                         centre(centerColumn + radius, centerRow)],
                 filled: true, color: color)
         case .polygonal(let vertices, _):
             guard vertices.count >= 3 else { return nil }
             return PrintOverlayAnnotation(
-                shape: .shutter, points: vertices.map { point($0.column, $0.row) },
+                shape: .shutter, points: vertices.map { centre($0.column, $0.row) },
                 filled: false, color: color)
         case .bitmap:
             return nil
@@ -1091,7 +1192,7 @@ public struct PresentationStateStore: Sendable {
             // Content Description holds the reader's own wording; Presentation
             // Label is the CS-folded one. Matching either is what makes this
             // agree with the grouping `views(forStudy:)` does.
-            let described = file.dataSet.string(for: .presentationDescription)?
+            let described = file.dataSet.string(for: .contentDescription)?
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             return described == label
                 || file.dataSet.string(for: .contentLabel)
@@ -1147,12 +1248,33 @@ public struct PresentationStateStore: Sendable {
         return PseudoColorPalette.matching(lut)
     }
 
+    /// The same state with no Modality, VOI or Presentation LUT — what a Color
+    /// Softcopy object reads back as (Table A.33.2-1 has none of the modules).
+    static func withoutLUTs(_ state: GrayscalePresentationState) -> GrayscalePresentationState {
+        GrayscalePresentationState(
+            sopInstanceUID: state.sopInstanceUID,
+            sopClassUID: state.sopClassUID,
+            instanceNumber: state.instanceNumber,
+            presentationLabel: state.presentationLabel,
+            presentationDescription: state.presentationDescription,
+            presentationCreationDate: state.presentationCreationDate,
+            presentationCreationTime: state.presentationCreationTime,
+            presentationCreatorsName: state.presentationCreatorsName,
+            referencedSeries: state.referencedSeries,
+            spatialTransformation: state.spatialTransformation,
+            displayedArea: state.displayedArea,
+            graphicLayers: state.graphicLayers,
+            graphicAnnotations: state.graphicAnnotations,
+            shutters: state.shutters,
+            shutterPresentationColor: state.shutterPresentationColor)
+    }
+
     /// The same state with a different Presentation LUT — needed because the
-    /// model is immutable and the Pseudo-Color read path has to restore an
-    /// inversion it found baked into the palette table.
+    /// model is immutable and the Pseudo-Color and Color read paths have to
+    /// restore an inversion the object itself cannot state.
     static func replacingPresentationLUT(
         _ state: GrayscalePresentationState,
-        with presentationLUT: PresentationLUT
+        with presentationLUT: PresentationLUT?
     ) -> GrayscalePresentationState {
         GrayscalePresentationState(
             sopInstanceUID: state.sopInstanceUID,
@@ -1171,7 +1293,8 @@ public struct PresentationStateStore: Sendable {
             displayedArea: state.displayedArea,
             graphicLayers: state.graphicLayers,
             graphicAnnotations: state.graphicAnnotations,
-            shutters: state.shutters)
+            shutters: state.shutters,
+            shutterPresentationColor: state.shutterPresentationColor)
     }
 
     private static func creationDate(_ stored: StoredPresentationState) -> Date? {

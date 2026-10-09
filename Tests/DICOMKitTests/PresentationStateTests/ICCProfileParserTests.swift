@@ -16,7 +16,9 @@ final class ICCProfileParserTests: XCTestCase {
     
     /// Create a minimal valid ICC profile header
     private func createMinimalICCProfileData(
-        profileSize: UInt32 = 128,
+        // 128-byte header + 4-byte tag count (ICC.1 7.3.1). The original
+        // default of 128 left no room for the tag count written at 128.
+        profileSize: UInt32 = 132,
         version: (major: UInt8, minor: UInt8, bugfix: UInt8) = (2, 1, 0),
         deviceClass: ICCDeviceClass = .displayDevice,
         dataColorSpace: ICCColorSpace = .rgb,
@@ -61,7 +63,7 @@ final class ICCProfileParserTests: XCTestCase {
         let profileData = createMinimalICCProfileData()
         let parsed = try ICCProfileParser.parse(profileData)
         
-        XCTAssertEqual(parsed.header.profileSize, 128)
+        XCTAssertEqual(parsed.header.profileSize, 132)
         XCTAssertEqual(parsed.header.version.0, 2)
         XCTAssertEqual(parsed.header.version.1, 1)
         XCTAssertEqual(parsed.header.version.2, 0)

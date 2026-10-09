@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — measurement concepts are the SCT codes of PS3.16 2026a CID 7470-7472 and (126010, DCM, Imaging Measurements); validation recurses into the Content Sequence (0040,A730) of every value type per PS3.3 2026a Table C.17-6 (D31)
 /// Enhanced SR Document Builder
 ///
 /// Provides a specialized fluent API for creating DICOM Enhanced SR documents.
@@ -828,7 +829,10 @@ public struct EnhancedSRBuilder: Sendable {
             verificationFlag: verificationFlag,
             preliminaryFlag: preliminaryFlag,
             documentTitle: finalDocumentTitle,
-            rootContent: rootContent
+            rootContent: rootContent,
+            patientBirthDate: patientBirthDate,
+            patientSex: patientSex,
+            referringPhysicianName: referringPhysicianName
         )
     }
     
@@ -864,10 +868,9 @@ public struct EnhancedSRBuilder: Sendable {
                 throw BuildError.unsupportedValueType(valueType: item.valueType)
             }
             
-            // Recursively validate container children
-            if let container = item.asContainer {
-                try validateValueTypes(items: container.contentItems)
-            }
+            // Recursively validate children: a CONTAINER's, and the Content Sequence
+            // any other value type may carry (PS3.3 Table C.17-6)
+            try validateValueTypes(items: item.contentItems)
         }
     }
 }
@@ -1146,38 +1149,38 @@ public enum EnhancedSectionContent {
 // MARK: - CodedConcept Extensions for Measurements
 
 extension CodedConcept {
-    /// Standard concept for measurements section
+    /// Standard concept for the measurements container (TID 1500 row 6)
     public static let measurements = CodedConcept(
-        codeValue: "121206",
+        codeValue: "126010",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Measurements"
+        codeMeaning: "Imaging Measurements"
     )
-    
-    /// Standard concept for diameter measurement
+
+    /// Standard concept for diameter measurement (CID 7470)
     public static let diameter = CodedConcept(
-        codeValue: "G-D785",
-        codingSchemeDesignator: "SRT",
+        codeValue: "81827009",
+        codingSchemeDesignator: "SCT",
         codeMeaning: "Diameter"
     )
-    
-    /// Standard concept for length measurement
+
+    /// Standard concept for length measurement (CID 7470)
     public static let length = CodedConcept(
-        codeValue: "G-D7FE",
-        codingSchemeDesignator: "SRT",
+        codeValue: "410668003",
+        codingSchemeDesignator: "SCT",
         codeMeaning: "Length"
     )
-    
-    /// Standard concept for area measurement
+
+    /// Standard concept for area measurement (CID 7471)
     public static let area = CodedConcept(
-        codeValue: "G-A220",
-        codingSchemeDesignator: "SRT",
+        codeValue: "42798000",
+        codingSchemeDesignator: "SCT",
         codeMeaning: "Area"
     )
-    
-    /// Standard concept for volume measurement
+
+    /// Standard concept for volume measurement (CID 7472)
     public static let volume = CodedConcept(
-        codeValue: "G-D705",
-        codingSchemeDesignator: "SRT",
+        codeValue: "118565006",
+        codingSchemeDesignator: "SCT",
         codeMeaning: "Volume"
     )
 }

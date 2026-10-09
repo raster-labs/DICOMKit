@@ -1,5 +1,6 @@
 import Foundation
 
+// NEMA-verified: 2026a, checked 2026-09-28 — carries no DICOM-standard data (request prefetching)
 /// Configuration for HTTP request prefetching
 ///
 /// Controls predictive prefetching behavior for likely future requests.

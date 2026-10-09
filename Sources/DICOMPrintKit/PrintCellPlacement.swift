@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Requested Image Size (2020,0030), Requested Decimate/Crop Behavior (2020,0040) DECIMATE/CROP per PS3.3 2026a Table C.13-5; Pixel Spacing (0028,0030), Imager Pixel Spacing (0018,1164), Nominal Scanned Pixel Spacing (0018,2010) per PS3.6 Table 6-1 and PS3.3 10.7; CROP-without-size read as filling the box (P-CROP, PRINT_CONFORMANCE.md 3.5)
 // PrintCellPlacement.swift
 // DICOMPrintKit
 //
@@ -25,7 +26,10 @@ public enum PrintScalingMode: String, Sendable, Equatable, Codable, CaseIterable
     case fitToFilm
 
     /// Scale to fill the cell completely, aspect ratio kept, overflow cropped.
-    /// CROP on the wire.
+    /// CROP on the wire. PS3.3 Table C.13-5 crops only rows or columns that
+    /// exceed the box at the size of "optimal filling", which it does not
+    /// define; this toolkit reads it as filling the box (PRINT_CONFORMANCE.md
+    /// 3.5, P-CROP), and a printer that reads it as fit prints this fitted.
     case fillToFilm
 
     /// Print at actual physical size, from the source's pixel spacing.

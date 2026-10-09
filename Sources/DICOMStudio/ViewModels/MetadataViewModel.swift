@@ -2,6 +2,12 @@
 // DICOMStudio
 //
 // DICOM Studio — Metadata viewer ViewModel
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — tree nodes carry the tag, the DICOMCore VR (PS3.5 2026a Table 6.2-1, 34
+// VRs) and the PS3.6 2026a Table 6-1 name from DICOMDictionary; File Meta Information (PS3.10 2026a Table 7.1-1) is
+// listed before the Data Set; `TransferSyntaxDescriptions.describe` now returns the PS3.6 Table A-1 "UID Name" from
+// DICOMCore `TransferSyntax.displayName` instead of its own table (13 rows, 5 were not the A-1 names); undefined
+// length 0xFFFFFFFF per PS3.5 7.1.2; private groups per PS3.5 7.8.1 (PrivateTagIdentifier).
 
 import Foundation
 import Observation
@@ -182,24 +188,16 @@ public final class MetadataViewModel {
 /// Platform-independent Transfer Syntax descriptions.
 public enum TransferSyntaxDescriptions: Sendable {
 
-    /// Returns a human-readable description of a Transfer Syntax UID.
+    /// Returns the PS3.6 Table A-1 "UID Name" of a Transfer Syntax UID, from DICOMCore's
+    /// registry (`TransferSyntax.displayName`, verbatim A-1 text), or "Unknown (uid)".
+    ///
+    /// Before 2026-10-05 this carried its own table of 13 abbreviated names, 5 of which were
+    /// not the standard's names (e.g. "JPEG 2000 Lossless Only" for 1.2.840.10008.1.2.4.90).
     public static func describe(_ uid: String) -> String {
-        let mapping: [String: String] = [
-            "1.2.840.10008.1.2": "Implicit VR Little Endian",
-            "1.2.840.10008.1.2.1": "Explicit VR Little Endian",
-            "1.2.840.10008.1.2.2": "Explicit VR Big Endian (Retired)",
-            "1.2.840.10008.1.2.1.99": "Deflated Explicit VR Little Endian",
-            "1.2.840.10008.1.2.4.50": "JPEG Baseline (Process 1)",
-            "1.2.840.10008.1.2.4.51": "JPEG Extended (Process 2 & 4)",
-            "1.2.840.10008.1.2.4.57": "JPEG Lossless, Non-Hierarchical (Process 14)",
-            "1.2.840.10008.1.2.4.70": "JPEG Lossless, First-Order Prediction",
-            "1.2.840.10008.1.2.4.80": "JPEG-LS Lossless",
-            "1.2.840.10008.1.2.4.81": "JPEG-LS Lossy (Near-Lossless)",
-            "1.2.840.10008.1.2.4.90": "JPEG 2000 Lossless Only",
-            "1.2.840.10008.1.2.4.91": "JPEG 2000",
-            "1.2.840.10008.1.2.5": "RLE Lossless",
-        ]
         let trimmed = uid.trimmingCharacters(in: .whitespaces)
-        return mapping[trimmed] ?? "Unknown (\(trimmed))"
+        if let syntax = TransferSyntax.from(uid: trimmed) {
+            return syntax.displayName
+        }
+        return "Unknown (\(trimmed))"
     }
 }

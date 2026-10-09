@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — quantity codes diffed by Scripts/diff_kit.py against PS3.16 2026a Table D-1 (T1, T2, ve, Vp and SUV corrected)
 //
 // ParametricMap.swift
 // DICOMKit
@@ -332,14 +333,14 @@ public struct QuantityDefinition: Sendable {
     
     /// T1 relaxation time
     public static let t1 = QuantityDefinition(
-        codeValue: "113054",
+        codeValue: "113063",
         codingSchemeDesignator: "DCM",
         codeMeaning: "T1"
     )
-    
+
     /// T2 relaxation time
     public static let t2 = QuantityDefinition(
-        codeValue: "113055",
+        codeValue: "113065",
         codingSchemeDesignator: "DCM",
         codeMeaning: "T2"
     )
@@ -351,16 +352,16 @@ public struct QuantityDefinition: Sendable {
         codeMeaning: "Ktrans"
     )
     
-    /// Ve (extravascular extracellular volume fraction)
+    /// ve (extravascular extracellular volume fraction)
     public static let ve = QuantityDefinition(
-        codeValue: "126313",
+        codeValue: "126314",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Ve"
+        codeMeaning: "ve"
     )
-    
+
     /// Vp (plasma volume fraction)
     public static let vp = QuantityDefinition(
-        codeValue: "126314",
+        codeValue: "126331",
         codingSchemeDesignator: "DCM",
         codeMeaning: "Vp"
     )
@@ -376,21 +377,21 @@ public struct QuantityDefinition: Sendable {
     public static let suvbw = QuantityDefinition(
         codeValue: "126401",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Standardized Uptake Value body weight"
+        codeMeaning: "SUVbw"
     )
-    
+
     /// SUV lean body mass (SUVlbm)
     public static let suvlbm = QuantityDefinition(
         codeValue: "126402",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Standardized Uptake Value lean body mass"
+        codeMeaning: "SUVlbm"
     )
-    
+
     /// SUV body surface area (SUVbsa)
     public static let suvbsa = QuantityDefinition(
         codeValue: "126403",
         codingSchemeDesignator: "DCM",
-        codeMeaning: "Standardized Uptake Value body surface area"
+        codeMeaning: "SUVbsa"
     )
 }
 

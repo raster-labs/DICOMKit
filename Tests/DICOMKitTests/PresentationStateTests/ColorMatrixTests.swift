@@ -69,10 +69,13 @@ final class ColorMatrixTests: XCTestCase {
     
     func test_sRGBToXYZ_white() {
         let result = ColorMatrix.sRGBToXYZ.apply(to: (red: 1, green: 1, blue: 1))
-        // D65 white point: approximately (0.9505, 1.0, 1.089)
+        // D65 white is (0.9505, 1.0, 1.089), but apply(to:) clamps every output
+        // component to 0...1 (pinned by test_xyzToSRGB_clampingOutOfRange), so
+        // Z comes back as 1.0. The unclamped XYZ path is ColorTransform.rgbToXYZ
+        // (ColorTransformTests.test_rgbToXYZ_white). Not DICOM-governed (IEC 61966-2-1).
         XCTAssertEqual(result.red, 0.9505, accuracy: 0.001)
         XCTAssertEqual(result.green, 1.0, accuracy: 0.001)
-        XCTAssertEqual(result.blue, 1.089, accuracy: 0.001)
+        XCTAssertEqual(result.blue, 1.0, accuracy: 0.001)
     }
     
     func test_sRGBToXYZ_red() {
@@ -136,12 +139,13 @@ final class ColorMatrixTests: XCTestCase {
     // MARK: - Round-Trip Tests
     
     func test_roundTrip_sRGBToXYZToSRGB() {
+        // White is left out: its Z (1.089) is clamped to 1.0 by apply(to:), so it
+        // cannot round-trip through ColorMatrix (see test_sRGBToXYZ_white).
         let originalColors = [
             (red: 0.0, green: 0.0, blue: 0.0),
             (red: 1.0, green: 0.0, blue: 0.0),
             (red: 0.0, green: 1.0, blue: 0.0),
             (red: 0.0, green: 0.0, blue: 1.0),
-            (red: 1.0, green: 1.0, blue: 1.0),
             (red: 0.5, green: 0.5, blue: 0.5),
             (red: 0.25, green: 0.75, blue: 0.5)
         ]

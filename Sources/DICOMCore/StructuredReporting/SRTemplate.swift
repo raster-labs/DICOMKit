@@ -4,7 +4,20 @@
 /// Templates define the structure and constraints for SR content.
 ///
 /// Reference: PS3.16 Annex A - SR Templates
-/// Reference: PS3.16 Section 5 - Template Specifications
+/// Reference: PS3.16 Chapter 6 - Form of Template Specifications
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — `RequirementLevel` is text-diffed against
+/// PS3.16 2026a §6.1.7 (M, MC, U, UC), and every `TemplateIdentifier` constant against the
+/// TID section titles of PS3.16 2026a Annex A. The template rows themselves live in
+/// SRCoreTemplates and SRMeasurementTemplates, generated from the 2026a TID tables by
+/// Scripts/generate_sr_templates.py (P10). `TemplateRow` models every column of a
+/// PS3.16 §6.1 template table: NL, Rel with Parent (including by-reference "R-"
+/// relationships), VT or INCLUDE with its parameter bindings (§6.1.3, §6.2), Concept
+/// Name, VM, Req Type, Condition and Value Set Constraint.
+///
+/// NEMA-verified: 2026a, checked 2026-09-30 — the TID 1401, 1402, 4000-4018, 4020-4023 and
+/// 4100-4107 constants are text-diffed against the PS3.16 2026a TID section titles, and their
+/// rows (SRMeasurementTemplates, SRCADTemplates) generated from the 2026a TID tables (D50).
 
 import Foundation
 
@@ -64,8 +77,14 @@ extension TemplateIdentifier {
     /// TID 300 - Measurement
     public static let measurement = TemplateIdentifier(tid: 300)
     
-    /// TID 320 - Image Library Entry
-    public static let imageLibraryEntry = TemplateIdentifier(tid: 320)
+    /// TID 320 - Image or Spatial Coordinates
+    public static let imageOrSpatialCoordinates = TemplateIdentifier(tid: 320)
+
+    /// TID 1601 - Image Library Entry
+    ///
+    /// Before 2026-09-25 this constant was TID 320, which is "Image or Spatial
+    /// Coordinates" in PS3.16; Image Library Entry is TID 1601.
+    public static let imageLibraryEntry = TemplateIdentifier(tid: 1601)
     
     /// TID 1001 - Observation Context
     public static let observationContext = TemplateIdentifier(tid: 1001)
@@ -75,80 +94,277 @@ extension TemplateIdentifier {
     
     /// TID 1204 - Language of Content Item and Descendants
     public static let languageOfContent = TemplateIdentifier(tid: 1204)
+
+    /// TID 301 - Measurement Content
+    public static let measurementContent = TemplateIdentifier(tid: 301)
+
+    /// TID 310 - Measurement Properties
+    public static let measurementProperties = TemplateIdentifier(tid: 310)
+
+    /// TID 311 - Measurement Statistical Properties
+    public static let measurementStatisticalProperties = TemplateIdentifier(tid: 311)
+
+    /// TID 312 - Normal Range Properties
+    public static let normalRangeProperties = TemplateIdentifier(tid: 312)
+
+    /// TID 315 - Equation or Table
+    public static let equationOrTable = TemplateIdentifier(tid: 315)
+
+    /// TID 321 - Waveform or Temporal Coordinates
+    public static let waveformOrTemporalCoordinates = TemplateIdentifier(tid: 321)
+
+    /// TID 1000 - Quotation
+    public static let quotation = TemplateIdentifier(tid: 1000)
+
+    /// TID 1003 - Person Observer Identifying Attributes
+    public static let personObserverIdentifyingAttributes = TemplateIdentifier(tid: 1003)
+
+    /// TID 1004 - Device Observer Identifying Attributes
+    public static let deviceObserverIdentifyingAttributes = TemplateIdentifier(tid: 1004)
+
+    /// TID 1005 - Procedure Study Context
+    public static let procedureStudyContext = TemplateIdentifier(tid: 1005)
+
+    /// TID 1006 - Subject Context
+    public static let subjectContext = TemplateIdentifier(tid: 1006)
+
+    /// TID 1007 - Subject Context, Patient
+    public static let subjectContextPatient = TemplateIdentifier(tid: 1007)
+
+    /// TID 1008 - Subject Context, Fetus
+    public static let subjectContextFetus = TemplateIdentifier(tid: 1008)
+
+    /// TID 1009 - Subject Context, Specimen
+    public static let subjectContextSpecimen = TemplateIdentifier(tid: 1009)
+
+    /// TID 1010 - Subject Context, Device
+    public static let subjectContextDevice = TemplateIdentifier(tid: 1010)
+
+    /// TID 1015 - Person Observer Description
+    public static let personObserverDescription = TemplateIdentifier(tid: 1015)
+
+    /// TID 4108 - Tracking Identifier
+    public static let trackingIdentifier = TemplateIdentifier(tid: 4108)
     
     // MARK: Measurement Templates
     
-    /// TID 1400 - Linear Measurements
+    /// TID 1400 - Linear Measurement
     public static let linearMeasurements = TemplateIdentifier(tid: 1400)
-    
-    /// TID 1410 - Planar ROI Measurements
+
+    /// TID 1401 - Area Measurement
+    public static let areaMeasurement = TemplateIdentifier(tid: 1401)
+
+    /// TID 1402 - Volume Measurement
+    public static let volumeMeasurement = TemplateIdentifier(tid: 1402)
+
+    /// TID 1410 - Planar ROI Measurements and Qualitative Evaluations
     public static let planarROIMeasurements = TemplateIdentifier(tid: 1410)
-    
-    /// TID 1411 - Volumetric ROI Measurements
+
+    /// TID 1411 - Volumetric ROI Measurements and Qualitative Evaluations
     public static let volumetricROIMeasurements = TemplateIdentifier(tid: 1411)
-    
+
     /// TID 1419 - ROI Measurements
     public static let roiMeasurements = TemplateIdentifier(tid: 1419)
-    
-    /// TID 1420 - Measurements Derived from Multiple ROI Measurements
+
+    /// TID 1420 - Measurements Derived From Multiple ROI Measurements
     public static let multipleROIMeasurements = TemplateIdentifier(tid: 1420)
-    
+
     // MARK: Document Templates
-    
+
     /// TID 1500 - Measurement Report
     public static let measurementReport = TemplateIdentifier(tid: 1500)
-    
-    /// TID 1501 - Measurement Group
+
+    /// TID 1501 - Measurement and Qualitative Evaluation Group
     public static let measurementGroup = TemplateIdentifier(tid: 1501)
-    
+
     /// TID 1600 - Image Library
     public static let imageLibrary = TemplateIdentifier(tid: 1600)
-    
+
+    /// TID 1502 - Time Point Context
+    public static let timePointContext = TemplateIdentifier(tid: 1502)
+
+    /// TID 1602 - Image Library Entry Descriptors
+    public static let imageLibraryEntryDescriptors = TemplateIdentifier(tid: 1602)
+
+    /// TID 1603 - Image Library Entry Descriptors for Projection Radiography
+    public static let imageLibraryEntryDescriptorsForProjectionRadiography = TemplateIdentifier(tid: 1603)
+
+    /// TID 1604 - Image Library Entry Descriptors for Cross-Sectional Modalities
+    public static let imageLibraryEntryDescriptorsForCrossSectionalModalities = TemplateIdentifier(tid: 1604)
+
+    /// TID 1605 - Image Library Entry Descriptors for CT
+    public static let imageLibraryEntryDescriptorsForCT = TemplateIdentifier(tid: 1605)
+
+    /// TID 1606 - Image Library Entry Descriptors for MR
+    public static let imageLibraryEntryDescriptorsForMR = TemplateIdentifier(tid: 1606)
+
+    /// TID 1607 - Image Library Entry Descriptors for PET
+    public static let imageLibraryEntryDescriptorsForPET = TemplateIdentifier(tid: 1607)
+
+    /// TID 1608 - Image Library Entry Descriptors for Prostate Multiparametric MR
+    public static let imageLibraryEntryDescriptorsForProstateMultiparametricMR = TemplateIdentifier(tid: 1608)
+
     // MARK: CAD Templates
-    
-    /// TID 4000 - CAD Analysis
-    public static let cadAnalysis = TemplateIdentifier(tid: 4000)
-    
-    /// TID 4019 - CAD Finding
-    public static let cadFinding = TemplateIdentifier(tid: 4019)
+
+    /// TID 4000 - Mammography CAD Document Root
+    public static let mammographyCADDocumentRoot = TemplateIdentifier(tid: 4000)
+
+    /// TID 4019 - Algorithm Identification
+    public static let algorithmIdentification = TemplateIdentifier(tid: 4019)
+
+    /// TID 4001 - Mammography CAD Overall Impression/Recommendation
+    public static let mammographyCADOverallImpressionRecommendation = TemplateIdentifier(tid: 4001)
+
+    /// TID 4002 - Mammography CAD Impression/Recommendation Body
+    public static let mammographyCADImpressionRecommendationBody = TemplateIdentifier(tid: 4002)
+
+    /// TID 4003 - Mammography CAD Individual Impression/Recommendation
+    public static let mammographyCADIndividualImpressionRecommendation = TemplateIdentifier(tid: 4003)
+
+    /// TID 4004 - Mammography CAD Composite Feature
+    public static let mammographyCADCompositeFeature = TemplateIdentifier(tid: 4004)
+
+    /// TID 4005 - Mammography CAD Composite Feature Body
+    public static let mammographyCADCompositeFeatureBody = TemplateIdentifier(tid: 4005)
+
+    /// TID 4006 - Mammography CAD Single Image Finding
+    public static let mammographyCADSingleImageFinding = TemplateIdentifier(tid: 4006)
+
+    /// TID 4007 - Mammography CAD Breast Composition
+    public static let mammographyCADBreastComposition = TemplateIdentifier(tid: 4007)
+
+    /// TID 4008 - Mammography CAD Breast Geometry
+    public static let mammographyCADBreastGeometry = TemplateIdentifier(tid: 4008)
+
+    /// TID 4009 - Mammography CAD Individual Calcification
+    public static let mammographyCADIndividualCalcification = TemplateIdentifier(tid: 4009)
+
+    /// TID 4010 - Mammography CAD Calcification Cluster
+    public static let mammographyCADCalcificationCluster = TemplateIdentifier(tid: 4010)
+
+    /// TID 4011 - Mammography CAD Density
+    public static let mammographyCADDensity = TemplateIdentifier(tid: 4011)
+
+    /// TID 4012 - Mammography CAD Non-lesion
+    public static let mammographyCADNonLesion = TemplateIdentifier(tid: 4012)
+
+    /// TID 4013 - Mammography CAD Selected Region
+    public static let mammographyCADSelectedRegion = TemplateIdentifier(tid: 4013)
+
+    /// TID 4014 - CAD Image Quality
+    public static let cadImageQuality = TemplateIdentifier(tid: 4014)
+
+    /// TID 4015 - CAD Detections Performed
+    public static let cadDetectionsPerformed = TemplateIdentifier(tid: 4015)
+
+    /// TID 4016 - CAD Analyses Performed
+    public static let cadAnalysesPerformed = TemplateIdentifier(tid: 4016)
+
+    /// TID 4017 - CAD Detection Performed
+    public static let cadDetectionPerformed = TemplateIdentifier(tid: 4017)
+
+    /// TID 4018 - CAD Analysis Performed
+    public static let cadAnalysisPerformed = TemplateIdentifier(tid: 4018)
+
+    /// TID 4020 - CAD Image Library Entry
+    public static let cadImageLibraryEntry = TemplateIdentifier(tid: 4020)
+
+    /// TID 4021 - Mammography CAD Geometry
+    public static let mammographyCADGeometry = TemplateIdentifier(tid: 4021)
+
+    /// TID 4022 - CAD Observation Context
+    public static let cadObservationContext = TemplateIdentifier(tid: 4022)
+
+    /// TID 4023 - CAD Operating Points
+    public static let cadOperatingPoints = TemplateIdentifier(tid: 4023)
+
+    /// TID 4100 - Chest CAD Document Root
+    public static let chestCADDocumentRoot = TemplateIdentifier(tid: 4100)
+
+    /// TID 4101 - Chest CAD Findings Summary
+    public static let chestCADFindingsSummary = TemplateIdentifier(tid: 4101)
+
+    /// TID 4102 - Chest CAD Composite Feature
+    public static let chestCADCompositeFeature = TemplateIdentifier(tid: 4102)
+
+    /// TID 4103 - Chest CAD Composite Feature Body
+    public static let chestCADCompositeFeatureBody = TemplateIdentifier(tid: 4103)
+
+    /// TID 4104 - Chest CAD Single Image Finding
+    public static let chestCADSingleImageFinding = TemplateIdentifier(tid: 4104)
+
+    /// TID 4105 - Chest CAD Descriptors
+    public static let chestCADDescriptors = TemplateIdentifier(tid: 4105)
+
+    /// TID 4106 - Response Evaluation
+    public static let responseEvaluation = TemplateIdentifier(tid: 4106)
+
+    /// TID 4107 - Chest CAD Geometry
+    public static let chestCADGeometry = TemplateIdentifier(tid: 4107)
+
+    @available(*, unavailable, renamed: "mammographyCADDocumentRoot",
+               message: "TID 4000 is 'Mammography CAD Document Root' in PS3.16; there is no 'CAD Analysis' template.")
+    public static var cadAnalysis: TemplateIdentifier { fatalError() }
+
+    @available(*, unavailable, renamed: "algorithmIdentification",
+               message: "TID 4019 is 'Algorithm Identification' in PS3.16; there is no 'CAD Finding' template.")
+    public static var cadFinding: TemplateIdentifier { fatalError() }
 }
 
 // MARK: - Requirement Level
 
-/// Requirement level for template content items
+/// Requirement Type of a template row (PS3.16 §6.1.7)
 ///
-/// Defines whether a content item is mandatory, optional, etc.
-/// Reference: PS3.16 Section 5.3
+/// The four symbols of PS3.16 2026a §6.1.7: M, MC, U and UC. The requirement type
+/// interacts with VM: an M/MC row occurs 1 (VM 1) or 1–n (VM 1-n) times, a U/UC row
+/// 0–1 or 0–n times.
+///
+/// Reference: PS3.16 Section 6.1.7 - Requirement Type
 public enum RequirementLevel: String, Sendable, Equatable, Hashable, CaseIterable {
-    /// Mandatory - must be present
+    /// M — Mandatory. Shall be present.
     case mandatory = "M"
-    
-    /// Mandatory if condition is true
+
+    /// MC — Mandatory Conditional. Shall be present if the specified condition is satisfied.
     case mandatoryConditional = "MC"
-    
-    /// Required if value is known (user conditional)
-    case userConditional = "U"
-    
-    /// Conditional - presence depends on other factors
+
+    /// U — User Option. May or may not be present.
+    case userOption = "U"
+
+    /// UC — User Option Conditional. May not be present; may be present according to
+    /// the specified condition.
+    case userOptionConditional = "UC"
+
+    /// Not a PS3.16 requirement type. Rows that "depend on other factors" are MC or UC.
+    @available(*, deprecated, message: "PS3.16 §6.1.7 has no 'C' requirement type; use .mandatoryConditional or .userOptionConditional.")
     case conditional = "C"
-    
+
+    /// The old name for `U`, which is "User Option" in PS3.16, not "User Conditional".
+    @available(*, deprecated, renamed: "userOption")
+    public static var userConditional: RequirementLevel { .userOption }
+
+    /// The four standard requirement types, in PS3.16 order.
+    public static var allCases: [RequirementLevel] {
+        [.mandatory, .mandatoryConditional, .userOption, .userOptionConditional]
+    }
+
     /// Display name for the requirement level
     public var displayName: String {
         switch self {
         case .mandatory: return "Mandatory"
         case .mandatoryConditional: return "Mandatory Conditional"
-        case .userConditional: return "User Conditional"
-        case .conditional: return "Conditional"
+        case .userOption: return "User Option"
+        case .userOptionConditional: return "User Option Conditional"
+        case .conditional: return "Conditional (non-standard)"
         }
     }
-    
-    /// Returns whether this requirement level requires the item to be present
-    /// (Note: MC and C depend on conditions being met)
+
+    /// Whether the row shall be present unconditionally (M only; MC depends on its
+    /// condition, U and UC are optional).
     public var isMandatory: Bool {
         switch self {
         case .mandatory:
             return true
-        case .mandatoryConditional, .userConditional, .conditional:
+        case .mandatoryConditional, .userOption, .userOptionConditional, .conditional:
             return false
         }
     }
@@ -261,22 +477,31 @@ public enum TemplateRowCondition: Sendable, Equatable {
 
 /// Definition of a single row in an SR template
 ///
-/// Each row specifies constraints on a content item including its value type,
-/// relationship, requirement level, and cardinality.
+/// Each row is one line of a PS3.16 template table (§6.1): either a content item
+/// (VT set) or an INCLUDE of another template (`includedTemplate` set, `valueType`
+/// nil). Rows nest by `nestingLevel`: a row is a child of the nearest earlier row
+/// with a lower level.
 ///
-/// Reference: PS3.16 Section 5.1 - Template Table Format
+/// Reference: PS3.16 Section 6.1 - Template Table Field Definition
 public struct TemplateRow: Sendable, Equatable {
     /// Unique identifier for this row within the template
     public let rowID: String?
     
-    /// Nesting level within the template (0 = top level)
+    /// Nesting level within the template (0 = top level; one per ">" in the NL column)
     public let nestingLevel: Int
     
-    /// Relationship type for this row
-    public let relationshipType: RelationshipType
+    /// Relationship with the parent (PS3.16 §6.1.2).
+    ///
+    /// nil when the column is empty: the root row of a template, or an INCLUDE whose
+    /// included rows carry their own relationships.
+    public let relationshipType: RelationshipType?
+
+    /// Whether the relationship is by reference ("R-" prefix, PS3.16 §6.1.2): the
+    /// target is a content item elsewhere in the tree, referenced by its position.
+    public let isByReference: Bool
     
-    /// Value type constraint
-    public let valueType: ContentItemValueType
+    /// Value type (PS3.16 §6.1.3); nil for an INCLUDE row.
+    public let valueType: ContentItemValueType?
     
     /// Concept name constraint (if specified)
     public let conceptName: ConceptNameConstraint
@@ -286,40 +511,128 @@ public struct TemplateRow: Sendable, Equatable {
     
     /// Requirement level
     public let requirementLevel: RequirementLevel
+
+    /// Value Multiplicity (PS3.16 §6.1.6): how many times the row occurs when it is
+    /// present ("1" → 1, "1-n" → 1..n, "2-n" → 2..n).
+    public let valueMultiplicity: Cardinality
     
-    /// Cardinality constraint
+    /// How many times the row may occur, combining VM with the requirement type: the
+    /// VM for an M row, and 0 up to the VM's maximum for MC, U and UC rows.
     public let cardinality: Cardinality
     
-    /// Condition for when this row applies
+    /// Condition for when this row applies (the Condition column, as
+    /// `.custom(description:)` with the standard's text)
     public let condition: TemplateRowCondition
     
     /// Included template (for rows that reference another template)
     public let includedTemplate: TemplateIdentifier?
+
+    /// Parameter bindings of an INCLUDE row (PS3.16 §6.2), in table order
+    public let includeParameters: [TemplateParameterBinding]
+
+    /// The Concept Name cell verbatim, as it appears in PS3.16
+    public let conceptNameText: String?
+
+    /// The Value Set Constraint cell verbatim, as it appears in PS3.16
+    public let valueSetText: String?
+
+    /// Whether this row includes another template
+    public var isInclude: Bool {
+        includedTemplate != nil
+    }
     
     /// Creates a template row definition
+    ///
+    /// `valueMultiplicity` defaults to `cardinality` with a minimum of at least 1.
     public init(
         rowID: String? = nil,
         nestingLevel: Int = 0,
-        relationshipType: RelationshipType,
-        valueType: ContentItemValueType,
+        relationshipType: RelationshipType?,
+        isByReference: Bool = false,
+        valueType: ContentItemValueType?,
         conceptName: ConceptNameConstraint = .any,
         valueConstraint: ValueConstraint = .any,
         requirementLevel: RequirementLevel = .mandatory,
+        valueMultiplicity: Cardinality? = nil,
         cardinality: Cardinality = .one,
         condition: TemplateRowCondition = .none,
-        includedTemplate: TemplateIdentifier? = nil
+        includedTemplate: TemplateIdentifier? = nil,
+        includeParameters: [TemplateParameterBinding] = [],
+        conceptNameText: String? = nil,
+        valueSetText: String? = nil
     ) {
         self.rowID = rowID
         self.nestingLevel = nestingLevel
         self.relationshipType = relationshipType
+        self.isByReference = isByReference
         self.valueType = valueType
         self.conceptName = conceptName
         self.valueConstraint = valueConstraint
         self.requirementLevel = requirementLevel
+        self.valueMultiplicity = valueMultiplicity
+            ?? Cardinality(minimum: max(cardinality.minimum, 1), maximum: cardinality.maximum)
         self.cardinality = cardinality
         self.condition = condition
         self.includedTemplate = includedTemplate
+        self.includeParameters = includeParameters
+        self.conceptNameText = conceptNameText
+        self.valueSetText = valueSetText
     }
+}
+
+// MARK: - Template Parameters
+
+/// A parameter a template declares (PS3.16 §6.2), such as `$Measurement` in TID 300
+public struct TemplateParameter: Sendable, Equatable, Hashable {
+    /// Name without the leading "$"
+    public let name: String
+
+    /// The Parameter Usage text of the template's Parameters table
+    public let usage: String
+
+    public init(name: String, usage: String) {
+        self.name = name
+        self.usage = usage
+    }
+}
+
+/// The value an INCLUDE row passes for one parameter of the included template
+public struct TemplateParameterBinding: Sendable, Equatable, Hashable {
+    /// Parameter name without the leading "$"
+    public let name: String
+
+    /// The parsed value
+    public let value: TemplateParameterValue
+
+    /// The value text verbatim, as it appears in PS3.16
+    public let text: String
+
+    public init(name: String, value: TemplateParameterValue, text: String) {
+        self.name = name
+        self.value = value
+        self.text = text
+    }
+}
+
+/// A parameter value (PS3.16 §6.2)
+public enum TemplateParameterValue: Sendable, Equatable, Hashable {
+    /// Another parameter of the including template ("$Name"), passed through
+    case parameter(String)
+
+    /// An Enumerated Value code ("EV (…)")
+    case code(CodedConcept)
+
+    /// A Defined Term code ("DT (…)")
+    case definedTerm(CodedConcept)
+
+    /// A Defined Context Group ("DCID n")
+    case contextGroup(Int)
+
+    /// A Baseline Context Group ("BCID n")
+    case baselineContextGroup(Int)
+
+    /// Any other value, as text
+    case text(String)
 }
 
 // MARK: - Concept Name Constraint
@@ -340,6 +653,15 @@ public enum ConceptNameConstraint: Sendable, Equatable {
     
     /// Must match the baseline concept from CID
     case baselineCID(contextGroupID: Int, baseline: CodedConcept)
+
+    /// Defined Term ("DT (…)", PS3.16 §6.1.4): this code, or another with the same meaning
+    case definedTerm(CodedConcept)
+
+    /// From a Baseline Context Group ("BCID n", PS3.16 §6.1.5): other codes may be used
+    case fromBaselineContextGroup(contextGroupID: Int)
+
+    /// Supplied by a template parameter ("$Name", PS3.16 §6.2)
+    case parameter(String)
 }
 
 // MARK: - Value Constraint
@@ -366,6 +688,18 @@ public enum ValueConstraint: Sendable, Equatable {
     
     /// Custom value constraint with description
     case custom(description: String)
+
+    /// Defined Term code ("DT (…)")
+    case definedTermCode(CodedConcept)
+
+    /// From a Baseline Context Group ("BCID n"): other codes may be used
+    case fromBaselineContextGroup(contextGroupID: Int)
+
+    /// Supplied by a template parameter ("$Name", PS3.16 §6.2)
+    case parameter(String)
+
+    /// Constraint on the Measurement Units of a NUM item ("UNITS = …")
+    indirect case units(ValueConstraint)
 }
 
 // MARK: - SR Template Protocol
@@ -392,6 +726,15 @@ public protocol SRTemplate: Sendable {
     
     /// Whether this template is extensible (allows additional content)
     static var isExtensible: Bool { get }
+
+    /// Whether the order of content items is significant (PS3.16 "Order")
+    static var isOrderSignificant: Bool { get }
+
+    /// Whether this is a root template (PS3.16 "Root")
+    static var isRoot: Bool { get }
+
+    /// The parameters this template declares (PS3.16 §6.2)
+    static var parameters: [TemplateParameter] { get }
 }
 
 // MARK: - Template Protocol Default Implementations
@@ -405,6 +748,21 @@ extension SRTemplate {
     /// Default to non-extensible
     public static var isExtensible: Bool {
         false
+    }
+
+    /// Default to significant order
+    public static var isOrderSignificant: Bool {
+        true
+    }
+
+    /// Default to a non-root template
+    public static var isRoot: Bool {
+        false
+    }
+
+    /// Default to no parameters
+    public static var parameters: [TemplateParameter] {
+        []
     }
 }
 
@@ -450,21 +808,60 @@ public struct TemplateRegistry: Sendable {
     
     /// Registers built-in templates
     private func registerBuiltInTemplates() {
-        // Core templates will be registered here as they are implemented
-        register(TID300Measurement.self)
-        register(TID320ImageLibraryEntry.self)
-        register(TID1001ObservationContext.self)
-        register(TID1002ObserverContext.self)
-        register(TID1204LanguageOfContent.self)
-        register(TID1400LinearMeasurements.self)
-        register(TID1410PlanarROIMeasurements.self)
-        register(TID1411VolumetricROIMeasurements.self)
-        register(TID1419ROIMeasurements.self)
-        register(TID1420MultipleROIMeasurements.self)
-        register(TID1500MeasurementReport.self)
-        register(TID1501MeasurementGroup.self)
-        register(TID1600ImageLibrary.self)
+        for template in Self.builtInTemplates {
+            storage.register(template)
+        }
     }
+
+    /// The 73 templates DICOMCore generates from PS3.16 (see SRCoreTemplates,
+    /// SRMeasurementTemplates and SRCADTemplates)
+    public static let builtInTemplates: [any SRTemplate.Type] = [
+        TID300Measurement.self, TID301MeasurementContent.self,
+        TID310MeasurementProperties.self, TID311MeasurementStatisticalProperties.self,
+        TID312NormalRangeProperties.self, TID315EquationOrTable.self,
+        TID320ImageOrSpatialCoordinates.self, TID321WaveformOrTemporalCoordinates.self,
+        TID1000Quotation.self, TID1001ObservationContext.self, TID1002ObserverContext.self,
+        TID1003PersonObserverIdentifyingAttributes.self,
+        TID1004DeviceObserverIdentifyingAttributes.self, TID1005ProcedureStudyContext.self,
+        TID1006SubjectContext.self, TID1007SubjectContextPatient.self,
+        TID1008SubjectContextFetus.self, TID1009SubjectContextSpecimen.self,
+        TID1010SubjectContextDevice.self, TID1015PersonObserverDescription.self,
+        TID1204LanguageOfContent.self,
+        TID1400LinearMeasurements.self, TID1401AreaMeasurement.self,
+        TID1402VolumeMeasurement.self, TID1410PlanarROIMeasurements.self,
+        TID1411VolumetricROIMeasurements.self, TID1419ROIMeasurements.self,
+        TID1420MultipleROIMeasurements.self,
+        TID1500MeasurementReport.self, TID1501MeasurementGroup.self,
+        TID1502TimePointContext.self,
+        TID1600ImageLibrary.self, TID1601ImageLibraryEntry.self,
+        TID1602ImageLibraryEntryDescriptors.self,
+        TID1603ImageLibraryEntryDescriptorsForProjectionRadiography.self,
+        TID1604ImageLibraryEntryDescriptorsForCrossSectionalModalities.self,
+        TID1605ImageLibraryEntryDescriptorsForCT.self,
+        TID1606ImageLibraryEntryDescriptorsForMR.self,
+        TID1607ImageLibraryEntryDescriptorsForPET.self,
+        TID1608ImageLibraryEntryDescriptorsForProstateMultiparametricMR.self,
+        TID4019AlgorithmIdentification.self, TID4108TrackingIdentifier.self,
+        // TID 4000 and TID 4100 with the templates they include (D50)
+        TID4000MammographyCADDocumentRoot.self,
+        TID4001MammographyCADOverallImpressionRecommendation.self,
+        TID4002MammographyCADImpressionRecommendationBody.self,
+        TID4003MammographyCADIndividualImpressionRecommendation.self,
+        TID4004MammographyCADCompositeFeature.self, TID4005MammographyCADCompositeFeatureBody.self,
+        TID4006MammographyCADSingleImageFinding.self, TID4007MammographyCADBreastComposition.self,
+        TID4008MammographyCADBreastGeometry.self, TID4009MammographyCADIndividualCalcification.self,
+        TID4010MammographyCADCalcificationCluster.self, TID4011MammographyCADDensity.self,
+        TID4012MammographyCADNonLesion.self, TID4013MammographyCADSelectedRegion.self,
+        TID4014CADImageQuality.self, TID4015CADDetectionsPerformed.self,
+        TID4016CADAnalysesPerformed.self, TID4017CADDetectionPerformed.self,
+        TID4018CADAnalysisPerformed.self, TID4020CADImageLibraryEntry.self,
+        TID4021MammographyCADGeometry.self, TID4022CADObservationContext.self,
+        TID4023CADOperatingPoints.self, TID4100ChestCADDocumentRoot.self,
+        TID4101ChestCADFindingsSummary.self, TID4102ChestCADCompositeFeature.self,
+        TID4103ChestCADCompositeFeatureBody.self, TID4104ChestCADSingleImageFinding.self,
+        TID4105ChestCADDescriptors.self, TID4106ResponseEvaluation.self,
+        TID4107ChestCADGeometry.self,
+    ]
     
     /// Registers a template type
     /// - Parameter templateType: The template type to register

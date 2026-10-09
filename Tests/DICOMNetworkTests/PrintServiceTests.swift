@@ -131,8 +131,31 @@ final class PrintServiceTests: XCTestCase {
         XCTAssertEqual(MediumType.paper.rawValue, "PAPER")
         XCTAssertEqual(MediumType.clearFilm.rawValue, "CLEAR FILM")
         XCTAssertEqual(MediumType.blueFilm.rawValue, "BLUE FILM")
-        XCTAssertEqual(MediumType.mammoFilmClearBase.rawValue, "MAMMO CLEAR")
-        XCTAssertEqual(MediumType.mammoFilmBlueBase.rawValue, "MAMMO BLUE")
+        // PS3.3 Table C.13-1 (P-MAMMO, 2026-09-29).
+        XCTAssertEqual(MediumType.mammoClearFilm.rawValue, "MAMMO CLEAR FILM")
+        XCTAssertEqual(MediumType.mammoBlueFilm.rawValue, "MAMMO BLUE FILM")
+    }
+
+    /// Text String (2030,0020) is LO: 64 characters maximum, no backslash, no
+    /// control characters (PS3.5 Table 6.2-1) — D41.
+    func testAnnotationTextStringIsALegalLO() {
+        let long = PrintAnnotation(position: 1, text: String(repeating: "X", count: 90))
+        XCTAssertEqual(long.textStringValue.count, 64)
+        XCTAssertEqual(PrintAnnotation(position: 2, text: "DOE^JANE\\123\tA").textStringValue, "DOE^JANE/123A")
+        XCTAssertEqual(PrintAnnotation(position: 3, text: "short").textStringValue, "short")
+        XCTAssertEqual(PrintAnnotation.textStringMaximumLength, 64)
+    }
+
+    /// The deprecated spellings still parse, and are read and written as the
+    /// Table C.13-1 terms they stand for.
+    func testLegacyMammoSpellingsMapToTheTerms() throws {
+        let clear = try XCTUnwrap(MediumType(rawValue: "MAMMO CLEAR"))
+        let blue = try XCTUnwrap(MediumType(rawValue: "MAMMO BLUE"))
+        XCTAssertEqual(clear.normalized, .mammoClearFilm)
+        XCTAssertEqual(blue.normalized, .mammoBlueFilm)
+        XCTAssertEqual(clear.wireValue, "MAMMO CLEAR FILM")
+        XCTAssertEqual(blue.wireValue, "MAMMO BLUE FILM")
+        XCTAssertEqual(MediumType.paper.wireValue, "PAPER")
     }
     
     // MARK: - FilmDestination Tests
@@ -444,7 +467,7 @@ final class PrintServiceTests: XCTestCase {
             sopInstanceUID: "1.2.3",
             numberOfCopies: 3,
             printPriority: .low,
-            mediumType: .mammoFilmBlueBase,
+            mediumType: .mammoBlueFilm,
             filmDestination: .bin2,
             filmSessionLabel: "Mammography Study"
         )
@@ -452,7 +475,7 @@ final class PrintServiceTests: XCTestCase {
         XCTAssertEqual(session.sopInstanceUID, "1.2.3")
         XCTAssertEqual(session.numberOfCopies, 3)
         XCTAssertEqual(session.printPriority, .low)
-        XCTAssertEqual(session.mediumType, .mammoFilmBlueBase)
+        XCTAssertEqual(session.mediumType, .mammoBlueFilm)
         XCTAssertEqual(session.filmDestination, .bin2)
         XCTAssertEqual(session.filmSessionLabel, "Mammography Study")
     }
@@ -890,7 +913,7 @@ final class PrintServiceTests: XCTestCase {
         
         XCTAssertEqual(options.priority, .high)
         XCTAssertEqual(options.filmSize, .size14InX17In)
-        XCTAssertEqual(options.mediumType, .mammoFilmBlueBase)
+        XCTAssertEqual(options.mediumType, .mammoBlueFilm)
         XCTAssertEqual(options.magnificationType, .bilinear)
     }
     
@@ -1976,9 +1999,10 @@ final class PrintServiceTests: XCTestCase {
     }
     
     func testMediumTypeCaseIterable() {
+        // The five Table C.13-1 terms; the deprecated spellings are not listed.
         XCTAssertEqual(MediumType.allCases.count, 5)
         XCTAssertTrue(MediumType.allCases.contains(.paper))
-        XCTAssertTrue(MediumType.allCases.contains(.mammoFilmBlueBase))
+        XCTAssertTrue(MediumType.allCases.contains(.mammoBlueFilm))
     }
     
     func testMagnificationTypeCaseIterable() {

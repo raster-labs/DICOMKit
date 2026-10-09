@@ -1,3 +1,5 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — toDataSet writes Specific Character Set ISO_IR 192 when a text value is not ASCII (PS3.3 2026a Table C.12-1 Type 1C, Table C.12-5) (D180); Channel Source (003A,0208) keeps any code: PS3.3 2026a Table C.7-13 includes Table 8.8-1 with "DCID 3000" and PS3.16 2026a CID 3000 Audio Channel Source is "Type: Extensible" (DCM 109110-109115 verified by script) (D57)
+// NEMA-verified: 2026a, checked 2026-09-30 — modules per PS3.3 2026a Tables A.32.5-1/A.32.6-1/A.32.7-1; Cine Module Table C.7-13 (Frame Time / Frame Time Vector 1C, Preferred Playback Sequencing 0/1, Multiplexed Audio Channels 2C, written with no Items for undescribed audio), Multi-frame Table C.7-14, Lossy Image Compression Method terms C.7.6.1.1.5.1, empty Basic Offset Table and one fragment per PS3.5 8.2.5-8.2.8 (P-VIDEO, D34)
 //
 // VideoBuilder.swift
 // DICOMKit
@@ -69,6 +71,11 @@ public final class VideoBuilder {
     private var actualFrameDuration: Int?
     private var startTrim: Int?
     private var stopTrim: Int?
+    private var frameTimeVector: [Double]?
+    private var preferredPlaybackSequencing: Int?
+    private var imageTriggerDelay: Double?
+    private var effectiveDuration: Double?
+    private var multiplexedAudioChannels: [VideoAudioChannel] = []
     private var contentDate: DICOMDate?
     private var contentTime: DICOMTime?
     private var lossyImageCompression: String?
@@ -270,6 +277,71 @@ public final class VideoBuilder {
     @discardableResult
     public func setStopTrim(_ frame: Int) -> Self {
         self.stopTrim = frame
+        return self
+    }
+
+    /// Sets the Frame Time Vector (0018,1065) in milliseconds, one increment per frame.
+    ///
+    /// Frame Increment Pointer (0028,0009) then points at Frame Time Vector and Frame
+    /// Time (0018,1063) is not written. "The first Frame always has a time increment
+    /// of 0" (PS3.3 C.7.6.5.1.2); a vector whose first element is not 0 is rejected
+    /// by ``build()``, as is one whose count differs from the number of frames.
+    @discardableResult
+    public func setFrameTimeVector(_ increments: [Double]) -> Self {
+        self.frameTimeVector = increments
+        return self
+    }
+
+    /// Sets Preferred Playback Sequencing (0018,1244): 0 = Looping, 1 = Sweeping
+    /// (PS3.3 Table C.7-13 Enumerated Values). Other values are rejected by ``build()``.
+    @discardableResult
+    public func setPreferredPlaybackSequencing(_ value: Int) -> Self {
+        self.preferredPlaybackSequencing = value
+        return self
+    }
+
+    /// Sets Image Trigger Delay (0018,1067) in milliseconds.
+    @discardableResult
+    public func setImageTriggerDelay(_ delay: Double) -> Self {
+        self.imageTriggerDelay = delay
+        return self
+    }
+
+    /// Sets Effective Duration (0018,0072) in seconds.
+    @discardableResult
+    public func setEffectiveDuration(_ seconds: Double) -> Self {
+        self.effectiveDuration = seconds
+        return self
+    }
+
+    /// Describes the audio channels multiplexed in the bit stream.
+    ///
+    /// Multiplexed Audio Channels Description Code Sequence (003A,0300) is Type 2C,
+    /// "Required if the Transfer Syntax used to encode the Multi-frame Image contains
+    /// multiplexed (interleaved) audio channels" (PS3.3 Table C.7-13). Call this when
+    /// the encapsulated stream carries audio that PS3.5 8.2.5 / 8.2.12 permit.
+    @discardableResult
+    public func setMultiplexedAudioChannels(_ channels: [VideoAudioChannel]) -> Self {
+        self.multiplexedAudioChannels = channels
+        return self
+    }
+
+    /// Sets lossy compression information from the transfer syntax the bit stream
+    /// will be encapsulated in.
+    ///
+    /// Lossy Image Compression Method (0028,2114) takes the PS3.3 C.7.6.1.1.5.1
+    /// Defined Term for the codec of that transfer syntax: `ISO_13818_2` for the
+    /// MPEG2 syntaxes, `ISO_14496_10` for the MPEG-4 AVC/H.264 syntaxes and
+    /// `ISO_23008_2` for the HEVC/H.265 syntaxes. A UID that is not a video
+    /// transfer syntax leaves the builder unchanged.
+    @discardableResult
+    public func setLossyCompression(transferSyntaxUID: String, ratio: Double = 10.0) -> Self {
+        guard let method = VideoCodec.compressionMethod(forTransferSyntaxUID: transferSyntaxUID) else {
+            return self
+        }
+        self.lossyImageCompression = "01"
+        self.lossyImageCompressionRatio = ratio
+        self.lossyImageCompressionMethod = method
         return self
     }
 
@@ -485,6 +557,28 @@ public final class VideoBuilder {
             throw DICOMError.parsingFailed("Video type cannot be unknown")
         }
 
+        if let vector = frameTimeVector {
+            guard vector.count == numberOfFrames else {
+                throw DICOMError.parsingFailed(
+                    "Frame Time Vector has \(vector.count) increments for \(numberOfFrames) frames")
+            }
+            guard vector.first == 0 else {
+                throw DICOMError.parsingFailed(
+                    "Frame Time Vector must start with 0 (PS3.3 C.7.6.5.1.2)")
+            }
+        }
+
+        if let sequencing = preferredPlaybackSequencing, sequencing != 0, sequencing != 1 {
+            throw DICOMError.parsingFailed(
+                "Preferred Playback Sequencing must be 0 (Looping) or 1 (Sweeping)")
+        }
+
+        if let method = lossyImageCompressionMethod, !method.isEmpty,
+           !Video.lossyImageCompressionMethodTerms.contains(method) {
+            throw DICOMError.parsingFailed(
+                "Lossy Image Compression Method '\(method)' is not a PS3.3 C.7.6.1.1.5.1 Defined Term")
+        }
+
         let instanceUID = sopInstanceUID ?? UIDGenerator.generateSOPInstanceUID().value
         let effectiveModality = modality ?? videoType.defaultModality
 
@@ -516,11 +610,17 @@ public final class VideoBuilder {
             actualFrameDuration: actualFrameDuration,
             startTrim: startTrim,
             stopTrim: stopTrim,
+            frameTimeVector: frameTimeVector,
+            preferredPlaybackSequencing: preferredPlaybackSequencing,
+            imageTriggerDelay: imageTriggerDelay,
+            effectiveDuration: effectiveDuration,
+            multiplexedAudioChannels: multiplexedAudioChannels,
             contentDate: contentDate,
             contentTime: contentTime,
             lossyImageCompression: lossyImageCompression,
             lossyImageCompressionRatio: lossyImageCompressionRatio,
-            lossyImageCompressionMethod: lossyImageCompressionMethod,
+            lossyImageCompressionMethod: (lossyImageCompressionMethod?.isEmpty == false)
+                ? lossyImageCompressionMethod : nil,
             imageType: imageType,
             manufacturer: manufacturer,
             manufacturerModelName: manufacturerModelName,
@@ -690,19 +790,56 @@ extension Video {
             dataSet.setString("YES", for: .stereoPairsPresent, vr: .CS)
         }
 
-        // MARK: Multi-frame Module (PS3.3 C.7.6.6)
-        // NumberOfFrames and FrameIncrementPointer are both Type 1.
+        // MARK: Multi-frame Module (PS3.3 C.7.6.6, Table C.7-14)
+        // Number of Frames (0028,0008) and Frame Increment Pointer (0028,0009) are
+        // both Type 1. The pointer names the Cine attribute that increments frames:
+        // Frame Time Vector (0018,1065) when one was supplied, else Frame Time (0018,1063).
         dataSet.setString(String(numberOfFrames), for: .numberOfFrames, vr: .IS)
+        let usesVector = frameTimeVector != nil
         dataSet[.frameIncrementPointer] = DataElement.attributeTag(
             tag: .frameIncrementPointer,
-            value: .frameTime
+            value: usesVector ? .frameTimeVector : .frameTime
         )
 
-        // MARK: Cine Module (PS3.3 C.7.6.5)
-        // FrameTime is Type 1C and required here, because FrameIncrementPointer
-        // points at it. The remaining Cine attributes are Type 3.
-        let effectiveFrameTime = frameTime ?? (1000.0 / effectiveFrameRate)
-        dataSet.setString(Video.decimalString(effectiveFrameTime), for: .frameTime, vr: .DS)
+        // MARK: Cine Module (PS3.3 C.7.6.5, Table C.7-13)
+        // Frame Time is Type 1C, "Required if Frame Increment Pointer (0028,0009)
+        // points to Frame Time"; Frame Time Vector is Type 1C, "Required if Frame
+        // Increment Pointer (0028,0009) points to Frame Time Vector". Exactly one is
+        // written. The remaining Cine attributes are Type 3, except the audio
+        // sequence (Type 2C, written when channels were described, and with no
+        // Items when the bit stream carries audio that was not described — Table
+        // C.7-13 allows "Zero or more Items").
+        if let vector = frameTimeVector {
+            dataSet.setStrings(vector.map(Video.decimalString), for: .frameTimeVector, vr: .DS)
+        } else {
+            let effectiveFrameTime = frameTime ?? (1000.0 / effectiveFrameRate)
+            dataSet.setString(Video.decimalString(effectiveFrameTime), for: .frameTime, vr: .DS)
+        }
+        if let sequencing = preferredPlaybackSequencing {
+            dataSet[.preferredPlaybackSequencing] = DataElement.uint16(
+                tag: .preferredPlaybackSequencing, value: UInt16(sequencing))
+        }
+        if let imageTriggerDelay = imageTriggerDelay {
+            dataSet.setString(Video.decimalString(imageTriggerDelay), for: Video.imageTriggerDelayTag, vr: .DS)
+        }
+        if let effectiveDuration = effectiveDuration {
+            dataSet.setString(Video.decimalString(effectiveDuration), for: Video.effectiveDurationTag, vr: .DS)
+        }
+        if !multiplexedAudioChannels.isEmpty || containsUndescribedMultiplexedAudio {
+            let items = multiplexedAudioChannels.map { channel -> SequenceItem in
+                let sourceItem = VideoBuilder.channelSourceItem(channel.source.code)
+                return SequenceItem(elements: [
+                    .string(tag: VideoAudioChannel.channelIdentificationCodeTag, vr: .IS,
+                            value: String(channel.channelIdentificationCode)),
+                    .string(tag: VideoAudioChannel.channelModeTag, vr: .CS, value: channel.mode.rawValue),
+                    DataElement(tag: .channelSourceSequence, vr: .SQ, length: 0xFFFFFFFF,
+                                valueData: Data(), sequenceItems: [sourceItem]),
+                ])
+            }
+            dataSet[VideoAudioChannel.multiplexedAudioChannelsDescriptionCodeSequence] = DataElement(
+                tag: VideoAudioChannel.multiplexedAudioChannelsDescriptionCodeSequence, vr: .SQ, length: 0xFFFFFFFF,
+                valueData: Data(), sequenceItems: items)
+        }
         if let cineRate = cineRate {
             dataSet.setString(String(cineRate), for: .cineRate, vr: .IS)
         }
@@ -722,15 +859,18 @@ extension Video {
             dataSet.setString(String(stopTrim), for: .stopTrim, vr: .IS)
         }
 
-        // MARK: Pixel Data (PS3.5 A.4)
+        // MARK: Pixel Data (PS3.5 A.4, 8.2.5–8.2.11)
         // Every video transfer syntax is encapsulated, so Pixel Data must be
         // written as undefined-length fragments, never as a native OB value.
-        // One fragment holds the whole bit stream unless it cannot: a fragment's
-        // length is a 32-bit even value, so a larger stream is split - which only
-        // a fragmentable transfer syntax permits. The Basic Offset Table is
-        // present but empty: PS3.5 8.2.5 / 8.2.6 require that for MPEG-2, and
-        // A.4 allows a non-empty one only with an offset for every frame, which
-        // an inter-coded stream does not have. DICOMWriter pads an odd-length
+        // One fragment holds the whole bit stream: "For the Non-Fragmentable
+        // Encapsulated Transfer Syntax, one Fragment shall contain the whole …
+        // bit stream" (PS3.5 8.2.5, 8.2.6, 8.2.7, 8.2.8); the fragmentable
+        // syntaxes merely permit segmentation, which is used only when a fragment's
+        // 32-bit even length cannot hold the stream. The Basic Offset Table is empty:
+        // "The Basic Offset Table shall be empty (present but zero length)"
+        // (PS3.5 8.2.5, 8.2.6), which PS3.5 A.4 permits for every encapsulated
+        // object (a non-empty one needs an offset for every frame, which an
+        // inter-coded stream does not have). DICOMWriter pads an odd-length
         // fragment; do not pad here.
         if let pixelData = pixelData {
             dataSet[.pixelData] = DataElement(
@@ -745,9 +885,24 @@ extension Video {
             )
         }
 
+        // Text is written as UTF-8: Specific Character Set (0008,0005) is Type 1C,
+        // required when a value is not ASCII (PS3.3 2026a Table C.12-1; ISO_IR 192,
+        // Table C.12-5).
+        dataSet.setUTF8SpecificCharacterSetIfNeeded()
+
         return dataSet
     }
 
+    /// Image Trigger Delay (0018,1067), VR DS (PS3.6 Table 6-1).
+    static let imageTriggerDelayTag = Tag(group: 0x0018, element: 0x1067)
+    /// Effective Duration (0018,0072), VR DS (PS3.6 Table 6-1).
+    static let effectiveDurationTag = Tag(group: 0x0018, element: 0x0072)
+
+    /// Lossy Image Compression Method (0028,2114) Defined Terms, PS3.3 C.7.6.1.1.5.1.
+    public static let lossyImageCompressionMethodTerms: Set<String> = [
+        "ISO_10918_1", "ISO_14495_1", "ISO_15444_1", "ISO_15444_15",
+        "ISO_18181_1", "ISO_13818_2", "ISO_14496_10", "ISO_23008_2",
+    ]
     /// Splits a bit stream into fragments no longer than `maximumLength`, each
     /// but the last of even length, as PS3.5 7.5 requires of an Item.
     ///
@@ -800,5 +955,35 @@ extension Video {
         while result.hasSuffix("0") { result.removeLast() }
         if result.hasSuffix(".") { result.removeLast() }
         return result
+    }
+}
+
+extension VideoBuilder {
+    /// The one Channel Source Sequence (003A,0208) Item for a code, per the Code
+    /// Sequence Macro (PS3.3 2026a Table 8.8-1): exactly one of Code Value, Long
+    /// Code Value or URN Code Value; Coding Scheme Designator (Type 1C) with the
+    /// first two, and with a URN when one is given; Coding Scheme Version when
+    /// known; Code Meaning. Any code is written, CID 3000 being Extensible (D57).
+    static func channelSourceItem(_ code: CodedConcept) -> SequenceItem {
+        var elements: [DataElement] = []
+        let identifier = SRDocumentSerializer.CodeIdentifier(code)
+        switch identifier {
+        case .codeValue(let value):
+            elements.append(.string(tag: .codeValue, vr: .SH, value: value))
+        case .longCodeValue(let value):
+            elements.append(.string(tag: .longCodeValue, vr: .UC, value: value))
+        case .urnCodeValue(let value):
+            elements.append(.string(tag: .urnCodeValue, vr: .UR, value: value))
+        }
+        if case .urnCodeValue = identifier, code.codingSchemeDesignator.isEmpty {
+            // Type 1C: not required with a URN Code Value.
+        } else {
+            elements.append(.string(tag: .codingSchemeDesignator, vr: .SH, value: code.codingSchemeDesignator))
+        }
+        if let version = code.codingSchemeVersion, !version.isEmpty {
+            elements.append(.string(tag: .codingSchemeVersion, vr: .SH, value: version))
+        }
+        elements.append(.string(tag: .codeMeaning, vr: .LO, value: code.codeMeaning))
+        return SequenceItem(elements: elements)
     }
 }

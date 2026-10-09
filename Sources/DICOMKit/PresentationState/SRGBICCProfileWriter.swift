@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-29 — Input Device class scnr per PS3.3 2026a C.11.15.1.1; Color Space SRGB per C.11.15.1.2; the profile bytes themselves are ICC.1
 // SRGBICCProfileWriter.swift
 // DICOMKit
 //
@@ -17,7 +18,8 @@
 // cannot be round-trip tested, and would make two saves of the same view
 // different objects. These bytes are fixed forever.
 //
-// The profile is an ICC v2.4 three-component matrix/TRC display profile — the
+// The profile is an ICC v2.4 three-component matrix/TRC profile of the Input
+// Device class, as PS3.3 C.11.15.1.1 requires ("scnr") — the
 // simplest legal shape: sRGB primaries chromatically adapted to D50, a gamma
 // 2.2 tone curve (the customary v2 approximation of the sRGB curve; the
 // difference is invisible on any medical display and irrelevant to a viewer
@@ -78,7 +80,7 @@ public enum SRGBICCProfileWriter {
         appendUInt32(&profile, profileSize)
         appendUInt32(&profile, 0)                          // preferred CMM: none
         appendUInt32(&profile, 0x02400000)                 // version 2.4
-        appendSignature(&profile, "mntr")                  // display device class
+        appendSignature(&profile, "scnr")                  // Input Device class (PS3.3 C.11.15.1.1)
         appendSignature(&profile, "RGB ")                  // data colour space
         appendSignature(&profile, "XYZ ")                  // PCS
         // Creation date, fixed so the bytes are: a profile is identified by its

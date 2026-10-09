@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
 
 env:
-  SWIFT_VERSION: '6.2'
+  SWIFT_VERSION: '6.4'
 
 jobs:
   comprehensive-test:
     name: Comprehensive Test Suite
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code
@@ -55,7 +55,7 @@ jobs:
         
   memory-leak-check:
     name: Memory Leak Detection
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code
@@ -86,7 +86,7 @@ jobs:
       
   performance-benchmark:
     name: Performance Benchmarks
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code
@@ -114,7 +114,7 @@ jobs:
         
   dependency-update-check:
     name: Check for Dependency Updates
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code
@@ -146,7 +146,7 @@ jobs:
         
   build-matrix:
     name: Build Matrix Test
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:

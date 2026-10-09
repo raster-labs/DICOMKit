@@ -89,8 +89,8 @@ dicom-info file.dcm
 # Command with arguments
 dicom-convert input.dcm --output output.png --format png
 
-# Command with file expansion
-dicom-validate *.dcm --level 2
+# A directory with --recursive (tools run without a shell: *.dcm and > are not expanded)
+dicom-validate studies/ --recursive --level 2
 ```
 
 ### Variables
@@ -105,10 +105,10 @@ PATIENT_ID=12345
 
 # Use variables
 dicom-query --patient-id ${PATIENT_ID}
-dicom-convert ${INPUT_DIR}/*.dcm --output ${OUTPUT_DIR}
+dicom-convert ${INPUT_DIR} --output ${OUTPUT_DIR} --recursive
 
 # Alternative syntax
-dicom-anon $INPUT_DIR/*.dcm --output $OUTPUT_DIR
+dicom-anon $INPUT_DIR --output $OUTPUT_DIR --recursive
 ```
 
 ### Pipelines
@@ -123,7 +123,7 @@ dicom-query --patient-id 12345 | dicom-retrieve --output studies/
 dicom-query --patient-name "DOE*" | \
 dicom-retrieve --output studies/ | \
 dicom-validate --level 2 | \
-dicom-anon --profile basic --output anon/
+dicom-anon --profile ps315 --output anon/
 ```
 
 ### Conditional Logic
@@ -136,11 +136,11 @@ if exists /path/to/file.dcm
     dicom-info /path/to/file.dcm
 endif
 
-# Conditional with else
+# Conditional with else (only dicom-* tools run: there is no echo or exit)
 if exists ${INPUT_DIR}
     dicom-study summary ${INPUT_DIR}
 else
-    echo "Input directory not found"
+    dicom-study summary ${FALLBACK_DIR}
 endif
 
 # Condition operators
@@ -173,13 +173,13 @@ INPUT_DIR=/data/dicom
 OUTPUT_DIR=/data/processed
 
 # Validate input files
-dicom-validate ${INPUT_DIR}/*.dcm --level 2
+dicom-validate ${INPUT_DIR} --recursive --level 2
 
 # Convert to PNG
-dicom-convert ${INPUT_DIR}/*.dcm --output ${OUTPUT_DIR} --format png
+dicom-convert ${INPUT_DIR} --output ${OUTPUT_DIR} --format png --recursive
 
-# Generate summary
-dicom-study summary ${INPUT_DIR} --format json > ${OUTPUT_DIR}/summary.json
+# Summarize the study (JSON goes to the script output / --log)
+dicom-study summary ${INPUT_DIR} --format json
 ```
 
 ### Example 2: PACS Query and Retrieve
@@ -191,19 +191,20 @@ PACS_PORT=11112
 PACS_AET=PACS
 LOCAL_AET=WORKSTATION
 PATIENT_ID=12345
+# A Study Instance UID (0020,000D) returned by the query
+STUDY_UID=1.2.3.4.5.6.7.8.9
 
-# Query PACS
-dicom-query --host ${PACS_HOST} --port ${PACS_PORT} \
-    --called-aet ${PACS_AET} --calling-aet ${LOCAL_AET} \
-    --patient-id ${PATIENT_ID} --level STUDY
+# Query PACS (host is positional; --aet is the calling AE Title)
+dicom-query ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --aet ${LOCAL_AET} --patient-id ${PATIENT_ID} --level study
 
-# Retrieve studies
-dicom-retrieve --host ${PACS_HOST} --port ${PACS_PORT} \
-    --called-aet ${PACS_AET} --calling-aet ${LOCAL_AET} \
-    --patient-id ${PATIENT_ID} --output studies/
+# Query by a Study Date range: one PS3.4 C.2.2.2.5 range value
+dicom-query ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --aet ${LOCAL_AET} --study-date 20240101-20241231 --level study
+
+# Retrieve the study (dicom-retrieve retrieves by UID, not by Patient ID)
+dicom-retrieve ${PACS_HOST} --port ${PACS_PORT} --called-aet ${PACS_AET} --aet ${LOCAL_AET} --study-uid ${STUDY_UID} --method c-get --output studies/
 
 # Validate retrieved files
-dicom-validate studies/*.dcm --level 2
+dicom-validate studies/ --recursive --level 2
 ```
 
 ### Example 3: Conditional Processing
@@ -221,11 +222,12 @@ if exists ${INPUT_FILE}
     # Convert to PNG
     dicom-convert ${INPUT_FILE} --output ${OUTPUT_DIR} --format png
     
-    # Generate report
-    dicom-info ${INPUT_FILE} --format json > ${OUTPUT_DIR}/metadata.json
+    # Print the metadata (JSON goes to the script output / --log)
+    dicom-info ${INPUT_FILE} --format json
 else
-    echo "Error: Input file not found"
-    exit 1
+    # The file is missing: dicom-info reports it and exits non-zero, and a failed
+    # command stops the script with "Command failed with status 1" (no echo / exit 1)
+    dicom-info ${INPUT_FILE}
 endif
 ```
 
@@ -238,22 +240,22 @@ TEMP_DIR=/data/temp
 OUTPUT_DIR=/data/anonymized
 
 # Validate input
-dicom-validate ${INPUT_DIR}/*.dcm --level 2
+dicom-validate ${INPUT_DIR} --recursive --level 2
 
-# Anonymize with basic profile
-dicom-anon ${INPUT_DIR}/*.dcm --profile basic --output ${TEMP_DIR}
+# Anonymize with the PS3.15 Basic Application Level Confidentiality Profile
+dicom-anon ${INPUT_DIR} --profile ps315 --output ${TEMP_DIR} --recursive
 
 # Check for sensitive files
 if exists ${INPUT_DIR}/sensitive.dcm
-    # Use strict anonymization for sensitive files
-    dicom-anon ${INPUT_DIR}/sensitive.dcm --profile strict --output ${OUTPUT_DIR}
+    # Also blank burned-in text in sensitive files (PS3.15 Clean Pixel Data Option)
+    dicom-anon ${INPUT_DIR}/sensitive.dcm --profile ps315 --clean-pixel-data --output ${OUTPUT_DIR}
 endif
 
 # Move anonymized files
 dicom-study organize ${TEMP_DIR} --output ${OUTPUT_DIR}
 
 # Validate anonymized files
-dicom-validate ${OUTPUT_DIR}/**/*.dcm --level 2
+dicom-validate ${OUTPUT_DIR} --recursive --level 2
 ```
 
 ### Example 5: Multi-Stage Processing
@@ -263,24 +265,26 @@ dicom-validate ${OUTPUT_DIR}/**/*.dcm --level 2
 SOURCE_DIR=/data/incoming
 WORK_DIR=/data/work
 ARCHIVE_DIR=/data/archive
-ARCHIVE_DB=${ARCHIVE_DIR}/archive.db
 
 # Step 1: Organize incoming files
 dicom-study organize ${SOURCE_DIR} --output ${WORK_DIR}
 
 # Step 2: Validate organized files
-dicom-validate ${WORK_DIR}/**/*.dcm --level 2
+dicom-validate ${WORK_DIR} --recursive --level 2
 
-# Step 3: Extract metadata
-dicom-study summary ${WORK_DIR} --format json > ${WORK_DIR}/summary.json
+# Step 3: Extract metadata (JSON goes to the script output / --log)
+dicom-study summary ${WORK_DIR} --format json
 
 # Step 4: Archive files
-dicom-archive create ${ARCHIVE_DB} --input ${WORK_DIR}
+dicom-archive init --path ${ARCHIVE_DIR}
+dicom-archive import ${WORK_DIR} --archive ${ARCHIVE_DIR} --recursive
 
-# Step 5: Cleanup
-if exists ${WORK_DIR}
-    rm -rf ${WORK_DIR}
-endif
+# Step 5: Check the archive before the work directory is removed
+dicom-archive check --archive ${ARCHIVE_DIR} --verify-files
+dicom-archive stats --archive ${ARCHIVE_DIR}
+
+# Scripts call only dicom-* tools (validate reports rm, echo or exit as unknown tools) and
+# run them without a shell: delete ${WORK_DIR} outside the script once the check has passed.
 ```
 
 ## Supported Condition Operators
@@ -329,7 +333,7 @@ The tool provides comprehensive error handling:
 - **Script Not Found**: Specified script file does not exist
 - **Parse Error**: Syntax error in script (with line number)
 - **Invalid Variable**: Malformed variable assignment
-- **Invalid Command**: Unknown DICOM tool
+- **Invalid Command**: Unknown DICOM tool (scripts call only the `dicom-*` tools listed above: `validate` reports any other command, such as `echo`, `exit` or `rm`, as an unknown DICOM tool, and the runner starts commands without a shell, so shell built-ins, globs and `>` do not work)
 - **Execution Error**: Command execution failed
 - **Condition Error**: Invalid condition syntax
 
@@ -352,7 +356,7 @@ Log format:
 ```
 [2024-01-15 10:30:45] Starting script execution: workflow.dcmscript
 [2024-01-15 10:30:45] Variables: ["INPUT_DIR": "/data/input"]
-[2024-01-15 10:30:45] Executing: dicom-validate /data/input/*.dcm --level 2
+[2024-01-15 10:30:45] Executing: dicom-validate /data/input --recursive --level 2
 [2024-01-15 10:30:46] Output: Validated 10 files successfully
 [2024-01-15 10:30:46] Script execution completed successfully
 ```

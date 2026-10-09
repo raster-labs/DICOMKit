@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-09-28 — the 7 PDU-type bytes text-diffed against PS3.8 2026a Tables 9-11, 9-17, 9-21, 9-22, 9-24, 9-25, 9-26 (Scripts/diff_network.py): 7 of 7 match
 /// Protocol Data Unit (PDU) Types
 ///
 /// Defines the types of PDUs used in DICOM Upper Layer Protocol communication.

@@ -8,6 +8,8 @@
 // minimal encapsulated DICOM, decompresses it, and reads the pixels back.
 // macOS-only; mirrors the other CLI peers' `binaryPath` / `version` /
 // `decodeFrame` surface so the bench can treat it identically.
+//
+// NEMA-verified: 2026a, checked 2026-10-05 — the throwaway wrapper file sets the PS3.3 C.7.6.3 Image Pixel attributes from the PixelDataDescriptor and encapsulates one fragment with an empty Basic Offset Table (PS3.5 2026a A.4) under JPEG-LS Lossless (A-1 .4.80); no standard data of its own
 
 #if os(macOS)
 import Foundation

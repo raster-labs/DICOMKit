@@ -3,6 +3,8 @@
 //
 // Where "no pixel buffer is ever copied" is actually implemented — and counted, so
 // the claim can be asserted by a test instead of trusted.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — carries no DICOM-standard data (buffer pooling and zero-copy wrapping). C1 classification confirmed.
 
 import Foundation
 import DICOMCore

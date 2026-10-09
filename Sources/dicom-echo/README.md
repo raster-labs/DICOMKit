@@ -109,7 +109,7 @@ Test 2: Connection stability (5 requests)
   RTT min/avg/max/stddev: 0.023/0.025/0.027/0.001s
 
 Test 3: Association parameters
-  Implementation Class UID: 1.2.826.0.1.3680043.9.7433.1.1
+  Implementation Class UID: 1.2.826.0.1.3680043.10.511.3.0.5.0
   Implementation Version: DICOMKIT_001
   SOP Class: Verification (1.2.840.10008.1.1)
   Transfer Syntaxes: Explicit VR Little Endian, Implicit VR Little Endian
@@ -120,8 +120,9 @@ Result: All tests PASSED ✓
 
 ## Exit Codes
 
-- `0`: All echo requests succeeded
-- `1`: One or more echo requests failed
+- `0`: All echo requests succeeded (C-ECHO status Success, `0000`)
+- `1`: One or more echo requests failed (a non-Success status per PS3.7 9.1.5.1.4, or a network error)
+- `64`: Invalid arguments (usage error, e.g. `--count 0`)
 
 ## Features
 

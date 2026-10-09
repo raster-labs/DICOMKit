@@ -129,7 +129,9 @@ final class CompressionManagerJPEGEngineTests: XCTestCase {
         let mgr = CompressionManager()
         let implicitDefault = try mgr.compressData(input, codec: "jpeg", quality: .high)
         let explicitJLI = try mgr.compressData(input, codec: "jpeg", quality: .high, jpegEngine: .jli)
-        XCTAssertEqual(implicitDefault, explicitJLI)
+        // Each lossy output gets its own new SOP Instance UID (PS3.3 2026a C.7.6.1.1.5, D184),
+        // so the codestreams are compared, not the whole files.
+        XCTAssertEqual(try fragments(of: implicitDefault), try fragments(of: explicitJLI))
     }
 
     // MARK: - Baseline: the two engines really are different encoders
@@ -208,7 +210,9 @@ final class CompressionManagerJPEGEngineTests: XCTestCase {
         for codec in ["jpeg-extended", "jpeg-lossless", "jpeg-lossless-sv1"] {
             let jli = try mgr.compressData(input, codec: codec, quality: .high, jpegEngine: .jli)
             let native = try mgr.compressData(input, codec: codec, quality: .high, jpegEngine: .native)
-            XCTAssertEqual(jli, native, "\(codec) was diverted off JLICodec by the native engine")
+            // Codestreams, not files: lossy output has a fresh SOP Instance UID per run (D184).
+            XCTAssertEqual(try fragments(of: jli), try fragments(of: native),
+                           "\(codec) was diverted off JLICodec by the native engine")
         }
     }
 

@@ -12,6 +12,8 @@
 // rung. The CPU renderer is a table lookup per pixel (see `DICOMCore/WindowLUT`),
 // which is memory-bound rather than arithmetic-bound, so a vectorised gather would
 // add a dependency and a code path for no measurable gain.
+//
+// NEMA-verified: 2026a, checked 2026-09-30 — carries no DICOM-standard data (backend selection, environment override, display names). C1 classification confirmed.
 
 import Foundation
 

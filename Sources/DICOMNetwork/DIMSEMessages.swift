@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — field sets of every RQ/RSP compared with PS3.7 2026a Tables 9.3-1..9.3-13 and 10.3-1..10.3-12; no wrong tag; N-GET-RQ does not carry the optional (0000,1005)
 
 /// Protocol for DIMSE messages
 ///
@@ -672,7 +673,8 @@ public struct CGetResponse: DIMSEResponse, Hashable {
 ///
 /// Request to cancel an outstanding operation (C-FIND, C-MOVE, C-GET).
 ///
-/// Reference: PS3.7 Section 9.3.2.3 - C-CANCEL Service
+/// Reference: PS3.7 Section 9.3.2.3 (C-CANCEL-FIND-RQ), 9.3.3.3
+/// (C-CANCEL-GET-RQ), 9.3.4.3 (C-CANCEL-MOVE-RQ)
 public struct CCancelRequest: DIMSERequest, Hashable {
     public let commandSet: CommandSet
     public let presentationContextID: UInt8
@@ -716,7 +718,7 @@ public struct CCancelRequest: DIMSERequest, Hashable {
 /// Request to perform an action on a managed SOP Instance.
 /// Used for Storage Commitment and other normalized services.
 ///
-/// Reference: PS3.7 Section 10.1 - N-ACTION Service
+/// Reference: PS3.7 Section 10.1.4 - N-ACTION Service
 public struct NActionRequest: DIMSERequest, Hashable {
     public let commandSet: CommandSet
     public let presentationContextID: UInt8
@@ -776,7 +778,7 @@ public struct NActionRequest: DIMSERequest, Hashable {
 ///
 /// Response to an N-ACTION request.
 ///
-/// Reference: PS3.7 Section 10.1 - N-ACTION Service
+/// Reference: PS3.7 Section 10.1.4 - N-ACTION Service
 public struct NActionResponse: DIMSEResponse, Hashable {
     public let commandSet: CommandSet
     public let presentationContextID: UInt8
@@ -848,7 +850,7 @@ public struct NActionResponse: DIMSEResponse, Hashable {
 /// Request to report an event from a managed SOP Instance.
 /// Used for Storage Commitment notifications and other event-based services.
 ///
-/// Reference: PS3.7 Section 10.3 - N-EVENT-REPORT Service
+/// Reference: PS3.7 Section 10.1.1 (service) / 10.3.1 (protocol) - N-EVENT-REPORT
 public struct NEventReportRequest: DIMSERequest, Hashable {
     public let commandSet: CommandSet
     public let presentationContextID: UInt8
@@ -908,7 +910,7 @@ public struct NEventReportRequest: DIMSERequest, Hashable {
 ///
 /// Response to an N-EVENT-REPORT request.
 ///
-/// Reference: PS3.7 Section 10.3 - N-EVENT-REPORT Service
+/// Reference: PS3.7 Section 10.1.1 (service) / 10.3.1 (protocol) - N-EVENT-REPORT
 public struct NEventReportResponse: DIMSEResponse, Hashable {
     public let commandSet: CommandSet
     public let presentationContextID: UInt8

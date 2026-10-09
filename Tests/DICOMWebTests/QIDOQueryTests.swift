@@ -418,7 +418,9 @@ struct QIDOQueryTests {
         let query = QIDOQuery.studiesByModality("MR", limit: 50)
         
         let params = query.toParameters()
-        #expect(params[QIDOQueryAttribute.modality] == "MR")
+        // PS3.18 Table 10.6.1-5: the study-level key is Modalities in Study (0008,0061)
+        #expect(params[QIDOQueryAttribute.modalitiesInStudy] == "MR")
+        #expect(params[QIDOQueryAttribute.modality] == nil)
         #expect(params["limit"] == "50")
     }
     

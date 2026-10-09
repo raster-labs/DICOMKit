@@ -10,7 +10,9 @@ import J2KCodec
 /// Wraps `J2KSwiftCodec` with HTJ2K-specific configuration, including
 /// RPCL progression ordering for `.htj2kRPCLLossless` (1.2.840.10008.1.2.4.202).
 ///
-/// Reference: DICOM PS3.5 Section A.4.6 — JPEG 2000 Part 15 (HTJ2K) Transfer Syntaxes
+/// Reference: DICOM PS3.5 Section A.4.4 — JPEG 2000 Image Compression (the HTJ2K syntaxes .201/.202/.203 are defined there)
+///
+/// NEMA-verified: 2026a, checked 2026-09-25 — the three HTJ2K UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1) and the RPCL requirement for .202 is in PS3.5 2026a A.4.4. The citation said A.4.6, which is MPEG-4 AVC/H.264; corrected.
 public struct HTJ2KCodec: ImageCodec, ImageEncoder, Sendable {
     /// The three DICOM HTJ2K transfer syntax UIDs.
     public static let supportedTransferSyntaxes: [String] = [

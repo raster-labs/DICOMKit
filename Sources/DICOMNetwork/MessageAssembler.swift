@@ -1,5 +1,6 @@
 import Foundation
 import DICOMCore
+// NEMA-verified: 2026a, checked 2026-09-28 — fragment size derived from the PDU-length definition of PS3.8 2026a §9.3.1 / Table 9-23 (maximum length − 6 bytes per PDV) and the Annex E.2 control header
 
 /// Assembles DIMSE messages from PDV fragments
 ///
@@ -237,17 +238,27 @@ public struct MessageFragmenter: Sendable {
     /// Maximum PDV size (payload only, excluding 6-byte PDV header)
     public let maxPDVDataSize: UInt32
     
+    /// Overhead of one PDV item inside a P-DATA-TF PDU: 4 (item length) +
+    /// 1 (presentation context ID) + 1 (message control header)
+    ///
+    /// Reference: PS3.8 Table 9-23
+    static let pdvItemOverhead: UInt32 = 6
+    
     /// Creates a message fragmenter
     ///
-    /// - Parameter maxPDUSize: The negotiated maximum PDU size
+    /// - Parameter maxPDUSize: The peer's Maximum Length Received (PS3.8
+    ///   Annex D.1); 0 means no maximum is specified and `defaultMaxPDUSize`
+    ///   is used as the practical fragment size
     public init(maxPDUSize: UInt32) {
-        // PDV header is 4 bytes (length) + 1 byte (context ID) + 1 byte (message control)
-        // PDU header is 6 bytes, so max PDV data size = maxPDUSize - 6 (PDU header) - 6 (PDV header) = maxPDUSize - 12
-        // Ensure a minimum size to prevent degenerate cases
-        if maxPDUSize > 12 {
-            self.maxPDVDataSize = maxPDUSize - 12
+        // PS3.8 Table 9-22: the PDU-length field counts the variable field
+        // only, i.e. the PDV item(s) that follow the 6-byte PDU header. One
+        // PDV per PDU therefore carries maxPDUSize - 6 bytes of data.
+        // Annex D.1: 0 = "no maximum length is specified".
+        let effective = maxPDUSize == 0 ? defaultMaxPDUSize : maxPDUSize
+        if effective > Self.pdvItemOverhead {
+            self.maxPDVDataSize = effective - Self.pdvItemOverhead
         } else {
-            self.maxPDVDataSize = 4096 // Reasonable default
+            self.maxPDVDataSize = defaultMaxPDUSize - Self.pdvItemOverhead
         }
     }
     

@@ -3,6 +3,7 @@ import Foundation
 /// Multi-frame Functional Group macro tags, Multi-frame Dimension / Concatenation
 /// attributes and the legacy multi-frame vector attributes (NM, cine) used by the
 /// split/merge engines. Reference: PS3.3 C.7.6.16 / C.7.6.17 / C.8.4.8.
+/// NEMA-verified: 2026a, checked 2026-09-25 — every Tag constant in this file was text-diffed by script against PS3.6 2026a Tables 6-1, 7-1 and 8-1 (tag present, name, VR, VM, keyword, retired status). See DICOMCORE_STANDARD_IMPLEMENTATION.md, Bucket C2.
 extension Tag {
 
     // MARK: - Frame Content / identity (C.7.6.16.2.2)
@@ -115,6 +116,10 @@ extension Tag {
     public static let contentQualification = Tag(group: 0x0018, element: 0x9004)
 
     // MARK: - Legacy Converted Enhanced (Sup 157)
+    //
+    // NEMA-verified: 2026a, checked 2026-09-24 — text-diffed against PS3.6 2026a Table 6-1.
+    // Tag, name and keyword match, and none is retired. VR (SQ) and VM (1) are held in
+    // DICOMDictionary's DataElementDictionary.txt, and they match too. Provenance: Sup 157.
 
     /// Unassigned Shared Converted Attributes Sequence (0020,9170)
     public static let unassignedSharedConvertedAttributesSequence = Tag(group: 0x0020, element: 0x9170)

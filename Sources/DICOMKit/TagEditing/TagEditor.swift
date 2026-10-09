@@ -1,3 +1,4 @@
+// NEMA-verified: 2026a, checked 2026-10-01 — edits go through TagEditRules (D150): --set writes the PS3.6 dictionary VR within the PS3.5 2026a Table 6.2-1 limits, group 0002 refused per PS3.10 7.1, Items/delimiters per PS3.5 7.5, unused groups and Private Creator naming per PS3.5 7.8.1 (D146)
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -61,6 +62,14 @@ public struct TagEditor {
     /// delete-private, then copies, then sets (so `--set` overrides a copied
     /// value). Unknown/invalid specifiers are skipped with a note.
     ///
+    /// The ``TagEditRules`` apply (D150): a set writes the PS3.6 dictionary VR (binary
+    /// for US, SS, UL, SL, FL, FD) and only a value within the PS3.5 2026a Table 6.2-1
+    /// limits of that VR; group 0002 (PS3.10 7.1), Items and delimiters (PS3.5 7.5) and
+    /// the groups PS3.5 7.8.1 says shall not be used are not set, deleted or copied.
+    /// Here each refused change is skipped with a "(refused: …)" line and the others are
+    /// applied; ``applyCheckedChanges(to:sets:deletes:deletePrivate:sourceDataSet:copyTags:verbose:dryRun:)``
+    /// instead refuses the whole edit (what `dicom-tags` does).
+    ///
     /// - Parameters:
     ///   - copyTags: tag specifiers to copy from `sourceDataSet`; empty means copy
     ///     every tag in the source.
@@ -76,13 +85,65 @@ public struct TagEditor {
         verbose: Bool,
         dryRun: Bool
     ) -> [String] {
+        // A non-strict pass never throws.
+        (try? apply(to: &dataSet, sets: sets, deletes: deletes, deletePrivate: deletePrivate,
+                    sourceDataSet: sourceDataSet, copyTags: copyTags, verbose: verbose,
+                    dryRun: dryRun, strict: false)) ?? []
+    }
+
+    /// Like ``applyChanges(to:sets:deletes:deletePrivate:sourceDataSet:copyTags:verbose:dryRun:)``,
+    /// but the first change the ``TagEditRules`` refuse throws a ``TagEditRefusal`` and
+    /// `dataSet` is left untouched — no half-applied edit (D150).
+    public func applyCheckedChanges(
+        to dataSet: inout DataSet,
+        sets: [String],
+        deletes: [String],
+        deletePrivate: Bool,
+        sourceDataSet: DataSet?,
+        copyTags: [String],
+        verbose: Bool,
+        dryRun: Bool
+    ) throws -> [String] {
+        var working = dataSet
+        let lines = try apply(to: &working, sets: sets, deletes: deletes, deletePrivate: deletePrivate,
+                              sourceDataSet: sourceDataSet, copyTags: copyTags, verbose: verbose,
+                              dryRun: dryRun, strict: true)
+        if !dryRun { dataSet = working }
+        return lines
+    }
+
+    private func apply(
+        to dataSet: inout DataSet,
+        sets: [String],
+        deletes: [String],
+        deletePrivate: Bool,
+        sourceDataSet: DataSet?,
+        copyTags: [String],
+        verbose: Bool,
+        dryRun: Bool,
+        strict: Bool
+    ) throws -> [String] {
         var descriptions: [String] = []
+
+        // In strict mode every named tag is checked before anything changes.
+        if strict {
+            let named = deletes + copyTags + sets.compactMap { spec in
+                spec.range(of: "=").map { String(spec[..<$0.lowerBound]) }
+            }
+            for spec in named {
+                if let tag = parseTagSpecifier(spec), let reason = TagEditRules.dataSetRefusal(for: tag) {
+                    throw TagEditRefusal(reason)
+                }
+            }
+        }
 
         // 1. Deletes
         for deleteSpec in deletes {
             if let tag = parseTagSpecifier(deleteSpec) {
                 let label = self.label(for: tag)
-                if dataSet[tag] != nil {
+                if let reason = TagEditRules.dataSetRefusal(for: tag) {
+                    descriptions.append("DELETE \(label) (refused: \(reason))")
+                } else if dataSet[tag] != nil {
                     if !dryRun { dataSet.remove(tag: tag) }
                     descriptions.append("DELETE \(label)")
                 } else {
@@ -96,7 +157,7 @@ public struct TagEditor {
         // 2. Delete private tags
         if deletePrivate {
             var removed = 0
-            for tag in dataSet.tags where tag.isPrivate {
+            for tag in dataSet.tags where tag.isOddGroup {  // private, and the unusable odd groups (PS3.5 7.8.1)
                 if !dryRun { dataSet.remove(tag: tag) }
                 removed += 1
                 if verbose { descriptions.append("DELETE private tag \(self.label(for: tag))") }
@@ -112,6 +173,10 @@ public struct TagEditor {
             for tag in tagsToCopy {
                 if let element = source[tag] {
                     let label = self.label(for: tag)
+                    if let reason = TagEditRules.dataSetRefusal(for: tag) {
+                        descriptions.append("COPY \(label) (refused: \(reason))")
+                        continue
+                    }
                     if !dryRun { dataSet[tag] = element }
                     let value = element.stringValue ?? "<binary>"
                     descriptions.append("COPY \(label) = \(value)")
@@ -119,16 +184,28 @@ public struct TagEditor {
             }
         }
 
-        // 4. Set values (last, so they override copies)
+        // 4. Set values (last, so they override copies). In strict mode every value is
+        //    checked before any is written.
+        var pending: [DataElement] = []
         for setSpec in sets {
             if let eqRange = setSpec.range(of: "=") {
                 let tagPart   = String(setSpec[..<eqRange.lowerBound])
                 let valuePart = String(setSpec[eqRange.upperBound...])
                 if let tag = parseTagSpecifier(tagPart) {
                     let label = self.label(for: tag)
-                    let vr = dataSet[tag]?.vr ?? defaultVR(for: tag)
-                    if !dryRun { dataSet.setString(valuePart, for: tag, vr: vr) }
-                    descriptions.append("SET \(label) = \(valuePart)")
+                    if let reason = TagEditRules.dataSetRefusal(for: tag) {
+                        descriptions.append("SET \(label) (refused: \(reason))")
+                        continue
+                    }
+                    let vr = TagEditRules.writeVR(for: tag, existing: dataSet[tag]?.vr)
+                    switch TagEditRules.element(tag: tag, vr: vr, text: valuePart) {
+                    case .success(let element):
+                        if strict { pending.append(element) } else if !dryRun { dataSet[tag] = element }
+                        descriptions.append("SET \(label) = \(valuePart)")
+                    case .failure(let refusal):
+                        if strict { throw refusal }
+                        descriptions.append("SET \(label) (refused: \(refusal.message))")
+                    }
                 } else {
                     descriptions.append("SET \(tagPart) (unknown tag, skipped)")
                 }
@@ -136,24 +213,19 @@ public struct TagEditor {
                 descriptions.append("SET \(setSpec) (invalid format, expected TagName=Value)")
             }
         }
+        if !dryRun {
+            for element in pending { dataSet[element.tag] = element }
+        }
 
         return descriptions
     }
 
     // MARK: - Helpers
 
-    /// `(GGGG,EEEE) Name` using the dictionary name when known, else just the hex.
+    /// `(GGGG,EEEE) Name` using the PS3.6 name (or "Private Creator", PS3.5 7.8.1) when
+    /// known, else just the hex.
     private func label(for tag: Tag) -> String {
-        let hex = tag.description
-        if let name = DataElementDictionary.lookup(tag: tag)?.name {
-            return "\(hex) \(name)"
-        }
-        return hex
-    }
-
-    /// VR for a new tag: the dictionary default, else `.LO`.
-    private func defaultVR(for tag: Tag) -> VR {
-        DataElementDictionary.lookup(tag: tag)?.vr.first ?? .LO
+        TagEditRules.label(for: tag)
     }
 }
 

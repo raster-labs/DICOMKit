@@ -6,6 +6,8 @@ import Foundation
 /// used for referencing external resources in DICOM data elements.
 /// Reference: DICOM PS3.5 Section 6.2 - UR Value Representation
 ///
+/// NEMA-verified: 2026a, checked 2026-09-25 — matches the UR row of PS3.5 2026a Table 6.2-1 (RFC 3986 URI, 2^32-2 bytes max, trailing spaces ignored). The row forbids leading spaces; `parse` trims them, a leniency on read.
+///
 /// A Universal Resource Identifier is a string that identifies a resource
 /// as specified by RFC 3986 "Uniform Resource Identifier (URI): Generic Syntax".
 ///
