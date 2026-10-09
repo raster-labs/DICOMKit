@@ -25,7 +25,7 @@ permissions:
   contents: read
 
 env:
-  SWIFT_VERSION: '6.2'
+  SWIFT_VERSION: '6.4'
 
 jobs:
   build-and-test:
@@ -35,8 +35,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-26
-            xcode: '26.3'
+          - os: xcode-27
+            xcode: '27.0'
           - os: ubuntu-22.04
             xcode: ''
     
@@ -51,9 +51,9 @@ jobs:
     - name: Install Swift (Linux)
       if: runner.os == 'Linux'
       run: |
-        wget -q https://download.swift.org/swift-6.2-release/ubuntu2204/swift-6.2-RELEASE/swift-6.2-RELEASE-ubuntu22.04.tar.gz
-        tar xzf swift-6.2-RELEASE-ubuntu22.04.tar.gz
-        sudo mv swift-6.2-RELEASE-ubuntu22.04 /usr/share/swift
+        wget -q https://download.swift.org/swift-6.4.0-release/ubuntu2204/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
+        tar xzf swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
+        sudo mv swift-6.4.0-RELEASE-ubuntu22.04 /usr/share/swift
         echo "/usr/share/swift/usr/bin" >> $GITHUB_PATH
 
     - name: Install system dependencies (Linux)
@@ -90,7 +90,7 @@ jobs:
 
   test-coverage:
     name: Test Coverage Report
-    runs-on: macos-26
+    runs-on: xcode-27
     
     steps:
     - name: Checkout code

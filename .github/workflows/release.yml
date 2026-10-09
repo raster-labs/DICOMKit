@@ -16,12 +16,12 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SWIFT_VERSION: '6.2'
+  SWIFT_VERSION: '6.4'
 
 jobs:
   validate-release:
     name: Validate Release
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 45
 
     steps:
@@ -81,7 +81,7 @@ jobs:
         
   build-cli-tools:
     name: Build CLI Tools (Batch ${{ matrix.batch }})
-    runs-on: macos-26
+    runs-on: xcode-27
     needs: validate-release
     permissions:
       contents: read
@@ -140,7 +140,7 @@ jobs:
         
   build-documentation:
     name: Build and Deploy Documentation
-    runs-on: macos-26
+    runs-on: xcode-27
     needs: validate-release
     
     steps:

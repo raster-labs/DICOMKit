@@ -16,13 +16,13 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SWIFT_VERSION: '6.2'
+  SWIFT_VERSION: '6.4'
   APP_NAME: 'DICOMStudio'
 
 jobs:
   validate:
     name: Validate Release
-    runs-on: macos-26
+    runs-on: xcode-27
     permissions:
       contents: read
 
@@ -60,7 +60,7 @@ jobs:
 
   build-dmg:
     name: Build DMG Installer
-    runs-on: macos-26
+    runs-on: xcode-27
     needs: validate
     permissions:
       contents: read
@@ -99,7 +99,7 @@ jobs:
 
   build-pkg:
     name: Build PKG Installer
-    runs-on: macos-26
+    runs-on: xcode-27
     needs: validate
     permissions:
       contents: read

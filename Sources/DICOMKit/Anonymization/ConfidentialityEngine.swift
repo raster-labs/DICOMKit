@@ -438,10 +438,11 @@ public struct ConfidentialityEngine {
 
     // MARK: - Basic Profile D on Content Sequence (PS3.15 2026a Table E.1-1, D236)
 
-    /// Measured Value Sequence (0040,A300), Tabulated Values Sequence (0040,A801) and Cell
-    /// Values Sequence (0040,A808) (PS3.3 2026a Tables C.18.1-1, C.18.10-1).
+    /// Measured Value Sequence (0040,A300) (PS3.3 2026a Table C.18.1-1).
     static let measuredValueSequence = Tag(group: 0x0040, element: 0xA300)
+    /// Tabulated Values Sequence (0040,A801) (PS3.3 2026a Table C.18.10-1).
     static let tabulatedValuesSequence = Tag(group: 0x0040, element: 0xA801)
+    /// Cell Values Sequence (0040,A808) (PS3.3 2026a Table C.18.10-1).
     static let cellValuesSequence = Tag(group: 0x0040, element: 0xA808)
     /// The numeric value attributes of a NUM Content Item (Table C.18.1-1, Table 10-2): Numeric
     /// Value (0040,A30A), Floating Point Value (0040,A161), Rational Numerator Value (0040,A162);
