@@ -143,10 +143,13 @@ public enum PDUDecoder {
         var implementationVersionName: String?
         var userIdentity: UserIdentity?
         var roleSelections: [SCPSCURoleSelection] = []
+        var sawUserInformation = false
         var extendedNegotiations: [SOPClassExtendedNegotiation] = []
         
         while offset < data.endIndex {
-            guard offset + 4 <= data.endIndex else { break }
+            guard data.endIndex - offset >= 4 else {
+                throw DICOMNetworkError.decodingFailed("Truncated association item header")
+            }
             
             let itemType = data[offset]
             offset += 1
@@ -155,7 +158,9 @@ public enum PDUDecoder {
             let itemLength = readUInt16BigEndian(from: data, at: offset)
             offset += 2
             
-            guard offset + Int(itemLength) <= data.endIndex else { break }
+            guard Int(itemLength) <= data.endIndex - offset else {
+                throw DICOMNetworkError.decodingFailed("Truncated association item payload")
+            }
             let itemData = Data(data[offset ..< offset + Int(itemLength)])
             offset += Int(itemLength)
             
@@ -168,7 +173,11 @@ public enum PDUDecoder {
                     presentationContexts.append(context)
                 }
                 
-            case 0x50: // User Information
+            case 0x50: // User Information (one item, PS3.8 2026a Tables 9-11/9-18)
+                guard !sawUserInformation else {
+                    throw DICOMNetworkError.decodingFailed("Duplicate User Information item")
+                }
+                sawUserInformation = true
                 let userInfo = try decodeUserInformationFull(from: itemData)
                 maxPDUSize = userInfo.maxPDUSize ?? maxPDUSize
                 implementationClassUID = userInfo.implementationClassUID ?? implementationClassUID
@@ -182,6 +191,13 @@ public enum PDUDecoder {
             }
         }
         
+        do {
+            try SCPSCURoleSelection.validateForEncoding(roleSelections,
+                proposedClasses: Set(presentationContexts.map(\.abstractSyntax)))
+        } catch {
+            throw DICOMNetworkError.decodingFailed("Invalid requested role selection")
+        }
+
         return AssociateRequestPDU(
             protocolVersion: protocolVersion,
             calledAETitle: calledAETitle,
@@ -251,7 +267,9 @@ public enum PDUDecoder {
         var result = UserInformationResult()
         
         while offset < data.endIndex {
-            guard offset + 4 <= data.endIndex else { break }
+            guard data.endIndex - offset >= 4 else {
+                throw DICOMNetworkError.decodingFailed("Truncated association item header")
+            }
             
             let subItemType = data[offset]
             offset += 2 // Type + Reserved
@@ -259,7 +277,9 @@ public enum PDUDecoder {
             let subItemLength = readUInt16BigEndian(from: data, at: offset)
             offset += 2
             
-            guard offset + Int(subItemLength) <= data.endIndex else { break }
+            guard Int(subItemLength) <= data.endIndex - offset else {
+                throw DICOMNetworkError.decodingFailed("Truncated association item payload")
+            }
             let subItemData = Data(data[offset ..< offset + Int(subItemLength)])
             offset += Int(subItemLength)
             
@@ -271,9 +291,12 @@ public enum PDUDecoder {
             case 0x52: // Implementation Class UID
                 result.implementationClassUID = String(data: subItemData, encoding: .ascii)
             case SCPSCURoleSelection.subItemType: // SCP/SCU Role Selection (PS3.7 D.3.3.4)
-                if let role = try? SCPSCURoleSelection.decode(from: subItemData) {
-                    result.roleSelections.append(role)
+                let role = try SCPSCURoleSelection.decode(from: subItemData)
+                guard result.roleSelections.count < 128,
+                      !result.roleSelections.contains(where: { $0.sopClassUID == role.sopClassUID }) else {
+                    throw DICOMNetworkError.decodingFailed("Duplicate or excessive role-selection entries")
                 }
+                result.roleSelections.append(role)
             case SOPClassExtendedNegotiation.subItemType: // SOP Class Extended Negotiation (PS3.7 D.3.3.5)
                 if let negotiation = try? SOPClassExtendedNegotiation.decode(from: subItemData) {
                     result.extendedNegotiations.append(negotiation)
@@ -411,10 +434,13 @@ public enum PDUDecoder {
         var implementationVersionName: String?
         var userIdentityServerResponse: UserIdentityServerResponse?
         var roleSelections: [SCPSCURoleSelection] = []
+        var sawUserInformation = false
         var extendedNegotiations: [SOPClassExtendedNegotiation] = []
         
         while offset < data.endIndex {
-            guard offset + 4 <= data.endIndex else { break }
+            guard data.endIndex - offset >= 4 else {
+                throw DICOMNetworkError.decodingFailed("Truncated association item header")
+            }
             
             let itemType = data[offset]
             offset += 2 // Type + Reserved
@@ -422,7 +448,9 @@ public enum PDUDecoder {
             let itemLength = readUInt16BigEndian(from: data, at: offset)
             offset += 2
             
-            guard offset + Int(itemLength) <= data.endIndex else { break }
+            guard Int(itemLength) <= data.endIndex - offset else {
+                throw DICOMNetworkError.decodingFailed("Truncated association item payload")
+            }
             let itemData = Data(data[offset ..< offset + Int(itemLength)])
             offset += Int(itemLength)
             
@@ -435,7 +463,11 @@ public enum PDUDecoder {
                     presentationContexts.append(context)
                 }
                 
-            case 0x50: // User Information
+            case 0x50: // User Information (one item, PS3.8 2026a Tables 9-11/9-18)
+                guard !sawUserInformation else {
+                    throw DICOMNetworkError.decodingFailed("Duplicate User Information item")
+                }
+                sawUserInformation = true
                 let userInfo = try decodeUserInformationFull(from: itemData)
                 maxPDUSize = userInfo.maxPDUSize ?? maxPDUSize
                 implementationClassUID = userInfo.implementationClassUID ?? implementationClassUID

@@ -9,13 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.0] - 2026-10-12
 
+### Fixed — strict association negotiation
+
+- Reject malformed/trailing SCP/SCU role payloads, invalid UID/role flags, duplicate or excessive roles, and truncated or duplicate User Information items. Preserve absent-role defaults and valid acceptor refusals; validate outgoing role proposals before serialization.
+- Build Release CLI parity prerequisites before the macOS/Studio CI test steps.
+
 ### Fixed — strict compressed-frame decoding
 
 - Validate JPEG/JPEG-LS process, precision, dimensions, components, complete codestream boundaries and caller-selected resource budgets before sample decoding.
 - Return decoded bytes with their actual color/layout and source frame identity through `DecodedPixelFrame`; preserve raw RGB DCT and avoid double-converting YBR output.
 - Use one validated Basic/Extended Offset Table index for selected frames. Reject partial tables, invalid boundaries and ambiguous multiframe layouts.
 - Add opt-in strict encapsulated Pixel Data envelopes, transfer-syntax allowlists and cumulative byte/fragment budgets.
-- Remove the unused Apple-only JLIDICOM product dependency so Linux consumers build only the portable core JPEG codec.
+- Remove the unused JLIDICOM product dependency; DICOMCore owns its DICOM bridge and only requires the core JLISwift product.
 - Pin maintained JLISwift 0.5.1 and JLSwift 0.9.3 releases. Independent synthetic libjpeg/CharLS fixtures check exact lossless output and bounded lossy color differences.
 - See `Documentation/Compression/StrictFrameDecoding.md` for finite support and application-admission limits. The following previously unreleased main-branch changes are also included in 2.3.0.
 

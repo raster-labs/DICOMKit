@@ -444,3 +444,79 @@ struct RoleSelectionPDUTests {
         #expect(!negotiated.isSCPRoleAccepted(for: mrImageStorage), "no answer means default roles (SCU only)")
     }
 }
+
+// PS3.7 2026a D.3.3.4: malformed negotiation must not disappear into default roles.
+@Suite("Strict role-selection wire boundaries")
+struct StrictRoleSelectionTests {
+    private let uid = "1.2.840.10008.5.1.4.1.1.2"
+
+    private func request(_ roles: [SCPSCURoleSelection]) throws -> AssociateRequestPDU {
+        AssociateRequestPDU(calledAETitle: try AETitle("PEER"), callingAETitle: try AETitle("LOCAL"),
+            presentationContexts: [try PresentationContext(id: 1, abstractSyntax: uid,
+                transferSyntaxes: ["1.2.840.10008.1.2.1"])],
+            implementationClassUID: "2.25.1", roleSelections: roles)
+    }
+
+    private func accept(_ roles: [SCPSCURoleSelection]) throws -> AssociateAcceptPDU {
+        AssociateAcceptPDU(calledAETitle: try AETitle("PEER"), callingAETitle: try AETitle("LOCAL"),
+            presentationContexts: [AcceptedPresentationContext(id: 1, result: .acceptance,
+                transferSyntax: "1.2.840.10008.1.2.1")],
+            maxPDUSize: 16384, implementationClassUID: "2.25.1", roleSelections: roles)
+    }
+
+    @Test func rejectsInvalidOutboundRolesWithoutChangingDefaults() throws {
+        let role = SCPSCURoleSelection.scpOnly(uid)
+        for roles in [[role, role], [.both("2.25.1")], [.both("1.2.03")],
+                      [SCPSCURoleSelection(sopClassUID: uid, scuRole: false, scpRole: false)]] {
+            #expect(throws: DICOMNetworkError.self) { try request(roles).encode() }
+        }
+        let tooMany = (0..<129).map { SCPSCURoleSelection.both("2.25.\($0)") }
+        #expect(throws: DICOMNetworkError.self) { try accept(tooMany).encode() }
+        #expect(throws: DICOMNetworkError.self) { try accept([role, role]).encode() }
+        let plain = try PDUDecoder.decode(from: request([]).encode()) as? AssociateRequestPDU
+        #expect(plain?.roleSelections.isEmpty == true)
+        let refusal = SCPSCURoleSelection(sopClassUID: uid, scuRole: false, scpRole: false)
+        let response = try PDUDecoder.decode(from: accept([refusal]).encode()) as? AssociateAcceptPDU
+        #expect(response?.roleSelections == [refusal])
+    }
+
+    @Test func rolePayloadRequiresExactUIDAndBinaryFlags() throws {
+        for badUID in ["", "3.4.5", "1.40.5", "1.2.03", "1.2.3 ", "1.2.3\0", "2.25." + String(repeating: "1", count: 60)] {
+            let wire = SCPSCURoleSelection.both(badUID).encode()
+            #expect(throws: DICOMNetworkError.self) { try SCPSCURoleSelection.decode(from: wire.dropFirst(4)) }
+        }
+        let good = SCPSCURoleSelection.scpOnly(uid).encode()
+        #expect(throws: DICOMNetworkError.self) {
+            try SCPSCURoleSelection.decode(from: Data(good.dropFirst(4)) + Data([0]))
+        }
+    }
+
+    @Test func malformedRoleCannotFallBackToDefaultRoles() throws {
+        let role = SCPSCURoleSelection.scpOnly(uid)
+        for good in [try request([role]).encode(), try accept([role]).encode()] {
+            let item = role.encode()
+            let start = try #require(good.range(of: item)).lowerBound
+            for (offset, value): (Int, UInt8) in [(start + item.count - 2, 2),
+                (start + item.count - 1, 2), (start + 5, UInt8(uid.utf8.count - 1)), (start + 2, 255)] {
+                var bad = good; bad[offset] = value
+                #expect(throws: DICOMNetworkError.self) { try PDUDecoder.decode(from: bad) }
+            }
+            // Reserved bytes are explicitly NOT tested on receipt (Tables D.3-9/D.3-10).
+            var reserved = good; reserved[start + 1] = 255
+            _ = try PDUDecoder.decode(from: reserved)
+
+            // A duplicate User Information item, or an incomplete outer item, is not ignored.
+            var userInfoStart = 74 // six-byte PDU header + 68 fixed association bytes
+            while good[userInfoStart] != 0x50 {
+                userInfoStart += 4 + (Int(good[userInfoStart + 2]) << 8 | Int(good[userInfoStart + 3]))
+            }
+            for suffix in [Data([0]), Data(good[userInfoStart...])] {
+                var bad = good + suffix
+                let length = UInt32(bad.count - 6)
+                bad.replaceSubrange(2..<6, with: [UInt8(length >> 24), UInt8((length >> 16) & 255),
+                    UInt8((length >> 8) & 255), UInt8(length & 255)])
+                #expect(throws: DICOMNetworkError.self) { try PDUDecoder.decode(from: bad) }
+            }
+        }
+    }
+}

@@ -82,6 +82,12 @@ jobs:
     - name: Build DICOMStudio
       run: swift build --target DICOMStudio -v
 
+    # SplitMergeWorkshopCLIParityTests compares against actual Release tools.
+    - name: Build Release CLI parity prerequisites
+      run: |
+        swift build -c release --product dicom-split
+        swift build -c release --product dicom-merge
+
     - name: Run DICOMStudio Tests
       run: swift test --filter DICOMStudioTests -v
 
@@ -108,6 +114,12 @@ jobs:
         key: ${{ runner.os }}-studio-coverage-${{ hashFiles('**/Package.resolved') }}
         restore-keys: |
           ${{ runner.os }}-studio-coverage-
+
+    # SplitMergeWorkshopCLIParityTests compares against actual Release tools.
+    - name: Build Release CLI parity prerequisites
+      run: |
+        swift build -c release --product dicom-split
+        swift build -c release --product dicom-merge
 
     - name: Run Tests with Coverage
       run: |
