@@ -273,9 +273,8 @@ let package = Package(
                 .product(name: "J2KMetal", package: "J2KSwift"),
                 // JPEG-LS — JLSwift backs DICOMCore's JPEGLSCodec.
                 .product(name: "JPEGLS", package: "JLSwift"),
-                // JPEG — JLISwift native-Swift JPEG codec + DICOM bridge helpers.
+                // JPEG — DICOMCore owns its DICOM bridge; only the core codec is required.
                 .product(name: "JLISwift", package: "JLISwift"),
-                .product(name: "JLIDICOM", package: "JLISwift"),
                 // JPEG XL — JXLSwift pure-Swift JPEG XL codec.
                 .product(name: "JXLSwift", package: "JXLSwift")
             ],

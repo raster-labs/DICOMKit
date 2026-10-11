@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Return decoded bytes with their actual color/layout and source frame identity through `DecodedPixelFrame`; preserve raw RGB DCT and avoid double-converting YBR output.
 - Use one validated Basic/Extended Offset Table index for selected frames. Reject partial tables, invalid boundaries and ambiguous multiframe layouts.
 - Add opt-in strict encapsulated Pixel Data envelopes, transfer-syntax allowlists and cumulative byte/fragment budgets.
+- Remove the unused Apple-only JLIDICOM product dependency so Linux consumers build only the portable core JPEG codec.
 - Pin maintained JLISwift 0.5.1 and JLSwift 0.9.3 releases. Independent synthetic libjpeg/CharLS fixtures check exact lossless output and bounded lossy color differences.
 - See `Documentation/Compression/StrictFrameDecoding.md` for finite support and application-admission limits. The following previously unreleased main-branch changes are also included in 2.3.0.
 
