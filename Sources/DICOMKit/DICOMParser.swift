@@ -98,6 +98,9 @@ struct DICOMParser {
     mutating func parseDataSet(startOffset: Int, transferSyntaxUID: String) throws -> DataSet {
         offset = startOffset
         
+        if let allowed = options.allowedTransferSyntaxUIDs, !allowed.contains(transferSyntaxUID) {
+            throw DICOMError.unsupportedTransferSyntax(transferSyntaxUID)
+        }
         // Determine transfer syntax
         guard let transferSyntax = TransferSyntax.from(uid: transferSyntaxUID) else {
             throw DICOMError.unsupportedTransferSyntax(transferSyntaxUID)
@@ -250,7 +253,11 @@ struct DICOMParser {
     ///
     /// Reference: PS3.5 Section A.4 - Transfer Syntaxes For Encapsulation of Encoded Pixel Data
     private mutating func parseEncapsulatedPixelData(isExplicitVR: Bool, byteOrder: ByteOrder) throws -> DataElement {
-        // Read tag (should be 7FE0,0010)
+        let strict = options.strictEncapsulation
+        if strict && (!isExplicitVR || byteOrder != .littleEndian) {
+            throw DICOMError.parsingFailed("Encapsulated Pixel Data requires Explicit VR Little Endian")
+        }
+        // Read Pixel Data tag (7FE0,0010)
         guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder),
               let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
@@ -274,6 +281,7 @@ struct DICOMParser {
             
             guard let vrString = String(bytes: [vrByte0, vrByte1], encoding: .ascii),
                   let parsedVR = VR(rawValue: vrString) else {
+                if strict { throw DICOMError.parsingFailed("Invalid encapsulated Pixel Data VR") }
                 // Default to OB for pixel data if VR is invalid
                 vr = .OB
                 offset -= 2 // backtrack
@@ -282,6 +290,11 @@ struct DICOMParser {
             }
             vr = parsedVR
             
+            if strict {
+                guard vr == .OB, offset + 2 <= data.count, data[offset] == 0, data[offset + 1] == 0 else {
+                    throw DICOMError.parsingFailed("Encapsulated Pixel Data requires OB and zero reserved bytes")
+                }
+            }
             // Skip 2 reserved bytes and read 4-byte length
             offset += 2
             guard let length32 = readUInt32(at: offset, byteOrder: byteOrder) else {
@@ -301,6 +314,7 @@ struct DICOMParser {
         
         // For encapsulated pixel data, the length should be undefined (0xFFFFFFFF)
         guard valueLength == 0xFFFFFFFF else {
+            if strict { throw DICOMError.parsingFailed("Encapsulated Pixel Data requires undefined length") }
             // Not actually encapsulated, treat as regular pixel data
             try checkElementLength(valueLength, tag: tag)
             guard offset + Int(valueLength) <= data.count else {
@@ -330,6 +344,18 @@ struct DICOMParser {
         }
         offset += 4
         
+        guard botLength != 0xffffffff, Int(botLength) <= data.count - offset,
+              Int(botLength) <= options.maximumEncapsulatedBytes else {
+            throw DICOMError.limitExceeded("Basic Offset Table exceeds input or encapsulated byte budget")
+        }
+        if strict && botLength % 4 != 0 { throw DICOMError.parsingFailed("Invalid Basic Offset Table length") }
+        if strict, Int(botLength) / 4 > (options.maxFragmentCount ?? 65_536) {
+            throw DICOMError.limitExceeded("Basic Offset Table exceeds fragment count budget")
+        }
+        var totalBytes = Int(botLength)
+        let fragmentStart = offset + Int(botLength)
+        var fragmentOffsets = Set<UInt32>()
+        var foundDelimiter = false
         // Parse offset table if present
         if botLength > 0 {
             let numOffsets = Int(botLength) / 4
@@ -350,8 +376,14 @@ struct DICOMParser {
             
             // Check for Sequence Delimitation Item
             if itemTag == .sequenceDelimitationItem {
-                offset += 4 // Skip tag
-                offset += 4 // Skip length (should be 0)
+                guard let delimiterLength = readUInt32(at: offset + 4, byteOrder: byteOrder) else {
+                    throw DICOMError.unexpectedEndOfData
+                }
+                if strict && delimiterLength != 0 {
+                    throw DICOMError.parsingFailed("Nonzero Sequence Delimitation Item length")
+                }
+                offset += 8
+                foundDelimiter = true
                 break
             }
             
@@ -359,15 +391,25 @@ struct DICOMParser {
             guard itemTag == .item else {
                 throw DICOMError.parsingFailed("Expected Item or Sequence Delimitation tag, found \(itemTag)")
             }
+            if let value = UInt32(exactly: offset - fragmentStart) { fragmentOffsets.insert(value) }
             offset += 4
-            
+
             guard let fragmentLength = readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
 
+            guard fragmentLength != 0xffffffff,
+                  !strict || (fragmentLength >= 2 && fragmentLength % 2 == 0) else {
+                throw DICOMError.parsingFailed("Invalid encapsulated fragment length")
+            }
+            guard Int(fragmentLength) <= options.maximumEncapsulatedBytes - totalBytes else {
+                throw DICOMError.limitExceeded("Encapsulated payload exceeds cumulative byte budget")
+            }
+            totalBytes += Int(fragmentLength)
             try checkElementLength(fragmentLength, tag: tag)
-            if let maxFragments = options.maxFragmentCount, fragments.count >= maxFragments {
+            if let maxFragments = options.maxFragmentCount ?? (strict ? 65_536 : nil),
+               fragments.count >= maxFragments {
                 throw DICOMError.limitExceeded(
                     "Encapsulated fragment count exceeds maxFragmentCount (\(maxFragments))")
             }
@@ -381,6 +423,14 @@ struct DICOMParser {
             offset += Int(fragmentLength)
         }
         
+        if strict {
+            guard foundDelimiter, !fragments.isEmpty,
+                  offsetTable.isEmpty || (offsetTable.first == 0
+                    && zip(offsetTable, offsetTable.dropFirst()).allSatisfy({ $0 < $1 })
+                    && offsetTable.allSatisfy({ fragmentOffsets.contains($0) })) else {
+                throw DICOMError.parsingFailed("Incomplete encapsulation or invalid Basic Offset Table offsets")
+            }
+        }
         return DataElement(
             tag: tag,
             vr: vr,

@@ -256,6 +256,10 @@ public protocol ImageCodec: Sendable {
     /// - Returns: Uncompressed frame data
     /// - Throws: DICOMError if decoding fails
     func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data
+
+    /// Decodes a frame and reports the actual output photometric interpretation and layout.
+    func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
+                          frameIndex: Int) throws -> DecodedPixelFrame
 }
 
 // MARK: - Caller-Owned Frame Decoding (WP-F, plan M3)
@@ -358,6 +362,13 @@ extension ImageEncoder {
 // MARK: - Default Implementation
 
 extension ImageCodec {
+    /// Default for codecs that preserve the source sample meaning and layout.
+    public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
+                                 frameIndex: Int) throws -> DecodedPixelFrame {
+        DecodedPixelFrame(data: try decodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex),
+                          descriptor: descriptor, sourceFrameIndex: frameIndex)
+    }
+
     /// Default implementation decodes all data at once
     public func decode(_ data: Data, descriptor: PixelDataDescriptor) throws -> Data {
         // Default implementation for single-frame or when all frames can be decoded together
@@ -385,18 +396,10 @@ public struct CodecRegistry: Sendable {
         var decoderRegistry: [String: any ImageCodec] = [:]
         var encoderRegistry: [String: any ImageEncoder] = [:]
         
-        // JPEG codec — JLISwift, the pure-Swift ITU-T T.81 implementation, covers
-        // all four DICOM JPEG transfer syntaxes for both decode and encode. One
-        // decoder serves every SOF mode (the marker drives it); encoders are
-        // per-syntax — the target UID selects baseline/extended lossy DCT vs
-        // lossless SOF3 — mirroring the J2KSwiftCodec wiring below. This replaces
-        // the prior ImageIO-only path, so JPEG encode/decode now works identically
-        // on every platform (and adds Extended/Lossless/SV1 *encoding*, which the
-        // ImageIO path never supported). NativeJPEGCodec remains in the tree as a
-        // standalone Apple codec, no longer wired into the registry.
-        let jpegDecoder = JLICodec()
+        // Each JPEG decoder enforces its negotiated DICOM process. Encoders
+        // likewise select their target process per syntax.
         for uid in JLICodec.supportedTransferSyntaxes {
-            decoderRegistry[uid] = jpegDecoder
+            decoderRegistry[uid] = JLICodec(decodingTransferSyntaxUID: uid)
         }
         for uid in JLICodec.supportedEncodingTransferSyntaxes {
             encoderRegistry[uid] = JLICodec(encodingTransferSyntaxUID: uid)

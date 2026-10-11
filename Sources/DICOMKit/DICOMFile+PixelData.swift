@@ -24,59 +24,7 @@ extension DICOMFile {
     ///
     /// - Returns: PixelData if extraction succeeds
     public func pixelData() -> PixelData? {
-        // First try to get uncompressed pixel data directly
-        if let uncompressedData = dataSet.pixelData() {
-            return uncompressedData
-        }
-        
-        // Check if we have encapsulated (compressed) pixel data
-        guard let encapsulated = dataSet.encapsulatedPixelData(),
-              let tsUID = transferSyntaxUID else {
-            return nil
-        }
-        
-        // Get the codec for this transfer syntax
-        guard let codec = CodecRegistry.shared.codec(for: tsUID) else {
-            // No codec available for this transfer syntax
-            return nil
-        }
-        
-        // Decompress all frames
-        let descriptor = encapsulated.descriptor
-        var decompressedData = Data()
-        
-        for frameIndex in 0..<descriptor.numberOfFrames {
-            guard let frameData = encapsulated.frameData(at: frameIndex) else {
-                // Could not retrieve frame data from encapsulated pixel data
-                return nil
-            }
-            
-            do {
-                let decompressedFrame = try codec.decodeFrame(
-                    frameData,
-                    descriptor: descriptor,
-                    frameIndex: frameIndex
-                )
-                decompressedData.append(decompressedFrame)
-            } catch {
-                // Decompression failed - codec could not decode the compressed frame data
-                // This can happen if the compressed data is corrupted or uses an unsupported
-                // variant of the compression format
-                return nil
-            }
-        }
-        
-        // Most registry codecs (J2KSwiftCodec for JPEG 2000 / HTJ2K, plus JPEG-LS /
-        // RLE, and SOF3 lossless JPEG) decode to the *source* photometric
-        // interpretation, so their bytes still match the data set's Photometric
-        // Interpretation and the renderer performs any YBR→RGB conversion itself.
-        // JPEG Baseline/Extended (SOF0/SOF1) are the exception — JLIDecoder converts
-        // YCbCr→RGB internally — so the tag is corrected to RGB below to avoid a
-        // double conversion. Reference: DICOM PS3.3 C.7.6.3.1.2
-        return PixelData(
-            data: decompressedData,
-            descriptor: Self.correctedDescriptorForDecodedBytes(descriptor, transferSyntaxUID: tsUID)
-        )
+        try? tryPixelData()
     }
 
     /// Returns a descriptor whose Photometric Interpretation matches the *decoded*
@@ -189,38 +137,27 @@ extension DICOMFile {
             throw PixelDataError.unsupportedTransferSyntax(tsUID)
         }
         
-        // Decompress all frames
+        guard let index = encapsulated.makeFrameIndex(extendedOffsets: extendedOffsetTableValues()) else {
+            throw PixelDataError.frameExtractionFailed(frameIndex: 0)
+        }
         var decompressedData = Data()
-        
+        var outputDescriptor = descriptor
         for frameIndex in 0..<descriptor.numberOfFrames {
-            guard let frameData = encapsulated.frameData(at: frameIndex) else {
+            guard let frameData = encapsulated.frameData(at: frameIndex, using: index) else {
                 throw PixelDataError.frameExtractionFailed(frameIndex: frameIndex)
             }
-            
             do {
-                let decompressedFrame = try codec.decodeFrame(
-                    frameData,
-                    descriptor: descriptor,
-                    frameIndex: frameIndex
-                )
-                decompressedData.append(decompressedFrame)
+                let decoded = try codec.decodePixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
+                if frameIndex > 0 && decoded.descriptor != outputDescriptor {
+                    throw DICOMError.parsingFailed("Inconsistent decoded frame descriptors")
+                }
+                outputDescriptor = decoded.descriptor
+                decompressedData.append(decoded.data)
             } catch {
-                throw PixelDataError.decodingFailed(
-                    frameIndex: frameIndex,
-                    reason: error.localizedDescription
-                )
+                throw PixelDataError.decodingFailed(frameIndex: frameIndex, reason: error.localizedDescription)
             }
         }
-        
-        // JPEG Baseline/Extended decode yields RGB even from a YBR-tagged source
-        // (JLIDecoder converts internally); correct the descriptor so the renderer
-        // does not double-convert. Other codecs decode to the source photometric
-        // interpretation and are left unchanged. See the matching note and helper in
-        // `pixelData()`. Reference: DICOM PS3.3 C.7.6.3.1.2
-        return PixelData(
-            data: decompressedData,
-            descriptor: Self.correctedDescriptorForDecodedBytes(descriptor, transferSyntaxUID: tsUID)
-        )
+        return PixelData(data: decompressedData, descriptor: outputDescriptor)
     }
 
     /// Creates a PixelDataDescriptor from the file's image pixel attributes

@@ -34,8 +34,12 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// `nil` (the default) accepts both lossless and near-lossless scans.
     private let decodingTransferSyntaxUID: String?
 
-    public init(decodingTransferSyntaxUID: String? = nil) {
+    private let decodingLimits: PixelDecodeLimits
+
+    /// Creates a decoder with optional syntax enforcement and caller-selected resource bounds.
+    public init(decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default) {
         self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
+        self.decodingLimits = decodingLimits
     }
 
     // MARK: - Decoding
@@ -44,55 +48,49 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     ///
     /// The decoded frame header must match the descriptor exactly: width and
     /// height equal Columns and Rows, the component count equals Samples per
-    /// Pixel and the sample precision P equals Bits Stored (PS3.5 A.4.3; DCMTK
-    /// refuses the same mismatch); every component must be a full-size plane.
+    /// Pixel and the sample precision P equals Bits Stored (PS3.5 2026a A.4.3); every component must be a full-size plane.
     /// Any mismatch throws. Previously a mis-sized frame was silently
     /// zero-filled or truncated to the descriptor's byte count and an
     /// over-precise frame was silently clamped.
     /// - Parameters:
     ///   - frameData: JPEG-LS compressed data
     ///   - descriptor: Pixel data descriptor
-    ///   - frameIndex: Frame index (unused for single frame decode)
+    ///   - frameIndex: Zero-based source frame index, validated against the descriptor
     /// - Returns: Uncompressed pixel data laid out per `descriptor`
     /// - Throws: `DICOMError` if decoding fails or the frame does not match `descriptor`
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
-        guard !frameData.isEmpty else {
-            throw DICOMError.parsingFailed("Empty JPEG-LS data")
+        let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
+        _ = try JPEGFrameEnvelope.parse(frameData, jpegLS: true)
+        let data = frameData.startIndex == 0 ? frameData : Data(frameData)
+        let parsed = try JPEGLSParser(data: data).parse()
+        // JLSwift applies LSE type 4 to the returned effective frame header.
+        let header = parsed.frameHeader
+        guard header.width == descriptor.columns, header.height == descriptor.rows,
+              header.componentCount == descriptor.samplesPerPixel, header.bitsPerSample == descriptor.bitsStored else {
+            throw DICOMError.parsingFailed("JPEG-LS effective header does not match DICOM descriptor")
         }
-
-        if decodingTransferSyntaxUID == TransferSyntax.jpegLSLossless.uid {
-            try Self.requireLosslessScans(in: frameData)
+        if let uid = decodingTransferSyntaxUID {
+            guard Self.supportedTransferSyntaxes.contains(uid) else {
+                throw DICOMError.parsingFailed("Unsupported JPEG-LS decoding transfer syntax")
+            }
+            if uid == TransferSyntax.jpegLSLossless.uid, parsed.scanHeaders.contains(where: { $0.near > 0 }) {
+                throw DICOMError.parsingFailed("JPEG-LS Lossless frame carries a near-lossless scan")
+            }
         }
 
         let image: MultiComponentImageData
         do {
-            image = try JPEGLSDecoder().decode(frameData)
+            image = try JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
+                maximumPixels: decodingLimits.maximumPixels,
+                maximumDecodedBytes: decodingLimits.maximumDecodedBytes)).decode(data)
         } catch {
             throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error)")
         }
 
         try Self.validate(image, against: descriptor)
-        return serialize(image, descriptor: descriptor)
-    }
-
-    /// Throws when any scan in `frameData` carries NEAR > 0 (ITU-T T.87 C.2.4.1.1).
-    ///
-    /// Only the marker structure is parsed; no sample is decoded.
-    static func requireLosslessScans(in frameData: Data) throws {
-        // JLSwift's parser walks zero-based offsets; rebase a slice first.
-        let data = frameData.startIndex == 0 ? frameData : Data(frameData)
-        let parsed: JPEGLSParseResult
-        do {
-            parsed = try JPEGLSParser(data: data).parse()
-        } catch {
-            throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error)")
-        }
-        if let scan = parsed.scanHeaders.first(where: { $0.near > 0 }) {
-            throw DICOMError.parsingFailed(
-                "JPEG-LS Lossless (\(TransferSyntax.jpegLSLossless.uid)) frame carries a near-lossless scan "
-                    + "(NEAR = \(scan.near)); refusing to decode inexact samples under a lossless transfer syntax"
-            )
-        }
+        let bytes = serialize(image, descriptor: descriptor)
+        guard bytes.count == expectedBytes else { throw DICOMError.parsingFailed("JPEG-LS output length mismatch") }
+        return bytes
     }
 
     /// Verifies that the decoded image is exactly the frame `descriptor` declares.

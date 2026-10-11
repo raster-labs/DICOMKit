@@ -12,9 +12,8 @@ import JLISwift
 ///   • 1.2.840.10008.1.2.4.57  JPEG Lossless (Process 14)       — predictive       (SOF3)
 ///   • 1.2.840.10008.1.2.4.70  JPEG Lossless SV1 (Process 14,1) — predictive, P1   (SOF3)
 ///
-/// **Decoding** is mode-agnostic: `JLIDecoder` auto-detects the SOF marker, so a
-/// single decoder serves all four syntaxes (`encodingTransferSyntaxUID` is ignored
-/// on the decode path).
+/// **Decoding** validates the codestream process and descriptor before allocating samples.
+/// The registry constructs a decoder per transfer syntax; direct callers may omit that restriction.
 ///
 /// **Encoding** is mode-specific: the JPEG process is selected from
 /// `encodingTransferSyntaxUID`. The registry constructs one instance per encode
@@ -43,12 +42,19 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     /// decoding (the SOF marker drives the decoder).
     public let encodingTransferSyntaxUID: String
 
+    private let decodingTransferSyntaxUID: String?
+    private let decodingLimits: PixelDecodeLimits
+
     /// Creates a JPEG codec.
-    /// - Parameter encodingTransferSyntaxUID: The target syntax for encoding.
-    ///   Defaults to JPEG Lossless SV1 so a bare `JLICodec()` is bit-exact
-    ///   (the bench / adapter-test contract).
-    public init(encodingTransferSyntaxUID: String = TransferSyntax.jpegLosslessSV1.uid) {
+    /// - Parameters:
+    ///   - encodingTransferSyntaxUID: The target syntax; defaults to JPEG Lossless SV1.
+    ///   - decodingTransferSyntaxUID: Optional syntax to enforce against the encoded JPEG process.
+    ///   - decodingLimits: Bounds enforced before sample decoding.
+    public init(encodingTransferSyntaxUID: String = TransferSyntax.jpegLosslessSV1.uid,
+                decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default) {
         self.encodingTransferSyntaxUID = encodingTransferSyntaxUID
+        self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
+        self.decodingLimits = decodingLimits
     }
 
     /// Whether the target syntax is one of the two lossless (SOF3) JPEG processes.
@@ -64,20 +70,93 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
 
     // MARK: - Decoding
 
-    /// Decodes a JPEG-compressed frame (any SOF mode) to DICOM pixel bytes.
+    /// Decodes a supported JPEG frame to DICOM pixel bytes.
     /// - Parameters:
     ///   - frameData: A single JPEG codestream.
     ///   - descriptor: Pixel data descriptor (drives the planar reshuffle).
-    ///   - frameIndex: Frame index (unused — one codestream per call).
-    /// - Returns: Uncompressed pixel data laid out per `descriptor`.
+    ///   - frameIndex: Zero-based source frame index, validated against the descriptor.
+    /// - Returns: Uncompressed pixels; use `decodePixelFrame` to obtain the actual output color descriptor.
     /// - Throws: `DICOMError` if decoding fails.
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
-        guard !frameData.isEmpty else {
-            throw DICOMError.parsingFailed("Empty JPEG data")
+        try decodePixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex).data
+    }
+
+    /// Returns the actual decoded color interpretation, without altering the source descriptor.
+    public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
+                                 frameIndex: Int) throws -> DecodedPixelFrame {
+        let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
+        let header = try JPEGFrameEnvelope.parse(frameData, jpegLS: false)
+        guard header.width == descriptor.columns, header.height == descriptor.rows,
+              header.precision == descriptor.bitsStored, header.components.count == descriptor.samplesPerPixel else {
+            throw DICOMError.parsingFailed("JPEG header does not match DICOM dimensions, components or precision")
+        }
+        if let uid = decodingTransferSyntaxUID {
+            let expected: UInt8
+            switch uid {
+            case TransferSyntax.jpegBaseline.uid: expected = 0xc0
+            case TransferSyntax.jpegExtended.uid: expected = 0xc1
+            case TransferSyntax.jpegLossless.uid, TransferSyntax.jpegLosslessSV1.uid: expected = 0xc3
+            default: throw DICOMError.parsingFailed("Unsupported JPEG decoding transfer syntax")
+            }
+            guard header.process == expected else {
+                throw DICOMError.parsingFailed("JPEG process does not match transfer syntax")
+            }
+        }
+        let lossless = header.process == 0xc3
+        if lossless {
+            guard header.sampling.allSatisfy({ $0 == 0x11 }),
+                  header.scanParameters.allSatisfy({ (1...7).contains($0.first) && $0.last == 0
+                      && $0.approximation == 0
+                      && (decodingTransferSyntaxUID != TransferSyntax.jpegLosslessSV1.uid || $0.first == 1) }) else {
+                throw DICOMError.parsingFailed("Unsupported JPEG lossless sampling, predictor or point transform")
+            }
+        } else {
+            guard !descriptor.isSigned,
+                  (header.process == 0xc0 ? header.precision == 8 : [8, 12].contains(header.precision)),
+                  header.scanParameters.allSatisfy({ $0.first == 0 && $0.last == 63 && $0.approximation == 0 }) else {
+                throw DICOMError.parsingFailed("Unsupported JPEG DCT precision or scan parameters")
+            }
+            if descriptor.samplesPerPixel == 3, let transform = header.adobeTransform,
+               transform != 0 && transform != 1 {
+                throw DICOMError.parsingFailed("Unsupported Adobe JPEG color transform")
+            }
         }
         do {
-            let image = try JLIDecoder().decode(from: [UInt8](frameData))
-            return dicomFrameBytes(fromInterleaved: image.data, descriptor: descriptor)
+            let sourceColor: JLIColorModel?
+            if lossless || descriptor.samplesPerPixel == 1 { sourceColor = nil }
+            else if header.adobeTransform == 0 || header.components == [82, 71, 66] { sourceColor = .rgb }
+            else if header.jfif || header.adobeTransform == 1 || descriptor.photometricInterpretation.isYBR {
+                sourceColor = .yCbCr
+            } else { sourceColor = .rgb }
+            let configuration = JLIDecoderConfiguration(sourceColorModel: sourceColor,
+                maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
+                maximumPixels: decodingLimits.maximumPixels,
+                maximumDecodedBytes: decodingLimits.maximumDecodedBytes)
+            let image = try JLIDecoder().decode(from: [UInt8](frameData), configuration: configuration)
+            // JLISwift chooses its container from encoded precision, whereas DICOM may allocate 16 bits for 8 stored.
+            var bytes = image.data
+            if header.precision <= 8 && descriptor.bitsAllocated == 16 {
+                bytes = bytes.flatMap { [$0, 0] }
+            }
+            guard image.width == descriptor.columns, image.height == descriptor.rows, bytes.count == expectedBytes else {
+                throw DICOMError.parsingFailed("JPEG decoder returned a mismatched frame")
+            }
+            let outputPI: PhotometricInterpretation
+            if lossless { outputPI = descriptor.photometricInterpretation }
+            else {
+                switch image.colorModel {
+                case .rgb: outputPI = .rgb
+                case .grayscale: outputPI = descriptor.photometricInterpretation
+                default: throw DICOMError.parsingFailed("Unexpected JPEG decoder output color model")
+                }
+            }
+            let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
+                bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
+                samplesPerPixel: descriptor.samplesPerPixel, photometricInterpretation: outputPI,
+                planarConfiguration: descriptor.planarConfiguration)
+            return DecodedPixelFrame(data: dicomFrameBytes(fromInterleaved: bytes, descriptor: output),
+                                     descriptor: output, sourceFrameIndex: frameIndex)
         } catch {
             throw DICOMError.parsingFailed("JLISwift decode failed: \(error)")
         }

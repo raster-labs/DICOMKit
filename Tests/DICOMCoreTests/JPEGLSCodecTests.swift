@@ -514,7 +514,6 @@ struct JPEGLSCodecStrictDecodingTests {
         #expect(throws: DICOMError.self) {
             try JPEGLSCodec(decodingTransferSyntaxUID: Self.lossless).decodeFrame(encoded, descriptor: descriptor, frameIndex: 0)
         }
-        #expect(throws: DICOMError.self) { try JPEGLSCodec.requireLosslessScans(in: encoded) }
         #expect(try JPEGLSCodec(decodingTransferSyntaxUID: Self.nearLossless).decodeFrame(encoded, descriptor: descriptor, frameIndex: 0).count == 64)
         #expect(try JPEGLSCodec().decodeFrame(encoded, descriptor: descriptor, frameIndex: 0).count == 64)
         #expect(try JPEGLSCodec(decodingTransferSyntaxUID: Self.lossless).decodeFrame(exact, descriptor: descriptor, frameIndex: 0).count == 64)

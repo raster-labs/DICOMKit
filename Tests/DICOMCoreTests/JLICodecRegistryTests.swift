@@ -147,7 +147,12 @@ struct JLICodecRegistryTests {
 
         let config = CompressionConfiguration(quality: .maximum, speed: .balanced)
         let encoded = try encoder.encodeFrame(original, descriptor: d, frameIndex: 0, configuration: config)
-        let decoded = try decoder.decodeFrame(encoded, descriptor: d, frameIndex: 0)
+        // JPEG encoding transforms RGB to YBR_FULL_422; the compressed descriptor
+        // must describe that stream (as CompressionManager writes it).
+        let compressed = PixelDataDescriptor(rows: d.rows, columns: d.columns,
+            bitsAllocated: 8, bitsStored: 8, highBit: 7, isSigned: false, samplesPerPixel: spp,
+            photometricInterpretation: spp == 3 ? .ybrFull422 : .monochrome2)
+        let decoded = try decoder.decodeFrame(encoded, descriptor: compressed, frameIndex: 0)
 
         #expect(decoded.count == original.count)
         let q = psnr(original, decoded, bytesPerSample: 1, maxVal: 255)

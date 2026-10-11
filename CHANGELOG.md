@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-12
+
+### Fixed — strict compressed-frame decoding
+
+- Validate JPEG/JPEG-LS process, precision, dimensions, components, complete codestream boundaries and caller-selected resource budgets before sample decoding.
+- Return decoded bytes with their actual color/layout and source frame identity through `DecodedPixelFrame`; preserve raw RGB DCT and avoid double-converting YBR output.
+- Use one validated Basic/Extended Offset Table index for selected frames. Reject partial tables, invalid boundaries and ambiguous multiframe layouts.
+- Add opt-in strict encapsulated Pixel Data envelopes, transfer-syntax allowlists and cumulative byte/fragment budgets.
+- Pin maintained JLISwift 0.5.1 and JLSwift 0.9.3 releases. Independent synthetic libjpeg/CharLS fixtures check exact lossless output and bounded lossy color differences.
+- See `Documentation/Compression/StrictFrameDecoding.md` for finite support and application-admission limits. The following previously unreleased main-branch changes are also included in 2.3.0.
+
+
 ### Added — P-IMAGE-STUDY-DATETIME (2026-10-06, DICOM 2026a)
 
 - dicom-image `--study-date` / `--study-time`: Study Date / Time (0008,0020/0030), Type 2 "Date / Time the Study started" (PS3.3 2026a Table C.7-3). Absent: the run's start for a new Study, the same in every instance of a batch or TIFF run; empty with `--study-uid` (PS3.5 7.4.3). Values that are not DA (Gregorian YYYYMMDD) / TM are refused with exit 1 and nothing written (PS3.5 Table 6.2-1).

@@ -67,6 +67,17 @@ public struct ParsingOptions: Sendable {
     /// Exceeding this throws `DICOMError.limitExceeded`.
     public let maxFragmentCount: Int?
 
+    /// Enforce the PS3.5 2026a A.4 encapsulation envelope, including complete
+    /// delimiters, even nonempty fragments and Basic Offset Table item boundaries.
+    /// Opt-in for compatibility with historically tolerated nonconformant files.
+    public let strictEncapsulation: Bool
+
+    /// Optional finite transfer-syntax admission policy, checked before dataset parsing.
+    public let allowedTransferSyntaxUIDs: Set<String>?
+
+    /// Maximum cumulative encapsulated bytes (table and fragment payloads).
+    public let maximumEncapsulatedBytes: Int
+
     /// Hard limit on the inflated size of a Deflated Explicit VR Little Endian Data
     /// Set (PS3.5 A.5). Inflation stops and the read fails once the limit would be
     /// exceeded, so a small compressed file cannot expand without bound.
@@ -98,8 +109,14 @@ public struct ParsingOptions: Sendable {
         maxElementLength: Int? = nil,
         maxTotalElements: Int? = nil,
         maxFragmentCount: Int? = nil,
-        maximumInflatedByteCount: Int = ParsingOptions.defaultMaximumInflatedByteCount
+        maximumInflatedByteCount: Int = ParsingOptions.defaultMaximumInflatedByteCount,
+        strictEncapsulation: Bool = false,
+        maximumEncapsulatedBytes: Int = 1 << 30,
+        allowedTransferSyntaxUIDs: Set<String>? = nil
     ) {
+        self.allowedTransferSyntaxUIDs = allowedTransferSyntaxUIDs
+        self.strictEncapsulation = strictEncapsulation
+        self.maximumEncapsulatedBytes = maximumEncapsulatedBytes
         self.mode = mode
         self.stopAfterTag = stopAfterTag
         self.maxElements = maxElements
