@@ -152,50 +152,6 @@ struct SecurityServiceTests {
         #expect(service.getAnonymizationJobs().count == 1)
     }
 
-    @Test("initial selected profile is the PS3.15 Basic Profile (P-STUDIO-ANON-PS315)")
-    func testInitialSelectedProfilePS315() {
-        let service = SecurityService()
-        #expect(service.getSelectedProfile() == .ps315)
-    }
-
-    @Test("setSelectedProfile updates profile")
-    func testSetSelectedProfileUpdates() {
-        let service = SecurityService()
-        service.setSelectedProfile(.hipaaeSafeHarbor)
-        #expect(service.getSelectedProfile() == .hipaaeSafeHarbor)
-    }
-
-    @Test("initial custom rules is empty")
-    func testInitialCustomRulesEmpty() {
-        let service = SecurityService()
-        #expect(service.getCustomRules().isEmpty)
-    }
-
-    @Test("addCustomRule increases count")
-    func testAddCustomRuleIncreasesCount() {
-        let service = SecurityService()
-        service.addCustomRule(AnonymizationTagRule(tag: "0010,0010"))
-        #expect(service.getCustomRules().count == 1)
-    }
-
-    @Test("removeCustomRule decreases count")
-    func testRemoveCustomRuleDecreasesCount() {
-        let service = SecurityService()
-        let rule = AnonymizationTagRule(tag: "0010,0010")
-        service.addCustomRule(rule)
-        service.removeCustomRule(id: rule.id)
-        #expect(service.getCustomRules().isEmpty)
-    }
-
-    @Test("setCustomRules replaces existing rules")
-    func testSetCustomRulesReplaces() {
-        let service = SecurityService()
-        service.addCustomRule(AnonymizationTagRule(tag: "0010,0010"))
-        let newRules = [AnonymizationTagRule(tag: "0008,0080"), AnonymizationTagRule(tag: "0008,0090")]
-        service.setCustomRules(newRules)
-        #expect(service.getCustomRules().count == 2)
-    }
-
     @Test("initial PHI detection results is empty")
     func testInitialPHIDetectionEmpty() {
         let service = SecurityService()

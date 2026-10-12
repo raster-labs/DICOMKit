@@ -2,6 +2,7 @@
 // DICOMStudioTests
 
 import Testing
+import DICOMKit
 @testable import DICOMStudio
 import Foundation
 
@@ -84,12 +85,13 @@ struct SecurityModelTests {
         #expect(SecurityTLSMode.development.minimumTLSVersion == "TLS 1.2")
     }
 
-    @Test("AnonymizationProfile descriptions state the engine's attribute counts, not '18 HIPAA identifiers'")
-    func testProfileDescriptionsNameEngineCounts() {
-        #expect(AnonymizationProfile.basic.shortDescription.contains("14"))
-        #expect(AnonymizationProfile.clinicalTrial.shortDescription.contains("22"))
-        #expect(!AnonymizationProfile.basic.shortDescription.contains("18 HIPAA"))
-        #expect(AnonymizationProfile.hipaaeSafeHarbor.shortDescription.contains("Not a complete"))
+    @Test("Shared anonymization defaults enable OCR without retaining identifiers")
+    func testSharedAnonymizationDefaults() {
+        let request = AnonymizationWorkflow.Request(inputPath: "/in/a.dcm")
+        #expect(request.cleanPixelData)
+        #expect(request.ocrMode == "classify")
+        #expect(!request.retainUids)
+        #expect(!request.retainInstitution)
     }
 
     @Test("SecurityTLSMode strict and compatible are production-safe")
@@ -191,92 +193,6 @@ struct SecurityModelTests {
     func testCertificateEntryUniqueID() {
         let a = SecurityCertificateEntry(commonName: "a")
         let b = SecurityCertificateEntry(commonName: "b")
-        #expect(a.id != b.id)
-    }
-
-    // MARK: - AnonymizationProfile
-
-    @Test("AnonymizationProfile all cases have non-empty display names")
-    func testAnonymizationProfileDisplayNames() {
-        for profile in AnonymizationProfile.allCases {
-            #expect(!profile.displayName.isEmpty)
-        }
-    }
-
-    @Test("AnonymizationProfile all cases have non-empty short descriptions")
-    func testAnonymizationProfileShortDescriptions() {
-        for profile in AnonymizationProfile.allCases {
-            #expect(!profile.shortDescription.isEmpty)
-        }
-    }
-
-    @Test("AnonymizationProfile has 6 cases, ps315 first")
-    func testAnonymizationProfileCaseCount() {
-        #expect(AnonymizationProfile.allCases.count == 6)
-        #expect(AnonymizationProfile.allCases.first == .ps315)
-    }
-
-    /// P-STUDIO-ANON-PS315: the raw values of the existing cases are unchanged, so any stored
-    /// value still decodes; `.ps315` adds `PS315`.
-    @Test("AnonymizationProfile raw values: existing ones unchanged, PS315 added")
-    func testAnonymizationProfileRawValues() {
-        #expect(AnonymizationProfile(rawValue: "BASIC") == .basic)
-        #expect(AnonymizationProfile(rawValue: "CLINICAL_TRIAL") == .clinicalTrial)
-        #expect(AnonymizationProfile(rawValue: "RESEARCH") == .research)
-        #expect(AnonymizationProfile(rawValue: "HIPAA_SAFE_HARBOR") == .hipaaeSafeHarbor)
-        #expect(AnonymizationProfile(rawValue: "CUSTOM") == .custom)
-        #expect(AnonymizationProfile(rawValue: "PS315") == .ps315)
-    }
-
-    /// PS3.15 2026a Annex E names the profile "Basic Application Level Confidentiality
-    /// Profile" (E.1); the legacy lists are labelled as not PS3.15.
-    @Test("ps315 display name is the PS3.15 2026a Annex E name; legacy cases say not PS3.15")
-    func testPS315DisplayName() {
-        #expect(AnonymizationProfile.ps315.displayName == "PS3.15 Basic Application Level Confidentiality Profile")
-        #expect(AnonymizationProfile.ps315.isPS315)
-        for profile in AnonymizationProfile.allCases where profile != .ps315 {
-            #expect(profile.displayName.contains("not PS3.15"), Comment(rawValue: profile.displayName))
-            #expect(!profile.isPS315)
-        }
-        #expect(AnonymizationProfile.builderProfiles == [.ps315, .basic, .clinicalTrial, .research])
-        #expect(AnonymizationProfile.ps315.shortDescription.contains("Table E.1-1"))
-        #expect(AnonymizationProfile.ps315.shortDescription.contains("(0012,0062)"))
-        #expect(AnonymizationJob().profile == .ps315)
-    }
-
-    // MARK: - TagAction
-
-    @Test("TagAction all cases have non-empty display names")
-    func testTagActionDisplayNames() {
-        for action in TagAction.allCases {
-            #expect(!action.displayName.isEmpty)
-        }
-    }
-
-    @Test("TagAction all cases have non-empty SF symbols")
-    func testTagActionSFSymbols() {
-        for action in TagAction.allCases {
-            #expect(!action.sfSymbol.isEmpty)
-        }
-    }
-
-    @Test("TagAction has 6 cases")
-    func testTagActionCaseCount() {
-        #expect(TagAction.allCases.count == 6)
-    }
-
-    // MARK: - AnonymizationTagRule
-
-    @Test("AnonymizationTagRule default action is remove")
-    func testTagRuleDefaultAction() {
-        let rule = AnonymizationTagRule(tag: "0010,0010")
-        #expect(rule.action == .remove)
-    }
-
-    @Test("AnonymizationTagRule default id is unique")
-    func testTagRuleUniqueID() {
-        let a = AnonymizationTagRule(tag: "0010,0010")
-        let b = AnonymizationTagRule(tag: "0010,0020")
         #expect(a.id != b.id)
     }
 
@@ -569,48 +485,29 @@ struct SecurityModelTests {
         #expect(result.hasPHI == false)
     }
 
-    // MARK: - AnonymizationProfile ↔ dicom-anon --profile (PS3.15 2026a Annex E)
-
-    /// Since 2026-10-01 (P-ANON-PROFILE) dicom-anon's `--profile basic` is the PS3.15 Basic
-    /// Application Level Confidentiality Profile; the app's profiles are fixed attribute
-    /// lists, which the CLI names `legacy-basic`, `legacy-clinical-trial`, `legacy-research`.
-    @Test("AnonymizationProfile.cliFlag: ps315 for the PS3.15 profile, the CLI's legacy list for every other case")
-    func testAnonymizationProfileCLIFlagsAreLegacyLists() {
-        let legacy: Set<String> = ["legacy-basic", "legacy-clinical-trial", "legacy-research"]
-        #expect(AnonymizationProfile.ps315.cliFlag == "ps315")
-        // DICOMKit AnonCLI.defaultProfile == "ps315" is pinned in CLIWorkshopHelpersTests
-        // (this file cannot import DICOMKit, which has its own AnonymizationProfile).
-        for profile in AnonymizationProfile.allCases where profile != .ps315 {
-            #expect(legacy.contains(profile.cliFlag), Comment(rawValue: "\(profile) → \(profile.cliFlag)"))
-            #expect(profile.cliFlag != "basic" && profile.cliFlag != "ps315")
-        }
-        #expect(AnonymizationProfile.basic.cliFlag == "legacy-basic")
-        #expect(AnonymizationProfile.clinicalTrial.cliFlag == "legacy-clinical-trial")
-        #expect(AnonymizationProfile.research.cliFlag == "legacy-research")
-        #expect(AnonymizationProfile.hipaaeSafeHarbor.cliFlag == "legacy-basic")
-        #expect(AnonymizationProfile.custom.cliFlag == "legacy-basic")
+    @Test("Anon command uses the shared Basic Profile workflow")
+    func testAnonCommandUsesSharedWorkflow() {
+        var request = AnonymizationWorkflow.Request(inputPath: "/in/a.dcm")
+        request.output = "/out/a.dcm"
+        #expect(AnonHelpers.buildCommand(request) == "dicom-anon \"/in/a.dcm\" --output \"/out/a.dcm\"")
     }
 
-    @Test("AnonHelpers.buildCommand always names --profile (the CLI default is ps315, not the app's list)")
-    func testAnonCommandAlwaysNamesProfile() {
-        for profile in AnonymizationProfile.allCases {
-            let cmd = AnonHelpers.buildCommand(
-                inputPath: "/in/a.dcm", outputPath: "/out/a.dcm", profile: profile,
-                shiftDates: nil, regenerateUIDs: false, removeTags: [], replacePairs: [], keepTags: [],
-                recursive: false, dryRun: false, backup: false, auditLogPath: "", force: false, verbose: false)
-            #expect(cmd.contains(" --profile \(profile.cliFlag)"), Comment(rawValue: cmd))
-            #expect(!cmd.contains(" --profile basic"), Comment(rawValue: cmd))
-        }
-    }
-
-    @Test("AnonHelpers.buildCommand emits the PS3.15 E.3 Option flags and --allow-burned-in-phi")
+    @Test("Anon command preserves newer confidentiality option flags")
     func testAnonCommandEmitsPS315Flags() {
-        let flags = ["--retain-device", "--retain-uids"]   // AnonCLI.PS315Flags(retainDevice:retainUids:).setFlags
-        let cmd = AnonHelpers.buildCommand(
-            inputPath: "/in/a.dcm", outputPath: "/out/a.dcm", profile: .ps315,
-            shiftDates: nil, regenerateUIDs: false, removeTags: [], replacePairs: [], keepTags: [],
-            recursive: false, dryRun: false, backup: false, auditLogPath: "", force: false, verbose: false,
-            ps315OptionFlags: flags, allowBurnedInPHI: true)
-        #expect(cmd == "dicom-anon \"/in/a.dcm\" --output \"/out/a.dcm\" --profile ps315 --retain-device --retain-uids --allow-burned-in-phi")
+        var request = AnonymizationWorkflow.Request(inputPath: "/in/a.dcm")
+        request.retainDevice = true
+        request.retainUids = true
+        request.retainSafePrivate = true
+        request.cleanGraphics = true
+        request.cleanStructuredContent = true
+        request.cleanRecognizableVisualFeatures = true
+        request.redactRegion = ["0,0,2,2"]
+        request.allowBurnedInPHI = true
+        let command = AnonHelpers.buildCommand(request)
+        for flag in ["--retain-device", "--retain-uids", "--retain-safe-private", "--clean-graphics",
+                     "--clean-structured-content", "--clean-recognizable-visual-features",
+                     "--redact-region 0,0,2,2", "--allow-burned-in-phi"] {
+            #expect(command.contains(flag), Comment(rawValue: command))
+        }
     }
 }

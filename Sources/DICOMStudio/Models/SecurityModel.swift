@@ -8,6 +8,7 @@
 // NEMA-verified: 2026a, checked 2026-10-06 — AnonymizationProfile.ps315 added (P-STUDIO-ANON-PS315): display name compared by script with the profile name of PS3.15 2026a Annex E (E.1, "Basic Application Level Confidentiality Profile"); it runs every row of Table E.1-1 through DICOMKit Anonymizer.deidentify with the E.3 Options (cliFlag "ps315" = dicom-anon's default); the legacy cases are labelled "not PS3.15"; the recorded attributes (0012,0062) / (0012,0063) / (0012,0064) named in the description are the PS3.15 E.1.1 ones; AnonHelpers.buildCommand emits the E.3 Option flags in AnonCLI.PS315Flags order
 
 import Foundation
+import DICOMKit
 
 // MARK: - Navigation Tab
 
@@ -244,146 +245,6 @@ public extension SecurityCertificateStatus {
     static var unknown: SecurityCertificateStatus { .missing }
 }
 
-// MARK: - Anonymization Profile
-
-/// Anonymization profile of the Security Center.
-///
-/// `.ps315` (the default since 2026-10-06, P-STUDIO-ANON-PS315) is the PS3.15 2026a E.1 Basic
-/// Application Level Confidentiality Profile: every row of Table E.1-1 with the E.3 Options the
-/// operator selects, run by DICOMKit `Anonymizer.deidentify(file:options:)` exactly as dicom-anon
-/// `--profile ps315` runs it (DICOMKit `AnonCLI` for validation, notices and the E.1-1a report).
-/// The other cases are fixed attribute lists run by the DICOMKit `Anonymizer` (dicom-anon's
-/// deprecated `legacy-*` profiles); they are NOT PS3.15 Annex E profiles, and their display names
-/// say so. The lists are documented in `AnonymizationHelpers`.
-///
-/// Raw values are unchanged for the existing cases (`BASIC`, …); `.ps315` is new (`PS315`).
-public enum AnonymizationProfile: String, Sendable, Equatable, Hashable, CaseIterable {
-    /// PS3.15 Basic Application Level Confidentiality Profile (PS3.15 2026a E.1, Table E.1-1).
-    case ps315            = "PS315"
-    case basic            = "BASIC"
-    case clinicalTrial    = "CLINICAL_TRIAL"
-    case research         = "RESEARCH"
-    case hipaaeSafeHarbor = "HIPAA_SAFE_HARBOR"
-    case custom           = "CUSTOM"
-
-    /// The profiles the anonymization builder offers, PS3.15 first (the default).
-    public static let builderProfiles: [AnonymizationProfile] = [.ps315, .basic, .clinicalTrial, .research]
-
-    /// Whether this is the PS3.15 Annex E Basic Profile (runs `Anonymizer.deidentify`).
-    public var isPS315: Bool { self == .ps315 }
-
-    /// Human-readable display name. The PS3.15 name is the one PS3.15 2026a Annex E (E.1) gives; the
-    /// legacy lists are labelled as not PS3.15.
-    public var displayName: String {
-        switch self {
-        case .ps315:            return "PS3.15 Basic Application Level Confidentiality Profile"
-        case .basic:            return "Legacy Basic list (not PS3.15)"
-        case .clinicalTrial:    return "Legacy Clinical Trial list (not PS3.15)"
-        case .research:         return "Legacy Research list (not PS3.15)"
-        case .hipaaeSafeHarbor: return "HIPAA Safe Harbor (legacy Basic list, not PS3.15)"
-        case .custom:           return "Custom Rules (not PS3.15)"
-        }
-    }
-
-    /// The dicom-anon `--profile` value that runs the same thing as this profile.
-    /// `.ps315` is `ps315`, the CLI default (its alias `basic` means the same since
-    /// 2026-10-01, P-ANON-PROFILE). The other cases are fixed attribute lists, not PS3.15
-    /// Annex E, so they map to the CLI's deprecated `legacy-*` names. HIPAA Safe Harbor and
-    /// Custom run the legacy basic list in the app (`SecurityViewModel.engineProfile`), so
-    /// they name the same flag.
-    public var cliFlag: String {
-        switch self {
-        case .ps315:            return "ps315"
-        case .basic:            return "legacy-basic"
-        case .clinicalTrial:    return "legacy-clinical-trial"
-        case .research:         return "legacy-research"
-        case .hipaaeSafeHarbor: return "legacy-basic"
-        case .custom:           return "legacy-basic"
-        }
-    }
-
-    /// Short description.
-    public var shortDescription: String {
-        switch self {
-        case .ps315:            return "PS3.15 Annex E: applies every row of Table E.1-1 (D dummy, Z zero length, X remove, U new UID, C clean) with the E.3 Options selected below, and records Patient Identity Removed (0012,0062), De-identification Method (0012,0063) and its Code Sequence (0012,0064). Same as dicom-anon --profile ps315."
-        case .basic:            return "Legacy list, not PS3.15 Annex E: removes 14 identifying attributes (patient names, IDs, birth date/time, comments; referring/performing physicians, operators; institution, station, device serial)."
-        case .clinicalTrial:    return "Legacy list, not PS3.15 Annex E: removes the 14 basic attributes plus the study/series/acquisition/content dates and times (22 attributes)."
-        case .research:         return "Legacy list, not PS3.15 Annex E: minimal removal of Patient's Name, Patient ID, Patient's Birth Date only."
-        case .hipaaeSafeHarbor: return "Runs the 14-attribute legacy basic list. Not a complete HIPAA Safe Harbor de-identification: 45 CFR §164.514(b)(2)(i) lists 18 identifier categories that need review of dates, free text and pixel data."
-        case .custom:           return "Apply user-defined tag-level anonymization rules (not PS3.15 Annex E)."
-        }
-    }
-}
-
-// MARK: - Tag Action
-
-/// Action to apply to a DICOM tag during anonymization.
-public enum TagAction: String, Sendable, Equatable, Hashable, CaseIterable {
-    case remove     = "REMOVE"
-    case replace    = "REPLACE"
-    case hash       = "HASH"
-    case shiftDate  = "SHIFT_DATE"
-    case keepDate   = "KEEP_DATE"
-    case remapUID   = "REMAP_UID"
-
-    /// Human-readable display name.
-    public var displayName: String {
-        switch self {
-        case .remove:    return "Remove"
-        case .replace:   return "Replace with placeholder"
-        case .hash:      return "Hash (SHA-256)"
-        case .shiftDate: return "Shift date"
-        case .keepDate:  return "Keep (do not modify)"
-        case .remapUID:  return "Remap UID"
-        }
-    }
-
-    /// SF Symbol name for this action.
-    public var sfSymbol: String {
-        switch self {
-        case .remove:    return "trash"
-        case .replace:   return "pencil"
-        case .hash:      return "number"
-        case .shiftDate: return "calendar.badge.clock"
-        case .keepDate:  return "calendar.badge.checkmark"
-        case .remapUID:  return "arrow.triangle.2.circlepath"
-        }
-    }
-}
-
-// MARK: - Anonymization Tag Rule
-
-/// A rule specifying how to handle a specific DICOM tag during anonymization.
-public struct AnonymizationTagRule: Identifiable, Sendable, Equatable, Hashable {
-    public let id: UUID
-    /// DICOM tag in (gggg,eeee) notation (e.g. "0010,0010" for Patient Name).
-    public var tag: String
-    /// Human-readable tag name.
-    public var tagName: String
-    /// Action to apply.
-    public var action: TagAction
-    /// Replacement value (used when action == .replace).
-    public var replacementValue: String
-    /// Date shift in days (used when action == .shiftDate).
-    public var dateShiftDays: Int
-
-    public init(
-        id: UUID = UUID(),
-        tag: String,
-        tagName: String = "",
-        action: TagAction = .remove,
-        replacementValue: String = "",
-        dateShiftDays: Int = 0
-    ) {
-        self.id = id
-        self.tag = tag
-        self.tagName = tagName
-        self.action = action
-        self.replacementValue = replacementValue
-        self.dateShiftDays = dateShiftDays
-    }
-}
-
 // MARK: - Anonymization Status
 
 /// Status of an anonymization job.
@@ -418,10 +279,6 @@ public struct AnonymizationJob: Identifiable, Sendable, Equatable, Hashable {
     public let id: UUID
     /// File paths staged for anonymization.
     public var filePaths: [String]
-    /// Profile applied to this job.
-    public var profile: AnonymizationProfile
-    /// Custom rules (non-empty only when profile == .custom).
-    public var customRules: [AnonymizationTagRule]
     /// Job status.
     public var status: AnonymizationStatus
     /// Total number of files.
@@ -444,8 +301,6 @@ public struct AnonymizationJob: Identifiable, Sendable, Equatable, Hashable {
     public init(
         id: UUID = UUID(),
         filePaths: [String] = [],
-        profile: AnonymizationProfile = .ps315,
-        customRules: [AnonymizationTagRule] = [],
         status: AnonymizationStatus = .pending,
         totalFiles: Int = 0,
         processedFiles: Int = 0,
@@ -458,8 +313,6 @@ public struct AnonymizationJob: Identifiable, Sendable, Equatable, Hashable {
     ) {
         self.id = id
         self.filePaths = filePaths
-        self.profile = profile
-        self.customRules = customRules
         self.status = status
         self.totalFiles = totalFiles
         self.processedFiles = processedFiles
@@ -894,48 +747,46 @@ public struct PHIDetectionResult: Identifiable, Sendable, Equatable, Hashable {
 /// CLI reference: dicom-anon <path> [options]
 public enum AnonHelpers: Sendable {
 
-    /// Builds the exact dicom-anon CLI command from SecurityViewModel anon-builder state.
-    public static func buildCommand(
-        inputPath: String,
-        outputPath: String,
-        profile: AnonymizationProfile,
-        shiftDates: Int?,
-        regenerateUIDs: Bool,
-        removeTags: [String],
-        replacePairs: [String],
-        keepTags: [String],
-        recursive: Bool,
-        dryRun: Bool,
-        backup: Bool,
-        auditLogPath: String,
-        force: Bool,
-        verbose: Bool,
-        ps315OptionFlags: [String] = [],
-        allowBurnedInPHI: Bool = false
-    ) -> String {
-        guard !inputPath.isEmpty else { return "dicom-anon <input>" }
-        var cmd = "dicom-anon \"\(inputPath)\""
-        if !outputPath.isEmpty { cmd += " --output \"\(outputPath)\"" }
-        // Always named, also for ps315 (the CLI default): the line states which profile ran.
-        cmd += " --profile \(profile.cliFlag)"
-        // PS3.15 2026a E.3 Option flags (DICOMKit AnonCLI.PS315Flags.setFlags spellings);
-        // dicom-anon accepts them only with --profile ps315.
-        for flag in ps315OptionFlags where !flag.isEmpty { cmd += " \(flag)" }
-        if let days = shiftDates { cmd += " --shift-dates \(days)" }
-        if regenerateUIDs { cmd += " --regenerate-uids" }
-        for tag in removeTags  where !tag.isEmpty { cmd += " --remove \(tag)" }
-        for pair in replacePairs where !pair.isEmpty { cmd += " --replace \(pair)" }
-        for tag in keepTags    where !tag.isEmpty { cmd += " --keep \(tag)" }
-        if recursive   { cmd += " --recursive" }
-        if dryRun      { cmd += " --dry-run" }
-        if backup      { cmd += " --backup" }
-        if !auditLogPath.isEmpty { cmd += " --audit-log \"\(auditLogPath)\"" }
-        if force       { cmd += " --force" }
-        if allowBurnedInPHI { cmd += " --allow-burned-in-phi" }
-        if verbose     { cmd += " --verbose" }
+    /// Builds the exact dicom-anon CLI command for a shared workflow request —
+    /// one flag per `Request` field, in the CLI's own spelling.
+    public static func buildCommand(_ r: AnonymizationWorkflow.Request) -> String {
+        guard !r.inputPath.isEmpty else { return "dicom-anon <input>" }
+        var cmd = "dicom-anon \"\(r.inputPath)\""
+        if let out = r.output, !out.isEmpty { cmd += " --output \"\(out)\"" }
+        for tag in r.remove { cmd += " --remove \"\(tag)\"" }
+        for pair in r.replace { cmd += " --replace \"\(pair)\"" }
+        if r.retainModifiedDates { cmd += " --retain-modified-dates" }
+        if r.retainDates           { cmd += " --retain-dates" }
+        if let days = r.shiftDates { cmd += " --shift-dates \(days)" }
+        if r.retainCharacteristics { cmd += " --retain-characteristics" }
+        if r.retainDevice          { cmd += " --retain-device" }
+        if r.retainInstitution     { cmd += " --retain-institution" }
+        if r.retainUids            { cmd += " --retain-uids" }
+        if r.cleanDescriptors      { cmd += " --clean-descriptors" }
+        if r.retainSafePrivate { cmd += " --retain-safe-private" }
+        if r.cleanGraphics { cmd += " --clean-graphics" }
+        if r.cleanStructuredContent { cmd += " --clean-structured-content" }
+        if r.cleanRecognizableVisualFeatures { cmd += " --clean-recognizable-visual-features" }
+        if !r.cleanPixelData       { cmd += " --no-clean-pixel-data" }
+        for region in r.redactRegion where !region.isEmpty { cmd += " --redact-region \(region)" }
+        if let fill = r.redactFill, !fill.isEmpty, fill != "black" { cmd += " --redact-fill \(fill)" }
+        if r.redactStyle != "blank" { cmd += " --redact-style \(r.redactStyle)" }
+        if let label = r.redactLabel, !label.isEmpty { cmd += " --redact-label \"\(label)\"" }
+        if let codec = r.recompress, !codec.isEmpty { cmd += " --recompress \(codec)" }
+        if r.ocrMode != "classify" { cmd += " --ocr-mode \(r.ocrMode)" }
+        if r.ocrAllFrames { cmd += " --ocr-all-frames" }
+        if r.textOnly     { cmd += " --text-only" }
+        if r.allowBurnedInPHI { cmd += " --allow-burned-in-phi" }
+        if r.recursive   { cmd += " --recursive" }
+        if r.dryRun      { cmd += " --dry-run" }
+        if r.backup      { cmd += " --backup" }
+        if let log = r.auditLog, !log.isEmpty { cmd += " --audit-log \"\(log)\"" }
+        if r.force       { cmd += " --force" }
+        if r.verbose     { cmd += " --verbose" }
         return cmd
     }
 
-    // Summary rendering lives in the shared `AnonConsole` (DICOMKit) — the same
-    // builder the dicom-anon CLI prints from — so the two surfaces cannot drift.
+    // Input parsing, the run itself and every console line live in the shared
+    // `AnonymizationWorkflow` / `AnonConsole` (DICOMKit) — the same code the
+    // dicom-anon CLI runs — so the two surfaces cannot drift.
 }

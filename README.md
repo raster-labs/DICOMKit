@@ -4390,15 +4390,12 @@ cp .build/release/dicom-* /usr/local/bin/
 
 | Tool | Description | Example |
 |------|-------------|---------|
-| `dicom-anon` | De-identification per the PS3.15 Basic Application Level Confidentiality Profile and its Options | `dicom-anon study/ --profile ps315 --retain-modified-dates --shift-dates 100 --recursive` |
+| `dicom-anon` | PS3.15 Annex E de-identification of header and burned-in pixel text (OCR) | `dicom-anon study/ --output anon/ --recursive --shift-dates 100` |
 
-**Anonymization Profiles:**
-- `ps315` (default) - PS3.15 Basic Application Level Confidentiality Profile (every row of Table E.1-1), with the
-  E.3 Options chosen by the `--retain-*` / `--clean-*` flags
-- `basic` - alias of `ps315` (before 2026-10-01 it selected the list now called `legacy-basic`)
-- `legacy-basic`, `legacy-clinical-trial`, `legacy-research` - deprecated fixed attribute lists, not PS3.15
-  profiles; `clinical-trial` and `research` still select the last two with a deprecation note
-- Custom rules: `--remove` / `--replace`
+**One profile:** the PS3.15 Annex E Basic Application Level Confidentiality Profile,
+always applied, with the standard's retention options (`--retain-dates` /
+`--shift-dates`, `--retain-characteristics`, `--retain-device`, `--retain-institution`,
+`--retain-uids`, `--clean-descriptors`) and Clean Pixel Data on by default.
 
 </details>
 
@@ -4556,14 +4553,16 @@ dicom-convert scan.dcm --output compressed.dcm --transfer-syntax jpeg2000-lossle
 
 #### Anonymization
 
+The OCR workflow uses the current PS3.15 Basic Profile and preserves main’s confidentiality fixes. `--profile ps315` and `basic` are supported; legacy CLI profiles are now library-only. Automatic OCR requires Apple Vision. Linux builds remain blocked by the existing JLISwift dependency’s Apple Accelerate imports. See [dicom-anon compatibility and limitations](Sources/dicom-anon/README.md#limitations) before migrating scripts.
+
 ```bash
-# Anonymize a single file (PS3.15 Basic Profile; --profile ps315 is the default)
-dicom-anon patient.dcm --output anon.dcm --profile ps315
+# De-identify a single file (PS3.15 Basic Profile, header and pixels)
+dicom-anon patient.dcm --output anon.dcm
 
-# Anonymize a study with date shifting (Retain Longitudinal Temporal Information With Modified Dates Option)
-dicom-anon ./study/ --output ./anon_study/ --retain-modified-dates --shift-dates 100 --recursive
+# De-identify a study keeping the intervals between dates
+dicom-anon ./study/ --output ./anon_study/ --shift-dates 100 --recursive
 
-# Preview the changes without writing
+# Preview the header changes and the pixel redaction plan
 dicom-anon scan.dcm --dry-run
 ```
 

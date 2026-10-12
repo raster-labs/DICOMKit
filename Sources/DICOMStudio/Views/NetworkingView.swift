@@ -79,7 +79,7 @@ public struct NetworkingView: View {
     private var tabPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 4) {
-                ForEach(NetworkingTab.allCases, id: \.self) { tab in
+                ForEach(NetworkingTab.allCases.filter { $0 == .serverConfig }, id: \.self) { tab in
                     Button {
                         viewModel.activeTab = tab
                     } label: {

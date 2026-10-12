@@ -562,7 +562,7 @@ extension ScriptRoundTripTests {
         let sources = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Sources")
-        let toolFiles = ["dicom-validate": "DICOMValidate.swift", "dicom-convert": "DICOMConvert.swift", "dicom-anon": "main.swift"]
+        let toolFiles = ["dicom-validate": "DICOMValidate.swift", "dicom-convert": "DICOMConvert.swift", "dicom-anon": "DICOMAnon.swift"]
         var checked = 0
         for name in ["workflow", "pipeline", "anonymize"] {
             let template = try TemplateGenerator().generate(templateName: name)

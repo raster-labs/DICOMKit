@@ -138,6 +138,47 @@ final class ConfidentialityProfileTests: XCTestCase {
         XCTAssertEqual(out.string(for: .patientBirthDate), "", "Table E.1-1: Z, no Full Dates entry")
     }
 
+    func testModifiedDatesShiftDatesAndKeepTimes() {
+        var ds = DataSet()
+        ds[Tag(group: 0x0008, element: 0x0020)] = element(Tag(group: 0x0008, element: 0x0020), .DA, "20200115")
+        ds[Tag(group: 0x0008, element: 0x0030)] = element(Tag(group: 0x0008, element: 0x0030), .TM, "101500")
+        ds[.patientBirthDate] = element(.patientBirthDate, .DA, "19800101")
+        var engine = ConfidentialityEngine(options: .init(retainLongitudinalTemporal: true, dateOffsetDays: 3))
+        let (out, _) = engine.deidentify(ds)
+        XCTAssertEqual(out.string(for: Tag(group: 0x0008, element: 0x0020)), "20200118")
+        XCTAssertEqual(out.string(for: .patientBirthDate), "",
+                       "The audited main table clears birth date while shifting longitudinal study dates")
+        XCTAssertEqual(out.string(for: Tag(group: 0x0008, element: 0x0030)), "101500",
+                       "a whole-day shift does not touch the time of day")
+    }
+
+    func testMethodCodeSequenceListsProfileAndOptionsAndKeepsCleanPixelData() {
+        var ds = identifiedDataSet()
+        // The pixel pass ran first and recorded 113101; the header pass must append, not clobber.
+        ConfidentialityProfile.MethodCode.record(.cleanPixelData, in: &ds)
+        var engine = ConfidentialityEngine(options: .init(retainLongitudinalTemporal: true, retainUIDs: true))
+        let (out, _) = engine.deidentify(ds)
+        let codes = ConfidentialityProfile.MethodCode.recorded(in: out)
+        XCTAssertEqual(codes, ["113100", "113101", "113106", "113110"])
+        let method = out.string(for: Tag(group: 0x0012, element: 0x0063)) ?? ""
+        XCTAssertTrue(method.contains("Full Dates"), method)
+        XCTAssertTrue(method.contains("Clean Pixel Data"), method)
+        for value in method.split(separator: "\\") {
+            XCTAssertLessThanOrEqual(value.count, 64, "LO values are at most 64 characters: \(value)")
+        }
+        XCTAssertEqual(ConfidentialityProfile.Options().methodCodes, [.basicProfile])
+    }
+
+    func testChangesAreReportedWithTheirActionCode() {
+        var engine = ConfidentialityEngine()
+        _ = engine.deidentify(identifiedDataSet())
+        let byTag = Dictionary(uniqueKeysWithValues: engine.changes.map { ($0.tag, $0.action) })
+        XCTAssertEqual(byTag[.patientName], .zero)
+        XCTAssertEqual(byTag[.institutionName], .remove)
+        XCTAssertEqual(byTag[.studyInstanceUID], .replaceUID)
+        XCTAssertEqual(byTag[Tag(group: 0x0009, element: 0x0010)], .remove, "private tag sweep is audited too")
+    }
+
     func testDateOffsetShiftsRatherThanZeroes() {
         var ds = DataSet()
         ds[Tag(group: 0x0008, element: 0x0020)] = element(  // Study Date

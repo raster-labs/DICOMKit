@@ -80,7 +80,7 @@ struct ViewerSeriesPaneView: View {
                         .foregroundStyle(.white)
                         .lineLimit(2)
                 }
-                if let date = viewModel.studyDateForOverlay {
+                if let date = viewModel.studyDateTimeForOverlay {
                     Text(date)
                         .font(.callout.weight(.semibold).monospacedDigit())
                         .foregroundStyle(.white)
@@ -116,7 +116,7 @@ struct ViewerSeriesPaneView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel(
                 "Patient: \(viewModel.patientIdentityLine). "
-                + [viewModel.studyDescriptionSanitizedForOverlay, viewModel.studyDateForOverlay]
+                + [viewModel.studyDescriptionSanitizedForOverlay, viewModel.studyDateTimeForOverlay]
                     .compactMap { $0 }.joined(separator: ". "))
         }
     }

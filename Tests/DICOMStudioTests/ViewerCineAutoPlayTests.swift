@@ -121,7 +121,11 @@ struct ViewerCineAutoPlayTests {
 
     // MARK: - Frame rate from the header
 
-    @Test("Recommended Display Frame Rate sets the playback rate")
+    // The rate a file states for itself is recorded but not played at: every
+    // file opens at the viewer's own default, because the 24–30 fps most
+    // files ask for ran too fast to read.
+
+    @Test("Recommended Display Frame Rate is recorded, and the loop still plays at the default")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testRecommendedDisplayFrameRate() throws {
         let vm = ImageViewerViewModel()
@@ -129,10 +133,11 @@ struct ViewerCineAutoPlayTests {
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         vm.loadFile(at: path)
-        #expect(vm.playbackFPS == 24.0)
+        #expect(vm.headerPlaybackFPS == 24.0)
+        #expect(vm.playbackFPS == CinePlaybackHelpers.defaultFPS)
     }
 
-    @Test("Cine Rate is used when no display frame rate is stated")
+    @Test("Cine Rate is read when no display frame rate is stated")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testCineRate() throws {
         let vm = ImageViewerViewModel()
@@ -140,7 +145,8 @@ struct ViewerCineAutoPlayTests {
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         vm.loadFile(at: path)
-        #expect(vm.playbackFPS == 30.0)
+        #expect(vm.headerPlaybackFPS == 30.0)
+        #expect(vm.playbackFPS == CinePlaybackHelpers.defaultFPS)
     }
 
     @Test("Frame Time in milliseconds inverts to a rate")
@@ -152,7 +158,7 @@ struct ViewerCineAutoPlayTests {
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         vm.loadFile(at: path)
-        #expect(vm.playbackFPS == 20.0)
+        #expect(vm.headerPlaybackFPS == 20.0)
     }
 
     @Test("Recommended Display Frame Rate wins over the other two")
@@ -167,10 +173,10 @@ struct ViewerCineAutoPlayTests {
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         vm.loadFile(at: path)
-        #expect(vm.playbackFPS == 24.0)
+        #expect(vm.headerPlaybackFPS == 24.0)
     }
 
-    @Test("A rate outside the supported range is clamped")
+    @Test("A recorded rate outside the supported range is clamped")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testHeaderRateIsClamped() throws {
         let vm = ImageViewerViewModel()
@@ -178,31 +184,32 @@ struct ViewerCineAutoPlayTests {
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         vm.loadFile(at: path)
-        #expect(vm.playbackFPS == CinePlaybackHelpers.maxFPS)
+        #expect(vm.headerPlaybackFPS == CinePlaybackHelpers.maxFPS)
     }
 
-    @Test("A file that states no rate keeps the reader's own setting")
+    @Test("Opening a file resets the rate to the default, even after the reader changed it")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-    func testNoHeaderRateKeepsUserSetting() throws {
+    func testLoadResetsToDefaultRate() throws {
         let vm = ImageViewerViewModel()
         vm.playbackFPS = 8.0
         let path = try writeTemporaryDICOM(frames: 12)
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         vm.loadFile(at: path)
-        #expect(vm.playbackFPS == 8.0)
+        #expect(vm.headerPlaybackFPS == nil)
+        #expect(vm.playbackFPS == CinePlaybackHelpers.defaultFPS)
     }
 
     @Test("A zero or malformed rate is ignored rather than dividing by it")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testMalformedHeaderRateIgnored() throws {
         let vm = ImageViewerViewModel()
-        vm.playbackFPS = 8.0
         let path = try writeTemporaryDICOM(frames: 12, cineRate: "0", frameTime: "abc")
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         vm.loadFile(at: path)
-        #expect(vm.playbackFPS == 8.0)
+        #expect(vm.headerPlaybackFPS == nil)
+        #expect(vm.playbackFPS == CinePlaybackHelpers.defaultFPS)
     }
 
     // MARK: - Helpers

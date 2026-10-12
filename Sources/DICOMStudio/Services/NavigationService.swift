@@ -17,6 +17,16 @@ public enum NavigationCategory: String, CaseIterable, Identifiable, Sendable {
     case system    = "System"
 
     public var id: String { rawValue }
+
+    /// SF Symbol shown on the category's sidebar header row.
+    public var systemImage: String {
+        switch self {
+        case .imaging:   return "photo.on.rectangle.angled"
+        case .network:   return "network"
+        case .dataTools: return "shippingbox"
+        case .system:    return "gearshape.2"
+        }
+    }
 }
 
 /// Sidebar navigation destinations in DICOM Studio.
@@ -137,11 +147,23 @@ public final class NavigationService: Sendable {
     /// The default destination when the app launches.
     public static let defaultDestination: NavigationDestination = .library
 
+    /// Destinations temporarily hidden from the sidebar UI. The feature code
+    /// behind each of these stays intact — this only removes the navigation
+    /// entry point, e.g. for a trimmed-down build.
+    public static let hiddenDestinations: Set<NavigationDestination> = [
+        .volumeViewer, .jp3dComparison, .aiAnalysis,
+        .cloudIntegration,
+        .reporting, .tools, .validation, .archiveManagement,
+    ]
+
     /// Returns all primary navigation destinations (excluding the standalone
     /// Settings and Network Utility entries, which render outside the category
-    /// groups in the sidebar).
+    /// groups in the sidebar, and any destinations temporarily hidden from
+    /// the UI).
     public static var primaryDestinations: [NavigationDestination] {
-        NavigationDestination.allCases.filter { $0 != .settings && $0 != .networkUtility }
+        NavigationDestination.allCases.filter {
+            $0 != .settings && $0 != .networkUtility && !hiddenDestinations.contains($0)
+        }
     }
 
     public init() {}

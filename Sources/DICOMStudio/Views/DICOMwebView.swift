@@ -65,7 +65,7 @@ public struct DICOMwebView: View {
     private var tabPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 4) {
-                ForEach(DICOMwebTab.allCases, id: \.self) { tab in
+                ForEach(DICOMwebTab.allCases.filter { $0 == .serverConfig || $0 == .upsRS }, id: \.self) { tab in
                     Button {
                         viewModel.activeTab = tab
                     } label: {

@@ -119,4 +119,54 @@ final class OutputAccessTests: XCTestCase {
         XCTAssertEqual(res.url.path, file.path)
         XCTAssertEqual(try String(contentsOf: file, encoding: .utf8), "z")
     }
+
+    // MARK: - resolveWritableURL + a scoped DIRECTORY grant (dicom-merge --level file)
+
+    /// Regression (dicom-merge): the output Browse picker grants a FOLDER, so a
+    /// single-file producer that returned the scope verbatim wrote the folder path
+    /// as the file — dropping the filename the user typed and failing with
+    /// "The file \"Test\" couldn't be saved in the folder \"Desktop\"".
+    /// `isDirectory: false` must resolve the typed filename inside the grant.
+    func testResolveScopedDirectoryAppendsTypedFilenameForFileOutput() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("oa-resolve-file-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let typed = dir.appendingPathComponent("Test.dcm")
+        let res = OutputAccess.resolveWritableURL(forPath: typed.path, scopedURL: dir,
+                                                  subfolder: "Merge", isDirectory: false)
+        XCTAssertNil(res.note)
+        XCTAssertEqual(res.url.path, typed.path, "the typed filename must survive the folder grant")
+    }
+
+    /// A DIRECTORY producer (--level series/study) fills the granted folder itself,
+    /// so the scope is returned unchanged.
+    func testResolveScopedDirectoryUnchangedForDirectoryOutput() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("oa-resolve-dir-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let res = OutputAccess.resolveWritableURL(forPath: dir.path, scopedURL: dir,
+                                                  subfolder: "Merge", isDirectory: true)
+        XCTAssertNil(res.note)
+        XCTAssertEqual(res.url.path, dir.path)
+    }
+
+    /// A scope that is already a regular FILE is returned as-is for file output
+    /// (no filename is appended onto a file path).
+    func testResolveScopedFileUnchangedForFileOutput() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("oa-resolve-scopedfile-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let file = dir.appendingPathComponent("explicit.dcm")
+        try Data().write(to: file)
+        let res = OutputAccess.resolveWritableURL(forPath: file.path, scopedURL: file,
+                                                  subfolder: "Merge", isDirectory: false)
+        XCTAssertNil(res.note)
+        XCTAssertEqual(res.url.path, file.path)
+    }
 }

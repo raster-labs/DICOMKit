@@ -96,6 +96,23 @@ extension ImageViewerViewModel {
             .map { DICOMValueParser.formatDate($0) }
     }
 
+    /// Study Time (0008,0030), formatted as a readable clock time.
+    public var studyTimeForOverlay: String? {
+        overlayString(Tag(group: 0x0008, element: 0x0030))
+            .map { DICOMValueParser.formatTime($0) }
+    }
+
+    /// "2026-05-30 18:50:08" — the study date with its time, when the file
+    /// records one.
+    ///
+    /// The pane shows this rather than the bare date because the same patient
+    /// is often scanned more than once on one day, and the time is what tells
+    /// those studies apart. A file with no Study Time shows the date alone.
+    public var studyDateTimeForOverlay: String? {
+        let joined = [studyDateForOverlay, studyTimeForOverlay].compactMap { $0 }.joined(separator: " ")
+        return joined.isEmpty ? nil : joined
+    }
+
     /// The overlay text of the file the viewer has open.
     ///
     /// Built by the shared ``PatientOverlayText`` so a tile showing another

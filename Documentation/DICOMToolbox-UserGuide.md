@@ -194,15 +194,21 @@ Validate DICOM conformance at multiple levels: file structure, IOD (Information 
 
 #### dicom-anon
 
-Anonymize patient data using configurable profiles. Three built-in profiles are available:
+De-identify to the DICOM standard: the PS3.15 Annex E Basic Application Level
+Confidentiality Profile is always applied to the header, and burned-in text is blanked
+out of the pixels (Clean Pixel Data, on by default, with on-device OCR). The panel
+offers only the standard's retention options:
 
-| Profile         | Description                                    |
-|-----------------|------------------------------------------------|
-| Basic           | Removes direct patient identifiers             |
-| Clinical Trial  | Replaces identifiers with trial-specific codes |
-| Research        | Aggressive anonymization for research datasets |
+| Option                        | Keeps                                              |
+|-------------------------------|----------------------------------------------------|
+| Retain Dates / Shift Dates    | dates as-is, or shifted so intervals survive       |
+| Retain Patient Characteristics| age, sex, size, weight                             |
+| Retain Device Identity        | model, station name, serial number                 |
+| Retain Institution Identity   | institution name, address, department              |
+| Retain UIDs                   | UIDs instead of regenerating them                  |
+| Clean Descriptors             | study/series descriptions                          |
 
-Custom tag rules can be added in Advanced Mode.
+Burned In Annotation = YES is cleaned; absent, OCR decides; NO is trusted.
 
 #### dicom-compress
 
@@ -340,7 +346,7 @@ As you configure parameters in the panel, the console area updates in real time 
 Example preview:
 
 ```
-$ dicom-anon --profile ps315 --output ./anonymized/ patient_study.dcm
+$ dicom-anon --shift-dates 100 --output ./anonymized/ patient_study.dcm
 ```
 
 ### Executing Commands
@@ -403,7 +409,7 @@ Each tool includes one or more example presets that pre-fill the parameter panel
 
 Examples include:
 - **dicom-info**: "Show Patient Demographics", "List All Private Tags"
-- **dicom-anon**: "Basic Clinical Anonymization", "Research De-identification"
+- **dicom-anon**: "De-identify (Basic Profile)", "Longitudinal study (shifted dates)"
 - **dicom-query**: "Find Today's CT Studies", "Search by Patient ID"
 - **dicom-export**: "Export as PNG", "Create Contact Sheet"
 
@@ -499,7 +505,7 @@ Quick reference table of all 29 tools available in DICOMToolbox.
 | 4  | dicom-diff       | File Inspection     | Compare two DICOM files with tolerance               |
 | 5  | dicom-convert    | File Processing     | Transfer syntax conversion and format transformation |
 | 6  | dicom-validate   | File Processing     | DICOM conformance validation at multiple levels      |
-| 7  | dicom-anon       | File Processing     | Anonymize patient data with configurable profiles    |
+| 7  | dicom-anon       | File Processing     | PS3.15 Annex E de-identification, header and pixels  |
 | 8  | dicom-compress   | File Processing     | Compression management (compress/decompress/batch)   |
 | 9  | dicom-split      | File Organization   | Split multi-frame files into individual frames       |
 | 10 | dicom-merge      | File Organization   | Merge multiple files with sorting options            |

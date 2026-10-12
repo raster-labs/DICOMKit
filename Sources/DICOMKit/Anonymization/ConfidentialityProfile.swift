@@ -327,3 +327,36 @@ public enum ConfidentialityProfile {
         }
     }
 }
+
+
+extension ConfidentialityProfile {
+    public typealias MethodCode = DeidentificationMethodCode
+}
+
+extension ConfidentialityProfile.DeidentificationMethodCode {
+    private static let methodSequenceTag = Tag(group: 0x0012, element: 0x0064) // De-identification Method Code Sequence
+    public var value: String { codeValue }
+    public var shortName: String { meaning }
+    public static let basicProfile = Self.basicApplicationConfidentialityProfile
+    public static let cleanPixelData = Self.cleanPixelDataOption
+    public static let cleanDescriptors = Self.cleanDescriptorsOption
+    public static let retainFullDates = Self.retainLongitudinalTemporalInformationFullDatesOption
+    public static let retainModifiedDates = Self.retainLongitudinalTemporalInformationModifiedDatesOption
+    public static let retainPatientCharacteristics = Self.retainPatientCharacteristicsOption
+    public static let retainDeviceIdentity = Self.retainDeviceIdentityOption
+    public static let retainUIDs = Self.retainUIDsOption
+    public static let retainInstitutionIdentity = Self.retainInstitutionIdentityOption
+
+    public static func recorded(in dataSet: DataSet) -> Set<String> {
+        Set((dataSet.sequence(for: methodSequenceTag) ?? []).compactMap {
+            $0.string(for: .codeValue)?.trimmingCharacters(in: .whitespaces)
+        })
+    }
+
+    public static func record(_ code: Self, in dataSet: inout DataSet) {
+        guard !recorded(in: dataSet).contains(code.value) else { return }
+        var items = dataSet.sequence(for: methodSequenceTag) ?? []
+        items.append(code.sequenceItem)
+        dataSet.setSequence(items, for: methodSequenceTag)
+    }
+}

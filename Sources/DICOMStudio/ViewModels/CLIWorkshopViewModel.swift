@@ -5878,291 +5878,81 @@ case "dicom-study":
     /// `AnonCLI` (D275) for the profile, Option, notice and action-report texts, `WorkshopAnonError` for the
     /// CLI-local texts (`AnonymizationError`, the burned-in PHI refusal).
     private func executeDicomAnon() async {
-        let inputPath = paramValue("inputPath")
-        let outputPath = paramValue("output")
-        let profileStr = paramValue("profile").isEmpty ? AnonCLI.defaultProfile : paramValue("profile")
-        let shiftDays = Int(paramValue("shift-dates"))
-        let regenUIDs = paramValue("regenerate-uids") == "true"
-        let removeTags = CommandBuilderHelpers.splitMultiValue(paramValue("remove"))
-        let replacePairs = CommandBuilderHelpers.splitMultiValue(paramValue("replace"))
-        let keepTags = CommandBuilderHelpers.splitMultiValue(paramValue("keep"))
-        let redactRegions = CommandBuilderHelpers.splitMultiValue(paramValue("redact-region"))
-        let redactFill = Int(paramValue("redact-fill"))
-        let cleanPixelData = paramValue("clean-pixel-data") == "true"
-        let recursive = paramValue("recursive") == "true"
-        let dryRun = paramValue("dry-run") == "true"
-        let backup = paramValue("backup") == "true"
-        let auditLogPath = paramValue("audit-log")
-        let force = paramValue("force") == "true"
-        let verbose = paramValue("verbose") == "true"
-        let allowBurnedInPHI = paramValue("allow-burned-in-phi") == "true"
-        // The PS3.15 E.3 Option flags, as dicom-anon's `ps315Flags` (DICOMKit AnonCLI.PS315Flags).
-        func on(_ id: String) -> Bool { paramValue(id) == "true" }
-        let ps315Flags = AnonCLI.PS315Flags(
-            retainDates: on("retain-dates"), retainFullDates: on("retain-full-dates"),
-            retainModifiedDates: on("retain-modified-dates"), retainCharacteristics: on("retain-characteristics"),
-            retainDevice: on("retain-device"), retainInstitution: on("retain-institution"),
-            retainUids: on("retain-uids"), cleanDescriptors: on("clean-descriptors"),
-            retainSafePrivate: on("retain-safe-private"), cleanGraphics: on("clean-graphics"),
-            cleanStructuredContent: on("clean-structured-content"),
-            cleanRecognizableVisualFeatures: on("clean-recognizable-visual-features"))
+        // Read a parameter only when its visibility conditions hold, so a value
+        // left behind by a hidden control (e.g. an OCR mode after pixel cleaning
+        // was switched off) is neither previewed nor executed.
+        let value: (String) -> String = { id in
+            guard let def = self.parameterDefinitions.first(where: { $0.id == id }),
+                  self.satisfiesVisibility(def) else { return "" }
+            return self.paramValue(id)
+        }
+        let optional: (String) -> String? = { id in
+            let v = value(id)
+            return v.isEmpty ? nil : v
+        }
 
-        func refuse(_ message: String, exitCode: Int) {
-            appendConsoleOutput("Error: \(message)\n")
-            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: exitCode, output: message)
+        let inputPath = value("inputPath")
+        guard !inputPath.isEmpty else {
+            appendConsoleOutput("Error: Input path is required.\n")
+            addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: 1, output: "Missing input path")
             consoleStatus = .error
             service.setConsoleStatus(.error)
-        }
-
-        // ArgumentParser reports the missing positional (exit 64).
-        guard !inputPath.isEmpty else {
-            refuse("Missing expected argument '<input-path>'", exitCode: 64)
             return
         }
 
-        // Gain sandbox access via security-scoped URLs registered by the file picker.
-        let inputScopedURL = securityScopedURLs["inputPath"]
+        // One request in the CLI's own vocabulary — the same `AnonymizationWorkflow.Request`
+        // `dicom-anon` builds from argv. Repeatable flags use the shared semicolon
+        // `splitMultiValue` convention (the splitter `buildCommand()` uses), never a
+        // comma split: a tag is written `GGGG,EEEE` and a region `x,y,w,h`.
+        var request = AnonymizationWorkflow.Request(inputPath: inputPath)
+        request.output = optional("output")
+        request.retainDates = value("retain-dates") == "true" || value("retain-full-dates") == "true"
+        request.shiftDates = Int(value("shift-dates"))
+        request.retainModifiedDates = value("retain-modified-dates") == "true"
+        request.remove = CommandBuilderHelpers.splitMultiValue(value("remove"))
+        request.replace = CommandBuilderHelpers.splitMultiValue(value("replace"))
+        request.retainCharacteristics = value("retain-characteristics") == "true"
+        request.retainDevice = value("retain-device") == "true"
+        request.retainInstitution = value("retain-institution") == "true"
+        request.retainUids = value("retain-uids") == "true"
+        request.cleanDescriptors = value("clean-descriptors") == "true"
+        request.retainSafePrivate = value("retain-safe-private") == "true"
+        request.cleanGraphics = value("clean-graphics") == "true"
+        request.cleanStructuredContent = value("clean-structured-content") == "true"
+        request.cleanRecognizableVisualFeatures = value("clean-recognizable-visual-features") == "true"
+
+        // Default-on toggle: only an explicit "false" opts out (--no-clean-pixel-data).
+        request.cleanPixelData = value("clean-pixel-data") != "false"
+        request.redactRegion = CommandBuilderHelpers.splitMultiValue(value("redact-region"))
+        request.redactFill = optional("redact-fill")
+        request.redactStyle = optional("redact-style") ?? "blank"
+        request.redactLabel = optional("redact-label")
+        request.recompress = optional("recompress")
+        request.ocrMode = optional("ocr-mode") ?? "classify"
+        request.ocrAllFrames = value("ocr-all-frames") == "true"
+        request.textOnly = value("text-only") == "true"
+        request.allowBurnedInPHI = value("allow-burned-in-phi") == "true"
+        request.recursive = value("recursive") == "true"
+        request.dryRun = value("dry-run") == "true"
+        request.backup = value("backup") == "true"
+        request.auditLog = optional("audit-log")
+        request.force = value("force") == "true"
+        request.verbose = value("verbose") == "true"
+
+        // Sandbox access via the security-scoped URLs registered by the file pickers;
+        // the shared executor resolves a writable output location and then runs the
+        // exact code path the CLI runs.
+        let inputScopedURL  = securityScopedURLs["inputPath"]
         let outputScopedURL = securityScopedURLs["output"]
-        let accessingInput = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
-        let accessingOutput = outputScopedURL?.startAccessingSecurityScopedResource() ?? false
-        defer {
-            if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
-            if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
-        }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
-
-        // dicom-anon's run() order: input exists → profile → option validation → notices → tags.
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
-            refuse(WorkshopAnonError.fileNotFound, exitCode: 1)
-            return
-        }
-        guard let resolvedProfile = AnonCLI.resolveProfile(profileStr) else {
-            refuse(WorkshopAnonError.invalidProfile, exitCode: 1)
-            return
-        }
-        // dicom-anon's parseProfile: the ps315 path bypasses the legacy engine; the value only
-        // builds the shared Anonymizer instance.
-        let engineProfile = resolvedProfile.legacyProfile ?? .basic
-        let isPS315 = resolvedProfile.isPS315
-        let ps315Options = AnonCLI.options(flags: ps315Flags, shiftDates: shiftDays)
-        // dicom-anon rethrows AnonCLI.ValidationError as its own CLI-local ValidationError (not
-        // ArgumentParser's), which exits 1 — checked against the built CLI 2026-10-06; on a legacy
-        // profile the only refusal is "Option flags apply only to --profile ps315".
-        do {
-            try AnonCLI.validate(profile: profileStr, flags: ps315Flags, shiftDates: shiftDays,
-                                 regenerateUids: regenUIDs, keep: keepTags, redactRegions: redactRegions)
-        } catch let error as AnonCLI.ValidationError {
-            refuse(error.message, exitCode: 1)
-            return
-        } catch {
-            refuse(error.localizedDescription, exitCode: 1)
-            return
-        }
-        var output = ""
-        if let notice = AnonCLI.legacyProfileNotice(profileStr) {
-            output += notice + "\n"
-        }
-        if ps315Flags.retainDates {
-            output += AnonCLI.retainDatesNotice(shiftDates: shiftDays) + "\n"
-        }
-
-        // --remove / --replace / --keep (the CLI's parseCustomActions / parsePreserveTags).
-        var customActions: [Tag: AnonymizationAction] = [:]
-        for spec in removeTags {
-            guard let tag = Anonymizer.parseFlexibleTag(spec) else {
-                refuse("Invalid tag format: \(spec)", exitCode: 1); return
-            }
-            customActions[tag] = .remove
-        }
-        for pair in replacePairs {
-            let parts = pair.split(separator: "=", maxSplits: 1)
-            guard parts.count == 2 else {
-                refuse("Invalid replace format: \(pair). Use TAG=VALUE", exitCode: 1); return
-            }
-            guard let tag = Anonymizer.parseFlexibleTag(String(parts[0])) else {
-                refuse("Invalid tag format: \(parts[0])", exitCode: 1); return
-            }
-            customActions[tag] = .replaceWithDummy(String(parts[1]))
-        }
-        var preserveTags = Set<Tag>()
-        for spec in keepTags {
-            guard let tag = Anonymizer.parseFlexibleTag(spec) else {
-                refuse("Invalid tag format: \(spec)", exitCode: 1); return
-            }
-            preserveTags.insert(tag)
-        }
-
-        if isDirectory.boolValue {
-            guard recursive else { refuse("Directory anonymization requires --recursive flag", exitCode: 1); return }
-            guard !outputPath.isEmpty else { refuse("Directory anonymization requires --output directory", exitCode: 1); return }
-        } else {
-            // Writing back over the input is never implied (dicom-anon's rule).
-            guard dryRun || !outputPath.isEmpty else {
-                refuse("Anonymization requires --output (or use --dry-run to preview without writing)", exitCode: 1)
-                return
-            }
-        }
-
-        // Sandbox-writable destination (scoped URL → the typed path → ~/Downloads/DICOMStudio).
-        var outputBase: URL? = nil
-        if !outputPath.isEmpty {
-            let resolved = OutputAccess.resolveWritableURL(
-                forPath: outputScopedURL?.path ?? outputPath, scopedURL: outputScopedURL,
-                subfolder: "Anonymized", isDirectory: isDirectory.boolValue)
-            if let note = resolved.note { output += note + "\n" }
-            outputBase = resolved.url
-        }
-        if let note = output.isEmpty ? nil : output { appendConsoleOutput(note); output = "" }
-
-        let workIsDirectory = isDirectory.boolValue
-        let workOutputBase = outputBase
-        // Value copies handed to the detached run; nothing on the main actor touches them after.
-        nonisolated(unsafe) let workEngineProfile = engineProfile
-        nonisolated(unsafe) let workCustomActions = customActions
-        let (text, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
-            let customActions = workCustomActions
-            let anonymizer = Anonymizer(
-                profile: workEngineProfile, shiftDates: shiftDays, regenerateUIDs: regenUIDs,
-                preserveTags: preserveTags, customActions: customActions)
-            var out = ""
-            var results: [AnonymizationResult] = []
-            var reports: [(path: String, actions: [AnonCLI.AttributeAction])] = []
-
-            /// dicom-anon's anonymizeFile: pixel cleaning first (the region decision reads
-            /// Modality / Manufacturer, which de-identification removes), then the engine,
-            /// then the write with (0002,0003) following the replaced SOP Instance UID.
-            func anonymizeFile(_ fileURL: URL, outputURL: URL?) throws -> (AnonymizationResult, [AnonCLI.AttributeAction]) {
-                var fileData = try Data(contentsOf: fileURL)
-                var dicomFile = try DICOMFile.read(from: fileData, force: force)
-                let sourceDataSet = dicomFile.dataSet
-                let editor = PixelEditor(verbose: false)
-                let explicit = try redactRegions.map { spec -> PixelRedactionPlan.Region in
-                    let r = try editor.parseRegion(spec)
-                    return PixelRedactionPlan.Region(x: r.x, y: r.y, width: r.width, height: r.height)
-                }
-                // With --clean-recognizable-visual-features the regions are the features to blank
-                // (PS3.15 E.3.2); they claim nothing about burned-in text unless --clean-pixel-data.
-                if cleanPixelData || (!redactRegions.isEmpty && !ps315Flags.cleanRecognizableVisualFeatures) {
-                    let plan = PixelRedactionPlan.plan(for: dicomFile.dataSet, explicitRegions: explicit)
-                    if let (redacted, outcome) = try PixelRedactor().redact(
-                        fileData: fileData, plan: plan, fillValue: redactFill) {
-                        fileData = redacted
-                        dicomFile = try DICOMFile.read(from: redacted, force: force)
-                        if verbose { out += AnonConsole.pixelRedactionLines(outcome: outcome) }
-                    }
-                }
-                if ps315Flags.cleanRecognizableVisualFeatures {
-                    let (redacted, outcome) = try PixelRedactor().redactRecognizableVisualFeatures(
-                        fileData: fileData, regions: explicit, fillValue: redactFill)
-                    fileData = redacted
-                    dicomFile = try DICOMFile.read(from: redacted, force: force)
-                    if verbose { out += AnonCLI.visualFeaturesLines(outcome: outcome) }
-                }
-                // PS3.15 Annex E engine (ps315 / basic) or the legacy list.
-                let anonymizedFile: DICOMFile
-                let result: AnonymizationResult
-                if isPS315 {
-                    (anonymizedFile, result) = try StudioAnonPS315.deidentify(
-                        dicomFile, anonymizer: anonymizer, options: ps315Options,
-                        customActions: customActions, allowBurnedInPHI: allowBurnedInPHI, inputURL: fileURL)
-                } else {
-                    (anonymizedFile, result) = try anonymizer.anonymize(file: dicomFile, filePath: fileURL.path)
-                }
-                if !dryRun, let outputURL {
-                    if backup {
-                        let backupURL = outputURL.appendingPathExtension("backup")
-                        try? FileManager.default.copyItem(at: fileURL, to: backupURL)
-                    }
-                    let outputData = try AnonCLI.syncingMediaStorageSOPInstanceUID(anonymizedFile).write()
-                    let written = try OutputAccess.write(outputData, toPath: outputURL.path,
-                                                         scopedURL: workIsDirectory ? nil : outputScopedURL,
-                                                         subfolder: "Anonymized")
-                    if let note = written.note { out += note + "\n" }
-                }
-                let actions = AnonCLI.attributeActions(before: sourceDataSet, after: anonymizedFile.dataSet,
-                                                       options: isPS315 ? ps315Options : nil)
-                return (result, actions)
-            }
-
-            if workIsDirectory {
-                guard let outDir = workOutputBase else { return ("Error: Directory anonymization requires --output directory\n", 1) }
-                do {
-                    try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
-                } catch {
-                    return (out + "Error: \(error.localizedDescription)\n", 1)
-                }
-                guard let fileURLs = FileGatherer.regularFiles(under: inputURL) else {
-                    return (out + "Error: Failed to enumerate directory: \(inputURL.path)\n", 1)
-                }
-                for fileURL in fileURLs {
-                    let relativePath = String(fileURL.path.replacingOccurrences(of: inputURL.path, with: "").dropFirst())
-                    guard !relativePath.isEmpty else { continue }
-                    let outputFileURL = outDir.appendingPathComponent(relativePath)
-                    do {
-                        try FileManager.default.createDirectory(
-                            at: outputFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-                    } catch {
-                        return (out + "Error: \(error.localizedDescription)\n", 1)
-                    }
-                    do {
-                        let (result, actions) = try anonymizeFile(fileURL, outputURL: outputFileURL)
-                        results.append(result)
-                        reports.append((fileURL.path, actions))
-                        if verbose { out += AnonConsole.fileSuccessLine(relativePath: relativePath) + "\n" }
-                    } catch {
-                        if verbose {
-                            out += AnonConsole.fileFailureLine(relativePath: relativePath, message: error.localizedDescription) + "\n"
-                        }
-                        results.append(AnonymizationResult(
-                            filePath: fileURL.path, success: false, changedTags: [], warnings: [error.localizedDescription]))
-                    }
-                }
-            } else {
-                do {
-                    let (result, actions) = try anonymizeFile(inputURL, outputURL: workOutputBase)
-                    results = [result]
-                    reports = [(inputURL.path, actions)]
-                } catch {
-                    return (out + "Error: \(error.localizedDescription)\n", 1)
-                }
-            }
-
-            if dryRun || verbose {
-                for report in reports {
-                    out += AnonCLI.actionLines(path: report.path, actions: report.actions)
-                }
-            }
-            out += AnonConsole.summary(
-                totalFiles: results.count,
-                successful: results.filter { $0.success }.count,
-                failed: results.filter { !$0.success }.count,
-                dryRun: dryRun,
-                warnings: results.flatMap { $0.warnings },
-                modifiedTags: Set(results.flatMap { $0.changedTags }.map { "\($0)" }),
-                verbose: verbose)
-            if !auditLogPath.isEmpty {
-                do {
-                    if isPS315 {
-                        // The PS3.15 engine keeps no change log of its own (dicom-anon's ps315 branch).
-                        let text = StudioAnonPS315.auditLogText(
-                            options: ps315Options,
-                            cleanRecognizableVisualFeatures: ps315Flags.cleanRecognizableVisualFeatures,
-                            reports: reports)
-                        try text.write(to: URL(fileURLWithPath: auditLogPath), atomically: true, encoding: .utf8)
-                    } else {
-                        try anonymizer.writeAuditLog(to: URL(fileURLWithPath: auditLogPath))
-                    }
-                } catch {
-                    return (out + "Error: \(error.localizedDescription)\n", 1)
-                }
-                if verbose { out += AnonConsole.auditLogLine(path: auditLogPath) + "\n" }
-            }
-            return (out, results.contains(where: { !$0.success }) ? 1 : 0)
+        let (output, exitCode) = await Task.detached(priority: .userInitiated) {
+            await SecurityViewModel.executeAnonymization(
+                request, inputScopedURL: inputScopedURL, outputScopedURL: outputScopedURL)
         }.value
 
-        appendConsoleOutput(text)
-        addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: exitCode, output: text)
+        appendConsoleOutput(output)
+        // Structured exit code from the run itself (CLI rule: any failed file → 1) —
+        // never derived by sniffing the output text.
+        addToHistory(toolName: "dicom-anon", command: commandPreview, exitCode: exitCode, output: output)
         consoleStatus = exitCode == 0 ? .success : .error
         service.setConsoleStatus(exitCode == 0 ? .success : .error)
     }
