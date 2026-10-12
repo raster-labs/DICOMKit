@@ -13,6 +13,29 @@ import JPEGLS
 ///   • 1.2.840.10008.1.2.4.81  JPEG-LS Near-Lossless
 /// NEMA-verified: 2026a, checked 2026-09-25 — the two JPEG-LS UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` (8 or 16 allocated, 2–16 stored, 1 or 3 samples) matches PS3.5 2026a Table 8.2.3-1. The header citation said §A.4.5 (MPEG2); corrected to §A.4.3. The codec implements ITU-T T.87, outside DICOM.
 public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
+    /// Controls precision recovery for descriptor-bearing inspection and decoding.
+    public enum PrecisionPolicy: Sendable {
+        /// Reject inconsistent source Bits Stored and encoded precision (the default).
+        case requireSourceMatch
+        /// Permit unsigned monochrome NEAR=0 streams with 16-bit precision in a
+        /// source 16-bit container whose Bits Stored is smaller. Return all samples
+        /// unchanged with an actual 16-bit descriptor and an explicit diagnostic.
+        /// PS3.5 2026a 8.2.3 imports the receiver-recovery notes of 8.2.1.
+        case useCodestreamForUnsignedMonochrome
+    }
+
+    /// Header-derived interpretation shared by indexing and sample decoding.
+    /// Successful inspection does not qualify entropy data or decoded sample values.
+    public struct FrameInfo: Sendable {
+        /// Actual sample descriptor under the selected precision policy.
+        public let descriptor: PixelDataDescriptor
+        /// Zero-based index in the source object.
+        public let sourceFrameIndex: Int
+        /// Recovery diagnostics; source attributes remain unchanged.
+        public let diagnostics: [PixelDecodeDiagnostic]
+        fileprivate let expectedByteCount: Int
+    }
+
     /// Supported JPEG-LS transfer syntaxes for decoding
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpegLSLossless.uid,      // 1.2.840.10008.1.2.4.80
@@ -35,11 +58,14 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     private let decodingTransferSyntaxUID: String?
 
     private let decodingLimits: PixelDecodeLimits
+    private let precisionPolicy: PrecisionPolicy
 
     /// Creates a decoder with optional syntax enforcement and caller-selected resource bounds.
-    public init(decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default) {
+    public init(decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default,
+                precisionPolicy: PrecisionPolicy = .requireSourceMatch) {
         self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
         self.decodingLimits = decodingLimits
+        self.precisionPolicy = precisionPolicy
     }
 
     // MARK: - Decoding
@@ -48,7 +74,10 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     ///
     /// The decoded frame header must match the descriptor exactly: width and
     /// height equal Columns and Rows, the component count equals Samples per
-    /// Pixel and the sample precision P equals Bits Stored (PS3.5 2026a A.4.3); every component must be a full-size plane.
+    /// Pixel and the sample precision P equals Bits Stored; every component must be a full-size plane.
+    /// This strict API policy implements the attribute-consistency requirement of
+    /// PS3.5 2026a 8.2.3. Use `decodePixelFrame` with an explicit precision policy
+    /// for bounded recovery under the receiver guidance imported from 8.2.1.
     /// Any mismatch throws. Previously a mis-sized frame was silently
     /// zero-filled or truncated to the descriptor's byte count and an
     /// over-precise frame was silently clamped.
@@ -59,16 +88,84 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// - Returns: Uncompressed pixel data laid out per `descriptor`
     /// - Throws: `DICOMError` if decoding fails or the frame does not match `descriptor`
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
-        let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
-        _ = try JPEGFrameEnvelope.parse(frameData, jpegLS: true)
+        // A Data-only caller cannot observe a corrected descriptor or diagnostics.
+        try decodedPixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
+                              precisionPolicy: .requireSourceMatch).data
+    }
+
+    /// Decodes using the selected precision policy, returning the actual sample descriptor.
+    /// Original source attributes remain unchanged. Recovery never masks or clamps samples.
+    /// - Parameters:
+    ///   - frameData: One complete JPEG-LS codestream.
+    ///   - descriptor: Original source attributes, retained unchanged by the caller.
+    ///   - frameIndex: Zero-based source frame index.
+    /// - Returns: Samples with their actual descriptor and recovery diagnostics.
+    public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
+                                 frameIndex: Int) throws -> DecodedPixelFrame {
+        try decodedPixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
+                              precisionPolicy: precisionPolicy)
+    }
+
+    /// Inspects the complete frame envelope and headers without decoding sample data.
+    /// Uses the same policy, syntax, descriptor and allocation checks as `decodePixelFrame`.
+    /// Entropy validity and sample ranges are checked only when decoding succeeds.
+    /// - Parameters:
+    ///   - frameData: One complete JPEG-LS codestream.
+    ///   - descriptor: Original source attributes, retained unchanged by the caller.
+    ///   - frameIndex: Zero-based source frame index.
+    /// - Returns: Header-derived descriptor, frame identity and recovery diagnostics.
+    public func inspectFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
+                             frameIndex: Int) throws -> FrameInfo {
+        try preparedFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
+                          precisionPolicy: precisionPolicy).info
+    }
+
+    private func preparedFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
+                               frameIndex: Int, precisionPolicy: PrecisionPolicy) throws -> (info: FrameInfo, data: Data) {
+        // Reject oversized slices before rebasing can allocate a copy.
+        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         let data = frameData.startIndex == 0 ? frameData : Data(frameData)
+        _ = try JPEGFrameEnvelope.parse(data, jpegLS: true)
         let parsed = try JPEGLSParser(data: data).parse()
         // JLSwift applies LSE type 4 to the returned effective frame header.
         let header = parsed.frameHeader
         guard header.width == descriptor.columns, header.height == descriptor.rows,
-              header.componentCount == descriptor.samplesPerPixel, header.bitsPerSample == descriptor.bitsStored else {
+              header.componentCount == descriptor.samplesPerPixel else {
             throw DICOMError.parsingFailed("JPEG-LS effective header does not match DICOM descriptor")
         }
+
+        // Match the decoder's header-only MAXVAL guard (ITU-T T.87 C.2.4.1.1).
+        let parameters = try parsed.presetParameters ?? JPEGLSPresetParameters.defaultParameters(
+            bitsPerSample: header.bitsPerSample, near: parsed.scanHeaders.first?.near ?? 0)
+        guard parameters.maxValue <= (1 << header.bitsPerSample) - 1 else {
+            throw DICOMError.parsingFailed("JPEG-LS MAXVAL exceeds the encoded precision")
+        }
+
+        var actualDescriptor = descriptor
+        var diagnostics: [PixelDecodeDiagnostic] = []
+        if header.bitsPerSample != descriptor.bitsStored {
+            guard case .useCodestreamForUnsignedMonochrome = precisionPolicy,
+                  !descriptor.isSigned, descriptor.samplesPerPixel == 1,
+                  descriptor.photometricInterpretation == .monochrome1
+                    || descriptor.photometricInterpretation == .monochrome2,
+                  descriptor.bitsAllocated == 16, header.bitsPerSample == 16,
+                  descriptor.bitsStored < 16,
+                  parsed.scanHeaders.allSatisfy({
+                      $0.near == 0 && $0.pointTransform == 0
+                        && $0.components.allSatisfy({ $0.mappingTableID == 0 })
+                  }), parsed.mappingTables.isEmpty, parsed.colorTransformation == .none,
+                  decodingTransferSyntaxUID == nil
+                    || decodingTransferSyntaxUID == TransferSyntax.jpegLSLossless.uid else {
+                throw DICOMError.parsingFailed("JPEG-LS precision mismatch is outside the selected recovery policy")
+            }
+            actualDescriptor = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames, bitsAllocated: 16, bitsStored: 16, highBit: 15,
+                isSigned: false, samplesPerPixel: 1, photometricInterpretation: descriptor.photometricInterpretation,
+                planarConfiguration: descriptor.planarConfiguration)
+            diagnostics = [.sourcePrecisionMismatch(sourceBitsStored: descriptor.bitsStored,
+                                                     encodedPrecision: header.bitsPerSample)]
+        }
+        let expectedBytes = try decodingLimits.validate(frameData, descriptor: actualDescriptor, frameIndex: frameIndex)
         if let uid = decodingTransferSyntaxUID {
             guard Self.supportedTransferSyntaxes.contains(uid) else {
                 throw DICOMError.parsingFailed("Unsupported JPEG-LS decoding transfer syntax")
@@ -78,6 +175,23 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
             }
         }
 
+        // Match the maintained decoder's Int-plane budget during header inspection,
+        // before allocating samples. Descriptor validation above bounds dimensions.
+        let (pixels, pixelOverflow) = actualDescriptor.rows.multipliedReportingOverflow(by: actualDescriptor.columns)
+        let (samples, sampleOverflow) = pixels.multipliedReportingOverflow(by: actualDescriptor.samplesPerPixel)
+        let (planeBytes, byteOverflow) = samples.multipliedReportingOverflow(by: MemoryLayout<Int>.stride)
+        guard !pixelOverflow, !sampleOverflow, !byteOverflow,
+              planeBytes > 0, planeBytes <= decodingLimits.maximumDecodedBytes else {
+            throw DICOMError.limitExceeded("JPEG-LS intermediate sample planes exceed decoded byte budget")
+        }
+        return (FrameInfo(descriptor: actualDescriptor, sourceFrameIndex: frameIndex,
+                          diagnostics: diagnostics, expectedByteCount: expectedBytes), data)
+    }
+
+    private func decodedPixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
+                                   frameIndex: Int, precisionPolicy: PrecisionPolicy) throws -> DecodedPixelFrame {
+        let (info, data) = try preparedFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
+                                             precisionPolicy: precisionPolicy)
         let image: MultiComponentImageData
         do {
             image = try JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
@@ -87,10 +201,11 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
             throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error)")
         }
 
-        try Self.validate(image, against: descriptor)
-        let bytes = serialize(image, descriptor: descriptor)
-        guard bytes.count == expectedBytes else { throw DICOMError.parsingFailed("JPEG-LS output length mismatch") }
-        return bytes
+        try Self.validate(image, against: info.descriptor)
+        let bytes = serialize(image, descriptor: info.descriptor)
+        guard bytes.count == info.expectedByteCount else { throw DICOMError.parsingFailed("JPEG-LS output length mismatch") }
+        return DecodedPixelFrame(data: bytes, descriptor: info.descriptor, sourceFrameIndex: info.sourceFrameIndex,
+                                 diagnostics: info.diagnostics)
     }
 
     /// Verifies that the decoded image is exactly the frame `descriptor` declares.
@@ -122,6 +237,10 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                     "Decoded JPEG-LS component \(component.id) is not a full \(descriptor.columns)x\(descriptor.rows) "
                         + "plane; sub-sampled components are not supported"
                 )
+            }
+            let maximum = (1 << header.bitsPerSample) - 1
+            guard component.pixels.allSatisfy({ $0.allSatisfy({ $0 >= 0 && $0 <= maximum }) }) else {
+                throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
             }
         }
     }

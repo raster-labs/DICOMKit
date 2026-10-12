@@ -42,6 +42,12 @@ public struct PixelDecodeLimits: Sendable {
     }
 }
 
+/// A source inconsistency encountered during an explicitly enabled decoding recovery.
+public enum PixelDecodeDiagnostic: Sendable, Equatable {
+    /// The JPEG-LS stream has a wider precision than the source Bits Stored attribute.
+    case sourcePrecisionMismatch(sourceBitsStored: Int, encodedPrecision: Int)
+}
+
 /// Decoded bytes and their actual color/layout, retaining the requested source frame identity.
 /// The original DICOM descriptor remains available to the caller as source provenance.
 public struct DecodedPixelFrame: Sendable {
@@ -52,10 +58,15 @@ public struct DecodedPixelFrame: Sendable {
     /// Zero-based index of the frame in the source object.
     public let sourceFrameIndex: Int
 
+    /// Explicit recovery diagnostics; source metadata is never rewritten by the decoder.
+    public let diagnostics: [PixelDecodeDiagnostic]
+
     /// Creates a decoded result.
-    public init(data: Data, descriptor: PixelDataDescriptor, sourceFrameIndex: Int) {
+    public init(data: Data, descriptor: PixelDataDescriptor, sourceFrameIndex: Int,
+                diagnostics: [PixelDecodeDiagnostic] = []) {
         self.data = data
         self.descriptor = descriptor
         self.sourceFrameIndex = sourceFrameIndex
+        self.diagnostics = diagnostics
     }
 }

@@ -249,7 +249,7 @@ let package = Package(
         // lossless SOF0–3, 8/12/16-bit, Accelerate-backed; jpegli-parity target).
         // Distinct from JLSwift (JPEG-LS). Products: `JLISwift` (core codec) and
         // `JLIDICOM` (DICOM bridge helpers). No external deps → URL-consumable.
-        .package(url: "https://github.com/raster-labs/JLISwift.git", exact: "0.5.1"),
+        .package(url: "https://github.com/raster-labs/JLISwift.git", exact: "0.5.2"),
         // JXLSwift — pure-Swift JPEG XL (ISO/IEC 18181) codec. URL-consumable as
         // of v1.0.1: the library target dropped its CompressionFamily dependency
         // (v1.0.0 referenced it via a local path, which SwiftPM rejected for a

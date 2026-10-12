@@ -200,7 +200,7 @@ public struct HangingProtocolSerializer {
 
     private static func legacyPartialDataHandling(_ displaySets: [DisplaySet]) -> PartialDataDisplayHandling? {
         displaySets.lazy
-            .compactMap { $0.partialDataHandling }
+            .compactMap { $0.legacyPartialDataHandling }
             .compactMap { PartialDataDisplayHandling(rawValue: $0.trimmingCharacters(in: .whitespaces)) }
             .first
     }

@@ -1915,6 +1915,12 @@ if let pixelData = dicomFile.pixelData() {
 #endif
 ```
 
+For bounded compressed-frame admission and actual decoded descriptors, see
+[Strict compressed-frame decoding](Documentation/Compression/StrictFrameDecoding.md).
+`JPEGLSCodec.inspectFrame` and `decodePixelFrame` share an explicit precision-recovery
+policy and diagnostics so indexing and loading agree while preserving source metadata.
+
+
 ### Grayscale Presentation State (GSPS) (v1.0.1)
 
 ```swift

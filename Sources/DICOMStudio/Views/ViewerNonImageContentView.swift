@@ -400,8 +400,10 @@ struct ViewerVideoPlayerView: View {
             newPlayer.actionAtItemEnd = .none
             endObserver = NotificationCenter.default.addObserver(
                 forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main) { _ in
-                    newPlayer.seek(to: .zero)
-                    if isPlaying { newPlayer.play() }
+                    MainActor.assumeIsolated {
+                        newPlayer.seek(to: .zero)
+                        if isPlaying { newPlayer.play() }
+                    }
                 }
             fileURL = url
             player = newPlayer

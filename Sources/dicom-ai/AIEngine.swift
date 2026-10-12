@@ -361,7 +361,6 @@ class AIEngine {
         }
         
         let inputName = firstInput.key
-        let inputDescription = firstInput.value
         
         // For now, we'll create a simple dictionary-based feature provider
         // Real implementation would convert image data to appropriate format
@@ -377,7 +376,7 @@ class AIEngine {
         var predictions: [Prediction] = []
         
         // Look for common output names
-        for (name, description) in outputDescriptions {
+        for (name, _) in outputDescriptions {
             if let multiArray = output.featureValue(for: name)?.multiArrayValue {
                 // Convert MultiArray to predictions
                 predictions = try extractPredictionsFromMultiArray(multiArray, threshold: threshold)
@@ -447,7 +446,7 @@ class AIEngine {
         // This is a simplified implementation
         // Real detection models would have specific output formats (e.g., YOLO, SSD)
         
-        var detections: [Detection] = []
+        let detections: [Detection] = []
         
         // Try to extract bounding boxes and confidence scores
         // This would need to be customized based on the model architecture

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-10-12
+
+### Fixed — compressed-frame interpretation
+
+- Resolve existing production compiler warnings that blocked release automation under warnings-as-errors. Preserve deprecated public APIs and legacy serialization, canonical tag identity, and main-queue callback behavior.
+- Pin JLISwift 0.5.2 for centered subsampled chroma reconstruction in full-resolution integer YCbCr JPEG decoding. Retain the independent lossy RGB tolerance of three code values.
+- Add explicit `JPEGLSCodec.PrecisionPolicy.useCodestreamForUnsignedMonochrome` recovery for unsigned monochrome lossless P=16 streams in 16-bit containers with smaller source Bits Stored. Return every sample unchanged, actual Bits Stored 16 / High Bit 15, and a `sourcePrecisionMismatch` diagnostic. Strict defaults and Data-only decoding remain strict.
+- Add `JPEGLSCodec.inspectFrame` so indexing and decoding share actual descriptors, diagnostics, syntax/profile guards and allocation checks. Inspection does not certify entropy data; source metadata remains separate provenance.
+- Test independent CharLS fixtures including values above the source range, shared indexing/load interpretation, rejected transforms, invalid MAXVAL, malformed envelopes and finite resource limits. JLSwift remains pinned at 0.9.3.
+
 ## [2.3.0] - 2026-10-12
 
 ### Fixed — strict association negotiation

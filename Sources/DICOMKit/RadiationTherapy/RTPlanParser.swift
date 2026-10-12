@@ -323,7 +323,7 @@ public struct RTPlanParser {
     
     /// Parse Brachy Application Setup Sequence
     private static func parseBrachyApplicationSetups(from dataSet: DataSet) -> [BrachyApplicationSetup] {
-        guard let sequence = dataSet.sequence(for: .brachyApplicationSetupSequence) else {
+        guard let sequence = dataSet.sequence(for: .applicationSetupSequence) else {
             return []
         }
         
