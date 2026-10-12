@@ -42,7 +42,12 @@ public struct SettingsView: View {
                 }
                 .tag(SettingsSection.about)
         }
-        .frame(width: 500, height: 400)
+        // Fill the detail pane instead of a fixed 500×400 box: the tabs sit at
+        // the top and each form gets the full height, so nothing scrolls until
+        // the window is genuinely too short for it.
+        .frame(maxWidth: 760)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 8)
         #else
         NavigationStack {
             List {

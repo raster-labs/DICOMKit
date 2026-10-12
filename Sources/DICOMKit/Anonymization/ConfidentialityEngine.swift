@@ -34,6 +34,12 @@ public struct ConfidentialityEngine {
     /// Shared input-UID → output-UID map. Injected so multiple files in one study
     /// regenerate the same UIDs identically. Defaults to a fresh empty map.
     public var uidMap: [String: String]
+    public struct Change: Sendable {
+        public let tag: Tag
+        public let action: ConfidentialityProfile.Action
+    }
+    public private(set) var changes: [Change] = []
+
 
     /// UIDs that identify the SOP class / transfer syntax etc. and must NOT be
     /// regenerated — doing so would corrupt the object. (PS3.15 E.1: only instance
@@ -88,6 +94,7 @@ public struct ConfidentialityEngine {
     public mutating func deidentifyReportingResidualPHI(
         _ dataSet: DataSet
     ) -> (DataSet, [Tag], [String]) {
+        changes = []
         let residual = Self.residualPixelPHIWarnings(in: dataSet)
         privateDeclarations = options.retainSafePrivate ? Self.privateBlockDeclarations(in: dataSet) : [:]
         identifyingValues = DescriptorCleaner(values: removedValues(in: dataSet))
@@ -95,6 +102,12 @@ public struct ConfidentialityEngine {
         var result = apply(to: dataSet, changed: &changed, isRoot: true)
         recordMethod(in: &result, pixelsMayCarryPHI: !residual.isEmpty)
         return (result, changed, residual)
+    }
+
+    public static func overlayGroups(in dataSet: DataSet) -> [String] {
+        stride(from: UInt16(0x6000), through: UInt16(0x601E), by: 2).compactMap { group in
+            dataSet[Tag(group: group, element: 0x3000)] == nil ? nil : String(format: "%04X", group) // Overlay Data
+        }
     }
 
     // MARK: - Residual (pixel-borne) PHI detection
@@ -183,6 +196,7 @@ public struct ConfidentialityEngine {
 
             guard let action = effective else { continue }
 
+            if isRoot && action != .keep { changes.append(Change(tag: tag, action: action == .removePreferred ? .remove : action)) }
             switch action {
             case .keep:
                 continue

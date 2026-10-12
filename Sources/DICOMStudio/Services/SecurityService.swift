@@ -27,8 +27,6 @@ public final class SecurityService: @unchecked Sendable {
 
     private var _anonymizationJobs: [AnonymizationJob] = []
     private var _phiDetectionResults: [PHIDetectionResult] = []
-    private var _selectedProfile: AnonymizationProfile = .ps315  // PS3.15 Basic Profile (P-STUDIO-ANON-PS315)
-    private var _customRules: [AnonymizationTagRule] = []
 
     // MARK: - 11.3 Audit Log State
 
@@ -143,36 +141,6 @@ public final class SecurityService: @unchecked Sendable {
         lock.withLock {
             _anonymizationJobs.removeAll { $0.id == id && $0.status.isTerminal }
         }
-    }
-
-    /// Returns the currently selected anonymization profile.
-    public func getSelectedProfile() -> AnonymizationProfile {
-        lock.withLock { _selectedProfile }
-    }
-
-    /// Sets the selected anonymization profile.
-    public func setSelectedProfile(_ profile: AnonymizationProfile) {
-        lock.withLock { _selectedProfile = profile }
-    }
-
-    /// Returns the current custom anonymization rules.
-    public func getCustomRules() -> [AnonymizationTagRule] {
-        lock.withLock { _customRules }
-    }
-
-    /// Replaces the custom anonymization rules.
-    public func setCustomRules(_ rules: [AnonymizationTagRule]) {
-        lock.withLock { _customRules = rules }
-    }
-
-    /// Adds a custom rule.
-    public func addCustomRule(_ rule: AnonymizationTagRule) {
-        lock.withLock { _customRules.append(rule) }
-    }
-
-    /// Removes a custom rule by ID.
-    public func removeCustomRule(id: UUID) {
-        lock.withLock { _customRules.removeAll { $0.id == id } }
     }
 
     /// Returns all PHI detection results.

@@ -68,16 +68,22 @@ public struct NetworkUtilityView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(NetworkUtilityTool.allCases) { tool in
+                    let selected = viewModel.activeTool == tool
                     Button { viewModel.activeTool = tool } label: {
-                        Label(tool.displayName, systemImage: tool.sfSymbol)
-                            .font(.body.weight(viewModel.activeTool == tool ? .semibold : .regular))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 9)
-                            .background(viewModel.activeTool == tool ? Color.accentColor.opacity(0.18) : Color.clear)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        HStack(spacing: 8) {
+                            Image(systemName: tool.sfSymbol)
+                                .font(.title3)
+                                .foregroundStyle(selected ? Color.accentColor : .secondary)
+                            Text(tool.displayName)
+                                .font(.body.weight(selected ? .semibold : .regular))
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                        .selectionCard(selected)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(tool.displayName)
+                    .accessibilityAddTraits(selected ? .isSelected : [])
                 }
             }
             .padding(.horizontal, 16)

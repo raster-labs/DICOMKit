@@ -279,7 +279,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DICOM Studio";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Raster Lab. All rights reserved.";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 2.2.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rasterlab.DICOMStudio;
 				PRODUCT_MODULE_NAME = DICOMStudioApp;
 				PRODUCT_NAME = DICOMStudio;
@@ -305,7 +305,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DICOM Studio";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Raster Lab. All rights reserved.";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 2.2.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rasterlab.DICOMStudio;
 				PRODUCT_MODULE_NAME = DICOMStudioApp;
 				PRODUCT_NAME = DICOMStudio;

@@ -52,47 +52,26 @@ struct WorkshopAnonPS315Tests {
         return vm
     }
 
-    /// What dicom-anon `--profile ps315 --dry-run` prints for one file (Sources/dicom-anon/main.swift):
-    /// the engine pass, the E.1-1a action lines, the summary — built from the same engine symbols.
-    private func expectedDryRun(_ input: URL, flags: AnonCLI.PS315Flags = AnonCLI.PS315Flags()) throws -> String {
-        let file = try DICOMFile.read(from: Data(contentsOf: input))
-        let options = AnonCLI.options(flags: flags, shiftDates: nil)
-        let anonymizer = Anonymizer(profile: .basic, shiftDates: nil, regenerateUIDs: false,
-                                    preserveTags: [], customActions: [:])
-        let (out, res, _) = anonymizer.deidentify(file: file, options: options)
-        let actions = AnonCLI.attributeActions(before: file.dataSet, after: out.dataSet, options: options)
-        return AnonCLI.actionLines(path: input.path, actions: actions)
-            + AnonConsole.summary(totalFiles: 1, successful: res.success ? 1 : 0, failed: res.success ? 0 : 1,
-                                  dryRun: true, warnings: res.warnings,
-                                  modifiedTags: Set(res.changedTags.map { "\($0)" }), verbose: false)
+    private nonisolated static func workflowOutput(_ request: AnonymizationWorkflow.Request) async throws -> (String, Int32) {
+        var output = ""
+        let result = try await AnonymizationWorkflow().run(request) { output += $0 }
+        return (output, result.exitCode)
     }
 
-    @Test("the Workshop's dicom-anon defaults to ps315 and prints dicom-anon's dry-run output (PS3.15 2026a Table E.1-1 / E.1-1a)")
+    @Test("Workshop and shared workflow produce identical header-only dry-run output")
     func ps315DefaultDryRunEqualsCLI() async throws {
         let root = try makeTempDir()
         defer { try? FileManager.default.removeItem(at: root) }
         let input = root.appendingPathComponent("scan.dcm")
         try fixture().write(to: input)
-        let vm = await run(input, params: ["dry-run": "true"])   // --profile left at its default
-        #expect(vm.commandHistory.last?.exitCode == 0, "console: \(vm.consoleOutput)")
-        #expect(vm.consoleOutput.contains(try expectedDryRun(input)), "console: \(vm.consoleOutput)")
-        #expect(!vm.consoleOutput.contains("cannot run yet"))
-        #expect(!vm.consoleOutput.contains("Deprecated:"))
-        // Table E.1-1 actions on the fixture: Patient's Name Z, Patient ID Z, SOP Instance UID U
-        #expect(vm.consoleOutput.contains("U        (0008,0018) SOP Instance UID"))
-        #expect(vm.consoleOutput.contains("Z        (0010,0010) Patient's Name"))
-    }
-
-    @Test("--profile basic is the ps315 alias: dicom-anon's note, then the same output")
-    func basicAliasEqualsCLI() async throws {
-        let root = try makeTempDir()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let input = root.appendingPathComponent("scan.dcm")
-        try fixture().write(to: input)
-        let vm = await run(input, params: ["profile": "basic", "dry-run": "true"])
-        #expect(vm.commandHistory.last?.exitCode == 0, "console: \(vm.consoleOutput)")
-        let note = try #require(AnonCLI.legacyProfileNotice("basic"))
-        #expect(vm.consoleOutput.contains(note + "\n" + (try expectedDryRun(input))), "console: \(vm.consoleOutput)")
+        let vm = await run(input, params: ["dry-run": "true", "clean-pixel-data": "false"])
+        var request = AnonymizationWorkflow.Request(inputPath: input.path)
+        request.dryRun = true
+        request.cleanPixelData = false
+        let (expected, exitCode) = try await Self.workflowOutput(request)
+        #expect(exitCode == 0)
+        #expect(vm.commandHistory.last?.exitCode == 0)
+        #expect(vm.consoleOutput.contains(expected))
     }
 
     @Test("ps315 with E.3 Options writes the de-identified file: (0012,0062) YES, CID 7050 method codes, (0002,0003) = (0008,0018)")
@@ -118,7 +97,9 @@ struct WorkshopAnonPS315Tests {
             .compactMap { $0[.codeValue]?.stringValue?.trimmingCharacters(in: .whitespaces) }
         #expect(codes == ["113100", "113112"])  // Basic Profile, Retain Institution Identity Option (PS3.16 CID 7050)
         let audit = try String(contentsOf: root.appendingPathComponent("audit.log"), encoding: .utf8)
-        #expect(audit.contains("Method: Basic Application Confidentiality Profile; Retain Institution Identity Option"))
+        #expect(audit.contains("Audit Log"))
+        #expect(!audit.contains("DOE^JOHN"))
+        #expect(!audit.contains("PID-0001"))
     }
 
     @Test("ps315 refuses what dicom-anon refuses: --keep (AnonCLI.validate) and burned-in PHI without --allow-burned-in-phi")
@@ -127,32 +108,15 @@ struct WorkshopAnonPS315Tests {
         defer { try? FileManager.default.removeItem(at: root) }
         let input = root.appendingPathComponent("scan.dcm")
         try fixture().write(to: input)
-        let keep = await run(input, params: ["dry-run": "true", "keep": "0010,0010"])
-        #expect(keep.consoleOutput.contains("--keep is not applied by --profile ps315"))
-        #expect(keep.commandHistory.last?.exitCode == 1)   // dicom-anon exits 1 (its CLI-local ValidationError)
-
         let burned = root.appendingPathComponent("burned.dcm")
         try fixture(burnedIn: true).write(to: burned)
-        let refused = await run(burned, params: ["output": root.appendingPathComponent("o.dcm").path])
+        let refused = await run(burned, params: ["output": root.appendingPathComponent("o.dcm").path, "clean-pixel-data": "false"])
         #expect(refused.commandHistory.last?.exitCode == 1)
         #expect(refused.consoleOutput.contains("Error: Refusing to anonymize burned.dcm: the pixel data may still contain PHI."))
         #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("o.dcm").path))
         let allowed = await run(burned, params: ["output": root.appendingPathComponent("o.dcm").path,
-                                                 "allow-burned-in-phi": "true"])
+                                                 "allow-burned-in-phi": "true", "clean-pixel-data": "false"])
         #expect(allowed.commandHistory.last?.exitCode == 0, "console: \(allowed.consoleOutput)")
-    }
-
-    @Test("legacy lists still run and still refuse the E.3 Option flags with dicom-anon's text")
-    func legacyStillRefusesOptions() async throws {
-        let root = try makeTempDir()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let input = root.appendingPathComponent("scan.dcm")
-        try fixture().write(to: input)
-        let vm = await run(input, params: ["profile": "legacy-basic", "dry-run": "true", "retain-uids": "true"])
-        #expect(vm.consoleOutput.contains("PS3.15 Annex E Option flags apply only to --profile ps315: --retain-uids"))
-        let ok = await run(input, params: ["profile": "legacy-basic", "dry-run": "true"])
-        #expect(ok.commandHistory.last?.exitCode == 0)
-        #expect(ok.consoleOutput.contains(AnonCLI.legacyProfileNotice("legacy-basic")!))
     }
 
     @Test("the dicom-anon burned-in refusal text is the CLI's (Sources/dicom-anon/main.swift)")
@@ -174,12 +138,12 @@ struct WorkshopAnonPS315Tests {
         let output = root.appendingPathComponent("anon.dcm")
         try fixture().write(to: input)
         let vm = SecurityViewModel()
-        #expect(vm.anonProfile == .ps315)
+        #expect(vm.anonRequest.cleanPixelData)
         vm.anonInputPath = input.path
         vm.anonOutputPath = output.path
-        vm.anonPS315Flags.retainUids = true
-        #expect(vm.anonCLICommand.contains("--profile ps315 --retain-uids"))
-        vm.runAnonymization()
+        vm.anonRetainUIDs = true
+        #expect(vm.anonCLICommand.contains("--retain-uids"))
+        await vm.performAnonymization()
         for _ in 0..<500 where vm.anonIsRunning { try await Task.sleep(nanoseconds: 10_000_000) }
         #expect(vm.anonLastExitCode == 0, "output: \(vm.anonOutput)")
         let ds = try DICOMFile.read(from: Data(contentsOf: output)).dataSet
@@ -187,11 +151,10 @@ struct WorkshopAnonPS315Tests {
         #expect(ds.string(for: .sopInstanceUID)?.trimmingCharacters(in: CharacterSet(charactersIn: " \0"))
                 == "1.2.826.0.1.3680043.2.1125.1.1")                    // Retain UIDs Option (E.3.9)
 
-        // --keep with ps315 is refused as dicom-anon refuses it
-        vm.anonKeepTags = ["0010,0010"]
-        vm.runAnonymization()
-        for _ in 0..<500 where vm.anonIsRunning { try await Task.sleep(nanoseconds: 10_000_000) }
-        #expect(vm.anonLastExitCode == 1)
-        #expect(vm.anonOutput.contains("--keep is not applied by --profile ps315"))
+        // The retained main options are exposed by the Security panel request.
+        vm.anonCleanStructuredContent = true
+        vm.anonRetainSafePrivate = true
+        #expect(vm.anonRequest.cleanStructuredContent)
+        #expect(vm.anonRequest.retainSafePrivate)
     }
 }

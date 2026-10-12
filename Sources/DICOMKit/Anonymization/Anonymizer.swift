@@ -102,7 +102,7 @@ public enum AnonymizationAction {
 }
 
 /// Result of anonymization
-public struct AnonymizationResult {
+public struct AnonymizationResult: Sendable {
     public let filePath: String
     public let success: Bool
     public let changedTags: [Tag]
@@ -124,6 +124,7 @@ public struct AuditLogEntry {
     public let tag: Tag
     public let originalValue: String?
     public let newValue: String?
+    public let note: String?
 
     public init(timestamp: Date, filePath: String, action: String, tag: Tag, originalValue: String?, newValue: String?) {
         self.timestamp = timestamp
@@ -132,7 +133,18 @@ public struct AuditLogEntry {
         self.tag = tag
         self.originalValue = originalValue
         self.newValue = newValue
+        self.note = nil
     }
+    public init(timestamp: Date, filePath: String, action: String, tag: Tag, note: String? = nil) {
+        self.timestamp = timestamp
+        self.filePath = filePath
+        self.action = action
+        self.tag = tag
+        self.note = note
+        self.originalValue = nil
+        self.newValue = nil
+    }
+
 }
 
 /// Main anonymizer class
@@ -439,7 +451,8 @@ public class Anonymizer {
         // Use the residual-PHI-reporting pass: pixels are out of scope for this engine,
         // so burned-in annotation / overlay planes must reach the caller as warnings
         // rather than being silently certified as de-identified.
-        let (scrubbed, changed, warnings) = engine.deidentifyReportingResidualPHI(file.dataSet)
+        var (scrubbed, changed, warnings) = engine.deidentifyReportingResidualPHI(file.dataSet)
+        AnonCLI.applyCustomActions(customActions, source: file.dataSet, to: &scrubbed)
         // PS3.10 2026a Table 7.1-1 / PS3.15 2026a Table E.1-1 (0002,0003) U: the File Meta
         // Media Storage UIDs follow the regenerated (0008,0016) / (0008,0018) (D162).
         let newFile = DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: scrubbed)
@@ -449,6 +462,79 @@ public class Anonymizer {
         return (newFile, result, engine.uidMap)
     }
 
+    public private(set) var options: ConfidentialityProfile.Options = .basic
+    private var workflowUIDMap: [String: String] = [:]
+    private var usesWorkflow = false
+
+    public convenience init(options: ConfidentialityProfile.Options = .basic, customActions: [Tag: AnonymizationAction] = [:]) {
+        self.init(profile: .basic, customActions: customActions)
+        self.options = options
+        self.usesWorkflow = true
+    }
+
+    /// De-identifies one file's data set, extending the run-wide UID map and audit log.
+    ///
+    /// Pixels are out of scope here (the pixel pass runs first), so a declared
+    /// burned-in annotation or overlay plane surfaces as a warning and (0012,0062) NO
+    /// rather than being silently certified as removed.
+    public func deidentify(file: DICOMFile, filePath: String) -> (DICOMFile, AnonymizationResult) {
+        var engine = ConfidentialityEngine(options: options, uidMap: workflowUIDMap)
+        var (scrubbed, changed, warnings) = engine.deidentifyReportingResidualPHI(file.dataSet)
+        AnonCLI.applyCustomActions(customActions, source: file.dataSet, to: &scrubbed)
+        for (tag, action) in customActions where file.dataSet[tag] != nil {
+            if !changed.contains(tag) { changed.append(tag) }
+            let name: String
+            switch action {
+            case .remove: name = "X remove"
+            case .replaceWithDummy: name = "D replace"
+            default: continue
+            }
+            auditLog.append(AuditLogEntry(timestamp: Date(), filePath: filePath, action: name, tag: tag))
+        }
+        workflowUIDMap = engine.uidMap
+        for change in engine.changes {
+            auditLog.append(AuditLogEntry(
+                timestamp: Date(), filePath: filePath,
+                action: Self.actionName(change.action), tag: change.tag))
+        }
+        let newFile = DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: scrubbed).synchronizingMediaStorageUIDs()
+        return (newFile, AnonymizationResult(
+            filePath: filePath, success: true, changedTags: changed, warnings: warnings))
+    }
+
+    /// Previews the header pass and reserves UID mappings for the subsequent write.
+    /// Used to learn the engine's own replacement values for `--redact-style replace`.
+    public func preview(file: DICOMFile) -> DICOMFile {
+        var engine = ConfidentialityEngine(options: options, uidMap: workflowUIDMap)
+        var (scrubbed, _) = engine.deidentify(file.dataSet)
+        AnonCLI.applyCustomActions(customActions, source: file.dataSet, to: &scrubbed)
+        workflowUIDMap = engine.uidMap
+        return DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: scrubbed).synchronizingMediaStorageUIDs()
+    }
+
+    /// Table E.1-1 action code names as they appear in the audit log.
+    static func actionName(_ action: ConfidentialityProfile.Action) -> String {
+        switch action {
+        case .remove, .removePreferred: return "X remove"
+        case .zero:                     return "Z zero"
+        case .zeroOrDummy:              return "Z/D zero-or-shift"
+        case .replaceDummy:             return "D dummy"
+        case .clean:                    return "C clean"
+        case .replaceUID:               return "U replace-uid"
+        case .keep:                     return "K keep"
+        }
+    }
+
+    /// Records pixel-work audit lines (PHI-safe — callers pass
+    /// `PixelCleaningWorkflow.Report.auditLines`, never raw OCR strings).
+    public func recordPixelAudit(filePath: String, lines: [String]) {
+        for line in lines {
+            auditLog.append(AuditLogEntry(
+                timestamp: Date(), filePath: filePath, action: "pixel-data",
+                tag: .pixelData, note: line))
+        }
+    }
+
     public func getAuditLog() -> [AuditLogEntry] {
         return auditLog
     }
@@ -456,7 +542,10 @@ public class Anonymizer {
     public func writeAuditLog(to url: URL) throws {
         let dateFormatter = ISO8601DateFormatter()
         var logText = "DICOM Anonymization Audit Log\n"
-        logText += "Generated: \(dateFormatter.string(from: Date()))\n\n"
+        logText += "Generated: \(dateFormatter.string(from: Date()))\n"
+        if usesWorkflow {
+            logText += "Method: \(options.methodCodes.map(\.meaning).joined(separator: "; "))\n\n"
+        }
         
         // Sort by file then tag so the audit log is deterministic (the rules are applied
         // in an unordered fashion, so the raw collection order varies run-to-run).
@@ -466,12 +555,7 @@ public class Anonymizer {
         for entry in sorted {
             logText += "[\(dateFormatter.string(from: entry.timestamp))] "
             logText += "\(entry.filePath) - \(entry.action) - \(entry.tag)\n"
-            if let orig = entry.originalValue {
-                logText += "  Original: \(orig)\n"
-            }
-            if let new = entry.newValue {
-                logText += "  New: \(new)\n"
-            }
+            if let note = entry.note { logText += "  \(note)\n" }
             logText += "\n"
         }
         
@@ -521,13 +605,35 @@ public enum AnonConsole {
         "Audit log written to: \(path)"
     }
 
+    /// The operator's Burned In Annotation policy took the file past the pixel pass:
+    /// the declaration was trusted, nothing was inspected. Console (verbose) and audit.
+    public static let burnedInAnnotationTrustedNote =
+        "Pixel data: Burned In Annotation (0028,0301) = NO — trusted; pixels were not inspected or modified."
+
     /// Verbose report of a pixel-redaction pass. States the basis for the region
     /// choice, not just the rectangle — an operator has to be able to judge whether
     /// the region was the right one, since no test can verify that for them.
     public static func pixelRedactionLines(outcome: PixelRedactor.Outcome) -> String {
         var out = "Cleaned pixel data (\(outcome.basis.rawValue)): \(outcome.note)\n"
+        let fallback = Set(outcome.labelFallbackRegions)
         for r in outcome.regions {
-            out += "  blanked (\(r.x),\(r.y)) \(r.width)x\(r.height)"
+            let verb: String
+            switch outcome.style {
+            case .blank: verb = "blanked"
+            case .label(let text):
+                verb = fallback.contains(r)
+                    ? "blanked (too small for label \"\(text)\" — blank only)"
+                    : "blanked + labelled \"\(text)\""
+            case .replace(let fallbackLabel):
+                if let value = outcome.replacements[r] {
+                    verb = "blanked + replaced with header value \"\(value)\""
+                } else if fallback.contains(r) {
+                    verb = "blanked (\(outcome.replacementFallbackNotes[r] ?? "too small") — blank only)"
+                } else {
+                    verb = "blanked + labelled \"\(fallbackLabel)\" (\(outcome.replacementFallbackNotes[r] ?? "no replacement"))"
+                }
+            }
+            out += "  \(verb) (\(r.x),\(r.y)) \(r.width)x\(r.height)"
             out += outcome.frameCount > 1 ? " on all \(outcome.frameCount) frames\n" : "\n"
         }
         if outcome.removedIconImage {
@@ -538,6 +644,108 @@ public enum AnonConsole {
         }
         out += "  recorded DCM 113101 Clean Pixel Data Option; Burned In Annotation = NO\n"
         out += "  ⚠️  Verify visually before release — region selection is not verifiable by test.\n"
+        return out
+    }
+
+    /// `--recompress` console lines: what was re-encoded to, and every caveat.
+    public static func recompressionLines(_ r: PixelCleaningWorkflow.Recompression) -> String {
+        var out: String
+        if r.transferSyntaxUID == r.sourceTransferSyntaxUID {
+            out = "Re-encoded to source syntax \(r.transferSyntaxUID) (\(r.codec), \(r.lossy ? "lossy" : "lossless"))\n"
+        } else {
+            out = "Re-encoded to \(r.transferSyntaxUID) (\(r.codec), \(r.lossy ? "lossy" : "lossless")); source was \(r.sourceTransferSyntaxUID)\n"
+        }
+        for n in r.notes { out += "  ⚠️  \(n)\n" }
+        out += "  verified: redacted regions still blank after the codec round-trip\n"
+        return out
+    }
+
+    /// One-line OCR summary. Reports what was done — never that the image is clean.
+    public static func textDetectionLine(report: PixelCleaningWorkflow.Report) -> String {
+        let n = report.detections.count
+        let selected: Int
+        if let plan = report.plan, case .redact(let regions, _) = plan.decision {
+            selected = report.detections.filter { regions.contains($0.region) }.count
+        } else {
+            selected = 0
+        }
+        let kept = report.verdicts.filter { !$0.isRedact }.count
+        let frames = report.scannedFrames.count
+        var line = "OCR: \(n) candidate region\(n == 1 ? "" : "s"); \(selected) selected for redaction"
+        if kept > 0 {
+            let why = report.mode == .header ? "no header match" : "allowlisted clinical text"
+            line += "; \(kept) kept (\(why)"
+            // A keep verdict never shrinks another source's region: say how many of the
+            // kept regions are blanked anyway, so "kept" is never read as "survives".
+            let buried = kept - report.keptAndSurviving.count
+            if buried > 0 { line += "; \(buried) of them inside blanked regions anyway" }
+            line += ")"
+        }
+        line += " across \(frames) sampled frame\(frames == 1 ? "" : "s").\n"
+        return line
+    }
+
+    /// The `--dry-run` region table (§7). Recognized text is shown on the console
+    /// (`showText`) but must be passed as `false` for anything persisted.
+    public static func pixelPlanTable(report: PixelCleaningWorkflow.Report, showText: Bool) -> String {
+        var out = "Pixel redaction plan:\n"
+        let indexed = Array(zip(report.detections, report.verdicts))
+        let byFrame = Dictionary(grouping: indexed, by: { $0.0.frameIndex })
+        let redacted: Set<PixelRedactionPlan.Region>
+        if let plan = report.plan, case .redact(let regions, _) = plan.decision {
+            redacted = Set(regions)
+        } else {
+            redacted = []
+        }
+        for frame in byFrame.keys.sorted() {
+            out += "Frame \(frame):\n"
+            for (d, v) in byFrame[frame]! {
+                let verdict: String
+                if v.isRedact {
+                    verdict = redacted.contains(d.region) ? "redact" : "detected"
+                } else {
+                    verdict = "keep"
+                }
+                let reason = (v.isRedact && !redacted.contains(d.region))
+                    ? "\(v.reason) — cleaning not requested" : v.reason
+                let text = showText ? d.text : d.redactedForAudit
+                out += "  OCR  rect=\(d.region.x),\(d.region.y),\(d.region.width),\(d.region.height)"
+                    + "  verdict=\(verdict)  reason=\(reason)  conf=\(String(format: "%.2f", d.confidence))"
+                    + "  text=\"\(text)\"\n"
+            }
+        }
+        out += "Final:\n"
+        guard let plan = report.plan else {
+            out += "  detection only — no cleaning requested\n"
+            out += "  Pixel modification: NO\n"
+            return out
+        }
+        switch plan.decision {
+        case .redact(let regions, _):
+            let parts = plan.sources.map { source -> String in
+                let n = source.regions.count
+                let label: String
+                switch source.basis {
+                case .explicit: label = "explicit"
+                case .keepRegionInversion: label = "keep-region"
+                case .deviceTemplate: label = "template"
+                case .textDetection: label = "OCR"
+                }
+                return "\(n) \(label) region\(n == 1 ? "" : "s")"
+            }
+            out += "  \(parts.joined(separator: " + ")) = \(regions.count) unioned region\(regions.count == 1 ? "" : "s")\n"
+            for r in regions {
+                out += "    (\(r.x),\(r.y)) \(r.width)x\(r.height)\n"
+            }
+            out += "  Frames affected: all (\(report.frameCount))\n"
+            out += "  Pixel modification: YES\n"
+        case .nothingToDo:
+            out += "  nothing declared, nothing detected — no pixel work\n"
+            out += "  Pixel modification: NO\n"
+        case .unresolved(let reason):
+            out += "  UNRESOLVED: \(reason)\n"
+            out += "  Pixel modification: REFUSED\n"
+        }
         return out
     }
 
@@ -570,4 +778,3 @@ public enum AnonConsole {
         return out
     }
 }
-

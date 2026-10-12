@@ -46,8 +46,17 @@ struct NavigationServiceTests {
     func testPrimaryDestinationsCount() {
         let expected = NavigationDestination.allCases.filter {
             $0 != .settings && $0 != .networkUtility
+                && !NavigationService.hiddenDestinations.contains($0)
         }
         #expect(NavigationService.primaryDestinations == expected)
+    }
+
+    @Test("Hidden destinations are kept out of the sidebar")
+    func testHiddenDestinationsAreNotPrimary() {
+        let primary = Set(NavigationService.primaryDestinations)
+        for hidden in NavigationService.hiddenDestinations {
+            #expect(!primary.contains(hidden))
+        }
     }
 
     @Test("The complete navigation destination catalog exists")

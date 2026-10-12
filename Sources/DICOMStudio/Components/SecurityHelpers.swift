@@ -97,91 +97,8 @@ public enum SecurityTLSHelpers: Sendable {
 /// Platform-independent helpers for anonymization display and validation.
 public enum AnonymizationHelpers: Sendable {
 
-    /// The attributes the Basic profile removes: exactly the DICOMKit `Anonymizer` `.basic` profile
-    /// (`--profile legacy-basic`), which the app runs through `SecurityViewModel.engineProfile`.
-    /// Names are the PS3.6 Table 6-1 names. This is the app's fixed list, not a PS3.15 Annex E profile
-    /// and not the 18 identifier categories of 45 CFR §164.514(b)(2)(i) (which name kinds of
-    /// information, not DICOM attributes).
-    ///
-    /// Public since P-STUDIO-ANON-TAGLIST-NAME (2026-10-06), replacing `hipaaDirectIdentifierTags`.
-    /// Each of the 14 attributes is a row of PS3.15 2026a Table E.1-1 (checked by script against
-    /// the DocBook, 14/14), but the list is not that table: `--profile ps315` (the
-    /// `.ps315` profile) applies every row.
-    public static let basicProfileTags: [(tag: String, name: String)] = [
-        ("0010,0010", "Patient's Name"),
-        ("0010,0020", "Patient ID"),
-        ("0010,0030", "Patient's Birth Date"),
-        ("0010,0032", "Patient's Birth Time"),
-        ("0010,1000", "Other Patient IDs"),
-        ("0010,1001", "Other Patient Names"),
-        ("0010,4000", "Patient Comments"),
-        ("0008,0090", "Referring Physician's Name"),
-        ("0008,1050", "Performing Physician's Name"),
-        ("0008,1070", "Operators' Name"),
-        ("0008,0080", "Institution Name"),
-        ("0008,0081", "Institution Address"),
-        ("0008,1010", "Station Name"),
-        ("0018,1000", "Device Serial Number"),
-    ]
-
-    /// The date and time attributes the Clinical Trial profile removes in addition to
-    /// `basicProfileTags` (DICOMKit `Anonymizer` `.clinicalTrial`, `--profile legacy-clinical-trial`).
-    static let clinicalTrialDateTags: [(tag: String, name: String)] = [
-        ("0008,0020", "Study Date"),
-        ("0008,0021", "Series Date"),
-        ("0008,0022", "Acquisition Date"),
-        ("0008,0023", "Content Date"),
-        ("0008,0030", "Study Time"),
-        ("0008,0031", "Series Time"),
-        ("0008,0032", "Acquisition Time"),
-        ("0008,0033", "Content Time"),
-    ]
-
-    /// The (tag, name) pairs the Basic and HIPAA Safe Harbor profiles remove: `basicProfileTags`.
-    ///
-    /// The name is historical: the list is the engine's basic profile (14 attributes), not the 18
-    /// identifier categories of 45 CFR §164.514(b)(2)(i), which the earlier 18-tag list did not
-    /// implement either (the engine removed only 7 of those tags). Deprecated, renamed
-    /// `basicProfileTags` (P-STUDIO-ANON-TAGLIST-NAME, 2026-10-06); kept for source compatibility.
-    @available(*, deprecated, renamed: "basicProfileTags")
-    public static let hipaaDirectIdentifierTags: [(tag: String, name: String)] = basicProfileTags
-
-    /// Returns the default rules for an anonymization profile: the attributes the DICOMKit
-    /// `Anonymizer` profile the app runs for it removes (so the preview matches the output).
-    ///
-    /// `.ps315` returns no rules: the PS3.15 Basic Profile is every row of PS3.15 2026a Table E.1-1
-    /// with per-row actions (D, Z, X, U, C) and option columns, which a remove-only tag list cannot
-    /// state; the engine's table (DICOMKit `ConfidentialityProfile.table`) is the reference.
-    public static func defaultRules(for profile: AnonymizationProfile) -> [AnonymizationTagRule] {
-        switch profile {
-        case .ps315:
-            return []
-        case .basic, .hipaaeSafeHarbor:
-            return basicProfileTags.map { tagPair in
-                AnonymizationTagRule(
-                    tag: tagPair.tag,
-                    tagName: tagPair.name,
-                    action: .remove
-                )
-            }
-        case .clinicalTrial:
-            return (basicProfileTags + clinicalTrialDateTags).map { tagPair in
-                AnonymizationTagRule(
-                    tag: tagPair.tag,
-                    tagName: tagPair.name,
-                    action: .remove
-                )
-            }
-        case .research:
-            return [
-                AnonymizationTagRule(tag: "0010,0010", tagName: "Patient Name", action: .remove),
-                AnonymizationTagRule(tag: "0010,0020", tagName: "Patient ID", action: .remove),
-                AnonymizationTagRule(tag: "0010,0030", tagName: "Patient Birth Date", action: .remove),
-            ]
-        case .custom:
-            return []
-        }
-    }
+    /// The one profile the app applies, for display.
+    public static let profileName = "PS3.15 Annex E Basic Application Level Confidentiality Profile"
 
     /// Returns a validation error for a tag string, or nil if valid.
     public static func tagValidationError(for tag: String) -> String? {
@@ -224,16 +141,6 @@ public enum AnonymizationHelpers: Sendable {
         case .cancelled:
             return "Cancelled after \(job.processedFiles) files"
         }
-    }
-
-    /// Returns a summary for the before/after preview of a rule set.
-    public static func previewSummary(rules: [AnonymizationTagRule]) -> String {
-        let counts = rules.reduce(into: [TagAction: Int]()) { acc, rule in
-            acc[rule.action, default: 0] += 1
-        }
-        let parts = counts.sorted { $0.key.rawValue < $1.key.rawValue }.map { "\($0.value) \($0.key.displayName)" }
-        if parts.isEmpty { return "No rules defined" }
-        return parts.joined(separator: ", ")
     }
 
     /// Returns true if the date shift value is within a safe range.

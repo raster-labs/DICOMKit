@@ -497,7 +497,7 @@ public enum ConformanceStatementHelpers: Sendable {
     }
 
     /// Returns the DICOMKit version string for the conformance statement header.
-    public static func dicomkitVersion() -> String { return "1.0.0" }
+    public static func dicomkitVersion() -> String { StudioBuildInfo.dicomKitVersion }
 
     /// Returns the DICOM standard version reflected in this conformance statement.
     public static func dicomStandardVersion() -> String { return "DICOM 2026a" }
