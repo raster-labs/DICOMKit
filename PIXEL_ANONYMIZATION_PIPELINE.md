@@ -496,7 +496,7 @@ stored identifying values are removed), so 113101 stays earned in every style.
 |---|---|---|---|
 | `blank` (default) | fill value only | no | 1 ✅ |
 | `label` | fixed stamp (`REDACTED` / `--redact-label` text) — works for every verdict including uncertain; a reviewer sees "cleaned deliberately", not a suspected rendering bug | no | 1 ✅ (`RedactionLabelRenderer` → `PixelOperation.stamp`; too-small regions fall back to blank and are listed in `Outcome.labelFallbackRegions` + the console) |
-| `replace` | semantic replacement: burned name → **anonymized** name, burned date → **shifted** date, burned ID → pseudonym | yes | 4 ✅ (`ReplacementMapping.derive(original:deidentified:)` reads the header engine's own output from an in-memory preview of the configured pass; only classified matches with a mapped value for every matched attribute are drawn; note: PS3.15 Basic **zeroes** PatientName/ID, so under `--profile ps315` those regions honestly get the label) |
+| `replace` | semantic replacement: burned name → **anonymized** name, burned date → **shifted** date, burned ID → pseudonym | yes | 4 ✅ (`ReplacementMapping.derive(original:deidentified:)` reads the header engine's own output from an in-memory preview of the configured pass; only classified matches with a mapped value for every matched attribute are drawn; note: PS3.15 Basic **zeroes** PatientName/ID and the integrated main rules clear birth date even with Modified Dates; those regions use the fallback label instead of restoring original values) |
 
 Rendering: CoreGraphics/CoreText glyphs mapped to stored values at the image's
 real bit depth (foreground = a bright stored value, background = the fill);

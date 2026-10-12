@@ -29,7 +29,7 @@ Patient Identity Removed = NO and written only if you say so.
 | Flag | Option | Code |
 |---|---|---|
 | `--retain-dates` | Retain Longitudinal Temporal Information with Full Dates | 113106 |
-| `--shift-dates N` | … with Modified Dates: every date (birth date included) shifted by N days, times untouched — intervals survive, real dates do not | 113107 |
+| `--shift-dates N` | … with Modified Dates: eligible longitudinal dates shifted by N days, times untouched; birth date remains cleared by the main profile rules | 113107 |
 | `--retain-characteristics` | Retain Patient Characteristics (age, sex, size, weight) | 113108 |
 | `--retain-device` | Retain Device Identity (model, station name, serial) | 113109 |
 | `--retain-institution` | Retain Institution Identity (name, address, department) | 113112 |
