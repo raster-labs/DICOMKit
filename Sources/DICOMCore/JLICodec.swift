@@ -142,7 +142,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         }
         let lossless = header.process == 0xc3
         if lossless {
-            guard header.sampling.allSatisfy({ $0 == 0x11 }),
+            guard header.components.hasUnitSampling,
                   header.scanParameters.allSatisfy({ (1...7).contains($0.first) && $0.last == 0
                       && $0.approximation == 0
                       && (decodingTransferSyntaxUID != TransferSyntax.jpegLosslessSV1.uid || $0.first == 1) }) else {
@@ -150,7 +150,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             }
         } else {
             guard !descriptor.isSigned,
-                  (header.process == 0xc0 ? header.precision == 8 : [8, 12].contains(header.precision)),
+                  (header.process == 0xc0 ? header.precision == 8 : (header.precision == 8 || header.precision == 12)),
                   header.scanParameters.allSatisfy({ $0.first == 0 && $0.last == 63 && $0.approximation == 0 }) else {
                 throw DICOMError.parsingFailed("Unsupported JPEG DCT precision or scan parameters")
             }
@@ -161,7 +161,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         }
         let sourceColor: JLIColorModel?
         if lossless || descriptor.samplesPerPixel == 1 { sourceColor = nil }
-        else if header.adobeTransform == 0 || header.components == [82, 71, 66] { sourceColor = .rgb }
+        else if header.adobeTransform == 0 || header.components.hasRGBIdentifiers { sourceColor = .rgb }
         else if header.jfif || header.adobeTransform == 1 || descriptor.photometricInterpretation.isYBR {
             sourceColor = .yCbCr
         } else { sourceColor = .rgb }
