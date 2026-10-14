@@ -72,6 +72,7 @@ jobs:
         fi
         echo "✅ Valid version tag: $TAG"
         
+    # Official Swift requires explicit SDK cross-import overlays (SwiftUI/AVKit).
     - name: Build release without warnings
       id: release_build
       timeout-minutes: 30
@@ -79,7 +80,7 @@ jobs:
         CI: 'true'
       run: |
         set -o pipefail
-        swift build -c release -Xswiftc -warnings-as-errors 2>&1 | tee release-build.log
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release -Xswiftc -warnings-as-errors 2>&1 | tee release-build.log
         if grep -i "warning:" release-build.log; then
           echo "::error::Release build emitted warnings"
           exit 1
@@ -94,7 +95,7 @@ jobs:
         # Every test target must complete successfully. A passing summary from
         # another bundle must not hide a crash or failure in an earlier target.
         # The large sparse source cases are required in optimized mode below.
-        swift test --skip largeSparseSource 2>&1 | tee release-test.log
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip largeSparseSource 2>&1 | tee release-test.log
         if grep -F "which are unhandled; explicitly declare" release-test.log; then
           echo "::error::Release tests emitted SwiftPM unhandled-file warnings"
           exit 1
@@ -110,7 +111,7 @@ jobs:
         CI: 'true'
       run: |
         set -o pipefail
-        swift test -c release --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
         grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
 
     # Preserve valid build products after a test failure; every later run still
