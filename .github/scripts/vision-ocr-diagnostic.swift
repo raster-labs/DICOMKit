@@ -1,7 +1,7 @@
 // Standalone hosted-runner diagnostic; synthetic pixels only, no DICOM dependencies.
 // Run only if the early serial TextRegionDetectorTests gate fails.
-// This deliberately preserves RecognizeTextRequest's default revision/devices and
-// the detector's accurate/no-correction/no-language-detection configuration.
+// Matrix: default/advertised-CPU devices x DeviceGray8/opaque sRGB32 x blank/banner.
+// Revision and accurate/no-correction/no-language-detection settings never change.
 import Foundation
 import CoreGraphics
 import CoreText
@@ -30,7 +30,7 @@ struct VisionOCRDiagnostic {
         }
     }
 
-    static func fixture(text: String) throws -> CGImage {
+    static func fixturePixels(text: String) throws -> Data {
         // TextRegionDetectorTests.fixture: 512x256, DeviceGray/8-bit, Helvetica-Bold
         // 28 pt, top-left origin (24,20), 20% background and white synthetic text.
         let width = 512, height = 256
@@ -53,16 +53,42 @@ struct VisionOCRDiagnostic {
         let bounds = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
         context.textPosition = CGPoint(x: 24, y: CGFloat(height) - 20 - bounds.maxY)
         CTLineDraw(line, context)
-        guard let raw = context.data,
-              let provider = CGDataProvider(data: Data(bytes: raw, count: width * height) as CFData),
+        guard let raw = context.data else {
+            throw NSError(domain: "OCRDiagnostic.Fixture", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "No grayscale context bytes"])
+        }
+        return Data(bytes: raw, count: width * height)
+    }
+
+    static func image(gray: Data, rgb: Bool) throws -> CGImage {
+        let width = 512, height = 256
+        var bytes = gray
+        let space: CGColorSpace
+        let bitmapInfo: CGBitmapInfo
+        if rgb {
+            guard let sRGB = CGColorSpace(name: CGColorSpace.sRGB) else {
+                throw NSError(domain: "OCRDiagnostic.Fixture", code: 3,
+                              userInfo: [NSLocalizedDescriptionKey: "Cannot create sRGB color space"])
+            }
+            space = sRGB
+            bytes = Data(capacity: gray.count * 4)
+            // Explicit RGBA byte order, no color conversion, alpha always opaque.
+            // RGB comes from the exact same grayscale samples used by the other cell.
+            for value in gray { bytes.append(contentsOf: [value, value, value, 255]) }
+            bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+                .union(.byteOrder32Big)
+        } else {
+            space = CGColorSpaceCreateDeviceGray()
+            bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue)
+        }
+        guard let provider = CGDataProvider(data: bytes as CFData),
               let image = CGImage(
-                width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 8,
-                bytesPerRow: width, space: space,
-                bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
+                width: width, height: height, bitsPerComponent: 8, bitsPerPixel: rgb ? 32 : 8,
+                bytesPerRow: width * (rgb ? 4 : 1), space: space, bitmapInfo: bitmapInfo,
                 provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent
               ) else {
-            throw NSError(domain: "OCRDiagnostic.Fixture", code: 2,
-                          userInfo: [NSLocalizedDescriptionKey: "Cannot create grayscale image"])
+            throw NSError(domain: "OCRDiagnostic.Fixture", code: 4,
+                          userInfo: [NSLocalizedDescriptionKey: "Cannot create provider-backed image"])
         }
         // Same provider-backed grayscale CGImage format as PixelDataRenderer.
         // This isolates Vision from DICOM parsing/windowing; it is not their oracle.
@@ -72,41 +98,75 @@ struct VisionOCRDiagnostic {
     static func main() async {
         print("os=\(ProcessInfo.processInfo.operatingSystemVersionString)")
         print("processors=\(ProcessInfo.processInfo.activeProcessorCount)")
-        print("mode=two sequential requests; default revision and compute selection")
+        print("mode=sequential default/advertised-CPU x DeviceGray8/opaque-sRGB32 x blank/banner")
         var failed = false
         for (name, text) in [("blank", ""), ("banner", "SMITH JOHN 12/03/1961")] {
-            print("BEGIN \(name)")
-            var request = RecognizeTextRequest()
-            request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = false
-            request.automaticallyDetectsLanguage = false
-            print("revision=\(request.revision) supportedRevisions=\(RecognizeTextRequest.supportedRevisions)")
-            print("descriptor=\(request.descriptor)")
-            print("recognitionLanguages=\(request.recognitionLanguages)")
-            print("supportedRecognitionLanguages=\(request.supportedRecognitionLanguages)")
-            for (stage, devices) in request.supportedComputeStageDevices.sorted(by: {
-                String(describing: $0.key) < String(describing: $1.key)
-            }) {
-                print("computeStage=\(stage) supported=\(devices) configured=\(String(describing: request.computeDevice(for: stage)))")
+            let gray: Data
+            do { gray = try fixturePixels(text: text) }
+            catch { report(error as NSError); failed = true; continue }
+            for cpu in [false, true] {
+                for rgb in [false, true] {
+                    let cell = "\(name)/\(cpu ? "advertised-CPU" : "default")/\(rgb ? "opaque-sRGB32" : "DeviceGray8")"
+                    print("BEGIN \(cell)")
+                    var request = RecognizeTextRequest()
+                    request.recognitionLevel = .accurate
+                    request.usesLanguageCorrection = false
+                    request.automaticallyDetectsLanguage = false
+                    print("revision=\(request.revision) supportedRevisions=\(RecognizeTextRequest.supportedRevisions)")
+                    print("descriptor=\(request.descriptor)")
+                    print("recognitionLanguages=\(request.recognitionLanguages)")
+                    print("supportedRecognitionLanguages=\(request.supportedRecognitionLanguages)")
+                    let stages = request.supportedComputeStageDevices.sorted(by: {
+                        String(describing: $0.key) < String(describing: $1.key)
+                    })
+                    var cpuAvailableForEveryStage = !stages.isEmpty
+                    if stages.isEmpty { print("computeStageDevices=empty; no advertised CPU selection is possible") }
+                    for (stage, devices) in stages {
+                        if cpu {
+                            if let advertisedCPU = devices.first(where: {
+                                if case .cpu = $0 { return true }
+                                return false
+                            }) {
+                                request.setComputeDevice(advertisedCPU, for: stage)
+                                print("cpuSelection[\(stage)]=\(advertisedCPU)")
+                            } else {
+                                cpuAvailableForEveryStage = false
+                                print("cpuSelection[\(stage)]=UNAVAILABLE; stage advertises no CPU")
+                            }
+                        }
+                        print("computeStage=\(stage) supported=\(devices) configured=\(String(describing: request.computeDevice(for: stage)))")
+                    }
+                    if cpu && !cpuAvailableForEveryStage {
+                        // Never label a partial/default execution as a CPU-only result.
+                        failed = true
+                        print("status=CPU_MATRIX_CELL_UNAVAILABLE; request not performed")
+                        print("END \(cell)")
+                        continue
+                    }
+                    do {
+                        let image = try image(gray: gray, rgb: rgb)
+                        print("image=\(image.width)x\(image.height) bpc=\(image.bitsPerComponent) bpp=\(image.bitsPerPixel) row=\(image.bytesPerRow) alphaInfo=\(image.alphaInfo.rawValue) bitmapInfo=\(image.bitmapInfo.rawValue)")
+                        print("colorSpace.name=\(String(describing: image.colorSpace?.name)) colorSpace.model=\(String(describing: image.colorSpace?.model))")
+                        if let data = image.dataProvider?.data {
+                            print("providerBytes=\(CFDataGetLength(data))")
+                        } else { print("providerBytes=unavailable") }
+                        let started = Date()
+                        let observations = try await request.perform(on: image)
+                        let strings = observations.compactMap { $0.topCandidates(1).first?.string }
+                        print("elapsedSeconds=\(Date().timeIntervalSince(started)) observations=\(observations.count)")
+                        print("syntheticRecognizedText=\(strings)")
+                        let correct = text.isEmpty ? observations.isEmpty : strings.contains { $0.uppercased().contains("SMITH") }
+                        print("syntheticOraclePassed=\(correct)")
+                        if !correct { failed = true }
+                    } catch {
+                        failed = true
+                        print("swiftErrorType=\(String(reflecting: type(of: error)))")
+                        print("swiftError=\(String(reflecting: error))")
+                        report(error as NSError)
+                    }
+                    print("END \(cell)")
+                }
             }
-            do {
-                let image = try fixture(text: text)
-                print("image=\(image.width)x\(image.height) bpc=\(image.bitsPerComponent) bpp=\(image.bitsPerPixel) row=\(image.bytesPerRow) bitmapInfo=\(image.bitmapInfo.rawValue)")
-                let started = Date()
-                let observations = try await request.perform(on: image)
-                let strings = observations.compactMap { $0.topCandidates(1).first?.string }
-                print("elapsedSeconds=\(Date().timeIntervalSince(started)) observations=\(observations.count)")
-                print("syntheticRecognizedText=\(strings)")
-                let correct = text.isEmpty ? observations.isEmpty : strings.contains { $0.uppercased().contains("SMITH") }
-                print("syntheticOraclePassed=\(correct)")
-                if !correct { failed = true }
-            } catch {
-                failed = true
-                print("swiftErrorType=\(String(reflecting: type(of: error)))")
-                print("swiftError=\(String(reflecting: error))")
-                report(error as NSError)
-            }
-            print("END \(name)")
         }
         // A diagnostic failure remains a failure; no fallback and no test skip.
         exit(failed ? 1 : 0)
