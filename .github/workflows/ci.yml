@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [xcode-27, macos-26]
+        runner: [macos-15]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 10
     steps:
