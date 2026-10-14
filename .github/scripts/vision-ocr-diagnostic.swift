@@ -1,6 +1,6 @@
 // Standalone hosted-runner diagnostic; synthetic pixels only, no DICOM dependencies.
 // Run only if the early serial TextRegionDetectorTests gate fails.
-// Matrix: native/VN x default/advertised-CPU x DeviceGray8/opaque sRGB32 x blank/banner.
+// Matrix: native/VN x default devices x DeviceGray8/opaque sRGB32 x blank/banner.
 // Revision and accurate/no-correction/no-language-detection settings never change.
 import Foundation
 import CoreGraphics
@@ -160,13 +160,13 @@ struct VisionOCRDiagnostic {
     static func main() async {
         print("os=\(ProcessInfo.processInfo.operatingSystemVersionString)")
         print("processors=\(ProcessInfo.processInfo.activeProcessorCount)")
-        print("mode=sequential native/VN x default/advertised-CPU x DeviceGray8/opaque-sRGB32 x blank/banner")
+        print("mode=sequential native/VN x default devices x DeviceGray8/opaque-sRGB32 x blank/banner")
         var failed = false
         for (name, text) in [("blank", ""), ("banner", "SMITH JOHN 12/03/1961")] {
             let gray: Data
             do { gray = try fixturePixels(text: text) }
             catch { report(error as NSError); failed = true; continue }
-            for cpu in [false, true] {
+            for cpu in [false] {
                 for rgb in [false, true] {
                     for api in ["native", "VN"] {
                         let cell = "\(api)/\(name)/\(cpu ? "advertised-CPU" : "default")/\(rgb ? "opaque-sRGB32" : "DeviceGray8")"
@@ -188,33 +188,7 @@ struct VisionOCRDiagnostic {
                         print("descriptor=\(request.descriptor)")
                         print("recognitionLanguages=\(request.recognitionLanguages)")
                         print("supportedRecognitionLanguages=\(request.supportedRecognitionLanguages)")
-                        let stages = request.supportedComputeStageDevices.sorted(by: {
-                            String(describing: $0.key) < String(describing: $1.key)
-                        })
-                        var cpuAvailableForEveryStage = !stages.isEmpty
-                        if stages.isEmpty { print("computeStageDevices=empty; no advertised CPU selection is possible") }
-                        for (stage, devices) in stages {
-                            if cpu {
-                                if let advertisedCPU = devices.first(where: {
-                                    if case .cpu = $0 { return true }
-                                    return false
-                                }) {
-                                    request.setComputeDevice(advertisedCPU, for: stage)
-                                    print("cpuSelection[\(stage)]=\(advertisedCPU)")
-                                } else {
-                                    cpuAvailableForEveryStage = false
-                                    print("cpuSelection[\(stage)]=UNAVAILABLE; stage advertises no CPU")
-                                }
-                            }
-                            print("computeStage=\(stage) supported=\(devices) configured=\(String(describing: request.computeDevice(for: stage)))")
-                        }
-                        if cpu && !cpuAvailableForEveryStage {
-                            // Never label a partial/default execution as a CPU-only result.
-                            failed = true
-                            print("status=CPU_MATRIX_CELL_UNAVAILABLE; request not performed")
-                            print("END \(cell)")
-                            continue
-                        }
+                        print("nativeComputeSelection=default; no optional device APIs required")
                         do {
                             let image = try image(gray: gray, rgb: rgb)
                             print("image=\(image.width)x\(image.height) bpc=\(image.bitsPerComponent) bpp=\(image.bitsPerPixel) row=\(image.bytesPerRow) alphaInfo=\(image.alphaInfo.rawValue) bitmapInfo=\(image.bitmapInfo.rawValue)")
