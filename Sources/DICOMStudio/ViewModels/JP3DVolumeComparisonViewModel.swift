@@ -190,7 +190,7 @@ public final class JP3DVolumeComparisonViewModel {
         // catalog row, so Lossless vs Lossy encode differently despite the shared UID.
         let isLossless = option?.isLossless ?? true
 
-        Task {
+        Task { [self] in
             let result = await Self.compressVolume(vol, targetUID: uid, isLossless: isLossless) { [weak self] done, total in
                 Task { @MainActor [weak self] in
                     self?.compressionState = .compressing(framesCompleted: done, totalFrames: total)

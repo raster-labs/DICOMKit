@@ -380,7 +380,7 @@ public struct SpatialCoordinates: Sendable, Equatable, Hashable {
            let first = points.first, let last = points.last {
             return first.column == last.column && first.row == last.row
         }
-        return graphicType == .polygon && points.count >= 3
+        return graphicType.rawValue == "POLYGON" && points.count >= 3
     }
 
     /// The vertices of a closed shape, without the repeated closing vertex.
@@ -401,7 +401,7 @@ public struct SpatialCoordinates: Sendable, Equatable, Hashable {
         }
 
         // A closed POLYLINE already carries its closing segment; POLYGON does not
-        if graphicType == .polygon && points.count >= 3 {
+        if graphicType.rawValue == "POLYGON" && points.count >= 3 {
             let dx = points[0].column - points[points.count - 1].column
             let dy = points[0].row - points[points.count - 1].row
             total += sqrt(dx * dx + dy * dy)

@@ -6,12 +6,25 @@
 
 import Testing
 import Foundation
+import Dispatch
 import ArgumentParser
 import DICOMCore
 import DICOMKit
 @testable import dicom_j2k
 
 // MARK: - Fixtures
+
+/// CLI commands bridge async codecs with a semaphore. Run that blocking work
+/// outside Swift Testing's cooperative executor, while keeping assertions on the test task.
+private func blockingCLIWork<T: Sendable>(
+    _ operation: @escaping @Sendable () throws -> T
+) async throws -> T {
+    try await withCheckedThrowingContinuation { continuation in
+        DispatchQueue.global(qos: .userInitiated).async {
+            continuation.resume(with: Result(catching: operation))
+        }
+    }
+}
 
 /// A minimal main header: SOC, a COD segment with the given fields, optional TLM, then SOT.
 private func codestream(progression: UInt8 = 0, mct: UInt8 = 0, levels: UInt8 = 5,
@@ -124,8 +137,8 @@ struct FrameMappingTests {
     }
 
     @Test("A fragmented multi-frame file is transcoded frame by frame")
-    func fragmentedFileEndToEnd() throws {
-        let (url, _) = try j2kLosslessOnlyFile(rgb: false, frames: 3)
+    func fragmentedFileEndToEnd() async throws {
+        let (url, _) = try await blockingCLIWork { try j2kLosslessOnlyFile(rgb: false, frames: 3) }
         defer { try? FileManager.default.removeItem(at: url) }
         // Split each frame's codestream into two fragments and add a Basic Offset Table.
         var file = try DICOMFile.read(from: Data(contentsOf: url))
@@ -150,9 +163,11 @@ struct FrameMappingTests {
         defer { try? FileManager.default.removeItem(at: fragmented); try? FileManager.default.removeItem(at: out) }
         try file.write().write(to: fragmented)
 
-        var cmd = try DICOMJ2K.TranscodeCommand.parse(
-            [fragmented.path, "--output", out.path, "--target", "htj2k-lossless"])
-        try cmd.run()
+        try await blockingCLIWork {
+            var cmd = try DICOMJ2K.TranscodeCommand.parse(
+                [fragmented.path, "--output", out.path, "--target", "htj2k-lossless"])
+            try cmd.run()
+        }
         let result = try DICOMFile.read(from: Data(contentsOf: out))
         // HTJ2K: each frame encoded as a single fragment (PS3.5 A.4.4).
         #expect(result.dataSet[.pixelData]?.encapsulatedFragments?.count == 3)
@@ -254,13 +269,15 @@ struct ProvenanceTests {
     }
 
     @Test("transcode to a lossy target writes YBR_ICT and the lossy provenance")
-    func transcodeLossyEndToEnd() throws {
-        let (url, sop) = try j2kLosslessOnlyFile(rgb: true)
+    func transcodeLossyEndToEnd() async throws {
+        let (url, sop) = try await blockingCLIWork { try j2kLosslessOnlyFile(rgb: true) }
         let out = tempURL("lossy.dcm")
         defer { try? FileManager.default.removeItem(at: url); try? FileManager.default.removeItem(at: out) }
-        var cmd = try DICOMJ2K.TranscodeCommand.parse(
-            [url.path, "--output", out.path, "--target", "j2k-lossy", "--quality", "0.5"])
-        try cmd.run()
+        try await blockingCLIWork {
+            var cmd = try DICOMJ2K.TranscodeCommand.parse(
+                [url.path, "--output", out.path, "--target", "j2k-lossy", "--quality", "0.5"])
+            try cmd.run()
+        }
         let result = try DICOMFile.read(from: Data(contentsOf: out))
         let ds = result.dataSet
         #expect(result.transferSyntaxUID == "1.2.840.10008.1.2.4.91")
@@ -278,14 +295,16 @@ struct ProvenanceTests {
     }
 
     @Test("--quality reaches the encoder")
-    func qualityIsApplied() throws {
-        let (url, _) = try j2kLosslessOnlyFile(rgb: false, rows: 64, columns: 64)
+    func qualityIsApplied() async throws {
+        let (url, _) = try await blockingCLIWork { try j2kLosslessOnlyFile(rgb: false, rows: 64, columns: 64) }
         let low = tempURL("q1.dcm"), high = tempURL("q9.dcm")
         defer { for u in [url, low, high] { try? FileManager.default.removeItem(at: u) } }
-        var a = try DICOMJ2K.TranscodeCommand.parse([url.path, "-o", low.path, "-t", "j2k-lossy", "-q", "0.1"])
-        try a.run()
-        var b = try DICOMJ2K.TranscodeCommand.parse([url.path, "-o", high.path, "-t", "j2k-lossy", "-q", "0.95"])
-        try b.run()
+        try await blockingCLIWork {
+            var a = try DICOMJ2K.TranscodeCommand.parse([url.path, "-o", low.path, "-t", "j2k-lossy", "-q", "0.1"])
+            try a.run()
+            var b = try DICOMJ2K.TranscodeCommand.parse([url.path, "-o", high.path, "-t", "j2k-lossy", "-q", "0.95"])
+            try b.run()
+        }
         func size(_ u: URL) throws -> Int {
             try DICOMFile.read(from: Data(contentsOf: u)).dataSet[.pixelData]?
                 .encapsulatedFragments?.reduce(0) { $0 + $1.count } ?? 0
@@ -294,12 +313,14 @@ struct ProvenanceTests {
     }
 
     @Test("A lossless transcode keeps the SOP Instance UID and sets no lossy attributes")
-    func losslessKeepsIdentity() throws {
-        let (url, sop) = try j2kLosslessOnlyFile(rgb: true)
+    func losslessKeepsIdentity() async throws {
+        let (url, sop) = try await blockingCLIWork { try j2kLosslessOnlyFile(rgb: true) }
         let out = tempURL("ll.dcm")
         defer { try? FileManager.default.removeItem(at: url); try? FileManager.default.removeItem(at: out) }
-        var cmd = try DICOMJ2K.TranscodeCommand.parse([url.path, "-o", out.path, "-t", "htj2k-lossless-only"])
-        try cmd.run()
+        try await blockingCLIWork {
+            var cmd = try DICOMJ2K.TranscodeCommand.parse([url.path, "-o", out.path, "-t", "htj2k-lossless-only"])
+            try cmd.run()
+        }
         let ds = try DICOMFile.read(from: Data(contentsOf: out)).dataSet
         #expect(ds.string(for: .sopInstanceUID) == sop)
         #expect(ds[.lossyImageCompression] == nil)
@@ -351,12 +372,14 @@ struct ROITests {
     }
 
     @Test("roi on a multi-frame file: Number of Frames 1, DERIVED, new SOP Instance UID")
-    func roiEndToEnd() throws {
-        let (url, sop) = try j2kLosslessOnlyFile(rgb: false, frames: 3)
+    func roiEndToEnd() async throws {
+        let (url, sop) = try await blockingCLIWork { try j2kLosslessOnlyFile(rgb: false, frames: 3) }
         let out = tempURL("roi.dcm")
         defer { try? FileManager.default.removeItem(at: url); try? FileManager.default.removeItem(at: out) }
-        var cmd = try DICOMJ2K.ROICommand.parse([url.path, "-o", out.path, "--frame", "1", "--region", "8,4,16,12"])
-        try cmd.run()
+        try await blockingCLIWork {
+            var cmd = try DICOMJ2K.ROICommand.parse([url.path, "-o", out.path, "--frame", "1", "--region", "8,4,16,12"])
+            try cmd.run()
+        }
         let result = try DICOMFile.read(from: Data(contentsOf: out))
         let ds = result.dataSet
         #expect(ds.string(for: .numberOfFrames) == "1")
@@ -383,7 +406,7 @@ struct ROITests {
 struct CompareTests {
 
     @Test("A native 16-bit file and its lossless J2K are identical sample by sample")
-    func native16VersusJ2K() throws {
+    func native16VersusJ2K() async throws {
         let sop = UIDGenerator.generateSOPInstanceUID().value
         var ds = DataSet()
         ds.setString("1.2.840.10008.5.1.4.1.1.7", for: .sopClassUID, vr: .UI)
@@ -398,12 +421,16 @@ struct CompareTests {
         let bytes = words.withUnsafeBufferPointer { Data(buffer: $0) }
         ds[.pixelData] = DataElement(tag: .pixelData, vr: .OW, length: UInt32(bytes.count), valueData: bytes)
         let native = try DICOMFile.create(dataSet: ds, sopInstanceUID: sop).write()
-        let j2k = try CompressionManager().compressData(native, codec: "jpeg2000-lossless-only", quality: nil)
+        let j2k = try await blockingCLIWork {
+            try CompressionManager().compressData(native, codec: "jpeg2000-lossless-only", quality: nil)
+        }
         let a = tempURL("n.dcm"), b = tempURL("j.dcm")
         defer { try? FileManager.default.removeItem(at: a); try? FileManager.default.removeItem(at: b) }
         try native.write(to: a); try j2k.write(to: b)
-        var cmd = try DICOMJ2K.CompareCommand.parse([a.path, b.path, "--json"])
-        try cmd.run()   // threw "Pixel count mismatch" when native samples were read as bytes
+        try await blockingCLIWork {
+            var cmd = try DICOMJ2K.CompareCommand.parse([a.path, b.path, "--json"])
+            try cmd.run()   // threw "Pixel count mismatch" when native samples were read as bytes
+        }
     }
 }
 
@@ -498,12 +525,14 @@ struct J2KPItemTests {
     }
 
     @Test("roi --frame-number: Derivation Description names the Frame number")
-    func roiFrameNumber() throws {
-        let (url, _) = try j2kLosslessOnlyFile(rgb: false, frames: 3)
+    func roiFrameNumber() async throws {
+        let (url, _) = try await blockingCLIWork { try j2kLosslessOnlyFile(rgb: false, frames: 3) }
         let out = tempURL("roi-fn.dcm")
         defer { try? FileManager.default.removeItem(at: url); try? FileManager.default.removeItem(at: out) }
-        var cmd = try DICOMJ2K.ROICommand.parse([url.path, "-o", out.path, "--frame-number", "2", "--region", "8,4,16,12"])
-        try cmd.run()
+        try await blockingCLIWork {
+            var cmd = try DICOMJ2K.ROICommand.parse([url.path, "-o", out.path, "--frame-number", "2", "--region", "8,4,16,12"])
+            try cmd.run()
+        }
         let ds = try DICOMFile.read(from: Data(contentsOf: out)).dataSet
         #expect(ds.string(for: .derivationDescription)?.contains("of Frame number 2 of") == true)
         // Same crop as the deprecated --frame 1 (roiEndToEnd).

@@ -244,12 +244,12 @@ let package = Package(
         .package(url: "https://github.com/Raster-Lab/J2KSwift.git", from: "11.0.3"),
         // JLSwift — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
         // Provides the `JPEGLS` product, which backs DICOMCore.JPEGLSCodec.
-        .package(url: "https://github.com/Raster-Lab/JLSwift.git", from: "0.9.2"),
+        .package(url: "https://github.com/raster-labs/JLSwift.git", exact: "0.10.1"),
         // JLISwift — native-Swift JPEG codec (baseline/extended/progressive/
         // lossless SOF0–3, 8/12/16-bit, Accelerate-backed; jpegli-parity target).
         // Distinct from JLSwift (JPEG-LS). Products: `JLISwift` (core codec) and
         // `JLIDICOM` (DICOM bridge helpers). No external deps → URL-consumable.
-        .package(url: "https://github.com/Raster-Lab/JLISwift.git", from: "0.5.0"),
+        .package(url: "https://github.com/raster-labs/JLISwift.git", exact: "0.6.0"),
         // JXLSwift — pure-Swift JPEG XL (ISO/IEC 18181) codec. URL-consumable as
         // of v1.0.1: the library target dropped its CompressionFamily dependency
         // (v1.0.0 referenced it via a local path, which SwiftPM rejected for a
@@ -273,9 +273,8 @@ let package = Package(
                 .product(name: "J2KMetal", package: "J2KSwift"),
                 // JPEG-LS — JLSwift backs DICOMCore's JPEGLSCodec.
                 .product(name: "JPEGLS", package: "JLSwift"),
-                // JPEG — JLISwift native-Swift JPEG codec + DICOM bridge helpers.
+                // JPEG — DICOMCore owns its DICOM bridge; only the core codec is required.
                 .product(name: "JLISwift", package: "JLISwift"),
-                .product(name: "JLIDICOM", package: "JLISwift"),
                 // JPEG XL — JXLSwift pure-Swift JPEG XL codec.
                 .product(name: "JXLSwift", package: "JXLSwift")
             ],
@@ -639,8 +638,14 @@ let package = Package(
                 // can reach both backends.)
                 "WindowLUTParityTests.swift",
                 "EncapsulatedPixelDataWriteTests.swift",
+                "StrictEncapsulationTests.swift",
                 // RESEARCH_ADOPTION_PLAN.md M0: parser resource limits + mutation fuzz.
                 "ParserLimitTests.swift",
+                "StrictParsingTests.swift",
+                "BoundedInputTests.swift",
+                "BoundedConcurrentInputTests.swift",
+                "BoundedSHA256Tests.swift",
+                "BoundedStorageVectorTests.swift",
                 // RESEARCH_ADOPTION_PLAN.md copy map: slice-independence guards at the
                 // public Data boundary (parser); companion to DICOMCoreTests/CodecFuzzTests.
                 "SliceIndependenceTests.swift",

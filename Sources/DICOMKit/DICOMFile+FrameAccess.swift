@@ -64,15 +64,14 @@ extension DICOMFile {
             throw PixelDataError.frameExtractionFailed(frameIndex: frame)
         }
 
-        let decoded: Data
+        let decoded: DecodedPixelFrame
         do {
-            decoded = try codec.decodeFrame(frameBytes, descriptor: descriptor, frameIndex: frame)
+            decoded = try codec.decodePixelFrame(frameBytes, descriptor: descriptor, frameIndex: frame)
         } catch {
             throw PixelDataError.decodingFailed(frameIndex: frame, reason: error.localizedDescription)
         }
 
-        let corrected = Self.correctedDescriptorForDecodedBytes(descriptor, transferSyntaxUID: tsUID)
-        return PixelData(data: decoded, descriptor: Self.singleFrame(corrected))
+        return PixelData(data: decoded.data, descriptor: Self.singleFrame(decoded.descriptor))
     }
 
     /// Decodes one frame directly into page-aligned, GPU-ready storage (plan M3)
@@ -89,6 +88,13 @@ extension DICOMFile {
         }
         guard let element = dataSet[.pixelData] else {
             throw PixelDataError.missingPixelData
+        }
+
+        // JPEG/JPEG-LS must validate effective headers and limits before allocating
+        // the destination; this also retains the codec's actual color descriptor.
+        if element.valueData.isEmpty, let uid = transferSyntaxUID,
+           JLICodec.supportedTransferSyntaxes.contains(uid) || JPEGLSCodec.supportedTransferSyntaxes.contains(uid) {
+            return try pixelData(frame: frame).pageAligned()
         }
 
         let bytesPerFrame = descriptor.rows * descriptor.columns
@@ -188,11 +194,8 @@ extension DICOMFile {
     /// The element is OV (PS3.5 Table 6.2-1); a file that carries it as UN has the
     /// same value layout, so `valueData` holds the table either way.
     func extendedOffsetTableValues() -> [UInt64]? {
-        guard let element = dataSet[Tag.extendedOffsetTable],
-              !element.valueData.isEmpty,
-              element.valueData.count % 8 == 0 else {
-            return nil
-        }
+        guard let element = dataSet[Tag.extendedOffsetTable] else { return nil }
+        guard !element.valueData.isEmpty, element.valueData.count % 8 == 0 else { return [] }
         let data = element.valueData
         var offsets: [UInt64] = []
         offsets.reserveCapacity(data.count / 8)

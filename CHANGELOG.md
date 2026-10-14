@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-14
+
+### Added — explicit allocation ownership
+
+- Strict full parsing over verified file windows, fixed SHA-256 identity and deferred values/frames through the canonical parser.
+- Mapped payload/control admission, explicit aliases and transfers, final-retirement notification, nonthrowing scalar outcomes and whole-worker stack reservations.
+- Managed caller-storage JPEG/JPEG-LS decoding using exact JLISwift 0.6.0 and JLSwift 0.10.1 dependencies; preserved source/frame/descriptor checks and existing resource caps.
+- `dicom-info --bounded-summary` exposes verified source/index backing receipts. Final caller/runtime/provider admission remains separate; see `Documentation/BoundedInput/AllocationContract.md`.
+- Incorporates the upstream OCR anonymization pipeline and existing shared API safeguards from main. These owned workflows are outside the selected allocation qualification.
+
+### Fixed
+
+- Concrete parser ownership-result transport avoids cold generic cleanup metadata on the qualified path.
+- CLI validation subprocess handling drains stderr without deadlocking on a full pipe.
+
+## [2.3.1] - 2026-10-12
+
+### Fixed — compressed-frame interpretation
+
+- Resolve existing production compiler warnings that blocked release automation under warnings-as-errors. Preserve deprecated public APIs and legacy serialization, canonical tag identity, and main-queue callback behavior.
+- Pin JLISwift 0.5.2 for centered subsampled chroma reconstruction in full-resolution integer YCbCr JPEG decoding. Retain the independent lossy RGB tolerance of three code values.
+- Add explicit `JPEGLSCodec.PrecisionPolicy.useCodestreamForUnsignedMonochrome` recovery for unsigned monochrome lossless P=16 streams in 16-bit containers with smaller source Bits Stored. Return every sample unchanged, actual Bits Stored 16 / High Bit 15, and a `sourcePrecisionMismatch` diagnostic. Strict defaults and Data-only decoding remain strict.
+- Add `JPEGLSCodec.inspectFrame` so indexing and decoding share actual descriptors, diagnostics, syntax/profile guards and allocation checks. Inspection does not certify entropy data; source metadata remains separate provenance.
+- Test independent CharLS fixtures including values above the source range, shared indexing/load interpretation, rejected transforms, invalid MAXVAL, malformed envelopes and finite resource limits. JLSwift remains pinned at 0.9.3.
+
+## [2.3.0] - 2026-10-12
+
+### Fixed — strict association negotiation
+
+- Reject malformed/trailing SCP/SCU role payloads, invalid UID/role flags, duplicate or excessive roles, and truncated or duplicate User Information items. Preserve absent-role defaults and valid acceptor refusals; validate outgoing role proposals before serialization.
+- Build Release CLI parity prerequisites before the macOS/Studio CI test steps.
+
+### Fixed — strict compressed-frame decoding
+
+- Validate JPEG/JPEG-LS process, precision, dimensions, components, complete codestream boundaries and caller-selected resource budgets before sample decoding.
+- Return decoded bytes with their actual color/layout and source frame identity through `DecodedPixelFrame`; preserve raw RGB DCT and avoid double-converting YBR output.
+- Use one validated Basic/Extended Offset Table index for selected frames. Reject partial tables, invalid boundaries and ambiguous multiframe layouts.
+- Add opt-in strict encapsulated Pixel Data envelopes, transfer-syntax allowlists and cumulative byte/fragment budgets.
+- Remove the unused JLIDICOM product dependency; DICOMCore owns its DICOM bridge and only requires the core JLISwift product.
+- Pin maintained JLISwift 0.5.1 and JLSwift 0.9.3 releases. Independent synthetic libjpeg/CharLS fixtures check exact lossless output and bounded lossy color differences.
+- See `Documentation/Compression/StrictFrameDecoding.md` for finite support and application-admission limits. The following previously unreleased main-branch changes are also included in 2.3.0.
+
+
 ### Added — P-IMAGE-STUDY-DATETIME (2026-10-06, DICOM 2026a)
 
 - dicom-image `--study-date` / `--study-time`: Study Date / Time (0008,0020/0030), Type 2 "Date / Time the Study started" (PS3.3 2026a Table C.7-3). Absent: the run's start for a new Study, the same in every instance of a batch or TIFF run; empty with `--study-uid` (PS3.5 7.4.3). Values that are not DA (Gregorian YYYYMMDD) / TM are refused with exit 1 and nothing written (PS3.5 Table 6.2-1).

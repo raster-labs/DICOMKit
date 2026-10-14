@@ -1,0 +1,40 @@
+{
+  "status": "Released codec source closure and completed local DICOMKit release qualification; Mayam provider integration separate",
+  "DICOMKitBase": "1580377c598cdd2934db73e5e6900021c88a3285",
+  "incorporatedMayamPatchSHA256": {
+    "DICOMKit-opt-in-strict-parsing.patch": "9840b71e26ae38173c954cbdfcea31e2550d4716ef9db9a2b176e7a67dc38a6d",
+    "DICOMKit-discovery.patch": "d5a4917711cdda9213918d97777b64d314b83527e129eaed0d5517c1e33e3499"
+  },
+  "releasedCodecs": {
+    "jliswift": {
+      "revision": "b6df774a3c3ecdf4b98971f31543fdd18074ace2",
+      "version": "0.6.0",
+      "url": "https://github.com/raster-labs/JLISwift.git"
+    },
+    "jlswift": {
+      "revision": "d17545284a23e93f3d884a18f1046c4e305daa35",
+      "version": "0.10.1",
+      "url": "https://github.com/raster-labs/JLSwift.git"
+    }
+  },
+  "otherPins": {
+    "compressionfamily": {
+      "revision": "30fd74b6df841cf79b1a0247534a723f5e7ab4ba",
+      "version": "1.0.0"
+    },
+    "j2kswift": {
+      "revision": "768f6b53499b806fd0304962056e1fc7833f12e5",
+      "version": "11.0.3"
+    },
+    "jxlswift": {
+      "revision": "760697a54dd253da8e8466c3fd09ecf2c2d89aec",
+      "version": "1.4.0"
+    },
+    "swift-argument-parser": {
+      "revision": "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+      "version": "1.8.2"
+    }
+  },
+  "localEditOverrides": false,
+  "integration": "Resolve Package.swift/Package.resolved from released immutable commits. Both codec checkout source trees match the qualified production sources. Do not reapply incorporated strict/discovery patches. Final Mayam provider validation remains required."
+}

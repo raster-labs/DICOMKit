@@ -145,7 +145,7 @@ public struct DICOMXMLEncoder: Sendable {
         // Private Data Elements have the form gggg00ee, since the Private Creator is conveyed
         // explicitly and the block used in the DICOM encoding is not sent (PS3.19 Table A.1.5-2)
         let tag: String
-        if let privateCreator = privateCreator {
+        if privateCreator != nil {
             tag = String(format: "%04X00%02X", element.tag.group, element.tag.element & 0xFF)
         } else {
             tag = element.tag.hexString

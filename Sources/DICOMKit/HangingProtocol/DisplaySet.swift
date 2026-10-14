@@ -59,13 +59,16 @@ public struct DisplaySet: Sendable {
     /// sub-types (PS3.3 Table C.23.3-1)
     public let threeDRenderingSubtypes: [String]
 
+    /// Partial Data Display Handling given through the deprecated API.
+    let legacyPartialDataHandling: String?
+
     /// Partial Data Display Handling (0072,0208) is a top-level attribute of
     /// the Hanging Protocol Display Module (PS3.3 Table C.23.3-1), see
     /// `HangingProtocol.partialDataDisplayHandling`. A value here is not
     /// written; the serializer promotes it to the top level when the
     /// protocol has none and it is a `PartialDataDisplayHandling` term.
     @available(*, deprecated, message: "Partial Data Display Handling (0072,0208) is a top-level Type 2 attribute in PS3.3 2026a Table C.23.3-1; use HangingProtocol.partialDataDisplayHandling")
-    public let partialDataHandling: String?
+    public var partialDataHandling: String? { legacyPartialDataHandling }
 
     /// Scrolling group given through the deprecated API.
     let legacyScrollingGroup: Int?
@@ -107,7 +110,7 @@ public struct DisplaySet: Sendable {
         self.label = label
         self.presentationGroup = presentationGroup
         self.presentationGroupDescription = presentationGroupDescription
-        self.partialDataHandling = partialDataHandling
+        self.legacyPartialDataHandling = partialDataHandling
         self.legacyScrollingGroup = scrollingGroup
         self.imageSetNumber = imageSetNumber
         self.imageBoxes = imageBoxes
@@ -389,7 +392,7 @@ public enum ImageBoxLayoutType: String, Sendable, Codable {
 
     /// The Table C.23.3-1 term written for this case.
     var standardTerm: ImageBoxLayoutType {
-        self == .tiledAll ? .tiled : self
+        rawValue == "TILED_ALL" ? .tiled : self
     }
 
     /// Reads a layout type, mapping the old DICOMKit spelling.
@@ -435,7 +438,7 @@ public enum ScrollType: String, Sendable, Codable {
 
     /// The Table C.23.3-1 term written for this case.
     var standardTerm: ScrollType {
-        self == .fraction ? .page : self
+        rawValue == "FRACTION" ? .page : self
     }
 
     /// Reads a scroll type, mapping the old DICOMKit spelling.

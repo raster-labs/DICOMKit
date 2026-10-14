@@ -40,6 +40,7 @@ public final class AlignedPixelBuffer: @unchecked Sendable {
     /// for any size that is not already a page multiple.
     public let allocatedByteCount: Int
 
+
     /// The host page size — 16 KB on Apple Silicon, 4 KB on x86.
     public static var pageSize: Int {
         Int(getpagesize())
@@ -51,7 +52,7 @@ public final class AlignedPixelBuffer: @unchecked Sendable {
     /// unaligned original rather than trapping. Zero-length is refused: there is
     /// nothing to wrap, and a zero-length `MTLBuffer` is not valid either.
     public init?(byteCount: Int) {
-        guard byteCount > 0 else { return nil }
+        guard byteCount > 0, byteCount <= Int.max - (Self.pageSize - 1) else { return nil }
         let pageSize = Self.pageSize
         let allocated = ((byteCount + pageSize - 1) / pageSize) * pageSize
 
@@ -79,9 +80,7 @@ public final class AlignedPixelBuffer: @unchecked Sendable {
         }
     }
 
-    deinit {
-        free(baseAddress)
-    }
+    deinit { free(baseAddress) }
 
     /// The bytes as `Data`, without copying them.
     ///

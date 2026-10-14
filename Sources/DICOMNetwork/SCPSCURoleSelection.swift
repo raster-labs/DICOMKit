@@ -1,4 +1,5 @@
 import Foundation
+import DICOMCore
 // NEMA-verified: 2026a, checked 2026-09-28 — sub-item layout and role bytes compared with PS3.7 2026a Tables D.3-9 / D.3-10 and the default-role rule of D.3.3.4: match
 
 /// SCP/SCU Role Selection Sub-Item (0x54)
@@ -76,16 +77,50 @@ public struct SCPSCURoleSelection: Sendable, Hashable {
         }
         let start = data.startIndex
         let uidLength = Int(UInt16(data[start]) << 8 | UInt16(data[start + 1]))
-        guard data.count >= 2 + uidLength + 2 else {
-            throw DICOMNetworkError.decodingFailed("SCP/SCU Role Selection sub-item truncated")
+        guard data.count == 2 + uidLength + 2 else {
+            throw DICOMNetworkError.decodingFailed("SCP/SCU Role Selection length mismatch")
         }
         let uidStart = start + 2
         let uidData = data[uidStart ..< uidStart + uidLength]
-        let uid = (String(data: uidData, encoding: .ascii) ?? "")
-            .trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))
-        let scu = data[uidStart + uidLength] != 0
-        let scp = data[uidStart + uidLength + 1] != 0
+        guard let uid = String(data: uidData, encoding: .ascii), isValidSOPClassUID(uid) else {
+            throw DICOMNetworkError.decodingFailed("Invalid role-selection SOP Class UID")
+        }
+        // PS3.7 2026a Tables D.3-9/D.3-10 permit only 0 or 1, not arbitrary nonzero bytes.
+        let scuByte = data[uidStart + uidLength]
+        let scpByte = data[uidStart + uidLength + 1]
+        guard scuByte <= 1, scpByte <= 1 else {
+            throw DICOMNetworkError.decodingFailed("Invalid role-selection flag")
+        }
+        let scu = scuByte == 1
+        let scp = scpByte == 1
         return SCPSCURoleSelection(sopClassUID: uid, scuRole: scu, scpRole: scp)
+    }
+
+    // PS3.5 2026a 9.1: a network UID has no value-field padding; validate its OID root as well.
+    private static func isValidSOPClassUID(_ uid: String) -> Bool {
+        guard let parsed = DICOMUniqueIdentifier.parse(uid), parsed.value == uid,
+              parsed.components.count >= 2, let root = UInt(parsed.components[0]), root <= 2 else {
+            return false
+        }
+        return root == 2 || (UInt(parsed.components[1]).map { $0 <= 39 } ?? false)
+    }
+
+    /// Association-boundary validation keeps the nonthrowing value initializer source compatible.
+    static func validateForEncoding(_ roles: [Self], proposedClasses: Set<String>? = nil) throws {
+        guard roles.count <= 128 else {
+            throw DICOMNetworkError.encodingFailed("Too many role-selection entries")
+        }
+        var seen = Set<String>()
+        for role in roles {
+            guard isValidSOPClassUID(role.sopClassUID), seen.insert(role.sopClassUID).inserted else {
+                throw DICOMNetworkError.encodingFailed("Invalid or duplicate role-selection SOP Class UID")
+            }
+            if let proposedClasses {
+                guard proposedClasses.contains(role.sopClassUID), role.scuRole || role.scpRole else {
+                    throw DICOMNetworkError.encodingFailed("Role selection requires a proposed SOP Class and role")
+                }
+            }
+        }
     }
 }
 

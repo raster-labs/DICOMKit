@@ -18,6 +18,7 @@ import Foundation
 @testable import DICOMNetwork
 
 #if os(macOS)
+import Darwin
 
 final class MWLMPPSCLIEndToEndTests: XCTestCase {
 
@@ -42,19 +43,35 @@ final class MWLMPPSCLIEndToEndTests: XCTestCase {
         let process = Process()
         process.executableURL = binary
         process.arguments = arguments
-        let stdoutPipe = Pipe(), stderrPipe = Pipe()
-        process.standardOutput = stdoutPipe
-        process.standardError = stderrPipe
+        // Reading pipes serially can deadlock when the other stream fills its
+        // pipe (validation errors include the full command help on stderr).
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let stdoutURL = directory.appendingPathComponent("stdout")
+        let stderrURL = directory.appendingPathComponent("stderr")
+        try Data().write(to: stdoutURL)
+        try Data().write(to: stderrURL)
+        let stdoutFile = try FileHandle(forWritingTo: stdoutURL)
+        defer { try? stdoutFile.close() }
+        let stderrFile = try FileHandle(forWritingTo: stderrURL)
+        defer { try? stderrFile.close() }
+        process.standardOutput = stdoutFile
+        process.standardError = stderrFile
         try process.run()
-        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
         let deadline = Date().addingTimeInterval(timeout)
         while process.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
-        if process.isRunning {
+        let timedOut = process.isRunning
+        if timedOut {
             process.terminate()
-            XCTFail("\(tool) did not exit within \(timeout)s: \(arguments)")
+            let terminationDeadline = Date().addingTimeInterval(1)
+            while process.isRunning && Date() < terminationDeadline { Thread.sleep(forTimeInterval: 0.05) }
+            if process.isRunning { Darwin.kill(process.processIdentifier, SIGKILL) }
         }
         process.waitUntilExit()
+        if timedOut { XCTFail("\(tool) did not exit within \(timeout)s: \(arguments)") }
+        let stdoutData = try Data(contentsOf: stdoutURL)
+        let stderrData = try Data(contentsOf: stderrURL)
         return RunResult(exitCode: process.terminationStatus,
                          stdout: String(data: stdoutData, encoding: .utf8) ?? "",
                          stderr: String(data: stderrData, encoding: .utf8) ?? "")

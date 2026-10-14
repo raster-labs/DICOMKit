@@ -75,6 +75,12 @@ public struct DICOMFile: Sendable {
     /// - Returns: Parsed DICOM file
     /// - Throws: DICOMError if file is invalid or parsing fails
     public static func read(from data: Data, force: Bool = false, options: ParsingOptions) throws -> DICOMFile {
+        try validateStrictOptions(force: force, options: options)
+        if options.validationPolicy == .strict,
+           data.count > options.strictResourceLimits.maximumInputBytes {
+            throw StrictParsingError.resourceLimitExceeded(
+                resource: .inputBytes, limit: options.strictResourceLimits.maximumInputBytes)
+        }
         // Rebase sliced input once at the public boundary. The parse pipeline below
         // (hasDICMPrefix, DICOMParser) mixes slice-relative reads (readUInt16LE et al.
         // add `startIndex`) with absolute indexing (`subdata(in:)`, `data[128..<132]`);
@@ -113,6 +119,27 @@ public struct DICOMFile: Sendable {
     /// - Returns: Parsed DICOM file
     /// - Throws: DICOMError if file is invalid or parsing fails
     public static func read(from url: URL, force: Bool = false, options: ParsingOptions = .default) throws -> DICOMFile {
+        if options.validationPolicy == .strict {
+            try validateStrictOptions(force: force, options: options)
+            // Strict URL ingestion is local-file-only and bounded, even if the file
+            // grows while being read. A size preflight alone would permit that race.
+            guard url.isFileURL else { throw StrictParsingError.invalidOptions }
+            let handle = try FileHandle(forReadingFrom: url)
+            defer { try? handle.close() }
+            let limit = options.strictResourceLimits.maximumInputBytes
+            var data = Data()
+            while true {
+                let remaining = limit - data.count
+                // At the boundary, probe just one byte for EOF; never append it.
+                let count = remaining == 0 ? 1 : min(64 * 1024, remaining)
+                guard let chunk = try handle.read(upToCount: count), !chunk.isEmpty else { break }
+                guard chunk.count <= remaining else {
+                    throw StrictParsingError.resourceLimitExceeded(resource: .inputBytes, limit: limit)
+                }
+                data.append(chunk)
+            }
+            return try read(from: data, force: force, options: options)
+        }
         // `useMemoryMapping` maps the file (.mappedIfSafe) so pages are faulted
         // in on demand instead of read eagerly — the file must not be modified
         // while the parsed structures are alive.
@@ -120,6 +147,116 @@ public struct DICOMFile: Sendable {
         return try read(from: source.wholeData(), force: force, options: options)
     }
     
+    #if canImport(Darwin) || canImport(Glibc)
+    /// Compatibility options adapter. Build `BoundedParsingOptions` before entering
+    /// a managed operation to keep caller-owned Set/String policy storage outside it.
+    public static func readBounded(from source: borrowing VerifiedFileByteSource,
+                                   options: ParsingOptions, cancellation: DICOMCancellation = .never)
+        throws -> BoundedDICOMFile {
+        try readBounded(from: source, options: BoundedParsingOptions(options), cancellation: cancellation)
+    }
+
+    /// Strict full structural parsing through the canonical parser over verified windows.
+    /// This value-outcome core does not invoke Swift's throwing runtime.
+    public static func readBoundedOutcome(from source: borrowing VerifiedFileByteSource,
+                                          options: BoundedParsingOptions,
+                                          cancellation: DICOMCancellation = .never)
+        -> DICOMParserOutcome<BoundedDICOMFile> {
+        guard source.count <= options.strictResourceLimits.maximumInputBytes else {
+            return .failure(.strict(.resourceLimitExceeded(resource: .inputBytes,
+                limit: options.strictResourceLimits.maximumInputBytes)))
+        }
+        if case .failure(let failure) = source.validateOutcome(cancellation: cancellation) {
+            return .failure(.managed(failure))
+        }
+        guard source.count >= 132 else { return .failure(.managed(DICOMManagedFailure(.unexpectedEnd))) }
+        switch source.readOutcome(128..<132, resource: .metadata, cancellation: cancellation) {
+        case .failure(let failure): return .failure(.managed(failure))
+        case .success(let prefix):
+            guard prefix.withBorrowedBytes({ $0[0] == 0x44 && $0[1] == 0x49 && $0[2] == 0x43 && $0[3] == 0x4D }) else {
+                return .failure(.managed(DICOMManagedFailure(.invalidPrefix)))
+            }
+        }
+        var failure = DICOMParserFailure.unexpectedEndOfData
+        guard let storage = BoundedParseStorage.make(source: source).takeValue(failure: &failure) else {
+            return .failure(failure)
+        }
+        let capture = storage.capture.withCancellation(cancellation)
+        var parser = DICOMParser(source: source.view.withCancellation(cancellation), options: options, capture: capture)
+        if case .failure(let failure) = parser.parseFileMetaInformationCore(startOffset: 132) {
+            return .failure(failure)
+        }
+        guard let metaOwner = storage.share().takeValue(failure: &failure) else { return .failure(failure) }
+        let meta = BoundedDICOMDataSet(storage: metaOwner, scope: 0)
+        guard let optionalSyntax = meta.elementOutcome(for: .transferSyntaxUID).takeValue(failure: &failure) else {
+            return .failure(failure)
+        }
+        guard let syntax = consume optionalSyntax, syntax.vr.characterRepertoire != nil, syntax.length > 0 else {
+            return .failure(.strict(.missingTransferSyntax))
+        }
+        guard let transferSyntax = syntax.transferSyntaxToken(cancellation: cancellation)
+            .takeValue(failure: &failure) else { return .failure(failure) }
+        if case .failure(let failure) = parser.parseDataSetCore(transferSyntax: transferSyntax) {
+            return .failure(failure)
+        }
+        if case .failure(let failure) = capture.seal() { return .failure(failure) }
+        return .success(BoundedDICOMFile(storage: storage, transferSyntax: transferSyntax))
+    }
+
+    /// Parse on the admitted worker. Retain execution through deferred acquisition
+    /// and decoding until the complete synchronous worker operation actually returns.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public static func readBoundedOutcome(from source: borrowing VerifiedFileByteSource,
+                                          options: BoundedParsingOptions,
+                                          execution: borrowing DICOMExecutionReservation,
+                                          cancellation: DICOMCancellation = .never)
+        -> DICOMParserOutcome<BoundedDICOMFile> {
+        if case .failure(let failure) = source.validateExecutionOutcome(execution) {
+            return .failure(.managed(failure))
+        }
+        return readBoundedOutcome(from: source, options: options, cancellation: cancellation)
+    }
+
+    /// Throwing compatibility adapter outside the qualified operation boundary.
+    public static func readBounded(from source: borrowing VerifiedFileByteSource,
+                                   options: BoundedParsingOptions, cancellation: DICOMCancellation = .never)
+        throws(DICOMParserFailure) -> BoundedDICOMFile {
+        try readBoundedOutcome(from: source, options: options, cancellation: cancellation).get()
+    }
+
+    /// Throwing compatibility adapter; use readBoundedOutcome inside admitted work.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public static func readBounded(from source: borrowing VerifiedFileByteSource,
+                                   options: BoundedParsingOptions,
+                                   execution: borrowing DICOMExecutionReservation,
+                                   cancellation: DICOMCancellation = .never)
+        throws(DICOMParserFailure) -> BoundedDICOMFile {
+        try readBoundedOutcome(from: source, options: options, execution: execution, cancellation: cancellation).get()
+    }
+    #endif
+
+    private static func validateStrictOptions(force: Bool, options: ParsingOptions) throws {
+        if options.validationPolicy == .strict {
+            guard !force, options.mode == .full, options.stopAfterTag == nil,
+                  options.maxElements.map({ $0 > 0 }) ?? true,
+                  options.strictResourceLimits.isValid else {
+                throw StrictParsingError.invalidOptions
+            }
+            if let allowed = options.allowedTransferSyntaxUIDs {
+                guard allowed.isSubset(of: ParsingOptions.strictNativeTransferSyntaxUIDs
+                    .union(ParsingOptions.strictCompressedTransferSyntaxUIDs)) else {
+                    throw StrictParsingError.invalidOptions
+                }
+                if !allowed.isDisjoint(with: ParsingOptions.strictCompressedTransferSyntaxUIDs) {
+                    guard options.strictEncapsulation, options.maximumEncapsulatedBytes > 0,
+                          options.maxFragmentCount.map({ $0 > 0 }) ?? true else {
+                        throw StrictParsingError.invalidOptions
+                    }
+                }
+            }
+        }
+    }
+
     /// Checks if the data has a valid DICM prefix at offset 128
     ///
     /// - Parameter data: Raw file data
@@ -148,6 +285,11 @@ public struct DICOMFile: Sendable {
         
         // Get Transfer Syntax UID from File Meta Information
         // Default to Explicit VR Little Endian if not specified
+        if options.validationPolicy == .strict {
+            guard let uid = fileMetaInfo.string(for: .transferSyntaxUID), !uid.isEmpty else {
+                throw StrictParsingError.missingTransferSyntax
+            }
+        }
         let transferSyntaxUID = fileMetaInfo.string(for: .transferSyntaxUID) ?? "1.2.840.10008.1.2.1"
         
         // Parse main data set

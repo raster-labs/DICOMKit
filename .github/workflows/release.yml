@@ -22,7 +22,7 @@ jobs:
   validate-release:
     name: Validate Release
     runs-on: xcode-27
-    timeout-minutes: 45
+    timeout-minutes: 95
 
     steps:
     - name: Checkout code
@@ -52,7 +52,7 @@ jobs:
         fi
         echo "✅ Valid version tag: $TAG"
         
-    - name: Build and test
+    - name: Build release without warnings
       timeout-minutes: 30
       env:
         CI: 'true'
@@ -63,13 +63,17 @@ jobs:
           echo "::error::Release build emitted warnings"
           exit 1
         fi
-        # swift-testing's own process exit code is unreliable here: it can be
-        # non-zero for the full suite even when the printed summary says
-        # "passed" (only a pre-existing withKnownIssue-guarded test tripped),
-        # which is why this release pipeline has never gotten past this step.
-        # Trust the summary line swift-testing itself prints instead of the
-        # raw exit code.
-        swift test 2>&1 | tee release-test.log || true
+
+    - name: Run tests
+      timeout-minutes: 30
+      env:
+        CI: 'true'
+      run: |
+        set -o pipefail
+        # Every test target must complete successfully. A passing summary from
+        # another bundle must not hide a crash or failure in an earlier target.
+        # The large sparse source cases are required in optimized mode below.
+        swift test --skip largeSparseSource 2>&1 | tee release-test.log
         if grep -F "which are unhandled; explicitly declare" release-test.log; then
           echo "::error::Release tests emitted SwiftPM unhandled-file warnings"
           exit 1
@@ -78,6 +82,15 @@ jobs:
           echo "::error::Release tests failed"
           exit 1
         fi
+
+    - name: Run optimized source-envelope tests
+      timeout-minutes: 30
+      env:
+        CI: 'true'
+      run: |
+        set -o pipefail
+        swift test -c release --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
+        grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
         
   build-cli-tools:
     name: Build CLI Tools (Batch ${{ matrix.batch }})

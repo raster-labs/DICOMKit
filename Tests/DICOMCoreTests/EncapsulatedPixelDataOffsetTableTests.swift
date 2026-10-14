@@ -44,11 +44,10 @@ struct EncapsulatedPixelDataOffsetTableTests {
         #expect(basic.fragmentsPerFrame == extended.fragmentsPerFrame)
     }
 
-    @Test("The Extended Offset Table takes precedence over a Basic Offset Table")
+    @Test("Extended and Basic Offset Tables cannot both carry values")
     func testExtendedWins() throws {
         let both = EncapsulatedPixelData(offsetTable: itemTagOffsets.map { UInt32($0) },
                                          fragments: fragments, descriptor: descriptor)
-        let index = try #require(both.makeFrameIndex(extendedOffsets: itemTagOffsets))
-        #expect(index.source == .extendedOffsetTable)
+        #expect(both.makeFrameIndex(extendedOffsets: itemTagOffsets) == nil)
     }
 }

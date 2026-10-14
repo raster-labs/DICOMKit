@@ -112,6 +112,7 @@ public struct AssociateAcceptPDU: PDU, Sendable, Hashable {
     ///
     /// Reference: PS3.8 Section 9.3.3
     public func encode() throws -> Data {
+        try SCPSCURoleSelection.validateForEncoding(roleSelections)
         try validateImplementationSubItems(
             classUID: implementationClassUID, versionName: implementationVersionName)
         

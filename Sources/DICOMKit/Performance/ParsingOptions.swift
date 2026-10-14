@@ -21,6 +21,63 @@ public struct ParsingOptions: Sendable {
         case lazyPixelData
     }
     
+    /// Structural parsing policy. Strict reads default to full native little-endian Part 10.
+    /// An explicit finite allowlist may enable the maintained JPEG baseline, lossless SV1
+    /// and JPEG-LS lossless envelopes when strictEncapsulation is also enabled.
+    public enum ValidationPolicy: Sendable, Equatable {
+        case permissive
+        case strict
+    }
+
+    /// Defaults to the historical permissive behavior. Strict mode fails instead of recovering.
+    public let validationPolicy: ValidationPolicy
+
+    static let strictNativeTransferSyntaxUIDs: Set<String> = ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1"]
+    static let strictCompressedTransferSyntaxUIDs: Set<String> = [
+        "1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.80"
+    ]
+
+    /// Finite strict-parser qualification policy, not production-approved memory budgets.
+    /// Limits count the whole read, including file meta and nested datasets. They are
+    /// ignored by permissive parsing. All values must be positive for strict reads.
+    public struct StrictResourceLimits: Sendable, Equatable {
+        /// Total input bytes, including the Part 10 preamble and file meta.
+        public let maximumInputBytes: Int
+        /// Simultaneously open SQ values; a root SQ has depth one.
+        public let maximumSequenceDepth: Int
+        /// All data elements, including SQ elements and file meta, but not item markers.
+        public let maximumTotalElements: Int
+        /// All sequence items, including empty items, across every sequence.
+        public let maximumSequenceItems: Int
+        /// Cumulative valueData bytes copied, including leaf values and every raw SQ
+        /// copy. Nested bytes are counted again in each enclosing raw SQ copy.
+        /// Encapsulated BOT/fragment storage has its separate maximumEncapsulatedBytes
+        /// budget; it is not valueData and is not included in this counter.
+        /// This is not a process-memory limit: object/collection overhead is excluded.
+        public let maximumMaterializedValueBytes: Int
+
+        public init(
+            maximumInputBytes: Int = 256 * 1024 * 1024,
+            maximumSequenceDepth: Int = 32,
+            maximumTotalElements: Int = 100_000,
+            maximumSequenceItems: Int = 100_000,
+            maximumMaterializedValueBytes: Int = 512 * 1024 * 1024
+        ) {
+            self.maximumInputBytes = maximumInputBytes
+            self.maximumSequenceDepth = maximumSequenceDepth
+            self.maximumTotalElements = maximumTotalElements
+            self.maximumSequenceItems = maximumSequenceItems
+            self.maximumMaterializedValueBytes = maximumMaterializedValueBytes
+        }
+
+        var isValid: Bool {
+            maximumInputBytes > 0 && maximumSequenceDepth > 0 && maximumTotalElements > 0
+                && maximumSequenceItems > 0 && maximumMaterializedValueBytes > 0
+        }
+    }
+
+    public let strictResourceLimits: StrictResourceLimits
+
     /// The parsing mode to use
     public let mode: Mode
     
@@ -67,6 +124,17 @@ public struct ParsingOptions: Sendable {
     /// Exceeding this throws `DICOMError.limitExceeded`.
     public let maxFragmentCount: Int?
 
+    /// Enforce the PS3.5 2026a A.4 encapsulation envelope, including complete
+    /// delimiters, even nonempty fragments and Basic Offset Table item boundaries.
+    /// Opt-in for compatibility with historically tolerated nonconformant files.
+    public let strictEncapsulation: Bool
+
+    /// Optional finite transfer-syntax admission policy, checked before dataset parsing.
+    public let allowedTransferSyntaxUIDs: Set<String>?
+
+    /// Maximum cumulative encapsulated bytes (table and fragment payloads).
+    public let maximumEncapsulatedBytes: Int
+
     /// Hard limit on the inflated size of a Deflated Explicit VR Little Endian Data
     /// Set (PS3.5 A.5). Inflation stops and the read fails once the limit would be
     /// exceeded, so a small compressed file cannot expand without bound.
@@ -77,6 +145,10 @@ public struct ParsingOptions: Sendable {
     
     /// Default parsing options (full parsing)
     public static let `default` = ParsingOptions()
+
+    /// Full structural read, without recovery or implicit transfer-syntax selection.
+    /// This does not validate IOD semantics, pixel meaning, or clinical suitability.
+    public static let strict = ParsingOptions(validationPolicy: .strict)
     
     /// Metadata-only parsing options
     public static let metadataOnly = ParsingOptions(mode: .metadataOnly)
@@ -98,8 +170,18 @@ public struct ParsingOptions: Sendable {
         maxElementLength: Int? = nil,
         maxTotalElements: Int? = nil,
         maxFragmentCount: Int? = nil,
-        maximumInflatedByteCount: Int = ParsingOptions.defaultMaximumInflatedByteCount
+        maximumInflatedByteCount: Int = ParsingOptions.defaultMaximumInflatedByteCount,
+        strictEncapsulation: Bool = false,
+        maximumEncapsulatedBytes: Int = 1 << 30,
+        allowedTransferSyntaxUIDs: Set<String>? = nil,
+        validationPolicy: ValidationPolicy = .permissive,
+        strictResourceLimits: StrictResourceLimits = StrictResourceLimits()
     ) {
+        self.strictResourceLimits = strictResourceLimits
+        self.validationPolicy = validationPolicy
+        self.allowedTransferSyntaxUIDs = allowedTransferSyntaxUIDs
+        self.strictEncapsulation = strictEncapsulation
+        self.maximumEncapsulatedBytes = maximumEncapsulatedBytes
         self.mode = mode
         self.stopAfterTag = stopAfterTag
         self.maxElements = maxElements

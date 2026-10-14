@@ -300,7 +300,6 @@ public enum PrintSCPParser {
         }
 
         let bitsStored = item.uint16(for: .bitsStored) ?? bitsAllocated
-        let highBit = item.uint16(for: .highBit) ?? (bitsStored - 1)
         // Photometric Interpretation: PS3.3 Table C.13-5 enumerates RGB for
         // the Basic Color Image Sequence and MONOCHROME1 / MONOCHROME2 for the
         // grayscale one. YBR variants are a documented leniency — third-party

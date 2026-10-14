@@ -119,8 +119,8 @@ public enum DICOMDIRFileSetRules {
         if let v = error as? DICOMDirectory.ValidationError {
             return "\(v.description) [\(citation(for: v))]"
         }
-        if !(type(of: error) is NSError.Type), let d = error as? CustomStringConvertible {
-            return d.description
+        if !(type(of: error) is NSError.Type) {
+            return String(describing: error)
         }
         return error.localizedDescription
     }
