@@ -88,6 +88,11 @@ Local released-pin validation completed:
 - The maintained 5,326-entry primary-VR projection verifies. The tag audit has zero
   blockers, major findings or warnings. Bounded CLI receipt/refusal smoke checks pass.
 
+Linux remains blocked by the existing Apple-only JLISwift Accelerate dependency,
+as already documented on main before this release. Hosted Linux CI reproduced
+that limitation; it is retained as a failure, not represented as passing.
+The committed root lockfile preserves the exact locally qualified transitive pins.
+
 visionOS is not qualified by this release: the existing J2KSwift 11.0.3 dependency
 specifies visionOS 1 while using Mutex from visionOS 2. Hosted platform and DocC
 jobs may report setup limitations; a green wrapper job is not platform proof.

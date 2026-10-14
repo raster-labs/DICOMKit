@@ -36,7 +36,10 @@ Validation completed: 9,374 unique Swift Testing tests (including optimized spar
 boundaries), 6,048 XCTest entries with 44 existing skips, optimized warnings-as-errors
 Release, forced-CPU rendering, iOS simulator module build, and renewed source/codegen
 and linked ownership/oracle checks. The full run had one Studio ARTIM timeout; the
-entire unchanged Studio target passed on repeat. visionOS retains the documented
+entire unchanged Studio target passed on repeat. Linux remains blocked by the
+pre-existing JLISwift Apple Accelerate dependency; no Linux support is claimed.
+The root lockfile preserves the exact qualified transitive dependencies.
+visionOS retains the documented
 J2KSwift deployment-target limitation. See `Documentation/BoundedInput/AllocationQualification.md` for scope.
 
 The parser now keeps sequence temporaries off recursive frames, preserving the

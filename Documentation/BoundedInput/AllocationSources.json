@@ -376,6 +376,7 @@
       "depth-focused": "4aa2347853d8871a603b3b11c5ba41f55a9a4c121d06baa23bee52e4a92385c7",
       "sparse": "5e3fcc1c9c88b985510eb1913b2caa72b359457329248d9f4456e955015d7bac",
       "cpu-render": "2be7ef1f4ae749a1be286d4e11c7355cfb618cd953496f8b904bd9ba88b79759"
-    }
+    },
+    "linux": "Blocked by pre-existing JLISwift Apple Accelerate dependency, documented on main before this release; hosted job115873687331 reproduces it. No Linux support is claimed."
   }
 }
