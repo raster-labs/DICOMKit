@@ -84,8 +84,46 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     /// Returns the actual decoded color interpretation, without altering the source descriptor.
     public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
                                  frameIndex: Int) throws -> DecodedPixelFrame {
-        let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
+        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         let header = try JPEGFrameEnvelope.parse(frameData, jpegLS: false)
+        let plan = try prepare(encodedByteCount: frameData.count, header: header, descriptor: descriptor, frameIndex: frameIndex)
+        let expectedBytes = plan.expectedBytes
+        let configuration = plan.configuration
+        let lossless = header.process == 0xc3
+        do {
+            let image = try JLIDecoder().decode(from: [UInt8](frameData), configuration: configuration)
+            // JLISwift chooses its container from encoded precision, whereas DICOM may allocate 16 bits for 8 stored.
+            var bytes = image.data
+            if header.precision <= 8 && descriptor.bitsAllocated == 16 {
+                bytes = bytes.flatMap { [$0, 0] }
+            }
+            guard image.width == descriptor.columns, image.height == descriptor.rows, bytes.count == expectedBytes else {
+                throw DICOMError.parsingFailed("JPEG decoder returned a mismatched frame")
+            }
+            let outputPI: PhotometricInterpretation
+            if lossless { outputPI = descriptor.photometricInterpretation }
+            else {
+                switch image.colorModel {
+                case .rgb: outputPI = .rgb
+                case .grayscale: outputPI = descriptor.photometricInterpretation
+                default: throw DICOMError.parsingFailed("Unexpected JPEG decoder output color model")
+                }
+            }
+            let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
+                bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
+                samplesPerPixel: descriptor.samplesPerPixel, photometricInterpretation: outputPI,
+                planarConfiguration: descriptor.planarConfiguration)
+            return DecodedPixelFrame(data: dicomFrameBytes(fromInterleaved: bytes, descriptor: output),
+                                     descriptor: output, sourceFrameIndex: frameIndex)
+        } catch {
+            throw DICOMError.parsingFailed("JLISwift decode failed: \(error)")
+        }
+    }
+
+    private func prepare(encodedByteCount: Int, header: JPEGFrameEnvelope, descriptor: PixelDataDescriptor,
+        frameIndex: Int) throws -> (expectedBytes: Int, configuration: JLIDecoderConfiguration) {
+        let expectedBytes = try decodingLimits.validate(encodedByteCount: encodedByteCount, descriptor: descriptor, frameIndex: frameIndex)
         guard header.width == descriptor.columns, header.height == descriptor.rows,
               header.precision == descriptor.bitsStored, header.components.count == descriptor.samplesPerPixel else {
             throw DICOMError.parsingFailed("JPEG header does not match DICOM dimensions, components or precision")
@@ -121,44 +159,68 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                 throw DICOMError.parsingFailed("Unsupported Adobe JPEG color transform")
             }
         }
-        do {
-            let sourceColor: JLIColorModel?
-            if lossless || descriptor.samplesPerPixel == 1 { sourceColor = nil }
-            else if header.adobeTransform == 0 || header.components == [82, 71, 66] { sourceColor = .rgb }
-            else if header.jfif || header.adobeTransform == 1 || descriptor.photometricInterpretation.isYBR {
-                sourceColor = .yCbCr
-            } else { sourceColor = .rgb }
-            let configuration = JLIDecoderConfiguration(sourceColorModel: sourceColor,
-                maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
-                maximumPixels: decodingLimits.maximumPixels,
-                maximumDecodedBytes: decodingLimits.maximumDecodedBytes)
-            let image = try JLIDecoder().decode(from: [UInt8](frameData), configuration: configuration)
-            // JLISwift chooses its container from encoded precision, whereas DICOM may allocate 16 bits for 8 stored.
-            var bytes = image.data
-            if header.precision <= 8 && descriptor.bitsAllocated == 16 {
-                bytes = bytes.flatMap { [$0, 0] }
+        let sourceColor: JLIColorModel?
+        if lossless || descriptor.samplesPerPixel == 1 { sourceColor = nil }
+        else if header.adobeTransform == 0 || header.components == [82, 71, 66] { sourceColor = .rgb }
+        else if header.jfif || header.adobeTransform == 1 || descriptor.photometricInterpretation.isYBR {
+            sourceColor = .yCbCr
+        } else { sourceColor = .rgb }
+        let configuration = JLIDecoderConfiguration(sourceColorModel: sourceColor,
+            maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
+            maximumPixels: decodingLimits.maximumPixels,
+            maximumDecodedBytes: decodingLimits.maximumDecodedBytes)
+        return (expectedBytes, configuration)
+    }
+
+    /// Managed payload decoding for monochrome lossless UInt16 and baseline RGB8
+    /// interleaved output. Full retained capacity is charged before allocation;
+    /// baseline RGB retains its larger reconstruction arena. Other profiles throw
+    /// without falling back. Runtime/control heap qualification remains separate.
+    /// - Parameters:
+    ///   - frameData: Immutable encoded frame allocated using `budget`.
+    ///   - descriptor: Source pixel interpretation to validate against the codestream.
+    ///   - frameIndex: Zero-based source frame index.
+    ///   - budget: The exact ledger instance owning `frameData`.
+    /// - Returns: Actual decoded descriptor and managed storage, ready for one ownership transfer.
+    public func decodeManagedPixelFrame(_ frameData: DICOMByteBuffer, descriptor: PixelDataDescriptor,
+        frameIndex: Int, budget: DICOMAllocationBudget) throws -> ManagedDecodedPixelFrame {
+        guard frameData.ownerBudget === budget else { throw DICOMAllocationError.budgetMismatch }
+        _ = try decodingLimits.validate(encodedByteCount: frameData.count, descriptor: descriptor, frameIndex: frameIndex)
+        return try frameData.withUnsafeBytes { encoded in
+            let header = try JPEGFrameEnvelope.parse(encoded, jpegLS: false)
+            let plan = try prepare(encodedByteCount: encoded.count, header: header, descriptor: descriptor, frameIndex: frameIndex)
+            let decoder = JLIDecoder()
+            if header.process == 0xc3 && descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 16 {
+                let bytes = try withCodecWorkspace(count: JLIDecoder.losslessMonochromeWorkspaceByteCount, budget: budget) { workspace in
+                    let info = try decoder.inspectLosslessMonochrome(encoded, workspace: workspace, configuration: plan.configuration)
+                    guard info.outputByteCount == plan.expectedBytes else { throw DICOMError.parsingFailed("Lossless JPEG output length mismatch") }
+                    return try DICOMByteBuffer(count: info.outputByteCount, budget: budget, resource: .decoded) { output in
+                        let decoded = try decoder.decodeLosslessMonochrome(encoded, into: output, workspace: workspace, configuration: plan.configuration)
+                        guard decoded == info else { throw DICOMError.parsingFailed("Lossless JPEG result differs from inspection") }
+                    }
+                }
+                return ManagedDecodedPixelFrame(data: bytes, descriptor: descriptor, sourceFrameIndex: frameIndex)
             }
-            guard image.width == descriptor.columns, image.height == descriptor.rows, bytes.count == expectedBytes else {
-                throw DICOMError.parsingFailed("JPEG decoder returned a mismatched frame")
+            guard header.process == 0xc0, descriptor.samplesPerPixel == 3,
+                  descriptor.bitsAllocated == 8, descriptor.planarConfiguration == 0 else {
+                throw DICOMError.parsingFailed("Managed JPEG requires monochrome lossless UInt16 or interleaved baseline RGB8")
             }
-            let outputPI: PhotometricInterpretation
-            if lossless { outputPI = descriptor.photometricInterpretation }
-            else {
-                switch image.colorModel {
-                case .rgb: outputPI = .rgb
-                case .grayscale: outputPI = descriptor.photometricInterpretation
-                default: throw DICOMError.parsingFailed("Unexpected JPEG decoder output color model")
+            // Release inspection scratch before admitting the complete decode scratch.
+            let info = try withCodecWorkspace(count: JLIDecoder.baselineHeaderWorkspaceByteCount, budget: budget) {
+                try decoder.inspectBaselineRGB(encoded, headerWorkspace: $0, configuration: plan.configuration)
+            }
+            guard info.outputByteCount == plan.expectedBytes else { throw DICOMError.parsingFailed("Baseline JPEG output length mismatch") }
+            let bytes = try withCodecWorkspace(count: info.workspaceByteCount, budget: budget) { workspace in
+                try DICOMByteBuffer(count: info.outputByteCount, capacity: info.arenaByteCount, budget: budget, resource: .decoded) { arena in
+                    let decoded = try decoder.decodeBaselineRGB(encoded, arena: arena, workspace: workspace, configuration: plan.configuration)
+                    guard decoded == info else { throw DICOMError.parsingFailed("Baseline JPEG result differs from inspection") }
                 }
             }
             let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
                 numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
                 bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
-                samplesPerPixel: descriptor.samplesPerPixel, photometricInterpretation: outputPI,
-                planarConfiguration: descriptor.planarConfiguration)
-            return DecodedPixelFrame(data: dicomFrameBytes(fromInterleaved: bytes, descriptor: output),
-                                     descriptor: output, sourceFrameIndex: frameIndex)
-        } catch {
-            throw DICOMError.parsingFailed("JLISwift decode failed: \(error)")
+                samplesPerPixel: 3, photometricInterpretation: .rgb, planarConfiguration: 0)
+            return ManagedDecodedPixelFrame(data: bytes, descriptor: output, sourceFrameIndex: frameIndex)
         }
     }
 

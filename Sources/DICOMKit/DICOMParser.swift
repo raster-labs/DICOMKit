@@ -13,21 +13,92 @@ import DICOMDictionary
 ///
 /// Reference: PS3.10 Section 7 - DICOM File Format
 struct DICOMParser {
-    private var data: Data
+    private var data: DICOMParserInput
     private var offset: Int
     private let options: ParsingOptions
+    private let capture: BoundedParseCapture?
+    private var isStrict: Bool { options.validationPolicy == .strict }
+    private var totalElements = 0
+    private var sequenceDepth = 0
+    private var sequenceItems = 0
+    private var materializedValueBytes = 0
 
-    /// Current sequence/item nesting depth; bounded by `options.maxSequenceDepth`
-    /// to prevent stack overflow on maliciously nested sequences.
-    private var sequenceDepth: Int = 0
+    /// Subtraction before addition prevents counter overflow even with Int.max limits.
+    private static func reserve(_ count: Int, used: inout Int, limit: Int,
+                                resource: StrictParsingError.Resource) throws {
+        guard count >= 0, used >= 0, used <= limit, count <= limit - used else {
+            throw StrictParsingError.resourceLimitExceeded(resource: resource, limit: limit)
+        }
+        used += count
+    }
 
-    /// Total elements parsed (including nested); bounded by `options.maxTotalElements`.
+    private mutating func reserveElement() throws {
+        if capture != nil { try Task.checkCancellation() }
+        if isStrict {
+            try Self.reserve(1, used: &totalElements,
+                             limit: options.strictResourceLimits.maximumTotalElements,
+                             resource: .totalElements)
+        }
+    }
+
+    private mutating func reserveValueBytes(_ count: Int) throws {
+        if isStrict {
+            try Self.reserve(count, used: &materializedValueBytes,
+                             limit: options.strictResourceLimits.maximumMaterializedValueBytes,
+                             resource: .materializedValueBytes)
+        }
+    }
+
+    private func valueEndOffset(length: UInt32) throws -> Int {
+        if isStrict {
+            guard offset >= 0, offset <= data.count, Int(length) <= data.count - offset else {
+                throw DICOMError.unexpectedEndOfData
+            }
+        }
+        return offset + Int(length)
+    }
+
+    private func record(_ tag: Tag, at elementOffset: Int, in seen: inout Set<Tag>) throws {
+        if isStrict, let capture { try capture.record(tag, at: elementOffset); return }
+        if isStrict && !seen.insert(tag).inserted {
+            throw StrictParsingError.duplicateTag(tag: tag, offset: elementOffset)
+        }
+    }
+
+    private func requireBoundary(_ endOffset: Int) throws {
+        if isStrict && (endOffset < offset || endOffset > data.count) {
+            throw StrictParsingError.malformedStructure(offset: offset, reason: "Declared scope boundary exceeds available data")
+        }
+    }
+
+    private func requireDelimiterLength(byteOrder: ByteOrder) throws {
+        if isStrict {
+            guard let length = try readUInt32(at: offset + 4, byteOrder: byteOrder), length == 0 else {
+                throw StrictParsingError.malformedStructure(offset: offset, reason: "Missing or nonzero delimiter length")
+            }
+        }
+    }
+
+    private func validateLength(_ length: UInt32) throws {
+        if isStrict && length != 0xFFFFFFFF && length % 2 != 0 {
+            throw StrictParsingError.malformedStructure(offset: offset, reason: "Odd value length")
+        }
+    }
+
+    /// Maintained general element limit, independent of the strict-policy cap.
     private var totalElementCount: Int = 0
-
     init(data: Data, options: ParsingOptions = .default) {
-        self.data = data
+        self.data = DICOMParserInput(data: data)
         self.offset = 0
         self.options = options
+        self.capture = nil
+    }
+
+    init(source: any DICOMVerifiedByteSource, options: ParsingOptions, capture: BoundedParseCapture) {
+        self.data = DICOMParserInput(source: source)
+        self.offset = 0
+        self.options = options
+        self.capture = capture
     }
 
     // MARK: - Resource Limits
@@ -57,12 +128,15 @@ struct DICOMParser {
     mutating func parseFileMetaInformation(startOffset: Int) throws -> DataSet {
         offset = startOffset
         var elements: [DataElement] = []
+        var seen = Set<Tag>()
+        var declaredMetaEnd: Int?
         
         // File Meta Information starts after DICM prefix (offset 132)
         // Group 0002 elements only
         while offset < data.count {
             // Peek at the group number (always Little Endian for File Meta Information)
-            guard let groupNumber = data.readUInt16LE(at: offset) else {
+            guard let groupNumber = try data.readUInt16LE(at: offset) else {
+                if isStrict { throw DICOMError.unexpectedEndOfData }
                 break
             }
             
@@ -72,14 +146,29 @@ struct DICOMParser {
             }
             
             // Parse this element (File Meta Info is always Explicit VR Little Endian)
-            guard let element = try? parseExplicitVRElement(byteOrder: .littleEndian) else {
-                break
+            let elementOffset = offset
+            let element: DataElement
+            if isStrict {
+                element = try parseExplicitVRElement(byteOrder: .littleEndian)
+            } else {
+                guard let parsed = try? parseExplicitVRElement(byteOrder: .littleEndian) else { break }
+                element = parsed
             }
-            
-            elements.append(element)
+            try record(element.tag, at: elementOffset, in: &seen)
+            if isStrict && element.tag == Tag(group: 0x0002, element: 0x0000) {
+                guard element.vr == .UL, element.length == 4, let length = (capture == nil ? element.uint32Value : try data.readUInt32LE(at: offset - 4)) else {
+                    throw StrictParsingError.malformedStructure(offset: elementOffset, reason: "Invalid file-meta group length")
+                }
+                declaredMetaEnd = try valueEndOffset(length: length)
+                try requireBoundary(declaredMetaEnd!)
+            }
+            if capture == nil { elements.append(element) }
         }
         
-        return DataSet(elements: elements)
+        if isStrict, let end = declaredMetaEnd, offset != end {
+            throw StrictParsingError.malformedStructure(offset: offset, reason: "File-meta group length mismatch")
+        }
+        return capture == nil ? DataSet(elements: elements) : DataSet()
     }
     
     /// Parses main data set elements
@@ -97,7 +186,15 @@ struct DICOMParser {
     /// Reference: PS3.5 Section 7.1 - Data Element Structure
     mutating func parseDataSet(startOffset: Int, transferSyntaxUID: String) throws -> DataSet {
         offset = startOffset
+        capture?.currentScope = 1
         
+        if isStrict {
+            // Compressed syntax is opt-in, within the finite policy validated at entry.
+            let allowed = options.allowedTransferSyntaxUIDs ?? ParsingOptions.strictNativeTransferSyntaxUIDs
+            guard allowed.contains(transferSyntaxUID) else {
+                throw StrictParsingError.unsupportedTransferSyntax(transferSyntaxUID)
+            }
+        }
         if let allowed = options.allowedTransferSyntaxUIDs, !allowed.contains(transferSyntaxUID) {
             throw DICOMError.unsupportedTransferSyntax(transferSyntaxUID)
         }
@@ -117,23 +214,37 @@ struct DICOMParser {
         
         var elements: [DataElement] = []
         var elementCount = 0
+        var seen = Set<Tag>()
         
         // Parse elements until we reach the end or pixel data
         while offset < data.count {
             // Check max elements limit
             if let maxElements = options.maxElements, elementCount >= maxElements {
+                if isStrict { throw StrictParsingError.elementLimitExceeded(maxElements) }
                 break
             }
             
             // Check for pixel data (7FE0,0010)
-            guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder) else {
+            guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder) else {
+                if isStrict { throw DICOMError.unexpectedEndOfData }
                 break
             }
-            guard let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+            guard let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+                if isStrict { throw DICOMError.unexpectedEndOfData }
                 break
             }
             
             let currentTag = Tag(group: groupNumber, element: elementNumber)
+            if isStrict && groupNumber == 0x0002 {
+                throw StrictParsingError.malformedStructure(offset: offset, reason: "File-meta element within main dataset")
+            }
+            // The low-level reader reserves the element itself. Check here too,
+            // before growing the root duplicate-tag set.
+            if isStrict && totalElements >= options.strictResourceLimits.maximumTotalElements {
+                throw StrictParsingError.resourceLimitExceeded(
+                    resource: .totalElements, limit: options.strictResourceLimits.maximumTotalElements)
+            }
+            try record(currentTag, at: offset, in: &seen)
             
             // Check stopAfterTag option
             if let stopTag = options.stopAfterTag, currentTag == stopTag {
@@ -150,7 +261,7 @@ struct DICOMParser {
                     }
                     element = parsed
                 }
-                elements.append(element)
+                if capture == nil { elements.append(element) }
                 elementCount += 1
                 break
             }
@@ -169,32 +280,44 @@ struct DICOMParser {
                         byteOrder: byteOrder,
                         isEncapsulated: isEncapsulated
                     )
-                    elements.append(pixelDataElement)
+                    if capture == nil { elements.append(pixelDataElement) }
                     break
                     
                 case .full:
                     // Parse pixel data element fully
                     let pixelDataElement: DataElement
                     if isEncapsulated {
+                        // Dedicated maintained envelope parsing bypasses the ordinary
+                        // element readers; charge this root element exactly once here.
+                        try reserveElement()
+                        try countElement()
                         pixelDataElement = try parseEncapsulatedPixelData(isExplicitVR: isExplicitVR, byteOrder: byteOrder)
                     } else {
                         if isExplicitVR {
-                            guard let parsed = try? parseExplicitVRElement(byteOrder: byteOrder) else {
-                                break
+                            if isStrict {
+                                pixelDataElement = try parseExplicitVRElement(byteOrder: byteOrder)
+                            } else {
+                                guard let parsed = try? parseExplicitVRElement(byteOrder: byteOrder) else { break }
+                                pixelDataElement = parsed
                             }
-                            pixelDataElement = parsed
                         } else {
-                            guard let parsed = try? parseImplicitVRElement(byteOrder: byteOrder) else {
-                                break
+                            if isStrict {
+                                pixelDataElement = try parseImplicitVRElement(byteOrder: byteOrder)
+                            } else {
+                                guard let parsed = try? parseImplicitVRElement(byteOrder: byteOrder) else { break }
+                                pixelDataElement = parsed
                             }
-                            pixelDataElement = parsed
                         }
                     }
-                    elements.append(pixelDataElement)
+                    if capture == nil { elements.append(pixelDataElement) }
                     break
                 }
                 
-                // Always stop after pixel data
+                if isStrict {
+                    elementCount += 1
+                    continue // Full strict reads validate and expose every trailing element.
+                }
+                // Preserve the historical permissive stopping behavior.
                 break
             }
             
@@ -211,9 +334,10 @@ struct DICOMParser {
                     // recoverable single-element corruption — never skip past them.
                     throw DICOMError.limitExceeded(message)
                 } catch {
+                    if isStrict { throw error }
                     // Restore offset and try to skip the element
                     offset = savedOffset
-                    if trySkipElement(isExplicitVR: true, byteOrder: byteOrder) {
+                    if try trySkipElement(isExplicitVR: true, byteOrder: byteOrder) {
                         continue
                     }
                     break
@@ -224,19 +348,20 @@ struct DICOMParser {
                 } catch DICOMError.limitExceeded(let message) {
                     throw DICOMError.limitExceeded(message)
                 } catch {
+                    if isStrict { throw error }
                     offset = savedOffset
-                    if trySkipElement(isExplicitVR: false, byteOrder: byteOrder) {
+                    if try trySkipElement(isExplicitVR: false, byteOrder: byteOrder) {
                         continue
                     }
                     break
                 }
             }
             
-            elements.append(element)
+            if capture == nil { elements.append(element) }
             elementCount += 1
         }
         
-        return DataSet(elements: elements)
+        return capture == nil ? DataSet(elements: elements) : DataSet()
     }
     
     // MARK: - Encapsulated Pixel Data Parsing
@@ -258,8 +383,8 @@ struct DICOMParser {
             throw DICOMError.parsingFailed("Encapsulated Pixel Data requires Explicit VR Little Endian")
         }
         // Read Pixel Data tag (7FE0,0010)
-        guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder),
-              let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+        guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder),
+              let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
         offset += 4
@@ -275,8 +400,8 @@ struct DICOMParser {
                 throw DICOMError.unexpectedEndOfData
             }
             
-            let vrByte0 = data[offset]
-            let vrByte1 = data[offset + 1]
+            let vrByte0 = try data.byte(at: offset)
+            let vrByte1 = try data.byte(at: offset + 1)
             offset += 2
             
             guard let vrString = String(bytes: [vrByte0, vrByte1], encoding: .ascii),
@@ -291,13 +416,13 @@ struct DICOMParser {
             vr = parsedVR
             
             if strict {
-                guard vr == .OB, offset + 2 <= data.count, data[offset] == 0, data[offset + 1] == 0 else {
+                guard vr == .OB, offset + 2 <= data.count, try data.byte(at: offset) == 0, try data.byte(at: offset + 1) == 0 else {
                     throw DICOMError.parsingFailed("Encapsulated Pixel Data requires OB and zero reserved bytes")
                 }
             }
             // Skip 2 reserved bytes and read 4-byte length
             offset += 2
-            guard let length32 = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let length32 = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
@@ -305,7 +430,7 @@ struct DICOMParser {
         } else {
             // Implicit VR - use OW for pixel data
             vr = .OW
-            guard let length32 = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let length32 = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
@@ -320,7 +445,7 @@ struct DICOMParser {
             guard offset + Int(valueLength) <= data.count else {
                 throw DICOMError.unexpectedEndOfData
             }
-            let valueData = data.subdata(in: offset..<offset + Int(valueLength))
+            let valueData = try data.subdata(in: offset..<offset + Int(valueLength))
             offset += Int(valueLength)
             return DataElement(tag: tag, vr: vr, length: valueLength, valueData: valueData, byteOrder: byteOrder)
         }
@@ -328,9 +453,12 @@ struct DICOMParser {
         // Parse the Basic Offset Table (first item)
         var offsetTable: [UInt32] = []
         var fragments: [Data] = []
+        var fragmentCount = 0
+        let capturedElement = try capture?.append(tag: tag, vr: vr, length: valueLength,
+            byteOrder: byteOrder, range: offset..<offset)
         
         // Read first item (Basic Offset Table)
-        guard let botItemTag = readItemTag(byteOrder: byteOrder) else {
+        guard let botItemTag = try readItemTag(byteOrder: byteOrder) else {
             throw DICOMError.parsingFailed("Expected Item tag for Basic Offset Table")
         }
         
@@ -339,7 +467,7 @@ struct DICOMParser {
         }
         offset += 4
         
-        guard let botLength = readUInt32(at: offset, byteOrder: byteOrder) else {
+        guard let botLength = try readUInt32(at: offset, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
         offset += 4
@@ -352,6 +480,13 @@ struct DICOMParser {
         if strict, Int(botLength) / 4 > (options.maxFragmentCount ?? 65_536) {
             throw DICOMError.limitExceeded("Basic Offset Table exceeds fragment count budget")
         }
+        let botStart = offset
+        let botCount = Int(botLength) / 4
+        if let capturedElement { capture?.setBOT(botStart..<botStart + Int(botLength), for: capturedElement) }
+        let botReader = capture.map { DICOMParserInput(source: $0.source) }
+        var nextBOTIndex = 0
+        var priorBOT: UInt32?
+        var boundedBOTValid = true
         var totalBytes = Int(botLength)
         let fragmentStart = offset + Int(botLength)
         var fragmentOffsets = Set<UInt32>()
@@ -360,23 +495,28 @@ struct DICOMParser {
         if botLength > 0 {
             let numOffsets = Int(botLength) / 4
             for _ in 0..<numOffsets {
-                guard let offsetValue = readUInt32(at: offset, byteOrder: .littleEndian) else {
+                guard let offsetValue = try readUInt32(at: offset, byteOrder: .littleEndian) else {
                     throw DICOMError.unexpectedEndOfData
                 }
-                offsetTable.append(offsetValue)
+                if capture == nil { offsetTable.append(offsetValue) }
+                else {
+                    if let priorBOT, offsetValue <= priorBOT { boundedBOTValid = false }
+                    if priorBOT == nil && offsetValue != 0 { boundedBOTValid = false }
+                    priorBOT = offsetValue
+                }
                 offset += 4
             }
         }
         
         // Parse fragments until Sequence Delimitation Item
         while offset < data.count {
-            guard let itemTag = readItemTag(byteOrder: byteOrder) else {
+            guard let itemTag = try readItemTag(byteOrder: byteOrder) else {
                 break
             }
             
             // Check for Sequence Delimitation Item
             if itemTag == .sequenceDelimitationItem {
-                guard let delimiterLength = readUInt32(at: offset + 4, byteOrder: byteOrder) else {
+                guard let delimiterLength = try readUInt32(at: offset + 4, byteOrder: byteOrder) else {
                     throw DICOMError.unexpectedEndOfData
                 }
                 if strict && delimiterLength != 0 {
@@ -391,10 +531,17 @@ struct DICOMParser {
             guard itemTag == .item else {
                 throw DICOMError.parsingFailed("Expected Item or Sequence Delimitation tag, found \(itemTag)")
             }
-            if let value = UInt32(exactly: offset - fragmentStart) { fragmentOffsets.insert(value) }
+            let streamOffset = offset - fragmentStart
+            if capture == nil {
+                if let value = UInt32(exactly: streamOffset) { fragmentOffsets.insert(value) }
+            } else if nextBOTIndex < botCount {
+                let next = try botReader?.readUInt32LE(at: botStart + nextBOTIndex * 4)
+                if next == UInt32(exactly: streamOffset) { nextBOTIndex += 1 }
+                else if let next, Int(next) < streamOffset { boundedBOTValid = false }
+            }
             offset += 4
 
-            guard let fragmentLength = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let fragmentLength = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
@@ -409,7 +556,7 @@ struct DICOMParser {
             totalBytes += Int(fragmentLength)
             try checkElementLength(fragmentLength, tag: tag)
             if let maxFragments = options.maxFragmentCount ?? (strict ? 65_536 : nil),
-               fragments.count >= maxFragments {
+               fragmentCount >= maxFragments {
                 throw DICOMError.limitExceeded(
                     "Encapsulated fragment count exceeds maxFragmentCount (\(maxFragments))")
             }
@@ -418,16 +565,24 @@ struct DICOMParser {
                 throw DICOMError.unexpectedEndOfData
             }
 
-            let fragmentData = data.subdata(in: offset..<offset + Int(fragmentLength))
-            fragments.append(fragmentData)
+            if let capture, let capturedElement {
+                try capture.appendFragment(offset..<offset + Int(fragmentLength),
+                    streamOffset: streamOffset, to: capturedElement)
+            } else {
+                let fragmentData = try data.subdata(in: offset..<offset + Int(fragmentLength))
+                fragments.append(fragmentData)
+            }
+            fragmentCount += 1
             offset += Int(fragmentLength)
         }
         
         if strict {
-            guard foundDelimiter, !fragments.isEmpty,
-                  offsetTable.isEmpty || (offsetTable.first == 0
+            let validOffsets = capture == nil
+                ? (offsetTable.isEmpty || (offsetTable.first == 0
                     && zip(offsetTable, offsetTable.dropFirst()).allSatisfy({ $0 < $1 })
-                    && offsetTable.allSatisfy({ fragmentOffsets.contains($0) })) else {
+                    && offsetTable.allSatisfy({ fragmentOffsets.contains($0) })))
+                : (boundedBOTValid && nextBOTIndex == botCount)
+            guard foundDelimiter, fragmentCount > 0, validOffsets else {
                 throw DICOMError.parsingFailed("Incomplete encapsulation or invalid Basic Offset Table offsets")
             }
         }
@@ -459,8 +614,8 @@ struct DICOMParser {
         isEncapsulated: Bool
     ) throws -> DataElement {
         // Read tag (should be 7FE0,0010)
-        guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder),
-              let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+        guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder),
+              let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
         offset += 4
@@ -476,8 +631,8 @@ struct DICOMParser {
                 throw DICOMError.unexpectedEndOfData
             }
             
-            let vrByte0 = data[offset]
-            let vrByte1 = data[offset + 1]
+            let vrByte0 = try data.byte(at: offset)
+            let vrByte1 = try data.byte(at: offset + 1)
             offset += 2
             
             guard let vrString = String(bytes: [vrByte0, vrByte1], encoding: .ascii),
@@ -492,7 +647,7 @@ struct DICOMParser {
             
             // Skip 2 reserved bytes and read 4-byte length
             offset += 2
-            guard let length32 = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let length32 = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
@@ -500,7 +655,7 @@ struct DICOMParser {
         } else {
             // Implicit VR - use OW for pixel data
             vr = .OW
-            guard let length32 = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let length32 = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
@@ -514,7 +669,7 @@ struct DICOMParser {
         } else {
             // Undefined length (encapsulated) - skip to sequence delimiter
             while offset < data.count {
-                guard let itemTag = readItemTag(byteOrder: byteOrder) else {
+                guard let itemTag = try readItemTag(byteOrder: byteOrder) else {
                     break
                 }
                 
@@ -529,7 +684,7 @@ struct DICOMParser {
                 }
                 offset += 4
                 
-                guard let fragmentLength = readUInt32(at: offset, byteOrder: byteOrder) else {
+                guard let fragmentLength = try readUInt32(at: offset, byteOrder: byteOrder) else {
                     throw DICOMError.unexpectedEndOfData
                 }
                 offset += 4
@@ -542,9 +697,9 @@ struct DICOMParser {
     }
     
     /// Reads an Item or Delimiter tag
-    private func readItemTag(byteOrder: ByteOrder) -> Tag? {
-        guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder),
-              let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+    private func readItemTag(byteOrder: ByteOrder) throws -> Tag? {
+        guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder),
+              let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
             return nil
         }
         return Tag(group: groupNumber, element: elementNumber)
@@ -563,7 +718,7 @@ struct DICOMParser {
     ///   - isExplicitVR: Whether the element uses explicit VR encoding.
     ///   - byteOrder: Byte order for reading multi-byte values.
     /// - Returns: `true` if the skip succeeded and parsing can continue.
-    private mutating func trySkipElement(isExplicitVR: Bool, byteOrder: ByteOrder) -> Bool {
+    private mutating func trySkipElement(isExplicitVR: Bool, byteOrder: ByteOrder) throws -> Bool {
         // Need at least tag (4 bytes) + length field
         guard offset + 8 <= data.count else { return false }
 
@@ -573,8 +728,8 @@ struct DICOMParser {
         if isExplicitVR {
             // Read VR (2 bytes)
             guard offset + 2 <= data.count else { return false }
-            let vrByte0 = data[offset]
-            let vrByte1 = data[offset + 1]
+            let vrByte0 = try data.byte(at: offset)
+            let vrByte1 = try data.byte(at: offset + 1)
             offset += 2
 
             let vr: VR
@@ -589,21 +744,21 @@ struct DICOMParser {
                 // Skip 2 reserved bytes + read 4-byte length
                 guard offset + 6 <= data.count else { return false }
                 offset += 2
-                guard let length = readUInt32(at: offset, byteOrder: byteOrder) else { return false }
+                guard let length = try readUInt32(at: offset, byteOrder: byteOrder) else { return false }
                 offset += 4
                 if length == 0xFFFFFFFF { return false } // Can't skip undefined length
                 guard offset + Int(length) <= data.count else { return false }
                 offset += Int(length)
             } else {
                 // Read 2-byte length
-                guard let length = readUInt16(at: offset, byteOrder: byteOrder) else { return false }
+                guard let length = try readUInt16(at: offset, byteOrder: byteOrder) else { return false }
                 offset += 2
                 guard offset + Int(length) <= data.count else { return false }
                 offset += Int(length)
             }
         } else {
             // Implicit VR: 4-byte length
-            guard let length = readUInt32(at: offset, byteOrder: byteOrder) else { return false }
+            guard let length = try readUInt32(at: offset, byteOrder: byteOrder) else { return false }
             offset += 4
             if length == 0xFFFFFFFF { return false } // Can't skip undefined length
             guard offset + Int(length) <= data.count else { return false }
@@ -616,22 +771,22 @@ struct DICOMParser {
     // MARK: - Byte Order Helpers
     
     /// Reads a 16-bit unsigned integer with the specified byte order
-    private func readUInt16(at offset: Int, byteOrder: ByteOrder) -> UInt16? {
+    private func readUInt16(at offset: Int, byteOrder: ByteOrder) throws -> UInt16? {
         switch byteOrder {
         case .littleEndian:
-            return data.readUInt16LE(at: offset)
+            return try data.readUInt16LE(at: offset)
         case .bigEndian:
-            return data.readUInt16BE(at: offset)
+            return try data.readUInt16BE(at: offset)
         }
     }
     
     /// Reads a 32-bit unsigned integer with the specified byte order
-    private func readUInt32(at offset: Int, byteOrder: ByteOrder) -> UInt32? {
+    private func readUInt32(at offset: Int, byteOrder: ByteOrder) throws -> UInt32? {
         switch byteOrder {
         case .littleEndian:
-            return data.readUInt32LE(at: offset)
+            return try data.readUInt32LE(at: offset)
         case .bigEndian:
-            return data.readUInt32BE(at: offset)
+            return try data.readUInt32BE(at: offset)
         }
     }
     
@@ -643,7 +798,7 @@ struct DICOMParser {
     /// Reference: PS3.5 Section A.5
     private mutating func decompressDeflatedData() throws {
         // Get the deflated portion (everything from current offset to end)
-        let deflatedData = data.subdata(in: offset..<data.count)
+        let deflatedData = try data.subdata(in: offset..<data.count)
 
         // Inflate strictly (PS3.5 A.5): a truncated, corrupt or over-long stream,
         // trailing bytes or an inflated size beyond the option limit all fail the
@@ -657,95 +812,98 @@ struct DICOMParser {
         }
         
         // Replace the data from current offset with decompressed data
-        let headerData = data.subdata(in: 0..<offset)
-        data = headerData + decompressedData
+        let headerData = try data.subdata(in: 0..<offset)
+        data = DICOMParserInput(data: headerData + decompressedData)
     }
     
-    /// Parses a single data element with Implicit VR encoding
-    ///
-    /// In Implicit VR encoding, the VR is not explicitly specified in the data stream
-    /// and must be determined from the Data Element Dictionary.
-    /// Reference: PS3.5 Section 7.1.3 - Data Element Structure with Implicit VR
+    /// Header and leaf work finish before recursive descent. Keeping their
+    /// temporary storage out of the recursive dispatcher preserves the strict
+    /// depth budget on bounded worker stacks in unoptimized builds too.
+    private struct ElementHeader {
+        let tag: Tag
+        let vr: VR
+        let valueLength: UInt32
+    }
+
     private mutating func parseImplicitVRElement(byteOrder: ByteOrder) throws -> DataElement {
+        let header = try parseImplicitVRHeader(byteOrder: byteOrder)
+        if header.vr == .SQ || header.valueLength == 0xFFFFFFFF {
+            return try parseSequenceElement(tag: header.tag, vr: header.vr, valueLength: header.valueLength,
+                isExplicitVR: false, byteOrder: byteOrder)
+        }
+        return try parseLeafValue(header, byteOrder: byteOrder)
+    }
+
+    private mutating func parseExplicitVRElement(byteOrder: ByteOrder) throws -> DataElement {
+        let header = try parseExplicitVRHeader(byteOrder: byteOrder)
+        if header.vr == .SQ || header.valueLength == 0xFFFFFFFF {
+            return try parseSequenceElement(tag: header.tag, vr: header.vr, valueLength: header.valueLength,
+                isExplicitVR: true, byteOrder: byteOrder)
+        }
+        return try parseLeafValue(header, byteOrder: byteOrder)
+    }
+
+    /// Implicit VR header; dictionary semantics and strict checks are unchanged.
+    private mutating func parseImplicitVRHeader(byteOrder: ByteOrder) throws -> ElementHeader {
+        try reserveElement()
         // Read tag (4 bytes)
-        guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder) else {
+        guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
-        guard let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+        guard let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
         offset += 4
         
         let tag = Tag(group: groupNumber, element: elementNumber)
+        if isStrict && groupNumber == 0xFFFE {
+            throw StrictParsingError.malformedStructure(offset: offset - 4, reason: "Unexpected item or delimiter tag")
+        }
         
         // Read value length (4 bytes) - Implicit VR always uses 32-bit length
         // Reference: PS3.5 Section 7.1.3
-        guard let valueLength = readUInt32(at: offset, byteOrder: byteOrder) else {
+        guard let valueLength = try readUInt32(at: offset, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
         offset += 4
         
         // Look up VR from the dictionary
         // If not found, use UN (Unknown) per PS3.5 Section 6.2.2
-        let vr: VR
-        if let entry = DataElementDictionary.lookup(tag: tag) {
-            vr = entry.vr.first ?? .UN
-        } else {
-            // For unknown tags (both private and standard), use UN
-            vr = .UN
-        }
-        
-        // Handle sequence elements (SQ VR)
-        if vr == .SQ {
-            return try parseSequenceElement(tag: tag, vr: vr, valueLength: valueLength, isExplicitVR: false, byteOrder: byteOrder)
-        }
-        
-        // Handle undefined length for non-sequence elements.
-        // Per PS3.5 Annex E, elements with undefined length should be
-        // treated as sequences — commonly private sequence data whose
-        // actual VR (SQ) is not in the reader's data dictionary.
-        if valueLength == 0xFFFFFFFF {
-            return try parseSequenceElement(
-                tag: tag, vr: vr, valueLength: valueLength,
-                isExplicitVR: false, byteOrder: byteOrder
-            )
-        }
+        // Canonical dictionary projection has identical first-VR semantics but
+        // does not lazily allocate the descriptive dictionary during a parse.
+        let vr = DataElementDictionary.primaryValueRepresentation(for: tag) ?? .UN
 
-        try countElement()
-        try checkElementLength(valueLength, tag: tag)
-
-        guard offset + Int(valueLength) <= data.count else {
-            throw DICOMError.unexpectedEndOfData
+        try validateLength(valueLength)
+        if valueLength == 0xFFFFFFFF && vr != .SQ && isStrict {
+            throw StrictParsingError.malformedStructure(offset: offset, reason: "Undefined-length non-SQ value is outside strict scope")
         }
-
-        let valueData = data.subdata(in: offset..<offset + Int(valueLength))
-        offset += Int(valueLength)
-
-        return DataElement(tag: tag, vr: vr, length: valueLength, valueData: valueData, byteOrder: byteOrder)
+        return ElementHeader(tag: tag, vr: vr, valueLength: valueLength)
     }
-    
-    /// Parses a single data element with Explicit VR encoding
-    ///
-    /// Reference: PS3.5 Section 7.1.2 - Data Element Structure with Explicit VR
-    private mutating func parseExplicitVRElement(byteOrder: ByteOrder) throws -> DataElement {
+
+    /// Explicit VR header; permissive unknown-VR handling remains unchanged.
+    private mutating func parseExplicitVRHeader(byteOrder: ByteOrder) throws -> ElementHeader {
+        try reserveElement()
         // Read tag (4 bytes)
-        guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder) else {
+        guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
-        guard let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+        guard let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
             throw DICOMError.unexpectedEndOfData
         }
         offset += 4
         
         let tag = Tag(group: groupNumber, element: elementNumber)
+        if isStrict && groupNumber == 0xFFFE {
+            throw StrictParsingError.malformedStructure(offset: offset - 4, reason: "Unexpected item or delimiter tag")
+        }
         
         // Read VR (2 bytes, ASCII characters)
         guard offset + 2 <= data.count else {
             throw DICOMError.unexpectedEndOfData
         }
         
-        let vrByte0 = data[offset]
-        let vrByte1 = data[offset + 1]
+        let vrByte0 = try data.byte(at: offset)
+        let vrByte1 = try data.byte(at: offset + 1)
         offset += 2
         
         let vr: VR
@@ -753,6 +911,9 @@ struct DICOMParser {
            let parsedVR = VR(rawValue: vrString) {
             vr = parsedVR
         } else {
+            if isStrict {
+                throw DICOMError.invalidVR(String(bytes: [vrByte0, vrByte1], encoding: .ascii) ?? "non-ASCII")
+            }
             // Unknown or invalid VR - treat as UN (Unknown) for robustness
             // This allows parsing non-conformant DICOM files that may have
             // vendor-specific or malformed VR codes
@@ -766,51 +927,50 @@ struct DICOMParser {
         let valueLength: UInt32
         if vr.uses32BitLength {
             // Skip 2 reserved bytes
+            if isStrict {
+                guard try readUInt16(at: offset, byteOrder: byteOrder) == 0 else {
+                    throw StrictParsingError.malformedStructure(offset: offset, reason: "Nonzero or missing reserved VR bytes")
+                }
+            }
             offset += 2
             
-            guard let length32 = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let length32 = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
             valueLength = length32
         } else {
-            guard let length16 = readUInt16(at: offset, byteOrder: byteOrder) else {
+            guard let length16 = try readUInt16(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 2
             valueLength = UInt32(length16)
         }
         
-        // Handle sequence elements (SQ VR)
-        if vr == .SQ {
-            return try parseSequenceElement(tag: tag, vr: vr, valueLength: valueLength, isExplicitVR: true, byteOrder: byteOrder)
+        try validateLength(valueLength)
+        if valueLength == 0xFFFFFFFF && vr != .SQ && isStrict {
+            throw StrictParsingError.malformedStructure(offset: offset, reason: "Undefined-length non-SQ value is outside strict scope")
         }
-        
-        // Handle undefined length for non-sequence elements.
-        // Per PS3.5 Annex E, elements with VR = UN and undefined
-        // length should be treated as sequences.  This commonly
-        // occurs for private sequence data whose actual VR (SQ) is
-        // not in the reader's data dictionary.
-        if valueLength == 0xFFFFFFFF {
-            return try parseSequenceElement(
-                tag: tag, vr: vr, valueLength: valueLength,
-                isExplicitVR: true, byteOrder: byteOrder
-            )
-        }
-
-        try countElement()
-        try checkElementLength(valueLength, tag: tag)
-
-        guard offset + Int(valueLength) <= data.count else {
-            throw DICOMError.unexpectedEndOfData
-        }
-
-        let valueData = data.subdata(in: offset..<offset + Int(valueLength))
-        offset += Int(valueLength)
-
-        return DataElement(tag: tag, vr: vr, length: valueLength, valueData: valueData, byteOrder: byteOrder)
+        return ElementHeader(tag: tag, vr: vr, valueLength: valueLength)
     }
-    
+
+    private mutating func parseLeafValue(_ header: ElementHeader, byteOrder: ByteOrder) throws -> DataElement {
+        try countElement()
+        try checkElementLength(header.valueLength, tag: header.tag)
+        let endOffset = try valueEndOffset(length: header.valueLength)
+        guard endOffset <= data.count else { throw DICOMError.unexpectedEndOfData }
+        try reserveValueBytes(Int(header.valueLength))
+        let valueData: Data
+        if let capture {
+            _ = try capture.append(tag: header.tag, vr: header.vr, length: header.valueLength,
+                byteOrder: byteOrder, range: offset..<endOffset)
+            valueData = Data()
+        } else { valueData = try data.subdata(in: offset..<endOffset) }
+        offset = endOffset
+        return DataElement(tag: header.tag, vr: header.vr, length: header.valueLength,
+            valueData: valueData, byteOrder: byteOrder)
+    }
+
     // MARK: - Sequence Parsing
     
     /// Parses a sequence element (SQ VR) and its items
@@ -821,38 +981,50 @@ struct DICOMParser {
     ///
     /// Reference: PS3.5 Section 7.5 - Nesting of Data Sets
     private mutating func parseSequenceElement(tag: Tag, vr: VR, valueLength: UInt32, isExplicitVR: Bool, byteOrder: ByteOrder) throws -> DataElement {
-        // Bound recursion: every nesting cycle (sequence → item → element →
-        // sequence) passes through here. Without this guard a crafted file with
-        // deeply nested (undefined-length) sequences overflows the stack.
-        sequenceDepth += 1
+        if isStrict {
+            try Self.reserve(1, used: &sequenceDepth,
+                             limit: options.strictResourceLimits.maximumSequenceDepth,
+                             resource: .sequenceDepth)
+        } else { sequenceDepth += 1 }
         defer { sequenceDepth -= 1 }
         if sequenceDepth > options.maxSequenceDepth {
             throw DICOMError.limitExceeded(
                 "Sequence nesting depth exceeds maxSequenceDepth (\(options.maxSequenceDepth))")
         }
         try countElement()
-
         let startOffset = offset
+        let capturedElement = try capture?.append(tag: tag, vr: vr, length: valueLength,
+            byteOrder: byteOrder, range: offset..<offset)
+        let parentSequence = capture?.currentSequence
+        if let capturedElement { capture?.currentSequence = capturedElement }
+        defer { if let parentSequence { capture?.currentSequence = parentSequence } }
         var sequenceItems: [SequenceItem] = []
         
         if valueLength == 0xFFFFFFFF {
             // Undefined length sequence - parse until Sequence Delimitation Item
             sequenceItems = try parseUndefinedLengthSequence(isExplicitVR: isExplicitVR, byteOrder: byteOrder)
         } else {
-            // Explicit length sequence. Clamp to the input bounds: a declared
-            // length larger than the remaining data would otherwise push
-            // `offset` past `data.count` and crash the raw-value subdata below.
-            let endOffset = min(offset + Int(valueLength), data.count)
+            let declaredEnd = try valueEndOffset(length: valueLength)
+            let endOffset = isStrict ? declaredEnd : min(declaredEnd, data.count)
+            // Strict raw SQ copies remain separately charged before descent.
+            try reserveValueBytes(Int(valueLength))
             sequenceItems = try parseExplicitLengthSequence(endOffset: endOffset, isExplicitVR: isExplicitVR, byteOrder: byteOrder)
         }
         
+        // Undefined raw SQ length is known only after its delimiter. Charge it
+        // before making the copy; child values have already been charged separately.
+        if valueLength == 0xFFFFFFFF { try reserveValueBytes(offset - startOffset) }
         // Get the raw value data (for completeness). Clamp both bounds: on
         // truncated input the delimiter-skip paths can leave `offset` a few
         // bytes past `data.count`, and an unclamped range would trap.
         let rawEnd = min(offset, data.count)
-        let valueData = startOffset <= rawEnd
-            ? data.subdata(in: startOffset..<rawEnd)
-            : Data()
+        let valueData: Data
+        if let capture, let capturedElement {
+            capture.setRange(startOffset..<rawEnd, for: capturedElement)
+            valueData = Data()
+        } else {
+            valueData = startOffset <= rawEnd ? try data.subdata(in: startOffset..<rawEnd) : Data()
+        }
         
         return DataElement(
             tag: tag,
@@ -869,14 +1041,15 @@ struct DICOMParser {
     /// The sequence ends when we reach the specified end offset.
     /// Reference: PS3.5 Section 7.5.2
     private mutating func parseExplicitLengthSequence(endOffset: Int, isExplicitVR: Bool, byteOrder: ByteOrder) throws -> [SequenceItem] {
+        try requireBoundary(endOffset)
         var items: [SequenceItem] = []
         
         while offset < endOffset && offset < data.count {
             // Read item tag
-            guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder) else {
+            guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder) else {
                 break
             }
-            guard let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+            guard let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
                 break
             }
             
@@ -884,6 +1057,9 @@ struct DICOMParser {
             
             // Must be Item tag (FFFE,E000)
             guard itemTag == .item else {
+                if isStrict {
+                    throw StrictParsingError.malformedStructure(offset: offset, reason: "Expected sequence item")
+                }
                 // Not an item tag - we're done with the sequence
                 break
             }
@@ -891,16 +1067,19 @@ struct DICOMParser {
             offset += 4
             
             // Read item length
-            guard let itemLength = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let itemLength = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
             
             // Parse item contents
             let item = try parseSequenceItem(itemLength: itemLength, isExplicitVR: isExplicitVR, byteOrder: byteOrder)
-            items.append(item)
+            if capture == nil { items.append(item) }
         }
         
+        if isStrict && offset != endOffset {
+            throw StrictParsingError.malformedStructure(offset: offset, reason: "Sequence boundary mismatch")
+        }
         // Ensure we've consumed all the sequence data
         if offset < endOffset {
             offset = endOffset
@@ -915,13 +1094,14 @@ struct DICOMParser {
     /// Reference: PS3.5 Section 7.5.1
     private mutating func parseUndefinedLengthSequence(isExplicitVR: Bool, byteOrder: ByteOrder) throws -> [SequenceItem] {
         var items: [SequenceItem] = []
+        var foundDelimiter = false
         
         while offset < data.count {
             // Read tag
-            guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder) else {
+            guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
-            guard let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+            guard let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             
@@ -929,9 +1109,9 @@ struct DICOMParser {
             
             // Check for Sequence Delimitation Item
             if itemTag == .sequenceDelimitationItem {
-                offset += 4
-                // Read and skip the length (should be 0)
-                offset += 4
+                try requireDelimiterLength(byteOrder: byteOrder)
+                offset += 8
+                foundDelimiter = true
                 break
             }
             
@@ -943,16 +1123,17 @@ struct DICOMParser {
             offset += 4
             
             // Read item length
-            guard let itemLength = readUInt32(at: offset, byteOrder: byteOrder) else {
+            guard let itemLength = try readUInt32(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             offset += 4
             
             // Parse item contents
             let item = try parseSequenceItem(itemLength: itemLength, isExplicitVR: isExplicitVR, byteOrder: byteOrder)
-            items.append(item)
+            if capture == nil { items.append(item) }
         }
         
+        if isStrict && !foundDelimiter { throw DICOMError.unexpectedEndOfData }
         return items
     }
     
@@ -963,36 +1144,51 @@ struct DICOMParser {
     ///
     /// Reference: PS3.5 Section 7.5.2 & 7.5.3
     private mutating func parseSequenceItem(itemLength: UInt32, isExplicitVR: Bool, byteOrder: ByteOrder) throws -> SequenceItem {
+        if isStrict {
+            try Self.reserve(1, used: &sequenceItems,
+                             limit: options.strictResourceLimits.maximumSequenceItems,
+                             resource: .sequenceItems)
+        }
+        let parentScope = try capture?.beginItem()
+        defer { if let parentScope { capture?.currentScope = parentScope } }
         var elements: [DataElement] = []
         
         if itemLength == 0xFFFFFFFF {
             // Undefined length item - parse until Item Delimitation Item
             elements = try parseUndefinedLengthItem(isExplicitVR: isExplicitVR, byteOrder: byteOrder)
         } else {
-            // Explicit length item — clamp to input bounds (see
-            // parseSequenceElement): an oversized declared item length must
-            // not advance `offset` past `data.count`.
-            let itemEndOffset = min(offset + Int(itemLength), data.count)
+            let declaredEnd = try valueEndOffset(length: itemLength)
+            let itemEndOffset = isStrict ? declaredEnd : min(declaredEnd, data.count)
             elements = try parseExplicitLengthItem(endOffset: itemEndOffset, isExplicitVR: isExplicitVR, byteOrder: byteOrder)
         }
         
-        return SequenceItem(elements: elements)
+        return capture == nil ? SequenceItem(elements: elements) : SequenceItem()
     }
     
     /// Parses an item with explicit length
     private mutating func parseExplicitLengthItem(endOffset: Int, isExplicitVR: Bool, byteOrder: ByteOrder) throws -> [DataElement] {
+        try requireBoundary(endOffset)
         var elements: [DataElement] = []
+        var seen = Set<Tag>()
         
         while offset < endOffset && offset < data.count {
+            if try isStrict && readUInt16(at: offset, byteOrder: byteOrder) == 0x0002 {
+                throw StrictParsingError.malformedStructure(offset: offset, reason: "File-meta element within sequence item")
+            }
+            let elementOffset = offset
             let element: DataElement
             if isExplicitVR {
                 element = try parseExplicitVRElement(byteOrder: byteOrder)
             } else {
                 element = try parseImplicitVRElement(byteOrder: byteOrder)
             }
-            elements.append(element)
+            try record(element.tag, at: elementOffset, in: &seen)
+            if capture == nil { elements.append(element) }
         }
         
+        if isStrict && offset != endOffset {
+            throw StrictParsingError.malformedStructure(offset: offset, reason: "Item boundary mismatch")
+        }
         // Ensure we've consumed all the item data
         if offset < endOffset {
             offset = endOffset
@@ -1006,36 +1202,44 @@ struct DICOMParser {
     /// Ends with Item Delimitation Item (FFFE,E00D).
     private mutating func parseUndefinedLengthItem(isExplicitVR: Bool, byteOrder: ByteOrder) throws -> [DataElement] {
         var elements: [DataElement] = []
+        var seen = Set<Tag>()
+        var foundDelimiter = false
         
         while offset < data.count {
             // Peek at tag
-            guard let groupNumber = readUInt16(at: offset, byteOrder: byteOrder) else {
+            guard let groupNumber = try readUInt16(at: offset, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
-            guard let elementNumber = readUInt16(at: offset + 2, byteOrder: byteOrder) else {
+            guard let elementNumber = try readUInt16(at: offset + 2, byteOrder: byteOrder) else {
                 throw DICOMError.unexpectedEndOfData
             }
             
             let nextTag = Tag(group: groupNumber, element: elementNumber)
+            if isStrict && groupNumber == 0x0002 {
+                throw StrictParsingError.malformedStructure(offset: offset, reason: "File-meta element within sequence item")
+            }
             
             // Check for Item Delimitation Item
             if nextTag == .itemDelimitationItem {
-                offset += 4
-                // Read and skip the length (should be 0)
-                offset += 4
+                try requireDelimiterLength(byteOrder: byteOrder)
+                offset += 8
+                foundDelimiter = true
                 break
             }
             
             // Parse the element
+            let elementOffset = offset
             let element: DataElement
             if isExplicitVR {
                 element = try parseExplicitVRElement(byteOrder: byteOrder)
             } else {
                 element = try parseImplicitVRElement(byteOrder: byteOrder)
             }
-            elements.append(element)
+            try record(element.tag, at: elementOffset, in: &seen)
+            if capture == nil { elements.append(element) }
         }
         
+        if isStrict && !foundDelimiter { throw DICOMError.unexpectedEndOfData }
         return elements
     }
 }

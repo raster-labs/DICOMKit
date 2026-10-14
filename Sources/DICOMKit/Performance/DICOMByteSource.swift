@@ -86,3 +86,18 @@ public struct FileByteSource: DICOMByteSource {
 
     public func wholeData() throws -> Data { data }
 }
+
+/// A source whose reads are bound to a complete captured content identity.
+/// Implementations must validate every consumed byte against that identity and
+/// retain their anchor through all deferred reads. Unbudgeted Data bridges are
+/// not used by the bounded parser.
+public protocol DICOMVerifiedByteSource: DICOMByteSource {
+    /// Shared ledger for source, parser and acquired payload storage.
+    var allocationBudget: DICOMAllocationBudget { get }
+    /// Verify the source range and copy those same bytes into caller-owned storage.
+    func copy(_ range: Range<Int>, to destination: UnsafeMutableRawBufferPointer) throws
+    /// Acquire a verified range in newly admitted storage of the requested class.
+    func read(_ range: Range<Int>, resource: DICOMAllocationClass) throws -> DICOMByteBuffer
+    /// Recheck source identity and throw after any detected source invalidation.
+    func validate() throws
+}

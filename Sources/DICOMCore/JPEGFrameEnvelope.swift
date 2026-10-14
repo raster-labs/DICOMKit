@@ -15,7 +15,10 @@ struct JPEGFrameEnvelope {
     let adobeTransform: UInt8?
 
     static func parse(_ input: Data, jpegLS: Bool) throws -> Self {
-        let data = input.startIndex == 0 ? input : Data(input)
+        try input.withUnsafeBytes { try parse($0, jpegLS: jpegLS) }
+    }
+
+    static func parse(_ data: UnsafeRawBufferPointer, jpegLS: Bool) throws -> Self {
         func fail(_ reason: String) -> DICOMError { .parsingFailed("JPEG frame envelope: \(reason)") }
         guard data.count >= 4, data[0] == 0xff, data[1] == 0xd8 else { throw fail("missing SOI") }
         func word(_ i: Int) -> Int { Int(data[i]) << 8 | Int(data[i + 1]) }
@@ -30,8 +33,14 @@ struct JPEGFrameEnvelope {
         var adobe: UInt8?
         var markers = 0
         while p < data.count {
+            try Task.checkCancellation()
             if entropy {
+                var cancellationOffset = p
                 while p < data.count {
+                    if p >= cancellationOffset {
+                        try Task.checkCancellation()
+                        cancellationOffset = p + min(0x10000, data.count - p)
+                    }
                     if data[p] != 0xff { p += 1; continue }
                     guard p + 1 < data.count else { throw fail("truncated entropy marker") }
                     let next = data[p + 1]
@@ -42,7 +51,14 @@ struct JPEGFrameEnvelope {
                 entropy = false
             }
             guard p + 1 < data.count, data[p] == 0xff else { throw fail("missing marker/EOI") }
-            while p < data.count, data[p] == 0xff { p += 1 }
+            var markerCancellationOffset = p
+            while p < data.count, data[p] == 0xff {
+                if p >= markerCancellationOffset {
+                    try Task.checkCancellation()
+                    markerCancellationOffset = p + min(0x10000, data.count - p)
+                }
+                p += 1
+            }
             guard p < data.count else { throw fail("truncated marker") }
             let marker = data[p]; p += 1
             markers += 1

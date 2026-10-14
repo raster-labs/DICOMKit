@@ -75,6 +75,12 @@ public struct DICOMFile: Sendable {
     /// - Returns: Parsed DICOM file
     /// - Throws: DICOMError if file is invalid or parsing fails
     public static func read(from data: Data, force: Bool = false, options: ParsingOptions) throws -> DICOMFile {
+        try validateStrictOptions(force: force, options: options)
+        if options.validationPolicy == .strict,
+           data.count > options.strictResourceLimits.maximumInputBytes {
+            throw StrictParsingError.resourceLimitExceeded(
+                resource: .inputBytes, limit: options.strictResourceLimits.maximumInputBytes)
+        }
         // Rebase sliced input once at the public boundary. The parse pipeline below
         // (hasDICMPrefix, DICOMParser) mixes slice-relative reads (readUInt16LE et al.
         // add `startIndex`) with absolute indexing (`subdata(in:)`, `data[128..<132]`);
@@ -113,6 +119,27 @@ public struct DICOMFile: Sendable {
     /// - Returns: Parsed DICOM file
     /// - Throws: DICOMError if file is invalid or parsing fails
     public static func read(from url: URL, force: Bool = false, options: ParsingOptions = .default) throws -> DICOMFile {
+        if options.validationPolicy == .strict {
+            try validateStrictOptions(force: force, options: options)
+            // Strict URL ingestion is local-file-only and bounded, even if the file
+            // grows while being read. A size preflight alone would permit that race.
+            guard url.isFileURL else { throw StrictParsingError.invalidOptions }
+            let handle = try FileHandle(forReadingFrom: url)
+            defer { try? handle.close() }
+            let limit = options.strictResourceLimits.maximumInputBytes
+            var data = Data()
+            while true {
+                let remaining = limit - data.count
+                // At the boundary, probe just one byte for EOF; never append it.
+                let count = remaining == 0 ? 1 : min(64 * 1024, remaining)
+                guard let chunk = try handle.read(upToCount: count), !chunk.isEmpty else { break }
+                guard chunk.count <= remaining else {
+                    throw StrictParsingError.resourceLimitExceeded(resource: .inputBytes, limit: limit)
+                }
+                data.append(chunk)
+            }
+            return try read(from: data, force: force, options: options)
+        }
         // `useMemoryMapping` maps the file (.mappedIfSafe) so pages are faulted
         // in on demand instead of read eagerly — the file must not be modified
         // while the parsed structures are alive.
@@ -120,6 +147,62 @@ public struct DICOMFile: Sendable {
         return try read(from: source.wholeData(), force: force, options: options)
     }
     
+    /// Strict full structural parsing over a verified bounded source. The result
+    /// retains deferred values and shares the source's allocation ledger. This
+    /// entry point never calls wholeData or materializes a legacy DICOMFile.
+    /// - Parameters:
+    ///   - source: Anchored source verifying every consumed byte against its captured identity.
+    ///   - options: Strict full parsing options, including explicit compressed-profile admission.
+    /// - Returns: Deferred immutable views retaining the source and controlled parser backing.
+    public static func readBounded(from source: any DICOMVerifiedByteSource,
+                                   options: ParsingOptions) throws -> BoundedDICOMFile {
+        guard options.validationPolicy == .strict else { throw StrictParsingError.invalidOptions }
+        try validateStrictOptions(force: false, options: options)
+        guard source.count <= options.strictResourceLimits.maximumInputBytes else {
+            throw StrictParsingError.resourceLimitExceeded(resource: .inputBytes,
+                limit: options.strictResourceLimits.maximumInputBytes)
+        }
+        try source.validate()
+        guard source.count >= 132 else { throw DICOMError.unexpectedEndOfData }
+        let prefix = try source.read(128..<132, resource: .metadata)
+        guard prefix.withUnsafeBytes({ $0.elementsEqual([0x44, 0x49, 0x43, 0x4D]) }) else {
+            throw DICOMError.invalidDICMPrefix
+        }
+        let capture = try BoundedParseCapture(source: source)
+        var parser = DICOMParser(source: source, options: options, capture: capture)
+        _ = try parser.parseFileMetaInformation(startOffset: 132)
+        let meta = BoundedDICOMFile(index: capture, transferSyntaxUID: "").fileMetaInformation
+        guard let syntax = meta[.transferSyntaxUID], syntax.vr.characterRepertoire != nil, syntax.valueByteCount > 0 else {
+            throw StrictParsingError.missingTransferSyntax
+        }
+        let uid = try syntax.transferSyntaxToken()
+        _ = try parser.parseDataSet(transferSyntaxUID: uid)
+        try capture.seal()
+        return BoundedDICOMFile(index: capture, transferSyntaxUID: uid)
+    }
+
+    private static func validateStrictOptions(force: Bool, options: ParsingOptions) throws {
+        if options.validationPolicy == .strict {
+            guard !force, options.mode == .full, options.stopAfterTag == nil,
+                  options.maxElements.map({ $0 > 0 }) ?? true,
+                  options.strictResourceLimits.isValid else {
+                throw StrictParsingError.invalidOptions
+            }
+            if let allowed = options.allowedTransferSyntaxUIDs {
+                guard allowed.isSubset(of: ParsingOptions.strictNativeTransferSyntaxUIDs
+                    .union(ParsingOptions.strictCompressedTransferSyntaxUIDs)) else {
+                    throw StrictParsingError.invalidOptions
+                }
+                if !allowed.isDisjoint(with: ParsingOptions.strictCompressedTransferSyntaxUIDs) {
+                    guard options.strictEncapsulation, options.maximumEncapsulatedBytes > 0,
+                          options.maxFragmentCount.map({ $0 > 0 }) ?? true else {
+                        throw StrictParsingError.invalidOptions
+                    }
+                }
+            }
+        }
+    }
+
     /// Checks if the data has a valid DICM prefix at offset 128
     ///
     /// - Parameter data: Raw file data
@@ -148,6 +231,11 @@ public struct DICOMFile: Sendable {
         
         // Get Transfer Syntax UID from File Meta Information
         // Default to Explicit VR Little Endian if not specified
+        if options.validationPolicy == .strict {
+            guard let uid = fileMetaInfo.string(for: .transferSyntaxUID), !uid.isEmpty else {
+                throw StrictParsingError.missingTransferSyntax
+            }
+        }
         let transferSyntaxUID = fileMetaInfo.string(for: .transferSyntaxUID) ?? "1.2.840.10008.1.2.1"
         
         // Parse main data set

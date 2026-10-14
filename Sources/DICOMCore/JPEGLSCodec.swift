@@ -129,52 +129,20 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         let parsed = try JPEGLSParser(data: data).parse()
         // JLSwift applies LSE type 4 to the returned effective frame header.
         let header = parsed.frameHeader
-        guard header.width == descriptor.columns, header.height == descriptor.rows,
-              header.componentCount == descriptor.samplesPerPixel else {
-            throw DICOMError.parsingFailed("JPEG-LS effective header does not match DICOM descriptor")
-        }
-
         // Match the decoder's header-only MAXVAL guard (ITU-T T.87 C.2.4.1.1).
         let parameters = try parsed.presetParameters ?? JPEGLSPresetParameters.defaultParameters(
             bitsPerSample: header.bitsPerSample, near: parsed.scanHeaders.first?.near ?? 0)
         guard parameters.maxValue <= (1 << header.bitsPerSample) - 1 else {
             throw DICOMError.parsingFailed("JPEG-LS MAXVAL exceeds the encoded precision")
         }
-
-        var actualDescriptor = descriptor
-        var diagnostics: [PixelDecodeDiagnostic] = []
-        if header.bitsPerSample != descriptor.bitsStored {
-            guard case .useCodestreamForUnsignedMonochrome = precisionPolicy,
-                  !descriptor.isSigned, descriptor.samplesPerPixel == 1,
-                  descriptor.photometricInterpretation == .monochrome1
-                    || descriptor.photometricInterpretation == .monochrome2,
-                  descriptor.bitsAllocated == 16, header.bitsPerSample == 16,
-                  descriptor.bitsStored < 16,
-                  parsed.scanHeaders.allSatisfy({
-                      $0.near == 0 && $0.pointTransform == 0
-                        && $0.components.allSatisfy({ $0.mappingTableID == 0 })
-                  }), parsed.mappingTables.isEmpty, parsed.colorTransformation == .none,
-                  decodingTransferSyntaxUID == nil
-                    || decodingTransferSyntaxUID == TransferSyntax.jpegLSLossless.uid else {
-                throw DICOMError.parsingFailed("JPEG-LS precision mismatch is outside the selected recovery policy")
-            }
-            actualDescriptor = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
-                numberOfFrames: descriptor.numberOfFrames, bitsAllocated: 16, bitsStored: 16, highBit: 15,
-                isSigned: false, samplesPerPixel: 1, photometricInterpretation: descriptor.photometricInterpretation,
-                planarConfiguration: descriptor.planarConfiguration)
-            diagnostics = [.sourcePrecisionMismatch(sourceBitsStored: descriptor.bitsStored,
-                                                     encodedPrecision: header.bitsPerSample)]
-        }
-        let expectedBytes = try decodingLimits.validate(frameData, descriptor: actualDescriptor, frameIndex: frameIndex)
-        if let uid = decodingTransferSyntaxUID {
-            guard Self.supportedTransferSyntaxes.contains(uid) else {
-                throw DICOMError.parsingFailed("Unsupported JPEG-LS decoding transfer syntax")
-            }
-            if uid == TransferSyntax.jpegLSLossless.uid, parsed.scanHeaders.contains(where: { $0.near > 0 }) {
-                throw DICOMError.parsingFailed("JPEG-LS Lossless frame carries a near-lossless scan")
-            }
-        }
-
+        let info = try frameInfo(encodedByteCount: frameData.count, descriptor: descriptor, frameIndex: frameIndex,
+            precisionPolicy: precisionPolicy, width: header.width, height: header.height,
+            componentCount: header.componentCount, precision: header.bitsPerSample,
+            hasNearLosslessScan: parsed.scanHeaders.contains { $0.near > 0 },
+            recoveryFeaturesAllowed: parsed.scanHeaders.allSatisfy {
+                $0.near == 0 && $0.pointTransform == 0 && $0.components.allSatisfy { $0.mappingTableID == 0 }
+            } && parsed.mappingTables.isEmpty && parsed.colorTransformation == .none)
+        let actualDescriptor = info.descriptor
         // Match the maintained decoder's Int-plane budget during header inspection,
         // before allocating samples. Descriptor validation above bounds dimensions.
         let (pixels, pixelOverflow) = actualDescriptor.rows.multipliedReportingOverflow(by: actualDescriptor.columns)
@@ -184,8 +152,95 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
               planeBytes > 0, planeBytes <= decodingLimits.maximumDecodedBytes else {
             throw DICOMError.limitExceeded("JPEG-LS intermediate sample planes exceed decoded byte budget")
         }
-        return (FrameInfo(descriptor: actualDescriptor, sourceFrameIndex: frameIndex,
-                          diagnostics: diagnostics, expectedByteCount: expectedBytes), data)
+        return (info, data)
+    }
+
+    private func frameInfo(encodedByteCount: Int, descriptor: PixelDataDescriptor,
+        frameIndex: Int, precisionPolicy: PrecisionPolicy, width: Int, height: Int,
+        componentCount: Int, precision: Int, hasNearLosslessScan: Bool,
+        recoveryFeaturesAllowed: Bool) throws -> FrameInfo {
+        guard width == descriptor.columns, height == descriptor.rows,
+              componentCount == descriptor.samplesPerPixel else {
+            throw DICOMError.parsingFailed("JPEG-LS effective header does not match DICOM descriptor")
+        }
+
+        var actualDescriptor = descriptor
+        var diagnostics: [PixelDecodeDiagnostic] = []
+        if precision != descriptor.bitsStored {
+            guard case .useCodestreamForUnsignedMonochrome = precisionPolicy,
+                  !descriptor.isSigned, descriptor.samplesPerPixel == 1,
+                  descriptor.photometricInterpretation == .monochrome1
+                    || descriptor.photometricInterpretation == .monochrome2,
+                  descriptor.bitsAllocated == 16, precision == 16,
+                  descriptor.bitsStored < 16,
+                  recoveryFeaturesAllowed,
+                  decodingTransferSyntaxUID == nil
+                    || decodingTransferSyntaxUID == TransferSyntax.jpegLSLossless.uid else {
+                throw DICOMError.parsingFailed("JPEG-LS precision mismatch is outside the selected recovery policy")
+            }
+            actualDescriptor = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames, bitsAllocated: 16, bitsStored: 16, highBit: 15,
+                isSigned: false, samplesPerPixel: 1, photometricInterpretation: descriptor.photometricInterpretation,
+                planarConfiguration: descriptor.planarConfiguration)
+            diagnostics = [.sourcePrecisionMismatch(sourceBitsStored: descriptor.bitsStored,
+                                                     encodedPrecision: precision)]
+        }
+        let expectedBytes = try decodingLimits.validate(encodedByteCount: encodedByteCount, descriptor: actualDescriptor, frameIndex: frameIndex)
+        if let uid = decodingTransferSyntaxUID {
+            guard Self.supportedTransferSyntaxes.contains(uid) else {
+                throw DICOMError.parsingFailed("Unsupported JPEG-LS decoding transfer syntax")
+            }
+            if uid == TransferSyntax.jpegLSLossless.uid, hasNearLosslessScan {
+                throw DICOMError.parsingFailed("JPEG-LS Lossless frame carries a near-lossless scan")
+            }
+        }
+
+        return FrameInfo(descriptor: actualDescriptor, sourceFrameIndex: frameIndex,
+                         diagnostics: diagnostics, expectedByteCount: expectedBytes)
+    }
+
+    /// Decode a monochrome 16-bit-container frame into explicitly admitted backing.
+    /// Pixel/workspace capacities are charged before allocation. Runtime/control
+    /// allocation qualification is separate; this API makes no aggregate heap claim.
+    /// Other profiles must use their existing APIs; there is no uncharged fallback.
+    /// - Parameters:
+    ///   - frameData: Immutable encoded frame allocated using `budget`.
+    ///   - descriptor: Source pixel interpretation to validate against the codestream.
+    ///   - frameIndex: Zero-based source frame index.
+    ///   - budget: The exact ledger instance owning `frameData`.
+    /// - Returns: Actual decoded descriptor, interpretation diagnostics and managed storage.
+    public func decodeManagedPixelFrame(_ frameData: DICOMByteBuffer, descriptor: PixelDataDescriptor,
+        frameIndex: Int, budget: DICOMAllocationBudget) throws -> ManagedDecodedPixelFrame {
+        guard frameData.ownerBudget === budget else { throw DICOMAllocationError.budgetMismatch }
+        _ = try decodingLimits.validate(encodedByteCount: frameData.count, descriptor: descriptor, frameIndex: frameIndex)
+        guard descriptor.samplesPerPixel == 1, descriptor.bitsAllocated == 16 else {
+            throw DICOMError.parsingFailed("Managed JPEG-LS currently requires a monochrome 16-bit container")
+        }
+        return try frameData.withUnsafeBytes { encoded in
+            _ = try JPEGFrameEnvelope.parse(encoded, jpegLS: true)
+            let decoder = JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
+                maximumPixels: decodingLimits.maximumPixels, maximumDecodedBytes: decodingLimits.maximumDecodedBytes))
+            return try withCodecWorkspace(count: JPEGLSDecoder.monochromeWorkspaceByteCount, budget: budget) { workspace in
+                let header = try decoder.inspectMonochrome(encoded, workspace: workspace)
+                let info = try frameInfo(encodedByteCount: encoded.count, descriptor: descriptor, frameIndex: frameIndex,
+                    precisionPolicy: precisionPolicy, width: header.width, height: header.height,
+                    componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
+                    recoveryFeaturesAllowed: header.near == 0 && header.pointTransform == 0
+                        && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == .none)
+                let bytes = try DICOMByteBuffer(count: info.expectedByteCount, budget: budget, resource: .decoded) { output in
+                    let samples = output.bindMemory(to: UInt16.self)
+                    samples.initialize(repeating: 0)
+                    let decoded = try decoder.decodeMonochrome(encoded, into: samples, workspace: workspace)
+                    guard decoded == header else { throw DICOMError.parsingFailed("JPEG-LS result differs from inspection") }
+                    for index in samples.indices {
+                        if index & 0xFFFF == 0 { try Task.checkCancellation() }
+                        samples[index] = samples[index].littleEndian
+                    }
+                }
+                return ManagedDecodedPixelFrame(data: bytes, descriptor: info.descriptor,
+                    sourceFrameIndex: frameIndex, diagnostics: info.diagnostics)
+            }
+        }
     }
 
     private func decodedPixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,

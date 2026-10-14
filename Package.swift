@@ -641,6 +641,8 @@ let package = Package(
                 "StrictEncapsulationTests.swift",
                 // RESEARCH_ADOPTION_PLAN.md M0: parser resource limits + mutation fuzz.
                 "ParserLimitTests.swift",
+                "StrictParsingTests.swift",
+                "BoundedInputTests.swift",
                 // RESEARCH_ADOPTION_PLAN.md copy map: slice-independence guards at the
                 // public Data boundary (parser); companion to DICOMCoreTests/CodecFuzzTests.
                 "SliceIndependenceTests.swift",

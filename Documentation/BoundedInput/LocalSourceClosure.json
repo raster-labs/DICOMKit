@@ -1,0 +1,37 @@
+{
+  "status": "Local unpublished candidate; payload accounting only; provider integration not qualified",
+  "DICOMKitBase": "cae78a752243bd033d12ee7f5d0dcc9670ecf804",
+  "incorporatedMayamPatchSHA256": {
+    "DICOMKit-opt-in-strict-parsing.patch": "9840b71e26ae38173c954cbdfcea31e2550d4716ef9db9a2b176e7a67dc38a6d",
+    "DICOMKit-discovery.patch": "d5a4917711cdda9213918d97777b64d314b83527e129eaed0d5517c1e33e3499"
+  },
+  "codecEdits": {
+    "JLSwift": {
+      "base": "94959fc037092897cd7c5c90eaf2fbf1ae5af814",
+      "revision": "f63aa20dbb2cd1928885f5785688279aa219591c"
+    },
+    "JLISwift": {
+      "base": "981da4efb7d62e4370c5d6de706d56a729b9552e",
+      "revision": "772031004c5fa07ca763cf3efb303d5405664f9d"
+    }
+  },
+  "unchangedPins": {
+    "compressionfamily": {
+      "revision": "30fd74b6df841cf79b1a0247534a723f5e7ab4ba",
+      "version": "1.0.0"
+    },
+    "j2kswift": {
+      "revision": "768f6b53499b806fd0304962056e1fc7833f12e5",
+      "version": "11.0.3"
+    },
+    "jxlswift": {
+      "revision": "760697a54dd253da8e8466c3fd09ecf2c2d89aec",
+      "version": "1.4.0"
+    },
+    "swift-argument-parser": {
+      "revision": "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+      "version": "1.8.2"
+    }
+  },
+  "integration": "Use SwiftPM edit mode with the two exact local codec revisions. Package.swift names published codec releases; Package.resolved contains the four unedited pins and the qualified scratch workspace-state selects both local codec edits. The new managed APIs require that local edit closure. Do not reapply the incorporated strict/discovery patches. Do not replace Mayam qualified donor/pins until allocation and provider gates pass."
+}

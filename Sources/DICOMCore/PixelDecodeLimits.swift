@@ -21,7 +21,11 @@ public struct PixelDecodeLimits: Sendable {
     }
 
     func validate(_ data: Data, descriptor d: PixelDataDescriptor, frameIndex: Int) throws -> Int {
-        guard !data.isEmpty, data.count <= maximumEncodedBytes else {
+        try validate(encodedByteCount: data.count, descriptor: d, frameIndex: frameIndex)
+    }
+
+    func validate(encodedByteCount: Int, descriptor d: PixelDataDescriptor, frameIndex: Int) throws -> Int {
+        guard encodedByteCount > 0, encodedByteCount <= maximumEncodedBytes else {
             throw DICOMError.limitExceeded("Compressed frame exceeds encoded byte budget or is empty")
         }
         guard frameIndex >= 0, frameIndex < d.numberOfFrames,
