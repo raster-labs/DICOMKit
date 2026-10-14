@@ -121,7 +121,8 @@ source_sha="$(git rev-parse --verify HEAD)"
 # full versions so runner image updates cannot reuse an incompatible namespace.
 cache_fingerprint="$(printf '%s\n' "$runtime_version" "$runtime_build" "$runner_arch" \
   "$toolchain_id" "$swift_version" "$developer_dir" "$xcode_version" \
-  "$sdk_version" "$sdk_path" | shasum -a 256 | awk '{print $1}')"
+  "$sdk_version" "$sdk_path" \
+  "swiftpm-cross-import-overlays=enabled" | shasum -a 256 | awk '{print $1}')"
 cache_prefix="spm-v2-macos${runtime_version%%.*}-${runner_arch}-swift6.4.0-${cache_fingerprint}"
 printf 'Runner runtime: %s (%s)\n' "$runtime_version" "$runtime_build"
 printf 'Runner architecture: %s\n' "$runner_arch"
