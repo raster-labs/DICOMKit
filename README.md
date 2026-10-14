@@ -18,13 +18,13 @@ as described in the contract. Other codecs retain their existing APIs and are no
 newly qualified for this allocation profile.
 
 <p align="center">
-  <strong>A pure Swift DICOM toolkit for Apple platforms (iOS, macOS, visionOS)</strong>
+  <strong>A pure Swift DICOM toolkit for iOS and macOS</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/Raster-Lab/DICOMKit/actions/workflows/ci.yml"><img src="https://github.com/Raster-Lab/DICOMKit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.4-orange.svg" alt="Swift 6.4"></a>
-  <a href="https://developer.apple.com"><img src="https://img.shields.io/badge/Platforms-iOS%2018%20|%20macOS%2015%20|%20visionOS%202-blue.svg" alt="Platforms"></a>
+  <a href="https://developer.apple.com"><img src="https://img.shields.io/badge/Platforms-iOS%2018%20|%20macOS%2015-blue.svg" alt="Platforms"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/Tests-2180+-brightgreen.svg" alt="Tests">
   <img src="https://img.shields.io/badge/CLI%20Tools-31+-purple.svg" alt="CLI Tools">
@@ -136,7 +136,7 @@ DICOMKit integrated **J2KSwift** as its primary JPEG 2000 codec stack in April 2
 | **📊 Structured Reporting** | Complete SR document creation with 8 specialized builders |
 | **🔬 Advanced Imaging** | RT Structure Sets, Segmentation, Parametric Maps, Presentation States |
 | **🛠️ CLI Tools** | 38 command-line tools for DICOM operations, all installable via Homebrew |
-| **📱 Demo Applications** | Production-ready viewers for iOS, macOS, and visionOS |
+| **📱 Demo Applications** | Viewer examples for iOS and macOS |
 | **⚡ Performance** | SIMD acceleration, memory mapping, connection pooling, and caching |
 | **🔒 Security** | TLS 1.2/1.3, OAuth2 support, audit logging, and HIPAA-compliant anonymization |
 | **✅ Thoroughly Tested** | 7,300+ unit tests with Swift 6 strict concurrency compliance |
@@ -223,7 +223,7 @@ Each data element has:
 | **Language** | Swift | C++ | Python | C# |
 | **Apple Platforms** | ✅ Native | ⚠️ Needs porting | ❌ Limited | ❌ Windows-focused |
 | **Swift 6 Concurrency** | ✅ Full support | ❌ N/A | ❌ N/A | ❌ N/A |
-| **visionOS Support** | ✅ Built-in | ❌ No | ❌ No | ❌ No |
+| **visionOS Support** | Outside current release scope | ❌ No | ❌ No | ❌ No |
 | **Memory Safety** | ✅ Swift safety | ⚠️ Manual | ✅ GC | ✅ GC |
 | **Type Safety** | ✅ Strong | ⚠️ Moderate | ⚠️ Dynamic | ✅ Strong |
 | **Package Manager** | SPM, Homebrew | CMake | pip | NuGet |
@@ -1575,11 +1575,14 @@ These features may be added in future versions. See [MILESTONES.md](MILESTONES.m
 
 ### Supported Platforms
 
+Current release support and qualification are limited to **iOS and macOS**.
+Linux, tvOS and visionOS are outside this scope. Existing source and example
+material for other platforms does not establish support.
+
 | Platform | Minimum Version | Architecture | Notes |
 |----------|-----------------|--------------|-------|
 | **iOS** | 18.0+ | arm64 | iPhone, iPad |
 | **macOS** | 15.0+ | arm64, x86_64 | Apple Silicon and Intel |
-| **visionOS** | 2.0+ | arm64 | Apple Vision Pro; J2KSwift deployment-target limitation noted in Package.swift |
 
 ### Build Requirements
 
@@ -1608,18 +1611,17 @@ These features may be added in future versions. See [MILESTONES.md](MILESTONES.m
 Add DICOMKit to your `Package.swift`:
 
 ```swift
-// swift-tools-version: 6.2
+// swift-tools-version: 6.4
 import PackageDescription
 
 let package = Package(
     name: "MyDICOMApp",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14),
-        .visionOS(.v1)
+        .iOS(.v18),
+        .macOS(.v15)
     ],
     dependencies: [
-        .package(url: "https://github.com/Raster-Lab/DICOMKit.git", from: "1.8.0")
+        .package(url: "https://github.com/raster-labs/DICOMKit.git", from: "2.4.0")
     ],
     targets: [
         .target(
@@ -5362,7 +5364,7 @@ When reporting issues:
 - Use the appropriate issue template (Bug Report, Feature Request, Documentation)
 - **Never include PHI (Protected Health Information)** or patient data
 - Provide DICOM file metadata (Transfer Syntax, SOP Class, Modality) but not the actual file if it contains patient data
-- Include platform version (iOS/macOS/visionOS) and DICOMKit version
+- Include platform version (iOS/macOS) and DICOMKit version
 - Search existing issues before creating a new one
 
 ### Security Vulnerabilities

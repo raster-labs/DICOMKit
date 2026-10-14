@@ -1,5 +1,8 @@
 # DICOMKit 2.4.0
 
+Supported platforms for this release are **iOS 18+ and macOS 15+**. Linux,
+tvOS and visionOS are outside the current release and validation scope.
+
 DICOMKit adds explicit allocation ownership for verified source windows, strict
 full parsing, deferred values/frames, and selected JPEG/JPEG-LS decoding. The
 existing parser and numerical kernels remain canonical.
@@ -45,3 +48,8 @@ J2KSwift deployment-target limitation. See `Documentation/BoundedInput/Allocatio
 The parser now keeps sequence temporaries off recursive frames, preserving the
 depth-32 limit. Release automation propagates test failures and crashes instead of
 accepting another target's passing summary.
+
+Hosted macOS 27 currently fails Apple Vision model compilation even for standalone
+synthetic images. Required OCR tests run on stable macOS 26 with Swift 6.4; the product
+recognizer, recognition settings and error handling remain unchanged. iOS and macOS
+platform builds are required CI checks.
