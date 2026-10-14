@@ -19,6 +19,11 @@ struct AboutView: View {
             Text("DICOM Studio")
                 .font(.system(size: StudioTypography.displaySize, weight: .bold))
 
+            Text(versionLine)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("Version \(versionLine)")
+
             Text("A comprehensive DICOM medical imaging application")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -30,19 +35,19 @@ struct AboutView: View {
                 GridRow {
                     Text("DICOMKit")
                         .font(.headline)
-                    Text("v1.0.0")
+                    Text("v\(StudioBuildInfo.dicomKitVersion)")
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("Platform")
                         .font(.headline)
-                    Text("macOS 14+")
+                    Text(StudioBuildInfo.platform)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("Swift")
                         .font(.headline)
-                    Text("6.2")
+                    Text(StudioBuildInfo.swiftVersion)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -61,6 +66,14 @@ struct AboutView: View {
         .padding(40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .contain)
+    }
+
+    /// "Version 2.2.12 (1)" — the build number only when the bundle has one.
+    private var versionLine: String {
+        if let build = StudioBuildInfo.buildNumber {
+            return "Version \(StudioBuildInfo.appVersion) (\(build))"
+        }
+        return "Version \(StudioBuildInfo.appVersion)"
     }
 }
 #endif

@@ -43,7 +43,7 @@ struct CinePlaybackHelpersTests {
     func testFPSConstants() {
         #expect(CinePlaybackHelpers.minFPS == 1.0)
         #expect(CinePlaybackHelpers.maxFPS == 60.0)
-        #expect(CinePlaybackHelpers.defaultFPS == 15.0)
+        #expect(CinePlaybackHelpers.defaultFPS == 5.0)
     }
 
     // MARK: - clampFPS

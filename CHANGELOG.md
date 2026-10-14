@@ -2960,8 +2960,6 @@ violated constraint named**, never silently "fixed".
 - `Tests/DICOMKitTests/Video/VideoProbeTests.swift` and
   `MP4ContainerParserTests.swift` / `VideoExtractorTests.swift` cover the fixes
   above.
-
-
 ### Fixed — CLI Workshop dicom-image wrote onto the browsed output folder (2026-09-07)
 
 The output Browse picker grants a *folder*; typing a filename after it left the
@@ -2974,6 +2972,33 @@ TIFF-split outputs go through the same path). Console lines print the path
 actually written. `Tests/DICOMStudioTests/WorkshopDicomImageOutputScopeTests.swift`
 pins both the folder+filename and folder-only cases.
 
+### Changed — dicom-anon: one profile, the DICOM standard's (2026-09-07)
+
+`dicom-anon` (and DICOMStudio's Security screen and CLI Workshop, which run the
+same `AnonymizationWorkflow`) now apply exactly one de-identification profile: the
+PS3.15 Annex E Basic Application Level Confidentiality Profile. The legacy
+`basic` / `clinical-trial` / `research` tag lists, `--profile`, `--regenerate-uids`
+and the per-tag `--remove` / `--replace` / `--keep` overrides are gone — an override
+that keeps PatientName produced a file claiming to be de-identified while it was not.
+The standard's retention options are the only knobs: `--retain-dates` (Full Dates,
+113106) or `--shift-dates N` (Modified Dates, 113107; alternatives, both is an
+error), `--retain-characteristics`, `--retain-device`, `--retain-institution`,
+`--retain-uids`, `--clean-descriptors`.
+
+Clean Pixel Data (113101) is on by default; `--no-clean-pixel-data` opts out and
+`--detect-text` is gone (OCR is part of cleaning; `--detect-text-mode` became
+`--ocr-mode`). Burned In Annotation policy: YES → clean, absent → OCR decides, NO →
+trusted and left alone (overlay planes or `--redact-region` override the trust); the
+trusted case is written to the verbose console and the audit log.
+
+Engine fixes found on the way: under Modified Dates the birth date was kept
+verbatim (only Z/D date rows were routed to the shift path) — it is now shifted like
+every other date, and times are kept rather than zeroed; the UID map is now shared
+across every file of a run (a directory's study kept its instances together only
+by luck before); (0012,0064) lists the CID 7050 code for the profile and each
+option applied, appending to the 113101 item the pixel pass writes instead of
+clobbering it, and (0012,0063) is written as an LO multi-value so no value exceeds
+64 characters. The audit log records tags and action codes, never values.
 ### Fixed — dicom-image: colour images failed with "Failed to create graphics context" (2026-09-07)
 
 `ImageConverter.extractPixelData` asked Core Graphics for a packed 24-bit RGB

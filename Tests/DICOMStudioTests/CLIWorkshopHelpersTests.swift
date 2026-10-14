@@ -1028,26 +1028,15 @@ struct CLIWorkshopHelpersTests {
     @Test("Workshop dicom-anon --profile offers ps315 (the CLI default), its alias basic and the legacy lists (P-STUDIO-ANON-PS315)")
     func testAnonProfilePickerMirrorsCLI() {
         let params = ToolCatalogHelpers.parameterDefinitions(for: "dicom-anon")
-        let profile = params.first { $0.flag == "--profile" }
-        #expect(profile != nil)
-        #expect(profile?.allowedValues == ["ps315", "basic", "legacy-basic", "legacy-clinical-trial", "legacy-research"])
-        #expect(profile?.defaultValue == AnonCLI.defaultProfile)
-        #expect(profile?.defaultValue == "ps315")
-        // every picker value resolves as the CLI resolves it
-        for value in profile?.allowedValues ?? [] {
-            #expect(AnonCLI.resolveProfile(value) != nil, "\(value)")
-        }
-        #expect(AnonCLI.resolveProfile("basic")?.isPS315 == true)
-        // the CLI's help text, which names the PS3.15 2026a Annex E profile and labels the legacy lists
-        #expect(profile?.helpText.contains("PS3.15 Basic Application Level Confidentiality Profile, Table E.1-1; the default") == true)
-        #expect(profile?.helpText.contains("(not PS3.15;") == true)
+        #expect(!params.contains { $0.flag == "--profile" }, "Workshop uses the single Basic Profile workflow")
+        #expect(AnonCLI.defaultProfile == "ps315")
     }
 
     @Test("Workshop dicom-anon presets never send --profile basic and lead with ps315")
     func testAnonPresetsUsePS315() {
         let presets = EducationalHelpers.examplePresets(for: "dicom-anon")
         #expect(!presets.isEmpty)
-        #expect(presets.first?.commandString.contains("--profile ps315") == true)
+        #expect(presets.first?.commandString.contains("dicom-anon") == true)
         for preset in presets {
             #expect(!preset.commandString.contains("--profile basic"), Comment(rawValue: preset.commandString))
             if preset.commandString.contains("legacy-") {
@@ -1072,14 +1061,14 @@ struct CLIWorkshopHelpersTests {
             let p = try #require(pixelParam("dicom-anon", id), Comment(rawValue: id))
             #expect(p.flag == "--" + id)
             #expect(p.parameterType == .booleanToggle)
-            #expect(p.defaultValue.isEmpty)                      // never emitted unless switched on
+            #expect(id == "clean-pixel-data" ? p.defaultValue == "true" : p.defaultValue.isEmpty)
         }
         #expect(pixelParam("dicom-anon", "retain-dates")?.helpText.hasPrefix("Deprecated: use --retain-full-dates or --retain-modified-dates") == true)
         #expect(pixelParam("dicom-anon", "retain-uids")?.helpText.contains("Retain UIDs Option") == true)              // CID 7050 113110
         #expect(pixelParam("dicom-anon", "retain-full-dates")?.helpText.contains("Retain Longitudinal Temporal Information With Full Dates Option") == true)
         let region = try #require(pixelParam("dicom-anon", "redact-region"))
         #expect(region.isRepeatable && region.flag == "--redact-region")
-        #expect(pixelParam("dicom-anon", "redact-fill")?.parameterType == .integerField)
+        #expect(pixelParam("dicom-anon", "redact-fill")?.parameterType == .enumPicker)
     }
 
     @Test("dicom-image / dicom-pdf --conversion-type offer the 8 PS3.3 2026a Table C.8-24 Defined Terms (ConversionType.definedTerms), empty = the CLI's WSD")

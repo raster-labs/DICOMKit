@@ -229,6 +229,11 @@ public final class ImageViewerViewModel {
     /// Cine playback frames per second.
     public var playbackFPS: Double = CinePlaybackHelpers.defaultFPS
 
+    /// The frame rate the open file states for itself, if it states one.
+    ///
+    /// Recorded, not applied — see the note where a file is loaded.
+    public private(set) var headerPlaybackFPS: Double?
+
     /// Whether a multi-frame file starts looping the moment it opens.
     ///
     /// On by default: a multi-frame image is a moving picture, and a reader
@@ -1050,11 +1055,14 @@ public final class ImageViewerViewModel {
         // Reset viewer state
         currentFrameIndex = 0
         playbackDirection = .forward
-        // What the file says it should be played at, before deciding whether to
-        // play it. A file with no rate keeps whatever the reader last dialled in.
-        if let headerFPS = Self.headerFrameRate(in: ds) {
-            playbackFPS = CinePlaybackHelpers.clampFPS(headerFPS)
-        }
+        // Every file plays at the viewer's own rate. The rate the file states
+        // for itself (Recommended Display Frame Rate, Cine Rate, Frame Time)
+        // is read into ``headerPlaybackFPS`` for the record, but it is not
+        // applied: at the 24–30 fps most files ask for, a loop ran too fast to
+        // read, and the reader asked for a steady 5 fps instead. The slider
+        // remains for going faster on a particular loop.
+        headerPlaybackFPS = Self.headerFrameRate(in: ds).map(CinePlaybackHelpers.clampFPS)
+        playbackFPS = CinePlaybackHelpers.defaultFPS
         // A multi-frame image opens running, so the motion is visible without
         // the reader having to find the transport bar first. Single-frame files
         // have nothing to play, and stay stopped.

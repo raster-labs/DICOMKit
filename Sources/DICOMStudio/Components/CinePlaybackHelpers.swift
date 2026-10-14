@@ -40,7 +40,13 @@ public enum CinePlaybackHelpers: Sendable {
     public static let maxFPS: Double = 60.0
 
     /// Default frame rate.
-    public static let defaultFPS: Double = 15.0
+    ///
+    /// Five frames a second is the rate the reader asked for: at the 15 fps
+    /// this used to be, and the 24–30 fps that most files state for
+    /// themselves, a cine loop ran too fast to follow frame by frame. The
+    /// transport bar's slider still goes up to ``maxFPS`` for a reader who
+    /// wants it faster.
+    public static let defaultFPS: Double = 5.0
 
     /// Clamps a frame rate to the valid range [1, 60].
     ///

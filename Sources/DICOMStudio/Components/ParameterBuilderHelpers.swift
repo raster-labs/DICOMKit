@@ -203,9 +203,9 @@ public enum ParameterCatalogHelpers {
                 param("<input-path>", "Input Path", "Path to DICOM file or directory.", type: .filePath(allowedExtensions: ["dcm", "dicom"]), required: true),
                 param("--output", "Output", "Output file or directory path.", type: .outputPath(defaultExtension: "dcm")),
                 // ps315 is the PS3.15 2026a E.1 Basic Application Level Confidentiality Profile and the tool's
-                // default; the legacy-* lists are not PS3.15 profiles and are deprecated by dicom-anon.
-                param("--profile", "Anonymisation Profile", "Anonymization profile: ps315 (PS3.15 Basic Profile, default) or a deprecated legacy list.",
-                      type: .radio(options: options(["ps315", "legacy-basic", "legacy-clinical-trial", "legacy-research"])),
+                // default; basic is an alias. Legacy profiles remain library-only.
+                param("--profile", "Anonymisation Profile", "Anonymization profile: ps315 (PS3.15 Basic Profile, default) or its basic alias.",
+                      type: .radio(options: options(["ps315", "basic"])),
                       defaultValue: .string("ps315")),
                 param("--retain-full-dates", "Retain Full Dates", "PS3.15 Retain Longitudinal Temporal Information With Full Dates Option.", type: .toggle),
                 param("--retain-modified-dates", "Retain Modified Dates", "PS3.15 Retain Longitudinal Temporal Information With Modified Dates Option.", type: .toggle),

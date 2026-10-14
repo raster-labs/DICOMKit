@@ -26,22 +26,15 @@ struct GeneralSettingsView: View {
             }
 
             Section("Default Window Presets") {
-                HStack {
-                    Text("Window Center")
-                    Spacer()
-                    TextField("Center", value: $viewModel.defaultWindowCenter, format: .number)
-                        .frame(maxWidth: .infinity)
-                        .multilineTextAlignment(.trailing)
-                        .accessibilityLabel("Default window center value")
-                }
-                HStack {
-                    Text("Window Width")
-                    Spacer()
-                    TextField("Width", value: $viewModel.defaultWindowWidth, format: .number)
-                        .frame(maxWidth: .infinity)
-                        .multilineTextAlignment(.trailing)
-                        .accessibilityLabel("Default window width value")
-                }
+                // Grouped forms print a TextField's title as the row label,
+                // so the field itself carries the name — no separate Text,
+                // which had the row reading "Window Center  Center".
+                TextField("Window Center", value: $viewModel.defaultWindowCenter, format: .number)
+                    .multilineTextAlignment(.trailing)
+                    .accessibilityLabel("Default window center value")
+                TextField("Window Width", value: $viewModel.defaultWindowWidth, format: .number)
+                    .multilineTextAlignment(.trailing)
+                    .accessibilityLabel("Default window width value")
             }
 
             Section("Recent Files") {

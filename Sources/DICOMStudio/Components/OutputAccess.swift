@@ -144,7 +144,14 @@ public enum OutputAccess {
     public static func resolveWritableURL(forPath path: String, scopedURL: URL?,
                                           subfolder: String = "Output",
                                           isDirectory: Bool = false) -> (url: URL, note: String?) {
-        if let scoped = scopedURL { return (scoped, nil) }
+        if let scoped = scopedURL {
+            // A directory producer fills the granted folder itself. A single-file
+            // producer must NOT: the output Browse picker grants a *folder*, so
+            // returning the scope verbatim would write the folder path as the file
+            // (and silently drop the filename the user typed). Resolve the file
+            // within the grant exactly as `write(_:toPath:…)` does.
+            return (isDirectory ? scoped : destinationWithinScope(scoped, typedPath: path), nil)
+        }
         guard !path.isEmpty else {
             let fb = fallbackURL(forName: "output.dat", subfolder: subfolder)
             return (fb, redirectNote(from: nil, to: fb, reason: "no output path was provided"))

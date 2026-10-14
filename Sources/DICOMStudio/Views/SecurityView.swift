@@ -7,6 +7,7 @@
 
 #if canImport(SwiftUI)
 import SwiftUI
+import DICOMKit
 
 /// Security and privacy view providing TLS management, anonymization,
 /// audit logging, and access control.
@@ -224,12 +225,9 @@ public struct SecurityView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 anonInputSection
-                anonProfileSection
-                if viewModel.anonProfile.isPS315 {
-                    anonPS315OptionsSection
-                }
+                anonAnnexESection
+                anonPixelSection
                 anonOptionsSection
-                anonTagsSection
                 anonRunSection
             }
             .padding()
@@ -276,58 +274,134 @@ public struct SecurityView: View {
         }
     }
 
-    private var anonProfileSection: some View {
+    /// PS3.15 Annex E: the Basic Profile is always applied; these are the standard's
+    /// named retention options — the only way to keep more.
+    private var anonAnnexESection: some View {
         GroupBox {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("Profile")
                         .font(.subheadline.bold())
                     Spacer()
-                    Text("--profile \(viewModel.anonProfile.cliFlag)")
+                    Text(AnonymizationHelpers.profileName)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
-                Picker("Profile", selection: $viewModel.anonProfile) {
-                    ForEach(AnonymizationProfile.builderProfiles, id: \.self) { p in
-                        Text(p.displayName).tag(p)
-                    }
-                }
-                .pickerStyle(.radioGroup)
-                .accessibilityLabel("Anonymization profile")
-                Text(viewModel.anonProfile.shortDescription)
+                Text("Every direct identifier is removed or blanked, all UIDs are regenerated consistently and private tags are dropped. Tick an option only when your protocol needs the data back.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+
+                Divider()
+
+                Text("Dates and times")
+                    .font(.caption.bold())
+                Picker("Dates", selection: $viewModel.anonDatePolicy) {
+                    Text("Remove (Basic Profile)").tag(SecurityViewModel.AnonDatePolicy.remove)
+                    Text("Keep  --retain-dates").tag(SecurityViewModel.AnonDatePolicy.keep)
+                    Text("Shift  --shift-dates").tag(SecurityViewModel.AnonDatePolicy.shift)
+                }
+                .pickerStyle(.radioGroup)
+                .labelsHidden()
+                .accessibilityLabel("Date retention policy")
+                if viewModel.anonDatePolicy == .shift {
+                    Stepper("\(viewModel.anonShiftDays) days (intervals between studies survive)",
+                            value: $viewModel.anonShiftDays, in: -36500...36500)
+                        .accessibilityLabel("Date shift in days")
+                }
+
+                Divider()
+
+                Toggle("--retain-characteristics  Keep age, sex, size, weight", isOn: $viewModel.anonRetainCharacteristics)
+                    .accessibilityLabel("Retain patient characteristics")
+                Toggle("--retain-device  Keep station name, model, serial number", isOn: $viewModel.anonRetainDevice)
+                    .accessibilityLabel("Retain device identity")
+                Toggle("--retain-institution  Keep institution name and address", isOn: $viewModel.anonRetainInstitution)
+                    .accessibilityLabel("Retain institution identity")
+                Toggle("--retain-uids  Keep UIDs instead of regenerating them", isOn: $viewModel.anonRetainUIDs)
+                    .accessibilityLabel("Retain UIDs")
+                Toggle("--clean-descriptors  Clean study/series descriptions", isOn: $viewModel.anonCleanDescriptors)
+                Toggle("--retain-safe-private  Retain Safe Private", isOn: $viewModel.anonRetainSafePrivate)
+                Toggle("--clean-graphics  Clean Graphics", isOn: $viewModel.anonCleanGraphics)
+                Toggle("--clean-structured-content  Clean Structured Content", isOn: $viewModel.anonCleanStructuredContent)
+                Toggle("--clean-recognizable-visual-features  Clean Recognizable Visual Features", isOn: $viewModel.anonCleanRecognizableVisualFeatures)
+
+                    .accessibilityLabel("Clean descriptors")
             }
         }
     }
 
-    /// PS3.15 2026a E.3 Options for the Basic Profile (dicom-anon's `--retain-*` / `--clean-*`).
-    private var anonPS315OptionsSection: some View {
+    /// Clean Pixel Data option: on by default; Burned In Annotation YES → clean,
+    /// absent → OCR decides, NO → trusted.
+    private var anonPixelSection: some View {
         GroupBox {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("PS3.15 Annex E Options (E.3)")
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Pixel data")
                     .font(.subheadline.bold())
-                ForEach(StudioAnonPS315.securityPanelOptions, id: \.flag) { option in
-                    Toggle(isOn: Binding(
-                        get: { viewModel.anonPS315Flags[keyPath: option.keyPath] },
-                        set: { viewModel.anonPS315Flags[keyPath: option.keyPath] = $0 })) {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("\(option.flag)  \(option.name)")
-                                .font(.caption)
-                            Text("PS3.15 \(option.section)")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .accessibilityLabel(option.name)
-                }
-                Text("Modified Dates needs --shift-dates. Clean Pixel Data (E.3.1) and Clean Recognizable Visual Features (E.3.2) are in the CLI Workshop's dicom-anon form.")
-                    .font(.caption2)
+                Toggle("Clean Pixel Data  (off = --no-clean-pixel-data)", isOn: $viewModel.anonCleanPixelData)
+                    .accessibilityLabel("Clean pixel data")
+                Text("Burned In Annotation = YES is cleaned; absent, OCR decides; NO is trusted and the pixels are left alone.")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Divider()
-                Toggle("--allow-burned-in-phi  Write files whose pixels may still carry PHI", isOn: $viewModel.anonAllowBurnedInPHI)
+
+                if viewModel.anonCleanPixelData {
+                    Picker("--ocr-mode", selection: $viewModel.anonOCRMode) {
+                        ForEach(PixelCleaningWorkflow.TextDetectionMode.names, id: \.self) { Text($0).tag($0) }
+                    }
+                    .accessibilityLabel("OCR mode")
+                    Toggle("--text-only  Blank only the flagged text, no banner band", isOn: $viewModel.anonTextOnly)
+                        .accessibilityLabel("Text only")
+                    Toggle("--ocr-all-frames  OCR every frame", isOn: $viewModel.anonOCRAllFrames)
+                        .accessibilityLabel("OCR all frames")
+                }
+
+                Picker("--redact-style", selection: $viewModel.anonRedactStyle) {
+                    ForEach(["blank", "label", "replace"], id: \.self) { Text($0).tag($0) }
+                }
+                .accessibilityLabel("Redact style")
+                if viewModel.anonRedactStyle != "blank" {
+                    TextField("--redact-label (default REDACTED)", text: $viewModel.anonRedactLabel)
+                        .textFieldStyle(.roundedBorder)
+                        .accessibilityLabel("Redact label")
+                }
+                Picker("--redact-fill", selection: Binding(
+                    get: { viewModel.anonRedactFill ?? "black" },
+                    set: { viewModel.anonRedactFill = $0 == "black" ? nil : $0 })) {
+                    Text("black").tag("black")
+                    Text("white").tag("white")
+                }
+                .accessibilityLabel("Redact fill")
+
+                // Explicit rectangles
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("--redact-region  x,y,width,height")
+                        .font(.caption.bold())
+                    ForEach(viewModel.anonRedactRegions, id: \.self) { region in
+                        HStack {
+                            Text(region).font(.caption).monospacedDigit()
+                            Spacer()
+                            Button { viewModel.anonRedactRegions.removeAll { $0 == region } } label: {
+                                Image(systemName: "minus.circle")
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Remove region \(region)")
+                        }
+                    }
+                    HStack {
+                        TextField("0,0,1024,90", text: $viewModel.anonNewRedactRegion)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.caption)
+                            .accessibilityLabel("Region to blank")
+                        Button("Add") { viewModel.addRedactRegion() }
+                            .accessibilityLabel("Add redact region")
+                    }
+                }
+
+                TextField("--recompress (empty = Explicit VR LE; 'source' or a codec)", text: $viewModel.anonRecompress)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("Recompress codec")
+                Toggle("--allow-burned-in-phi  Write even if pixels may still carry PHI", isOn: $viewModel.anonAllowBurnedInPHI)
                     .accessibilityLabel("Allow burned-in PHI")
             }
         }
@@ -336,7 +410,7 @@ public struct SecurityView: View {
     private var anonOptionsSection: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Options")
+                Text("Run")
                     .font(.subheadline.bold())
                 Toggle("--recursive  Process directories recursively", isOn: $viewModel.anonRecursive)
                     .accessibilityLabel("Process recursively")
@@ -344,24 +418,10 @@ public struct SecurityView: View {
                     .accessibilityLabel("Dry run mode")
                 Toggle("--backup  Keep backup of originals", isOn: $viewModel.anonBackup)
                     .accessibilityLabel("Create backup files")
-                Toggle("--regenerate-uids  Regenerate all UIDs", isOn: $viewModel.anonRegenerateUIDs)
-                    .accessibilityLabel("Regenerate UIDs")
                 Toggle("--force  Parse without DICM prefix check", isOn: $viewModel.anonForce)
                     .accessibilityLabel("Force parse")
                 Toggle("--verbose  Show per-file progress", isOn: $viewModel.anonVerbose)
                     .accessibilityLabel("Verbose output")
-
-                Divider()
-
-                // Date shifting
-                HStack {
-                    Toggle("--shift-dates", isOn: $viewModel.anonShiftDatesEnabled)
-                        .accessibilityLabel("Enable date shifting")
-                    if viewModel.anonShiftDatesEnabled {
-                        Stepper("\(viewModel.anonShiftDays) days", value: $viewModel.anonShiftDays, in: -36500...36500)
-                            .accessibilityLabel("Date shift in days")
-                    }
-                }
 
                 // Audit log
                 HStack {
@@ -374,101 +434,6 @@ public struct SecurityView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Clear audit log path")
-                    }
-                }
-            }
-        }
-    }
-
-    private var anonTagsSection: some View {
-        GroupBox {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Custom Tag Actions")
-                    .font(.subheadline.bold())
-
-                // Remove tags
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("--remove  Tags to remove")
-                        .font(.caption.bold())
-                    ForEach(viewModel.anonRemoveTags, id: \.self) { tag in
-                        HStack {
-                            Text(tag)
-                                .font(.caption)
-                                .monospacedDigit()
-                            Spacer()
-                            Button { viewModel.removeRemoveTag(tag) } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Remove tag \(tag) from list")
-                        }
-                    }
-                    HStack {
-                        TextField("0010,0010 or PatientName", text: $viewModel.anonNewRemoveTag)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.caption)
-                            .accessibilityLabel("Tag to remove")
-                        Button("Add") { viewModel.addRemoveTag() }
-                            .accessibilityLabel("Add remove tag")
-                    }
-                }
-
-                Divider()
-
-                // Replace pairs
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("--replace  Tag=Value")
-                        .font(.caption.bold())
-                    ForEach(viewModel.anonReplacePairs, id: \.self) { pair in
-                        HStack {
-                            Text(pair).font(.caption).monospacedDigit()
-                            Spacer()
-                            Button { viewModel.removeReplacePair(pair) } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Remove replace pair \(pair)")
-                        }
-                    }
-                    HStack(spacing: 4) {
-                        TextField("0010,0010", text: $viewModel.anonNewReplaceTag)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.caption)
-                            .accessibilityLabel("Tag to replace")
-                        Text("=").font(.caption)
-                        TextField("ANON", text: $viewModel.anonNewReplaceValue)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.caption)
-                            .accessibilityLabel("Replacement value")
-                        Button("Add") { viewModel.addReplacePair() }
-                            .accessibilityLabel("Add replace pair")
-                    }
-                }
-
-                Divider()
-
-                // Keep tags
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("--keep  Tags to preserve")
-                        .font(.caption.bold())
-                    ForEach(viewModel.anonKeepTags, id: \.self) { tag in
-                        HStack {
-                            Text(tag).font(.caption).monospacedDigit()
-                            Spacer()
-                            Button { viewModel.removeKeepTag(tag) } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Remove keep tag \(tag)")
-                        }
-                    }
-                    HStack {
-                        TextField("0008,0060 or Modality", text: $viewModel.anonNewKeepTag)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.caption)
-                            .accessibilityLabel("Tag to keep")
-                        Button("Add") { viewModel.addKeepTag() }
-                            .accessibilityLabel("Add keep tag")
                     }
                 }
             }
@@ -861,12 +826,8 @@ struct NewAnonymizationJobSheet: View {
                 }
 
                 Section("Profile") {
-                    Picker("Anonymization Profile", selection: $viewModel.selectedProfile) {
-                        ForEach(AnonymizationProfile.allCases, id: \.self) { profile in
-                            Text(profile.displayName).tag(profile)
-                        }
-                    }
-                    .accessibilityLabel("Anonymization profile")
+                    Text(AnonymizationHelpers.profileName)
+                        .accessibilityLabel("Anonymization profile")
                 }
 
                 Section("Output") {

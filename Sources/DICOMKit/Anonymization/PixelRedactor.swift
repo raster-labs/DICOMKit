@@ -24,6 +24,38 @@ import DICOMCore
 /// (0012,0062) guard exists to prevent.
 public struct PixelRedactor {
 
+    /// What a cleaned region shows afterwards. Every style shares one safety-critical
+    /// mechanic — **blank-then-draw**: the whole region is filled first (that is what
+    /// destroys the original glyphs); a stamp is drawn only into the already-blanked box.
+    public enum Style: Sendable, Equatable {
+        /// Fill value only.
+        case blank
+        /// A fixed stamp (default `REDACTED`).
+        case label(String)
+        /// Semantic replacement: the header engine's own anonymized value for the
+        /// attribute that was matched (name → anonymized name, date → shifted date, ID →
+        /// pseudonym). Regions without a truthful value get the fallback stamp.
+        case replace(fallback: String)
+
+        /// Parses `--redact-style` (`blank` | `label` | `replace`).
+        public static func parse(_ raw: String, label: String?) -> Style? {
+            switch raw.trimmingCharacters(in: .whitespaces).lowercased() {
+            case "blank": return .blank
+            case "label": return .label(label ?? RedactionLabelRenderer.defaultLabel)
+            case "replace": return .replace(fallback: label ?? RedactionLabelRenderer.defaultLabel)
+            default: return nil
+            }
+        }
+
+        public var name: String {
+            switch self {
+            case .blank: return "blank"
+            case .label: return "label"
+            case .replace: return "replace"
+            }
+        }
+    }
+
     /// What a redaction run did, for the console and the audit trail.
     public struct Outcome: Sendable, Equatable {
         /// Regions actually blanked.
@@ -38,6 +70,34 @@ public struct PixelRedactor {
         public let removedIconImage: Bool
         /// True when overlay plane elements were removed.
         public let removedOverlays: Bool
+        /// Style applied to the regions.
+        public let style: Style
+        /// Regions too small to carry a legible stamp — blanked only. Reported, never
+        /// silent.
+        public let labelFallbackRegions: [PixelRedactionPlan.Region]
+        /// `replace` style: the value actually drawn into each replaced region.
+        public let replacements: [PixelRedactionPlan.Region: String]
+        /// `replace` style: why a region got the fallback stamp instead of a value.
+        public let replacementFallbackNotes: [PixelRedactionPlan.Region: String]
+
+        public init(
+            regions: [PixelRedactionPlan.Region], basis: PixelRedactionPlan.Basis, note: String,
+            frameCount: Int, removedIconImage: Bool, removedOverlays: Bool,
+            style: Style = .blank, labelFallbackRegions: [PixelRedactionPlan.Region] = [],
+            replacements: [PixelRedactionPlan.Region: String] = [:],
+            replacementFallbackNotes: [PixelRedactionPlan.Region: String] = [:]
+        ) {
+            self.regions = regions
+            self.basis = basis
+            self.note = note
+            self.frameCount = frameCount
+            self.removedIconImage = removedIconImage
+            self.removedOverlays = removedOverlays
+            self.style = style
+            self.labelFallbackRegions = labelFallbackRegions
+            self.replacements = replacements
+            self.replacementFallbackNotes = replacementFallbackNotes
+        }
     }
 
     public init() {}
@@ -52,10 +112,19 @@ public struct PixelRedactor {
     ///   required no pixel work.
     /// - Throws: ``PixelRedactionError/unresolvedRegion(_:)`` when the plan could not
     ///   locate the burned-in content — a refusal, never a silent pass-through.
+    /// Per-region semantic replacement input for the `replace` style: the text to
+    /// draw, or a note explaining why nothing truthful can be drawn.
+    public enum Replacement: Sendable, Equatable {
+        case value(String)
+        case unavailable(reason: String)
+    }
+
     public func redact(
         fileData: Data,
         plan: PixelRedactionPlan,
-        fillValue: Int? = nil
+        fillValue: Int? = nil,
+        style: Style = .blank,
+        replacements: [PixelRedactionPlan.Region: Replacement] = [:]
     ) throws -> (data: Data, outcome: Outcome)? {
         switch plan.decision {
         case .nothingToDo:
@@ -65,8 +134,9 @@ public struct PixelRedactor {
             throw PixelRedactionError.unresolvedRegion(reason)
 
         case .redact(let regions, let basis):
-            return try apply(regions: regions, basis: basis,
-                             to: fileData, fillValue: fillValue)
+            return try apply(regions: regions, basis: basis, plan: plan,
+                             to: fileData, fillValue: fillValue, style: style,
+                             replacements: replacements)
         }
     }
 
@@ -135,20 +205,69 @@ public struct PixelRedactor {
     private func apply(
         regions: [PixelRedactionPlan.Region],
         basis: PixelRedactionPlan.Basis,
+        plan: PixelRedactionPlan,
         to fileData: Data,
-        fillValue: Int?
+        fillValue: Int?,
+        style: Style,
+        replacements: [PixelRedactionPlan.Region: Replacement]
     ) throws -> (data: Data, outcome: Outcome) {
         let sourceFile = try DICOMFile.read(from: fileData)
-        let note = provenanceNote(basis: basis, dataSet: sourceFile.dataSet)
+        let note = provenanceNote(plan: plan, basis: basis, dataSet: sourceFile.dataSet)
         let frameCount = max(1, sourceFile.dataSet.numberOfFrames ?? 1)
 
         // Blank via the shared PixelEditor so the CLI, Studio and this path run one
         // masking implementation. It decodes encapsulated sources to native samples
         // and masks the region on *every* frame.
         let editor = PixelEditor(verbose: false)
-        let operations = regions.map {
-            PixelOperation.mask(x: $0.x, y: $0.y, width: $0.width, height: $0.height,
-                                fillValue: fillValue ?? 0)
+        let fill = fillValue ?? 0
+        // Blank FIRST, always. Every region is filled before any stamp is drawn, so the
+        // original glyphs are gone regardless of style — the stamp is cosmetic on top of
+        // a completed redaction, and 113101 stays earned in every style.
+        var operations = regions.map {
+            PixelOperation.mask(x: $0.x, y: $0.y, width: $0.width, height: $0.height, fillValue: fill)
+        }
+        var fallback: [PixelRedactionPlan.Region] = []
+        var drawn: [PixelRedactionPlan.Region: String] = [:]
+        var fallbackNotes: [PixelRedactionPlan.Region: String] = [:]
+        // What to stamp into each (already blanked) region, if anything.
+        var stampText: [(PixelRedactionPlan.Region, String)] = []
+        switch style {
+        case .blank:
+            break
+        case .label(let text):
+            stampText = regions.map { ($0, text) }
+        case .replace(let fallbackLabel):
+            for r in regions {
+                switch replacements[r] {
+                case .value(let value):
+                    stampText.append((r, value))
+                    drawn[r] = value
+                case .unavailable(let reason):
+                    stampText.append((r, fallbackLabel))
+                    fallbackNotes[r] = reason
+                case nil:
+                    stampText.append((r, fallbackLabel))
+                    fallbackNotes[r] = "no header-mapped value for this region (not a classified PHI match)"
+                }
+            }
+        }
+        if !stampText.isEmpty {
+            guard RedactionLabelRenderer.isAvailable else {
+                throw PixelRedactionError.labelUnavailable
+            }
+            let foreground = Self.contrastingStoredValue(to: fill, in: sourceFile.dataSet)
+            for (r, text) in stampText {
+                if let mask = RedactionLabelRenderer.glyphMask(text: text, width: r.width, height: r.height) {
+                    operations.append(.stamp(x: r.x, y: r.y, width: r.width, height: r.height,
+                                             glyphMask: mask, foregroundValue: foreground))
+                } else {
+                    fallback.append(r)   // too small to render legibly — blank only, audited
+                    drawn[r] = nil
+                    if case .replace = style {
+                        fallbackNotes[r] = "region too small to render legibly — blanked"
+                    }
+                }
+            }
         }
         // derivation: nil — redaction keeps the instance identity and must not write a
         // Source Image Sequence naming the identified original (the de-identification
@@ -158,6 +277,11 @@ public struct PixelRedactor {
         // Re-read so the attestation is written onto the masked result.
         var file = try DICOMFile.read(from: maskedData)
         var dataSet = file.dataSet
+
+        // Enhanced multiframe invariant: masking changes only Pixel Data and the
+        // descriptor. NumberOfFrames must still equal the per-frame functional-group
+        // count, and the functional groups must be byte-stable — never emit otherwise.
+        try Self.checkFunctionalGroupInvariant(source: sourceFile.dataSet, result: dataSet)
 
         // A thumbnail derived before cleaning still shows the identifiers. PS3.15 notes
         // the icon may be cleaned or recreated; removing it is the safe option, since
@@ -172,14 +296,80 @@ public struct PixelRedactor {
 
         recordAttestation(in: &dataSet)
 
-        file = DICOMFile(fileMetaInformation: file.fileMetaInformation, dataSet: dataSet)
+        // The output is always Explicit VR Little Endian (§5.1/§5.4): PixelEditor already
+        // re-targets encapsulated sources; native Implicit/BE and dataset-level Deflate
+        // sources are re-pointed here so the syntax describes the emitted bytes.
+        let fmi = PixelEditor.explicitLittleEndianFileMeta(from: file.fileMetaInformation)
+        file = DICOMFile(fileMetaInformation: fmi, dataSet: dataSet)
         let outcome = Outcome(
             regions: regions, basis: basis, note: note, frameCount: frameCount,
-            removedIconImage: removedIcon, removedOverlays: removedOverlays)
+            removedIconImage: removedIcon, removedOverlays: removedOverlays,
+            style: style, labelFallbackRegions: fallback,
+            replacements: drawn, replacementFallbackNotes: fallbackNotes)
         return (try file.write(), outcome)
     }
 
-    private func provenanceNote(basis: PixelRedactionPlan.Basis, dataSet: DataSet) -> String {
+    /// Refuses to emit an Enhanced multiframe object whose functional groups no longer
+    /// match its frames (PIXEL_ANONYMIZATION_PIPELINE.md §4.3 / §9).
+    static func checkFunctionalGroupInvariant(source: DataSet, result: DataSet) throws {
+        guard let perFrame = result.sequence(for: .perFrameFunctionalGroupsSequence) else { return }
+        let frames = max(1, result.numberOfFrames ?? 1)
+        guard perFrame.count == frames else {
+            throw PixelRedactionError.functionalGroupMismatch(frames: frames, perFrameItems: perFrame.count)
+        }
+        let sourcePerFrame = source.sequence(for: .perFrameFunctionalGroupsSequence) ?? []
+        let sourceShared = source.sequence(for: .sharedFunctionalGroupsSequence) ?? []
+        let resultShared = result.sequence(for: .sharedFunctionalGroupsSequence) ?? []
+        guard sourcePerFrame.count == perFrame.count, sourceShared.count == resultShared.count else {
+            throw PixelRedactionError.functionalGroupMismatch(frames: frames, perFrameItems: perFrame.count)
+        }
+        func stable(_ a: [SequenceItem], _ b: [SequenceItem]) -> Bool {
+            for (x, y) in zip(a, b) {
+                let ex = x.allElements, ey = y.allElements
+                guard ex.count == ey.count else { return false }
+                for (p, q) in zip(ex, ey) where p.tag != q.tag || p.valueData != q.valueData { return false }
+            }
+            return true
+        }
+        guard stable(sourcePerFrame, perFrame), stable(sourceShared, resultShared) else {
+            throw PixelRedactionError.functionalGroupsAltered
+        }
+    }
+
+    /// The stored value farthest from `fill` within the image's representable range, so
+    /// a stamp contrasts with its blanked background at the image's real bit depth
+    /// (MONOCHROME1/2 alike — contrast, not "brightness", is what a reviewer needs).
+    static func contrastingStoredValue(to fill: Int, in dataSet: DataSet) -> Int {
+        let (lo, hi) = storedRange(in: dataSet)
+        return (fill - lo) >= (hi - fill) ? lo : hi
+    }
+
+    /// The representable stored-value range at the image's Bits Stored / Pixel
+    /// Representation — `hi` is what "white" means for this image.
+    public static func storedRange(in dataSet: DataSet) -> (lo: Int, hi: Int) {
+        let bitsStored = Int(dataSet.uint16(for: .bitsStored) ?? dataSet.uint16(for: .bitsAllocated) ?? 8)
+        let signed = (dataSet.uint16(for: .pixelRepresentation) ?? 0) == 1
+        let lo = signed ? -(1 << (bitsStored - 1)) : 0
+        let hi = signed ? (1 << (bitsStored - 1)) - 1 : (1 << bitsStored) - 1
+        return (lo, hi)
+    }
+
+    /// One note per contributing source when the plan unioned several; the single
+    /// basis note otherwise.
+    private func provenanceNote(
+        plan: PixelRedactionPlan, basis: PixelRedactionPlan.Basis, dataSet: DataSet
+    ) -> String {
+        if plan.sources.count > 1 {
+            return plan.sources
+                .map { "\($0.basis.rawValue): \(provenanceNote(basis: $0.basis, count: $0.regions.count, dataSet: dataSet))" }
+                .joined(separator: "; ")
+        }
+        return provenanceNote(basis: basis, count: plan.sources.first?.regions.count, dataSet: dataSet)
+    }
+
+    private func provenanceNote(
+        basis: PixelRedactionPlan.Basis, count: Int?, dataSet: DataSet
+    ) -> String {
         switch basis {
         case .explicit:
             return "caller-specified region"
@@ -188,6 +378,10 @@ public struct PixelRedactor {
                 + "blanked everything outside the declared scan area"
         case .deviceTemplate:
             return DeviceRedactionTemplates.matchNote(for: dataSet) ?? "device template"
+        case .textDetection:
+            // Report what was done — never that the image is now clean (principle #9).
+            let n = count.map { "\($0) region\($0 == 1 ? "" : "s")" } ?? "regions"
+            return "OCR text detection (Vision, \(n))"
         }
     }
 
@@ -213,26 +407,8 @@ public struct PixelRedactor {
         dataSet.setString("NO", for: .burnedInAnnotation, vr: .CS)
 
         // (0012,0064) De-identification Method Code Sequence — append DCM 113101 rather
-        // than replacing, so a Basic-Profile item written by the header pass survives.
-        var items = dataSet.sequence(for: Tag(group: 0x0012, element: 0x0064)) ?? []
-        let alreadyRecorded = items.contains { item in
-            let set = DataSet(elements: item.allElements)
-            return set.string(for: Tag(group: 0x0008, element: 0x0100))?
-                .trimmingCharacters(in: .whitespaces) == "113101"
-        }
-        if !alreadyRecorded {
-            // Code Value / Coding Scheme Designator / Code Meaning (PS3.3 C.8-2).
-            items.append(SequenceItem(elements: [
-                DataElement.string(
-                    tag: Tag(group: 0x0008, element: 0x0100), vr: .SH, value: "113101"),
-                DataElement.string(
-                    tag: Tag(group: 0x0008, element: 0x0102), vr: .SH, value: "DCM"),
-                DataElement.string(
-                    tag: Tag(group: 0x0008, element: 0x0104), vr: .LO,
-                    value: "Clean Pixel Data Option"),
-            ]))
-            dataSet.setSequence(items, for: Tag(group: 0x0012, element: 0x0064))
-        }
+        // than replacing, so an item written by another pass survives.
+        ConfidentialityProfile.MethodCode.record(.cleanPixelData, in: &dataSet)
     }
 }
 
@@ -242,9 +418,27 @@ public enum PixelRedactionError: Error, LocalizedError, Equatable {
     case unresolvedRegion(String)
     /// The Clean Recognizable Visual Features Option was asked for without a region to blank.
     case noRecognizableVisualFeatureRegions
+    /// The `label` style needs glyph rasterization (CoreGraphics/CoreText), absent here.
+    case labelUnavailable
+    /// Enhanced multiframe: NumberOfFrames no longer equals the per-frame FG count.
+    case functionalGroupMismatch(frames: Int, perFrameItems: Int)
+    /// Enhanced multiframe: functional-group content changed during the rewrite.
+    case functionalGroupsAltered
+    /// `--recompress`: the redacted rects were not flat fill after the codec round-trip.
+    case recompressVerificationFailed(String)
 
     public var errorDescription: String? {
         switch self {
+        case .functionalGroupMismatch(let frames, let items):
+            return "Refusing to write: Number of Frames (\(frames)) does not match the per-frame "
+                + "functional group count (\(items)) after pixel redaction."
+        case .functionalGroupsAltered:
+            return "Refusing to write: functional groups changed during pixel redaction."
+        case .recompressVerificationFailed(let detail):
+            return "Refusing to write: redacted regions did not survive re-encoding as blank (\(detail))."
+        case .labelUnavailable:
+            return "The label redaction style needs CoreGraphics/CoreText, which is not available "
+                + "on this platform. Use --redact-style blank."
         case .unresolvedRegion(let reason):
             return """
                 Cannot determine which pixels to blank. \(reason)
