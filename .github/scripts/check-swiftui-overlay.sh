@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Diagnostic only: four independent tiny builds, never the enclosing DICOM package.
+# Diagnostic only: OCR preflight and four tiny builds, never the enclosing DICOM package.
 set -euo pipefail
 : "${RUNNER_TEMP:?}"
 : "${GITHUB_STEP_SUMMARY:?}"
@@ -29,6 +29,7 @@ struct OverlayProbe {
 }
 SWIFT
 sdk_path="$(xcrun --sdk macosx --show-sdk-path)"
+runner_arch="$(uname -m)"
 probe_source="$probe_dir/Sources/OverlayProbe/OverlayProbe.swift"
 {
   command -v swift
@@ -42,11 +43,13 @@ probe_source="$probe_dir/Sources/OverlayProbe/OverlayProbe.swift"
 } | tee "$log_dir/environment.log"
 printf '| Probe | Exit status |\n|---|---:|\n' > "$log_dir/summary.md"
 failed=0
+last_status=0
 run_probe() {
   local name="$1" status
   shift
   printf 'Running %s\n' "$name"
   if "$@" > "$log_dir/$name.log" 2>&1; then status=0; else status=$?; fi
+  last_status="$status"
   printf 'PROBE_RESULT %s %s\n' "$name" "$status"
   printf '| %s | %s |\n' "$name" "$status" >> "$log_dir/summary.md"
   if [[ "$status" -ne 0 ]]; then
@@ -56,10 +59,19 @@ run_probe() {
     tail -n 4 "$log_dir/$name.log"
   fi
 }
+run_probe ocr-compile swiftc -parse-as-library -sdk "$sdk_path" \
+  -target "$runner_arch-apple-macosx15.0" \
+  "$GITHUB_WORKSPACE/.github/scripts/check-hosted-ocr.swift" -o "$RUNNER_TEMP/check-hosted-ocr"
+if [[ "$last_status" -eq 0 ]]; then
+  run_probe ocr-runtime "$RUNNER_TEMP/check-hosted-ocr"
+else
+  printf 'PROBE_RESULT ocr-runtime NOT_RUN_COMPILE_FAILED\n'
+  printf '| ocr-runtime | NOT_RUN_COMPILE_FAILED |\n' >> "$log_dir/summary.md"
+fi
 run_probe swiftc-baseline swiftc -typecheck -parse-as-library -swift-version 6 \
-  -sdk "$sdk_path" -target arm64-apple-macosx15.0 "$probe_source"
+  -sdk "$sdk_path" -target "$runner_arch-apple-macosx15.0" "$probe_source"
 run_probe swiftc-overlays swiftc -typecheck -parse-as-library -swift-version 6 \
-  -sdk "$sdk_path" -target arm64-apple-macosx15.0 \
+  -sdk "$sdk_path" -target "$runner_arch-apple-macosx15.0" \
   -Xfrontend -enable-cross-import-overlays "$probe_source"
 run_probe swiftbuild-baseline swift build --package-path "$probe_dir" \
   --scratch-path "$RUNNER_TEMP/overlay-build-baseline" --build-system swiftbuild -v
