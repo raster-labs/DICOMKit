@@ -21,7 +21,7 @@ env:
 jobs:
   validate-release:
     name: Validate Release on macOS 26 (Swift 6.4)
-    runs-on: macos-26
+    runs-on: macos-26-intel
     timeout-minutes: 95
 
     steps:
@@ -39,7 +39,7 @@ jobs:
     - name: Check hosted Vision runtime
       timeout-minutes: 5
       run: |
-        xcrun swiftc -parse-as-library -target arm64-apple-macosx15.0 \
+        xcrun swiftc -parse-as-library -target "$(uname -m)-apple-macosx15.0" \
           .github/scripts/check-hosted-ocr.swift -o "$RUNNER_TEMP/check-hosted-ocr"
         "$RUNNER_TEMP/check-hosted-ocr"
 
