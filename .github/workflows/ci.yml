@@ -56,8 +56,21 @@ jobs:
     - name: Build in release mode
       run: swift build -c release
 
+    # Vision and network XCTest cases share host services. Use the same
+    # process model as local/release qualification instead of spawning one
+    # XCTest process per method. The large source-envelope cases run below
+    # with optimization because capture hashes the complete sparse source.
+    - name: Check hosted OCR service
+      timeout-minutes: 30
+      run: swift test --filter TextRegionDetectorTests
+
     - name: Run tests
-      run: swift test -v --parallel
+      timeout-minutes: 30
+      run: swift test --skip largeSparseSource
+
+    - name: Run optimized source-envelope tests
+      timeout-minutes: 30
+      run: swift test -c release --filter largeSparseSource
 
     # GPU_RENDERING_PLAN.md M7. The Metal render backend must never become load
     # bearing: `.cpu` is the guaranteed fallback, and a test that silently depends
@@ -67,7 +80,7 @@ jobs:
     - name: Run render tests with Metal forced off
       env:
         DICOMKIT_RENDER_BACKEND: cpu
-      run: swift test --parallel --filter 'DICOMRenderKitTests|WindowLUTParityTests|ExportWindowParityTests'
+      run: swift test --filter 'DICOMRenderKitTests|WindowLUTParityTests|ExportWindowParityTests'
 
 
   test-linux:
