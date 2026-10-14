@@ -37,34 +37,13 @@ jobs:
         include:
           - os: xcode-27
             xcode: '27.0'
-          - os: ubuntu-22.04
-            xcode: ''
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Select Xcode (macOS)
-      if: runner.os == 'macOS'
       run: bash .github/scripts/select-swift-toolchain.sh "${{ matrix.xcode }}"
-
-    - name: Install Swift (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        wget -q https://download.swift.org/swift-6.4.0-release/ubuntu2204/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
-        tar xzf swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
-        sudo mv swift-6.4.0-RELEASE-ubuntu22.04 /usr/share/swift
-        echo "/usr/share/swift/usr/bin" >> $GITHUB_PATH
-
-    - name: Install system dependencies (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          binutils git gnupg2 libc6-dev libcurl4-openssl-dev \
-          libedit2 libgcc-11-dev libpython3.10 libsqlite3-0 \
-          libstdc++-11-dev libxml2-dev libz3-dev pkg-config \
-          tzdata unzip zlib1g-dev
 
     - name: Show Swift version
       run: swift --version

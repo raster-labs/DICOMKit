@@ -88,6 +88,9 @@ Local released-pin validation completed:
 - The maintained 5,326-entry primary-VR projection verifies. The tag audit has zero
   blockers, major findings or warnings. Bounded CLI receipt/refusal smoke checks pass.
 
+Current release support and qualification are limited to iOS 18+ and macOS 15+.
+Linux, tvOS and visionOS are outside this release scope.
+
 Linux remains blocked by the existing Apple-only JLISwift Accelerate dependency,
 as already documented on main before this release. Hosted Linux CI reproduced
 that limitation; it is retained as a failure, not represented as passing.
@@ -99,3 +102,11 @@ jobs may report setup limitations; a green wrapper job is not platform proof.
 Final Mayam provider, runtime/callback and native-presentation admission remains
 separate. `AllocationSources.json` records source and generated-code hashes;
 `LocalSourceClosure.json` records immutable released codec pins.
+
+Hosted OCR environment: macOS 27 failed the same standalone Vision revision-3
+requests with default and CPU devices, grayscale and RGB images, and both native
+and VN APIs. All sixteen matching device/API/format probes passed on macOS 26.6.2;
+eight default-device probes also passed on macOS 15.7.9. Required OCR/full-suite CI
+uses stable macOS 26 with the Swift 6.4 release toolchain;
+this infrastructure change does not alter the recorded allocation compiler/runtime
+profile or the product OCR implementation.

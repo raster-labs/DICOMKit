@@ -16,34 +16,39 @@ env:
 
 jobs:
   test-macos:
-    name: Test on macOS
-    runs-on: xcode-27
-    strategy:
-      fail-fast: false
-      matrix:
-        # Xcode 27 supplies Swift 6.4, as required by Package.swift.
-        xcode: ['27.0']
+    name: Test on macOS 26 (Swift 6.4)
+    runs-on: macos-26
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Select Xcode version
-      run: bash .github/scripts/select-swift-toolchain.sh "${{ matrix.xcode }}"
+    - name: Set up Swift 6.4 on macOS 26
+      id: apple_toolchain
+      run: bash .github/scripts/setup-stable-swift.sh
+
+    # Fail on an unusable Vision model before compiling the package.
+    - name: Check hosted Vision runtime
+      timeout-minutes: 5
+      run: |
+        xcrun swiftc -parse-as-library -target arm64-apple-macosx15.0 \
+          .github/scripts/check-hosted-ocr.swift -o "$RUNNER_TEMP/check-hosted-ocr"
+        "$RUNNER_TEMP/check-hosted-ocr"
       
     - name: Show Swift version
       run: swift --version
       
-    - name: Cache Swift Package Manager
-      uses: actions/cache@v4
+    - name: Restore Swift Package Manager cache
+      id: spm_cache
+      uses: actions/cache/restore@v4
       with:
         path: |
           .build
           ~/Library/Developer/Xcode/DerivedData
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        key: ${{ steps.apple_toolchain.outputs.cache-prefix }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ steps.apple_toolchain.outputs.source-sha }}
         restore-keys: |
-          ${{ runner.os }}-spm-
-    
+          ${{ steps.apple_toolchain.outputs.cache-prefix }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
+
     # DICOM_TAG_ATTRIBUTE_AUDIT_PLAN.md Phase 5: every hand-written tag must agree
     # with the PS3.6 dictionary it sits next to. Fails on any BLOCKER/MAJOR.
     - name: Audit DICOM tags against PS3.6
@@ -54,6 +59,7 @@ jobs:
       
     # Workshop parity tests invoke the real Release split/merge executables.
     - name: Build in release mode
+      id: release_build
       run: swift build -c release
 
     # Vision and network XCTest cases share host services. Use the same
@@ -83,79 +89,17 @@ jobs:
       run: swift test --filter 'DICOMRenderKitTests|WindowLUTParityTests|ExportWindowParityTests'
 
 
-  test-linux:
-    name: Test on Linux (Ubuntu 22.04)
-    runs-on: ubuntu-22.04
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install Swift 6.4
-      run: |
-        # Download and install Swift 6.4 for Ubuntu 22.04
-        wget -q https://download.swift.org/swift-6.4.0-release/ubuntu2204/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
-        tar xzf swift-6.4.0-RELEASE-ubuntu22.04.tar.gz
-        sudo mv swift-6.4.0-RELEASE-ubuntu22.04 /usr/share/swift
-        echo "/usr/share/swift/usr/bin" >> $GITHUB_PATH
-        
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          binutils \
-          git \
-          gnupg2 \
-          libc6-dev \
-          libcurl4-openssl-dev \
-          libedit2 \
-          libgcc-11-dev \
-          libpython3.10 \
-          libsqlite3-0 \
-          libstdc++-11-dev \
-          libxml2-dev \
-          libz3-dev \
-          pkg-config \
-          tzdata \
-          unzip \
-          zlib1g-dev
-        
-    - name: Verify Swift installation
-      run: |
-        swift --version
-        swift --version | grep -Eq "Swift version 6\\.[4-9]"
-        
-    - name: Cache Swift Package Manager
-      uses: actions/cache@v4
+    # Preserve valid build products after a test failure; every later run still
+    # executes the complete build and test gates against its checked-out source.
+    - name: Save Swift Package Manager cache
+      if: ${{ always() && !cancelled() && steps.release_build.outcome == 'success' && steps.spm_cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
       with:
-        path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-        restore-keys: |
-          ${{ runner.os }}-spm-
-    
-    - name: Build
-      run: swift build 2>&1 | tee build.log
-      
-    - name: Check for build warnings
-      run: |
-        if grep -i "warning:" build.log; then
-          echo "::warning::Build warnings detected on Linux"
-        fi
-        
-    - name: Run tests
-      run: swift test --parallel
-      
-    - name: Build in release mode
-      run: swift build -c release
-      
-    - name: Upload build log
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-build-log
-        path: build.log
-        retention-days: 7
-      
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData
+        key: ${{ steps.spm_cache.outputs.cache-primary-key }}
+
   build-documentation:
     name: Build Documentation
     runs-on: xcode-27
@@ -232,11 +176,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        destination: 
-          - 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.0'
-          - 'platform=macOS'
-          # visionOS requires Xcode 16+
-          - 'platform=visionOS Simulator,name=Apple Vision Pro,OS=2.0'
+        include:
+          - platform: iOS
+            scheme: DICOMKit
+            destination: 'generic/platform=iOS Simulator'
+          - platform: macOS
+            scheme: DICOMKit-Package
+            destination: 'platform=macOS'
     
     steps:
     - name: Checkout code
@@ -255,19 +201,16 @@ jobs:
           ${{ runner.os }}-spm-
       
     - name: List available destinations
-      run: xcodebuild -showdestinations -scheme DICOMKit-Package || true
-      continue-on-error: true
+      run: xcodebuild -showdestinations -scheme '${{ matrix.scheme }}'
       
     - name: Build for ${{ matrix.destination }}
       run: |
         xcodebuild clean build \
-          -scheme DICOMKit-Package \
+          -scheme '${{ matrix.scheme }}' \
           -destination '${{ matrix.destination }}' \
           -skipPackagePluginValidation \
           -skipMacroValidation \
-          CODE_SIGNING_ALLOWED=NO \
-          || echo "Build for destination may require additional setup"
-      continue-on-error: true
+          CODE_SIGNING_ALLOWED=NO
       
   security-scan:
     name: Security Scan
@@ -287,7 +230,7 @@ jobs:
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [test-macos, test-linux, build-documentation, code-quality, validate-platforms, security-scan]
+    needs: [test-macos, build-documentation, code-quality, validate-platforms, security-scan]
     if: always()
     
     steps:
@@ -297,15 +240,12 @@ jobs:
           echo "::error::macOS tests failed"
           exit 1
         fi
-        if [ "${{ needs.test-linux.result }}" != "success" ]; then
-          echo "::error::Linux tests failed"
-          exit 1
-        fi
         if [ "${{ needs.code-quality.result }}" != "success" ]; then
           echo "::warning::Code quality checks had issues"
         fi
         if [ "${{ needs.validate-platforms.result }}" != "success" ]; then
-          echo "::warning::Platform validation had issues"
+          echo "::error::iOS or macOS platform validation failed"
+          exit 1
         fi
         if [ "${{ needs.security-scan.result }}" != "success" ]; then
           echo "::warning::Security scan had issues"

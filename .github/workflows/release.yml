@@ -20,8 +20,8 @@ env:
 
 jobs:
   validate-release:
-    name: Validate Release
-    runs-on: xcode-27
+    name: Validate Release on macOS 26 (Swift 6.4)
+    runs-on: macos-26
     timeout-minutes: 95
 
     steps:
@@ -31,8 +31,28 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
       
-    - name: Select Xcode
-      run: bash .github/scripts/select-swift-toolchain.sh
+    - name: Set up Swift 6.4 on macOS 26
+      id: apple_toolchain
+      run: bash .github/scripts/setup-stable-swift.sh
+
+    # Fail on an unusable Vision model before compiling the package.
+    - name: Check hosted Vision runtime
+      timeout-minutes: 5
+      run: |
+        xcrun swiftc -parse-as-library -target arm64-apple-macosx15.0 \
+          .github/scripts/check-hosted-ocr.swift -o "$RUNNER_TEMP/check-hosted-ocr"
+        "$RUNNER_TEMP/check-hosted-ocr"
+
+    - name: Restore Swift Package Manager cache
+      id: spm_cache
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData
+        key: ${{ steps.apple_toolchain.outputs.cache-prefix }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ steps.apple_toolchain.outputs.source-sha }}
+        restore-keys: |
+          ${{ steps.apple_toolchain.outputs.cache-prefix }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
       
     - name: Get tag name
       id: get_tag
@@ -53,6 +73,7 @@ jobs:
         echo "✅ Valid version tag: $TAG"
         
     - name: Build release without warnings
+      id: release_build
       timeout-minutes: 30
       env:
         CI: 'true'
@@ -91,7 +112,18 @@ jobs:
         set -o pipefail
         swift test -c release --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
         grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
-        
+
+    # Preserve valid build products after a test failure; every later run still
+    # executes the complete build and test gates against its checked-out source.
+    - name: Save Swift Package Manager cache
+      if: ${{ always() && !cancelled() && steps.release_build.outcome == 'success' && steps.spm_cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData
+        key: ${{ steps.spm_cache.outputs.cache-primary-key }}
+
   build-cli-tools:
     name: Build CLI Tools (Batch ${{ matrix.batch }})
     runs-on: xcode-27
