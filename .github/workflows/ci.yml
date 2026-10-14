@@ -6,10 +6,18 @@ permissions:
 jobs:
   overlay-diagnostic:
     name: Inspect SwiftUI AVKit cross-import overlay
-    runs-on: macos-26
+    runs-on: macos-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Require the same macOS 26 arm64 environment
+        run: |
+          set -euo pipefail
+          actual_version="$(sw_vers -productVersion)"
+          actual_arch="$(uname -m)"
+          printf 'Alternate-label runtime=%s architecture=%s\n' "$actual_version" "$actual_arch"
+          [[ "${actual_version%%.*}" == 26 ]] || { echo '::error::Expected macOS 26'; exit 1; }
+          [[ "$actual_arch" == arm64 ]] || { echo '::error::Expected arm64'; exit 1; }
       - name: Select official Swift 6.4 on stable macOS
         run: bash .github/scripts/setup-stable-swift.sh
       - name: Probe direct compiler and isolated SwiftBuild package
