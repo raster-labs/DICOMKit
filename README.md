@@ -23,8 +23,8 @@ newly qualified for this allocation profile.
 
 <p align="center">
   <a href="https://github.com/Raster-Lab/DICOMKit/actions/workflows/ci.yml"><img src="https://github.com/Raster-Lab/DICOMKit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.2-orange.svg" alt="Swift 6.2"></a>
-  <a href="https://developer.apple.com"><img src="https://img.shields.io/badge/Platforms-iOS%2017%20|%20macOS%2014%20|%20visionOS%201-blue.svg" alt="Platforms"></a>
+  <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.4-orange.svg" alt="Swift 6.4"></a>
+  <a href="https://developer.apple.com"><img src="https://img.shields.io/badge/Platforms-iOS%2018%20|%20macOS%2015%20|%20visionOS%202-blue.svg" alt="Platforms"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/Tests-2180+-brightgreen.svg" alt="Tests">
   <img src="https://img.shields.io/badge/CLI%20Tools-31+-purple.svg" alt="CLI Tools">
@@ -1577,27 +1577,27 @@ These features may be added in future versions. See [MILESTONES.md](MILESTONES.m
 
 | Platform | Minimum Version | Architecture | Notes |
 |----------|-----------------|--------------|-------|
-| **iOS** | 17.0+ | arm64 | iPhone, iPad |
-| **macOS** | 14.0+ | arm64, x86_64 | Apple Silicon and Intel |
-| **visionOS** | 1.0+ | arm64 | Apple Vision Pro |
+| **iOS** | 18.0+ | arm64 | iPhone, iPad |
+| **macOS** | 15.0+ | arm64, x86_64 | Apple Silicon and Intel |
+| **visionOS** | 2.0+ | arm64 | Apple Vision Pro; J2KSwift deployment-target limitation noted in Package.swift |
 
 ### Build Requirements
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
-| **Swift** | 6.2+ | Required for strict concurrency |
-| **Xcode** | 16.0+ | For Apple platform development |
-| **macOS** | 14.0+ | For building and CLI tools |
+| **Swift** | 6.4+ | Required by Package.swift |
+| **Xcode** | 27.0+ | Supplies the required Swift 6.4 toolchain |
+| **macOS** | 15.0+ | Deployment target for CLI tools; build host must support Xcode 27 |
 
 ### Dependencies
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
 | Swift Argument Parser | 1.8.2+ | CLI tools argument parsing |
-| J2KSwift | 11.0.1+ | JPEG 2000 / HTJ2K / JP3D / JPIP codec stack |
-| JLSwift | 0.9.0+ | JPEG-LS codec |
-| JLISwift | 0.5.0+ | Native-Swift JPEG codec + DICOM bridge |
-| JXLSwift | 1.1.0+ | JPEG XL codec |
+| J2KSwift | 11.0.3+ | JPEG 2000 / HTJ2K / JP3D / JPIP codec stack |
+| JLSwift | 0.10.1 (exact) | JPEG-LS codec |
+| JLISwift | 0.6.0 (exact) | Native-Swift JPEG codec + DICOM bridge |
+| JXLSwift | 1.4.0+ | JPEG XL codec |
 
 ---
 
@@ -4647,8 +4647,10 @@ For complete CLI tool documentation, see [CLI_TOOLS_COMPLETION_SUMMARY.md](CLI_T
 
 DICOMKit is organized into four modules:
 
-### DICOMCore (v0.9.1, v0.9.4, v1.0.9, v1.0.10)
+### DICOMCore (v0.9.1, v0.9.4, v1.0.9, v1.0.10, v2.4.0)
 Core data types and utilities:
+- `DICOMAllocationBudget`, `DICOMByteBuffer`, `DICOMExecutionReservation` — mapped allocation ownership and worker-stack admission (NEW in v2.4.0)
+- `ManagedDecodedPixelFrame` — retained decoded capacity, explicit sharing and retirement notification (NEW in v2.4.0)
 - `VR` - All 31 Value Representations from DICOM PS3.5
 - `Tag` - Data element tags (group, element pairs)
 - `DataElement` - Individual DICOM data elements
@@ -4819,8 +4821,9 @@ DICOM network protocol implementation:
 - `PrintError` - Detailed error cases with recovery suggestions (NEW in v1.4.4)
 - `PartialPrintResult` - Partial failure handling (NEW in v1.4.4)
 
-### DICOMKit (v0.9.2, v0.9.3, v0.9.4, v0.9.5, v0.9.6, v0.9.7, v0.9.8, v1.0.1, v1.0.2, v1.0.3, v1.0.4, v1.0.5, v1.0.6, v1.0.7, v1.0.8, v1.1.0, v1.5.0, v1.6.0, v1.7.0)
+### DICOMKit (v0.9.2, v0.9.3, v0.9.4, v0.9.5, v0.9.6, v0.9.7, v0.9.8, v1.0.1, v1.0.2, v1.0.3, v1.0.4, v1.0.5, v1.0.6, v1.0.7, v1.0.8, v1.1.0, v1.5.0, v1.6.0, v1.7.0, v2.4.0)
 High-level API:
+- `VerifiedFileByteSource`, `BoundedParsingOptions`, `BoundedDICOMFile` — strict verified windows and deferred access through the canonical parser (NEW in v2.4.0)
 - `DICOMFile` - DICOM Part 10 file abstraction (reading and writing)
 - `DataSet` - Collections of data elements (with setter methods)
 - `PixelDataRenderer` - CGImage rendering for Apple platforms (iOS, macOS, visionOS)
@@ -5450,6 +5453,7 @@ This library implements the DICOM standard as published by the National Electric
 
 | Version | Release | Key Features |
 |---------|---------|--------------|
+| **v2.4.0** | Oct 2026 | Verified bounded input, explicit codec storage ownership and runtime qualification |
 | **v2.2.9** | Jul 2026 | Warning-clean SwiftPM package planning and immutable release hygiene |
 | **v1.8.0** | Feb 2026 | UPS Task Handling Enhancements, WorkitemBuilder |
 | **v1.7.0** | Feb 2026 | Secondary Capture Image IOD support |

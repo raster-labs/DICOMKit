@@ -1281,92 +1281,138 @@ struct DICOMParser: ~Copyable {
     /// Undefined length sequences end with Sequence Delimitation Item (FFFE,E0DD).
     ///
     /// Reference: PS3.5 Section 7.5 - Nesting of Data Sets
+    private struct SequenceParseContext {
+        let startOffset: Int
+        let endOffset: Int?
+        let capturedElement: Int?
+        let parentSequence: Int?
+    }
+
     private mutating func parseSequenceElement(tag: Tag, vr: VR, valueLength: UInt32, isExplicitVR: Bool,
-        byteOrder: ByteOrder)
-        -> DICOMDataElementOutcome {
-        var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
+        byteOrder: ByteOrder) -> DICOMDataElementOutcome {
         if isStrict {
             if case .failure(let failure) = Self.reserve(1, used: &sequenceDepth,
-                             limit: options.strictResourceLimits.maximumSequenceDepth,
-                             resource: .sequenceDepth) { return .failure(failure) }
+                limit: options.strictResourceLimits.maximumSequenceDepth, resource: .sequenceDepth) {
+                return .failure(failure)
+            }
         } else { sequenceDepth += 1 }
         defer { sequenceDepth -= 1 }
         if sequenceDepth > options.maxSequenceDepth {
-            return .failure(DICOMParserFailure.sequenceDepthLimit(options.maxSequenceDepth))
+            return .failure(.sequenceDepthLimit(options.maxSequenceDepth))
         }
+        var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
+        guard let context = prepareSequenceBody(tag: tag, vr: vr, valueLength: valueLength,
+            byteOrder: byteOrder).takeValue(failure: &parsingFailure) else {
+            return .failure(parsingFailure)
+        }
+        if let element = context.capturedElement { capture?.currentSequence = element }
+        defer { if let parent = context.parentSequence { capture?.currentSequence = parent } }
+        let sequenceItems: [SequenceItem]
+        if let end = context.endOffset {
+            switch parseExplicitLengthSequence(endOffset: end, isExplicitVR: isExplicitVR, byteOrder: byteOrder) {
+            case .failure(let failure): return .failure(failure)
+            case .success(let items): sequenceItems = items
+            }
+        } else {
+            switch parseUndefinedLengthSequence(isExplicitVR: isExplicitVR, byteOrder: byteOrder) {
+            case .failure(let failure): return .failure(failure)
+            case .success(let items): sequenceItems = items
+            }
+        }
+        return finishSequenceBody(context, tag: tag, vr: vr, valueLength: valueLength,
+            items: sequenceItems, byteOrder: byteOrder)
+    }
+
+    /// Boundary/capture temporaries finish before any recursive descent.
+    @inline(never)
+    private mutating func prepareSequenceBody(tag: Tag, vr: VR, valueLength: UInt32, byteOrder: ByteOrder)
+        -> DICOMParserOutcome<SequenceParseContext> {
+        var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
         if case .failure(let failure) = countElement() { return .failure(failure) }
         let startOffset = offset
         let capturedElement: Int?
         if let capture {
-            guard let parsedValue1 = capture.append(tag: tag, vr: vr, length: valueLength,
+            guard let value = capture.append(tag: tag, vr: vr, length: valueLength,
                 byteOrder: byteOrder, range: offset..<offset).takeValue(failure: &parsingFailure) else {
                 return .failure(parsingFailure)
             }
-            capturedElement = parsedValue1
+            capturedElement = value
         } else { capturedElement = nil }
-        let parentSequence = capture?.currentSequence
-        if let capturedElement { capture?.currentSequence = capturedElement }
-        defer { if let parentSequence { capture?.currentSequence = parentSequence } }
-        var sequenceItems: [SequenceItem] = []
-        
-        if valueLength == 0xFFFFFFFF {
-            // Undefined length sequence - parse until Sequence Delimitation Item
-            guard let parsedValue2 = parseUndefinedLengthSequence(isExplicitVR: isExplicitVR, byteOrder: byteOrder)
-                .takeValue(failure: &parsingFailure) else {
+        let endOffset: Int?
+        if valueLength == 0xFFFFFFFF { endOffset = nil }
+        else {
+            guard let declaredEnd = valueEndOffset(length: valueLength).takeValue(failure: &parsingFailure) else {
                 return .failure(parsingFailure)
             }
-            sequenceItems = parsedValue2
-        } else {
-            guard let parsedValue3 = valueEndOffset(length: valueLength).takeValue(failure: &parsingFailure) else {
-                return .failure(parsingFailure)
-            }
-            let declaredEnd = parsedValue3
-            let endOffset = isStrict ? declaredEnd : min(declaredEnd, data.count)
-            // Strict raw SQ copies remain separately charged before descent.
+            endOffset = isStrict ? declaredEnd : min(declaredEnd, data.count)
             if case .failure(let failure) = reserveValueBytes(Int(valueLength)) { return .failure(failure) }
-            guard let parsedValue4 = parseExplicitLengthSequence(endOffset: endOffset, isExplicitVR: isExplicitVR,
-                byteOrder: byteOrder)
-                .takeValue(failure: &parsingFailure) else {
-                return .failure(parsingFailure)
-            }
-            sequenceItems = parsedValue4
         }
-        
-        // Undefined raw SQ length is known only after its delimiter. Charge it
-        // before making the copy; child values have already been charged separately.
+        return .success(SequenceParseContext(startOffset: startOffset, endOffset: endOffset,
+            capturedElement: capturedElement, parentSequence: capture?.currentSequence))
+    }
+
+    /// Raw-value materialization only starts after all recursive frames return.
+    @inline(never)
+    private mutating func finishSequenceBody(_ context: SequenceParseContext, tag: Tag, vr: VR,
+        valueLength: UInt32, items: [SequenceItem], byteOrder: ByteOrder) -> DICOMDataElementOutcome {
         if valueLength == 0xFFFFFFFF {
-            if case .failure(let failure) = reserveValueBytes(offset - startOffset) {
+            if case .failure(let failure) = reserveValueBytes(offset - context.startOffset) {
                 return .failure(failure)
             }
         }
-        // Get the raw value data (for completeness). Clamp both bounds: on
-        // truncated input the delimiter-skip paths can leave `offset` a few
-        // bytes past `data.count`, and an unclamped range would trap.
         let rawEnd = min(offset, data.count)
         let valueData: Data
-        if let capture, let capturedElement {
-            capture.setRange(startOffset..<rawEnd, for: capturedElement)
+        if let capture, let element = context.capturedElement {
+            capture.setRange(context.startOffset..<rawEnd, for: element)
             valueData = Data()
-        } else {
-            if startOffset <= rawEnd {
-                guard let value = data.subdata(in: startOffset..<rawEnd).takeValue(failure: &parsingFailure) else {
-                    return .failure(parsingFailure)
-                }
-                valueData = value
+        } else if context.startOffset <= rawEnd {
+            var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
+            guard let value = data.subdata(in: context.startOffset..<rawEnd).takeValue(failure: &parsingFailure) else {
+                return .failure(parsingFailure)
             }
-            else { valueData = Data() }
-        }
-        
-        return .success(DataElement(
-            tag: tag,
-            vr: vr,
-            length: valueLength,
-            valueData: valueData,
-            sequenceItems: sequenceItems,
-            byteOrder: byteOrder
-        ))
+            valueData = value
+        } else { valueData = Data() }
+        return .success(DataElement(tag: tag, vr: vr, length: valueLength,
+            valueData: valueData, sequenceItems: items, byteOrder: byteOrder))
     }
-    
+
+    /// Finish item-header temporaries before entering the recursive item parser.
+    /// A nil header is an accepted terminator under the existing length policy.
+    @inline(never)
+    private mutating func parseSequenceItemHeader(undefinedLength: Bool, byteOrder: ByteOrder)
+        -> DICOMParserOutcome<UInt32?> {
+        var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
+        guard let group = readUInt16(at: offset, byteOrder: byteOrder)
+            .takeValue(failure: &parsingFailure) else { return .failure(parsingFailure) }
+        guard let group else {
+            return undefinedLength ? .failure(.unexpectedEndOfData) : .success(nil)
+        }
+        guard let element = readUInt16(at: offset + 2, byteOrder: byteOrder)
+            .takeValue(failure: &parsingFailure) else { return .failure(parsingFailure) }
+        guard let element else {
+            return undefinedLength ? .failure(.unexpectedEndOfData) : .success(nil)
+        }
+        let itemTag = Tag(group: group, element: element)
+        if undefinedLength && itemTag == .sequenceDelimitationItem {
+            if case .failure(let failure) = requireDelimiterLength(byteOrder: byteOrder) {
+                return .failure(failure)
+            }
+            offset += 8
+            return .success(nil)
+        }
+        guard itemTag == .item else {
+            if undefinedLength { return .failure(.expectedSequenceItem(itemTag)) }
+            if isStrict { return .failure(.malformed(offset: offset, reason: .expectedSequenceItem)) }
+            return .success(nil)
+        }
+        offset += 4
+        guard let length = readUInt32(at: offset, byteOrder: byteOrder)
+            .takeValue(failure: &parsingFailure) else { return .failure(parsingFailure) }
+        guard let length else { return .failure(.unexpectedEndOfData) }
+        offset += 4
+        return .success(length)
+    }
+
     /// Parses a sequence with explicit length
     ///
     /// The sequence ends when we reach the specified end offset.
@@ -1378,45 +1424,12 @@ struct DICOMParser: ~Copyable {
         var items: [SequenceItem] = []
         
         while offset < endOffset && offset < data.count {
-            // Read item tag
-            guard let parsedValue1 = readUInt16(at: offset, byteOrder: byteOrder)
+            guard let header = parseSequenceItemHeader(undefinedLength: false, byteOrder: byteOrder)
                 .takeValue(failure: &parsingFailure) else {
                 return .failure(parsingFailure)
             }
-            guard let groupNumber = parsedValue1 else {
-                break
-            }
-            guard let parsedValue2 = readUInt16(at: offset + 2, byteOrder: byteOrder)
-                .takeValue(failure: &parsingFailure) else {
-                return .failure(parsingFailure)
-            }
-            guard let elementNumber = parsedValue2 else {
-                break
-            }
-            
-            let itemTag = Tag(group: groupNumber, element: elementNumber)
-            
-            // Must be Item tag (FFFE,E000)
-            guard itemTag == .item else {
-                if isStrict {
-                    return .failure(DICOMParserFailure.malformed(offset: offset, reason: .expectedSequenceItem))
-                }
-                // Not an item tag - we're done with the sequence
-                break
-            }
-            
-            offset += 4
-            
-            // Read item length
-            guard let parsedValue3 = readUInt32(at: offset, byteOrder: byteOrder)
-                .takeValue(failure: &parsingFailure) else {
-                return .failure(parsingFailure)
-            }
-            guard let itemLength = parsedValue3 else {
-                return .failure(DICOMParserFailure.unexpectedEndOfData)
-            }
-            offset += 4
-            
+            guard let itemLength = header else { break }
+
             // Parse item contents
             guard let parsedValue4 = parseSequenceItem(itemLength: itemLength, isExplicitVR: isExplicitVR,
                 byteOrder: byteOrder)
@@ -1449,51 +1462,15 @@ struct DICOMParser: ~Copyable {
         var foundDelimiter = false
         
         while offset < data.count {
-            // Read tag
-            guard let parsedValue1 = readUInt16(at: offset, byteOrder: byteOrder)
+            guard let header = parseSequenceItemHeader(undefinedLength: true, byteOrder: byteOrder)
                 .takeValue(failure: &parsingFailure) else {
                 return .failure(parsingFailure)
             }
-            guard let groupNumber = parsedValue1 else {
-                return .failure(DICOMParserFailure.unexpectedEndOfData)
-            }
-            guard let parsedValue2 = readUInt16(at: offset + 2, byteOrder: byteOrder)
-                .takeValue(failure: &parsingFailure) else {
-                return .failure(parsingFailure)
-            }
-            guard let elementNumber = parsedValue2 else {
-                return .failure(DICOMParserFailure.unexpectedEndOfData)
-            }
-            
-            let itemTag = Tag(group: groupNumber, element: elementNumber)
-            
-            // Check for Sequence Delimitation Item
-            if itemTag == .sequenceDelimitationItem {
-                if case .failure(let failure) = requireDelimiterLength(byteOrder: byteOrder) {
-                    return .failure(failure)
-                }
-                offset += 8
+            guard let itemLength = header else {
                 foundDelimiter = true
                 break
             }
-            
-            // Must be Item tag (FFFE,E000)
-            guard itemTag == .item else {
-                return .failure(DICOMParserFailure.expectedSequenceItem(itemTag))
-            }
-            
-            offset += 4
-            
-            // Read item length
-            guard let parsedValue3 = readUInt32(at: offset, byteOrder: byteOrder)
-                .takeValue(failure: &parsingFailure) else {
-                return .failure(parsingFailure)
-            }
-            guard let itemLength = parsedValue3 else {
-                return .failure(DICOMParserFailure.unexpectedEndOfData)
-            }
-            offset += 4
-            
+
             // Parse item contents
             guard let parsedValue4 = parseSequenceItem(itemLength: itemLength, isExplicitVR: isExplicitVR,
                 byteOrder: byteOrder)
@@ -1607,6 +1584,27 @@ struct DICOMParser: ~Copyable {
         return .success(elements)
     }
     
+    /// Keep tag-peek and delimiter failure transport off the recursive frame.
+    @inline(never)
+    private mutating func consumeItemDelimiter(byteOrder: ByteOrder) -> DICOMParserOutcome<Bool> {
+        var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
+        guard let group = readUInt16(at: offset, byteOrder: byteOrder)
+            .takeValue(failure: &parsingFailure) else { return .failure(parsingFailure) }
+        guard let group else { return .failure(.unexpectedEndOfData) }
+        guard let element = readUInt16(at: offset + 2, byteOrder: byteOrder)
+            .takeValue(failure: &parsingFailure) else { return .failure(parsingFailure) }
+        guard let element else { return .failure(.unexpectedEndOfData) }
+        if isStrict && group == 0x0002 {
+            return .failure(.malformed(offset: offset, reason: .fileMetaInItem))
+        }
+        guard Tag(group: group, element: element) == .itemDelimitationItem else { return .success(false) }
+        if case .failure(let failure) = requireDelimiterLength(byteOrder: byteOrder) {
+            return .failure(failure)
+        }
+        offset += 8
+        return .success(true)
+    }
+
     /// Parses an item with undefined length
     ///
     /// Ends with Item Delimitation Item (FFFE,E00D).
@@ -1618,37 +1616,15 @@ struct DICOMParser: ~Copyable {
         var foundDelimiter = false
         
         while offset < data.count {
-            // Peek at tag
-            guard let parsedValue1 = readUInt16(at: offset, byteOrder: byteOrder)
+            guard let isDelimiter = consumeItemDelimiter(byteOrder: byteOrder)
                 .takeValue(failure: &parsingFailure) else {
                 return .failure(parsingFailure)
             }
-            guard let groupNumber = parsedValue1 else {
-                return .failure(DICOMParserFailure.unexpectedEndOfData)
-            }
-            guard let parsedValue2 = readUInt16(at: offset + 2, byteOrder: byteOrder)
-                .takeValue(failure: &parsingFailure) else {
-                return .failure(parsingFailure)
-            }
-            guard let elementNumber = parsedValue2 else {
-                return .failure(DICOMParserFailure.unexpectedEndOfData)
-            }
-            
-            let nextTag = Tag(group: groupNumber, element: elementNumber)
-            if isStrict && groupNumber == 0x0002 {
-                return .failure(DICOMParserFailure.malformed(offset: offset, reason: .fileMetaInItem))
-            }
-            
-            // Check for Item Delimitation Item
-            if nextTag == .itemDelimitationItem {
-                if case .failure(let failure) = requireDelimiterLength(byteOrder: byteOrder) {
-                    return .failure(failure)
-                }
-                offset += 8
+            if isDelimiter {
                 foundDelimiter = true
                 break
             }
-            
+
             // Parse the element
             let elementOffset = offset
             let element: DataElement

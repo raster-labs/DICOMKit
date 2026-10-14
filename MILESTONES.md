@@ -4378,11 +4378,11 @@ We welcome contributions at any milestone! Please see [CONTRIBUTING.md](CONTRIBU
 
 ## v2.4.0 verified bounded input and codec ownership
 
-Status: final release qualification in progress.
+Status: local release qualification complete; hosted CI/publication and Mayam integration tracked separately.
 
 - [x] Canonical strict full parser over verified windows; fixed digest and deferred values.
 - [x] Explicit mapped payload/control ownership, independent-copy admission, alias lifetime and final-retirement notification.
 - [x] Nonthrowing scalar source/parser/codec outcomes and whole-worker stack admission.
 - [x] Caller-owned JPEG/JPEG-LS storage and CLI bounded source/index summary.
-- [ ] Final compiler/runtime closure, broad/platform/Release gates and published dependency pins.
+- [x] Final compiler/runtime closure, broad/Release/CPU/iOS gates and published codec pins (documented visionOS dependency limitation).
 - [ ] Mayam provider integration and validation, owned by the active Mayam successor.

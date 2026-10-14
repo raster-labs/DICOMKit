@@ -394,6 +394,10 @@ struct StrictParsingTests {
         #expect(throws: StrictParsingError.resourceLimitExceeded(resource: .sequenceDepth, limit: 1)) {
             try read(bytes, options: bounded(.init(maximumSequenceDepth: 1)))
         }
+        // Exercise the complete accepted depth on the test worker's real stack.
+        var accepted = leaf
+        for _ in 0..<32 { accepted = sq(item(accepted, undefined: undefined), undefined: undefined, implicit: implicit) }
+        #expect(try read(file(accepted, syntax: implicit ? implicitUID : explicitUID)).dataSet[sequence] != nil)
         var adversarial = leaf
         for _ in 0..<1_000 { adversarial = sq(item(adversarial, undefined: undefined), undefined: undefined, implicit: implicit) }
         #expect(throws: StrictParsingError.resourceLimitExceeded(resource: .sequenceDepth, limit: 32)) {

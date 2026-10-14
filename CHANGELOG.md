@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-14
+
+### Added — explicit allocation ownership
+
+- Strict full parsing over verified file windows, fixed SHA-256 identity and deferred values/frames through the canonical parser.
+- Mapped payload/control admission, explicit aliases and transfers, final-retirement notification, nonthrowing scalar outcomes and whole-worker stack reservations.
+- Managed caller-storage JPEG/JPEG-LS decoding using exact JLISwift 0.6.0 and JLSwift 0.10.1 dependencies; preserved source/frame/descriptor checks and existing resource caps.
+- `dicom-info --bounded-summary` exposes verified source/index backing receipts. Final caller/runtime/provider admission remains separate; see `Documentation/BoundedInput/AllocationContract.md`.
+- Incorporates the upstream OCR anonymization pipeline and existing shared API safeguards from main. These owned workflows are outside the selected allocation qualification.
+
+### Fixed
+
+- Concrete parser ownership-result transport avoids cold generic cleanup metadata on the qualified path.
+- CLI validation subprocess handling drains stderr without deadlocking on a full pipe.
+
 ## [2.3.1] - 2026-10-12
 
 ### Fixed — compressed-frame interpretation

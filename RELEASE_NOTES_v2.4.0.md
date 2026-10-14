@@ -29,4 +29,16 @@ arbitrary-instrumentation claim, process-wide OOM recovery guarantee, Mayam prov
 acceptance or clinical validation. The source reader is not an atomic snapshot
 against a hostile writer. See `Documentation/BoundedInput/AllocationContract.md`.
 
-Final qualification receipts and immutable codec commit pins are pending.
+Exact codec dependencies are JLISwift 0.6.0 and JLSwift 0.10.1, with immutable
+commits recorded in `Documentation/BoundedInput/LocalSourceClosure.json`.
+
+Validation completed: 9,374 unique Swift Testing tests (including optimized sparse
+boundaries), 6,048 XCTest entries with 44 existing skips, optimized warnings-as-errors
+Release, forced-CPU rendering, iOS simulator module build, and renewed source/codegen
+and linked ownership/oracle checks. The full run had one Studio ARTIM timeout; the
+entire unchanged Studio target passed on repeat. visionOS retains the documented
+J2KSwift deployment-target limitation. See `Documentation/BoundedInput/AllocationQualification.md` for scope.
+
+The parser now keeps sequence temporaries off recursive frames, preserving the
+depth-32 limit. Release automation propagates test failures and crashes instead of
+accepting another target's passing summary.

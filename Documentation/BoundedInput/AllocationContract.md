@@ -1,7 +1,7 @@
 # Bounded input allocation contract
 
-14 October 2026. Release qualification is in progress. Final source and validation
-receipts accompany the published dependency closure; this document defines the API
+14 October 2026. Source and validation receipts accompany the released dependency
+closure; this document defines the API
 contract, not Mayam provider or native presentation acceptance.
 
 ## Ownership and limits

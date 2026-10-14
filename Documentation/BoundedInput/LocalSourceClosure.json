@@ -1,21 +1,23 @@
 {
-  "status": "Local unpublished candidate; payload accounting only; provider integration not qualified",
-  "DICOMKitBase": "cae78a752243bd033d12ee7f5d0dcc9670ecf804",
+  "status": "Released codec source closure and completed local DICOMKit release qualification; Mayam provider integration separate",
+  "DICOMKitBase": "1580377c598cdd2934db73e5e6900021c88a3285",
   "incorporatedMayamPatchSHA256": {
     "DICOMKit-opt-in-strict-parsing.patch": "9840b71e26ae38173c954cbdfcea31e2550d4716ef9db9a2b176e7a67dc38a6d",
     "DICOMKit-discovery.patch": "d5a4917711cdda9213918d97777b64d314b83527e129eaed0d5517c1e33e3499"
   },
-  "codecEdits": {
-    "JLSwift": {
-      "base": "94959fc037092897cd7c5c90eaf2fbf1ae5af814",
-      "revision": "f63aa20dbb2cd1928885f5785688279aa219591c"
+  "releasedCodecs": {
+    "jliswift": {
+      "revision": "b6df774a3c3ecdf4b98971f31543fdd18074ace2",
+      "version": "0.6.0",
+      "url": "https://github.com/raster-labs/JLISwift.git"
     },
-    "JLISwift": {
-      "base": "981da4efb7d62e4370c5d6de706d56a729b9552e",
-      "revision": "772031004c5fa07ca763cf3efb303d5405664f9d"
+    "jlswift": {
+      "revision": "d17545284a23e93f3d884a18f1046c4e305daa35",
+      "version": "0.10.1",
+      "url": "https://github.com/raster-labs/JLSwift.git"
     }
   },
-  "unchangedPins": {
+  "otherPins": {
     "compressionfamily": {
       "revision": "30fd74b6df841cf79b1a0247534a723f5e7ab4ba",
       "version": "1.0.0"
@@ -33,5 +35,6 @@
       "version": "1.8.2"
     }
   },
-  "integration": "Use SwiftPM edit mode with the two exact local codec revisions. Package.swift names published codec releases; Package.resolved contains the four unedited pins and the qualified scratch workspace-state selects both local codec edits. The new managed APIs require that local edit closure. Do not reapply the incorporated strict/discovery patches. Do not replace Mayam qualified donor/pins until allocation and provider gates pass."
+  "localEditOverrides": false,
+  "integration": "Resolve Package.swift/Package.resolved from released immutable commits. Both codec checkout source trees match the qualified production sources. Do not reapply incorporated strict/discovery patches. Final Mayam provider validation remains required."
 }
