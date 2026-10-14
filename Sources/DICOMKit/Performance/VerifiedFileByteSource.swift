@@ -1,300 +1,566 @@
 // NEMA-verified: 2026a, checked 2026-10-14 — no DICOM-standard data (verified file I/O).
-#if canImport(CryptoKit) && canImport(Darwin)
+#if canImport(Darwin) || canImport(Glibc)
 import Foundation
-import CryptoKit
+#if canImport(Darwin)
 import Darwin
+#else
+import Glibc
+#endif
 import DICOMCore
 
-/// Bounded acquisition failures deliberately omit paths and source contents.
+/// Legacy error names retained for source compatibility of diagnostics.
 public enum VerifiedSourceError: Error, Equatable, Sendable {
     case invalidOptions, notRegularFile, sizeLimit, readFailed, sourceChanged
     case invalidRange, unbudgetedReadUnsupported
 }
 
-/// Anchored regular-file source with a complete SHA-256 identity and verified reads.
-///
-/// Initial capture hashes every byte incrementally and retains only block digests.
-/// Later reads hash each complete block and expose exactly those verified bytes.
-/// Metadata guards detect ordinary replacement/truncation/mutation; block hashes
-/// also detect changed contents when file timestamps have been restored. This is
-/// not an atomic filesystem snapshot against a hostile writer during capture.
-/// No file mappings or complete owned snapshots are used.
-public final class VerifiedFileByteSource: DICOMVerifiedByteSource, @unchecked Sendable {
-    /// Largest source admitted by this initial verified-input profile, in bytes.
+/// Anchored, immutable file transcript with admitted control, path and digest storage.
+/// Aliases explicitly share the same mapped owner. Every later acquisition verifies
+/// complete blocks and copies those same bytes; no verification/reread gap exists.
+public struct VerifiedFileByteSource: ~Copyable, @unchecked Sendable {
+    /// Largest admitted source; this is independent of simultaneous encoded storage.
     public static let maximumSourceBytes = 256 * 1024 * 1024
-    /// Fixed verification block length in bytes.
+    /// Fixed hashing/verification window.
     public static let blockBytes = 64 * 1024
-    /// Complete source length captured at initialization.
-    public let count: Int
-    /// Lowercase SHA-256 of the complete captured byte transcript.
-    public let identity: String
-    private let descriptor: Int32
-    private let path: String?
-    private let fingerprint: Fingerprint
-    private let hashes: DICOMByteBuffer
-    private let controlLease: DICOMAllocationLease
-    /// Ledger shared by the source, parsed views and acquired byte buffers.
-    public var allocationBudget: DICOMAllocationBudget { budget }
-    private let budget: DICOMAllocationBudget
-    private let hooks: Hooks
-    private let lock = NSLock()
-    private var invalid = false
-
-    enum Stage: Sendable { case capturedBlock(Int), beforeVerification, verifiedBlock(Int) }
-    struct Hooks: Sendable {
-        var stage: (@Sendable (Stage) throws -> Void)?
-        var read: @Sendable (Int32, UnsafeMutableRawPointer?, Int, off_t) -> Int = {
-            Darwin.pread($0, $1, $2, $3)
-        }
+    private let storage: DICOMByteBuffer
+    var view: VerifiedSourceView {
+        guard let base = storage.unsafeMutableBytes.baseAddress else { preconditionFailure("Missing source backing") }
+        return VerifiedSourceView(base: base, cancellation: .never)
     }
-    private struct Fingerprint: Equatable, Sendable {
-        let device: dev_t, inode: ino_t, mode: mode_t, size: off_t
-        let modifiedSeconds: Int, modifiedNanos: Int, changedSeconds: Int, changedNanos: Int
-        init(_ value: stat) {
-            device = value.st_dev; inode = value.st_ino; mode = value.st_mode; size = value.st_size
-            modifiedSeconds = value.st_mtimespec.tv_sec; modifiedNanos = value.st_mtimespec.tv_nsec
-            changedSeconds = value.st_ctimespec.tv_sec; changedNanos = value.st_ctimespec.tv_nsec
+    /// Complete source length.
+    public var count: Int { view.count }
+    /// SHA-256 of the complete captured byte transcript, retained without a String.
+    public var identity: DICOMContentDigest { view.header.pointee.identity }
+    /// Snapshot including all allocations sharing this ledger.
+    public var allocationReceipt: DICOMAllocationReceipt { view.header.pointee.budget.receipt }
+
+    /// Explicit alias; the file descriptor and all backing remain alive until the last alias dies.
+    public borrowing func share() throws(DICOMManagedFailure) -> Self {
+        try shareOutcome().get()
+    }
+    private init(storage: consuming DICOMByteBuffer) { self.storage = storage }
+    /// Retain this source with scalar status and no throwing-runtime call.
+    /// - Returns: An alias retaining its descriptor and all admitted metadata, or refusal.
+    public borrowing func shareOutcome() -> DICOMManagedOutcome<Self> {
+        switch storage.managedShareOutcome() {
+        case .success(let owner): return .success(Self(storage: owner))
+        case .failure(let failure): return .failure(failure)
         }
     }
 
-    /// Open a path with no final-component symlink following. The source owns the
-    /// descriptor until all parsed views and acquisitions release this object.
-    /// - Parameters:
-    ///   - url: Regular file URL; a final-component symlink is refused.
-    ///   - budget: Ledger shared by source and all acquired storage.
-    ///   - maximumBytes: Source byte limit, at most `maximumSourceBytes`.
-    public convenience init(url: URL, budget: DICOMAllocationBudget,
-                            maximumBytes: Int = maximumSourceBytes) throws {
-        try self.init(url: url, budget: budget, maximumBytes: maximumBytes, hooks: Hooks())
-    }
-    convenience init(url: URL, budget: DICOMAllocationBudget, maximumBytes: Int, hooks: Hooks) throws {
+
+    /// Compatibility URL adapter. URL/path conversion is a caller-side Foundation
+    /// operation; use `capture(path:budget:execution:maximumBytes:cancellation:)` for the admitted boundary.
+    public init(url: URL, budget: borrowing DICOMAllocationBudget,
+                maximumBytes: Int = maximumSourceBytes,
+                cancellation: DICOMCancellation = .never) throws {
+        guard url.isFileURL else { throw DICOMManagedFailure(.invalidOptions) }
         let path = url.path
-        guard url.isFileURL, !path.utf8.contains(0) else { throw VerifiedSourceError.invalidOptions }
-        let initial = try Self.pathFingerprint(path)
-        guard initial.mode & S_IFMT == S_IFREG else { throw VerifiedSourceError.notRegularFile }
-        let fd = path.withCString { Darwin.open($0, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC) }
-        guard fd >= 0 else { throw VerifiedSourceError.readFailed }
-        // The designated initializer takes ownership even when it fails.
-        try self.init(ownedDescriptor: fd, path: path, expected: initial,
-                      budget: budget, maximumBytes: maximumBytes, hooks: hooks)
-    }
-
-    /// Duplicate a caller-owned descriptor. Reads use pread and never alter the
-    /// caller's file offset. This checks the anchored file, not an absent path.
-    /// - Parameters:
-    ///   - descriptor: Caller-owned readable regular-file descriptor, retained independently by duplication.
-    ///   - budget: Ledger shared by source and all acquired storage.
-    ///   - maximumBytes: Source byte limit, at most `maximumSourceBytes`.
-    public convenience init(descriptor: Int32, budget: DICOMAllocationBudget,
-                            maximumBytes: Int = maximumSourceBytes) throws {
-        let fd = fcntl(descriptor, F_DUPFD_CLOEXEC, 0)
-        guard fd >= 0 else { throw VerifiedSourceError.readFailed }
-        try self.init(ownedDescriptor: fd, path: nil, expected: nil,
-                      budget: budget, maximumBytes: maximumBytes, hooks: Hooks())
-    }
-
-    private init(ownedDescriptor fd: Int32, path: String?, expected: Fingerprint?,
-                 budget: DICOMAllocationBudget, maximumBytes: Int, hooks: Hooks) throws {
-        var acquired = false
-        defer { if !acquired { _ = Darwin.close(fd) } }
-        try Task.checkCancellation()
-        guard maximumBytes >= 0, maximumBytes <= Self.maximumSourceBytes else {
-            throw VerifiedSourceError.invalidOptions
+        guard !path.utf8.contains(0) else { throw DICOMManagedFailure(.invalidOptions) }
+        var result: Self?
+        try path.withCString { pointer in
+            result = try Self(path: UnsafeBufferPointer(start: pointer, count: strlen(pointer) + 1),
+                              budget: budget, maximumBytes: maximumBytes, cancellation: cancellation)
         }
-        let initial = try Self.descriptorFingerprint(fd)
-        guard initial.mode & S_IFMT == S_IFREG else { throw VerifiedSourceError.notRegularFile }
-        guard expected == nil || expected == initial else { throw VerifiedSourceError.sourceChanged }
-        if let path, try Self.pathFingerprint(path) != initial { throw VerifiedSourceError.sourceChanged }
-        guard initial.size >= 0, initial.size <= maximumBytes else { throw VerifiedSourceError.sizeLimit }
-        let count = Int(initial.size)
-        let blocks = (count + Self.blockBytes - 1) / Self.blockBytes
-        // Provisional control allowance for source/lock/path and hash contexts;
-        // it is not a qualified runtime-allocation bound. Payload window and
-        // digest-table mappings have independent exact charges.
-        let controls = try budget.reserve(64 * 1024, as: .metadata)
-        var fullHash = SHA256()
-        let hashes = try DICOMByteBuffer(count: blocks * SHA256.byteCount,
-                                        budget: budget, resource: .metadata) { table in
-            for block in 0..<blocks {
-                try Task.checkCancellation()
-                let start = block * Self.blockBytes
-                let length = min(Self.blockBytes, count - start)
-                let window = try Self.readBlock(fd, start: start, length: length, budget: budget, hooks: hooks)
-                window.withUnsafeBytes { bytes in
-                    fullHash.update(bufferPointer: bytes)
-                    var blockHash = SHA256(); blockHash.update(bufferPointer: bytes)
-                    blockHash.finalize().withUnsafeBytes { digest in
-                        if let target = table.baseAddress, let source = digest.baseAddress {
-                            target.advanced(by: block * SHA256.byteCount)
-                                .copyMemory(from: source, byteCount: SHA256.byteCount)
-                        }
-                    }
-                }
-                try hooks.stage?(.capturedBlock(block))
+        guard let value = consume result else { throw DICOMManagedFailure(.invalidOptions) }
+        self = value
+    }
+
+    /// Open a caller-owned NUL-terminated path without following a final symlink.
+    /// Copies and admits the complete path before opening; its bytes must remain
+    /// stable only for this synchronous call. No Foundation path conversion occurs.
+    public init(path: UnsafeBufferPointer<CChar>, budget: borrowing DICOMAllocationBudget,
+                maximumBytes: Int = maximumSourceBytes,
+                cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) {
+        try self.init(path: path, descriptor: nil, budget: budget, maximumBytes: maximumBytes,
+                      cancellation: cancellation, hooks: Hooks())
+    }
+
+    /// Capture a source on a worker whose complete stack is already admitted.
+    /// Retain `execution` through the complete synchronous parse/acquisition/decode
+    /// operation, including failure and cancellation. The path and cancellation
+    /// context are borrowed caller inputs; they must remain valid during this call.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public init(path: UnsafeBufferPointer<CChar>, budget: borrowing DICOMAllocationBudget,
+                execution: borrowing DICOMExecutionReservation, maximumBytes: Int = maximumSourceBytes,
+                cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) {
+        self = try Self.capture(path: path, budget: budget, execution: execution,
+                                maximumBytes: maximumBytes, cancellation: cancellation).get()
+    }
+
+    /// Duplicate a source descriptor on a worker whose complete stack is admitted.
+    /// Retain the reservation until the entire synchronous operation returns.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public init(descriptor: Int32, budget: borrowing DICOMAllocationBudget,
+                execution: borrowing DICOMExecutionReservation, maximumBytes: Int = maximumSourceBytes,
+                cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) {
+        self = try Self.capture(descriptor: descriptor, budget: budget, execution: execution,
+                                maximumBytes: maximumBytes, cancellation: cancellation).get()
+    }
+
+    /// Validate the current worker against this source's retained allocation ledger.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public func validateExecution(_ execution: borrowing DICOMExecutionReservation) throws(DICOMManagedFailure) {
+        try validateExecutionOutcome(execution).get()
+    }
+
+    /// Duplicate a caller-owned descriptor; pread never changes its file offset.
+    public init(descriptor: Int32, budget: borrowing DICOMAllocationBudget,
+                maximumBytes: Int = maximumSourceBytes,
+                cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) {
+        try self.init(path: UnsafeBufferPointer(start: nil, count: 0), descriptor: descriptor,
+                      budget: budget, maximumBytes: maximumBytes, cancellation: cancellation, hooks: Hooks())
+    }
+
+    /// Test callbacks are thin functions with a caller-owned context. Their storage,
+    /// behavior are outside the library's admitted implementation. Unlike operation
+    /// cancellation, this internal test context must outlive every source alias.
+    struct Hooks: @unchecked Sendable {
+        var context: UnsafeMutableRawPointer? = nil
+        var stage: (@convention(c) (UnsafeMutableRawPointer?, Int, Int) -> Int32)? = nil
+        var read: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafeMutableRawPointer?, Int, off_t) -> Int)? = nil
+    }
+
+    init(path: UnsafeBufferPointer<CChar>, descriptor: Int32?, budget: borrowing DICOMAllocationBudget,
+         maximumBytes: Int, cancellation: DICOMCancellation, hooks: Hooks) throws(DICOMManagedFailure) {
+        self = try Self.capture(path: path, descriptor: descriptor, budget: budget,
+            maximumBytes: maximumBytes, cancellation: cancellation, hooks: hooks).get()
+    }
+
+    static func capture(path: UnsafeBufferPointer<CChar>, descriptor: Int32?, budget: borrowing DICOMAllocationBudget,
+         maximumBytes: Int, cancellation: DICOMCancellation, hooks: Hooks) -> DICOMManagedOutcome<Self> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard maximumBytes >= 0, maximumBytes <= Self.maximumSourceBytes else {
+            return .failure(DICOMManagedFailure(.invalidOptions))
+        }
+        if descriptor == nil {
+            guard path.count > 1, path[path.count - 1] == 0 else {
+                return .failure(DICOMManagedFailure(.invalidOptions))
+            }
+            for i in 0..<(path.count - 1) where path[i] == 0 { return .failure(DICOMManagedFailure(.invalidOptions)) }
+        }
+        // The path is admitted before any persistent copy. The full digest table is
+        // bounded by the source envelope; its exact logical length is set after stat.
+        var failure = DICOMManagedFailure(.invalidOptions)
+        guard let pathOwner = DICOMByteBuffer.admit(count: path.count, budget: budget, resource: .metadata)
+            .takeValue(failure: &failure) else { return .failure(failure) }
+        if path.count > 0 {
+            pathOwner.unsafeMutableBytes.copyMemory(from: UnsafeRawBufferPointer(path))
+        }
+        let expected: SourceFingerprint?
+        let fd: Int32
+        if let descriptor {
+            expected = nil
+            fd = fcntl(descriptor, F_DUPFD_CLOEXEC, 0)
+        } else {
+            guard let value = SourceFingerprint.path(pathOwner.unsafeMutableBytes.baseAddress)
+                .takeValue(failure: &failure) else { return .failure(failure) }
+            expected = value
+            guard (expected?.mode ?? 0) & S_IFMT == S_IFREG else {
+                return .failure(DICOMManagedFailure(.notRegularFile))
+            }
+            guard let pathBase = pathOwner.unsafeMutableBytes.baseAddress else {
+                return .failure(DICOMManagedFailure(.invalidOptions))
+            }
+            fd = open(pathBase.assumingMemoryBound(to: CChar.self),
+                             O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+        }
+        guard fd >= 0 else { return .failure(DICOMManagedFailure(.readFailed)) }
+        var accepted = false
+        defer { if !accepted { _ = close(fd) } }
+        guard let initial = SourceFingerprint.descriptor(fd).takeValue(failure: &failure) else {
+            return .failure(failure)
+        }
+        guard initial.mode & S_IFMT == S_IFREG else { return .failure(DICOMManagedFailure(.notRegularFile)) }
+        guard expected == nil || initial == expected else { return .failure(DICOMManagedFailure(.sourceChanged)) }
+        guard initial.size >= 0, initial.size <= maximumBytes else { return .failure(DICOMManagedFailure(.sizeLimit)) }
+        let count = Int(initial.size), blocks = (count + Self.blockBytes - 1) / Self.blockBytes
+        let digestOffset = MemoryLayout<VerifiedSourceHeader>.stride
+        let digestEnd = digestOffset + blocks * 32
+        let pathOffset = digestEnd
+        guard path.count <= Int.max - pathOffset else { return .failure(DICOMManagedFailure(.invalidOptions)) }
+        guard let owner = DICOMByteBuffer.admit(count: pathOffset + path.count, budget: budget, resource: .metadata)
+            .takeValue(failure: &failure) else { return .failure(failure) }
+        let bytes = owner.unsafeMutableBytes
+        guard let base = bytes.baseAddress else { return .failure(DICOMManagedFailure(.invalidOptions)) }
+        if path.count > 0 {
+            UnsafeMutableRawBufferPointer(rebasing: bytes[pathOffset..<bytes.count])
+                .copyMemory(from: UnsafeRawBufferPointer(pathOwner.unsafeMutableBytes))
+        }
+        var full = BoundedSHA256()
+        for block in 0..<blocks {
+            if let failure = cancellation.failure { return .failure(failure) }
+            let start = block * Self.blockBytes
+            guard let window = VerifiedSourceView.readBlock(fd, start: start,
+                length: min(Self.blockBytes, count - start), budget: budget, cancellation: cancellation, hooks: hooks)
+                .takeValue(failure: &failure) else { return .failure(failure) }
+            window.withBorrowedBytes { input in
+                full.update(input)
+                var hash = BoundedSHA256(); hash.update(input)
+                hash.finalize().write(to: UnsafeMutableRawBufferPointer(rebasing: bytes[
+                    digestOffset + block * 32..<digestOffset + (block + 1) * 32]))
+            }
+            if case .failure(let failure) = VerifiedSourceView.callHook(hooks, stage: 0, operand: block) {
+                return .failure(failure)
             }
         }
         var probe: UInt8 = 0
         var extra: Int
         repeat {
-            try Task.checkCancellation()
-            extra = hooks.read(fd, &probe, 1, off_t(count))
+            if let failure = cancellation.failure { return .failure(failure) }
+            extra = VerifiedSourceView.pread(hooks, fd, &probe, 1, off_t(count))
         } while extra < 0 && errno == EINTR
-        guard extra >= 0 else { throw VerifiedSourceError.readFailed }
-        guard extra == 0 else { throw VerifiedSourceError.sourceChanged }
-        try hooks.stage?(.beforeVerification)
-        try Task.checkCancellation()
-        guard try Self.descriptorFingerprint(fd) == initial else { throw VerifiedSourceError.sourceChanged }
-        if let path, try Self.pathFingerprint(path) != initial { throw VerifiedSourceError.sourceChanged }
-        self.descriptor = fd; self.path = path; self.fingerprint = initial
-        self.count = count; self.hashes = hashes; self.budget = budget; self.hooks = hooks
-        self.controlLease = controls
-        self.identity = withUnsafeTemporaryAllocation(of: UInt8.self, capacity: 64) { hex in
-            var position = 0
-            for byte in fullHash.finalize() {
-                let high = byte >> 4, low = byte & 15
-                hex[position] = high < 10 ? 48 + high : 87 + high
-                hex[position + 1] = low < 10 ? 48 + low : 87 + low
-                position += 2
-            }
-            return String(decoding: hex, as: UTF8.self)
+        guard extra >= 0 else { return .failure(DICOMManagedFailure(.readFailed)) }
+        guard extra == 0 else { return .failure(DICOMManagedFailure(.sourceChanged)) }
+        if case .failure(let failure) = VerifiedSourceView.callHook(hooks, stage: 1, operand: 0) {
+            return .failure(failure)
         }
-        acquired = true
-    }
-    deinit { _ = Darwin.close(descriptor) }
-
-    /// Validate before publishing a parse/frame result. A detected source error
-    /// permanently invalidates this source, including all retained views.
-    public func validate() throws {
-        try Task.checkCancellation()
-        lock.lock(); let wasInvalid = invalid; lock.unlock()
-        guard !wasInvalid else { throw VerifiedSourceError.sourceChanged }
-        do {
-            guard try Self.descriptorFingerprint(descriptor) == fingerprint else {
-                throw VerifiedSourceError.sourceChanged
-            }
-            if let path, try Self.pathFingerprint(path) != fingerprint { throw VerifiedSourceError.sourceChanged }
-            try Task.checkCancellation()
-        } catch {
-            if error is VerifiedSourceError { invalidate() }
-            throw error
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard let finalFingerprint = SourceFingerprint.descriptor(fd).takeValue(failure: &failure) else {
+            return .failure(failure)
         }
+        guard finalFingerprint == initial else { return .failure(DICOMManagedFailure(.sourceChanged)) }
+        if path.count > 0 {
+            guard let finalPath = SourceFingerprint.path(base.advanced(by: pathOffset))
+                .takeValue(failure: &failure) else {
+                return .failure(failure)
+            }
+            guard finalPath == initial else { return .failure(DICOMManagedFailure(.sourceChanged)) }
+        }
+        guard let retainedBudget = budget.managedShareOutcome().takeValue(failure: &failure) else {
+            return .failure(failure)
+        }
+        let header = base.bindMemory(to: VerifiedSourceHeader.self, capacity: 1)
+        header.initialize(to: VerifiedSourceHeader(descriptor: fd, count: count, fingerprint: initial,
+            identity: full.finalize(), digestOffset: digestOffset, pathOffset: pathOffset, pathCount: path.count,
+            budget: retainedBudget, hooks: hooks))
+        guard pthread_mutex_init(&header.pointee.mutex, nil) == 0 else {
+            header.deinitialize(count: 1); return .failure(DICOMManagedFailure(allocation: .synchronizationFailed))
+        }
+        let finalizerStatus = owner.installFinalizerOutcome { pointer, _ in
+            guard let pointer else { return }
+            let h = pointer.assumingMemoryBound(to: VerifiedSourceHeader.self)
+            _ = close(h.pointee.descriptor)
+            _ = pthread_mutex_destroy(&h.pointee.mutex)
+            h.deinitialize(count: 1)
+        }
+        if case .failure(let error) = finalizerStatus {
+            _ = pthread_mutex_destroy(&header.pointee.mutex)
+            header.deinitialize(count: 1)
+            return .failure(DICOMManagedFailure(allocation: error))
+        }
+        accepted = true
+        return .success(Self(storage: owner))
     }
 
-    /// Acquire an immutable, independently charged range. The window charge
-    /// overlaps this destination charge until every verified copy has completed.
+    /// Recheck the anchored source; invalidation is sticky across all aliases.
+    public func validate(cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) {
+        try validateOutcome(cancellation: cancellation).get()
+    }
+    /// Acquire one independently admitted verified range.
+    public func read(_ range: Range<Int>, resource: DICOMAllocationClass = .encoded,
+                     cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) -> DICOMByteBuffer {
+        try readOutcome(range, resource: resource, cancellation: cancellation).get()
+    }
+    /// Copy the same verified bytes into caller-admitted storage.
+    public func copy(_ range: Range<Int>, to destination: UnsafeMutableRawBufferPointer,
+                     cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) {
+        try copyOutcome(range, to: destination, cancellation: cancellation).get()
+    }
+
+    /// Capture a caller-owned path with scalar failure status.
     /// - Parameters:
-    ///   - range: Absolute source byte range.
-    ///   - resource: Allocation class for the returned payload.
-    /// - Returns: Immutable bytes matching the captured source identity.
-    public func read(_ range: Range<Int>, resource: DICOMAllocationClass = .encoded) throws -> DICOMByteBuffer {
-        try validateRange(range)
-        try validate()
-        let result = try DICOMByteBuffer(count: range.count, budget: budget, resource: resource) { destination in
-            try copy(range, to: destination)
-        }
-        try validate()
-        return result
+    ///   - path: Stable NUL-terminated bytes borrowed until this call returns.
+    ///   - budget: Ledger admitting all persistent and temporary source storage.
+    ///   - maximumBytes: Source envelope, at most `maximumSourceBytes`.
+    ///   - cancellation: Caller-owned synchronous cancellation observer.
+    /// - Returns: An anchored verified source or scalar refusal after complete cleanup.
+    public static func capture(path: UnsafeBufferPointer<CChar>, budget: borrowing DICOMAllocationBudget,
+        maximumBytes: Int = maximumSourceBytes, cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Self> {
+        capture(path: path, descriptor: nil, budget: budget, maximumBytes: maximumBytes,
+                cancellation: cancellation, hooks: Hooks())
     }
 
-    /// Nonescaping copy into already-admitted storage. The same verified
-    /// block supplies the copied bytes; there is no verification/reread gap.
+    /// Capture a duplicated descriptor using scalar status; the caller's offset is unchanged.
     /// - Parameters:
-    ///   - range: Absolute source byte range.
-    ///   - destination: Caller-admitted storage whose count exactly matches the range.
-    public func copy(_ range: Range<Int>, to destination: UnsafeMutableRawBufferPointer) throws {
-        try validateRange(range)
-        guard destination.count == range.count else { throw VerifiedSourceError.invalidRange }
-        try validate()
-        do {
-            var position = range.lowerBound
-            while position < range.upperBound {
-                try Task.checkCancellation()
-                let block = position / Self.blockBytes
-                let start = block * Self.blockBytes
-                let length = min(Self.blockBytes, count - start)
-                let window = try verifiedBlock(block)
-                try window.withUnsafeBytes { bytes in
-                    try Task.checkCancellation()
-                    let copied = min(range.upperBound - position, length - (position - start))
-                    if let target = destination.baseAddress, let source = bytes.baseAddress {
-                        target.advanced(by: position - range.lowerBound)
-                            .copyMemory(from: source.advanced(by: position - start), byteCount: copied)
-                    }
-                    position += copied
-                }
-            }
-            try validate()
-        } catch {
-            if error is VerifiedSourceError { invalidate() }
-            throw error
+    ///   - descriptor: Borrowed open regular-file descriptor, valid until capture returns.
+    ///   - budget: Admission ledger.
+    ///   - maximumBytes: Maximum accepted source length.
+    ///   - cancellation: Caller-owned synchronous cancellation observer.
+    /// - Returns: An independently owned descriptor/transcript, or scalar failure.
+    public static func capture(descriptor: Int32, budget: borrowing DICOMAllocationBudget,
+        maximumBytes: Int = maximumSourceBytes, cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Self> {
+        capture(path: UnsafeBufferPointer(start: nil, count: 0), descriptor: descriptor, budget: budget,
+                maximumBytes: maximumBytes, cancellation: cancellation, hooks: Hooks())
+    }
+
+    /// Capture a path on its validated, explicitly admitted synchronous worker.
+    /// - Parameters:
+    ///   - path: Borrowed NUL-terminated caller bytes.
+    ///   - budget: Shared operation ledger.
+    ///   - execution: Stack reservation retained through actual worker return.
+    ///   - maximumBytes: Maximum accepted source length.
+    ///   - cancellation: Borrowed synchronous cancellation observer.
+    /// - Returns: A verified source or scalar worker/source failure.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public static func capture(path: UnsafeBufferPointer<CChar>, budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation, maximumBytes: Int = maximumSourceBytes,
+        cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Self> {
+        if case .failure(let failure) = execution.validateOutcome(budget: budget) {
+            return .failure(DICOMManagedFailure(allocation: failure))
+        }
+        return capture(path: path, budget: budget, maximumBytes: maximumBytes, cancellation: cancellation)
+    }
+
+    /// Capture a descriptor on its validated, explicitly admitted synchronous worker.
+    /// - Parameters:
+    ///   - descriptor: Borrowed open descriptor.
+    ///   - budget: Shared operation ledger.
+    ///   - execution: Whole-stack reservation retained through actual worker return.
+    ///   - maximumBytes: Maximum accepted source length.
+    ///   - cancellation: Borrowed synchronous cancellation observer.
+    /// - Returns: A verified source or scalar worker/source failure.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public static func capture(descriptor: Int32, budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation, maximumBytes: Int = maximumSourceBytes,
+        cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Self> {
+        if case .failure(let failure) = execution.validateOutcome(budget: budget) {
+            return .failure(DICOMManagedFailure(allocation: failure))
+        }
+        return capture(descriptor: descriptor, budget: budget, maximumBytes: maximumBytes, cancellation: cancellation)
+    }
+
+    /// Validate the retained ledger and current worker without invoking throwing runtime.
+    /// - Parameter execution: Original synchronous worker reservation.
+    /// - Returns: Success or scalar identity/query failure.
+    @available(*, noasync, message: "Validate on the original admitted worker")
+    public func validateExecutionOutcome(_ execution: borrowing DICOMExecutionReservation)
+        -> DICOMManagedOutcome<Void> {
+        switch execution.validateOutcome(budget: view.header.pointee.budget) {
+        case .success: return .success(())
+        case .failure(let failure): return .failure(DICOMManagedFailure(allocation: failure))
         }
     }
 
-    /// A cursor retains this immutable block through all scalar reads. Refill
-    /// creates a new independently charged window, never a mutable alias.
-    func verifiedBlock(_ block: Int) throws -> DICOMByteBuffer {
-        guard block >= 0, block < (count + Self.blockBytes - 1) / Self.blockBytes else {
-            throw VerifiedSourceError.invalidRange
-        }
-        try validate()
-        do {
-            let start = block * Self.blockBytes
-            let window = try Self.readBlock(descriptor, start: start,
-                length: min(Self.blockBytes, count - start), budget: budget, hooks: hooks)
-            let matches = window.withUnsafeBytes { bytes in
-                var hash = SHA256(); hash.update(bufferPointer: bytes)
-                return hash.finalize().withUnsafeBytes { digest in
-                    hashes.withUnsafeBytes { table in
-                        UnsafeRawBufferPointer(rebasing: table[block * SHA256.byteCount..<(block + 1) * SHA256.byteCount])
-                            .elementsEqual(digest)
-                    }
-                }
-            }
-            guard matches else { throw VerifiedSourceError.sourceChanged }
-            try hooks.stage?(.verifiedBlock(block))
-            try validate()
-            return window
-        } catch {
-            if error is VerifiedSourceError { invalidate() }
-            throw error
-        }
+    /// Recheck the anchored source using scalar status; invalidation remains sticky across aliases.
+    /// - Parameter cancellation: Observer borrowed for this synchronous call only.
+    /// - Returns: Success or a fixed cancellation/source failure.
+    public func validateOutcome(cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Void> {
+        view.withCancellation(cancellation).validate()
     }
 
-    /// Legacy unbudgeted bridges are intentionally unavailable on verified sources.
-    /// Use `read(_:resource:)` so ownership and potential copies remain explicit.
-    public func bytes(in range: Range<Int>) throws -> Data { throw VerifiedSourceError.unbudgetedReadUnsupported }
-    /// Refuse an unbudgeted whole-source copy; acquire explicit verified ranges instead.
-    public func wholeData() throws -> Data { throw VerifiedSourceError.unbudgetedReadUnsupported }
-
-    private func invalidate() { lock.lock(); invalid = true; lock.unlock() }
-    private func validateRange(_ range: Range<Int>) throws {
-        guard range.lowerBound >= 0, range.upperBound <= count else { throw VerifiedSourceError.invalidRange }
+    /// Acquire verified bytes into independently admitted storage using scalar status.
+    /// - Parameters:
+    ///   - range: Valid source-relative byte range.
+    ///   - resource: Allocation class for the result.
+    ///   - cancellation: Observer borrowed until actual return.
+    /// - Returns: Same-transcript bytes or a scalar failure after temporary cleanup.
+    public func readOutcome(_ range: Range<Int>, resource: DICOMAllocationClass = .encoded,
+        cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<DICOMByteBuffer> {
+        view.withCancellation(cancellation).read(range, resource: resource)
     }
-    private static func readBlock(_ fd: Int32, start: Int, length: Int,
-                                  budget: DICOMAllocationBudget, hooks: Hooks) throws -> DICOMByteBuffer {
-        try DICOMByteBuffer(count: length, budget: budget, resource: .encoded) { bytes in
-            var done = 0
-            while done < length {
-                try Task.checkCancellation()
-                let amount = hooks.read(fd, bytes.baseAddress?.advanced(by: done), length - done, off_t(start + done))
-                if amount < 0 {
-                    if errno == EINTR { continue }
-                    throw VerifiedSourceError.readFailed
-                }
-                guard amount > 0, amount <= length - done else { throw VerifiedSourceError.sourceChanged }
-                done += amount
+
+    /// Copy the same verified bytes into caller-admitted storage using scalar status.
+    /// - Parameters:
+    ///   - range: Valid source-relative byte range.
+    ///   - destination: Caller-owned admitted storage matching the range length.
+    ///   - cancellation: Observer borrowed until actual return.
+    /// - Returns: Success or a scalar failure; partial destination bytes must not be published after failure.
+    public func copyOutcome(_ range: Range<Int>, to destination: UnsafeMutableRawBufferPointer,
+        cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Void> {
+        view.withCancellation(cancellation).copy(range, to: destination)
+    }
+
+}
+
+private struct SourceFingerprint: Equatable {
+    let device: dev_t, inode: ino_t, mode: mode_t, size: off_t
+    let modifiedSeconds: Int, modifiedNanos: Int, changedSeconds: Int, changedNanos: Int
+    init(_ value: stat) {
+        device = value.st_dev; inode = value.st_ino; mode = value.st_mode; size = value.st_size
+        #if canImport(Darwin)
+        modifiedSeconds = value.st_mtimespec.tv_sec; modifiedNanos = value.st_mtimespec.tv_nsec
+        changedSeconds = value.st_ctimespec.tv_sec; changedNanos = value.st_ctimespec.tv_nsec
+        #else
+        modifiedSeconds = value.st_mtim.tv_sec; modifiedNanos = value.st_mtim.tv_nsec
+        changedSeconds = value.st_ctim.tv_sec; changedNanos = value.st_ctim.tv_nsec
+        #endif
+    }
+    static func descriptor(_ fd: Int32) -> DICOMManagedOutcome<Self> {
+        var value = stat()
+        guard fstat(fd, &value) == 0 else { return .failure(DICOMManagedFailure(.readFailed)) }
+        return .success(Self(value))
+    }
+    static func path(_ pointer: UnsafeRawPointer?) -> DICOMManagedOutcome<Self> {
+        guard let pointer else { return .failure(DICOMManagedFailure(.invalidOptions)) }
+        var value = stat()
+        guard lstat(pointer.assumingMemoryBound(to: CChar.self), &value) == 0 else {
+            return .failure(DICOMManagedFailure(.sourceChanged))
+        }
+        return .success(Self(value))
+    }
+}
+
+private struct VerifiedSourceHeader: ~Copyable {
+    let descriptor: Int32, count: Int
+    let fingerprint: SourceFingerprint
+    let identity: DICOMContentDigest
+    let digestOffset: Int, pathOffset: Int, pathCount: Int
+    let budget: DICOMAllocationBudget
+    let hooks: VerifiedFileByteSource.Hooks
+    var mutex = pthread_mutex_t()
+    var invalid = false
+}
+
+/// Internal non-owning view. Its owner is retained by the enclosing source/index;
+/// this view never escapes a public operation or replaces the owning handle.
+struct VerifiedSourceView {
+    let base: UnsafeMutableRawPointer
+    let cancellation: DICOMCancellation
+    func withCancellation(_ cancellation: DICOMCancellation) -> Self {
+        Self(base: base, cancellation: cancellation)
+    }
+    fileprivate var header: UnsafeMutablePointer<VerifiedSourceHeader> {
+        base.assumingMemoryBound(to: VerifiedSourceHeader.self)
+    }
+    var count: Int { header.pointee.count }
+    var identity: DICOMContentDigest { header.pointee.identity }
+    var receipt: DICOMAllocationReceipt { header.pointee.budget.receipt }
+    func withBorrowedBudget<R: ~Copyable>(_ body: (borrowing DICOMAllocationBudget) -> R) -> R {
+        body(header.pointee.budget)
+    }
+    func validate() -> DICOMManagedOutcome<Void> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        pthread_mutex_lock(&header.pointee.mutex)
+        let invalid = header.pointee.invalid
+        pthread_mutex_unlock(&header.pointee.mutex)
+        guard !invalid else { return .failure(DICOMManagedFailure(.sourceChanged)) }
+        var failure = DICOMManagedFailure(.sourceChanged)
+        guard let fingerprint = SourceFingerprint.descriptor(header.pointee.descriptor)
+            .takeValue(failure: &failure) else {
+            invalidate()
+            return .failure(failure)
+        }
+        guard fingerprint == header.pointee.fingerprint else {
+            invalidate()
+            return .failure(DICOMManagedFailure(.sourceChanged))
+        }
+        if header.pointee.pathCount > 0 {
+            guard let pathFingerprint = SourceFingerprint.path(base.advanced(by: header.pointee.pathOffset))
+                .takeValue(failure: &failure) else {
+                invalidate()
+                return .failure(failure)
+            }
+            guard pathFingerprint == header.pointee.fingerprint else {
+                invalidate()
+                return .failure(DICOMManagedFailure(.sourceChanged))
             }
         }
+        if let failure = cancellation.failure { return .failure(failure) }
+        return .success(())
     }
-    private static func descriptorFingerprint(_ fd: Int32) throws -> Fingerprint {
-        var info = stat()
-        guard fstat(fd, &info) == 0 else { throw VerifiedSourceError.readFailed }
-        return Fingerprint(info)
+    private func invalidate() {
+        pthread_mutex_lock(&header.pointee.mutex); header.pointee.invalid = true
+        pthread_mutex_unlock(&header.pointee.mutex)
     }
-    private static func pathFingerprint(_ path: String) throws -> Fingerprint {
-        var info = stat()
-        guard path.withCString({ lstat($0, &info) }) == 0 else { throw VerifiedSourceError.sourceChanged }
-        return Fingerprint(info)
+    private func readFailure<Value: ~Copyable>(_ failure: DICOMManagedFailure) -> DICOMManagedOutcome<Value> {
+        if failure.code == .readFailed || failure.code == .sourceChanged { invalidate() }
+        return .failure(failure)
+    }
+    func read(_ range: Range<Int>, resource: DICOMAllocationClass) -> DICOMManagedOutcome<DICOMByteBuffer> {
+        if let failure = validateRange(range) { return .failure(failure) }
+        if case .failure(let failure) = validate() { return .failure(failure) }
+        var failure = DICOMManagedFailure(.invalidOptions)
+        guard let output = DICOMByteBuffer.admit(count: range.count, budget: header.pointee.budget, resource: resource)
+            .takeValue(failure: &failure) else { return .failure(failure) }
+        if case .failure(let failure) = copy(range, to: output.unsafeMutableBytes) { return .failure(failure) }
+        if case .failure(let failure) = validate() { return .failure(failure) }
+        return .success(output)
+    }
+    func copy(_ range: Range<Int>, to destination: UnsafeMutableRawBufferPointer) -> DICOMManagedOutcome<Void> {
+        if let failure = validateRange(range) { return .failure(failure) }
+        guard range.count == destination.count else { return .failure(DICOMManagedFailure(.invalidRange)) }
+        if case .failure(let failure) = validate() { return .failure(failure) }
+        var failure = DICOMManagedFailure(.invalidOptions)
+        var position = range.lowerBound
+        while position < range.upperBound {
+            let block = position / VerifiedFileByteSource.blockBytes
+            let start = block * VerifiedFileByteSource.blockBytes
+            guard let window = verifiedBlock(block).takeValue(failure: &failure) else {
+                return readFailure(failure)
+            }
+            window.withBorrowedBytes { bytes in
+                let copied = min(range.upperBound - position, bytes.count - (position - start))
+                if let target = destination.baseAddress, let source = bytes.baseAddress {
+                    target.advanced(by: position - range.lowerBound)
+                        .copyMemory(from: source.advanced(by: position - start), byteCount: copied)
+                }
+                position += copied
+            }
+        }
+        if case .failure(let failure) = validate() { return readFailure(failure) }
+        return .success(())
+    }
+    func verifiedBlock(_ block: Int) -> DICOMManagedOutcome<DICOMByteBuffer> {
+        let blockCount = (count + VerifiedFileByteSource.blockBytes - 1) / VerifiedFileByteSource.blockBytes
+        guard block >= 0, block < blockCount else {
+            return .failure(DICOMManagedFailure(.invalidRange))
+        }
+        if case .failure(let failure) = validate() { return .failure(failure) }
+        let start = block * VerifiedFileByteSource.blockBytes
+        var failure = DICOMManagedFailure(.invalidOptions)
+        guard let window = Self.readBlock(header.pointee.descriptor, start: start,
+            length: min(VerifiedFileByteSource.blockBytes, count - start), budget: header.pointee.budget,
+            cancellation: cancellation, hooks: header.pointee.hooks).takeValue(failure: &failure) else {
+            return readFailure(failure)
+        }
+        let matches = window.withBorrowedBytes { bytes in
+            var hash = BoundedSHA256(); hash.update(bytes)
+            return hash.finalize().matches(UnsafeRawBufferPointer(
+                start: base.advanced(by: header.pointee.digestOffset + block * 32), count: 32))
+        }
+        guard matches else { return readFailure(DICOMManagedFailure(.sourceChanged)) }
+        if case .failure(let failure) = Self.callHook(header.pointee.hooks, stage: 2, operand: block) {
+            return readFailure(failure)
+        }
+        if case .failure(let failure) = validate() { return readFailure(failure) }
+        return .success(window)
+    }
+    private func validateRange(_ range: Range<Int>) -> DICOMManagedFailure? {
+        guard range.lowerBound >= 0, range.upperBound <= count else { return DICOMManagedFailure(.invalidRange) }
+        return nil
+    }
+    static func readBlock(_ fd: Int32, start: Int, length: Int, budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation, hooks: VerifiedFileByteSource.Hooks) -> DICOMManagedOutcome<DICOMByteBuffer> {
+        var failure = DICOMManagedFailure(.invalidOptions)
+        guard let buffer = DICOMByteBuffer.admit(count: length, budget: budget, resource: .encoded)
+            .takeValue(failure: &failure) else { return .failure(failure) }
+        let bytes = buffer.unsafeMutableBytes
+        var done = 0
+        while done < length {
+            if let failure = cancellation.failure { return .failure(failure) }
+            let amount = pread(hooks, fd, bytes.baseAddress?.advanced(by: done), length - done, off_t(start + done))
+            if amount < 0 {
+                if errno == EINTR { continue }
+                return .failure(DICOMManagedFailure(.readFailed))
+            }
+            guard amount > 0, amount <= length - done else { return .failure(DICOMManagedFailure(.sourceChanged)) }
+            done += amount
+        }
+        return .success(buffer)
+    }
+    static func pread(_ hooks: VerifiedFileByteSource.Hooks, _ fd: Int32,
+                      _ bytes: UnsafeMutableRawPointer?, _ count: Int, _ offset: off_t) -> Int {
+        if let read = hooks.read { return read(hooks.context, fd, bytes, count, offset) }
+        #if canImport(Darwin)
+        return Darwin.pread(fd, bytes, count, offset)
+        #else
+        return Glibc.pread(fd, bytes, count, offset)
+        #endif
+    }
+    static func callHook(_ hooks: VerifiedFileByteSource.Hooks, stage: Int, operand: Int) -> DICOMManagedOutcome<Void> {
+        if hooks.stage?(hooks.context, stage, operand) ?? 0 != 0 { return .failure(DICOMManagedFailure(.readFailed)) }
+        return .success(())
     }
 }
 #endif

@@ -608,3 +608,10 @@ JPEG 2000 / HTJ2K codestream operations on DICOM files. All subcommands bridge t
 | `dicom-validate` | Level 5 validation (`--level 5`): full ISO 15444-4 codestream check via `HTJ2KConformanceTestHarness` + `J2KHTInteroperabilityValidator`; `J2KCore` dependency added |
 | `dicom-compress` | HTJ2K codec names (`htj2k`, `htj2k-lossless`, `htj2k-rpcl`) documented in `Compress` discussion text; HTJ2K label shown in `info` output |
 | `dicom-convert` | HTJ2K target syntaxes already present (no change needed) |
+
+## 2.4.0 bounded input inspection
+
+`dicom-info --bounded-summary [--format json] FILE` exposes the maintained verified
+source and strict bounded parser APIs. It reports digest, syntax, element counts
+and source/index backing capacities, with explicit exclusions for CLI/stack/runtime
+work. Qualification and synthetic CLI checks are recorded with the release evidence.

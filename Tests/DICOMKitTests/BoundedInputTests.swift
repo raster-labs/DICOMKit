@@ -4,7 +4,7 @@ import CryptoKit
 import Darwin
 import Testing
 @testable import DICOMKit
-import DICOMCore
+@testable import DICOMCore
 
 @Suite("Bounded verified strict input")
 struct BoundedInputTests {
@@ -66,12 +66,57 @@ struct BoundedInputTests {
         try bytes.write(to: url)
         return url
     }
-    private func open(_ url: URL, budget: DICOMAllocationBudget,
+    private func open(_ url: URL, budget: borrowing DICOMAllocationBudget,
                       options: ParsingOptions = .strict) throws -> BoundedDICOMFile {
         let source = try VerifiedFileByteSource(url: url, budget: budget)
         return try DICOMFile.readBounded(from: source, options: options)
     }
-    private func bytes(_ buffer: DICOMByteBuffer) -> Data { buffer.withUnsafeBytes { Data($0) } }
+    private func bytes(_ buffer: borrowing DICOMByteBuffer) -> Data { buffer.withUnsafeBytes { Data($0) } }
+    private func value(_ file: borrowing BoundedDICOMFile, _ tag: DICOMCore.Tag) throws -> BoundedDICOMElement {
+        let dataSet = try file.dataSet()
+        guard let element = try dataSet.element(for: tag) else { throw TestFailure.missingElement }
+        return element
+    }
+    private func expectFailure(_ body: () throws -> Void) {
+        do { try body(); Issue.record("Expected failure") } catch {}
+    }
+    private func expectFailure(_ code: DICOMManagedFailure.Code, _ body: () throws -> Void) {
+        do { try body(); Issue.record("Expected failure") }
+        catch let failure as DICOMManagedFailure { #expect(failure.code == code) }
+        catch let failure as DICOMParserFailure {
+            if case .managed(let managed) = failure { #expect(managed.code == code) }
+            else { Issue.record("Unexpected parser failure: \(failure)") }
+        } catch { Issue.record("Unexpected failure: \(error)") }
+    }
+    private func testSource(_ url: URL, budget: borrowing DICOMAllocationBudget,
+                            state: ReadFaultState) throws -> VerifiedFileByteSource {
+        let context = Unmanaged.passUnretained(state).toOpaque()
+        let hooks = VerifiedFileByteSource.Hooks(context: context, stage: { context, stage, block in
+            guard let context else { return 0 }
+            let state = Unmanaged<ReadFaultState>.fromOpaque(context).takeUnretainedValue()
+            if state.cancelStage == stage && (state.cancelBlock < 0 || state.cancelBlock == block) {
+                state.cancelled = true
+            }
+            return 0
+        }, read: { context, fd, pointer, count, offset in
+            guard let context else { return -1 }
+            let state = Unmanaged<ReadFaultState>.fromOpaque(context).takeUnretainedValue()
+            if state.cancelAtEOF == Int(offset) { state.cancelled = true; errno = EINTR; return -1 }
+            if state.interrupt && state.takeInterrupt() { errno = EINTR; return -1 }
+            let result = Darwin.pread(fd, pointer, min(count, state.maximumRead), offset)
+            if state.corrupt, result > 0 { pointer?.assumingMemoryBound(to: UInt8.self).pointee ^= 1 }
+            return result
+        })
+        let cancellation = state.cancellation
+        var source: VerifiedFileByteSource?
+        try url.path.withCString { path in
+            source = try VerifiedFileByteSource(path: UnsafeBufferPointer(start: path, count: strlen(path) + 1),
+                descriptor: nil, budget: budget, maximumBytes: VerifiedFileByteSource.maximumSourceBytes,
+                cancellation: cancellation, hooks: hooks)
+        }
+        guard let result = consume source else { throw TestFailure.missingElement }
+        return result
+    }
 
     @Test("Canonical strict parser matches deferred metadata, nested items and trailing pixels", arguments: [false, true])
     func parity(implicit: Bool) throws {
@@ -80,46 +125,133 @@ struct BoundedInputTests {
                            syntax: implicit ? implicitUID : explicitUID)
         let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
         let budget = try DICOMAllocationBudget()
-        var parsed: BoundedDICOMFile? = try open(url, budget: budget)
-        #expect(parsed?.contentIdentity == SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined())
-        #expect(parsed?.dataSet.count == 4)
-        #expect(try bytes(#require(parsed?.dataSet[pixel]).readValue()) == u16(42))
-        #expect(try bytes(#require(parsed?.dataSet[trailer]).readValue()) == text("AFTER"))
-        var items = 0
-        try parsed?.dataSet[sequence]?.forEachItem { item throws in
-            items += 1
-            #expect(item.count == 2)
-            let pixel = try #require(item[pixel])
-            #expect(try bytes(pixel.readValue()) == u16(42))
+        let baseline = budget.receipt.currentTotal
+        do {
+            let parsed = try open(url, budget: budget)
+            #expect(parsed.contentIdentity.hexadecimal == SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined())
+            let dataSet = try parsed.dataSet()
+            #expect(dataSet.count == 4)
+            #expect(try bytes(value(parsed, pixel).readValue()) == u16(42))
+            #expect(try bytes(value(parsed, trailer).readValue()) == text("AFTER"))
+            var items = 0
+            let sequenceValue = try value(parsed, sequence)
+            try sequenceValue.forEachItem { item throws(DICOMParserFailure) in
+                items += 1
+                #expect(item.count == 2)
+                guard let pixelValue = try item.element(for: pixel) else { Issue.record("Missing item pixel"); return }
+                do throws(DICOMManagedFailure) { #expect(try bytes(pixelValue.readValue()) == u16(42)) }
+                catch { throw .managed(error) }
+            }
+            #expect(items == 1)
         }
-        #expect(items == 1)
-        parsed = nil
-        #expect(budget.receipt.currentTotal == 0)
+        #expect(budget.receipt.currentTotal == baseline)
     }
 
-    @Test("Large and Unicode-padded transfer syntax values preserve existing strict admission",
-          arguments: [" ", "\u{2000}", "\0"])
-    func paddedSyntax(padding: String) throws {
-        let uid = String(repeating: padding, count: 128) + explicitUID + String(repeating: padding, count: 128)
-        let payload = file(image(), syntax: uid)
-        let legacy = try DICOMFile.read(from: payload, options: .strict)
-        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-        let parsed = try open(url, budget: DICOMAllocationBudget())
-        #expect(parsed.transferSyntaxUID == legacy.fileMetaInformation.string(for: .transferSyntaxUID))
+    /// Deliberately nonthrowing: the complete qualified source/parser/value chain
+    /// must propagate scalar outcomes without a compatibility `get()` call.
+    private func acquirePixel(descriptor: Int32, budget: borrowing DICOMAllocationBudget,
+                              options: BoundedParsingOptions, cancellation: DICOMCancellation)
+        -> DICOMParserOutcome<UInt16> {
+        var failure = DICOMParserFailure.unexpectedEndOfData
+        guard let execution = parserAllocationOutcome(DICOMExecutionReservation.reserve(budget: budget))
+            .takeValue(failure: &failure),
+              let source = parserManagedOutcome(VerifiedFileByteSource.capture(descriptor: descriptor,
+                budget: budget, execution: execution, cancellation: cancellation)).takeValue(failure: &failure),
+              let parsed = DICOMFile.readBoundedOutcome(from: source, options: options, execution: execution,
+                cancellation: cancellation).takeValue(failure: &failure),
+              let dataSet = parsed.dataSetOutcome().takeValue(failure: &failure),
+              let optionalPixel = dataSet.elementOutcome(for: pixel).takeValue(failure: &failure) else {
+            return .failure(failure)
+        }
+        guard let pixelElement = consume optionalPixel else { return .failure(.unexpectedEndOfData) }
+        switch pixelElement.readValueOutcome(cancellation: cancellation) {
+        case .failure(let failure): return .failure(.managed(failure))
+        case .success(let value):
+            return value.withBorrowedBytes { bytes in
+                guard bytes.count == 2 else { return .failure(.unexpectedEndOfData) }
+                return .success(UInt16(bytes[0]) | UInt16(bytes[1]) << 8)
+            }
+        }
+    }
+
+    @Test("Nonthrowing source, parser and value outcomes preserve success and failure cleanup")
+    func directOutcomePipeline() throws {
+        let options = try BoundedParsingOptions(.strict)
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        let good = file(image())
+        var badPrefix = good
+        badPrefix[128] = 0
+        for (payload, cancelled, expected) in [
+            (good, false, Optional<DICOMManagedFailure.Code>.none),
+            (good, true, .cancelled),
+            (badPrefix, false, .invalidPrefix),
+            (Data([0]), false, .unexpectedEnd)
+        ] {
+            let url = try temporary(payload)
+            defer { try? FileManager.default.removeItem(at: url) }
+            let descriptor = Darwin.open(url.path, O_RDONLY)
+            #expect(descriptor >= 0)
+            guard descriptor >= 0 else { return }
+            defer { Darwin.close(descriptor) }
+            let cancellation = cancelled ? DICOMCancellation(check: { _ in true }) : .never
+            switch acquirePixel(descriptor: descriptor, budget: budget, options: options,
+                                cancellation: cancellation) {
+            case .success(let pixel):
+                #expect(expected == nil)
+                #expect(pixel == 42)
+            case .failure(.managed(let failure)):
+                #expect(failure.code == expected)
+            case .failure(let failure): Issue.record("Unexpected parser failure: \(failure)")
+            }
+            #expect(budget.receipt.currentTotal == baseline)
+        }
+    }
+
+    @Test("Fixed padding classification matches Foundation for every Unicode scalar")
+    func completePaddingClassification() {
+        let legacy = CharacterSet.whitespacesAndNewlines
+        for value: UInt32 in 0...0x10FFFF {
+            guard let scalar = Unicode.Scalar(value) else { continue }
+            #expect(BoundedDICOMElement.isLegacyPadding(value) == (value == 0 || legacy.contains(scalar)))
+        }
+    }
+
+    @Test("Every legacy whitespace scalar and adjacent nonmembers preserve strict syntax policy")
+    func paddedSyntax() throws {
+        let candidates: [UInt32] = [0, 8, 9, 10, 11, 12, 13, 14, 31, 32, 33, 0x84, 0x85, 0x86,
+            0x9f, 0xa0, 0xa1, 0x167f, 0x1680, 0x1681, 0x180e, 0x1fff, 0x2000, 0x2001,
+            0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200a, 0x200b,
+            0x200c, 0x2027, 0x2028, 0x2029, 0x202a, 0x202e, 0x202f, 0x2030, 0x205e, 0x205f,
+            0x2060, 0x2fff, 0x3000, 0x3001, 0xfeff]
+        for scalarValue in candidates {
+            guard let scalar = Unicode.Scalar(scalarValue) else { continue }
+            let padding = String(repeating: String(scalar), count: 128)
+            let payload = file(image(), syntax: padding + explicitUID + padding)
+            let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+            let budget = try DICOMAllocationBudget()
+            let legacy = Result { try DICOMFile.read(from: payload, options: .strict) }
+            switch legacy {
+            case .success:
+                let parsed = try open(url, budget: budget)
+                #expect(parsed.transferSyntaxUID == explicitUID)
+            case .failure: expectFailure { _ = try open(url, budget: budget) }
+            }
+        }
     }
 
     @Test("Leading UTF-8 BOM preserves legacy transfer-syntax decoding")
     func transferSyntaxBOM() throws {
         let payload = file(image(), syntax: "\u{FEFF} " + explicitUID + " ")
-        let legacy = try DICOMFile.read(from: payload, options: .strict)
         let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-        let parsed = try open(url, budget: DICOMAllocationBudget())
-        #expect(parsed.transferSyntaxUID == legacy.fileMetaInformation.string(for: .transferSyntaxUID))
+        let budget = try DICOMAllocationBudget()
+        let parsed = try open(url, budget: budget)
+        #expect(parsed.transferSyntaxUID == explicitUID)
         for syntax in [" \u{FEFF}" + explicitUID, explicitUID + "\u{FEFF}"] {
             let malformed = file(image(), syntax: syntax)
             let url = try temporary(malformed); defer { try? FileManager.default.removeItem(at: url) }
-            #expect(throws: (any Error).self) { try DICOMFile.read(from: malformed, options: .strict) }
-            #expect(throws: (any Error).self) { try open(url, budget: DICOMAllocationBudget()) }
+            expectFailure { _ = try DICOMFile.read(from: malformed, options: .strict) }
+            expectFailure { _ = try open(url, budget: budget) }
         }
     }
 
@@ -133,8 +265,9 @@ struct BoundedInputTests {
             let payload = file(element(pixel, "OB", bot + chunks + marker(.sequenceDelimitationItem), length: .max),
                 syntax: "1.2.840.10008.1.2.4.50")
             let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-            #expect(throws: (any Error).self) { try DICOMFile.read(from: payload, options: options) }
-            #expect(throws: (any Error).self) { try open(url, budget: DICOMAllocationBudget(), options: options) }
+            let budget = try DICOMAllocationBudget()
+            expectFailure { _ = try DICOMFile.read(from: payload, options: options) }
+            expectFailure { _ = try open(url, budget: budget, options: options) }
         }
     }
 
@@ -143,44 +276,39 @@ struct BoundedInputTests {
         let bot = marker(.item, length: 8) + u32(0) + u32(20)
         let payloads = marker(.item, length: 2) + Data([1, 2]) + marker(.item, length: 2) + Data([3, 4])
             + marker(.item, length: 2) + Data([5, 6])
-        let value = bot + payloads + marker(.sequenceDelimitationItem)
-        let data = file(element(pixel, "OB", value, length: .max), syntax: "1.2.840.10008.1.2.4.50")
+        let data = file(element(pixel, "OB", bot + payloads + marker(.sequenceDelimitationItem), length: .max),
+                        syntax: "1.2.840.10008.1.2.4.50")
         let url = try temporary(data); defer { try? FileManager.default.removeItem(at: url) }
         let budget = try DICOMAllocationBudget()
         let options = ParsingOptions(strictEncapsulation: true,
             allowedTransferSyntaxUIDs: ["1.2.840.10008.1.2.4.50"], validationPolicy: .strict)
         let parsed = try open(url, budget: budget, options: options)
-        let element = try #require(parsed.dataSet[pixel])
+        let element = try value(parsed, pixel)
         #expect(element.fragmentCount == 3)
         #expect(try bytes(element.readFrame(at: 0, numberOfFrames: 2)) == Data([1, 2, 3, 4]))
         #expect(try bytes(element.readFrame(at: 1, numberOfFrames: 2)) == Data([5, 6]))
-        #expect(throws: DICOMError.self) { try element.readFrame(at: 0, numberOfFrames: 2, maximumBytes: 3) }
-        #expect(throws: DICOMError.self) { try element.readFrame(at: 0, numberOfFrames: 3) }
+        expectFailure { _ = try element.readFrame(at: 0, numberOfFrames: 2, maximumBytes: 3) }
+        expectFailure { _ = try element.readFrame(at: 0, numberOfFrames: 3) }
     }
 
     @Test("Malformed strict structures reject on both storage strategies")
     func malformedParity() throws {
-        let cases = [
-            file(element(rows, "US", u16(2)) + element(rows, "US", u16(3))),
+        let cases = [file(element(rows, "US", u16(2)) + element(rows, "US", u16(3))),
             file(sq(item(element(rows, "US", u16(2)) + element(rows, "US", u16(3))))),
-            file(image() + Data([1, 2, 3])),
-            file(element(pixel, "OW", u16(42), length: 4)),
-            file(sq(item(image()), declaredLength: 4)),
-            file(image(), groupLengthDelta: 2),
-            file(image(), syntax: nil),
-            file(element(rows, "US", Data([1]), length: 1))
-        ]
+            file(image() + Data([1, 2, 3])), file(element(pixel, "OW", u16(42), length: 4)),
+            file(sq(item(image()), declaredLength: 4)), file(image(), groupLengthDelta: 2),
+            file(image(), syntax: nil), file(element(rows, "US", Data([1]), length: 1))]
         for data in cases {
             let url = try temporary(data); defer { try? FileManager.default.removeItem(at: url) }
-            let budget = try DICOMAllocationBudget()
-            #expect(throws: (any Error).self) { try DICOMFile.read(from: data, options: .strict) }
-            #expect(throws: (any Error).self) { try open(url, budget: budget) }
-            #expect(budget.receipt.currentTotal == 0)
+            let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+            expectFailure { _ = try DICOMFile.read(from: data, options: .strict) }
+            expectFailure { _ = try open(url, budget: budget) }
+            #expect(budget.receipt.currentTotal == baseline)
         }
     }
 
-    @Test("Source envelope around 128/256 MiB does not require a file-sized allocation",
-          arguments: [134217726, 134217728, 134217730, 268435456])
+    @Test("Source envelope around 128/256 MiB avoids file-sized storage",
+          arguments: [134217726, 134217728, 134217730, 268435454, 268435456])
     func largeSparseSource(size: Int) throws {
         var header = file(element(rows, "US", u16(2)))
         let payloadLength = size - header.count - 12
@@ -188,15 +316,17 @@ struct BoundedInputTests {
         let url = try temporary(header); defer { try? FileManager.default.removeItem(at: url) }
         let handle = try FileHandle(forWritingTo: url)
         try handle.truncate(atOffset: UInt64(size)); try handle.close()
-        let budget = try DICOMAllocationBudget()
-        var parsed: BoundedDICOMFile? = try open(url, budget: budget)
-        #expect(parsed?.sourceByteCount == size)
-        #expect(parsed?.dataSet[pixel]?.valueByteCount == payloadLength)
-        #expect(try bytes(#require(parsed?.dataSet[pixel]).readValueRange((payloadLength - 2)..<payloadLength)) == Data([0, 0]))
-        #expect(budget.receipt.peak.encoded <= 3 * 64 * 1024)
-        #expect(budget.receipt.peakTotal < 1024 * 1024)
-        parsed = nil
-        #expect(budget.receipt.currentTotal == 0)
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        do {
+            let parsed = try open(url, budget: budget)
+            #expect(parsed.sourceByteCount == size)
+            let pixel = try value(parsed, pixel)
+            #expect(pixel.valueByteCount == payloadLength)
+            #expect(try bytes(pixel.readValueRange((payloadLength - 2)..<payloadLength)) == Data([0, 0]))
+            #expect(budget.receipt.peak.encoded <= 3 * 64 * 1024)
+            #expect(budget.receipt.peakTotal < 1024 * 1024)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
     }
 
     @Test("One byte beyond source cap fails before capture")
@@ -204,17 +334,17 @@ struct BoundedInputTests {
         let url = try temporary(); defer { try? FileManager.default.removeItem(at: url) }
         let handle = try FileHandle(forWritingTo: url)
         try handle.truncate(atOffset: UInt64(VerifiedFileByteSource.maximumSourceBytes + 1)); try handle.close()
-        let budget = try DICOMAllocationBudget()
-        #expect(throws: VerifiedSourceError.sizeLimit) { try VerifiedFileByteSource(url: url, budget: budget) }
-        #expect(budget.receipt.currentTotal == 0)
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        expectFailure(.sizeLimit) { _ = try VerifiedFileByteSource(url: url, budget: budget) }
+        #expect(budget.receipt.currentTotal == baseline)
     }
 
-    @Test("Replacement, truncation, append and same-size writes invalidate deferred reads", arguments: [0, 1, 2, 3])
+    @Test("Replacement, truncation, append and same-size writes invalidate every alias", arguments: [0, 1, 2, 3])
     func sourceRaces(kind: Int) throws {
         let data = file(image())
         let url = try temporary(data); defer { try? FileManager.default.removeItem(at: url) }
-        let budget = try DICOMAllocationBudget()
-        let parsed = try open(url, budget: budget)
+        let budget = try DICOMAllocationBudget(), parsed = try open(url, budget: budget)
+        let alias = try parsed.share()
         if kind == 0 { try data.write(to: url, options: .atomic) }
         else {
             let handle = try FileHandle(forWritingTo: url)
@@ -223,17 +353,17 @@ struct BoundedInputTests {
             else { try handle.seek(toOffset: 0); try handle.write(contentsOf: Data([1])) }
             try handle.close()
         }
-        #expect(throws: VerifiedSourceError.sourceChanged) { try parsed.dataSet[pixel]?.readValue() }
-        #expect(throws: VerifiedSourceError.sourceChanged) { try parsed.validateSource() }
+        expectFailure(.sourceChanged) { _ = try value(parsed, pixel).readValue() }
+        expectFailure(.sourceChanged) { try alias.validateSource() }
     }
 
-    @Test("Symlinks are rejected and anchored descriptor ownership is independent")
+    @Test("Symlinks reject and descriptor ownership remains independent")
     func anchor() throws {
         let url = try temporary(file(image())); defer { try? FileManager.default.removeItem(at: url) }
         let link = url.appendingPathExtension("link"); defer { try? FileManager.default.removeItem(at: link) }
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: url)
         let budget = try DICOMAllocationBudget()
-        #expect(throws: VerifiedSourceError.notRegularFile) { try VerifiedFileByteSource(url: link, budget: budget) }
+        expectFailure(.notRegularFile) { _ = try VerifiedFileByteSource(url: link, budget: budget) }
         let fd = Darwin.open(url.path, O_RDONLY)
         #expect(fd >= 0)
         _ = Darwin.lseek(fd, 7, SEEK_SET)
@@ -243,128 +373,128 @@ struct BoundedInputTests {
         #expect(try bytes(source.read(128..<132)) == Data("DICM".utf8))
     }
 
-    @Test("Partial reads and EINTR preserve identity; altered bytes fail digest verification")
+    @Test("Partial reads and EINTR preserve identity; digest catches altered bytes")
     func readFaults() throws {
-        let data = file(image())
-        let url = try temporary(data); defer { try? FileManager.default.removeItem(at: url) }
-        let state = ReadFaultState()
-        let hooks = VerifiedFileByteSource.Hooks(read: { fd, pointer, count, offset in
-            if state.takeInterrupt() { errno = EINTR; return -1 }
-            let result = Darwin.pread(fd, pointer, min(count, 7), offset)
-            if state.corrupt, result > 0 { pointer?.assumingMemoryBound(to: UInt8.self).pointee ^= 1 }
-            return result
-        })
+        let url = try temporary(file(image())); defer { try? FileManager.default.removeItem(at: url) }
+        let state = ReadFaultState(); state.interrupt = true; state.maximumRead = 7
         let budget = try DICOMAllocationBudget()
-        let source = try VerifiedFileByteSource(url: url, budget: budget,
-            maximumBytes: VerifiedFileByteSource.maximumSourceBytes, hooks: hooks)
+        let source = try testSource(url, budget: budget, state: state)
         #expect(try bytes(source.read(128..<132)) == Data("DICM".utf8))
-        state.corrupt = true // metadata stays identical; only the digest can catch this.
-        #expect(throws: VerifiedSourceError.sourceChanged) { try source.read(128..<132) }
+        state.corrupt = true
+        expectFailure(.sourceChanged) { _ = try source.read(128..<132) }
     }
 
-    @Test("Headers spanning source windows retain exact scalar parsing")
+    @Test("Headers spanning verification windows retain exact scalar parsing")
     func headerBoundary() throws {
-        let base = file(Data())
-        let padding = 65534 - base.count - 12
+        let base = file(Data()), padding = 65534 - base.count - 12
         let payload = base + element(trailer, "OB", Data(repeating: 0, count: padding)) + image()
         let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-        let budget = try DICOMAllocationBudget()
-        let parsed = try open(url, budget: budget)
-        let value = try #require(parsed.dataSet[rows])
-        #expect(try bytes(value.readValue()) == u16(2))
+        let budget = try DICOMAllocationBudget(), parsed = try open(url, budget: budget)
+        #expect(try bytes(value(parsed, rows).readValue()) == u16(2))
     }
 
-    @Test("Deferred multi-block cancellation drops partial output and retains the valid source")
+    @Test("Deferred cancellation drops partial output but keeps source valid")
     func deferredCancellation() throws {
         let payload = Data(repeating: 0x5a, count: 3 * VerifiedFileByteSource.blockBytes)
         let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-        let enabled = ReadFaultState()
-        let hooks = VerifiedFileByteSource.Hooks(stage: { stage in
-            if enabled.corrupt, case .verifiedBlock(1) = stage { throw CancellationError() }
-        })
-        let budget = try DICOMAllocationBudget()
-        let source = try VerifiedFileByteSource(url: url, budget: budget,
-            maximumBytes: VerifiedFileByteSource.maximumSourceBytes, hooks: hooks)
+        let state = ReadFaultState(), budget = try DICOMAllocationBudget()
+        let source = try testSource(url, budget: budget, state: state)
         let retained = budget.receipt.currentTotal
-        enabled.corrupt = true
-        #expect(throws: CancellationError.self) { try source.read(0..<payload.count) }
+        state.cancelStage = 2; state.cancelBlock = 1
+        expectFailure(.cancelled) { _ = try source.read(0..<payload.count, cancellation: state.cancellation) }
         #expect(budget.receipt.currentTotal == retained)
-        enabled.corrupt = false
+        state.cancelled = false; state.cancelStage = -1
         #expect(try bytes(source.read(0..<2)) == Data([0x5a, 0x5a]))
     }
 
-    @Test("A retained acquired value outlives source and index without duplicate charging")
+    @Test("Source does not retain an initializer cancellation context")
+    func operationCancellationLifetime() throws {
+        let url = try temporary(file(image())); defer { try? FileManager.default.removeItem(at: url) }
+        let state = ReadFaultState(), budget = try DICOMAllocationBudget()
+        let source = try testSource(url, budget: budget, state: state)
+        state.cancelled = true
+        #expect(try bytes(source.read(128..<132)) == Data("DICM".utf8))
+        expectFailure(.cancelled) {
+            _ = try source.read(128..<132, cancellation: state.cancellation)
+        }
+        let options = try BoundedParsingOptions(.strict)
+        expectFailure(.cancelled) {
+            _ = try DICOMFile.readBounded(from: source, options: options, cancellation: state.cancellation)
+        }
+        let parsed = try DICOMFile.readBounded(from: source, options: options)
+        #expect(parsed.sourceByteCount == source.count)
+    }
+
+    @Test("Every source/parser backing allocation failure rolls back to the ledger baseline")
+    func allocationFailureSweep() throws {
+        let payload = file(sq(item(image())) + image())
+        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+        var reachedSuccess = false, failures = 0
+        for failAfter in 0..<80 {
+            let budget = try DICOMAllocationBudget(allocationFailureAfter: failAfter)
+            let baseline = budget.receipt.currentTotal
+            do {
+                let parsed = try open(url, budget: budget)
+                let frame = try value(parsed, pixel).readValueRange(0..<2)
+                #expect(bytes(frame) == u16(42))
+                reachedSuccess = true
+            } catch let failure as DICOMManagedFailure {
+                #expect(failure.allocation == .allocationFailed); failures += 1
+            } catch let failure as DICOMParserFailure {
+                if case .managed(let managed) = failure { #expect(managed.allocation == .allocationFailed) }
+                else { Issue.record("Nonallocation failure in allocation sweep") }
+                failures += 1
+            }
+            #expect(budget.receipt.currentTotal == baseline)
+            if reachedSuccess { break }
+        }
+        #expect(reachedSuccess && failures > 10)
+    }
+
+    @Test("Value and view aliases retain exact backing through final destruction")
     func valueOwnership() throws {
         let url = try temporary(file(image())); defer { try? FileManager.default.removeItem(at: url) }
-        let budget = try DICOMAllocationBudget()
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
         var retained: DICOMByteBuffer?
         do {
             let parsed = try open(url, budget: budget)
-            let alias = parsed.dataSet
-            let before = budget.receipt.currentTotal
-            let otherAlias = parsed.dataSet
+            let alias = try parsed.dataSet(), before = budget.receipt.currentTotal
+            let otherAlias = try parsed.dataSet()
             #expect(budget.receipt.currentTotal == before)
-            retained = try alias[pixel]?.readValue(resource: .decoded)
-            withExtendedLifetime(otherAlias) {}
+            guard let pixelValue = try alias.element(for: pixel) else { throw TestFailure.missingElement }
+            retained = try pixelValue.readValue(resource: .decoded)
+            #expect(otherAlias.count == alias.count)
         }
-        #expect(budget.receipt.currentTotal == AlignedPixelBuffer.pageSize + DICOMByteBuffer.controlCapacity)
-        #expect(retained.map(bytes) == u16(42))
-        try retained?.transfer(to: .resident)
+        #expect(budget.receipt.currentTotal == baseline + AlignedPixelBuffer.pageSize + DICOMByteBuffer.controlCapacity)
+        if let retained { #expect(bytes(retained) == u16(42)); try retained.transfer(to: .resident) }
+        else { Issue.record("Missing retained bytes") }
         retained = nil
-        #expect(budget.receipt.currentTotal == 0)
+        #expect(budget.receipt.currentTotal == baseline)
     }
 
-    @Test("EOF probe retries observe cancellation without publishing a source")
-    func eofCancellation() async throws {
+    @Test("Capture and EOF-retry cancellation destroy all partial storage", arguments: [0, 1])
+    func captureCancellation(kind: Int) throws {
         let payload = file(image())
         let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-        let budget = try DICOMAllocationBudget()
-        let signals = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
-        let worker = Task.detached {
-            let hooks = VerifiedFileByteSource.Hooks(read: { fd, pointer, count, offset in
-                if offset == payload.count {
-                    signals.continuation.yield(())
-                    errno = EINTR; return -1
-                }
-                return Darwin.pread(fd, pointer, count, offset)
-            })
-            return try VerifiedFileByteSource(url: url, budget: budget,
-                maximumBytes: VerifiedFileByteSource.maximumSourceBytes, hooks: hooks)
-        }
-        var iterator = signals.stream.makeAsyncIterator()
-        _ = await iterator.next()
-        worker.cancel()
-        do { _ = try await worker.value; Issue.record("Cancelled capture published a source") }
-        catch is CancellationError {}
-        signals.continuation.finish()
-        #expect(budget.receipt.currentTotal == 0)
-    }
-
-    @Test("Cancellation during capture releases source/table/window ownership")
-    func captureCancellation() throws {
-        let url = try temporary(file(image())); defer { try? FileManager.default.removeItem(at: url) }
-        let budget = try DICOMAllocationBudget()
-        let hooks = VerifiedFileByteSource.Hooks(stage: { stage in
-            if case .capturedBlock = stage { throw CancellationError() }
-        })
-        #expect(throws: CancellationError.self) {
-            try VerifiedFileByteSource(url: url, budget: budget,
-                maximumBytes: VerifiedFileByteSource.maximumSourceBytes, hooks: hooks)
-        }
-        #expect(budget.receipt.currentTotal == 0)
+        let state = ReadFaultState(), budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        if kind == 0 { state.cancelStage = 0 } else { state.cancelAtEOF = payload.count }
+        expectFailure(.cancelled) { _ = try testSource(url, budget: budget, state: state) }
+        #expect(budget.receipt.currentTotal == baseline)
     }
 }
 
+private enum TestFailure: Error { case missingElement }
 private final class ReadFaultState: @unchecked Sendable {
-    private let lock = NSLock()
+    var interrupt = false, corrupt = false, cancelled = false
+    var maximumRead = Int.max, cancelStage = -1, cancelBlock = -1, cancelAtEOF = -1
     private var interrupted = false
-    private var corrupted = false
-    var corrupt: Bool {
-        get { lock.lock(); defer { lock.unlock() }; return corrupted }
-        set { lock.lock(); defer { lock.unlock() }; corrupted = newValue }
+    var cancellation: DICOMCancellation {
+        DICOMCancellation(check: { context in
+            guard let context else { return false }
+            return Unmanaged<ReadFaultState>.fromOpaque(context).takeUnretainedValue().cancelled
+        }, context: Unmanaged.passUnretained(self).toOpaque())
     }
     func takeInterrupt() -> Bool {
-        lock.lock(); defer { lock.unlock() }
         if interrupted { return false }
         interrupted = true; return true
     }

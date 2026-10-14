@@ -10,7 +10,7 @@ public struct PixelDecodeLimits: Sendable {
     /// Maximum pixels in one frame (bounds decoder intermediate planes as well).
     public let maximumPixels: Int
     /// Default per-frame limits: 64 MiB encoded/output and 16 million pixels.
-    public static let `default` = PixelDecodeLimits()
+    public static var `default`: PixelDecodeLimits { PixelDecodeLimits() }
 
     /// Creates per-frame resource bounds. Nonpositive limits refuse every frame.
     public init(maximumEncodedBytes: Int = 64 << 20, maximumDecodedBytes: Int = 64 << 20,
@@ -25,24 +25,41 @@ public struct PixelDecodeLimits: Sendable {
     }
 
     func validate(encodedByteCount: Int, descriptor d: PixelDataDescriptor, frameIndex: Int) throws -> Int {
+        do { return try validateManaged(encodedByteCount: encodedByteCount, descriptor: d, frameIndex: frameIndex) }
+        catch {
+            switch error.operand1 {
+            case 0: throw DICOMError.limitExceeded("Compressed frame exceeds encoded byte budget or is empty")
+            case 1: throw DICOMError.parsingFailed("Invalid compressed frame descriptor or frame index")
+            default: throw DICOMError.limitExceeded("Compressed frame exceeds decoded pixel/byte budget")
+            }
+        }
+    }
+
+    func validateManaged(encodedByteCount: Int, descriptor d: PixelDataDescriptor,
+                         frameIndex: Int) throws(DICOMManagedFailure) -> Int {
+        try validateManagedOutcome(encodedByteCount: encodedByteCount, descriptor: d, frameIndex: frameIndex).get()
+    }
+
+    func validateManagedOutcome(encodedByteCount: Int, descriptor d: PixelDataDescriptor,
+                         frameIndex: Int) -> DICOMManagedOutcome<Int> {
         guard encodedByteCount > 0, encodedByteCount <= maximumEncodedBytes else {
-            throw DICOMError.limitExceeded("Compressed frame exceeds encoded byte budget or is empty")
+            return .failure(DICOMManagedFailure(.limitExceeded, 0, encodedByteCount))
         }
         guard frameIndex >= 0, frameIndex < d.numberOfFrames,
               d.rows > 0, d.columns > 0, d.samplesPerPixel == 1 || d.samplesPerPixel == 3,
               d.bitsAllocated == 8 || d.bitsAllocated == 16,
               (2...d.bitsAllocated).contains(d.bitsStored), d.highBit == d.bitsStored - 1,
               d.planarConfiguration == 0 || d.planarConfiguration == 1 else {
-            throw DICOMError.parsingFailed("Invalid compressed frame descriptor or frame index")
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 1, frameIndex))
         }
         let (pixels, pixelOverflow) = d.rows.multipliedReportingOverflow(by: d.columns)
         let (samples, sampleOverflow) = pixels.multipliedReportingOverflow(by: d.samplesPerPixel)
         let (bytes, byteOverflow) = samples.multipliedReportingOverflow(by: d.bitsAllocated / 8)
         guard !pixelOverflow, !sampleOverflow, !byteOverflow,
               pixels <= maximumPixels, bytes > 0, bytes <= maximumDecodedBytes else {
-            throw DICOMError.limitExceeded("Compressed frame exceeds decoded pixel/byte budget")
+            return .failure(DICOMManagedFailure(.limitExceeded, 2))
         }
-        return bytes
+        return .success(bytes)
     }
 }
 

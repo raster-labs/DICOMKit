@@ -1,12 +1,12 @@
 // NEMA-verified: 2026a, checked 2026-10-14 — no DICOM-standard data (allocation ownership).
-import Foundation
 
-/// Backing-storage classes. Metadata consumes the staging limit, but is reported separately.
+/// Backing-storage classes. Metadata shares the staging limit.
 public enum DICOMAllocationClass: Int, Sendable, CaseIterable {
     case encoded, decoded, staging, resident, preview, metadata
 }
 
-/// Failures are reported before allocation; cancellation never releases an existing lease.
+/// Scalar admission and storage failures carried by nonthrowing allocation outcomes.
+/// Error conformance is used only by the compatibility throwing adapters.
 public enum DICOMAllocationError: Error, Equatable, Sendable {
     case invalidSize
     case budgetMismatch
@@ -14,25 +14,33 @@ public enum DICOMAllocationError: Error, Equatable, Sendable {
     case totalLimitExceeded
     case allocationFailed
     case alreadyTransferred
+    case referenceCountOverflow
+    case synchronizationFailed
+    case sharedMutation
+    case finalizerAlreadyInstalled
+    case retirementObserverAlreadyInstalled
+    case stackUnavailable
+    case threadMismatch
+    case unsupportedPlatform
 }
 
-/// Immutable per-class usage, including capacities rather than just logical lengths.
+/// Per-class live or peak capacities, including mapped control pages.
 public struct DICOMAllocationUsage: Sendable, Equatable {
-    /// Live encoded-input backing bytes.
+    /// Encoded-input capacity.
     public internal(set) var encoded = 0
-    /// Live decoded-output backing bytes before ownership transfer.
+    /// Decoded-output capacity.
     public internal(set) var decoded = 0
-    /// Live temporary payload backing bytes, excluding separately reported metadata.
+    /// Temporary payload capacity.
     public internal(set) var staging = 0
-    /// Live backing bytes transferred to resident ownership.
+    /// Retained resident capacity.
     public internal(set) var resident = 0
-    /// Live backing bytes transferred to preview ownership.
+    /// Retained preview capacity.
     public internal(set) var preview = 0
-    /// Live metadata charges, which share the staging limit.
+    /// Control and metadata capacity, sharing the staging limit.
     public internal(set) var metadata = 0
-    /// Create a zero-usage snapshot.
+    /// Create a zero-usage value.
     public init() {}
-    /// Read usage for one allocation class.
+    /// Read or update one class in this value snapshot.
     public subscript(_ resource: DICOMAllocationClass) -> Int {
         get {
             switch resource {
@@ -57,59 +65,48 @@ public struct DICOMAllocationUsage: Sendable, Equatable {
     }
 }
 
-/// A snapshot of live and peak admitted storage. Class peaks need not be simultaneous.
+/// Atomic live and peak capacity snapshot; class peaks need not be simultaneous.
 public struct DICOMAllocationReceipt: Sendable, Equatable {
-    /// Simultaneously live charges by class at capture time.
+    /// Simultaneously retained capacities by class.
     public let current: DICOMAllocationUsage
-    /// Independent per-class peaks; these need not occur simultaneously.
+    /// Independent class peaks.
     public let peak: DICOMAllocationUsage
-    /// Sum of all simultaneously live charges at capture time.
+    /// Simultaneously retained aggregate capacity.
     public let currentTotal: Int
-    /// Maximum simultaneous total charge observed by this ledger.
+    /// Peak simultaneous aggregate capacity.
     public let peakTotal: Int
-    /// Number of retained allocation leases at capture time.
+    /// Retained storage owners, including the ledger's own mapping.
     public let liveAllocations: Int
 }
 
-/// A caller-owned, synchronous admission ledger for explicitly managed storage.
+/// Explicitly shared ledger whose mutex, counters and limits occupy its admitted mapping.
 ///
-/// Share one instance across concurrent jobs to enforce their aggregate cap. Holding
-/// a reference to a buffer retains its charge; cancelling a task or subscriber does
-/// not change this ledger. This is not an interceptor for arbitrary Swift/Foundation
-/// or codec allocations. Such operations require their own complete reservations.
-public final class DICOMAllocationBudget: @unchecked Sendable {
-    /// Frozen default class and aggregate limits for bounded workstation input.
+/// A handle is move-only. `share()` creates another owning handle without allocating.
+/// Storage owners retain the ledger independently, so destroying the caller's handle
+/// cannot erase live charges. The ledger's own page is charged as metadata at creation.
+public struct DICOMAllocationBudget: ~Copyable, @unchecked Sendable {
+    /// Frozen byte limits for bounded workstation input.
     public struct Limits: Sendable {
-        /// Maximum live encoded-input charge.
+        /// Encoded-input limit.
         public let encoded: Int
-        /// Maximum live decoded-output charge.
+        /// Decoded-output limit.
         public let decoded: Int
-        /// Maximum combined staging and metadata charge.
+        /// Combined staging and metadata limit.
         public let staging: Int
-        /// Maximum live resident charge.
+        /// Resident-storage limit.
         public let resident: Int
-        /// Maximum live preview charge.
+        /// Preview-storage limit.
         public let preview: Int
-        /// Maximum simultaneous charge across all classes.
+        /// Aggregate simultaneous limit.
         public let total: Int
-        /// Configure byte limits; validation occurs when constructing the budget.
-        /// - Parameters:
-        ///   - encoded: Encoded-input limit in bytes.
-        ///   - decoded: Decoded-output limit in bytes.
-        ///   - staging: Shared staging/metadata limit in bytes.
-        ///   - resident: Resident-storage limit in bytes.
-        ///   - preview: Preview-storage limit in bytes.
-        ///   - total: Aggregate simultaneous limit in bytes.
-        public init(encoded: Int = 128 * 1024 * 1024,
-                    decoded: Int = 384 * 1024 * 1024,
-                    staging: Int = 64 * 1024 * 1024,
-                    resident: Int = 384 * 1024 * 1024,
-                    preview: Int = 32 * 1024 * 1024,
-                    total: Int = 1024 * 1024 * 1024) {
+        /// Configure byte limits; negative limits are rejected by the ledger initializer.
+        public init(encoded: Int = 128 * 1024 * 1024, decoded: Int = 384 * 1024 * 1024,
+                    staging: Int = 64 * 1024 * 1024, resident: Int = 384 * 1024 * 1024,
+                    preview: Int = 32 * 1024 * 1024, total: Int = 1024 * 1024 * 1024) {
             self.encoded = encoded; self.decoded = decoded; self.staging = staging
             self.resident = resident; self.preview = preview; self.total = total
         }
-        fileprivate subscript(_ resource: DICOMAllocationClass) -> Int {
+        subscript(_ resource: DICOMAllocationClass) -> Int {
             switch resource {
             case .encoded: encoded
             case .decoded: decoded
@@ -119,111 +116,148 @@ public final class DICOMAllocationBudget: @unchecked Sendable {
             }
         }
     }
-    /// Immutable class and aggregate limits enforced by this ledger.
-    public let limits: Limits
-    private let lock = NSLock()
-    private var current = DICOMAllocationUsage()
-    private var peak = DICOMAllocationUsage()
-    private var currentTotal = 0
-    private var peakTotal = 0
-    private var liveAllocations = 0
-    private var allocationFailureAfter: Int?
 
-    /// Create an empty ledger, rejecting any negative limit.
-    /// - Parameter limits: Byte capacities shared by all storage using this instance.
-    public init(limits: Limits = Limits()) throws {
-        guard limits.total >= 0,
-              DICOMAllocationClass.allCases.allSatisfy({ limits[$0] >= 0 }) else {
-            throw DICOMAllocationError.invalidSize
+    let mappedLedger: UnsafeMutablePointer<DICOMMappedLedger>
+
+    /// Actual capacity of the ledger control mapping, admitted before mapping it.
+    public static var controlCapacity: Int { DICOMMappedStorage.pageSize }
+    /// Immutable limits shared by all aliases and retained storage owners.
+    public var limits: Limits { mappedLedger.pointee.limits }
+
+    /// Create a ledger, admitting its own control page against staging and total limits.
+    /// - Parameter limits: Complete per-instance limits, including control storage.
+    public init(limits: Limits = Limits()) throws(DICOMAllocationError) {
+        self = try legacyAllocationValue(Self.make(limits: limits))
+    }
+
+    // Per-instance deterministic mmap failure injection; the bootstrap ledger is not counted.
+    init(limits: Limits = Limits(), allocationFailureAfter: Int) throws(DICOMAllocationError) {
+        self = try legacyAllocationValue(Self.make(limits: limits, allocationFailureAfter: allocationFailureAfter))
+    }
+
+    private init(retained ledger: UnsafeMutablePointer<DICOMMappedLedger>) { mappedLedger = ledger }
+
+    /// Create a ledger with scalar admission status and no throwing-runtime boundary.
+    /// - Parameter limits: Complete limits including the ledger's own mapped page.
+    /// - Returns: An admitted ledger or the exact refusal reason.
+    public static func make(limits: Limits = Limits()) -> DICOMAllocationOutcome<Self> {
+        makeInternal(limits: limits, failureAfter: -1)
+    }
+    static func make(limits: Limits = Limits(), allocationFailureAfter: Int) -> DICOMAllocationOutcome<Self> {
+        guard allocationFailureAfter >= 0 else { return .failure(.invalidSize) }
+        return makeInternal(limits: limits, failureAfter: allocationFailureAfter)
+    }
+    private static func makeInternal(limits: Limits, failureAfter: Int) -> DICOMAllocationOutcome<Self> {
+        switch DICOMMappedStorage.makeLedger(limits: limits, failureAfter: failureAfter) {
+        case .success(let ledger): return .success(Self(retained: ledger))
+        case .failure(let error): return .failure(error)
         }
-        self.limits = limits
     }
 
-    // Per-ledger deterministic allocator failure hook, available only to tests.
-    convenience init(limits: Limits = Limits(), allocationFailureAfter: Int) throws {
-        try self.init(limits: limits)
-        self.allocationFailureAfter = allocationFailureAfter
-    }
-    package func willAllocateBacking() throws {
-        lock.lock(); defer { lock.unlock() }
-        if let remaining = allocationFailureAfter {
-            guard remaining > 0 else { throw DICOMAllocationError.allocationFailed }
-            allocationFailureAfter = remaining - 1
-        }
+    /// Retain the ledger using scalar status, without allocating or entering throwing runtime.
+    /// - Returns: Another owner of the same ledger or a reference-count refusal.
+    public borrowing func shareOutcome() -> DICOMAllocationOutcome<Self> {
+        if let error = DICOMMappedStorage.retainLedger(mappedLedger) { return .failure(error) }
+        return .success(Self(retained: mappedLedger))
     }
 
-    /// Capture current usage and peaks atomically under the ledger lock.
-    public var receipt: DICOMAllocationReceipt {
-        lock.lock(); defer { lock.unlock() }
-        return DICOMAllocationReceipt(current: current, peak: peak,
-            currentTotal: currentTotal, peakTotal: peakTotal, liveAllocations: liveAllocations)
+
+    /// Retain the same ledger without allocating any storage.
+    /// - Returns: A separately owned handle to the same counters and mutex.
+    public borrowing func share() throws(DICOMAllocationError) -> DICOMAllocationBudget {
+        try legacyAllocationValue(shareOutcome())
     }
 
-    /// Reserve a proven capacity before its allocation. The returned lease must be
-    /// retained by the storage owner until destruction, including all error paths.
+    /// Compare retained ledger identity without creating another handle.
+    /// - Parameter other: Ledger whose identity is compared.
+    public borrowing func isSameOwner(as other: borrowing DICOMAllocationBudget) -> Bool {
+        mappedLedger == other.mappedLedger
+    }
+
+    /// Capture live and peak capacities while holding the in-place mutex.
+    public var receipt: DICOMAllocationReceipt { DICOMMappedStorage.receipt(mappedLedger) }
+
+    /// Reserve external storage capacity plus a real page for this lease's shared control state.
+    /// The caller must independently prove the external allocation's complete capacity.
     /// - Parameters:
-    ///   - bytes: Complete capacity to charge, including allocation rounding.
-    ///   - resource: Initial allocation class.
-    /// - Returns: A lease that releases the charge on destruction.
-    public func reserve(_ bytes: Int, as resource: DICOMAllocationClass) throws -> DICOMAllocationLease {
-        lock.lock(); defer { lock.unlock() }
-        try check(bytes, as: resource)
-        add(bytes, as: resource)
-        liveAllocations += 1
-        return DICOMAllocationLease(budget: self, bytes: bytes, resource: resource)
+    ///   - bytes: External capacity retained by this lease, with allocator rounding included.
+    ///   - resource: Class charged for that external capacity.
+    /// - Returns: Move-only lease; aliases require `share()` and keep one charge alive.
+    public borrowing func reserve(_ bytes: Int, as resource: DICOMAllocationClass)
+        throws(DICOMAllocationError) -> DICOMAllocationLease {
+        try legacyAllocationValue(reserveOutcome(bytes, as: resource))
     }
 
-    private func check(_ bytes: Int, as resource: DICOMAllocationClass) throws {
-        guard bytes >= 0 else { throw DICOMAllocationError.invalidSize }
-        let used = resource == .metadata || resource == .staging
-            ? current.metadata + current.staging : current[resource]
-        guard used <= limits[resource], bytes <= limits[resource] - used else {
-            throw DICOMAllocationError.limitExceeded(resource)
+
+    /// Admit external capacity and a mapped lease header using only scalar status.
+    /// - Parameters:
+    ///   - bytes: Proven complete caller-owned external capacity.
+    ///   - resource: Class retaining that capacity.
+    /// - Returns: An owning lease or an unchanged-ledger refusal.
+    public borrowing func reserveOutcome(_ bytes: Int, as resource: DICOMAllocationClass)
+        -> DICOMAllocationOutcome<DICOMAllocationLease> {
+        switch DICOMMappedStorage.makeOwner(ledger: mappedLedger, count: bytes,
+            capacity: bytes, resource: resource, mapsPayload: false) {
+        case .success(let owner): return .success(DICOMAllocationLease(retained: owner))
+        case .failure(let error): return .failure(error)
         }
-        guard currentTotal <= limits.total, bytes <= limits.total - currentTotal else {
-            throw DICOMAllocationError.totalLimitExceeded
-        }
     }
-    private func add(_ bytes: Int, as resource: DICOMAllocationClass) {
-        current[resource] += bytes
-        currentTotal += bytes
-        peak[resource] = max(peak[resource], current[resource])
-        peakTotal = max(peakTotal, currentTotal)
-    }
-    fileprivate func release(_ bytes: Int, as resource: DICOMAllocationClass) {
-        lock.lock(); defer { lock.unlock() }
-        current[resource] -= bytes; currentTotal -= bytes; liveAllocations -= 1
-    }
-    fileprivate func transfer(_ lease: DICOMAllocationLease, to resource: DICOMAllocationClass) throws {
-        lock.lock(); defer { lock.unlock() }
-        guard !lease.transferred else { throw DICOMAllocationError.alreadyTransferred }
-        // Remove the old class only while holding the lock. Failure restores it;
-        // readers never see an uncharged allocation or transient double charge.
-        current[lease.resource] -= lease.bytes; currentTotal -= lease.bytes
-        do { try check(lease.bytes, as: resource) }
-        catch {
-            current[lease.resource] += lease.bytes; currentTotal += lease.bytes
-            throw error
-        }
-        add(lease.bytes, as: resource)
-        lease.resource = resource; lease.transferred = true
-    }
+
+    deinit { DICOMMappedStorage.releaseLedger(mappedLedger) }
 }
 
-/// A single backing allocation's ARC lifetime. Aliases share this lease.
-public final class DICOMAllocationLease: @unchecked Sendable {
-    private let budget: DICOMAllocationBudget
-    /// Complete charge retained until this lease is destroyed.
-    public let bytes: Int
-    fileprivate var resource: DICOMAllocationClass
-    fileprivate var transferred = false
-    fileprivate init(budget: DICOMAllocationBudget, bytes: Int, resource: DICOMAllocationClass) {
-        self.budget = budget; self.bytes = bytes; self.resource = resource
+/// Move-only owner of an external reservation and its mapped shared control page.
+public struct DICOMAllocationLease: ~Copyable, @unchecked Sendable {
+    let mappedOwner: UnsafeMutablePointer<DICOMMappedOwner>
+    init(retained owner: UnsafeMutablePointer<DICOMMappedOwner>) { mappedOwner = owner }
+
+    /// External capacity retained by this lease, excluding its metadata control page.
+    public var bytes: Int { mappedOwner.pointee.payloadCapacity }
+    /// Actual mapped capacity of the shared lease control state.
+    public var controlCapacity: Int { mappedOwner.pointee.controlCapacity }
+
+    /// Compare the ledger retaining this reservation without creating another handle.
+    /// - Parameter budget: Expected admission ledger.
+    public borrowing func isOwned(by budget: borrowing DICOMAllocationBudget) -> Bool {
+        mappedOwner.pointee.ledger == budget.mappedLedger
     }
-    /// Transfer retained output into its destination class exactly once.
-    /// - Parameter resource: Destination allocation class; failed admission leaves ownership unchanged.
-    public func transfer(to resource: DICOMAllocationClass) throws {
-        try budget.transfer(self, to: resource)
+
+    /// Retain the existing reservation without allocating or double charging it.
+    /// - Returns: Another independently owned handle to the same lease.
+    public borrowing func share() throws(DICOMAllocationError) -> DICOMAllocationLease {
+        try legacyAllocationValue(shareOutcome())
     }
-    deinit { budget.release(bytes, as: resource) }
+
+    /// Move the external capacity to another class exactly once across all aliases.
+    /// - Parameter resource: Destination class; failed admission leaves the original charge intact.
+    public borrowing func transfer(to resource: DICOMAllocationClass) throws(DICOMAllocationError) {
+        try legacyAllocationValue(transferOutcome(to: resource))
+    }
+
+
+    /// Retain the same reservation using a scalar result.
+    /// - Returns: An alias or a reference-count refusal, without a throwing-runtime call.
+    public borrowing func shareOutcome() -> DICOMAllocationOutcome<Self> {
+        if let error = DICOMMappedStorage.retainOwner(mappedOwner) { return .failure(error) }
+        return .success(Self(retained: mappedOwner))
+    }
+
+    /// Transfer this reservation once with scalar refusal status.
+    /// - Parameter resource: Destination allocation class.
+    /// - Returns: Success or the original charge-preserving refusal.
+    public borrowing func transferOutcome(to resource: DICOMAllocationClass) -> DICOMAllocationOutcome<Void> {
+        if let error = DICOMMappedStorage.transfer(mappedOwner, to: resource) { return .failure(error) }
+        return .success(())
+    }
+
+    deinit { DICOMMappedStorage.releaseOwner(mappedOwner) }
+}
+
+// Compatibility boundary only. Qualified operations switch on outcomes directly.
+func legacyAllocationValue<Value: ~Copyable>(_ outcome: consuming DICOMAllocationOutcome<Value>)
+    throws(DICOMAllocationError) -> Value {
+    switch consume outcome {
+    case .success(let value): return value
+    case .failure(let error): throw error
+    }
 }

@@ -1,140 +1,145 @@
-# Bounded input allocation work — local candidate
+# Bounded input allocation contract
 
-14 October 2026. In progress; not a release or Mayam qualification receipt.
+14 October 2026. Release qualification is in progress. Final source and validation
+receipts accompany the published dependency closure; this document defines the API
+contract, not Mayam provider or native presentation acceptance.
 
-The candidate starts at DICOMKit 2.3.1 (`cae78a752243bd033d12ee7f5d0dcc9670ecf804`)
-and incorporates the retained Mayam strict-parsing and discovery patches into the
-maintained parser. No Mayam checkout, cached donor, dependency pin or app artifact
-is changed. Existing unbounded APIs remain available for existing callers.
-
-## Implemented storage boundary
+## Ownership and limits
 
 `DICOMAllocationBudget` is an explicitly injected, synchronous, thread-safe ledger.
 Its default limits are encoded 128 MiB, decoded 384 MiB, staging 64 MiB, resident
-384 MiB, preview 32 MiB, aggregate 1 GiB. Metadata is reported separately but shares
-the staging limit. Class peaks are not added to infer a simultaneous total peak.
+384 MiB, preview 32 MiB, aggregate 1 GiB. Metadata is reported separately and shares
+the staging limit. Class peaks are independent; `peakTotal` is the simultaneous peak.
 
-`DICOMByteBuffer` privately owns `AlignedPixelBuffer` storage. Its controlled path
-reserves every anonymous mapping page before allocation. This is owned anonymous
-memory, not a file mapping. Empty buffers still reserve a page. Copies reserve a
-second backing; reference aliases share one owner. A one-time class transfer moves
-the charge atomically without reducing the live total. Destruction unmaps storage
-before releasing its lease. Cancellation does not itself release any lease.
+The ledger, every shared owner record, and all payload storage occupy real anonymous
+mappings. Admission includes page rounding before mapping. The ledger bootstrap
+page is itself metadata. Each buffer owns a separate metadata control page and a
+page-rounded payload; even an empty buffer retains its mapped capacities. Mapping
+failure returns a scalar failure and rolls back admission. These are owned anonymous
+pages, not uncharged file mappings or inferred `Data` capacities.
 
-The existing permissive `AlignedPixelBuffer` API retains its compatibility behavior;
-its rounding now checks overflow. Its public pointer/Data bridge is not the bounded
-API. Borrowing a bounded buffer requires a synchronous closure and forbids pointer
-escape or mutation. Caller allocations inside a closure are the caller's separate
-responsibility. Fixed control allowances are explicitly distinguished from measured
-or intercepted Swift/Foundation heap allocations; these receipts are not RSS or a
-complete process-allocation claim.
+Budget, lease, buffer, verified source, parsed index and deferred views are move-only
+values. Explicit `shareOutcome()` creates an owning alias without another backing or charge.
+Copies and vector growth admit simultaneous old/new capacities. `sameBacking(as:)`
+proves buffer alias identity. `capacity`, `controlByteCount` and `retainedByteCount`
+report the actual retained capacities; the shared ledger bootstrap is counted once,
+not once per buffer. Destruction unmaps storage before releasing its charge. A failed
+unmap conservatively retains the charge rather than reporting memory as freed.
 
-On platforms with Darwin and CryptoKit, `VerifiedFileByteSource` owns a regular-file descriptor (or duplicates a caller's
-anchored descriptor). It hashes the entire admitted source, up to 256 MiB, using
-64 KiB blocks and retains SHA-256 block digests plus the full transcript digest.
-Every later read verifies the complete block and copies from those exact immutable
-bytes. It handles partial reads, EINTR, EOF, cancellation and range overflow.
-Device/inode/mode/size/mtime/ctime and path checks detect ordinary source changes.
-A detected source failure permanently invalidates retained views. This preserves
-the previous snapshot's ordinary-race contract; it does not promise an atomic
-filesystem snapshot against a hostile writer during initial capture. Filesystem
-syscalls have no deadline guarantee.
+`transferOutcome(to:)` moves the complete payload charge exactly once, atomically across all
+aliases, without changing the total. Its control page remains metadata until final
+owner destruction. A canceled subscriber or dropped result does not release a
+worker's separate retained owner. Finalizers run once before unmapping, outside the
+ledger lock, and can destroy nested owners safely.
 
-`DICOMFile.readBounded(from:options:)` requires strict full parsing. It uses the
-canonical `DICOMParser` with a verified cursor and a storage capture policy; there
-is no second DICOM grammar. The result is `BoundedDICOMFile`, not a materialized
-`DICOMFile`. Elements, sequence scopes and fragments live in controlled flat
-containers. Values and raw SQ spans remain deferred. Logical strict limits still
-count the same leaf and nested raw-SQ lengths as before. Duplicate detection has
-controlled backing and is discarded when parsing finishes. No partial parse escapes.
-Strict parsing defaults to native little-endian transfer syntaxes. Compressed input
-requires an explicit `allowedTransferSyntaxUIDs` allowlist and
-`strictEncapsulation`; the maintained initial compressed profiles are JPEG
-baseline, JPEG lossless SV1 and JPEG-LS lossless.
+`installRetirementObserverOutcome(context:callback:)` installs one thin C callback before
+the first explicit share. It runs only after the final payload/control unmaps and
+ledger debit succeed, outside the ledger lock while the ledger remains pinned.
+It does not run on failed unmap. This lets a host release its aggregate retained
+lease at actual last-owner retirement. The caller must separately account and
+retain its callback context until notification; the callback must not allocate,
+block or wait for an actor. Register before constructing externally retained aliases.
 
-Implicit VR uses an allocation-free primary-VR projection in the maintained
-`DataElementDictionary`, generated from its authoritative resource. The descriptive
-dictionary's lazy strings, arrays and hash table are not loaded by this lookup.
-`Scripts/generate_primary_vr.py --check` verifies that the projection is current.
-The bounded UID token reader preserves UTF-8 validity and legacy Unicode/NUL
-padding without materializing an arbitrarily padded UI value.
+`withBorrowedBytes` is a synchronous borrow. Do not let its pointer escape, mutate it,
+or create an uncharged `Array`/`Data` copy and call that managed. An external GPU or
+image owner must retain an explicit buffer handle through actual resource destruction;
+its own wrapper/deallocator/context allocations require separate host admission.
+Legacy `AlignedPixelBuffer` and Foundation bridges remain compatibility APIs.
 
-Deferred value/frame acquisitions throw on source changes, cancellation or failed
-admission. `readFrame` uses the same canonical frame walker as
-`EncapsulatedPixelData.makeFrameIndex`, validates the complete map, then admits and
-fills only the selected frame. It does not infer or add Extended Offset Table
-qualification to the initial bounded profile. Native frame-size/descriptor and
-compressed precision/profile qualification remain the existing caller's authority.
+## Worker and runtime boundary
 
-## Still required before provider integration
+On Darwin, `DICOMExecutionReservation` admits the current worker's entire reported
+usable pthread stack and its real lease control page as metadata. Qualified source,
+parser and codec overloads require it and validate the original ledger and thread.
+Retain the reservation across the whole synchronous capture/parse/acquire/decode
+operation, including cancellation/failure, until the worker actually returns. Never
+suspend asynchronously inside this scope. A reservation for another thread or ledger
+is rejected. Low-level portable APIs account their backing only; they do not silently
+reserve a stack. The execution qualification is not available on Linux.
 
-This is not yet the full input-to-retained-image allocation contract. In particular,
-legacy codec APIs do not become accounted merely because their input is accounted.
-No adapter may silently bridge this result into an uncharged codec/Data/Array path
-and call the result bounded.
+Create caller-owned worker/TLS/runtime setup, immutable options and borrowed path/
+cancellation contexts before the qualified operation. Cancellation uses a thin C
+function and a context borrowed only for that synchronous call. The callback must
+not allocate or block. No retained source/index/frame stores the cancellation token.
+Do not use `pthread_cancel` or force a worker to exit: cancellation must return
+through the scalar outcome and ordinary Swift ownership cleanup.
+Failures are fixed scalar values returned in explicit outcomes. Qualified calls use
+`DICOMAllocationBudget.make`, buffer `allocate`, execution `reserve`, source `capture`,
+`readBoundedOutcome`, deferred `*Outcome` methods and `decodeManagedPixelFrameOutcome`.
+Switch over success/failure inside admitted work. Do not call `.get()` or throwing
+compatibility adapters there: Swift's cold Error witness initialization allocates.
+Formatting and legacy error translation belong outside the admitted core.
 
-The local codec branches now provide synchronous caller-storage payload APIs:
+Qualification is for the exact supported Release compiler/OS/runtime recorded in
+its receipt and normal execution without externally installed debugger/profiler/error
+hooks. Read-only runtime inspection and compiled selected-branch review establish
+that boundary; they do not make mutable runtime hooks immutable. Arbitrary caller
+callbacks, instrumentation, kernel storage, preexisting thread setup and inaccessible
+guard VM are outside operation-owned backing. This is not a process-wide OOM-survival
+or universal OS/toolchain claim. RSS sampling alone does not establish this contract.
 
-* JLSwift borrows encoded spans, stores reachable mapping values and adaptive
-  contexts in fixed caller scratch, and runs the canonical monochrome kernel
-  directly into UInt16 output. Restart regions are decoded serially without an
-  image-sized Int plane or retained array of regions.
-* JLISwift lossless uses its existing prediction/Huffman kernel with little-endian
-  UInt16 destination storage. Baseline RGB uses MCU-row coefficient strips, shared
-  IDCT scratch, backward in-place chroma expansion and tiled color conversion.
-  It retains one `12 * pixelCount` arena whose visible RGB prefix is `3 * pixelCount`.
-  For widths up to 16,384 and sampling factors 1...4, the reported row workspace is
-  at most 10,746,720 bytes. The full arena remains charged when output is retained.
-* `decodeManagedPixelFrame` on the existing codec owners reuses descriptor/syntax
-  validation and returns `ManagedDecodedPixelFrame`. It supports the current Mayam
-  monochrome allocated16 JPEG-LS/lossless and interleaved baseline RGB8 profiles.
-  Input storage and decoding must use the same `DICOMAllocationBudget` instance;
-  a mismatched budget is rejected before inspection or allocation.
-  Broader legacy codec profiles remain available only through their existing APIs;
-  managed calls refuse unsupported profiles without an uncharged fallback.
-* JPEG-LS inspection reports mapping selection, mapping presence and color
-  transformation so precision recovery uses the same narrow policy as the legacy
-  descriptor-bearing API. Borrowed parser storage must not imply absent mappings.
+## Verified source and canonical parser
 
-**Remaining acceptance blocker:** fixed Swift/CryptoKit/lock/error/control
-allowances require independent qualification and a defensible admission/lifetime
-mechanism. The backend payload APIs explicitly exclude these allocations. Lazy ICC
-profile construction and DCT matrices are shared process-lifetime storage. A finite
-observed malloc peak or an arbitrary 64 KiB allowance does not prove a complete
-maximum or recoverable allocation failure. These receipts must remain labeled as
-controlled payload receipts until this gap is closed.
+`VerifiedFileByteSource` anchors a regular-file descriptor (or duplicates a supplied
+one), admits at most 256 MiB, and hashes the entire transcript in 64 KiB windows. Its
+fixed scalar SHA-256 implementation retains a full digest and an admitted table of
+block digests. Every later acquisition verifies each complete block and copies those
+same bytes. Source controls, path and digest table are admitted mapped storage.
+`identity` is a fixed 32-byte value; `.hexadecimal` is an explicit caller-side String
+adapter. The path/descriptor overloads form the qualified capture boundary; URL
+conversion is a caller-side Foundation adapter.
 
-A standalone optimized allocator probe must trace cold/warm initialization,
-concurrency, transient allocations, retained aliases, errors and late cancellation;
-its inventory must reconcile against allocator-zone enumeration and an independent
-allocation trace. Exact supported runtime/toolchain/allocator versions and the
-accounting metric must be recorded. Probe instrumentation cannot itself pre-admit
-Swift runtime allocations or turn fatal Swift allocation failure into a thrown error.
+Partial reads, EINTR, EOF, cancellation, range overflow, final symlinks, replacement,
+truncation, append and ordinary same-size mutation are checked. Device/inode/mode/
+size/mtime/ctime and path guards preserve the prior ordinary-race contract. Source
+failures invalidate all aliases; cancellation alone does not. Initial capture is not
+an atomic filesystem snapshot against a hostile writer, and syscalls have no deadline
+guarantee. No verified-then-unverified second read is used.
 
-Mayam independently owns provider integration and native qualification. The
-existing runtime lease must receive the complete retained backing exactly once;
-no dependency pin or production path is changed by this candidate.
+Convert caller policy to scalar `BoundedParsingOptions` before the operation.
+`DICOMFile.readBoundedOutcome` requires strict full parsing and invokes the canonical
+`DICOMParser` with verified windows and a mapped capture policy. There is one grammar.
+Scopes, elements, duplicate membership and fragment records use admitted flat
+containers; duplicate scratch is released at seal. Values/raw sequence spans are
+deferred. Original logical limits, strict rejection behavior and nested raw-SQ value
+accounting are preserved. A partial parse never escapes.
 
-No cap increase, smaller source envelope, permissive fallback or second input loader
-is proposed. Backend branches are local; no publication is authorized for this work.
+Implicit VR uses the generated `DataElementDictionary.primaryValueRepresentation`
+switch, not its lazy descriptive dictionary. `Scripts/generate_primary_vr.py --check`
+verifies the projection. Scalar explicit-VR and transfer-syntax token decoding avoid
+String allocations while preserving maintained UTF-8/BOM/Unicode/NUL padding rules.
 
-## Reproducing the local dependency closure
+Native little-endian syntax is the strict default. Explicit allowlisting and strict
+encapsulation admit the existing JPEG baseline, JPEG lossless SV1 and JPEG-LS lossless
+profiles. `readFrameOutcome` uses the canonical encapsulated frame walker, validates all
+frame groups, then admits and fills only the selected frame. It does not add Extended
+Offset Table qualification or a permissive fallback. Source/frame/descriptor identity
+and native frame-size policy remain the existing caller's responsibility.
 
-`LocalSourceClosure.json` records the exact local codec revisions and the four
-unchanged transitive pins. The DICOMKit manifest still names the published codec
-releases; this candidate must be built with explicit SwiftPM edit overrides until
-the codec changes receive an authorized upstream publication. For an isolated
-scratch directory already resolved from the published baseline:
+## Codec storage and handoff
 
-```sh
-swift package --scratch-path /absolute/scratch edit JLSwift --path /absolute/jls-clone
-swift package --scratch-path /absolute/scratch edit JLISwift --path /absolute/jli-clone
-```
+Managed JLS/JLI entrypoints require the encoded buffer and decoding budget to have
+the same ledger. They validate descriptors before allocation and use the maintained
+codec's caller-storage core with scalar errors and cancellation. No fallback into
+an uncharged legacy codec path occurs. Existing broader legacy profiles remain
+available through their compatibility APIs.
 
-Check both codec HEADs against the manifest first. Preserve the same scratch,
-cache/config and module-cache paths for subsequent build/test commands. An edited
-workspace-state file is part of the local qualification evidence; released
-`Package.resolved` pins alone do not prove the candidate was compiled. There are no
-local-path dependencies or unpushed revisions silently substituted into Mayam.
-The incorporated strict/discovery patch hashes are recorded to prevent accidental
-double application when a future qualified candidate replaces Mayam's donor.
+* JPEG-LS monochrome allocated16 uses a fixed 144,864-byte caller workspace and UInt16
+  output, with the canonical marker grammar and prediction kernel. Mapping and color
+  transform evidence preserve the narrow precision-recovery policy.
+* JPEG lossless SV1 monochrome allocated16 uses a 6,160-byte caller workspace and
+  little-endian UInt16 output with the canonical Huffman/prediction kernel.
+* Baseline interleaved RGB8 uses a 16,384-byte inspection workspace, bounded MCU-row
+  coefficient/sampling workspace and a `12 * pixelCount` arena whose visible RGB
+  prefix is `3 * pixelCount`. The complete arena remains charged after handoff.
+  Fixed shared numerical kernels replace opaque Accelerate workspace calls, with
+  independent pixel and prior-kernel differential validation.
+
+`ManagedDecodedPixelFrame` returns the actual descriptor, source frame index, one
+optional scalar diagnostic and a consuming `DICOMByteBuffer`. Transfer that complete
+backing once to resident/preview ownership and retain it through real destruction.
+Do not charge only the visible RGB prefix or release controls when a request cancels.
+
+Mayam independently owns adaptation to its existing preparation/resident lease,
+strict provider tests and native presentation qualification. This library introduces
+no application dependency, second loader, increased cap or smaller source envelope.

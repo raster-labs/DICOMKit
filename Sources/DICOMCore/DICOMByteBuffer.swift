@@ -1,82 +1,196 @@
 // NEMA-verified: 2026a, checked 2026-10-14 — no DICOM-standard data (owned byte storage).
-import Foundation
 
-/// Immutable, explicitly admitted bytes. Sharing this reference shares one backing
-/// and one charge. A copy requires a second allocation. Borrowed pointers must not
-/// escape their closure or be mutated. No implicit `Data`/Array bridge is provided.
-public final class DICOMByteBuffer: @unchecked Sendable {
-    private let storage: AlignedPixelBuffer
-    let ownerBudget: DICOMAllocationBudget
-    private let controlLease: DICOMAllocationLease
-    /// Logical byte count exposed by immutable borrows.
-    public let count: Int
-    /// Complete page-rounded backing capacity charged for this buffer's lifetime.
-    public var capacity: Int { storage.allocatedByteCount }
+/// Immutable bytes retained by explicit move-only handles over mapped shared control state.
+/// `share()` retains one backing and one charge; copying admits a second complete backing.
+public struct DICOMByteBuffer: ~Copyable, @unchecked Sendable {
+    let mappedOwner: UnsafeMutablePointer<DICOMMappedOwner>
 
-    /// Reserved allowance for the fixed-size buffer, storage and lease objects.
-    /// It does not cover arbitrary allocations made by a caller's initialization
-    /// or borrowing closure. Variable-sized payloads always have separate leases.
-    public static var controlCapacity: Int { AlignedPixelBuffer.pageSize }
+    /// Logical bytes exposed by immutable borrows.
+    public var count: Int { mappedOwner.pointee.count }
+    /// Actual page-rounded payload capacity retained until the last handle is destroyed.
+    public var capacity: Int { mappedOwner.pointee.payloadCapacity }
+    /// Actual shared owner-header capacity, always charged as metadata even after payload transfer.
+    public var controlByteCount: Int { mappedOwner.pointee.controlCapacity }
+    /// Complete retained payload and owner-header capacity; excludes the ledger page shared by all owners.
+    public var retainedByteCount: Int { capacity + controlByteCount }
+    /// Actual shared control mapping capacity, charged separately as metadata.
+    public static var controlCapacity: Int { DICOMMappedStorage.pageSize }
 
-    /// Checked page rounding, including a physical page for an empty buffer.
-    /// - Parameter count: Requested backing length, which must be nonnegative.
-    /// - Returns: Capacity reserved before allocating the anonymous mapping.
-    public static func backingCapacity(for count: Int) throws -> Int {
-        let page = AlignedPixelBuffer.pageSize
-        guard count >= 0, count <= Int.max - (page - 1) else {
-            throw DICOMAllocationError.invalidSize
-        }
-        return max(page, ((count + page - 1) / page) * page)
+    /// Round a request to complete pages, including one page for an empty payload.
+    /// - Parameter count: Nonnegative requested capacity.
+    /// - Returns: Exact anonymous-mapping capacity admitted before allocation.
+    public static func backingCapacity(for count: Int) throws(DICOMAllocationError) -> Int {
+        try legacyAllocationValue(backingCapacityOutcome(for: count))
     }
 
-    /// The initializer owns the sole mutable borrow. If it throws, the mapping is
-    /// destroyed before its reservations are released. `capacity` may exceed the
-    /// visible `count` when reconstruction compacts a larger arena in place. The
-    /// initializer receives the requested capacity; later borrows expose only count.
-    /// The entire page-rounded capacity remains charged until backing destruction.
+    /// Admit and map zero-filled payload and control storage.
+    /// Package code may initialize the unpublished payload through its unsafe borrow.
     /// - Parameters:
-    ///   - count: Logical bytes exposed after initialization.
-    ///   - capacity: Requested reconstruction capacity; defaults to `count`.
-    ///   - budget: Shared admission ledger.
-    ///   - resource: Initial class for the payload charge.
-    ///   - initialize: Sole mutable borrow; its pointer must not escape the closure.
-    public init(count: Int, capacity: Int? = nil, budget: DICOMAllocationBudget, resource: DICOMAllocationClass,
-                initialize: (UnsafeMutableRawBufferPointer) throws -> Void) throws {
-        let capacity = capacity ?? count
-        guard count >= 0, capacity >= count else { throw DICOMAllocationError.invalidSize }
-        _ = try Self.backingCapacity(for: capacity)
-        self.count = count
-        self.ownerBudget = budget
-        self.controlLease = try budget.reserve(Self.controlCapacity, as: .metadata)
-        self.storage = try AlignedPixelBuffer(byteCount: capacity, budget: budget, resource: resource)
-        try initialize(UnsafeMutableRawBufferPointer(start: storage.baseAddress, count: capacity))
+    ///   - count: Logical bytes visible after initialization.
+    ///   - capacity: Reconstruction capacity; defaults to logical count.
+    ///   - budget: Shared ledger, borrowed without an implicit alias.
+    ///   - resource: Initial payload class; control storage is always metadata.
+    public init(count: Int, capacity: Int? = nil, budget: borrowing DICOMAllocationBudget,
+                resource: DICOMAllocationClass) throws(DICOMAllocationError) {
+        self = try legacyAllocationValue(Self.allocate(count: count, capacity: capacity,
+                                                       budget: budget, resource: resource))
     }
 
-    /// Borrow the logical bytes synchronously. The pointer must not escape or be mutated.
-    /// - Parameter body: Called while the owner and its allocation charge remain alive.
-    /// - Returns: The closure's result, which must not retain the borrowed pointer.
-    public func withUnsafeBytes<Result>(_ body: (UnsafeRawBufferPointer) throws -> Result) rethrows -> Result {
-        try withExtendedLifetime(self) {
-            try body(UnsafeRawBufferPointer(start: storage.baseAddress, count: count))
-        }
+    private init(retained owner: UnsafeMutablePointer<DICOMMappedOwner>) { mappedOwner = owner }
+
+    /// Retain this exact backing without another allocation or charge.
+    /// - Returns: Another owning handle to the same immutable bytes.
+    public borrowing func share() throws(DICOMAllocationError) -> DICOMByteBuffer {
+        try legacyAllocationValue(shareOutcome())
     }
 
-    /// An independently admitted copy. Unlike a Swift value alias, this has a new
-    /// backing and remains charged while both original and copy exist.
+    /// Test the ledger identity charged for this buffer.
+    /// - Parameter budget: Expected owner of payload and control capacities.
+    public borrowing func isOwned(by budget: borrowing DICOMAllocationBudget) -> Bool {
+        mappedOwner.pointee.ledger == budget.mappedLedger
+    }
+
+    /// Compare live backing identity without allocating a token or exposing a raw pointer.
+    /// - Parameter other: Another live owner; a shared alias has the same identity and one charge.
+    public borrowing func sameBacking(as other: borrowing DICOMByteBuffer) -> Bool {
+        mappedOwner == other.mappedOwner
+    }
+
+    /// Borrow logical bytes synchronously; the pointer must not escape or be mutated.
+    /// - Parameter body: Nonescaping operation while this handle remains borrowed.
+    /// - Returns: The operation result; retained storage requires an owning handle.
+    public borrowing func withUnsafeBytes<Result: ~Copyable, Failure: Error>(
+        _ body: (UnsafeRawBufferPointer) throws(Failure) -> Result
+    ) throws(Failure) -> Result {
+        try body(UnsafeRawBufferPointer(start: mappedOwner.pointee.payload, count: count))
+    }
+
+    /// Copy logical bytes while retaining both original and new capacities.
     /// - Parameters:
-    ///   - budget: Ledger admitting the new backing.
-    ///   - resource: Initial class for the copy's payload charge.
-    /// - Returns: An immutable copy of the logical bytes, without unused reconstruction capacity.
-    public func copy(budget: DICOMAllocationBudget, resource: DICOMAllocationClass) throws -> DICOMByteBuffer {
-        try DICOMByteBuffer(count: count, budget: budget, resource: resource) { destination in
-            withUnsafeBytes { source in destination.copyMemory(from: source) }
+    ///   - budget: Ledger admitting the new storage.
+    ///   - resource: Initial payload class for the copy.
+    /// - Returns: Independent bytes without unused reconstruction capacity.
+    public borrowing func copy(budget: borrowing DICOMAllocationBudget, resource: DICOMAllocationClass)
+        throws(DICOMAllocationError) -> DICOMByteBuffer {
+        try legacyAllocationValue(copyOutcome(budget: budget, resource: resource))
+    }
+
+    /// Transfer the complete payload capacity exactly once across all aliases.
+    /// - Parameter resource: Destination class; refusal preserves the original charge.
+    public borrowing func transfer(to resource: DICOMAllocationClass) throws(DICOMAllocationError) {
+        try legacyAllocationValue(transferOutcome(to: resource))
+    }
+
+    /// Observe actual retirement once, after the last alias dies, both mappings are unmapped,
+    /// and their capacities are debited. A failed unmap never reports retirement.
+    /// Install once before the first `share()`. The synchronous callback runs on the last
+    /// releasing thread outside the ledger lock, with the ledger still retained. It must not
+    /// allocate, block, wait for an actor, or access this destroyed buffer. It may read the ledger.
+    /// - Parameters:
+    ///   - context: Caller-owned, externally accounted state valid until retirement completes.
+    ///     It must not reside in this buffer or its payload finalizer's destroyed state.
+    ///   - callback: Noncapturing notification for releasing the caller's aggregate capacity lease.
+    public borrowing func installRetirementObserver(context: UnsafeMutableRawPointer? = nil,
+        callback: @convention(c) (UnsafeMutableRawPointer?) -> Void) throws(DICOMAllocationError) {
+        try legacyAllocationValue(installRetirementObserverOutcome(context: context, callback: callback))
+    }
+
+    // Only unpublished construction or an explicitly synchronized control slab may use this pointer.
+    // It exposes requested reconstruction capacity, not merely the published logical length.
+    package var unsafeMutableBytes: UnsafeMutableRawBufferPointer {
+        UnsafeMutableRawBufferPointer(start: mappedOwner.pointee.payload, count: mappedOwner.pointee.requestedCapacity)
+    }
+
+    // Install after successful payload construction, before publication/share. The noncapturing C
+    // callback runs once outside the ledger lock, before unmap, with requested capacity. It destroys
+    // in-place values/locks/descriptors and must not retain this owner or throw.
+    package borrowing func installFinalizer(
+        _ callback: @convention(c) (UnsafeMutableRawPointer?, Int) -> Void
+    ) throws(DICOMAllocationError) {
+        try legacyAllocationValue(installFinalizerOutcome(callback))
+    }
+
+
+    /// Determine exact payload capacity using scalar validation status.
+    /// - Parameter count: Nonnegative requested bytes.
+    /// - Returns: Page-rounded capacity or an overflow/size refusal.
+    public static func backingCapacityOutcome(for count: Int) -> DICOMAllocationOutcome<Int> {
+        DICOMMappedStorage.roundedCapacity(count)
+    }
+
+    /// Admit and allocate storage without entering Swift's throwing runtime.
+    /// - Parameters:
+    ///   - count: Logical immutable byte count.
+    ///   - capacity: Complete requested reconstruction capacity, defaulting to count.
+    ///   - budget: Ledger retaining all new payload and control capacity.
+    ///   - resource: Payload allocation class.
+    /// - Returns: Zero-filled storage or a scalar refusal with rollback completed.
+    public static func allocate(count: Int, capacity: Int? = nil, budget: borrowing DICOMAllocationBudget,
+        resource: DICOMAllocationClass) -> DICOMAllocationOutcome<Self> {
+        switch DICOMMappedStorage.makeOwner(ledger: budget.mappedLedger, count: count,
+            capacity: capacity ?? count, resource: resource, mapsPayload: true) {
+        case .success(let owner): return .success(Self(retained: owner))
+        case .failure(let error): return .failure(error)
         }
     }
 
-    /// Move this backing's charge to retained output exactly once. Aliases still
-    /// share the same backing, so destroying any one alias cannot release it.
-    /// - Parameter resource: Destination allocation class.
-    public func transfer(to resource: DICOMAllocationClass) throws {
-        try storage.transferAllocation(to: resource)
+    /// Retain the same immutable backing with scalar refusal status.
+    /// - Returns: Another handle sharing one backing charge, or a refcount refusal.
+    public borrowing func shareOutcome() -> DICOMAllocationOutcome<Self> {
+        if let error = DICOMMappedStorage.retainOwner(mappedOwner) { return .failure(error) }
+        return .success(Self(retained: mappedOwner))
     }
+
+    /// Borrow logical bytes without an Error-constrained generic callback.
+    /// - Parameter body: Synchronous nonthrowing callback; the pointer must not escape.
+    /// - Returns: The callback's value, which may itself be a scalar outcome.
+    public borrowing func withBorrowedBytes<Result: ~Copyable>(_ body: (UnsafeRawBufferPointer) -> Result) -> Result {
+        body(UnsafeRawBufferPointer(start: mappedOwner.pointee.payload, count: count))
+    }
+
+    /// Copy while source and new backing overlap in the ledger.
+    /// - Parameters:
+    ///   - budget: Ledger admitting the independent copy.
+    ///   - resource: New payload class.
+    /// - Returns: Independent logical bytes or scalar refusal.
+    public borrowing func copyOutcome(budget: borrowing DICOMAllocationBudget, resource: DICOMAllocationClass)
+        -> DICOMAllocationOutcome<Self> {
+        switch Self.allocate(count: count, budget: budget, resource: resource) {
+        case .success(let result):
+            result.unsafeMutableBytes.copyMemory(from:
+                UnsafeRawBufferPointer(start: mappedOwner.pointee.payload, count: count))
+            return .success(result)
+        case .failure(let error): return .failure(error)
+        }
+    }
+
+    /// Transfer the full payload once with scalar refusal status.
+    /// - Parameter resource: Destination class; failed admission preserves the original class.
+    /// - Returns: Success or scalar refusal.
+    public borrowing func transferOutcome(to resource: DICOMAllocationClass) -> DICOMAllocationOutcome<Void> {
+        if let error = DICOMMappedStorage.transfer(mappedOwner, to: resource) { return .failure(error) }
+        return .success(())
+    }
+
+    /// Register the same final-retirement notification using scalar status.
+    /// All lifetime and nonblocking obligations of `installRetirementObserver` apply.
+    /// - Parameters:
+    ///   - context: Externally accounted caller state, valid through retirement.
+    ///   - callback: Thin notification after successful unmapping and ledger debit.
+    /// - Returns: Success or duplicate/shared-registration refusal.
+    public borrowing func installRetirementObserverOutcome(context: UnsafeMutableRawPointer? = nil,
+        callback: @convention(c) (UnsafeMutableRawPointer?) -> Void) -> DICOMAllocationOutcome<Void> {
+        if let error = DICOMMappedStorage.installRetirementObserver(mappedOwner, context: context, callback: callback) {
+            return .failure(error)
+        }
+        return .success(())
+    }
+
+    package borrowing func installFinalizerOutcome(
+        _ callback: @convention(c) (UnsafeMutableRawPointer?, Int) -> Void) -> DICOMAllocationOutcome<Void> {
+        if let error = DICOMMappedStorage.installFinalizer(mappedOwner, callback) { return .failure(error) }
+        return .success(())
+    }
+
+    deinit { DICOMMappedStorage.releaseOwner(mappedOwner) }
 }

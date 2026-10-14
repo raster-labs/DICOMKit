@@ -130,7 +130,7 @@ public struct EncapsulatedPixelData: Sendable, Equatable {
             offsetCount: extendedOffsets?.count ?? offsetTable.count,
             offsetAt: { index in extendedOffsets?[index] ?? UInt64(offsetTable[index]) },
             extended: extendedOffsets != nil) { _, range, method in
-                groups.append(Array(range)); source = method
+                groups.append(Array(range)); source = method; return true
             }
         guard valid == true else { return nil }
         return FrameIndex(fragmentsPerFrame: groups, source: source)
@@ -140,42 +140,44 @@ public struct EncapsulatedPixelData: Sendable, Equatable {
     /// deferred storage use this walker; no duplicate offset interpretation.
     /// The visitor avoids allocating a second all-frame map for one selection.
     package static func visitFrameGroups(numberOfFrames frames: Int, fragmentCount: Int,
-        fragmentLength: (Int) throws -> Int, offsetCount: Int,
-        offsetAt: (Int) throws -> UInt64, extended: Bool,
-        visit: (Int, Range<Int>, FrameIndexSource) throws -> Void) rethrows -> Bool {
+        fragmentLength: (Int) -> Int?, offsetCount: Int,
+        offsetAt: (Int) -> UInt64?, extended: Bool,
+        visit: (Int, Range<Int>, FrameIndexSource) -> Bool) -> Bool {
         guard frames > 0, fragmentCount > 0 else { return false }
         if extended && (offsetCount != frames || fragmentCount != frames) { return false }
         if offsetCount > 0 || extended {
-            guard offsetCount == frames, try offsetAt(0) == 0 else { return false }
+            guard offsetCount == frames, offsetAt(0) == 0 else { return false }
             var fragment = 0, cursor = 0
             for frame in 0..<frames {
-                let rawStart = try offsetAt(frame)
+                guard let rawStart = offsetAt(frame) else { return false }
                 guard rawStart <= UInt64(Int.max), Int(rawStart) == cursor,
                       fragment < fragmentCount else { return false }
                 let next: Int
                 if frame + 1 < frames {
-                    let rawNext = try offsetAt(frame + 1)
+                    guard let rawNext = offsetAt(frame + 1) else { return false }
                     guard rawNext <= UInt64(Int.max), rawNext > rawStart else { return false }
                     next = Int(rawNext)
                 } else { next = Int.max }
                 let first = fragment
                 while fragment < fragmentCount, cursor < next {
-                    let length = try fragmentLength(fragment)
+                    guard let length = fragmentLength(fragment) else { return false }
                     let (size, sizeOverflow) = length.addingReportingOverflow(8)
                     let (end, endOverflow) = cursor.addingReportingOverflow(size)
                     guard length >= 0, !sizeOverflow, !endOverflow else { return false }
                     cursor = end; fragment += 1
                 }
                 guard fragment > first, frame + 1 == frames || cursor == next else { return false }
-                try visit(frame, first..<fragment, extended ? .extendedOffsetTable : .basicOffsetTable)
+                guard visit(frame, first..<fragment, extended ? .extendedOffsetTable : .basicOffsetTable) else { return false }
             }
             return fragment == fragmentCount
         }
         if fragmentCount == frames {
-            for frame in 0..<frames { try visit(frame, frame..<frame + 1, .oneFragmentPerFrame) }
+            for frame in 0..<frames {
+                guard visit(frame, frame..<frame + 1, .oneFragmentPerFrame) else { return false }
+            }
             return true
         }
-        if frames == 1 { try visit(0, 0..<fragmentCount, .singleFrame); return true }
+        if frames == 1 { return visit(0, 0..<fragmentCount, .singleFrame) }
         return false
     }
 

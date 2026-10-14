@@ -1,5 +1,22 @@
 # DICOMKit
 
+Bounded source parsing and managed JPEG/JPEG-LS decoding are available through explicit
+allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
+for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
+
+### v2.4.0 allocation APIs
+
+- **DICOMCore:** `DICOMAllocationBudget`, `DICOMByteBuffer`, `DICOMExecutionReservation`,
+  `ManagedDecodedPixelFrame`, scalar outcomes and final-retirement callbacks.
+- **DICOMKit:** `VerifiedFileByteSource`, `BoundedParsingOptions`, `BoundedDICOMFile`
+  and deferred dataset/element/value/frame access through the canonical strict parser.
+- **CLI:** `dicom-info --bounded-summary --format json FILE` reports verified source/index
+  backing capacities. Caller setup, formatting and total CLI memory are outside that receipt.
+
+The normal Release runtime, caller callbacks and worker ownership must be qualified
+as described in the contract. Other codecs retain their existing APIs and are not
+newly qualified for this allocation profile.
+
 <p align="center">
   <strong>A pure Swift DICOM toolkit for Apple platforms (iOS, macOS, visionOS)</strong>
 </p>

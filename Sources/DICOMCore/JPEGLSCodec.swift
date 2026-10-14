@@ -32,7 +32,12 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         /// Zero-based index in the source object.
         public let sourceFrameIndex: Int
         /// Recovery diagnostics; source attributes remain unchanged.
-        public let diagnostics: [PixelDecodeDiagnostic]
+        public var diagnostics: [PixelDecodeDiagnostic] {
+            if let diagnostic { return [diagnostic] }
+            return []
+        }
+        /// Scalar recovery diagnostic used by explicitly admitted decoding.
+        public let diagnostic: PixelDecodeDiagnostic?
         fileprivate let expectedByteCount: Int
     }
 
@@ -56,6 +61,9 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// differ from the encoder's input under a syntax that promises exactness.
     /// `nil` (the default) accepts both lossless and near-lossless scans.
     private let decodingTransferSyntaxUID: String?
+    // Normalize caller-owned String configuration before any qualified operation.
+    private enum SyntaxRestriction: Equatable, Sendable { case any, lossless, nearLossless, unsupported }
+    private let syntaxRestriction: SyntaxRestriction
 
     private let decodingLimits: PixelDecodeLimits
     private let precisionPolicy: PrecisionPolicy
@@ -64,6 +72,12 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     public init(decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default,
                 precisionPolicy: PrecisionPolicy = .requireSourceMatch) {
         self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
+        switch decodingTransferSyntaxUID {
+        case nil: self.syntaxRestriction = .any
+        case TransferSyntax.jpegLSLossless.uid: self.syntaxRestriction = .lossless
+        case TransferSyntax.jpegLSNearLossless.uid: self.syntaxRestriction = .nearLossless
+        default: self.syntaxRestriction = .unsupported
+        }
         self.decodingLimits = decodingLimits
         self.precisionPolicy = precisionPolicy
     }
@@ -159,13 +173,45 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         frameIndex: Int, precisionPolicy: PrecisionPolicy, width: Int, height: Int,
         componentCount: Int, precision: Int, hasNearLosslessScan: Bool,
         recoveryFeaturesAllowed: Bool) throws -> FrameInfo {
+        do {
+            return try managedFrameInfo(encodedByteCount: encodedByteCount, descriptor: descriptor,
+                frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: width, height: height,
+                componentCount: componentCount, precision: precision, hasNearLosslessScan: hasNearLosslessScan,
+                recoveryFeaturesAllowed: recoveryFeaturesAllowed)
+        } catch {
+            switch error.operand1 {
+            case 100: throw DICOMError.parsingFailed("JPEG-LS effective header does not match DICOM descriptor")
+            case 101: throw DICOMError.parsingFailed("JPEG-LS precision mismatch is outside the selected recovery policy")
+            case 102: throw DICOMError.parsingFailed("Unsupported JPEG-LS decoding transfer syntax")
+            case 103: throw DICOMError.parsingFailed("JPEG-LS Lossless frame carries a near-lossless scan")
+            case 0: throw DICOMError.limitExceeded("Compressed frame exceeds encoded byte budget or is empty")
+            case 1: throw DICOMError.parsingFailed("Invalid compressed frame descriptor or frame index")
+            default: throw DICOMError.limitExceeded("Compressed frame exceeds decoded pixel/byte budget")
+            }
+        }
+    }
+
+    private func managedFrameInfo(encodedByteCount: Int, descriptor: PixelDataDescriptor,
+        frameIndex: Int, precisionPolicy: PrecisionPolicy, width: Int, height: Int,
+        componentCount: Int, precision: Int, hasNearLosslessScan: Bool,
+        recoveryFeaturesAllowed: Bool) throws(DICOMManagedFailure) -> FrameInfo {
+        try managedFrameInfoOutcome(encodedByteCount: encodedByteCount, descriptor: descriptor,
+            frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: width, height: height,
+            componentCount: componentCount, precision: precision, hasNearLosslessScan: hasNearLosslessScan,
+            recoveryFeaturesAllowed: recoveryFeaturesAllowed).get()
+    }
+
+    private func managedFrameInfoOutcome(encodedByteCount: Int, descriptor: PixelDataDescriptor,
+        frameIndex: Int, precisionPolicy: PrecisionPolicy, width: Int, height: Int,
+        componentCount: Int, precision: Int, hasNearLosslessScan: Bool,
+        recoveryFeaturesAllowed: Bool) -> DICOMManagedOutcome<FrameInfo> {
         guard width == descriptor.columns, height == descriptor.rows,
               componentCount == descriptor.samplesPerPixel else {
-            throw DICOMError.parsingFailed("JPEG-LS effective header does not match DICOM descriptor")
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 100))
         }
 
         var actualDescriptor = descriptor
-        var diagnostics: [PixelDecodeDiagnostic] = []
+        var diagnostic: PixelDecodeDiagnostic?
         if precision != descriptor.bitsStored {
             guard case .useCodestreamForUnsignedMonochrome = precisionPolicy,
                   !descriptor.isSigned, descriptor.samplesPerPixel == 1,
@@ -174,29 +220,30 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                   descriptor.bitsAllocated == 16, precision == 16,
                   descriptor.bitsStored < 16,
                   recoveryFeaturesAllowed,
-                  decodingTransferSyntaxUID == nil
-                    || decodingTransferSyntaxUID == TransferSyntax.jpegLSLossless.uid else {
-                throw DICOMError.parsingFailed("JPEG-LS precision mismatch is outside the selected recovery policy")
+                  syntaxRestriction == .any || syntaxRestriction == .lossless else {
+                return .failure(DICOMManagedFailure(.invalidDescriptor, 101))
             }
             actualDescriptor = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
                 numberOfFrames: descriptor.numberOfFrames, bitsAllocated: 16, bitsStored: 16, highBit: 15,
                 isSigned: false, samplesPerPixel: 1, photometricInterpretation: descriptor.photometricInterpretation,
                 planarConfiguration: descriptor.planarConfiguration)
-            diagnostics = [.sourcePrecisionMismatch(sourceBitsStored: descriptor.bitsStored,
-                                                     encodedPrecision: precision)]
+            diagnostic = .sourcePrecisionMismatch(sourceBitsStored: descriptor.bitsStored, encodedPrecision: precision)
         }
-        let expectedBytes = try decodingLimits.validate(encodedByteCount: encodedByteCount, descriptor: actualDescriptor, frameIndex: frameIndex)
-        if let uid = decodingTransferSyntaxUID {
-            guard Self.supportedTransferSyntaxes.contains(uid) else {
-                throw DICOMError.parsingFailed("Unsupported JPEG-LS decoding transfer syntax")
-            }
-            if uid == TransferSyntax.jpegLSLossless.uid, hasNearLosslessScan {
-                throw DICOMError.parsingFailed("JPEG-LS Lossless frame carries a near-lossless scan")
-            }
+        let expectedBytes: Int
+        switch decodingLimits.validateManagedOutcome(encodedByteCount: encodedByteCount,
+            descriptor: actualDescriptor, frameIndex: frameIndex) {
+        case .success(let value): expectedBytes = value
+        case .failure(let failure): return .failure(failure)
+        }
+        guard syntaxRestriction != .unsupported else {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 102))
+        }
+        if syntaxRestriction == .lossless, hasNearLosslessScan {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 103))
         }
 
-        return FrameInfo(descriptor: actualDescriptor, sourceFrameIndex: frameIndex,
-                         diagnostics: diagnostics, expectedByteCount: expectedBytes)
+        return .success(FrameInfo(descriptor: actualDescriptor, sourceFrameIndex: frameIndex,
+                         diagnostic: diagnostic, expectedByteCount: expectedBytes))
     }
 
     /// Decode a monochrome 16-bit-container frame into explicitly admitted backing.
@@ -208,39 +255,128 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     ///   - descriptor: Source pixel interpretation to validate against the codestream.
     ///   - frameIndex: Zero-based source frame index.
     ///   - budget: The exact ledger instance owning `frameData`.
+    ///   - cancellation: Borrowed synchronous cancellation observer.
     /// - Returns: Actual decoded descriptor, interpretation diagnostics and managed storage.
-    public func decodeManagedPixelFrame(_ frameData: DICOMByteBuffer, descriptor: PixelDataDescriptor,
-        frameIndex: Int, budget: DICOMAllocationBudget) throws -> ManagedDecodedPixelFrame {
-        guard frameData.ownerBudget === budget else { throw DICOMAllocationError.budgetMismatch }
-        _ = try decodingLimits.validate(encodedByteCount: frameData.count, descriptor: descriptor, frameIndex: frameIndex)
-        guard descriptor.samplesPerPixel == 1, descriptor.bitsAllocated == 16 else {
-            throw DICOMError.parsingFailed("Managed JPEG-LS currently requires a monochrome 16-bit container")
+    public func decodeManagedPixelFrame(_ frameData: borrowing DICOMByteBuffer, descriptor: PixelDataDescriptor,
+        frameIndex: Int, budget: borrowing DICOMAllocationBudget, cancellation: DICOMCancellation = .never)
+        throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(frameData, descriptor: descriptor, frameIndex: frameIndex,
+                                            budget: budget, cancellation: cancellation).get()
+    }
+
+    /// Throwing compatibility adapter for an admitted worker; use the outcome overload inside qualified work.
+    @available(*, noasync, message: "Invoke on the synchronous worker owning the execution reservation")
+    public func decodeManagedPixelFrame(_ frameData: borrowing DICOMByteBuffer, descriptor: PixelDataDescriptor,
+        frameIndex: Int, budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation, cancellation: DICOMCancellation = .never)
+        throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, execution: execution, cancellation: cancellation).get()
+    }
+
+    /// Decode the admitted monochrome profile using scalar outcomes throughout the canonical path.
+    /// This backing-only entry requires caller-owned execution storage; use the execution overload
+    /// to validate an explicitly admitted worker. No throwing compatibility adapter is called.
+    /// - Parameters:
+    ///   - frameData: Immutable encoded owner retained by the same budget.
+    ///   - descriptor: Source interpretation validated against the codestream.
+    ///   - frameIndex: Zero-based source frame identity.
+    ///   - budget: Ledger for input, workspace, decoded payload and control storage.
+    ///   - cancellation: Caller-owned synchronous cancellation observer.
+    /// - Returns: Complete managed output or a fixed scalar failure after temporary cleanup.
+    public func decodeManagedPixelFrameOutcome(_ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor, frameIndex: Int, budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard frameData.isOwned(by: budget) else { return .failure(DICOMManagedFailure(allocation: .budgetMismatch)) }
+        switch decodingLimits.validateManagedOutcome(encodedByteCount: frameData.count,
+            descriptor: descriptor, frameIndex: frameIndex) {
+        case .success: break
+        case .failure(let failure): return .failure(failure)
         }
-        return try frameData.withUnsafeBytes { encoded in
-            _ = try JPEGFrameEnvelope.parse(encoded, jpegLS: true)
+        guard descriptor.samplesPerPixel == 1, descriptor.bitsAllocated == 16 else {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 104))
+        }
+        return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
+            switch JPEGFrameEnvelope.parseOutcome(encoded, jpegLS: true, cancellation: cancellation) {
+            case .success: break
+            case .failure(let failure): return .failure(failure)
+            }
             let decoder = JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
                 maximumPixels: decodingLimits.maximumPixels, maximumDecodedBytes: decodingLimits.maximumDecodedBytes))
-            return try withCodecWorkspace(count: JPEGLSDecoder.monochromeWorkspaceByteCount, budget: budget) { workspace in
-                let header = try decoder.inspectMonochrome(encoded, workspace: workspace)
-                let info = try frameInfo(encodedByteCount: encoded.count, descriptor: descriptor, frameIndex: frameIndex,
-                    precisionPolicy: precisionPolicy, width: header.width, height: header.height,
-                    componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
-                    recoveryFeaturesAllowed: header.near == 0 && header.pointTransform == 0
-                        && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == .none)
-                let bytes = try DICOMByteBuffer(count: info.expectedByteCount, budget: budget, resource: .decoded) { output in
-                    let samples = output.bindMemory(to: UInt16.self)
-                    samples.initialize(repeating: 0)
-                    let decoded = try decoder.decodeMonochrome(encoded, into: samples, workspace: workspace)
-                    guard decoded == header else { throw DICOMError.parsingFailed("JPEG-LS result differs from inspection") }
-                    for index in samples.indices {
-                        if index & 0xFFFF == 0 { try Task.checkCancellation() }
-                        samples[index] = samples[index].littleEndian
-                    }
-                }
-                return ManagedDecodedPixelFrame(data: bytes, descriptor: info.descriptor,
-                    sourceFrameIndex: frameIndex, diagnostics: info.diagnostics)
+            let workspace: DICOMByteBuffer
+            switch DICOMByteBuffer.admit(count: JPEGLSDecoder.monochromeWorkspaceByteCount,
+                                         budget: budget, resource: .staging) {
+            case .success(let value): workspace = value
+            case .failure(let failure): return .failure(failure)
             }
+            let codecCancellation = JPEGLSCancellation(check: cancellation.check, context: cancellation.context)
+            let header: JPEGLSDecoder.MonochromeInfo
+            switch decoder.inspectMonochromeQualified(encoded, workspace: workspace.unsafeMutableBytes,
+                                                       cancellation: codecCancellation) {
+            case .success(let value): header = value
+            case .failure(let failure): return .failure(Self.managedFailure(failure))
+            }
+            let info: FrameInfo
+            switch managedFrameInfoOutcome(encodedByteCount: encoded.count, descriptor: descriptor,
+                frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: header.width, height: header.height,
+                componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
+                recoveryFeaturesAllowed: header.near == 0 && header.pointTransform == 0
+                    && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == .none) {
+            case .success(let value): info = value
+            case .failure(let failure): return .failure(failure)
+            }
+            let bytes: DICOMByteBuffer
+            switch DICOMByteBuffer.admit(count: info.expectedByteCount, budget: budget, resource: .decoded) {
+            case .success(let value): bytes = value
+            case .failure(let failure): return .failure(failure)
+            }
+            let samples = bytes.unsafeMutableBytes.bindMemory(to: UInt16.self)
+            samples.initialize(repeating: 0)
+            let decoded: JPEGLSDecoder.MonochromeInfo
+            switch decoder.decodeMonochromeQualified(encoded, into: samples,
+                workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation) {
+            case .success(let value): decoded = value
+            case .failure(let failure): return .failure(Self.managedFailure(failure))
+            }
+            guard decoded == header else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
+            for index in samples.indices {
+                if index & 0xFFFF == 0, let failure = cancellation.failure { return .failure(failure) }
+                samples[index] = samples[index].littleEndian
+            }
+            if let failure = cancellation.failure { return .failure(failure) }
+            return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: info.descriptor,
+                sourceFrameIndex: frameIndex, diagnostic: info.diagnostic))
         }
+    }
+
+    /// Decode on the original admitted worker with scalar identity/refusal status.
+    /// - Parameters:
+    ///   - frameData: Encoded backing retained by the operation ledger.
+    ///   - descriptor: Source interpretation to validate.
+    ///   - frameIndex: Source frame identity.
+    ///   - budget: Shared admission ledger.
+    ///   - execution: Whole-stack reservation retained until the synchronous worker returns.
+    ///   - cancellation: Borrowed synchronous cancellation observer.
+    /// - Returns: Managed output or scalar failure, without Swift throwing machinery.
+    @available(*, noasync, message: "Qualified decoding must remain on its admitted synchronous worker")
+    public func decodeManagedPixelFrameOutcome(_ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor, frameIndex: Int, budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation, cancellation: DICOMCancellation = .never)
+        -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        switch execution.validateOutcome(budget: budget) {
+        case .success: break
+        case .failure(let failure): return .failure(DICOMManagedFailure(allocation: failure))
+        }
+        return decodeManagedPixelFrameOutcome(frameData, descriptor: descriptor, frameIndex: frameIndex,
+                                               budget: budget, cancellation: cancellation)
+    }
+
+    private static func managedFailure(_ error: JPEGLSManagedFailure) -> DICOMManagedFailure {
+        if error.code == .cancelled { return DICOMManagedFailure(.cancelled) }
+        // Domain 0x0100 is JPEGLS; preserve both numerical dependency operands.
+        return DICOMManagedFailure(.codecFailure, Int(error.code.rawValue), error.operand0,
+                                   operand3: error.operand1, domain: 0x0100)
     }
 
     private func decodedPixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,

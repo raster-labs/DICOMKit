@@ -40,8 +40,6 @@ public final class AlignedPixelBuffer: @unchecked Sendable {
     /// for any size that is not already a page multiple.
     public let allocatedByteCount: Int
 
-    private let anonymousMapping: Bool
-    private let allocationLease: DICOMAllocationLease?
 
     /// The host page size — 16 KB on Apple Silicon, 4 KB on x86.
     public static var pageSize: Int {
@@ -66,8 +64,6 @@ public final class AlignedPixelBuffer: @unchecked Sendable {
         self.baseAddress = pointer
         self.byteCount = byteCount
         self.allocatedByteCount = allocated
-        self.anonymousMapping = false
-        self.allocationLease = nil
     }
 
     /// Copies `data` into fresh page-aligned storage.
@@ -84,33 +80,7 @@ public final class AlignedPixelBuffer: @unchecked Sendable {
         }
     }
 
-    /// Internal controlled backing: every mapped page is charged before mmap.
-    /// This is anonymous owned storage, never a file mapping or deferred RSS claim.
-    package init(byteCount: Int, budget: DICOMAllocationBudget, resource: DICOMAllocationClass) throws {
-        let allocated = try DICOMByteBuffer.backingCapacity(for: byteCount)
-        let lease = try budget.reserve(allocated, as: resource)
-        try budget.willAllocateBacking()
-        let pointer = mmap(nil, allocated, PROT_READ | PROT_WRITE,
-                           MAP_PRIVATE | MAP_ANON, -1, 0)
-        guard let pointer, pointer != MAP_FAILED else {
-            throw DICOMAllocationError.allocationFailed
-        }
-        self.baseAddress = pointer
-        self.byteCount = byteCount
-        self.allocatedByteCount = allocated
-        self.anonymousMapping = true
-        self.allocationLease = lease
-    }
-
-    func transferAllocation(to resource: DICOMAllocationClass) throws {
-        guard let allocationLease else { throw DICOMAllocationError.invalidSize }
-        try allocationLease.transfer(to: resource)
-    }
-
-    deinit {
-        if anonymousMapping { _ = munmap(baseAddress, allocatedByteCount) }
-        else { free(baseAddress) }
-    }
+    deinit { free(baseAddress) }
 
     /// The bytes as `Data`, without copying them.
     ///

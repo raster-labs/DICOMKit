@@ -1,184 +1,398 @@
-// NEMA-verified: 2026a, checked 2026-10-14 — storage adapter; DICOM grammar remains in DICOMParser.
+// NEMA-verified: 2026a, checked 2026-10-14 — storage adapter; grammar remains in DICOMParser.
+#if canImport(Darwin) || canImport(Glibc)
 import Foundation
 import DICOMCore
 
-/// Strictly parsed structure with deferred, verified values. This deliberately is
-/// not a `DICOMFile`: no empty placeholder value is exposed as materialized data.
-public struct BoundedDICOMFile: Sendable {
-    private let index: BoundedParseCapture
-    /// Admitted Transfer Syntax UID from the verified file meta information.
-    public let transferSyntaxUID: String
-    /// SHA-256 identity of the complete source captured before parsing.
-    public var contentIdentity: String { index.source.identity }
-    /// Complete source length in bytes.
-    public var sourceByteCount: Int { index.source.count }
-    /// Deferred view of the file meta information scope.
-    public var fileMetaInformation: BoundedDICOMDataSet { BoundedDICOMDataSet(index: index, scope: 0) }
-    /// Deferred view of the root dataset scope.
-    public var dataSet: BoundedDICOMDataSet { BoundedDICOMDataSet(index: index, scope: 1) }
-    /// Current shared-ledger snapshot, including other owners using the same budget.
-    public var allocationReceipt: DICOMAllocationReceipt { index.budget.receipt }
-    init(index: BoundedParseCapture, transferSyntaxUID: String) {
-        self.index = index; self.transferSyntaxUID = transferSyntaxUID
+/// Strictly parsed structure with deferred verified values and explicit ownership.
+public struct BoundedDICOMFile: ~Copyable, @unchecked Sendable {
+    let storage: BoundedParseStorage
+    /// Admitted syntax represented by a fixed scalar token.
+    public let transferSyntax: BoundedTransferSyntax
+    /// Static UID for caller compatibility.
+    public var transferSyntaxUID: String { transferSyntax.uid }
+    /// Fixed full-source digest.
+    public var contentIdentity: DICOMContentDigest { storage.capture.source.identity }
+    /// Complete captured source length.
+    public var sourceByteCount: Int { storage.capture.source.count }
+    /// Shared live and peak capacities.
+    public var allocationReceipt: DICOMAllocationReceipt { storage.capture.source.receipt }
+    init(storage: consuming BoundedParseStorage, transferSyntax: BoundedTransferSyntax) {
+        self.storage = storage; self.transferSyntax = transferSyntax
     }
-    /// Recheck the anchored source before handing a result to a consumer.
-    public func validateSource() throws { try index.source.validate() }
+    /// Retain a deferred file-meta view without entering Swift's throwing runtime.
+    public func fileMetaInformationOutcome() -> DICOMParserOutcome<BoundedDICOMDataSet> {
+        switch storage.share() {
+        case .success(let owner): return .success(BoundedDICOMDataSet(storage: owner, scope: 0))
+        case .failure(let failure): return .failure(failure)
+        }
+    }
+    /// Retain a deferred root view without another backing allocation.
+    public func dataSetOutcome() -> DICOMParserOutcome<BoundedDICOMDataSet> {
+        switch storage.share() {
+        case .success(let owner): return .success(BoundedDICOMDataSet(storage: owner, scope: 1))
+        case .failure(let failure): return .failure(failure)
+        }
+    }
+    /// Explicitly share source and index ownership.
+    public borrowing func shareOutcome() -> DICOMParserOutcome<Self> {
+        switch storage.share() {
+        case .success(let owner): return .success(Self(storage: owner, transferSyntax: transferSyntax))
+        case .failure(let failure): return .failure(failure)
+        }
+    }
+    /// Recheck source identity before publishing a result.
+    public func validateSourceOutcome(cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Void> {
+        storage.capture.source.withCancellation(cancellation).validate()
+    }
+    /// Throwing compatibility adapter outside the qualified core.
+    public func fileMetaInformation() throws(DICOMParserFailure) -> BoundedDICOMDataSet {
+        try fileMetaInformationOutcome().get()
+    }
+    /// Throwing compatibility adapter outside the qualified core.
+    public func dataSet() throws(DICOMParserFailure) -> BoundedDICOMDataSet { try dataSetOutcome().get() }
+    /// Throwing compatibility adapter outside the qualified core.
+    public borrowing func share() throws(DICOMParserFailure) -> Self { try shareOutcome().get() }
+    /// Throwing compatibility adapter outside the qualified core.
+    public func validateSource(cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) {
+        try validateSourceOutcome(cancellation: cancellation).get()
+    }
 }
 
-/// A scope view shares the source and all index backing. Creating another view
-/// neither duplicates its payload nor releases the original allocation charge.
-public struct BoundedDICOMDataSet: Sendable {
-    fileprivate let index: BoundedParseCapture
+/// Owning view sharing the index's existing mapped control record.
+public struct BoundedDICOMDataSet: ~Copyable, @unchecked Sendable {
+    fileprivate let storage: BoundedParseStorage
     fileprivate let scope: Int
-    /// Number of immediate elements in this scope, excluding nested items.
+    private var index: BoundedParseCapture { storage.capture }
+    init(storage: consuming BoundedParseStorage, scope: Int) { self.storage = storage; self.scope = scope }
+    /// Immediate element count, excluding nested items.
     public var count: Int { index.scopes[scope].elementCount }
-    /// Find an immediate element without constructing a metadata dictionary.
-    public subscript(tag: Tag) -> BoundedDICOMElement? {
+    /// Find one immediate element without constructing a dictionary.
+    public func elementOutcome(for tag: Tag) -> DICOMParserOutcome<BoundedDICOMElement?> {
         var node = index.scopes[scope].firstElement
         while node >= 0 {
             let record = index.elements[node]
-            if record.tag == tag { return BoundedDICOMElement(index: index, identifier: node) }
+            if record.tag == tag {
+                switch storage.share() {
+                case .success(let owner):
+                    return .success(BoundedDICOMElement(storage: owner, identifier: node))
+                case .failure(let failure): return .failure(failure)
+                }
+            }
             node = record.nextSibling
         }
-        return nil
+        return .success(nil)
     }
-    /// Enumerate without constructing another array/dictionary of metadata.
-    public func forEach(_ body: (BoundedDICOMElement) throws -> Void) rethrows {
+    /// Visit borrowed immediate elements synchronously without a container allocation.
+    /// Caller callbacks must satisfy their separately qualified allocation contract.
+    public func forEachOutcome(_ body: (borrowing BoundedDICOMElement) -> DICOMParserOutcome<Void>)
+        -> DICOMParserOutcome<Void> {
         var node = index.scopes[scope].firstElement
         while node >= 0 {
-            try body(BoundedDICOMElement(index: index, identifier: node))
+            switch storage.share() {
+            case .failure(let failure): return .failure(failure)
+            case .success(let owner):
+                let element = BoundedDICOMElement(storage: owner, identifier: node)
+                if case .failure(let failure) = body(element) { return .failure(failure) }
+            }
             node = index.elements[node].nextSibling
+        }
+        return .success(())
+    }
+    /// Throwing compatibility adapter outside the qualified core.
+    public func element(for tag: Tag) throws(DICOMParserFailure) -> BoundedDICOMElement? {
+        try elementOutcome(for: tag).get()
+    }
+    /// Throwing caller compatibility traversal, outside the qualified core.
+    public func forEach(_ body: (borrowing BoundedDICOMElement) throws(DICOMParserFailure) -> Void)
+        throws(DICOMParserFailure) {
+        var node = index.scopes[scope].firstElement
+        while node >= 0 {
+            let element = BoundedDICOMElement(storage: try storage.share().get(), identifier: node)
+            try body(element); node = index.elements[node].nextSibling
         }
     }
 }
 
-/// A deferred value/sequence view. Every acquisition can fail if the source
-/// changes, a budget rejects the allocation, or the worker is cancelled.
-public struct BoundedDICOMElement: Sendable {
-    fileprivate let index: BoundedParseCapture
+/// Owning deferred value or sequence view; source, admission and cancellation failures are scalar outcomes.
+public struct BoundedDICOMElement: ~Copyable, @unchecked Sendable {
+    fileprivate let storage: BoundedParseStorage
     fileprivate let identifier: Int
+    private var index: BoundedParseCapture { storage.capture }
     private var record: BoundedParseCapture.Element { index.elements[identifier] }
-    /// Element tag from the canonical parser.
+    /// Element tag.
     public var tag: Tag { record.tag }
     /// Explicit or dictionary-resolved value representation.
     public var vr: VR { record.vr }
-    /// Declared value length, including the undefined-length sentinel where applicable.
+    /// Declared length, including the undefined-length sentinel.
     public var length: UInt32 { record.length }
-    /// Byte order used to interpret this element's value.
+    /// Value byte order.
     public var byteOrder: ByteOrder { record.byteOrder }
-    /// Verified raw value span length, including sequence encoding where applicable.
+    /// Verified raw span length.
     public var valueByteCount: Int { record.range.count }
-    /// Number of encapsulated payload fragments, excluding the Basic Offset Table.
+    /// Fragment count excluding the Basic Offset Table.
     public var fragmentCount: Int { record.fragmentCount }
-    /// Whether the parser captured an encapsulated Pixel Data envelope.
+    /// Whether an encapsulated envelope was captured.
     public var isEncapsulated: Bool { record.botRange != nil }
-    /// Number of immediate sequence items.
+    /// Immediate sequence item count.
     public var itemCount: Int { record.itemCount }
-
-    /// Acquire the complete raw value span with an independent controlled backing.
-    /// - Parameter resource: Allocation class charged until the returned storage is destroyed.
-    /// - Returns: Immutable bytes verified against the captured source identity.
-    public func readValue(resource: DICOMAllocationClass = .metadata) throws -> DICOMByteBuffer {
-        try index.source.read(record.range, resource: resource)
+    /// Explicitly retain the same source/index owner.
+    public borrowing func shareOutcome() -> DICOMParserOutcome<Self> {
+        switch storage.share() {
+        case .success(let owner): return .success(Self(storage: owner, identifier: identifier))
+        case .failure(let failure): return .failure(failure)
+        }
     }
-    /// Visit immediate sequence items without materializing their deferred values.
-    /// - Parameter body: Receives a view retaining the same source and index backing.
-    public func forEachItem(_ body: (BoundedDICOMDataSet) throws -> Void) rethrows {
+    /// Acquire the complete span in separately admitted storage.
+    public func readValueOutcome(resource: DICOMAllocationClass = .metadata,
+                                 cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<DICOMByteBuffer> {
+        index.source.withCancellation(cancellation).read(record.range, resource: resource)
+    }
+    /// Visit borrowed immediate items without constructing an item array.
+    public func forEachItemOutcome(_ body: (borrowing BoundedDICOMDataSet) -> DICOMParserOutcome<Void>)
+        -> DICOMParserOutcome<Void> {
         var item = record.firstItem
         while item >= 0 {
-            try body(BoundedDICOMDataSet(index: index, scope: item))
+            switch storage.share() {
+            case .failure(let failure): return .failure(failure)
+            case .success(let owner):
+                let dataSet = BoundedDICOMDataSet(storage: owner, scope: item)
+                if case .failure(let failure) = body(dataSet) { return .failure(failure) }
+            }
             item = index.scopes[item].nextItem
         }
+        return .success(())
     }
-    /// Read a selected native frame range without materializing the other frames.
-    /// Descriptor and frame-size qualification remain the caller's existing owner.
-    public func readValueRange(_ relativeRange: Range<Int>, resource: DICOMAllocationClass = .encoded) throws -> DICOMByteBuffer {
+    /// Acquire one relative native frame range without materializing other frames.
+    public func readValueRangeOutcome(_ relativeRange: Range<Int>, resource: DICOMAllocationClass = .encoded,
+                                      cancellation: DICOMCancellation = .never)
+        -> DICOMManagedOutcome<DICOMByteBuffer> {
         guard relativeRange.lowerBound >= 0, relativeRange.upperBound <= record.range.count else {
-            throw DICOMError.parsingFailed("Value range outside element")
+            return .failure(DICOMManagedFailure(.invalidRange))
         }
-        let start = record.range.lowerBound + relativeRange.lowerBound
-        let end = record.range.lowerBound + relativeRange.upperBound
-        return try index.source.read(start..<end, resource: resource)
+        let lower = record.range.lowerBound + relativeRange.lowerBound
+        let upper = record.range.lowerBound + relativeRange.upperBound
+        return index.source.withCancellation(cancellation).read(lower..<upper, resource: resource)
     }
-    /// Only the finite UID token is retained, while arbitrary legacy padding is
-    /// validated incrementally. Existing strict admission must not be tightened
-    /// merely because deferred storage no longer materializes a large UI value.
-    func transferSyntaxToken() throws -> String {
-        let cursor = DICOMParserInput(source: index.source)
+
+    func transferSyntaxToken(cancellation: DICOMCancellation) -> DICOMParserOutcome<BoundedTransferSyntax> {
+        let index = storage.capture.withCancellation(cancellation)
+        var cursor = DICOMParserInput(source: index.source)
         let range = record.range
         var position = range.lowerBound, used = 0
         var trailingPadding = false, invalidToken = false
-        let token = try DICOMByteBuffer(count: 64, budget: index.budget, resource: .metadata) { output in
+        var token: (UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64) = (0, 0, 0, 0, 0, 0, 0, 0)
+        return withUnsafeMutableBytes(of: &token) { output in
             while position < range.upperBound {
-                try Task.checkCancellation()
+                if let failure = cancellation.failure { return .failure(.managed(failure)) }
                 let scalarStart = position
-                guard let scalar = try cursor.scalar(at: &position, end: range.upperBound) else {
-                    throw StrictParsingError.missingTransferSyntax
+                let scalar: Unicode.Scalar
+                switch cursor.scalar(at: &position, end: range.upperBound) {
+                case .failure(let failure): return .failure(failure)
+                case .success(let value):
+                    guard let value else { return .failure(.strict(.missingTransferSyntax)) }
+                    scalar = value
                 }
                 if scalarStart == range.lowerBound && scalar.value == 0xFEFF { continue }
-                let padded = scalar.value == 0 || CharacterSet.whitespacesAndNewlines.contains(scalar)
-                if padded { if used > 0 { trailingPadding = true }; continue }
+                if Self.isLegacyPadding(scalar.value) {
+                    if used > 0 { trailingPadding = true }; continue
+                }
                 if trailingPadding || scalar.value > 127 || used >= output.count { invalidToken = true }
                 else { output[used] = UInt8(scalar.value); used += 1 }
             }
+            guard used > 0 || invalidToken else { return .failure(.strict(.missingTransferSyntax)) }
+            guard !invalidToken, let syntax = BoundedTransferSyntax.fromToken(
+                UnsafeBufferPointer(start: output.baseAddress?.assumingMemoryBound(to: UInt8.self), count: used)) else {
+                return .failure(.managed(DICOMManagedFailure(.invalidTransferSyntax)))
+            }
+            return .success(syntax)
         }
-        guard used > 0 || invalidToken else { throw StrictParsingError.missingTransferSyntax }
-        guard !invalidToken else { throw StrictParsingError.unsupportedTransferSyntax("unrecognized Transfer Syntax UID") }
-        return token.withUnsafeBytes { String(decoding: $0.prefix(used), as: UTF8.self) }
+    }
+    // Installed Foundation's maintained Unicode/NUL padding policy; every scalar is differentially tested.
+    static func isLegacyPadding(_ value: UInt32) -> Bool {
+        switch value {
+        case 0, 0x09...0x0D, 0x20, 0x85, 0xA0, 0x1680, 0x2000...0x200B, 0x2028, 0x2029, 0x202F, 0x205F, 0x3000: true
+        default: false
+        }
     }
 
-    /// Acquire one complete compressed frame using the maintained frame mapper.
-    /// The complete map is validated before allocating the selected codestream.
-    /// Extended offsets are an explicit separate profile and not inferred here.
-    public func readFrame(at frame: Int, numberOfFrames: Int,
-                          maximumBytes: Int = 64 * 1024 * 1024) throws -> DICOMByteBuffer {
-        let record = self.record
-        guard let bot = record.botRange, frame >= 0, frame < numberOfFrames,
-              maximumBytes >= 0 else { throw DICOMError.parsingFailed("Invalid encapsulated frame selection") }
-        let cursor = DICOMParserInput(source: index.source)
-        var selected: Range<Int>?
-        let valid = try EncapsulatedPixelData.visitFrameGroups(numberOfFrames: numberOfFrames,
-            fragmentCount: record.fragmentCount,
-            fragmentLength: { index.fragments[record.firstFragment + $0].range.count },
-            offsetCount: bot.count / 4,
-            offsetAt: { position in
-                guard let value = try cursor.readUInt32LE(at: bot.lowerBound + position * 4) else {
-                    throw DICOMError.unexpectedEndOfData
+    /// Acquire one frame using the canonical offset walker, validating all groups before allocation.
+    public func readFrameOutcome(at frame: Int, numberOfFrames: Int, maximumBytes: Int = 64 * 1024 * 1024,
+                                 cancellation: DICOMCancellation = .never) -> DICOMParserOutcome<DICOMByteBuffer> {
+        let index = storage.capture.withCancellation(cancellation), record = self.record
+        if let failure = cancellation.failure { return .failure(.managed(failure)) }
+        guard let bot = record.botRange, frame >= 0, frame < numberOfFrames, maximumBytes >= 0 else {
+            return .failure(.managed(DICOMManagedFailure(.invalidRange)))
+        }
+        var cursor = DICOMParserInput(source: index.source)
+        var selected: Range<Int>?, traversalFailure: DICOMParserFailure?
+        let valid = EncapsulatedPixelData.visitFrameGroups(numberOfFrames: numberOfFrames,
+            fragmentCount: record.fragmentCount, fragmentLength: { position in
+                if let failure = cancellation.failure { traversalFailure = .managed(failure); return nil }
+                return index.fragments[record.firstFragment + position].range.count
+            }, offsetCount: bot.count / 4, offsetAt: { position in
+                if let failure = cancellation.failure { traversalFailure = .managed(failure); return nil }
+                switch cursor.readUInt32LE(at: bot.lowerBound + position * 4) {
+                case .failure(let failure): traversalFailure = failure; return nil
+                case .success(let value):
+                    guard let value else {
+                        traversalFailure = .managed(DICOMManagedFailure(.unexpectedEnd)); return nil
+                    }
+                    return UInt64(value)
                 }
-                return UInt64(value)
             }, extended: false) { position, range, _ in
-                if position == frame { selected = range }
+                if let failure = cancellation.failure { traversalFailure = .managed(failure); return false }
+                if position == frame { selected = range }; return true
             }
-        guard valid, let selected else { throw DICOMError.parsingFailed("Invalid encapsulated frame mapping") }
+        if let failure = traversalFailure { return .failure(failure) }
+        guard valid, let selected else { return .failure(.managed(DICOMManagedFailure(.malformed))) }
         var total = 0
         for fragment in selected {
+            if let failure = cancellation.failure { return .failure(.managed(failure)) }
             let length = index.fragments[record.firstFragment + fragment].range.count
             guard total <= maximumBytes, length <= maximumBytes - total else {
-                throw DICOMError.limitExceeded("Selected encoded frame exceeds byte budget")
+                return .failure(.managed(DICOMManagedFailure(.limitExceeded, maximumBytes)))
             }
             total += length
         }
-        try index.source.validate()
-        let output = try DICOMByteBuffer(count: total, budget: index.budget, resource: .encoded) { bytes in
-            var offset = 0
-            for fragment in selected {
-                let range = index.fragments[record.firstFragment + fragment].range
-                try index.source.copy(range, to: UnsafeMutableRawBufferPointer(rebasing: bytes[offset..<offset + range.count]))
-                offset += range.count
+        if case .failure(let failure) = index.source.validate() { return .failure(.managed(failure)) }
+        var failure = DICOMManagedFailure(.invalidOptions)
+        guard let output = index.source.withBorrowedBudget({ budget in
+            DICOMByteBuffer.admit(count: total, budget: budget, resource: .encoded)
+        }).takeValue(failure: &failure) else { return .failure(.managed(failure)) }
+        let bytes = output.unsafeMutableBytes
+        var offset = 0
+        for fragment in selected {
+            let range = index.fragments[record.firstFragment + fragment].range
+            if case .failure(let failure) = index.source.copy(range,
+                to: UnsafeMutableRawBufferPointer(rebasing: bytes[offset..<offset + range.count])) {
+                return .failure(.managed(failure))
             }
+            offset += range.count
         }
-        try index.source.validate()
-        return output
+        if case .failure(let failure) = index.source.validate() { return .failure(.managed(failure)) }
+        return .success(output)
     }
 
+    /// Throwing compatibility adapter outside the qualified core.
+    public borrowing func share() throws(DICOMParserFailure) -> Self { try shareOutcome().get() }
+    /// Throwing compatibility adapter outside the qualified core.
+    public func readValue(resource: DICOMAllocationClass = .metadata, cancellation: DICOMCancellation = .never)
+        throws(DICOMManagedFailure) -> DICOMByteBuffer {
+        try readValueOutcome(resource: resource, cancellation: cancellation).get()
+    }
+    /// Throwing compatibility traversal outside the qualified core.
+    public func forEachItem(_ body: (borrowing BoundedDICOMDataSet) throws(DICOMParserFailure) -> Void)
+        throws(DICOMParserFailure) {
+        var item = record.firstItem
+        while item >= 0 {
+            let dataSet = BoundedDICOMDataSet(storage: try storage.share().get(), scope: item)
+            try body(dataSet); item = index.scopes[item].nextItem
+        }
+    }
+    /// Throwing compatibility adapter outside the qualified core.
+    public func readValueRange(_ relativeRange: Range<Int>, resource: DICOMAllocationClass = .encoded,
+                               cancellation: DICOMCancellation = .never)
+        throws(DICOMManagedFailure) -> DICOMByteBuffer {
+        try readValueRangeOutcome(relativeRange, resource: resource, cancellation: cancellation).get()
+    }
+    /// Throwing compatibility adapter outside the qualified core.
+    public func readFrame(at frame: Int, numberOfFrames: Int, maximumBytes: Int = 64 * 1024 * 1024,
+                          cancellation: DICOMCancellation = .never) throws(DICOMParserFailure) -> DICOMByteBuffer {
+        try readFrameOutcome(at: frame, numberOfFrames: numberOfFrames, maximumBytes: maximumBytes,
+                             cancellation: cancellation).get()
+    }
 }
 
-/// Mutable only during the synchronous parse; no builder escapes before seal.
-/// Fixed-layout records have no owned variable-size payloads.
-final class BoundedParseCapture: @unchecked Sendable {
-    struct Scope {
-        var firstElement = -1, lastElement = -1, elementCount = 0, nextItem = -1
+@inline(__always)
+func parserManagedOutcome<Value: ~Copyable>(_ outcome: consuming DICOMManagedOutcome<Value>)
+    -> DICOMParserOutcome<Value> {
+    switch consume outcome {
+    case .success(let value): return .success(value)
+    case .failure(let failure): return .failure(.managed(failure))
     }
+}
+@inline(__always)
+func parserAllocationOutcome<Value: ~Copyable>(_ outcome: consuming DICOMAllocationOutcome<Value>)
+    -> DICOMParserOutcome<Value> {
+    switch consume outcome {
+    case .success(let value): return .success(value)
+    case .failure(let failure): return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+    }
+}
+
+struct BoundedParseState: ~Copyable {
+    let source: VerifiedFileByteSource
+    let budget: DICOMAllocationBudget
+    var scopes: DICOMStorageVector<BoundedParseCapture.Scope>
+    var elements: DICOMStorageVector<BoundedParseCapture.Element>
+    var fragments: DICOMStorageVector<BoundedParseCapture.Fragment>
+    var membership: DICOMStorageVector<BoundedParseCapture.Membership>
+    var membershipCount = 0, currentScope = 0, currentSequence = -1
+    var sealed = false
+    static func make(source: borrowing VerifiedFileByteSource, budget: borrowing DICOMAllocationBudget)
+        -> DICOMParserOutcome<Self> {
+        var failure = DICOMParserFailure.unexpectedEndOfData
+        guard let retainedSource = parserManagedOutcome(source.shareOutcome()).takeValue(failure: &failure),
+              let retainedBudget = parserAllocationOutcome(budget.shareOutcome()).takeValue(failure: &failure),
+              var scopes = parserAllocationOutcome(DICOMStorageVector<BoundedParseCapture.Scope>.make(budget: budget))
+                .takeValue(failure: &failure),
+              let elements = parserAllocationOutcome(
+                DICOMStorageVector<BoundedParseCapture.Element>.make(budget: budget))
+                .takeValue(failure: &failure),
+              let fragments = parserAllocationOutcome(
+                DICOMStorageVector<BoundedParseCapture.Fragment>.make(budget: budget))
+                .takeValue(failure: &failure),
+              let membership = parserAllocationOutcome(
+                DICOMStorageVector<BoundedParseCapture.Membership>.make(budget: budget))
+                .takeValue(failure: &failure) else { return .failure(failure) }
+        for _ in 0..<2 {
+            if case .failure(let failure) = scopes.appendOutcome(.init()) {
+                return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+            }
+        }
+        return .success(Self(source: retainedSource, budget: retainedBudget, scopes: scopes,
+                             elements: elements, fragments: fragments, membership: membership))
+    }
+}
+
+struct BoundedParseStorage: ~Copyable {
+    let owner: DICOMByteBuffer
+    var capture: BoundedParseCapture {
+        guard let base = owner.unsafeMutableBytes.baseAddress else { preconditionFailure("Missing index backing") }
+        return BoundedParseCapture(state: base.assumingMemoryBound(to: BoundedParseState.self))
+    }
+    static func make(source: borrowing VerifiedFileByteSource) -> DICOMParserOutcome<Self> {
+        var failure = DICOMParserFailure.unexpectedEndOfData
+        guard let owner = parserManagedOutcome(source.view.withBorrowedBudget { budget in
+            DICOMByteBuffer.admit(count: MemoryLayout<BoundedParseState>.stride, budget: budget, resource: .metadata)
+        }).takeValue(failure: &failure),
+              let state = source.view.withBorrowedBudget({ budget in
+                  BoundedParseState.make(source: source, budget: budget)
+              }).takeValue(failure: &failure) else { return .failure(failure) }
+        guard let base = owner.unsafeMutableBytes.baseAddress else {
+            return .failure(.managed(DICOMManagedFailure(.invalidOptions)))
+        }
+        let pointer = base.bindMemory(to: BoundedParseState.self, capacity: 1)
+        pointer.initialize(to: state)
+        if case .failure(let failure) = owner.installFinalizerOutcome({ pointer, _ in
+            pointer?.assumingMemoryBound(to: BoundedParseState.self).deinitialize(count: 1)
+        }) {
+            pointer.deinitialize(count: 1)
+            return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+        }
+        return .success(Self(owner: owner))
+    }
+    borrowing func share() -> DICOMParserOutcome<Self> {
+        switch owner.shareOutcome() {
+        case .success(let owner): return .success(Self(owner: owner))
+        case .failure(let failure): return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+        }
+    }
+}
+
+/// Internal borrowed builder view pinned by the owning source/index.
+struct BoundedParseCapture {
+    struct Scope { var firstElement = -1, lastElement = -1, elementCount = 0, nextItem = -1 }
     struct Element {
         let tag: Tag, vr: VR, length: UInt32, byteOrder: ByteOrder
         var range: Range<Int>
@@ -187,66 +401,78 @@ final class BoundedParseCapture: @unchecked Sendable {
         var botRange: Range<Int>?
     }
     struct Fragment { let range: Range<Int>; let streamOffset: Int }
-    private struct Membership { var scope = -1; var tag: UInt32 = 0 }
-    let source: any DICOMVerifiedByteSource
-    let budget: DICOMAllocationBudget
-    let scopes: DICOMStorageVector<Scope>
-    let elements: DICOMStorageVector<Element>
-    let fragments: DICOMStorageVector<Fragment>
-    private var membership: DICOMStorageVector<Membership>
-    private var membershipCount = 0
-    private var sealed = false
-    var currentScope = 0
-    var currentSequence = -1
-
-    init(source: any DICOMVerifiedByteSource) throws {
-        self.source = source; budget = source.allocationBudget
-        scopes = try DICOMStorageVector(budget: budget)
-        elements = try DICOMStorageVector(budget: budget)
-        fragments = try DICOMStorageVector(budget: budget)
-        membership = try DICOMStorageVector(budget: budget)
-        try scopes.append(Scope()); try scopes.append(Scope())
+    struct Membership { var scope = -1; var tag: UInt32 = 0 }
+    let state: UnsafeMutablePointer<BoundedParseState>
+    var cancellation: DICOMCancellation = .never
+    func withCancellation(_ cancellation: DICOMCancellation) -> Self { Self(state: state, cancellation: cancellation) }
+    var source: VerifiedSourceView { state.pointee.source.view.withCancellation(cancellation) }
+    var scopes: DICOMStorageVector<Scope> { _read { yield state.pointee.scopes } }
+    var elements: DICOMStorageVector<Element> { _read { yield state.pointee.elements } }
+    var fragments: DICOMStorageVector<Fragment> { _read { yield state.pointee.fragments } }
+    var currentScope: Int {
+        get { state.pointee.currentScope }
+        nonmutating set { state.pointee.currentScope = newValue }
     }
-    func seal() throws { try source.validate(); membership.releaseStorage(); sealed = true }
-    func append(tag: Tag, vr: VR, length: UInt32, byteOrder: ByteOrder, range: Range<Int>) throws -> Int {
-        precondition(!sealed)
+    var currentSequence: Int {
+        get { state.pointee.currentSequence }
+        nonmutating set { state.pointee.currentSequence = newValue }
+    }
+    func seal() -> DICOMParserOutcome<Void> {
+        if case .failure(let failure) = source.validate() { return .failure(.managed(failure)) }
+        state.pointee.membership.releaseStorage(); state.pointee.sealed = true
+        return .success(())
+    }
+    func append(tag: Tag, vr: VR, length: UInt32, byteOrder: ByteOrder, range: Range<Int>) -> DICOMParserOutcome<Int> {
+        precondition(!state.pointee.sealed)
         let identifier = elements.count
-        try elements.append(Element(tag: tag, vr: vr, length: length, byteOrder: byteOrder, range: range))
+        if case .failure(let failure) = state.pointee.elements.appendOutcome(
+            Element(tag: tag, vr: vr, length: length, byteOrder: byteOrder, range: range)) {
+            return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+        }
         var scope = scopes[currentScope]
-        if scope.lastElement >= 0 { elements[scope.lastElement].nextSibling = identifier }
+        if scope.lastElement >= 0 { state.pointee.elements[scope.lastElement].nextSibling = identifier }
         else { scope.firstElement = identifier }
-        scope.lastElement = identifier; scope.elementCount += 1
-        scopes[currentScope] = scope
-        return identifier
+        scope.lastElement = identifier; scope.elementCount += 1; state.pointee.scopes[currentScope] = scope
+        return .success(identifier)
     }
-    func beginItem() throws -> Int {
-        precondition(!sealed && currentSequence >= 0)
-        let previous = currentScope
-        let identifier = scopes.count
-        try scopes.append(Scope())
+    func beginItem() -> DICOMParserOutcome<Int> {
+        precondition(!state.pointee.sealed && currentSequence >= 0)
+        let previous = currentScope, identifier = scopes.count
+        if case .failure(let failure) = state.pointee.scopes.appendOutcome(Scope()) {
+            return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+        }
         var sequence = elements[currentSequence]
-        if sequence.lastItem >= 0 { scopes[sequence.lastItem].nextItem = identifier }
+        if sequence.lastItem >= 0 { state.pointee.scopes[sequence.lastItem].nextItem = identifier }
         else { sequence.firstItem = identifier }
         sequence.lastItem = identifier; sequence.itemCount += 1
-        elements[currentSequence] = sequence; currentScope = identifier
-        return previous
+        state.pointee.elements[currentSequence] = sequence; currentScope = identifier
+        return .success(previous)
     }
-    func setRange(_ range: Range<Int>, for identifier: Int) { elements[identifier].range = range }
-    func setBOT(_ range: Range<Int>, for identifier: Int) { elements[identifier].botRange = range }
-    func appendFragment(_ range: Range<Int>, streamOffset: Int, to identifier: Int) throws {
-        if elements[identifier].firstFragment < 0 { elements[identifier].firstFragment = fragments.count }
-        try fragments.append(Fragment(range: range, streamOffset: streamOffset))
-        elements[identifier].fragmentCount += 1
+    func setRange(_ range: Range<Int>, for identifier: Int) { state.pointee.elements[identifier].range = range }
+    func setBOT(_ range: Range<Int>, for identifier: Int) { state.pointee.elements[identifier].botRange = range }
+    func appendFragment(_ range: Range<Int>, streamOffset: Int, to identifier: Int) -> DICOMParserOutcome<Void> {
+        if elements[identifier].firstFragment < 0 { state.pointee.elements[identifier].firstFragment = fragments.count }
+        if case .failure(let failure) = state.pointee.fragments.appendOutcome(
+            Fragment(range: range, streamOffset: streamOffset)) {
+            return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+        }
+        state.pointee.elements[identifier].fragmentCount += 1
+        return .success(())
     }
-    func record(_ tag: Tag, at offset: Int) throws {
+    func record(_ tag: Tag, at offset: Int) -> DICOMParserOutcome<Void> {
         let key = UInt32(tag.group) << 16 | UInt32(tag.element)
-        if membership.count == 0 || membershipCount >= membership.count / 2 { try growMembership() }
-        let slot = find(scope: currentScope, tag: key, in: membership)
-        guard membership[slot].scope < 0 else { throw StrictParsingError.duplicateTag(tag: tag, offset: offset) }
-        membership[slot] = Membership(scope: currentScope, tag: key)
-        membershipCount += 1
+        if state.pointee.membership.count == 0 || state.pointee.membershipCount >= state.pointee.membership.count / 2 {
+            if case .failure(let failure) = growMembership() { return .failure(failure) }
+        }
+        let slot = find(scope: currentScope, tag: key, in: state.pointee.membership)
+        guard state.pointee.membership[slot].scope < 0 else {
+            return .failure(.strict(.duplicateTag(tag: tag, offset: offset)))
+        }
+        state.pointee.membership[slot] = Membership(scope: currentScope, tag: key)
+        state.pointee.membershipCount += 1
+        return .success(())
     }
-    private func find(scope: Int, tag: UInt32, in table: DICOMStorageVector<Membership>) -> Int {
+    private func find(scope: Int, tag: UInt32, in table: borrowing DICOMStorageVector<Membership>) -> Int {
         var bits = (UInt64(scope) << 32 | UInt64(tag)) &* 0x9e3779b97f4a7c15
         bits ^= bits >> 32
         var slot = Int(bits & UInt64(table.count - 1))
@@ -255,15 +481,26 @@ final class BoundedParseCapture: @unchecked Sendable {
         }
         return slot
     }
-    private func growMembership() throws {
-        let (capacity, overflow) = max(512, membership.count).multipliedReportingOverflow(by: membership.count == 0 ? 1 : 2)
-        guard !overflow else { throw DICOMAllocationError.invalidSize }
-        let next = try DICOMStorageVector<Membership>(budget: budget)
-        for _ in 0..<capacity { try next.append(Membership()) }
-        for index in 0..<membership.count {
-            let entry = membership[index]
+    private func growMembership() -> DICOMParserOutcome<Void> {
+        let count = state.pointee.membership.count
+        let (capacity, overflow) = max(512, count).multipliedReportingOverflow(by: count == 0 ? 1 : 2)
+        guard !overflow else { return .failure(.managed(DICOMManagedFailure(allocation: .invalidSize))) }
+        var allocationFailure = DICOMAllocationError.invalidSize
+        guard var next = DICOMStorageVector<Membership>.make(budget: state.pointee.budget)
+            .takeValue(failure: &allocationFailure) else {
+            return .failure(.managed(DICOMManagedFailure(allocation: allocationFailure)))
+        }
+        for _ in 0..<capacity {
+            if case .failure(let failure) = next.appendOutcome(Membership()) {
+                return .failure(.managed(DICOMManagedFailure(allocation: failure)))
+            }
+        }
+        for index in 0..<count {
+            let entry = state.pointee.membership[index]
             if entry.scope >= 0 { next[find(scope: entry.scope, tag: entry.tag, in: next)] = entry }
         }
-        membership = next
+        state.pointee.membership = consume next
+        return .success(())
     }
 }
+#endif

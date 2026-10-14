@@ -147,39 +147,93 @@ public struct DICOMFile: Sendable {
         return try read(from: source.wholeData(), force: force, options: options)
     }
     
-    /// Strict full structural parsing over a verified bounded source. The result
-    /// retains deferred values and shares the source's allocation ledger. This
-    /// entry point never calls wholeData or materializes a legacy DICOMFile.
-    /// - Parameters:
-    ///   - source: Anchored source verifying every consumed byte against its captured identity.
-    ///   - options: Strict full parsing options, including explicit compressed-profile admission.
-    /// - Returns: Deferred immutable views retaining the source and controlled parser backing.
-    public static func readBounded(from source: any DICOMVerifiedByteSource,
-                                   options: ParsingOptions) throws -> BoundedDICOMFile {
-        guard options.validationPolicy == .strict else { throw StrictParsingError.invalidOptions }
-        try validateStrictOptions(force: false, options: options)
-        guard source.count <= options.strictResourceLimits.maximumInputBytes else {
-            throw StrictParsingError.resourceLimitExceeded(resource: .inputBytes,
-                limit: options.strictResourceLimits.maximumInputBytes)
-        }
-        try source.validate()
-        guard source.count >= 132 else { throw DICOMError.unexpectedEndOfData }
-        let prefix = try source.read(128..<132, resource: .metadata)
-        guard prefix.withUnsafeBytes({ $0.elementsEqual([0x44, 0x49, 0x43, 0x4D]) }) else {
-            throw DICOMError.invalidDICMPrefix
-        }
-        let capture = try BoundedParseCapture(source: source)
-        var parser = DICOMParser(source: source, options: options, capture: capture)
-        _ = try parser.parseFileMetaInformation(startOffset: 132)
-        let meta = BoundedDICOMFile(index: capture, transferSyntaxUID: "").fileMetaInformation
-        guard let syntax = meta[.transferSyntaxUID], syntax.vr.characterRepertoire != nil, syntax.valueByteCount > 0 else {
-            throw StrictParsingError.missingTransferSyntax
-        }
-        let uid = try syntax.transferSyntaxToken()
-        _ = try parser.parseDataSet(transferSyntaxUID: uid)
-        try capture.seal()
-        return BoundedDICOMFile(index: capture, transferSyntaxUID: uid)
+    #if canImport(Darwin) || canImport(Glibc)
+    /// Compatibility options adapter. Build `BoundedParsingOptions` before entering
+    /// a managed operation to keep caller-owned Set/String policy storage outside it.
+    public static func readBounded(from source: borrowing VerifiedFileByteSource,
+                                   options: ParsingOptions, cancellation: DICOMCancellation = .never)
+        throws -> BoundedDICOMFile {
+        try readBounded(from: source, options: BoundedParsingOptions(options), cancellation: cancellation)
     }
+
+    /// Strict full structural parsing through the canonical parser over verified windows.
+    /// This value-outcome core does not invoke Swift's throwing runtime.
+    public static func readBoundedOutcome(from source: borrowing VerifiedFileByteSource,
+                                          options: BoundedParsingOptions,
+                                          cancellation: DICOMCancellation = .never)
+        -> DICOMParserOutcome<BoundedDICOMFile> {
+        guard source.count <= options.strictResourceLimits.maximumInputBytes else {
+            return .failure(.strict(.resourceLimitExceeded(resource: .inputBytes,
+                limit: options.strictResourceLimits.maximumInputBytes)))
+        }
+        if case .failure(let failure) = source.validateOutcome(cancellation: cancellation) {
+            return .failure(.managed(failure))
+        }
+        guard source.count >= 132 else { return .failure(.managed(DICOMManagedFailure(.unexpectedEnd))) }
+        switch source.readOutcome(128..<132, resource: .metadata, cancellation: cancellation) {
+        case .failure(let failure): return .failure(.managed(failure))
+        case .success(let prefix):
+            guard prefix.withBorrowedBytes({ $0[0] == 0x44 && $0[1] == 0x49 && $0[2] == 0x43 && $0[3] == 0x4D }) else {
+                return .failure(.managed(DICOMManagedFailure(.invalidPrefix)))
+            }
+        }
+        var failure = DICOMParserFailure.unexpectedEndOfData
+        guard let storage = BoundedParseStorage.make(source: source).takeValue(failure: &failure) else {
+            return .failure(failure)
+        }
+        let capture = storage.capture.withCancellation(cancellation)
+        var parser = DICOMParser(source: source.view.withCancellation(cancellation), options: options, capture: capture)
+        if case .failure(let failure) = parser.parseFileMetaInformationCore(startOffset: 132) {
+            return .failure(failure)
+        }
+        guard let metaOwner = storage.share().takeValue(failure: &failure) else { return .failure(failure) }
+        let meta = BoundedDICOMDataSet(storage: metaOwner, scope: 0)
+        guard let optionalSyntax = meta.elementOutcome(for: .transferSyntaxUID).takeValue(failure: &failure) else {
+            return .failure(failure)
+        }
+        guard let syntax = consume optionalSyntax, syntax.vr.characterRepertoire != nil, syntax.length > 0 else {
+            return .failure(.strict(.missingTransferSyntax))
+        }
+        guard let transferSyntax = syntax.transferSyntaxToken(cancellation: cancellation)
+            .takeValue(failure: &failure) else { return .failure(failure) }
+        if case .failure(let failure) = parser.parseDataSetCore(transferSyntax: transferSyntax) {
+            return .failure(failure)
+        }
+        if case .failure(let failure) = capture.seal() { return .failure(failure) }
+        return .success(BoundedDICOMFile(storage: storage, transferSyntax: transferSyntax))
+    }
+
+    /// Parse on the admitted worker. Retain execution through deferred acquisition
+    /// and decoding until the complete synchronous worker operation actually returns.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public static func readBoundedOutcome(from source: borrowing VerifiedFileByteSource,
+                                          options: BoundedParsingOptions,
+                                          execution: borrowing DICOMExecutionReservation,
+                                          cancellation: DICOMCancellation = .never)
+        -> DICOMParserOutcome<BoundedDICOMFile> {
+        if case .failure(let failure) = source.validateExecutionOutcome(execution) {
+            return .failure(.managed(failure))
+        }
+        return readBoundedOutcome(from: source, options: options, cancellation: cancellation)
+    }
+
+    /// Throwing compatibility adapter outside the qualified operation boundary.
+    public static func readBounded(from source: borrowing VerifiedFileByteSource,
+                                   options: BoundedParsingOptions, cancellation: DICOMCancellation = .never)
+        throws(DICOMParserFailure) -> BoundedDICOMFile {
+        try readBoundedOutcome(from: source, options: options, cancellation: cancellation).get()
+    }
+
+    /// Throwing compatibility adapter; use readBoundedOutcome inside admitted work.
+    @available(*, noasync, message: "Qualified input must remain on its admitted synchronous worker")
+    public static func readBounded(from source: borrowing VerifiedFileByteSource,
+                                   options: BoundedParsingOptions,
+                                   execution: borrowing DICOMExecutionReservation,
+                                   cancellation: DICOMCancellation = .never)
+        throws(DICOMParserFailure) -> BoundedDICOMFile {
+        try readBoundedOutcome(from: source, options: options, execution: execution, cancellation: cancellation).get()
+    }
+    #endif
 
     private static func validateStrictOptions(force: Bool, options: ParsingOptions) throws {
         if options.validationPolicy == .strict {

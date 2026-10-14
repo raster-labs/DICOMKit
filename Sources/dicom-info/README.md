@@ -85,3 +85,17 @@ See LICENSE file in the repository root.
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+## Verified bounded summary (2.4.0)
+
+`dicom-info --bounded-summary --format json scan.dcm` runs the canonical strict
+full parser over verified 64 KiB source windows, with the default allocation
+budget and 256 MiB source envelope. It reports the source digest, transfer syntax,
+root element counts and managed source/index backing receipt without materializing
+all values or decoding pixels. Supported syntax profiles are native little endian,
+JPEG Baseline, JPEG Lossless SV1 and JPEG-LS Lossless.
+
+Text and JSON are supported. Tag filters, private-tag output, statistics, CSV and
+forced permissive parsing cannot be combined with this mode. These receipts cover
+managed source/index backing; argument preparation, Foundation adapters, output
+formatting, worker stack and the total CLI process are outside that measurement.

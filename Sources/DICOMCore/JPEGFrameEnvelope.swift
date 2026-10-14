@@ -73,14 +73,52 @@ struct JPEGFrameEnvelope {
     }
 
     static func parse(_ input: Data, jpegLS: Bool) throws -> Self {
-        try input.withUnsafeBytes { try parse($0, jpegLS: jpegLS) }
+        do {
+            return try input.withUnsafeBytes {
+                try parse($0, jpegLS: jpegLS, cancellation: DICOMCancellation(check: { _ in Task.isCancelled }))
+            }
+        } catch let failure as DICOMManagedFailure {
+            if failure.code == .cancelled { throw CancellationError() }
+            if failure.code == .limitExceeded { throw DICOMError.limitExceeded("Too many JPEG marker segments") }
+            let reason: String
+            switch failure.operand1 {
+            case 0: reason = "missing SOI"
+            case 1: reason = "truncated entropy marker"
+            case 2: reason = "missing marker/EOI"
+            case 3: reason = "truncated marker"
+            case 4: reason = "incomplete frame/scans"
+            case 5: reason = "trailing bytes or concatenated codestream"
+            case 6: reason = "unexpected standalone marker"
+            case 7: reason = "truncated segment"
+            case 8: reason = "unsupported or repeated SOF process"
+            case 9: reason = "invalid SOF components"
+            case 10: reason = "duplicate SOF component"
+            case 11: reason = "SOS before SOF"
+            case 12: reason = "invalid SOS components"
+            case 13: reason = "unknown or repeated scan component"
+            case 14: reason = "unsupported noninterleaved lossless JPEG scans"
+            case 15: reason = "DNL dimensions are unsupported"
+            case 16: reason = "missing EOI"
+            default: reason = "invalid frame"
+            }
+            throw DICOMError.parsingFailed("JPEG frame envelope: \(reason)")
+        }
     }
 
-    static func parse(_ data: UnsafeRawBufferPointer, jpegLS: Bool) throws -> Self {
-        func fail(_ reason: String) -> DICOMError { .parsingFailed("JPEG frame envelope: \(reason)") }
-        guard data.count >= 4, data[0] == 0xff, data[1] == 0xd8 else { throw fail("missing SOI") }
-        func word(_ i: Int) -> Int { Int(data[i]) << 8 | Int(data[i + 1]) }
+    // Throwing compatibility boundary; selected callers use parseOutcome directly.
+    static func parse(_ data: UnsafeRawBufferPointer, jpegLS: Bool,
+                      cancellation: DICOMCancellation = .never) throws(DICOMManagedFailure) -> Self {
+        try parseOutcome(data, jpegLS: jpegLS, cancellation: cancellation).get()
+    }
+
+    static func parseOutcome(_ data: UnsafeRawBufferPointer, jpegLS: Bool,
+                      cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<Self> {
         var p = 2
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard data.count >= 4, data[0] == 0xff, data[1] == 0xd8 else {
+            return .failure(DICOMManagedFailure(.malformed, offset: 0, 0))
+        }
+        func word(_ i: Int) -> Int { Int(data[i]) << 8 | Int(data[i + 1]) }
         var entropy = false
         var process: UInt8?
         var width = 0, height = 0, precision = 0
@@ -91,16 +129,16 @@ struct JPEGFrameEnvelope {
         var adobe: UInt8?
         var markers = 0
         while p < data.count {
-            try Task.checkCancellation()
+            if let failure = cancellation.failure { return .failure(failure) }
             if entropy {
                 var cancellationOffset = p
                 while p < data.count {
                     if p >= cancellationOffset {
-                        try Task.checkCancellation()
+                        if let failure = cancellation.failure { return .failure(failure) }
                         cancellationOffset = p + min(0x10000, data.count - p)
                     }
                     if data[p] != 0xff { p += 1; continue }
-                    guard p + 1 < data.count else { throw fail("truncated entropy marker") }
+                    guard p + 1 < data.count else { return .failure(DICOMManagedFailure(.malformed, offset: p, 1)) }
                     let next = data[p + 1]
                     if jpegLS ? next < 0x80 : next == 0 { p += 2; continue }
                     if (0xd0...0xd7).contains(next) { p += 2; continue }
@@ -108,68 +146,74 @@ struct JPEGFrameEnvelope {
                 }
                 entropy = false
             }
-            guard p + 1 < data.count, data[p] == 0xff else { throw fail("missing marker/EOI") }
+            guard p + 1 < data.count, data[p] == 0xff else {
+                return .failure(DICOMManagedFailure(.malformed, offset: p, 2))
+            }
             var markerCancellationOffset = p
             while p < data.count, data[p] == 0xff {
                 if p >= markerCancellationOffset {
-                    try Task.checkCancellation()
+                    if let failure = cancellation.failure { return .failure(failure) }
                     markerCancellationOffset = p + min(0x10000, data.count - p)
                 }
                 p += 1
             }
-            guard p < data.count else { throw fail("truncated marker") }
+            guard p < data.count else { return .failure(DICOMManagedFailure(.malformed, offset: p, 3)) }
             let marker = data[p]; p += 1
             markers += 1
-            guard markers <= 4096 else { throw DICOMError.limitExceeded("Too many JPEG marker segments") }
+            guard markers <= 4096 else { return .failure(DICOMManagedFailure(.limitExceeded, offset: p, markers)) }
             if marker == 0xd9 {
                 guard let process, scans.count > 0, scanned == (1 << components.count) - 1 else {
-                    throw fail("incomplete frame/scans")
+                    return .failure(DICOMManagedFailure(.malformed, offset: p, 4))
                 }
                 guard p == data.count || (p % 2 == 1 && p + 1 == data.count && data[p] == 0) else {
-                    throw fail("trailing bytes or concatenated codestream")
+                    return .failure(DICOMManagedFailure(.malformed, offset: p, 5))
                 }
-                return Self(process: process, width: width, height: height, precision: precision,
+                return .success(Self(process: process, width: width, height: height, precision: precision,
                             components: components, scanParameters: scans,
-                            jfif: jfif, adobeTransform: adobe)
+                            jfif: jfif, adobeTransform: adobe))
             }
             guard marker != 0xd8, marker != 0, !(0xd0...0xd7).contains(marker), marker != 1,
-                  p + 2 <= data.count else { throw fail("unexpected standalone marker") }
+                  p + 2 <= data.count else { return .failure(DICOMManagedFailure(.malformed, offset: p, 6)) }
             let length = word(p)
-            guard length >= 2, length <= data.count - p else { throw fail("truncated segment") }
+            guard length >= 2, length <= data.count - p else {
+                return .failure(DICOMManagedFailure(.malformed, offset: p, 7))
+            }
             let begin = p + 2, end = p + length
             if (0xc0...0xcf).contains(marker) && marker != 0xc4 && marker != 0xc8 && marker != 0xcc || marker == 0xf7 {
                 guard process == nil, scans.count == 0,
                       jpegLS ? marker == 0xf7 : (marker == 0xc0 || marker == 0xc1 || marker == 0xc3),
-                      length >= 8 else { throw fail("unsupported or repeated SOF process") }
+                      length >= 8 else { return .failure(DICOMManagedFailure(.malformed, offset: p, 8)) }
                 precision = Int(data[begin]); height = word(begin + 1); width = word(begin + 3)
                 let count = Int(data[begin + 5])
                 guard (count == 1 || count == 3), length == 8 + 3 * count else {
-                    throw fail("invalid SOF components")
+                    return .failure(DICOMManagedFailure(.malformed, offset: p, 9))
                 }
                 for index in 0..<count {
                     let id = data[begin + 6 + 3 * index]
-                    guard components.index(of: id) == nil else { throw fail("duplicate SOF component") }
+                    guard components.index(of: id) == nil else {
+                        return .failure(DICOMManagedFailure(.malformed, offset: p, 10))
+                    }
                     components.append(Component(id: id, sampling: data[begin + 7 + 3 * index]))
                 }
                 process = marker
             } else if marker == 0xda {
-                guard let process, length >= 6 else { throw fail("SOS before SOF") }
+                guard let process, length >= 6 else { return .failure(DICOMManagedFailure(.malformed, offset: p, 11)) }
                 let count = Int(data[begin])
                 guard count > 0, count <= components.count, length == 6 + 2 * count else {
-                    throw fail("invalid SOS components")
+                    return .failure(DICOMManagedFailure(.malformed, offset: p, 12))
                 }
                 // Masks use SOF positions, so arbitrary UInt8 identifiers remain valid.
                 var scanMask: UInt8 = 0
                 for selector in 0..<count {
                     guard let index = components.index(of: data[begin + 1 + 2 * selector]),
                           (scanned | scanMask) & (1 << index) == 0 else {
-                        throw fail("unknown or repeated scan component")
+                        return .failure(DICOMManagedFailure(.malformed, offset: p, 13))
                     }
                     scanMask |= 1 << index
                 }
                 // JLISwift's lossless implementation decodes one interleaved scan only.
                 guard process != 0xc3 || (scans.count == 0 && count == components.count) else {
-                    throw fail("unsupported noninterleaved lossless JPEG scans")
+                    return .failure(DICOMManagedFailure(.malformed, offset: p, 14))
                 }
                 // Each successful SOS consumes at least one previously uncovered component;
                 // the three-component SOF limit therefore also bounds successful scans to three.
@@ -186,10 +230,10 @@ struct JPEGFrameEnvelope {
                 adobe = data[begin + 11]
             } else if marker == 0xdc {
                 // Neither dependency implements effective DNL dimensions reliably.
-                throw fail("DNL dimensions are unsupported")
+                return .failure(DICOMManagedFailure(.malformed, offset: p, 15))
             }
             p = end
         }
-        throw fail("missing EOI")
+        return .failure(DICOMManagedFailure(.malformed, offset: p, 16))
     }
 }
