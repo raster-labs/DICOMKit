@@ -6,12 +6,22 @@ permissions:
 jobs:
   vision-diagnostic:
     name: Inspect hosted Vision OCR
-    runs-on: xcode-27
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [xcode-27, macos-26]
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Select Xcode
+      - name: Select Xcode 27
+        if: matrix.runner == 'xcode-27'
         run: bash .github/scripts/select-swift-toolchain.sh
+      - name: Record compiler and runtime
+        run: |
+          xcrun swift --version
+          xcodebuild -version
+          sw_vers
       - name: Compile diagnostic
         run: xcrun swiftc -parse-as-library -target arm64-apple-macosx15.0 .github/scripts/vision-ocr-diagnostic.swift -o "$RUNNER_TEMP/vision-ocr-diagnostic"
       - name: Inspect Vision model and errors
