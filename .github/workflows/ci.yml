@@ -1,28 +1,23 @@
-name: Hosted Vision Diagnostic
+name: Hosted SwiftUI Overlay Diagnostic
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  vision-diagnostic:
-    name: Inspect hosted Vision OCR
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: [macos-15]
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 10
+  overlay-diagnostic:
+    name: Inspect SwiftUI AVKit cross-import overlay
+    runs-on: macos-26
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Select Xcode 27
-        if: matrix.runner == 'xcode-27'
-        run: bash .github/scripts/select-swift-toolchain.sh
-      - name: Record compiler and runtime
-        run: |
-          xcrun swift --version
-          xcodebuild -version
-          sw_vers
-      - name: Compile diagnostic
-        run: xcrun swiftc -parse-as-library -target arm64-apple-macosx15.0 .github/scripts/vision-ocr-diagnostic.swift -o "$RUNNER_TEMP/vision-ocr-diagnostic"
-      - name: Inspect Vision model and errors
-        run: '"$RUNNER_TEMP/vision-ocr-diagnostic"'
+      - name: Select official Swift 6.4 on stable macOS
+        run: bash .github/scripts/setup-stable-swift.sh
+      - name: Probe direct compiler and isolated SwiftBuild package
+        run: bash .github/scripts/check-swiftui-overlay.sh
+      - name: Preserve all diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swiftui-overlay-diagnostic
+          path: ${{ runner.temp }}/swiftui-overlay-logs
+          if-no-files-found: warn
