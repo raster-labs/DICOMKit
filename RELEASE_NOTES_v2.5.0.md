@@ -6,6 +6,8 @@ preserving the existing budget factories and codec behavior.
 
 - Build strict parser options from scalar caps and syntax mask bits, and initialize
   JPEG/JPEG-LS decoders from finite syntax values without legacy String/Set setup.
+- Include all three runtime resource bundles with the 36 CLI tools, preserve
+  executable permissions through CI artifacts, and refuse incomplete release archives.
 - Admit the complete payload and control capacities before either mapping.
 - Preserve exact aggregate refusal statuses and atomic resource transfers.
 - Keep the same allocation token through aliases and transfers; copies receive

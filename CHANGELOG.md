@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Final context retirement follows successful unmap of the ledger's own page, including when buffers outlive every budget handle. Parser, codec and source owners participate through their existing mapped storage; decode semantics and dependency pins are unchanged.
 - These hooks do not qualify application worker/TLS/bootstrap or host callback storage. See `Documentation/BoundedInput/AllocationContract.md`.
 
+### Fixed — CLI release packaging
+
+- Ship all three runtime resource bundles with the 36 CLI tools, preserve executable permissions through CI artifact uploads, and refuse missing tools or incomplete bundles before publication.
+
 ## [2.4.0] - 2026-10-14
 
 ### Added — explicit allocation ownership

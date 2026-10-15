@@ -171,18 +171,15 @@ jobs:
         
     - name: Stage CLI binaries
       run: |
-        mkdir -p staged-bin
-        for tool in ${{ matrix.tools }}; do
-          if [ -f ".build/release/$tool" ]; then
-            cp ".build/release/$tool" staged-bin/
-          fi
-        done
+        PRODUCTS=$(swift build -c release --show-bin-path)
+        python3 Scripts/package_release_cli.py stage --products "$PRODUCTS" \
+          --archive staged-cli.tar --tools ${{ matrix.tools }}
         
     - name: Upload CLI binaries artifact
       uses: actions/upload-artifact@v4
       with:
         name: cli-binaries-batch-${{ matrix.batch }}
-        path: staged-bin/
+        path: staged-cli.tar
         
   build-documentation:
     name: Build and Deploy Documentation
@@ -254,18 +251,14 @@ jobs:
       with:
         path: artifacts
         
+    - name: Validate CLI packaging contract
+      run: python3 Scripts/test_package_release_cli.py
+
     - name: Combine CLI tools into single archive
       run: |
-        mkdir -p release/bin
-        # Combine binaries from all batch artifacts
-        for dir in artifacts/cli-binaries-batch-*/; do
-          if [ -d "$dir" ]; then
-            cp "$dir"/* release/bin/ 2>/dev/null || true
-          fi
-        done
-        # Create combined archive
-        cd release
-        tar -czf ../dicomkit-cli-tools-${{ steps.get_tag.outputs.tag }}-macos-arm64.tar.gz bin/
+        python3 Scripts/package_release_cli.py assemble --artifacts artifacts \
+          --archive dicomkit-cli-tools-${{ steps.get_tag.outputs.tag }}-macos-arm64.tar.gz \
+          > cli-archive-inventory.json
         
     - name: Generate release notes
       id: release_notes
@@ -298,6 +291,7 @@ jobs:
         prerelease: ${{ contains(steps.get_tag.outputs.tag, '-') }}
         files: |
           dicomkit-cli-tools-*.tar.gz
+          cli-archive-inventory.json
           artifacts/documentation/*.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
