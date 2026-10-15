@@ -8,6 +8,9 @@ preserving the existing budget factories and codec behavior.
   JPEG/JPEG-LS decoders from finite syntax values without legacy String/Set setup.
 - Include all three runtime resource bundles with the 36 CLI tools, preserve
   executable permissions through CI artifacts, and refuse incomplete release archives.
+- Use portable annotation texture storage on Intel and Apple GPUs, with verified
+  GPU completion and managed-texture synchronization in offscreen pixel tests.
+- Observe accepted Print SCP connection readiness before starting transport.
 - Admit the complete payload and control capacities before either mapping.
 - Preserve exact aggregate refusal statuses and atomic resource transfers.
 - Keep the same allocation token through aliases and transfers; copies receive
