@@ -22,9 +22,9 @@ jobs:
   validate-release:
     name: Validate Release on macOS 26 (Swift 6.4)
     runs-on: macos-26-intel
-    # Includes cold compilation of both configurations; execution gates below
-    # retain their independent 30-minute limits.
-    timeout-minutes: 150
+    # Cold Intel production and test compilation can exceed two hours. Keep
+    # build time separate from the independent 30-minute execution limits below.
+    timeout-minutes: 240
 
     steps:
     - name: Checkout code
@@ -77,7 +77,7 @@ jobs:
     # Official Swift requires explicit SDK cross-import overlays (SwiftUI/AVKit).
     - name: Build release package without warnings
       id: release_build
-      timeout-minutes: 60
+      timeout-minutes: 120
       env:
         CI: 'true'
       run: |
@@ -89,9 +89,10 @@ jobs:
         fi
 
     # Tests intentionally exercise deprecated APIs. Keep their existing warning
-    # policy separate from the strict production build above.
-    - name: Build and discover optimized tests
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release list > release-test-discovery.log
+    # policy separate from the strict production build above. Only DICOMKitTests needs an
+    # optimized test product; the complete Debug suite is prepared below.
+    - name: Build and discover optimized DICOMKit tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests list > release-test-discovery.log
 
     - name: Run optimized source-envelope tests
       timeout-minutes: 30
@@ -99,7 +100,7 @@ jobs:
         CI: 'true'
       run: |
         set -o pipefail
-        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --skip-build --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests --skip-build --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
         grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
 
     # Compile the checked-out test sources before starting the execution clock.

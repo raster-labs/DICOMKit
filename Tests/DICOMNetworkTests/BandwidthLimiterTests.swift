@@ -169,10 +169,10 @@ final class BandwidthLimiterTests: XCTestCase {
         let config = BandwidthConfiguration(bytesPerSecond: 1000, burstCapacity: 1000)
         let limiter = BandwidthLimiter(configuration: config)
         
-        _ = await limiter.tryAcquire(bytes: 300)
-        let available = await limiter.available()
-        
-        XCTAssertEqual(available, 700)
+        let consumption = await limiter.measuredAcquisition(bytes: 300)
+        let sample = await limiter.measuredAvailability()
+
+        assertReplenishment(sample, after: consumption, remaining: 700, configuration: config)
     }
     
     func test_estimatedWaitTime_withSufficientTokens_returnsZero() async {
@@ -220,19 +220,53 @@ final class BandwidthLimiterTests: XCTestCase {
     
     func test_tokensReplenish_overTime() async throws {
         let config = BandwidthConfiguration(bytesPerSecond: 1000, burstCapacity: 1000)
-        let limiter = BandwidthLimiter(configuration: config)
-        
-        // Consume all tokens
-        _ = await limiter.tryAcquire(bytes: 1000)
-        
-        // Wait for replenishment (100ms = 100 tokens at 1000/s)
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        let available = await limiter.available()
-        
-        // Should have ~100 tokens (some timing variance allowed)
-        XCTAssertGreaterThan(available, 50)
-        XCTAssertLessThan(available, 200)
+        // Include an observation later than the old fixed 200-token ceiling.
+        for delay: UInt64 in [100_000_000, 250_000_000] {
+            let limiter = BandwidthLimiter(configuration: config)
+            let consumption = await limiter.measuredAcquisition(bytes: 1000)
+
+            // Sleep allows replenishment, but does not impose a scheduler deadline.
+            try await Task.sleep(nanoseconds: delay)
+
+            let sample = await limiter.measuredAvailability()
+            assertReplenishment(sample, after: consumption, remaining: 0, configuration: config)
+        }
+    }
+
+    private func assertReplenishment(
+        _ sample: (tokens: Int, before: Date, after: Date),
+        after consumption: (acquired: Bool, before: Date, after: Date),
+        remaining: Int,
+        configuration: BandwidthConfiguration,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(consumption.acquired, file: file, line: line)
+        // Each production clock read lies inside its actor-isolated bracket.
+        // Bound the expected byte count using elapsed time, rate and burst cap.
+        let minimumElapsed = max(0, sample.before.timeIntervalSince(consumption.after))
+        let maximumElapsed = max(0, sample.after.timeIntervalSince(consumption.before))
+        let rate = Double(configuration.bytesPerSecond)
+        let capacity = Double(configuration.burstCapacity)
+        let lower = Int(min(capacity, Double(remaining) + minimumElapsed * rate).rounded(.down))
+        let upper = Int(min(capacity, Double(remaining) + maximumElapsed * rate).rounded(.down))
+        let diagnostic = "elapsed=\(minimumElapsed)...\(maximumElapsed)s; tokens=\(sample.tokens), expected=\(lower)...\(upper)"
+        XCTAssertGreaterThanOrEqual(sample.tokens, lower, diagnostic, file: file, line: line)
+        XCTAssertLessThanOrEqual(sample.tokens, upper, diagnostic, file: file, line: line)
+    }
+}
+
+private extension BandwidthLimiter {
+    func measuredAcquisition(bytes: Int) -> (acquired: Bool, before: Date, after: Date) {
+        let before = Date()
+        let acquired = tryAcquire(bytes: bytes)
+        return (acquired, before, Date())
+    }
+
+    func measuredAvailability() -> (tokens: Int, before: Date, after: Date) {
+        let before = Date()
+        let tokens = available()
+        return (tokens, before, Date())
     }
 }
 

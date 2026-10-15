@@ -61,13 +61,17 @@ jobs:
       id: release_build
       run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release
 
-    # Discovery uses the same testability settings as the execution command.
-    - name: Build and discover optimized tests
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release list > release-test-discovery.log
+    # Only DICOMKitTests contains the optimized source-envelope gate. Build its test product
+    # with the same testability settings used by execution; Debug covers all tests.
+    - name: Build and discover optimized DICOMKit tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests list > release-test-discovery.log
 
     - name: Run optimized source-envelope tests
       timeout-minutes: 30
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --skip-build --filter largeSparseSource
+      run: |
+        set -o pipefail
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests --skip-build --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
+        grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
 
     - name: Build and discover debug tests
       run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays list > debug-test-discovery.log
