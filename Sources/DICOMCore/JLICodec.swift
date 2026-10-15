@@ -26,6 +26,20 @@ import JLISwift
 /// planar→interleaved reshuffling (handled by `interleavedFrameBytes`) is needed.
 /// NEMA-verified: 2026a, checked 2026-10-01 — the four JPEG UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` admits a subset of PS3.5 2026a Tables 8.2.1-1/8.2.1-2: Baseline 8/8 (colour written YCbCr 4:2:2 = YBR_FULL_422, D190), Extended 8/8 or 16/12 monochrome only (Table 8.2.1-1 has no 3-sample .51 row), Lossless 8-or-16 allocated with 2–16 stored (the tables allow 1–16; 1 is a JLISwift limit), YBR_FULL_422 only with Baseline. The "§A.4.1–A.4.3" citation was narrowed to §A.4.1 (A.4.2 is RLE, A.4.3 JPEG-LS). The codec implements ITU-T T.81, outside DICOM.
 public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
+    /// Finite decode policy that does not construct or retain transfer-syntax Strings.
+    public enum DecodingSyntax: UInt8, Sendable {
+        /// Admit any JPEG process already supported by this codec.
+        case any
+        /// JPEG Baseline, Process 1.
+        case baseline
+        /// JPEG Extended, Processes 2 and 4.
+        case extended
+        /// JPEG Lossless, Process 14.
+        case lossless
+        /// JPEG Lossless, Selection Value 1.
+        case losslessSV1
+    }
+
     /// All four DICOM JPEG transfer syntaxes can be decoded.
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpegBaseline.uid,     // 1.2.840.10008.1.2.4.50
@@ -40,9 +54,13 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     /// The transfer syntax this instance encodes to. Selects the JPEG process:
     /// baseline/extended → lossy DCT, lossless/SV1 → SOF3 predictive. Ignored when
     /// decoding (the SOF marker drives the decoder).
-    public let encodingTransferSyntaxUID: String
+    public var encodingTransferSyntaxUID: String {
+        explicitEncodingTransferSyntaxUID ?? TransferSyntax.jpegLosslessSV1.uid
+    }
 
-    private let decodingTransferSyntaxUID: String?
+    // Scalar decoding construction leaves this nil. Compatibility encoding materializes
+    // the historical default only when the public getter or an encoding operation uses it.
+    private let explicitEncodingTransferSyntaxUID: String?
     // Interpret caller-owned String configuration before any qualified operation.
     private enum SyntaxRestriction: Equatable, Sendable {
         case any, baseline, extended, lossless, losslessSV1, unsupported
@@ -57,8 +75,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     ///   - decodingLimits: Bounds enforced before sample decoding.
     public init(encodingTransferSyntaxUID: String = TransferSyntax.jpegLosslessSV1.uid,
                 decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default) {
-        self.encodingTransferSyntaxUID = encodingTransferSyntaxUID
-        self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
+        self.explicitEncodingTransferSyntaxUID = encodingTransferSyntaxUID
         switch decodingTransferSyntaxUID {
         case nil: self.syntaxRestriction = .any
         case TransferSyntax.jpegBaseline.uid: self.syntaxRestriction = .baseline
@@ -66,6 +83,24 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         case TransferSyntax.jpegLossless.uid: self.syntaxRestriction = .lossless
         case TransferSyntax.jpegLosslessSV1.uid: self.syntaxRestriction = .losslessSV1
         default: self.syntaxRestriction = .unsupported
+        }
+        self.decodingLimits = decodingLimits
+    }
+
+    /// Create the same decoder from finite scalar policy without initializing UID Strings.
+    /// Encoding remains available with the historical JPEG Lossless SV1 default, whose
+    /// String is materialized only when encoding or reading `encodingTransferSyntaxUID`.
+    /// - Parameters:
+    ///   - decodingSyntax: Existing JPEG process restriction to enforce.
+    ///   - decodingLimits: Bounds enforced before sample decoding.
+    public init(decodingSyntax: DecodingSyntax, decodingLimits: PixelDecodeLimits = .init()) {
+        explicitEncodingTransferSyntaxUID = nil
+        switch decodingSyntax {
+        case .any: syntaxRestriction = .any
+        case .baseline: syntaxRestriction = .baseline
+        case .extended: syntaxRestriction = .extended
+        case .lossless: syntaxRestriction = .lossless
+        case .losslessSV1: syntaxRestriction = .losslessSV1
         }
         self.decodingLimits = decodingLimits
     }

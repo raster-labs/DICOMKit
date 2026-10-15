@@ -13,6 +13,16 @@ import JPEGLS
 ///   • 1.2.840.10008.1.2.4.81  JPEG-LS Near-Lossless
 /// NEMA-verified: 2026a, checked 2026-09-25 — the two JPEG-LS UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` (8 or 16 allocated, 2–16 stored, 1 or 3 samples) matches PS3.5 2026a Table 8.2.3-1. The header citation said §A.4.5 (MPEG2); corrected to §A.4.3. The codec implements ITU-T T.87, outside DICOM.
 public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
+    /// Finite decode policy that does not construct or retain transfer-syntax Strings.
+    public enum DecodingSyntax: UInt8, Sendable {
+        /// Admit both existing lossless and near-lossless profiles.
+        case any
+        /// Enforce the JPEG-LS Lossless profile.
+        case lossless
+        /// Enforce the JPEG-LS Near-Lossless profile.
+        case nearLossless
+    }
+
     /// Controls precision recovery for descriptor-bearing inspection and decoding.
     public enum PrecisionPolicy: Sendable {
         /// Reject inconsistent source Bits Stored and encoded precision (the default).
@@ -60,7 +70,6 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// near-lossless scan and is refused: decoding it would return samples that
     /// differ from the encoder's input under a syntax that promises exactness.
     /// `nil` (the default) accepts both lossless and near-lossless scans.
-    private let decodingTransferSyntaxUID: String?
     // Normalize caller-owned String configuration before any qualified operation.
     private enum SyntaxRestriction: Equatable, Sendable { case any, lossless, nearLossless, unsupported }
     private let syntaxRestriction: SyntaxRestriction
@@ -71,12 +80,27 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// Creates a decoder with optional syntax enforcement and caller-selected resource bounds.
     public init(decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default,
                 precisionPolicy: PrecisionPolicy = .requireSourceMatch) {
-        self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
         switch decodingTransferSyntaxUID {
         case nil: self.syntaxRestriction = .any
         case TransferSyntax.jpegLSLossless.uid: self.syntaxRestriction = .lossless
         case TransferSyntax.jpegLSNearLossless.uid: self.syntaxRestriction = .nearLossless
         default: self.syntaxRestriction = .unsupported
+        }
+        self.decodingLimits = decodingLimits
+        self.precisionPolicy = precisionPolicy
+    }
+
+    /// Create the same decoder from finite scalar policy without initializing UID Strings.
+    /// - Parameters:
+    ///   - decodingSyntax: Existing JPEG-LS profile restriction to enforce.
+    ///   - decodingLimits: Bounds enforced before sample decoding.
+    ///   - precisionPolicy: Existing explicit source/codestream precision policy.
+    public init(decodingSyntax: DecodingSyntax, decodingLimits: PixelDecodeLimits = .init(),
+                precisionPolicy: PrecisionPolicy = .requireSourceMatch) {
+        switch decodingSyntax {
+        case .any: syntaxRestriction = .any
+        case .lossless: syntaxRestriction = .lossless
+        case .nearLossless: syntaxRestriction = .nearLossless
         }
         self.decodingLimits = decodingLimits
         self.precisionPolicy = precisionPolicy

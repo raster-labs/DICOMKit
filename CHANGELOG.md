@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-10-15
+
+### Added — shared aggregate allocation admission
+
+- Scalar `BoundedParsingOptions.make` and finite JPEG/JPEG-LS decoding constructors avoid legacy String/Set setup and throwing option construction while preserving the existing policies and managed decoding paths.
+- Thin C callbacks atomically admit the complete payload/control allocation before mapping, while preserving every local budget limit and the existing default APIs.
+- Read-only buffer token/context identity supports handing an existing host reservation to a retained owner without charging it twice.
+- Scalar aggregate refusal and atomic payload transfer preserve the original ownership on failure. Partial unmap failures retain the complete external reservation and context.
+- Final context retirement follows successful unmap of the ledger's own page, including when buffers outlive every budget handle. Parser, codec and source owners participate through their existing mapped storage; decode semantics and dependency pins are unchanged.
+- These hooks do not qualify application worker/TLS/bootstrap or host callback storage. See `Documentation/BoundedInput/AllocationContract.md`.
+
+### Fixed — CLI release packaging
+
+- Ship all three runtime resource bundles with the 36 CLI tools, preserve executable permissions through CI artifact uploads, and refuse missing tools or incomplete bundles before publication.
+
 ## [2.4.0] - 2026-10-14
 
 ### Added — explicit allocation ownership

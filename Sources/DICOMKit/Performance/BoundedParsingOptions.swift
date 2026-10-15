@@ -14,7 +14,8 @@ public enum BoundedTransferSyntax: UInt8, Sendable {
     /// JPEG-LS Lossless.
     case jpegLSLossless = 4
 
-    var mask: UInt8 { UInt8(1) << rawValue }
+    /// This syntax's bit in the scalar bounded-parser allowlist.
+    public var mask: UInt8 { UInt8(1) << rawValue }
     var isExplicitVR: Bool { self != .implicitLittleEndian }
     var isEncapsulated: Bool { rawValue >= Self.jpegBaseline.rawValue }
 
@@ -79,20 +80,78 @@ public struct BoundedParsingOptions: Sendable {
     /// Convert and validate legacy public options before entering the bounded operation.
     public init(_ options: ParsingOptions) throws(StrictParsingError) {
         guard options.validationPolicy == .strict, options.mode == .full,
-              options.stopAfterTag == nil, options.strictResourceLimits.isValid else {
+              options.stopAfterTag == nil else {
             throw .invalidOptions
         }
-        if let maximum = options.maxElements, maximum <= 0 { throw .invalidOptions }
+        var mask: UInt8 = 0x03
         if let allowed = options.allowedTransferSyntaxUIDs {
-            for uid in allowed where BoundedTransferSyntax.fromUID(uid) == nil { throw .invalidOptions }
+            mask = 0
+            for uid in allowed {
+                guard let syntax = BoundedTransferSyntax.fromUID(uid) else { throw .invalidOptions }
+                mask |= syntax.mask
+            }
         }
-        self.init(legacy: options)
-        let compressed = BoundedTransferSyntax.jpegBaseline.mask
-            | BoundedTransferSyntax.jpegLosslessSV1.mask | BoundedTransferSyntax.jpegLSLossless.mask
-        if allowedTransferSyntaxMask & compressed != 0 {
-            guard strictEncapsulation, maximumEncapsulatedBytes > 0 else { throw .invalidOptions }
-            if let maximum = maxFragmentCount, maximum <= 0 { throw .invalidOptions }
+        guard let result = Self.make(allowedTransferSyntaxMask: mask, maxElements: options.maxElements,
+            maxSequenceDepth: options.maxSequenceDepth, maxElementLength: options.maxElementLength,
+            maxTotalElements: options.maxTotalElements, maxFragmentCount: options.maxFragmentCount,
+            strictEncapsulation: options.strictEncapsulation,
+            maximumEncapsulatedBytes: options.maximumEncapsulatedBytes,
+            maximumInflatedByteCount: options.maximumInflatedByteCount,
+            strictResourceLimits: options.strictResourceLimits) else { throw .invalidOptions }
+        self = result
+    }
+
+    /// Construct strict full-read policy without a String, Set, legacy options or throwing path.
+    /// This performs exactly the existing strict bounded-option validation. Optional caps
+    /// that the legacy initializer retains without validation remain unchanged here.
+    /// - Parameters:
+    ///   - allowedTransferSyntaxMask: Union of `BoundedTransferSyntax.mask` bits; unknown bits refuse.
+    ///     The default admits both native syntaxes. Zero preserves the legacy empty allowlist.
+    ///   - maxElements: Optional positive top-level element cap.
+    ///   - maxSequenceDepth: Existing general parser depth cap, retained unchanged.
+    ///   - maxElementLength: Existing optional element-length cap, retained unchanged.
+    ///   - maxTotalElements: Existing optional element-count cap, retained unchanged.
+    ///   - maxFragmentCount: Must be positive when compressed syntaxes are enabled and it is supplied.
+    ///   - strictEncapsulation: Required when compressed syntaxes are enabled.
+    ///   - maximumEncapsulatedBytes: Must be positive when compressed syntaxes are enabled.
+    ///   - maximumInflatedByteCount: Existing inflation cap, retained unchanged.
+    ///   - strictResourceLimits: Every strict structural limit must be positive.
+    /// - Returns: Scalar policy, or nil for the same invalid-options refusal as the legacy initializer.
+    public static func make(allowedTransferSyntaxMask: UInt8 = 0x03, maxElements: Int? = nil,
+        maxSequenceDepth: Int = 64, maxElementLength: Int? = nil, maxTotalElements: Int? = nil,
+        maxFragmentCount: Int? = nil, strictEncapsulation: Bool = false,
+        maximumEncapsulatedBytes: Int = 1 << 30, maximumInflatedByteCount: Int = 1 << 30,
+        strictResourceLimits: ParsingOptions.StrictResourceLimits = .init()) -> Self? {
+        guard allowedTransferSyntaxMask & ~UInt8(0x1f) == 0, strictResourceLimits.isValid else { return nil }
+        if let maximum = maxElements, maximum <= 0 { return nil }
+        if allowedTransferSyntaxMask & 0x1c != 0 {
+            guard strictEncapsulation, maximumEncapsulatedBytes > 0 else { return nil }
+            if let maximum = maxFragmentCount, maximum <= 0 { return nil }
         }
+        return Self(allowedTransferSyntaxMask: allowedTransferSyntaxMask, maxElements: maxElements,
+            maxSequenceDepth: maxSequenceDepth, maxElementLength: maxElementLength,
+            maxTotalElements: maxTotalElements, maxFragmentCount: maxFragmentCount,
+            strictEncapsulation: strictEncapsulation, maximumEncapsulatedBytes: maximumEncapsulatedBytes,
+            maximumInflatedByteCount: maximumInflatedByteCount, strictResourceLimits: strictResourceLimits)
+    }
+
+    private init(allowedTransferSyntaxMask: UInt8, maxElements: Int?, maxSequenceDepth: Int,
+        maxElementLength: Int?, maxTotalElements: Int?, maxFragmentCount: Int?, strictEncapsulation: Bool,
+        maximumEncapsulatedBytes: Int, maximumInflatedByteCount: Int,
+        strictResourceLimits: ParsingOptions.StrictResourceLimits) {
+        validationPolicy = .strict
+        mode = .full
+        stopAfterTag = nil
+        self.allowedTransferSyntaxMask = allowedTransferSyntaxMask
+        self.maxElements = maxElements
+        self.maxSequenceDepth = maxSequenceDepth
+        self.maxElementLength = maxElementLength
+        self.maxTotalElements = maxTotalElements
+        self.maxFragmentCount = maxFragmentCount
+        self.strictEncapsulation = strictEncapsulation
+        self.maximumEncapsulatedBytes = maximumEncapsulatedBytes
+        self.maximumInflatedByteCount = maximumInflatedByteCount
+        self.strictResourceLimits = strictResourceLimits
     }
 
     /// General-parser snapshot; its separate legacy String boundary retains the full allowlist.

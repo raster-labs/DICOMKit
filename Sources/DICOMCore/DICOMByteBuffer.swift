@@ -38,6 +38,20 @@ public struct DICOMByteBuffer: ~Copyable, @unchecked Sendable {
 
     private init(retained owner: UnsafeMutablePointer<DICOMMappedOwner>) { mappedOwner = owner }
 
+    /// Aggregate admission token bound to this exact payload/control owner, if enabled.
+    /// Aliases and resource transfers preserve this identity. Reading it neither transfers
+    /// release authority nor permits early retirement; the registered release callback
+    /// remains responsible for notification after actual final mapping retirement.
+    public var externalAllocationToken: UInt64? {
+        mappedOwner.pointee.ledger.pointee.externalAdmission == nil ? nil : mappedOwner.pointee.externalToken
+    }
+
+    /// Borrowed aggregate context identity associated with `externalAllocationToken`.
+    /// No context retain, allocation, or ownership transfer occurs when reading it.
+    public var externalAdmissionContext: UnsafeMutableRawPointer? {
+        mappedOwner.pointee.ledger.pointee.externalAdmission?.context
+    }
+
     /// Retain this exact backing without another allocation or charge.
     /// - Returns: Another owning handle to the same immutable bytes.
     public borrowing func share() throws(DICOMAllocationError) -> DICOMByteBuffer {
