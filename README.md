@@ -4,6 +4,15 @@ Bounded source parsing and managed JPEG/JPEG-LS decoding are available through e
 allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
 for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
 
+### v2.5.0 aggregate admission
+
+`DICOMExternalAllocationCallbacks` lets several local budgets share a caller-owned
+aggregate limit. The callbacks admit complete payload/control capacities before mapping,
+preserve exact owner tokens through aliases and transfers, and retire charges only after
+the final mappings are gone. Existing budget factories remain available. Callback storage,
+lock ordering and worker/bootstrap recovery remain caller qualification responsibilities;
+see [the allocation contract](Documentation/BoundedInput/AllocationContract.md).
+
 ### v2.4.0 allocation APIs
 
 - **DICOMCore:** `DICOMAllocationBudget`, `DICOMByteBuffer`, `DICOMExecutionReservation`,

@@ -17,6 +17,8 @@ struct DICOMMappedLedger {
     var peakTotal = 0
     var liveAllocations = 1
     var failureAfter: Int
+    let externalAdmission: DICOMExternalAllocationCallbacks?
+    let externalToken: UInt64
 }
 
 struct DICOMMappedOwner {
@@ -33,6 +35,7 @@ struct DICOMMappedOwner {
     var finalizer: (@convention(c) (UnsafeMutableRawPointer?, Int) -> Void)? = nil
     var retirementContext: UnsafeMutableRawPointer? = nil
     var retirementObserver: (@convention(c) (UnsafeMutableRawPointer?) -> Void)? = nil
+    let externalToken: UInt64
 }
 
 enum DICOMMappedStorage {
@@ -44,7 +47,8 @@ enum DICOMMappedStorage {
         return .success(max(page, ((count + page - 1) / page) * page))
     }
 
-    static func makeLedger(limits: DICOMAllocationBudget.Limits, failureAfter: Int)
+    static func makeLedger(limits: DICOMAllocationBudget.Limits, failureAfter: Int,
+                          externalAdmission: DICOMExternalAllocationCallbacks? = nil)
         -> DICOMAllocationOutcome<UnsafeMutablePointer<DICOMMappedLedger>> {
         let capacity = pageSize
         guard limits.encoded >= 0, limits.decoded >= 0, limits.staging >= 0,
@@ -52,15 +56,35 @@ enum DICOMMappedStorage {
               capacity >= MemoryLayout<DICOMMappedLedger>.stride else { return .failure(.invalidSize) }
         guard capacity <= limits.staging else { return .failure(.limitExceeded(.metadata)) }
         guard capacity <= limits.total else { return .failure(.totalLimitExceeded) }
+        var externalToken: UInt64 = 0
+        if let externalAdmission {
+            let retained = externalAdmission.retainContext(externalAdmission.context)
+            guard retained == 0 else { return .failure(.externalAdmissionRefused(retained)) }
+            let admitted = externalAdmission.admit(externalAdmission.context,
+                Int32(DICOMAllocationClass.metadata.rawValue), 0, capacity, &externalToken)
+            guard admitted == 0 else {
+                externalAdmission.releaseContext(externalAdmission.context)
+                return .failure(.externalAdmissionRefused(admitted))
+            }
+        }
         let raw: UnsafeMutableRawPointer
         switch map(capacity) {
         case .success(let value): raw = value
-        case .failure(let error): return .failure(error)
+        case .failure(let error):
+            if let externalAdmission {
+                externalAdmission.release(externalAdmission.context, externalToken)
+                externalAdmission.releaseContext(externalAdmission.context)
+            }
+            return .failure(error)
         }
         let ledger = raw.bindMemory(to: DICOMMappedLedger.self, capacity: 1)
-        ledger.initialize(to: DICOMMappedLedger(limits: limits, capacity: capacity, failureAfter: failureAfter))
+        ledger.initialize(to: DICOMMappedLedger(limits: limits, capacity: capacity, failureAfter: failureAfter,
+            externalAdmission: externalAdmission, externalToken: externalToken))
         guard pthread_mutex_init(&ledger.pointee.mutex, nil) == 0 else {
-            _ = munmap(raw, capacity)
+            if munmap(raw, capacity) == 0, let externalAdmission {
+                externalAdmission.release(externalAdmission.context, externalToken)
+                externalAdmission.releaseContext(externalAdmission.context)
+            }
             return .failure(.synchronizationFailed)
         }
         ledger.pointee.current.metadata = capacity
@@ -84,11 +108,19 @@ enum DICOMMappedStorage {
         ledger.pointee.references -= 1
         let last = ledger.pointee.references == 0
         let capacity = ledger.pointee.capacity
+        let externalAdmission = ledger.pointee.externalAdmission
+        let externalToken = ledger.pointee.externalToken
         pthread_mutex_unlock(&ledger.pointee.mutex)
         if last {
             // A kernel cleanup failure deliberately retains capacity rather than reporting a false release.
             guard pthread_mutex_destroy(&ledger.pointee.mutex) == 0 else { return }
-            _ = munmap(UnsafeMutableRawPointer(ledger), capacity)
+            guard munmap(UnsafeMutableRawPointer(ledger), capacity) == 0 else { return }
+            // Capture every callback field before unmap. The context outlives the ledger,
+            // and its final release follows the successful retirement of the ledger page.
+            if let externalAdmission {
+                externalAdmission.release(externalAdmission.context, externalToken)
+                externalAdmission.releaseContext(externalAdmission.context)
+            }
         }
     }
 
@@ -114,7 +146,8 @@ enum DICOMMappedStorage {
 
     // Admit the metadata page and payload together; no partial admission is observable.
     static func admit(_ ledger: UnsafeMutablePointer<DICOMMappedLedger>, payload: Int,
-                      control: Int, resource: DICOMAllocationClass) -> DICOMAllocationError? {
+                      control: Int, resource: DICOMAllocationClass,
+                      externalToken: inout UInt64) -> DICOMAllocationError? {
         pthread_mutex_lock(&ledger.pointee.mutex)
         defer { pthread_mutex_unlock(&ledger.pointee.mutex) }
         guard ledger.pointee.references < Int.max, ledger.pointee.liveAllocations < Int.max else {
@@ -130,6 +163,11 @@ enum DICOMMappedStorage {
             return error
         }
         next[resource] += payload; total += payload
+        if let externalAdmission = ledger.pointee.externalAdmission {
+            let status = externalAdmission.admit(externalAdmission.context,
+                Int32(resource.rawValue), payload, control, &externalToken)
+            guard status == 0 else { return .externalAdmissionRefused(status) }
+        }
         ledger.pointee.current = next
         ledger.pointee.currentTotal = total
         ledger.pointee.peak.metadata = max(ledger.pointee.peak.metadata, next.metadata)
@@ -153,7 +191,9 @@ enum DICOMMappedStorage {
         } else { payloadCapacity = capacity }
         let control = pageSize
         guard control >= MemoryLayout<DICOMMappedOwner>.stride else { return .failure(.invalidSize) }
-        if let error = admit(ledger, payload: payloadCapacity, control: control, resource: resource) {
+        var externalToken: UInt64 = 0
+        if let error = admit(ledger, payload: payloadCapacity, control: control, resource: resource,
+            externalToken: &externalToken) {
             return .failure(error)
         }
         let raw: UnsafeMutableRawPointer
@@ -161,12 +201,13 @@ enum DICOMMappedStorage {
         case .success(let value): raw = value
         case .failure(let error):
             releaseReservation(ledger, payload: payloadCapacity, control: control, resource: resource,
-                               releasesOwner: true)
+                               releasesOwner: true, externalToken: externalToken)
             return .failure(error)
         }
         let owner = raw.bindMemory(to: DICOMMappedOwner.self, capacity: 1)
         owner.initialize(to: DICOMMappedOwner(ledger: ledger, controlCapacity: control, count: count,
-            requestedCapacity: capacity, payloadCapacity: payloadCapacity, resource: resource))
+            requestedCapacity: capacity, payloadCapacity: payloadCapacity, resource: resource,
+            externalToken: externalToken))
         if mapsPayload {
             switch mapForLedger(payloadCapacity, ledger: ledger) {
             case .success(let value): owner.pointee.payload = value
@@ -241,6 +282,11 @@ enum DICOMMappedStorage {
             return error
         }
         next[resource] += bytes
+        if let externalAdmission = ledger.pointee.externalAdmission {
+            let status = externalAdmission.transfer(externalAdmission.context,
+                owner.pointee.externalToken, Int32(resource.rawValue))
+            guard status == 0 else { return .externalAdmissionRefused(status) }
+        }
         ledger.pointee.current = next
         ledger.pointee.peak[resource] = max(ledger.pointee.peak[resource], next[resource])
         owner.pointee.resource = resource
@@ -262,6 +308,7 @@ enum DICOMMappedStorage {
         let resource = owner.pointee.resource
         let retirementContext = owner.pointee.retirementContext
         let retirementObserver = owner.pointee.retirementObserver
+        let externalToken = owner.pointee.externalToken
         owner.pointee.finalizer?(payload, owner.pointee.requestedCapacity)
         if let payload {
             guard munmap(payload, bytes) == 0 else { return }
@@ -270,11 +317,12 @@ enum DICOMMappedStorage {
         // If unmapping the header fails, keep its capacity and ledger reference charged.
         releaseReservation(ledger, payload: bytes, control: unmappedControl ? control : 0,
                            resource: resource, releasesOwner: unmappedControl,
+                           externalToken: externalToken,
                            retirementContext: retirementContext, retirementObserver: retirementObserver)
     }
 
     static func releaseReservation(_ ledger: UnsafeMutablePointer<DICOMMappedLedger>, payload: Int,
-        control: Int, resource: DICOMAllocationClass, releasesOwner: Bool,
+        control: Int, resource: DICOMAllocationClass, releasesOwner: Bool, externalToken: UInt64,
         retirementContext: UnsafeMutableRawPointer? = nil,
         retirementObserver: (@convention(c) (UnsafeMutableRawPointer?) -> Void)? = nil) {
         pthread_mutex_lock(&ledger.pointee.mutex)
@@ -287,6 +335,9 @@ enum DICOMMappedStorage {
         if releasesOwner {
             // Both mappings are already gone and counters debited. The former owner's
             // ledger reference remains live throughout this external, nonblocking callback.
+            if let externalAdmission = ledger.pointee.externalAdmission {
+                externalAdmission.release(externalAdmission.context, externalToken)
+            }
             retirementObserver?(retirementContext)
             releaseLedger(ledger)
         }

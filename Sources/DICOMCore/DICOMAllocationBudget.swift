@@ -2,7 +2,7 @@
 
 /// Backing-storage classes. Metadata shares the staging limit.
 public enum DICOMAllocationClass: Int, Sendable, CaseIterable {
-    case encoded, decoded, staging, resident, preview, metadata
+    case encoded = 0, decoded = 1, staging = 2, resident = 3, preview = 4, metadata = 5
 }
 
 /// Scalar admission and storage failures carried by nonthrowing allocation outcomes.
@@ -22,6 +22,8 @@ public enum DICOMAllocationError: Error, Equatable, Sendable {
     case stackUnavailable
     case threadMismatch
     case unsupportedPlatform
+    /// Exact nonzero status returned by caller-owned aggregate admission or transfer.
+    case externalAdmissionRefused(Int32)
 }
 
 /// Per-class live or peak capacities, including mapped control pages.
@@ -123,6 +125,11 @@ public struct DICOMAllocationBudget: ~Copyable, @unchecked Sendable {
     public static var controlCapacity: Int { DICOMMappedStorage.pageSize }
     /// Immutable limits shared by all aliases and retained storage owners.
     public var limits: Limits { mappedLedger.pointee.limits }
+    /// Borrowed identity of the aggregate admission context, when supplied.
+    /// This getter does not acquire context ownership or authorize its mutation.
+    public var externalAdmissionContext: UnsafeMutableRawPointer? {
+        mappedLedger.pointee.externalAdmission?.context
+    }
 
     /// Create a ledger, admitting its own control page against staging and total limits.
     /// - Parameter limits: Complete per-instance limits, including control storage.
@@ -143,12 +150,26 @@ public struct DICOMAllocationBudget: ~Copyable, @unchecked Sendable {
     public static func make(limits: Limits = Limits()) -> DICOMAllocationOutcome<Self> {
         makeInternal(limits: limits, failureAfter: -1)
     }
+    /// Create a local ledger whose complete storage also requires aggregate admission.
+    /// The callbacks cover the ledger page, mapped payload/control pairs, and external
+    /// reservations. Local limits continue to apply. Context ownership lasts through
+    /// actual final ledger unmap; any quarantined mapping retains that ownership.
+    /// - Parameters:
+    ///   - limits: Complete per-instance limits, including the ledger's own page.
+    ///   - externalAdmission: Thin callbacks and an independently admitted context.
+    /// - Returns: An admitted ledger or the exact local/aggregate refusal.
+    public static func make(limits: Limits = Limits(), externalAdmission: DICOMExternalAllocationCallbacks)
+        -> DICOMAllocationOutcome<Self> {
+        makeInternal(limits: limits, failureAfter: -1, externalAdmission: externalAdmission)
+    }
     static func make(limits: Limits = Limits(), allocationFailureAfter: Int) -> DICOMAllocationOutcome<Self> {
         guard allocationFailureAfter >= 0 else { return .failure(.invalidSize) }
         return makeInternal(limits: limits, failureAfter: allocationFailureAfter)
     }
-    private static func makeInternal(limits: Limits, failureAfter: Int) -> DICOMAllocationOutcome<Self> {
-        switch DICOMMappedStorage.makeLedger(limits: limits, failureAfter: failureAfter) {
+    private static func makeInternal(limits: Limits, failureAfter: Int,
+        externalAdmission: DICOMExternalAllocationCallbacks? = nil) -> DICOMAllocationOutcome<Self> {
+        switch DICOMMappedStorage.makeLedger(limits: limits, failureAfter: failureAfter,
+            externalAdmission: externalAdmission) {
         case .success(let ledger): return .success(Self(retained: ledger))
         case .failure(let error): return .failure(error)
         }

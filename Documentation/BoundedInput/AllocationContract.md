@@ -1,6 +1,6 @@
 # Bounded input allocation contract
 
-14 October 2026. Source and validation receipts accompany the released dependency
+15 October 2026. Source and validation receipts accompany the released dependency
 closure; this document defines the API
 contract, not Mayam provider or native presentation acceptance.
 
@@ -39,6 +39,64 @@ It does not run on failed unmap. This lets a host release its aggregate retained
 lease at actual last-owner retirement. The caller must separately account and
 retain its callback context until notification; the callback must not allocate,
 block or wait for an actor. Register before constructing externally retained aliases.
+
+## External aggregate admission
+
+`DICOMAllocationBudget.make(limits:externalAdmission:)` accepts a concrete
+`DICOMExternalAllocationCallbacks` value containing only a borrowed context pointer
+and thin C function pointers. Existing construction without callbacks is unchanged.
+The local ledger still enforces all its limits. The host's admission callback must
+atomically reserve the complete payload and metadata/control pair in its aggregate
+ledger before DICOMKit issues any mapping. All existing mapped storage uses this
+path, including source/parser/codec controls, workspace, buffers and external leases.
+The ledger's own bootstrap is a separate token with zero payload and one metadata
+page. Resource values are stable: encoded 0, decoded 1, staging 2, resident 3,
+preview 4 and metadata 5. Metadata still shares the local staging limit.
+
+Status zero means success; other callback results are preserved as
+`externalAdmissionRefused(Int32)`. Admission success writes a nonzero unique live
+token; failure writes zero and acquires no reservation. Transfer must atomically
+reclassify the complete payload while retaining its metadata/control charge, or
+refuse without changing the aggregate ledger. No mapping occurs after a refusal.
+Local refusal precedes external admission/transfer, and external refusal leaves
+local live and peak counters unchanged.
+
+`retainContext` acquires one lifetime before bootstrap admission; on refusal it
+acquires none. Each successful allocation's `release` notification occurs once,
+after every mapping in that token is successfully unmapped (or complete allocation
+rollback). On partial unmap failure, the entire external token remains charged,
+even if some components were already unmapped and debited locally. This is a
+conservative aggregate quarantine, not permission to release live backing.
+External reservations retain their token until the final lease owner releases it;
+the caller remains responsible for tying those owners to actual external storage.
+
+The final ledger token is released only after the ledger's own successful unmap.
+Then `releaseContext` releases the acquired context lifetime, with no subsequent
+context access. Complete bootstrap rollback follows the same order; bootstrap
+admission refusal has no token to release. Failed rollback/unmap/mutex retirement
+retains token and context ownership indefinitely. The caller must admit and retain
+context storage accordingly. No retry or asynchronous cleanup is implied.
+
+All callbacks must be thread-safe, nonallocating and nonblocking. Admission and
+transfer execute under the local ledger mutex; they must not reenter that ledger.
+A host must not hold an aggregate lock while invoking DICOMKit code that may
+acquire it. Token release, context callbacks and existing retirement observers
+execute outside that mutex. An owner's ledger reference remains alive throughout
+its release and observer callbacks; the observer still precedes final ledger
+retirement and therefore cannot substitute for `releaseContext`.
+
+Read-only `DICOMByteBuffer.externalAllocationToken` and `externalAdmissionContext`
+identify the exact admitted owner for host handoff without a second reservation.
+`DICOMAllocationBudget.externalAdmissionContext` identifies its aggregate context.
+These properties neither transfer release authority nor prolong context lifetime;
+the original callback remains the only release notification, including after a
+host handoff. Aliases and transfers preserve the token; a copy gets a distinct one.
+A context pointer may be nil even when callbacks are enabled; token presence
+distinguishes external admission. No token can be supplied or changed by a caller.
+
+This API does not establish recoverable pthread/Swift bootstrap, host callback
+allocation bounds, or complete provider/runtime acceptance. Those remain the
+application's independent obligations.
 
 `withBorrowedBytes` is a synchronous borrow. Do not let its pointer escape, mutate it,
 or create an uncharged `Array`/`Data` copy and call that managed. An external GPU or

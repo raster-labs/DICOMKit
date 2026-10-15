@@ -27,6 +27,7 @@ struct ManagedCodecTests {
     }
     private func destroy(_ buffer: consuming DICOMByteBuffer) {}
     private func destroy(_ frame: consuming ManagedDecodedPixelFrame) {}
+    private func destroy(_ budget: consuming DICOMAllocationBudget) {}
     private func jpeg(_ profile: String) -> JLICodec {
         let uid = profile == "rgb" ? TransferSyntax.jpegBaseline.uid : TransferSyntax.jpegLosslessSV1.uid
         return JLICodec(encodingTransferSyntaxUID: uid, decodingTransferSyntaxUID: uid)
@@ -82,6 +83,38 @@ struct ManagedCodecTests {
         }
         let operation: QualifiedDecode = jli.decodeManagedPixelFrameOutcome
         return operation(frame, descriptor, 1, budget, execution, cancellation)
+    }
+
+    @Test("Every managed codec propagates aggregate refusal and retains admitted output identity",
+          arguments: ["ls", "lossless", "rgb"])
+    func externalAggregateAdmission(profile: String) throws {
+        let d = descriptor(rgb: profile == "rgb")
+        let data = try encoded(profile, descriptor: d)
+        let state = ExternalAllocationFixture()
+        let budget = try DICOMAllocationBudget.make(externalAdmission: state.callbacks).get()
+        let input = try owned(data, budget: budget)
+        let before = budget.receipt.currentTotal
+        state.value.pointee.refuseResource = Int32(DICOMAllocationClass.decoded.rawValue)
+        switch decodeQualifiedOutcome(profile, frame: input, descriptor: d, budget: budget) {
+        case .success(let unexpected): destroy(unexpected); Issue.record("Aggregate decoded refusal ignored")
+        case .failure(let failure):
+            #expect(failure == DICOMManagedFailure(allocation: .externalAdmissionRefused(45)))
+        }
+        #expect(budget.receipt.currentTotal == before)
+        #expect(state.value.pointee.total == before)
+        state.value.pointee.refuseResource = -1
+        let result = try decodeQualified(profile, frame: input, descriptor: d, budget: budget)
+        #expect(result.sourceFrameIndex == 1)
+        #expect(result.data.externalAllocationToken != nil)
+        #expect(result.data.externalAdmissionContext == budget.externalAdmissionContext)
+        #expect(state.value.pointee.total == budget.receipt.currentTotal)
+        destroy(input)
+        destroy(budget)
+        #expect(state.value.pointee.contextReleases == 0)
+        destroy(result)
+        #expect(state.value.pointee.total == 0)
+        #expect(state.value.pointee.contextReleases == 1)
+        #expect(state.value.pointee.failures == 0)
     }
 
     @Test("Qualified outcomes expose cancellation, descriptor and admission failures directly",
