@@ -90,8 +90,8 @@ jobs:
 
     # Tests intentionally exercise deprecated APIs. Keep their existing warning
     # policy separate from the strict production build above.
-    - name: Build optimized tests
-      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --build-tests
+    - name: Build and discover optimized tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release list > release-test-discovery.log
 
     - name: Run optimized source-envelope tests
       timeout-minutes: 30
@@ -103,8 +103,8 @@ jobs:
         grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
 
     # Compile the checked-out test sources before starting the execution clock.
-    - name: Build debug package and tests
-      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --build-tests
+    - name: Build and discover debug tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays list > debug-test-discovery.log
 
     - name: Run tests
       timeout-minutes: 30

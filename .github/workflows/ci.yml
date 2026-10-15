@@ -54,19 +54,23 @@ jobs:
     - name: Audit DICOM tags against PS3.6
       run: python3 Scripts/audit_tags.py . --strict
 
-    # Compile each configuration once, before its timed execution steps. Release
+    # Prepare each test configuration before its timed execution steps. Release
     # products also supply the real split/merge binaries used by workshop tests.
     # --skip-build is safe only after the matching build of this checkout.
-    - name: Build release package and tests
+    - name: Build release package
       id: release_build
-      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --build-tests
+      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release
+
+    # Discovery uses the same testability settings as the execution command.
+    - name: Build and discover optimized tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release list > release-test-discovery.log
 
     - name: Run optimized source-envelope tests
       timeout-minutes: 30
       run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --skip-build --filter largeSparseSource
 
-    - name: Build debug package and tests
-      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --build-tests
+    - name: Build and discover debug tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays list > debug-test-discovery.log
 
     # Vision and network XCTest cases share host services. Keep the local/release
     # process model, without spawning one XCTest process per method.
