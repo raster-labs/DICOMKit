@@ -85,6 +85,87 @@ struct ManagedCodecTests {
         return operation(frame, descriptor, 1, budget, execution, cancellation)
     }
 
+    private func expectEquivalent(_ legacy: consuming DICOMManagedOutcome<ManagedDecodedPixelFrame>,
+        _ scalar: consuming DICOMManagedOutcome<ManagedDecodedPixelFrame>) {
+        switch consume legacy {
+        case .success(let expected):
+            switch consume scalar {
+            case .success(let actual):
+                #expect(actual.descriptor == expected.descriptor)
+                #expect(actual.sourceFrameIndex == expected.sourceFrameIndex)
+                #expect(actual.diagnostic == expected.diagnostic)
+                let expectedBytes = expected.data.withUnsafeBytes { Data($0) }
+                #expect(actual.data.withUnsafeBytes { Data($0) } == expectedBytes)
+            case .failure(let failure): Issue.record("Scalar constructor changed success to \(failure)")
+            }
+        case .failure(let expected):
+            switch consume scalar {
+            case .success: Issue.record("Scalar constructor bypassed the legacy refusal")
+            case .failure(let actual): #expect(actual == expected)
+            }
+        }
+    }
+
+    @Test("Finite JPEG construction preserves process restrictions, pixels and resource refusals",
+          arguments: [JLICodec.DecodingSyntax.any, .baseline, .extended, .lossless, .losslessSV1])
+    func scalarJPEG(syntax: JLICodec.DecodingSyntax) throws {
+        let uid: String?
+        switch syntax {
+        case .any: uid = nil
+        case .baseline: uid = TransferSyntax.jpegBaseline.uid
+        case .extended: uid = TransferSyntax.jpegExtended.uid
+        case .lossless: uid = TransferSyntax.jpegLossless.uid
+        case .losslessSV1: uid = TransferSyntax.jpegLosslessSV1.uid
+        }
+        for profile in ["lossless", "rgb"] {
+            let d = descriptor(rgb: profile == "rgb")
+            let data = try encoded(profile, descriptor: d)
+            let budget = try DICOMAllocationBudget()
+            let input = try owned(data, budget: budget)
+            let execution = try DICOMExecutionReservation(budget: budget)
+            for encodedLimit in [data.count, 0] {
+                let limits = PixelDecodeLimits(maximumEncodedBytes: encodedLimit)
+                let legacy = JLICodec(decodingTransferSyntaxUID: uid, decodingLimits: limits)
+                let scalar = JLICodec(decodingSyntax: syntax, decodingLimits: limits)
+                expectEquivalent(legacy.decodeManagedPixelFrameOutcome(input, descriptor: d,
+                    frameIndex: 1, budget: budget, execution: execution),
+                    scalar.decodeManagedPixelFrameOutcome(input, descriptor: d,
+                    frameIndex: 1, budget: budget, execution: execution))
+                #expect(scalar.encodingTransferSyntaxUID == TransferSyntax.jpegLosslessSV1.uid)
+            }
+        }
+        let custom = "caller-specific-encoding-policy"
+        #expect(JLICodec(encodingTransferSyntaxUID: custom).encodingTransferSyntaxUID == custom)
+    }
+
+    @Test("Finite JPEG-LS construction preserves precision recovery, pixels and refusals",
+          arguments: [JPEGLSCodec.DecodingSyntax.any, .lossless, .nearLossless])
+    func scalarJPEGLS(syntax: JPEGLSCodec.DecodingSyntax) throws {
+        let uid: String?
+        switch syntax {
+        case .any: uid = nil
+        case .lossless: uid = TransferSyntax.jpegLSLossless.uid
+        case .nearLossless: uid = TransferSyntax.jpegLSNearLossless.uid
+        }
+        let encodedDescriptor = descriptor(bits: 16)
+        let data = try encoded("ls", descriptor: encodedDescriptor)
+        let budget = try DICOMAllocationBudget()
+        let input = try owned(data, budget: budget)
+        let execution = try DICOMExecutionReservation(budget: budget)
+        for policy: JPEGLSCodec.PrecisionPolicy in [.requireSourceMatch, .useCodestreamForUnsignedMonochrome] {
+            for encodedLimit in [data.count, 0] {
+                let limits = PixelDecodeLimits(maximumEncodedBytes: encodedLimit)
+                let legacy = JPEGLSCodec(decodingTransferSyntaxUID: uid, decodingLimits: limits,
+                    precisionPolicy: policy)
+                let scalar = JPEGLSCodec(decodingSyntax: syntax, decodingLimits: limits, precisionPolicy: policy)
+                expectEquivalent(legacy.decodeManagedPixelFrameOutcome(input, descriptor: descriptor(bits: 12),
+                    frameIndex: 1, budget: budget, execution: execution),
+                    scalar.decodeManagedPixelFrameOutcome(input, descriptor: descriptor(bits: 12),
+                    frameIndex: 1, budget: budget, execution: execution))
+            }
+        }
+    }
+
     @Test("Every managed codec propagates aggregate refusal and retains admitted output identity",
           arguments: ["ls", "lossless", "rgb"])
     func externalAggregateAdmission(profile: String) throws {

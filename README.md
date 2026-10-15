@@ -6,6 +6,10 @@ for retained capacities, synchronous worker reservations, cancellation and runti
 
 ### v2.5.0 aggregate admission
 
+`BoundedParsingOptions.make` builds strict policy from scalar limits and finite syntax
+mask bits. JPEG and JPEG-LS codecs also accept finite `decodingSyntax` values, so
+managed setup need not construct transfer-syntax Strings or a Set.
+
 `DICOMExternalAllocationCallbacks` lets several local budgets share a caller-owned
 aggregate limit. The callbacks admit complete payload/control capacities before mapping,
 preserve exact owner tokens through aliases and transfers, and retire charges only after

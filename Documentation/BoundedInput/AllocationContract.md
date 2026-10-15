@@ -106,6 +106,22 @@ Legacy `AlignedPixelBuffer` and Foundation bridges remain compatibility APIs.
 
 ## Worker and runtime boundary
 
+`BoundedParsingOptions.make` constructs strict full-read policy directly from
+scalar limits and a union of `BoundedTransferSyntax.mask` bits. It returns nil for
+invalid options, without constructing legacy `ParsingOptions`, a Set, UID Strings
+or a throwing error. Unknown bits refuse; zero retains the legacy empty allowlist.
+The accepted limits and compressed-encapsulation prerequisites match the legacy
+bounded initializer, including its treatment of optional caps. No parser policy
+or supported syntax is added by this constructor.
+
+`JLICodec(decodingSyntax:decodingLimits:)` and
+`JPEGLSCodec(decodingSyntax:decodingLimits:precisionPolicy:)` select the existing
+managed decoder through finite scalar enums. They do not retain a decoding UID.
+Scalar JPEG construction also defers its historical default encoding UID until
+the caller reads `encodingTransferSyntaxUID` or encodes. Those compatibility
+operations can materialize a String and remain outside admitted scalar setup.
+The legacy String constructors and existing codec policies remain available.
+
 On Darwin, `DICOMExecutionReservation` admits the current worker's entire reported
 usable pthread stack and its real lease control page as metadata. Qualified source,
 parser and codec overloads require it and validate the original ledger and thread.

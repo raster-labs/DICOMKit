@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added — shared aggregate allocation admission
 
+- Scalar `BoundedParsingOptions.make` and finite JPEG/JPEG-LS decoding constructors avoid legacy String/Set setup and throwing option construction while preserving the existing policies and managed decoding paths.
 - Thin C callbacks atomically admit the complete payload/control allocation before mapping, while preserving every local budget limit and the existing default APIs.
 - Read-only buffer token/context identity supports handing an existing host reservation to a retained owner without charging it twice.
 - Scalar aggregate refusal and atomic payload transfer preserve the original ownership on failure. Partial unmap failures retain the complete external reservation and context.
