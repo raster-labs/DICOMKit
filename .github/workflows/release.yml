@@ -183,6 +183,11 @@ jobs:
         
     - name: Stage CLI binaries
       run: |
+        # The CLI dependency graphs do not build the copy-only renderer bundle.
+        # One batch must build its owning target before archive assembly.
+        if [[ "${{ matrix.batch }}" == "4" ]]; then
+          swift build -c release --target DICOMRenderKit
+        fi
         PRODUCTS=$(swift build -c release --show-bin-path)
         python3 Scripts/package_release_cli.py stage --products "$PRODUCTS" \
           --archive staged-cli.tar --tools ${{ matrix.tools }}
@@ -271,6 +276,12 @@ jobs:
         python3 Scripts/package_release_cli.py assemble --artifacts artifacts \
           --archive dicomkit-cli-tools-${{ steps.get_tag.outputs.tag }}-macos-arm64.tar.gz \
           > cli-archive-inventory.json
+
+    - name: Bind release artifact provenance
+      run: |
+        python3 Scripts/create_release_provenance.py --tag "${{ steps.get_tag.outputs.tag }}" \
+          --archive dicomkit-cli-tools-${{ steps.get_tag.outputs.tag }}-macos-arm64.tar.gz \
+          --inventory cli-archive-inventory.json --output release-provenance.json
         
     - name: Generate release notes
       id: release_notes
@@ -304,6 +315,7 @@ jobs:
         files: |
           dicomkit-cli-tools-*.tar.gz
           cli-archive-inventory.json
+          release-provenance.json
           artifacts/documentation/*.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

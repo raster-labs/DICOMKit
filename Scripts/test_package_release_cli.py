@@ -55,6 +55,13 @@ class ReleaseArchiveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Missing resource bundle'):
             packaging.assemble(self.artifacts, self.archive)
 
+    def test_missing_copy_only_renderer_bundle_refuses(self):
+        shutil.rmtree(self.products / 'DICOMKit_DICOMRenderKit.bundle')
+        self.stage('1', self.tools)
+        with self.assertRaisesRegex(ValueError, 'DICOMKit_DICOMRenderKit.bundle'):
+            packaging.assemble(self.artifacts, self.archive)
+        self.assertFalse(self.archive.exists())
+
     def test_missing_batch_tool_refuses(self):
         self.stage('1', self.tools[:-1])
         with self.assertRaisesRegex(ValueError, 'Missing batch executable'):

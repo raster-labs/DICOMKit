@@ -4,6 +4,15 @@ Bounded source parsing and managed JPEG/JPEG-LS decoding are available through e
 allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
 for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
 
+### v2.6.0 strict decimal scalar conversion
+
+`DICOMDecimalString.parseScalar` validates one borrowed DS value and returns a
+scalar status and `Double`. It enforces the 16-byte limit including ASCII-space
+padding, rejects nondecimal and multiple-value syntax, and rounds exactly to
+nearest-even binary64 with signed-zero underflow. Existing String APIs remain
+available. Conversion uses fixed inline scratch on the caller's admitted stack;
+see [the qualified contract](Documentation/BoundedInput/DecimalScalarQualification.md).
+
 ### v2.5.0 aggregate admission
 
 `BoundedParsingOptions.make` builds strict policy from scalar limits and finite syntax
