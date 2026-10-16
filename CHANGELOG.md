@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.6.0] - Unreleased
+## [2.6.0] - 2026-10-17
 
 ### Added — strict borrowed decimal scalar conversion
 
@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed — release metadata and resource staging
 
 - Report version 2.6.0 through the library version constant.
-- Build the renderer resource-owning target in one CLI batch so clean hosted runs include the required copy-only bundle without manual archive repair.
+- Build the renderer resource-owning target in one CLI batch and omit its cached bundle from other batches so hosted runs package the current copy-only resource without manual archive repair.
 
 ## [2.5.0] - 2026-10-16
 

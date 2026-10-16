@@ -185,12 +185,14 @@ jobs:
       run: |
         # The CLI dependency graphs do not build the copy-only renderer bundle.
         # One batch must build its owning target before archive assembly.
+        RESOURCE_OPTIONS=(--exclude-renderer)
         if [[ "${{ matrix.batch }}" == "4" ]]; then
           swift build -c release --target DICOMRenderKit
+          RESOURCE_OPTIONS=()
         fi
         PRODUCTS=$(swift build -c release --show-bin-path)
         python3 Scripts/package_release_cli.py stage --products "$PRODUCTS" \
-          --archive staged-cli.tar --tools ${{ matrix.tools }}
+          --archive staged-cli.tar --tools ${{ matrix.tools }} "${RESOURCE_OPTIONS[@]}"
         
     - name: Upload CLI binaries artifact
       uses: actions/upload-artifact@v4

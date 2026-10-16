@@ -62,6 +62,19 @@ class ReleaseArchiveTests(unittest.TestCase):
             packaging.assemble(self.artifacts, self.archive)
         self.assertFalse(self.archive.exists())
 
+    def test_nonowner_batch_cannot_supply_stale_renderer_resource(self):
+        renderer = self.products / 'DICOMKit_DICOMRenderKit.bundle/Contents/Resources/data'
+        renderer.write_bytes(b'stale cached renderer')
+        packaging.stage(self.products,
+            self.artifacts / 'cli-binaries-batch-1/staged-cli.tar', self.tools[:18],
+            include_renderer=False)
+        renderer.write_bytes(b'fresh checked-out renderer')
+        self.stage('4', self.tools[18:])
+        packaging.assemble(self.artifacts, self.archive)
+        with tarfile.open(self.archive) as archive:
+            self.assertEqual(archive.extractfile('bin/DICOMKit_DICOMRenderKit.bundle/Contents/Resources/data').read(),
+                             b'fresh checked-out renderer')
+
     def test_missing_batch_tool_refuses(self):
         self.stage('1', self.tools[:-1])
         with self.assertRaisesRegex(ValueError, 'Missing batch executable'):
