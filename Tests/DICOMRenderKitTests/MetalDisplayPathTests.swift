@@ -155,9 +155,7 @@ final class MetalDisplayPathTests: XCTestCase {
         descriptor.colorAttachments[0].loadAction = .clear
         descriptor.colorAttachments[0].storeAction = .store
 
-        let drew = renderer.render(size: CGSize(width: 128, height: 128),
-                                   descriptor: descriptor, drawable: nil)
-        XCTAssertTrue(drew, "a sized drawable must produce a draw")
+        try renderAndWait(renderer: renderer, device: device, descriptor: descriptor)
         XCTAssertFalse(renderer.lastDrawHadZeroSizedDrawable)
         XCTAssertEqual(renderer.drawCount, 1)
     }
@@ -174,12 +172,71 @@ final class MetalDisplayPathTests: XCTestCase {
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: .rgba8Unorm, width: width, height: height, mipmapped: false)
         descriptor.usage = [.shaderRead]
-        descriptor.storageMode = .shared
         let texture = try XCTUnwrap(device.device.makeTexture(descriptor: descriptor))
         texture.replace(
             region: MTLRegionMake2D(0, 0, width, height), mipmapLevel: 0,
             withBytes: rgba, bytesPerRow: width * 4)
         return texture
+    }
+
+    private struct RenderFailure: Error, CustomStringConvertible {
+        let description: String
+    }
+
+    private func waitForCompletion(
+        _ commandBuffer: any MTLCommandBuffer,
+        device: MetalRenderDevice, texture: any MTLTexture, phase: String
+    ) throws {
+        commandBuffer.waitUntilCompleted()
+        guard commandBuffer.status == .completed else {
+            throw RenderFailure(description:
+                "\(phase) failed: device=\(device.device.name), " +
+                "storageMode=\(texture.storageMode.rawValue), " +
+                "status=\(commandBuffer.status.rawValue), " +
+                "error=\(String(describing: commandBuffer.error))")
+        }
+    }
+
+    private func renderAndWait(
+        renderer: MetalImageRenderer, device: MetalRenderDevice,
+        descriptor: MTLRenderPassDescriptor
+    ) throws {
+        let texture = try XCTUnwrap(descriptor.colorAttachments[0].texture)
+        let commandBuffer = try XCTUnwrap(renderer.submitRender(
+            size: CGSize(width: texture.width, height: texture.height),
+            descriptor: descriptor, drawable: nil),
+            "render submission failed: device=\(device.device.name), " +
+            "storageMode=\(texture.storageMode.rawValue)")
+        try waitForCompletion(commandBuffer, device: device, texture: texture, phase: "render")
+    }
+
+    /// Wait for the actual draw, then make GPU writes visible to the CPU. The
+    /// default managed textures on Intel Macs need explicit synchronization;
+    /// waiting for an unrelated empty command buffer does not provide it.
+    private func readRenderedPixels(
+        renderer: MetalImageRenderer, device: MetalRenderDevice,
+        descriptor: MTLRenderPassDescriptor
+    ) throws -> [UInt8] {
+        let texture = try XCTUnwrap(descriptor.colorAttachments[0].texture)
+        try renderAndWait(renderer: renderer, device: device, descriptor: descriptor)
+        #if os(macOS)
+        if texture.storageMode == .managed {
+            let synchronization = try XCTUnwrap(device.commandQueue.makeCommandBuffer())
+            let blit = try XCTUnwrap(synchronization.makeBlitCommandEncoder())
+            blit.synchronize(resource: texture)
+            blit.endEncoding()
+            synchronization.commit()
+            try waitForCompletion(
+                synchronization, device: device, texture: texture, phase: "readback synchronization")
+        }
+        #endif
+        var bytes = [UInt8](repeating: 0, count: texture.width * texture.height * 4)
+        bytes.withUnsafeMutableBytes { buffer in
+            texture.getBytes(buffer.baseAddress!, bytesPerRow: texture.width * 4,
+                             from: MTLRegionMake2D(0, 0, texture.width, texture.height),
+                             mipmapLevel: 0)
+        }
+        return bytes
     }
 
     /// No annotation set: the renderer still draws (the placeholder texture
@@ -196,7 +253,6 @@ final class MetalDisplayPathTests: XCTestCase {
             pixelFormat: MetalImageRenderer.colorPixelFormat,
             width: 32, height: 32, mipmapped: false)
         target.usage = [.renderTarget, .shaderRead]
-        target.storageMode = .shared
         let texture = try XCTUnwrap(device.device.makeTexture(descriptor: target))
 
         let descriptor = MTLRenderPassDescriptor()
@@ -204,8 +260,11 @@ final class MetalDisplayPathTests: XCTestCase {
         descriptor.colorAttachments[0].loadAction = .clear
         descriptor.colorAttachments[0].storeAction = .store
 
-        XCTAssertTrue(renderer.render(size: CGSize(width: 32, height: 32),
-                                      descriptor: descriptor, drawable: nil))
+        let bytes = try readRenderedPixels(renderer: renderer, device: device, descriptor: descriptor)
+        let centre = (16 * 32 + 16) * 4
+        XCTAssertGreaterThan(bytes[centre], 20, "the placeholder must leave the frame's grey visible")
+        XCTAssertEqual(bytes[centre], bytes[centre + 1])
+        XCTAssertEqual(bytes[centre], bytes[centre + 2])
     }
 
     /// The overlay's colour and alpha reach the screen: a fully opaque red
@@ -228,7 +287,6 @@ final class MetalDisplayPathTests: XCTestCase {
             pixelFormat: MetalImageRenderer.colorPixelFormat,
             width: 32, height: 32, mipmapped: false)
         target.usage = [.renderTarget, .shaderRead]
-        target.storageMode = .shared
         let texture = try XCTUnwrap(device.device.makeTexture(descriptor: target))
 
         let descriptor = MTLRenderPassDescriptor()
@@ -236,18 +294,7 @@ final class MetalDisplayPathTests: XCTestCase {
         descriptor.colorAttachments[0].loadAction = .clear
         descriptor.colorAttachments[0].storeAction = .store
 
-        XCTAssertTrue(renderer.render(size: CGSize(width: 32, height: 32),
-                                      descriptor: descriptor, drawable: nil))
-
-        let fence = try XCTUnwrap(device.commandQueue.makeCommandBuffer())
-        fence.commit()
-        fence.waitUntilCompleted()
-
-        var bytes = [UInt8](repeating: 0, count: 32 * 32 * 4)
-        bytes.withUnsafeMutableBytes { buffer in
-            texture.getBytes(buffer.baseAddress!, bytesPerRow: 32 * 4,
-                             from: MTLRegionMake2D(0, 0, 32, 32), mipmapLevel: 0)
-        }
+        let bytes = try readRenderedPixels(renderer: renderer, device: device, descriptor: descriptor)
         // BGRA: red shows as a high byte 2 (R), zero byte 0 (B).
         let centre = (16 * 32 + 16) * 4
         XCTAssertEqual(bytes[centre + 2], 255, "the annotation's red must reach the screen")
@@ -275,7 +322,6 @@ final class MetalDisplayPathTests: XCTestCase {
             pixelFormat: MetalImageRenderer.colorPixelFormat,
             width: size, height: size, mipmapped: false)
         target.usage = [.renderTarget, .shaderRead]
-        target.storageMode = .shared   // readable from the CPU below
         let texture = try XCTUnwrap(device.device.makeTexture(descriptor: target))
 
         let descriptor = MTLRenderPassDescriptor()
@@ -284,20 +330,7 @@ final class MetalDisplayPathTests: XCTestCase {
         descriptor.colorAttachments[0].storeAction = .store
         descriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 1)
 
-        XCTAssertTrue(renderer.render(size: CGSize(width: size, height: size),
-                                      descriptor: descriptor, drawable: nil))
-
-        // The render's command buffer was committed inside `render`; the queue
-        // is serial, so an empty buffer waited on here fences it.
-        let fence = try XCTUnwrap(device.commandQueue.makeCommandBuffer())
-        fence.commit()
-        fence.waitUntilCompleted()
-
-        var bytes = [UInt8](repeating: 0, count: size * size * 4)
-        bytes.withUnsafeMutableBytes { buffer in
-            texture.getBytes(buffer.baseAddress!, bytesPerRow: size * 4,
-                             from: MTLRegionMake2D(0, 0, size, size), mipmapLevel: 0)
-        }
+        let bytes = try readRenderedPixels(renderer: renderer, device: device, descriptor: descriptor)
         return (bytes, size)
     }
 
@@ -412,22 +445,12 @@ final class MetalDisplayPathTests: XCTestCase {
             pixelFormat: MetalImageRenderer.colorPixelFormat,
             width: size, height: size, mipmapped: false)
         target.usage = [.renderTarget, .shaderRead]
-        target.storageMode = .shared
         let texture = try XCTUnwrap(device.device.makeTexture(descriptor: target))
         let pass = MTLRenderPassDescriptor()
         pass.colorAttachments[0].texture = texture
         pass.colorAttachments[0].loadAction = .clear
         pass.colorAttachments[0].storeAction = .store
-        XCTAssertTrue(renderer.render(size: CGSize(width: size, height: size),
-                                      descriptor: pass, drawable: nil))
-        let fence = try XCTUnwrap(device.commandQueue.makeCommandBuffer())
-        fence.commit()
-        fence.waitUntilCompleted()
-        var out = [UInt8](repeating: 0, count: size * size * 4)
-        out.withUnsafeMutableBytes { buffer in
-            texture.getBytes(buffer.baseAddress!, bytesPerRow: size * 4,
-                             from: MTLRegionMake2D(0, 0, size, size), mipmapLevel: 0)
-        }
+        let out = try readRenderedPixels(renderer: renderer, device: device, descriptor: pass)
         let row = (0..<size).map { Int(out[(64 * size + $0) * 4]) }
         XCTAssertEqual(row[8], 0, "deep in the black half")
         XCTAssertEqual(row[120], 255, "deep in the white half")

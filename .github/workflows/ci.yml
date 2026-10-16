@@ -54,41 +54,43 @@ jobs:
     - name: Audit DICOM tags against PS3.6
       run: python3 Scripts/audit_tags.py . --strict
 
-    # Official Swift requires explicit SDK cross-import overlays (SwiftUI/AVKit).
-    - name: Build package
-      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -v
-      
-    # Vision and network XCTest cases share host services. Use the same
-    # process model as local/release qualification instead of spawning one
-    # XCTest process per method. The large source-envelope cases run below
-    # with optimization because capture hashes the complete sparse source.
-    - name: Check hosted OCR service
-      timeout-minutes: 30
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --filter TextRegionDetectorTests
-
-    # Workshop parity tests invoke the real Release split/merge executables.
-    - name: Build in release mode
+    # Prepare each test configuration before its timed execution steps. Release
+    # products also supply the real split/merge binaries used by workshop tests.
+    # --skip-build is safe only after the matching build of this checkout.
+    - name: Build release package
       id: release_build
       run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release
 
-    - name: Run tests
-      timeout-minutes: 30
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip largeSparseSource
+    # Only DICOMKitTests contains the optimized source-envelope gate. Build its test product
+    # with the same testability settings used by execution; Debug covers all tests.
+    - name: Build and discover optimized DICOMKit tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests list > release-test-discovery.log
 
     - name: Run optimized source-envelope tests
       timeout-minutes: 30
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --filter largeSparseSource
+      run: |
+        set -o pipefail
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests --skip-build --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
+        grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
 
-    # GPU_RENDERING_PLAN.md M7. The Metal render backend must never become load
-    # bearing: `.cpu` is the guaranteed fallback, and a test that silently depends
-    # on a GPU would only fail on machines without one — which is where support
-    # calls come from, not where CI runs. Re-running the render suites with the
-    # backend pinned to CPU is what keeps that honest.
+    - name: Build and discover debug tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays list > debug-test-discovery.log
+
+    # Vision and network XCTest cases share host services. Keep the local/release
+    # process model, without spawning one XCTest process per method.
+    - name: Check hosted OCR service
+      timeout-minutes: 30
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip-build --filter TextRegionDetectorTests
+
+    - name: Run tests
+      timeout-minutes: 30
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip-build --skip largeSparseSource
+
+    # GPU_RENDERING_PLAN.md M7: the CPU backend remains independently usable.
     - name: Run render tests with Metal forced off
       env:
         DICOMKIT_RENDER_BACKEND: cpu
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --filter 'DICOMRenderKitTests|WindowLUTParityTests|ExportWindowParityTests'
-
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip-build --filter 'DICOMRenderKitTests|WindowLUTParityTests|ExportWindowParityTests'
 
     # Preserve valid build products after a test failure; every later run still
     # executes the complete build and test gates against its checked-out source.

@@ -22,7 +22,9 @@ jobs:
   validate-release:
     name: Validate Release on macOS 26 (Swift 6.4)
     runs-on: macos-26-intel
-    timeout-minutes: 95
+    # Cold Intel production and test compilation can exceed two hours. Keep
+    # build time separate from the independent 30-minute execution limits below.
+    timeout-minutes: 240
 
     steps:
     - name: Checkout code
@@ -73,9 +75,9 @@ jobs:
         echo "✅ Valid version tag: $TAG"
         
     # Official Swift requires explicit SDK cross-import overlays (SwiftUI/AVKit).
-    - name: Build release without warnings
+    - name: Build release package without warnings
       id: release_build
-      timeout-minutes: 30
+      timeout-minutes: 120
       env:
         CI: 'true'
       run: |
@@ -86,6 +88,25 @@ jobs:
           exit 1
         fi
 
+    # Tests intentionally exercise deprecated APIs. Keep their existing warning
+    # policy separate from the strict production build above. Only DICOMKitTests needs an
+    # optimized test product; the complete Debug suite is prepared below.
+    - name: Build and discover optimized DICOMKit tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests list > release-test-discovery.log
+
+    - name: Run optimized source-envelope tests
+      timeout-minutes: 30
+      env:
+        CI: 'true'
+      run: |
+        set -o pipefail
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests --skip-build --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
+        grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
+
+    # Compile the checked-out test sources before starting the execution clock.
+    - name: Build and discover debug tests
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays list > debug-test-discovery.log
+
     - name: Run tests
       timeout-minutes: 30
       env:
@@ -94,8 +115,8 @@ jobs:
         set -o pipefail
         # Every test target must complete successfully. A passing summary from
         # another bundle must not hide a crash or failure in an earlier target.
-        # The large sparse source cases are required in optimized mode below.
-        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip largeSparseSource 2>&1 | tee release-test.log
+        # The large sparse source cases already ran in optimized mode above.
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip-build --skip largeSparseSource 2>&1 | tee release-test.log
         if grep -F "which are unhandled; explicitly declare" release-test.log; then
           echo "::error::Release tests emitted SwiftPM unhandled-file warnings"
           exit 1
@@ -104,15 +125,6 @@ jobs:
           echo "::error::Release tests failed"
           exit 1
         fi
-
-    - name: Run optimized source-envelope tests
-      timeout-minutes: 30
-      env:
-        CI: 'true'
-      run: |
-        set -o pipefail
-        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --filter largeSparseSource 2>&1 | tee release-source-envelope-test.log
-        grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
 
     # Preserve valid build products after a test failure; every later run still
     # executes the complete build and test gates against its checked-out source.

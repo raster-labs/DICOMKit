@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.5.0] - 2026-10-15
+## [2.5.0] - 2026-10-16
 
 ### Added — shared aggregate allocation admission
 
@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed — CLI release packaging
 
 - Ship all three runtime resource bundles with the 36 CLI tools, preserve executable permissions through CI artifact uploads, and refuse missing tools or incomplete bundles before publication.
+
+### Fixed — display portability and Print SCP readiness
+
+- Use portable texture storage for annotation uploads on Intel and Apple GPUs. Offscreen rendering tests wait for the actual draw and synchronize managed textures before checking pixels.
+- Install the accepted Print SCP connection state handler before starting transport, so immediate readiness cannot be missed. Failure diagnostics retain print phases and shut down the test server.
+- Compile each CI configuration before its timed test execution, retaining the full suite, optimized source-envelope checks and existing test time limits.
 
 ## [2.4.0] - 2026-10-14
 

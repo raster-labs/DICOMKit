@@ -58,7 +58,8 @@ public enum AnnotationTextureBuilder {
             pixelFormat: .rgba8Unorm, width: canvasWidth, height: canvasHeight,
             mipmapped: false)
         descriptor.usage = [.shaderRead]
-        descriptor.storageMode = .shared
+        // The default supports CPU uploads on both Intel (managed) and Apple
+        // GPUs (shared); standalone shared textures are not portable to Intel.
         guard let texture = device.makeTexture(descriptor: descriptor) else { return nil }
         texture.replace(
             region: MTLRegionMake2D(0, 0, canvasWidth, canvasHeight), mipmapLevel: 0,

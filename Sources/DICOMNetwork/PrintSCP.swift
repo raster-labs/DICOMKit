@@ -397,8 +397,6 @@ actor PrintSCPAssociation {
     // MARK: Lifecycle
 
     func start() async {
-        connection.start(queue: .global(qos: .userInitiated))
-
         let resumed = LockedFlag()
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             connection.stateUpdateHandler = { state in
@@ -410,6 +408,9 @@ actor PrintSCPAssociation {
                     break
                 }
             }
+            // Observe terminal states before starting: an accepted loopback
+            // connection can become ready immediately on the network queue.
+            connection.start(queue: .global(qos: .userInitiated))
         }
         connection.stateUpdateHandler = nil
 

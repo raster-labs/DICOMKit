@@ -45,7 +45,8 @@ public final class MetalImageRenderer: NSObject, MTKViewDelegate {
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: .rgba8Unorm, width: 1, height: 1, mipmapped: false)
         descriptor.usage = [.shaderRead]
-        descriptor.storageMode = .shared
+        // Keep the device's default CPU-accessible storage: managed on Intel
+        // Macs, shared on Apple GPUs. Standalone shared textures are not portable.
         guard let texture = device.device.makeTexture(descriptor: descriptor) else { return nil }
         let zero: [UInt8] = [0, 0, 0, 0]
         texture.replace(
@@ -66,8 +67,8 @@ public final class MetalImageRenderer: NSObject, MTKViewDelegate {
     /// ignored, and asserted by test.
     public private(set) var lastDrawHadZeroSizedDrawable = false
 
-    /// Counts completed draws, so a test can prove a redraw actually happened rather
-    /// than inferring it from the absence of a crash.
+    /// Counts submitted draws. Submission does not establish GPU completion or
+    /// presentation on the display.
     public private(set) var drawCount = 0
 
     public init?(device: MetalRenderDevice? = MetalRenderDevice.shared) {
@@ -107,16 +108,28 @@ public final class MetalImageRenderer: NSObject, MTKViewDelegate {
 
     /// The draw, with its inputs passed in rather than pulled from a view.
     ///
-    /// - Returns: `true` if a frame was drawn. `false` means nothing was presented —
-    ///   no frame, no drawable, or a zero-sized drawable.
+    /// - Returns: `true` if the draw was submitted. This does not establish GPU
+    ///   completion or presentation. `false` means submission could not be made,
+    ///   for example because the frame, render pass or drawable size was invalid.
     @discardableResult
     public func render(
         size: CGSize,
         descriptor: MTLRenderPassDescriptor?,
         drawable: (any MTLDrawable)?
     ) -> Bool {
+        submitRender(size: size, descriptor: descriptor, drawable: drawable) != nil
+    }
+
+    /// The canonical draw submission, exposed internally so offscreen tests can
+    /// check the actual render command buffer's completion and error.
+    @discardableResult
+    func submitRender(
+        size: CGSize,
+        descriptor: MTLRenderPassDescriptor?,
+        drawable: (any MTLDrawable)?
+    ) -> (any MTLCommandBuffer)? {
         lastDrawHadZeroSizedDrawable = size.width <= 0 || size.height <= 0
-        guard !lastDrawHadZeroSizedDrawable else { return false }
+        guard !lastDrawHadZeroSizedDrawable else { return nil }
 
         guard let frame,
               let pipelineState,
@@ -126,7 +139,7 @@ public final class MetalImageRenderer: NSObject, MTKViewDelegate {
                 viewWidth: Double(size.width), viewHeight: Double(size.height)),
               let commandBuffer = device.commandQueue.makeCommandBuffer(),
               let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor)
-        else { return false }
+        else { return nil }
 
         var params = DisplayShaderParams(
             transform: transform,
@@ -158,7 +171,7 @@ public final class MetalImageRenderer: NSObject, MTKViewDelegate {
         }
         commandBuffer.commit()
         drawCount += 1
-        return true
+        return commandBuffer
     }
 }
 

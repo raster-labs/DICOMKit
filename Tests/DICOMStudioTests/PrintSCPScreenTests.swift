@@ -11,6 +11,7 @@
 
 import Testing
 import Foundation
+import Synchronization
 @testable import DICOMStudio
 import DICOMNetwork
 import DICOMPrintKit
@@ -547,6 +548,10 @@ struct PrintSCPAttributeRowTests {
 @Suite("Print SCP End-to-End Tests", .serialized)
 struct PrintSCPEndToEndTests {
 
+    private struct PrintFailure: Error, CustomStringConvertible {
+        let description: String
+    }
+
     /// A 2×2 8-bit MONOCHROME2 image and its descriptor.
     private func makeImage() -> (Data, PrintImageData) {
         let pixels = Data([0, 64, 128, 255])
@@ -574,42 +579,56 @@ struct PrintSCPEndToEndTests {
         viewModel.settings.dpi = 72          // a draft sheet keeps the test quick
         await viewModel.start()
 
-        #expect(viewModel.isRunning)
-        #expect(viewModel.startErrorMessage == nil)
-        let port = viewModel.boundPort
-        #expect(port != 0)
+        let phases = Mutex<[String]>([])
+        do {
+            #expect(viewModel.isRunning)
+            #expect(viewModel.startErrorMessage == nil)
+            let port = viewModel.boundPort
+            #expect(port != 0)
 
-        let (pixels, descriptor) = makeImage()
-        let result = try await DICOMPrintService.printImages(
-            configuration: PrintConfiguration(
-                host: "127.0.0.1", port: port,
-                callingAETitle: "TESTSCU", calledAETitle: "STUDIOPRINT",
-                timeout: 15),
-            images: [pixels],
-            imageDescriptors: [descriptor])
-        #expect(result.success)
+            let (pixels, descriptor) = makeImage()
+            let result = try await DICOMPrintService.printImages(
+                configuration: PrintConfiguration(
+                    host: "127.0.0.1", port: port,
+                    callingAETitle: "TESTSCU", calledAETitle: "STUDIOPRINT",
+                    timeout: 15),
+                images: [pixels],
+                imageDescriptors: [descriptor],
+                progressHandler: { update in
+                    phases.withLock { $0.append(String(describing: update.phase)) }
+                })
+            #expect(result.success)
 
-        // The view model exposes two independently-delivered signals: `films` (the
-        // record array, from the sink stream) and `filmCount` (the `.filmPrinted`
-        // counter). Waiting on `films` alone can arrive before the counter it is
-        // asserted against, so both are waited for. The wait is against a deadline
-        // rather than a fixed number of sleeps: under a loaded run the sleeps
-        // themselves are what get delayed, so a tick budget expires in far less
-        // wall-clock time than it reads as.
-        let deadline = ContinuousClock.now + .seconds(30)
-        while viewModel.films.isEmpty || viewModel.filmCount < 1,
-              ContinuousClock.now < deadline {
-            try await Task.sleep(for: .milliseconds(50))
+            // The view model exposes two independently-delivered signals: `films` (the
+            // record array, from the sink stream) and `filmCount` (the `.filmPrinted`
+            // counter). Waiting on `films` alone can arrive before the counter it is
+            // asserted against, so both are waited for. The wait is against a deadline
+            // rather than a fixed number of sleeps: under a loaded run the sleeps
+            // themselves are what get delayed, so a tick budget expires in far less
+            // wall-clock time than it reads as.
+            let deadline = ContinuousClock.now + .seconds(30)
+            while viewModel.films.isEmpty || viewModel.filmCount < 1,
+                  ContinuousClock.now < deadline {
+                try await Task.sleep(for: .milliseconds(50))
+            }
+
+            #expect(viewModel.films.count == 1)
+            #expect(viewModel.filmCount == 1)
+            #expect(viewModel.associationCount == 1)
+            let film = try #require(viewModel.films.first)
+            #expect(film.film.info.callingAETitle == "TESTSCU")
+            #expect(film.film.info.filledImageBoxCount == 1)
+            #expect(film.film.width > 0 && film.film.height > 0)
+            #expect(viewModel.selectedFilmID == film.id)
+
+        } catch {
+            let failure = PrintFailure(description:
+                "Print end-to-end failed: \(error); phases=\(phases.withLock { $0 }); "
+                + "associations=\(viewModel.associationCount), films=\(viewModel.filmCount), "
+                + "serverErrors=\(viewModel.errorCount)")
+            await viewModel.stop()
+            throw failure
         }
-
-        #expect(viewModel.films.count == 1)
-        #expect(viewModel.filmCount == 1)
-        #expect(viewModel.associationCount == 1)
-        let film = try #require(viewModel.films.first)
-        #expect(film.film.info.callingAETitle == "TESTSCU")
-        #expect(film.film.info.filledImageBoxCount == 1)
-        #expect(film.film.width > 0 && film.film.height > 0)
-        #expect(viewModel.selectedFilmID == film.id)
 
         await viewModel.stop()
         #expect(!viewModel.isRunning)
