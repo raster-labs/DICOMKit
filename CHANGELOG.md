@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-10-17
+
+### Added — strict borrowed decimal scalar conversion
+
+- `DICOMDecimalString.parseScalar` validates one borrowed DS component of at most 16 raw bytes, including ASCII-space padding, and returns a nonthrowing scalar outcome without retaining input or allocating conversion storage.
+- Exact integer conversion rounds once to nearest-even binary64, preserves signed zero and subnormal underflow, and rejects overflow and non-DS syntax. Existing String compatibility APIs and dependency pins are unchanged.
+- Library and isolated application qualification cover malformed source-rescale claims, numerical boundaries, cold/hot allocation behavior and optimized call paths. Caller stack admission and full application acceptance remain separate requirements.
+
+### Fixed — release metadata and resource staging
+
+- Report version 2.6.0 through the library version constant.
+- Build the renderer resource-owning target in one CLI batch and omit its cached bundle from other batches so hosted runs package the current copy-only resource without manual archive repair.
+
 ## [2.5.0] - 2026-10-16
 
 ### Added — shared aggregate allocation admission

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "qualifiedAtUTC": "2026-10-16T19:08:00.620612+00:00",
+  "baseRevision": "a9d482158c4dc1d101f627f95c61104e1bbebc8a",
+  "branch": "codex/strict-borrowed-ds",
+  "toolchain": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+  "sdk": "27.0",
+  "sourceSHA256": {
+    "Sources/DICOMCore/DICOMDecimalString+Scalar.swift": "7a75839e3a0ba5e8ea08b59474e0d1503aceb1c5a00b0db05656b1958e29fcee",
+    "Sources/DICOMCore/DICOMDecimalString.swift": "5301dc4c15d3e48a98d2c18cc846f8dc1e7be8d4da9a310adc80a692a51b9bf7",
+    "Tests/DICOMCoreTests/DecimalScalarTests.swift": "eff45aff10dae6a21e68d8b0fa5e8b14a475d36ac2188da22122e4f11ceb8f0c",
+    "Scripts/DecimalScalarAllocations.c": "5ab69dadc7857301b8b88e35bf320e54219b3473d538c55262792e3eadac098f",
+    "Scripts/DecimalScalarProbe.c": "b4fdfec4421490fc3204d11fadd5667252edf5ed2f4730a9ac6ddc49ccdb8882",
+    "Scripts/DecimalScalarProbe.swift": "5787510ed5bac1fd65253aae2502863cd61161f3b1049c9015c0b283be7ab432",
+    "Scripts/probe_decimal_scalar.sh": "bc9814866e2c8adb2277b2159e45a9b533eba8ef77b012fb3d8983e6fe590de4",
+    "Scripts/qualify_decimal_scalar.py": "be1ae22304674ec7e4788d6062f26f8454d3e47ab7219d7cd02c35e457571716",
+    "Scripts/audit_scalar_setup.py": "b4cfc337b811e1c8fb267bf119170074b6ae70aacbce4cf579ede601a4d0794c",
+    "Package.swift": "74d7610551755d328c86c894bc555673640c15506a430196293cc6d75c7fc7f5",
+    "Package.resolved": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500"
+  },
+  "releaseObjectSHA256": {
+    ".build/out/Intermediates.noindex/DICOMKit.build/Release/DICOMCore-t.build/Objects-normal/arm64/DICOMDecimalString+Scalar.o": "1eda4d86aa635e7a20ea4aa12d5aaa0315569c4b5a4ad0f1208611ca0618c648",
+    "work/strict-borrowed-ds/wrapper.o": "8073c0efa3f6324cf8ca640aa7ad988c89a27cb64858ab1b04b11ae44c97173b"
+  },
+  "evidenceSHA256": {
+    "focused-debug.log": "232d514307adcd0152b4f712d3120c5364bc9496d87e832c4e4cb67d20590cc1",
+    "release-build.log": "d34164b03473f9df17c7262752af735a3e686490e9ff236e4c78524fab469828",
+    "call-closure.json": "4d1766a69c04bb0b1b963764cae534ac9e47044fc5d9a6d2013119e56cde5cd6",
+    "numerical-allocation.json": "1f3ed57c288a1e9540129fc468e05ae84b9220b98e59bff5c0dfa6caf84b4a0b",
+    "probe.log": "1f219cc92ee3d5cc09931ed20b32263df42a336b6e3b414d51d5641767140e1d",
+    "wrapper.o": "8073c0efa3f6324cf8ca640aa7ad988c89a27cb64858ab1b04b11ae44c97173b",
+    "driver.o": "8bbba1268dc430840bffe324beff0b348ffb85bb7bfffe91b313b8b4a06e8c4a",
+    "libDecimalScalarAllocations.dylib": "2e24a4ba96e972d17e235f13e9b1174ac65220abab1bd8677c9658b0d6e0d298",
+    "decimal-scalar-probe": "4d7bab0ae1d41a86b9ab8a5e2ead154d104ee118e7edb50423288e9953208237"
+  },
+  "focusedTests": {
+    "passed": 36,
+    "command": "swift test --disable-sandbox --test-product DICOMCoreTests --filter 'DecimalScalarTests|DICOMDecimalStringTests'"
+  },
+  "releaseBuild": {
+    "passed": true,
+    "command": "swift build --disable-sandbox -c release --target DICOMCore"
+  },
+  "numericalAllocation": {
+    "passed": true,
+    "oracle": "Exact Decimal ratio; independent binary search of IEEE values and integer midpoint comparison",
+    "coldProcesses": 27,
+    "coldAndHotCalls": 10800,
+    "corpusCases": 13489,
+    "corpusCalls": 53956,
+    "statusCounts": {
+      "1": 154,
+      "2": 2698,
+      "3": 2905,
+      "0": 7107,
+      "4": 625
+    },
+    "roundingModes": [
+      "nearest",
+      "down",
+      "up",
+      "towardZero"
+    ],
+    "allocationControl": {
+      "allocations": 1,
+      "mappings": 1
+    },
+    "probeSHA256": "4d7bab0ae1d41a86b9ab8a5e2ead154d104ee118e7edb50423288e9953208237",
+    "corpusSHA256": "4cc88bb0d4c5bedade0856a4c0c12a0c942c54fe10c0c1b9fc30eb95d205e256",
+    "limits": "Counters cover calls after process/runtime loading and byte preparation; use direct-call audit to exclude Swift allocation/runtime paths. Caller stack admission and whole-worker bootstrap are separate."
+  },
+  "callClosure": {
+    "passed": true,
+    "roots": 3,
+    "functions": 7,
+    "unresolvedCalls": [],
+    "terminalGuards": [
+      "___stack_chk_fail"
+    ],
+    "fixedFrameBytes": {
+      "DecimalScalarProbe.decimalScalarProbe(Swift.UnsafeRawPointer?, Swift.Int, Swift.UnsafeMutablePointer<Swift.UInt64>) -> Swift.UInt8": 32,
+      "static DICOMCore.DICOMDecimalString.parseScalar(Swift.UnsafeRawBufferPointer) -> DICOMCore.DICOMDecimalScalarOutcome": 1872,
+      "generic specialization <Swift.Int> of Swift.StrideThroughIterator.next() -> A?": 0,
+      "DICOMCore.(DecimalScalarMagnitude in _605C8C42BB30472990EEE2D22717F4AE).shiftLeft(Swift.Int) -> ()": 192,
+      "DICOMCore.(DecimalScalarMagnitude in _605C8C42BB30472990EEE2D22717F4AE).bitWidth.getter : Swift.Int": 192,
+      "DICOMCore.(DecimalScalarMagnitude in _605C8C42BB30472990EEE2D22717F4AE).compare(DICOMCore.(DecimalScalarMagnitude in _605C8C42BB30472990EEE2D22717F4AE)) -> Swift.Int": 192,
+      "_dicom_decimal_scalar_probe": 32
+    },
+    "maximumKnownCallPathStackBytes": 2096
+  },
+  "limits": [
+    "Local arm64 library scalar conversion qualification only; no new release publication.",
+    "No whole-process/runtime/bootstrap or application/provider acceptance.",
+    "Caller owns and admits the complete stack mapping and preserves the borrowed bytes during conversion.",
+    "Existing String parser is unchanged; no Mayam source, pins, or checkpoints modified."
+  ]
+}

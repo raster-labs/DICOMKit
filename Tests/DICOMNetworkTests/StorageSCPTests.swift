@@ -381,8 +381,8 @@ final class StorageSCPTests: XCTestCase {
     
     func testDICOMStorageServerStartStop() async throws {
         let aeTitle = try AETitle("TEST_SCP")
-        // Use a dynamic port to avoid conflicts
-        let config = StorageSCPConfiguration(aeTitle: aeTitle, port: 54321)
+        // Let the OS select an available ephemeral port for this lifecycle test.
+        let config = StorageSCPConfiguration(aeTitle: aeTitle, port: 0)
         let handler = DefaultStorageHandler(storageDirectory: URL(fileURLWithPath: "/tmp/test"))
         
         let server = DICOMStorageServer(configuration: config, delegate: handler)
@@ -402,7 +402,7 @@ final class StorageSCPTests: XCTestCase {
     
     func testDICOMStorageServerDoubleStartFails() async throws {
         let aeTitle = try AETitle("TEST_SCP")
-        let config = StorageSCPConfiguration(aeTitle: aeTitle, port: 54322)
+        let config = StorageSCPConfiguration(aeTitle: aeTitle, port: 0)
         let handler = DefaultStorageHandler(storageDirectory: URL(fileURLWithPath: "/tmp/test"))
         
         let server = DICOMStorageServer(configuration: config, delegate: handler)

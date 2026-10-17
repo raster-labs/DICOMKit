@@ -33,7 +33,7 @@ def bundle_complete(names, bundle):
             and any(name.startswith(prefix + 'Resources/') for name in names))
 
 
-def stage(products, archive, names):
+def stage(products, archive, names, *, include_renderer=True):
     if not names or len(set(names)) != len(names) or not set(names) <= set(tool_names()):
         raise ValueError('Unexpected or duplicated batch tools')
     for name in names:
@@ -45,6 +45,8 @@ def stage(products, archive, names):
         for name in names:
             target.add(products / name, arcname='bin/' + name)
         for name in RESOURCES:
+            if name == 'DICOMKit_DICOMRenderKit.bundle' and not include_renderer:
+                continue
             if (products / name).is_dir():
                 target.add(products / name, arcname='bin/' + name)
 
@@ -126,6 +128,8 @@ def main():
     stage_parser.add_argument('--products', type=Path, required=True)
     stage_parser.add_argument('--archive', type=Path, required=True)
     stage_parser.add_argument('--tools', nargs='+', required=True)
+    stage_parser.add_argument('--exclude-renderer', action='store_true',
+                              help='Omit cached renderer resources when this batch did not build their owner')
     assemble_parser = commands.add_parser('assemble')
     assemble_parser.add_argument('--artifacts', type=Path, required=True)
     assemble_parser.add_argument('--archive', type=Path, required=True)
@@ -133,7 +137,7 @@ def main():
     verify_parser.add_argument('--archive', type=Path, required=True)
     args = parser.parse_args()
     if args.command == 'stage':
-        stage(args.products, args.archive, args.tools)
+        stage(args.products, args.archive, args.tools, include_renderer=not args.exclude_renderer)
         print(json.dumps({'stagedTools': len(args.tools), 'archive': str(args.archive)}))
     elif args.command == 'assemble':
         print(json.dumps(assemble(args.artifacts, args.archive)))
