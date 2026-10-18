@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-10-18
+
+### Added — verified source work metrics
+
+- `VerifiedFileByteSource.workMetrics` returns a scalar, Sendable snapshot of actual read, SHA-256 and copy durations and counts, including initial capture and later verified reads across aliases.
+- Counters live in the existing admitted source header and merge under its mutex. Completed work before failure or cancellation remains visible; snapshots retain no source or budget ownership.
+- A monotonic clock preserves I/O error handling. Counter overflow saturates and permanently invalidates the measurement; source validity remains a separate contract. Concurrent durations are additive and may overlap in wall time.
+- Existing parsing, source identity, resource caps and the six dependency pins remain unchanged. Application timing and admission acceptance remain separate from library qualification.
+
 ## [2.6.0] - 2026-10-17
 
 ### Added — strict borrowed decimal scalar conversion

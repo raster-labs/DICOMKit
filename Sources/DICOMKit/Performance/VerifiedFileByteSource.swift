@@ -14,6 +14,90 @@ public enum VerifiedSourceError: Error, Equatable, Sendable {
     case invalidRange, unbudgetedReadUnsupported
 }
 
+/// Scalar work totals for a verified source and all of its aliases.
+/// Durations use CLOCK_MONOTONIC and cover actual I/O, hashing and explicit
+/// path/digest/output copies, not allocation, locking, stat or caller work.
+/// Hash-internal byte movement belongs to hashing and is not counted twice.
+/// Totals are additive: concurrent operations can overlap in wall-clock time.
+/// Counts include work performed before failure or cancellation. Saturation or
+/// a clock failure makes `isValid` false permanently; zero duration is valid.
+public struct VerifiedSourceWorkMetrics: Sendable, Equatable {
+    public private(set) var readNanoseconds: UInt64 = 0
+    public private(set) var hashNanoseconds: UInt64 = 0
+    public private(set) var copyNanoseconds: UInt64 = 0
+    /// Every pread attempt, including short reads, errors, EINTR and EOF probes.
+    public private(set) var readCalls: UInt64 = 0
+    /// SHA update calls; capture updates both the full and per-block digests.
+    public private(set) var hashUpdates: UInt64 = 0
+    public private(set) var hashFinalizations: UInt64 = 0
+    public private(set) var copyCalls: UInt64 = 0
+    /// Positive pread return values, including repeated verification reads.
+    public private(set) var bytesRead: UInt64 = 0
+    public private(set) var bytesCopied: UInt64 = 0
+    /// Measurement validity, not source-content validity or operation success.
+    public private(set) var isValid = true
+
+    public init() {}
+
+    // Preserve errno: a clock query must never change pread's EINTR/error path.
+    static func timestamp() -> UInt64? {
+        let savedError = errno
+        defer { errno = savedError }
+        var value = timespec()
+        guard clock_gettime(CLOCK_MONOTONIC, &value) == 0,
+              value.tv_sec >= 0, value.tv_nsec >= 0, value.tv_nsec < 1_000_000_000 else { return nil }
+        let seconds = UInt64(value.tv_sec).multipliedReportingOverflow(by: 1_000_000_000)
+        let nanos = seconds.partialValue.addingReportingOverflow(UInt64(value.tv_nsec))
+        return seconds.overflow || nanos.overflow ? nil : nanos.partialValue
+    }
+    private static func add(_ value: UInt64, to total: inout UInt64) -> Bool {
+        let sum = total.addingReportingOverflow(value)
+        total = sum.overflow ? UInt64.max : sum.partialValue
+        return !sum.overflow
+    }
+    private static func elapsed(_ start: UInt64?, _ end: UInt64?, to total: inout UInt64) -> Bool {
+        guard let start, let end, end >= start else { return false }
+        return add(end - start, to: &total)
+    }
+    mutating func recordRead(start: UInt64?, end: UInt64?, bytes: Int) {
+        isValid = Self.elapsed(start, end, to: &readNanoseconds) && isValid
+        isValid = Self.add(1, to: &readCalls) && isValid
+        if bytes > 0 { isValid = Self.add(UInt64(bytes), to: &bytesRead) && isValid }
+    }
+    mutating func recordCopy(start: UInt64?, end: UInt64?, bytes: Int) {
+        isValid = Self.elapsed(start, end, to: &copyNanoseconds) && isValid
+        isValid = Self.add(1, to: &copyCalls) && isValid
+        if bytes > 0 { isValid = Self.add(UInt64(bytes), to: &bytesCopied) && isValid }
+    }
+    mutating func update(_ hash: inout BoundedSHA256, _ bytes: UnsafeRawBufferPointer) {
+        let start = Self.timestamp()
+        hash.update(bytes)
+        let end = Self.timestamp()
+        isValid = Self.elapsed(start, end, to: &hashNanoseconds) && isValid
+        isValid = Self.add(1, to: &hashUpdates) && isValid
+    }
+    mutating func finalize(_ hash: inout BoundedSHA256) -> DICOMContentDigest {
+        let start = Self.timestamp()
+        let digest = hash.finalize()
+        let end = Self.timestamp()
+        isValid = Self.elapsed(start, end, to: &hashNanoseconds) && isValid
+        isValid = Self.add(1, to: &hashFinalizations) && isValid
+        return digest
+    }
+    mutating func merge(_ other: Self) {
+        isValid = isValid && other.isValid
+        isValid = Self.add(other.readNanoseconds, to: &readNanoseconds) && isValid
+        isValid = Self.add(other.hashNanoseconds, to: &hashNanoseconds) && isValid
+        isValid = Self.add(other.copyNanoseconds, to: &copyNanoseconds) && isValid
+        isValid = Self.add(other.readCalls, to: &readCalls) && isValid
+        isValid = Self.add(other.hashUpdates, to: &hashUpdates) && isValid
+        isValid = Self.add(other.hashFinalizations, to: &hashFinalizations) && isValid
+        isValid = Self.add(other.copyCalls, to: &copyCalls) && isValid
+        isValid = Self.add(other.bytesRead, to: &bytesRead) && isValid
+        isValid = Self.add(other.bytesCopied, to: &bytesCopied) && isValid
+    }
+}
+
 /// Anchored, immutable file transcript with admitted control, path and digest storage.
 /// Aliases explicitly share the same mapped owner. Every later acquisition verifies
 /// complete blocks and copies those same bytes; no verification/reread gap exists.
@@ -33,6 +117,11 @@ public struct VerifiedFileByteSource: ~Copyable, @unchecked Sendable {
     public var identity: DICOMContentDigest { view.header.pointee.identity }
     /// Snapshot including all allocations sharing this ledger.
     public var allocationReceipt: DICOMAllocationReceipt { view.header.pointee.budget.receipt }
+    /// Locked snapshot shared by every alias, including initial capture work.
+    /// In-flight operations publish fixed scalar deltas on return (including
+    /// failure). Read after an operation returns for its complete totals. Failed
+    /// capture returns no source and therefore has no observable work snapshot.
+    public var workMetrics: VerifiedSourceWorkMetrics { view.workMetrics }
 
     /// Explicit alias; the file descriptor and all backing remain alive until the last alias dies.
     public borrowing func share() throws(DICOMManagedFailure) -> Self {
@@ -141,11 +230,14 @@ public struct VerifiedFileByteSource: ~Copyable, @unchecked Sendable {
         }
         // The path is admitted before any persistent copy. The full digest table is
         // bounded by the source envelope; its exact logical length is set after stat.
+        var work = VerifiedSourceWorkMetrics()
         var failure = DICOMManagedFailure(.invalidOptions)
         guard let pathOwner = DICOMByteBuffer.admit(count: path.count, budget: budget, resource: .metadata)
             .takeValue(failure: &failure) else { return .failure(failure) }
         if path.count > 0 {
+            let start = VerifiedSourceWorkMetrics.timestamp()
             pathOwner.unsafeMutableBytes.copyMemory(from: UnsafeRawBufferPointer(path))
+            work.recordCopy(start: start, end: VerifiedSourceWorkMetrics.timestamp(), bytes: path.count)
         }
         let expected: SourceFingerprint?
         let fd: Int32
@@ -184,21 +276,27 @@ public struct VerifiedFileByteSource: ~Copyable, @unchecked Sendable {
         let bytes = owner.unsafeMutableBytes
         guard let base = bytes.baseAddress else { return .failure(DICOMManagedFailure(.invalidOptions)) }
         if path.count > 0 {
+            let start = VerifiedSourceWorkMetrics.timestamp()
             UnsafeMutableRawBufferPointer(rebasing: bytes[pathOffset..<bytes.count])
                 .copyMemory(from: UnsafeRawBufferPointer(pathOwner.unsafeMutableBytes))
+            work.recordCopy(start: start, end: VerifiedSourceWorkMetrics.timestamp(), bytes: path.count)
         }
         var full = BoundedSHA256()
         for block in 0..<blocks {
             if let failure = cancellation.failure { return .failure(failure) }
             let start = block * Self.blockBytes
             guard let window = VerifiedSourceView.readBlock(fd, start: start,
-                length: min(Self.blockBytes, count - start), budget: budget, cancellation: cancellation, hooks: hooks)
+                length: min(Self.blockBytes, count - start), budget: budget, cancellation: cancellation, hooks: hooks,
+                work: &work)
                 .takeValue(failure: &failure) else { return .failure(failure) }
             window.withBorrowedBytes { input in
-                full.update(input)
-                var hash = BoundedSHA256(); hash.update(input)
-                hash.finalize().write(to: UnsafeMutableRawBufferPointer(rebasing: bytes[
+                work.update(&full, input)
+                var hash = BoundedSHA256(); work.update(&hash, input)
+                let digest = work.finalize(&hash)
+                let copyStart = VerifiedSourceWorkMetrics.timestamp()
+                digest.write(to: UnsafeMutableRawBufferPointer(rebasing: bytes[
                     digestOffset + block * 32..<digestOffset + (block + 1) * 32]))
+                work.recordCopy(start: copyStart, end: VerifiedSourceWorkMetrics.timestamp(), bytes: 32)
             }
             if case .failure(let failure) = VerifiedSourceView.callHook(hooks, stage: 0, operand: block) {
                 return .failure(failure)
@@ -208,7 +306,7 @@ public struct VerifiedFileByteSource: ~Copyable, @unchecked Sendable {
         var extra: Int
         repeat {
             if let failure = cancellation.failure { return .failure(failure) }
-            extra = VerifiedSourceView.pread(hooks, fd, &probe, 1, off_t(count))
+            extra = VerifiedSourceView.pread(hooks, fd, &probe, 1, off_t(count), work: &work)
         } while extra < 0 && errno == EINTR
         guard extra >= 0 else { return .failure(DICOMManagedFailure(.readFailed)) }
         guard extra == 0 else { return .failure(DICOMManagedFailure(.sourceChanged)) }
@@ -231,9 +329,10 @@ public struct VerifiedFileByteSource: ~Copyable, @unchecked Sendable {
             return .failure(failure)
         }
         let header = base.bindMemory(to: VerifiedSourceHeader.self, capacity: 1)
+        let identity = work.finalize(&full)
         header.initialize(to: VerifiedSourceHeader(descriptor: fd, count: count, fingerprint: initial,
-            identity: full.finalize(), digestOffset: digestOffset, pathOffset: pathOffset, pathCount: path.count,
-            budget: retainedBudget, hooks: hooks))
+            identity: identity, digestOffset: digestOffset, pathOffset: pathOffset, pathCount: path.count,
+            budget: retainedBudget, hooks: hooks, work: work))
         guard pthread_mutex_init(&header.pointee.mutex, nil) == 0 else {
             header.deinitialize(count: 1); return .failure(DICOMManagedFailure(allocation: .synchronizationFailed))
         }
@@ -408,6 +507,9 @@ private struct VerifiedSourceHeader: ~Copyable {
     let digestOffset: Int, pathOffset: Int, pathCount: Int
     let budget: DICOMAllocationBudget
     let hooks: VerifiedFileByteSource.Hooks
+    // Included in the admitted header stride. Capture publishes its stack-local
+    // totals here once; later operations merge under the existing source mutex.
+    var work: VerifiedSourceWorkMetrics
     var mutex = pthread_mutex_t()
     var invalid = false
 }
@@ -426,6 +528,16 @@ struct VerifiedSourceView {
     var count: Int { header.pointee.count }
     var identity: DICOMContentDigest { header.pointee.identity }
     var receipt: DICOMAllocationReceipt { header.pointee.budget.receipt }
+    var workMetrics: VerifiedSourceWorkMetrics {
+        pthread_mutex_lock(&header.pointee.mutex)
+        defer { pthread_mutex_unlock(&header.pointee.mutex) }
+        return header.pointee.work
+    }
+    private func record(_ work: VerifiedSourceWorkMetrics) {
+        pthread_mutex_lock(&header.pointee.mutex)
+        header.pointee.work.merge(work)
+        pthread_mutex_unlock(&header.pointee.mutex)
+    }
     func withBorrowedBudget<R: ~Copyable>(_ body: (borrowing DICOMAllocationBudget) -> R) -> R {
         body(header.pointee.budget)
     }
@@ -478,6 +590,8 @@ struct VerifiedSourceView {
         return .success(output)
     }
     func copy(_ range: Range<Int>, to destination: UnsafeMutableRawBufferPointer) -> DICOMManagedOutcome<Void> {
+        var work = VerifiedSourceWorkMetrics()
+        defer { record(work) }
         if let failure = validateRange(range) { return .failure(failure) }
         guard range.count == destination.count else { return .failure(DICOMManagedFailure(.invalidRange)) }
         if case .failure(let failure) = validate() { return .failure(failure) }
@@ -492,8 +606,10 @@ struct VerifiedSourceView {
             window.withBorrowedBytes { bytes in
                 let copied = min(range.upperBound - position, bytes.count - (position - start))
                 if let target = destination.baseAddress, let source = bytes.baseAddress {
+                    let copyStart = VerifiedSourceWorkMetrics.timestamp()
                     target.advanced(by: position - range.lowerBound)
                         .copyMemory(from: source.advanced(by: position - start), byteCount: copied)
+                    work.recordCopy(start: copyStart, end: VerifiedSourceWorkMetrics.timestamp(), bytes: copied)
                 }
                 position += copied
             }
@@ -502,6 +618,8 @@ struct VerifiedSourceView {
         return .success(())
     }
     func verifiedBlock(_ block: Int) -> DICOMManagedOutcome<DICOMByteBuffer> {
+        var work = VerifiedSourceWorkMetrics()
+        defer { record(work) }
         let blockCount = (count + VerifiedFileByteSource.blockBytes - 1) / VerifiedFileByteSource.blockBytes
         guard block >= 0, block < blockCount else {
             return .failure(DICOMManagedFailure(.invalidRange))
@@ -511,12 +629,12 @@ struct VerifiedSourceView {
         var failure = DICOMManagedFailure(.invalidOptions)
         guard let window = Self.readBlock(header.pointee.descriptor, start: start,
             length: min(VerifiedFileByteSource.blockBytes, count - start), budget: header.pointee.budget,
-            cancellation: cancellation, hooks: header.pointee.hooks).takeValue(failure: &failure) else {
+            cancellation: cancellation, hooks: header.pointee.hooks, work: &work).takeValue(failure: &failure) else {
             return readFailure(failure)
         }
         let matches = window.withBorrowedBytes { bytes in
-            var hash = BoundedSHA256(); hash.update(bytes)
-            return hash.finalize().matches(UnsafeRawBufferPointer(
+            var hash = BoundedSHA256(); work.update(&hash, bytes)
+            return work.finalize(&hash).matches(UnsafeRawBufferPointer(
                 start: base.advanced(by: header.pointee.digestOffset + block * 32), count: 32))
         }
         guard matches else { return readFailure(DICOMManagedFailure(.sourceChanged)) }
@@ -531,7 +649,8 @@ struct VerifiedSourceView {
         return nil
     }
     static func readBlock(_ fd: Int32, start: Int, length: Int, budget: borrowing DICOMAllocationBudget,
-        cancellation: DICOMCancellation, hooks: VerifiedFileByteSource.Hooks) -> DICOMManagedOutcome<DICOMByteBuffer> {
+        cancellation: DICOMCancellation, hooks: VerifiedFileByteSource.Hooks,
+        work: inout VerifiedSourceWorkMetrics) -> DICOMManagedOutcome<DICOMByteBuffer> {
         var failure = DICOMManagedFailure(.invalidOptions)
         guard let buffer = DICOMByteBuffer.admit(count: length, budget: budget, resource: .encoded)
             .takeValue(failure: &failure) else { return .failure(failure) }
@@ -539,7 +658,7 @@ struct VerifiedSourceView {
         var done = 0
         while done < length {
             if let failure = cancellation.failure { return .failure(failure) }
-            let amount = pread(hooks, fd, bytes.baseAddress?.advanced(by: done), length - done, off_t(start + done))
+            let amount = pread(hooks, fd, bytes.baseAddress?.advanced(by: done), length - done, off_t(start + done), work: &work)
             if amount < 0 {
                 if errno == EINTR { continue }
                 return .failure(DICOMManagedFailure(.readFailed))
@@ -550,13 +669,22 @@ struct VerifiedSourceView {
         return .success(buffer)
     }
     static func pread(_ hooks: VerifiedFileByteSource.Hooks, _ fd: Int32,
-                      _ bytes: UnsafeMutableRawPointer?, _ count: Int, _ offset: off_t) -> Int {
-        if let read = hooks.read { return read(hooks.context, fd, bytes, count, offset) }
+                      _ bytes: UnsafeMutableRawPointer?, _ count: Int, _ offset: off_t,
+                      work: inout VerifiedSourceWorkMetrics) -> Int {
+        let start = VerifiedSourceWorkMetrics.timestamp()
+        let amount: Int
+        if let read = hooks.read { amount = read(hooks.context, fd, bytes, count, offset) }
+        else {
         #if canImport(Darwin)
-        return Darwin.pread(fd, bytes, count, offset)
+            amount = Darwin.pread(fd, bytes, count, offset)
         #else
-        return Glibc.pread(fd, bytes, count, offset)
+            amount = Glibc.pread(fd, bytes, count, offset)
         #endif
+        }
+        let savedError = errno
+        work.recordRead(start: start, end: VerifiedSourceWorkMetrics.timestamp(), bytes: amount)
+        errno = savedError
+        return amount
     }
     static func callHook(_ hooks: VerifiedFileByteSource.Hooks, stage: Int, operand: Int) -> DICOMManagedOutcome<Void> {
         if hooks.stage?(hooks.context, stage, operand) ?? 0 != 0 { return .failure(DICOMManagedFailure(.readFailed)) }

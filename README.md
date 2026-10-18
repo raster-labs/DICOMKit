@@ -4,6 +4,15 @@ Bounded source parsing and managed JPEG/JPEG-LS decoding are available through e
 allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
 for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
 
+### v2.7.0 verified source work metrics
+
+`VerifiedFileByteSource.workMetrics` snapshots actual read, SHA-256 and explicit
+copy work from capture and later verified reads. Aliases share the source's
+admitted counters. Read the snapshot after the synchronous operation returns;
+check `isValid` before using durations or counts. Failed and cancelled operations
+retain completed work, and concurrent durations may overlap in wall time.
+See [the metrics contract](Documentation/BoundedInput/SourceWorkMetrics.md).
+
 ### v2.6.0 strict decimal scalar conversion
 
 `DICOMDecimalString.parseScalar` validates one borrowed DS value and returns a
