@@ -643,6 +643,7 @@ let package = Package(
                 "ParserLimitTests.swift",
                 "StrictParsingTests.swift",
                 "BoundedInputTests.swift",
+                "VerifiedSourceWorkMetricsTests.swift",
                 "BoundedParsingOptionsTests.swift",
                 "BoundedConcurrentInputTests.swift",
                 "BoundedSHA256Tests.swift",
