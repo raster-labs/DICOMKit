@@ -13,21 +13,25 @@ if [[ -e "$output/qualification.json" || -e "$output/input-hashes.json" ]]; then
 fi
 products="$PWD/.build/out/Products/Release"
 base="$PWD/.build/out/Intermediates.noindex/DICOMKit.build/Release"
-core="$base/DICOMCore-t.build/Objects-normal/arm64"
-kit="$base/DICOMKit-t.build/Objects-normal/arm64"
 maps="$PWD/.build/out/Intermediates.noindex/GeneratedModuleMaps"
-objects=("$kit/VerifiedFileByteSource.o" "$kit/BoundedSHA256.o")
-for name in DICOMAllocationBudget DICOMMappedStorage DICOMByteBuffer DICOMManagedStorage DICOMOutcomes \
-            DICOMManagedFailure DICOMExternalAllocationCallbacks DICOMExecutionReservation; do
-    objects+=("$core/$name.o")
+# Swift shares emitted specializations/metadata across source files. Link the
+# complete real library products used by the Release dicom-info executable;
+# partial source-file selection leaves unresolved public metadata dependencies.
+# Its main and ArgumentParser products belong to the CLI, not DICOMKit.
+link_file="$base/dicom-info-p.build/Objects-normal/arm64/dicom-info.LinkFileList"
+objects=()
+for name in J2KCore CompressionFamily J2KCodec J2KMetal J2KCodecNEON J2KFileFormat J2K3D \
+            JPEGLS JLISwift JXLSwift DICOMCore DICOMDictionary JPIP DICOMKit; do
+    objects+=("$products/$name.o")
 done
-inputs=("${objects[@]}" Scripts/VerifiedSourceWorkMetricsProbe.swift \
+inputs=("${objects[@]}" "$link_file" Scripts/VerifiedSourceWorkMetricsProbe.swift \
         Scripts/VerifiedSourceWorkMetricsProbe.c Scripts/probe_verified_source_metrics.sh \
         Scripts/DecimalScalarAllocations.c Sources/DICOMKit/Performance/VerifiedFileByteSource.swift \
-        Sources/DICOMKit/Performance/BoundedSHA256.swift Package.swift Package.resolved \
+        Sources/DICOMKit/Performance/BoundedSHA256.swift Sources/DICOMKit/Archive/ArchiveStore.swift \
+        Package.swift Package.resolved \
         "$products/DICOMCore.swiftmodule/arm64-apple-macos.swiftmodule" \
         "$products/DICOMKit.swiftmodule/arm64-apple-macos.swiftmodule")
-for name in DICOMAllocationBudget DICOMMappedStorage DICOMByteBuffer DICOMManagedStorage DICOMOutcomes \
+for name in AlignedPixelBuffer DICOMAllocationBudget DICOMMappedStorage DICOMByteBuffer DICOMManagedStorage DICOMOutcomes \
             DICOMManagedFailure DICOMExternalAllocationCallbacks DICOMExecutionReservation; do
     inputs+=("Sources/DICOMCore/$name.swift")
 done
@@ -36,10 +40,21 @@ for map in "$maps"/*.modulemap; do
     module_maps+=(-Xcc "-fmodule-map-file=$map")
     inputs+=("$map")
 done
-python3 - "$output/input-hashes.json" "${inputs[@]}" <<'PY'
-import hashlib, json, pathlib, subprocess, sys
-paths = [pathlib.Path(p).resolve() for p in sys.argv[2:]]
-result = {"files": {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
+python3 - "$output/input-hashes.json" "$link_file" "${#objects[@]}" "${inputs[@]}" <<'PY'
+import hashlib, json, pathlib, shlex, subprocess, sys
+paths = [pathlib.Path(p).resolve() for p in sys.argv[4:]]
+objects = paths[:int(sys.argv[3])]
+listed = [pathlib.Path(p).resolve() for p in shlex.split(pathlib.Path(sys.argv[2]).read_text())]
+excluded = {"main.o", "ArgumentParser.o", "ArgumentParserToolInfo.o"}
+assert len(listed) == len(set(listed)), "Duplicate Release link input"
+assert {p.name for p in listed if p.name in excluded} == excluded
+assert {p for p in listed if p.name not in excluded} == set(objects), "Release dependency closure changed"
+def digest(path):
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+result = {"files": {str(p): digest(p) for p in paths},
+          "linkedReleaseObjects": [str(p) for p in objects],
+          "excludedCLIObjects": sorted(excluded),
           "head": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
           "swift": subprocess.check_output(["xcrun", "swiftc", "--version"], text=True).strip(),
           "scope": "Actual linked Release objects; invoking qualification supplies build/source attestation."}
@@ -63,9 +78,12 @@ done
 python3 - "$output" <<'PY'
 import hashlib, json, pathlib, sys
 output = pathlib.Path(sys.argv[1])
+def digest(path):
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
 inputs = json.loads((output / "input-hashes.json").read_text())
 for name, expected in inputs["files"].items():
-    assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() == expected, ("Input changed", name)
+    assert digest(pathlib.Path(name)) == expected, ("Input changed", name)
 control = json.loads((output / "control.json").read_text())
 assert control["passed"] and control["allocations"] > 0 and control["mappings"] == 1
 scenarios = [json.loads((output / (name + ".json")).read_text())
@@ -77,7 +95,7 @@ artifacts = ["input-hashes.json", "driver.o", "wrapper.o", "libDecimalScalarAllo
              "verified-source-metrics-probe", "control.json", "empty.json", "single.json", "cross-block.json"]
 result = {"passed": True, "freshProcesses": 3, "coldCalls": 3, "hotCalls": 96,
           "control": control, "scenarios": scenarios,
-          "artifactSHA256": {name: hashlib.sha256((output / name).read_bytes()).hexdigest() for name in artifacts},
+          "artifactSHA256": {name: digest(output / name) for name in artifacts},
           "limits": "Single-threaded low-level descriptor capture/read/snapshot. Caller stack, fixture and callback storage are outside measured ownership. No worker/bootstrap, arbitrary callback, unmapping-interposer, or whole-program qualification claim."}
 (output / "qualification.json").write_text(json.dumps(result, indent=2) + "\n")
 print(json.dumps({"passed": True, "coldCalls": 3, "hotCalls": 96, "allocations": 0,
