@@ -4,6 +4,14 @@ Bounded source parsing and managed JPEG/JPEG-LS decoding are available through e
 allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
 for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
 
+### v2.8.0 strict time parsing
+
+`DICOMTime.parseStrict` validates one TM value from a String or borrowed bytes.
+`DataElement.strictTimeValue` checks the original bytes without trimming malformed
+padding. Complete ASCII components and 1–6 fractional digits are required; extra
+characters are rejected rather than ignored or truncated. The compatibility
+`parse` API retains complete legacy colon syntax. See [the strict TM contract](Documentation/BoundedInput/StrictTimeParsing.md).
+
 ### v2.7.0 verified source work metrics
 
 `VerifiedFileByteSource.workMetrics` snapshots actual read, SHA-256 and explicit

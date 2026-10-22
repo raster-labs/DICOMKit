@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-10-22
+
 ### Fixed — strict time parsing
 
 - `DICOMTime.parseStrict` validates one TM value from a String or borrowed bytes, preserving omitted components and exact microseconds. `DataElement.strictTimeValue` validates original bytes without trimming invalid whitespace or NUL.
