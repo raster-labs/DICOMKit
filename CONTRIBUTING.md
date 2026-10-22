@@ -178,6 +178,15 @@ To request the full CI test selection:
 gh workflow run ci.yml --ref main -f full_suite=true
 ```
 
+Manual release dispatch accepts `validated_ci_run` to reuse a successful focused
+PR CI run. Reuse requires the same complete Git tree, successful focused build
+and execution steps, and the tested commit in the validation revision's history.
+Omitting this input runs the focused checks; invalid supplied evidence fails the
+release gate. CLI archives always use the immutable version tag. Test/workflow
+repairs may use a later validation revision only when all production inputs are
+unchanged; both revisions and any reused CI run are recorded in provenance.
+Optional release DocC generation is selected with `build_documentation=true`.
+
 Run checks appropriate to each change before submission. A focused pass does not
 replace full-suite evidence when broader coverage is required; retain the exact
 source revision and scope of any reused validation.

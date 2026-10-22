@@ -14,6 +14,10 @@ on:
         description: 'Also attempt the optional DocC archive'
         type: boolean
         default: false
+      validated_ci_run:
+        description: 'Optional successful focused PR CI run for the identical validation tree'
+        type: string
+        required: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,6 +30,9 @@ jobs:
   validate-release:
     name: Validate Release on macOS 26 (Swift 6.4)
     runs-on: macos-26-intel
+    permissions:
+      contents: read
+      actions: read
     timeout-minutes: 90
 
     steps:
@@ -35,11 +42,32 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.sha }}
 
+    # A manual release repair may change tests/workflows after a tag exists.
+    # The product still comes from that tag; reject any production-input drift.
+    - name: Bind validation to tagged production inputs
+      env:
+        RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      run: |
+        python3 .github/scripts/verify-release-inputs.py --tag "$RELEASE_TAG" \
+          --output "$RUNNER_TEMP/release-validation.json"
+
+    - name: Reuse completed focused CI for identical inputs
+      id: reuse_ci
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.validated_ci_run != '' }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VALIDATED_CI_RUN: ${{ inputs.validated_ci_run }}
+      run: |
+        python3 .github/scripts/reuse-focused-ci.py --run "$VALIDATED_CI_RUN" \
+          --validation "$RUNNER_TEMP/release-validation.json"
+
     - name: Set up Swift 6.4 on macOS 26
+      if: ${{ steps.reuse_ci.outputs.reuse != 'true' }}
       id: apple_toolchain
       run: bash .github/scripts/setup-stable-swift.sh
 
     - name: Restore Swift Package Manager cache
+      if: ${{ steps.reuse_ci.outputs.reuse != 'true' }}
       id: spm_cache
       uses: actions/cache/restore@v4
       with:
@@ -50,27 +78,20 @@ jobs:
         restore-keys: |
           ${{ steps.apple_toolchain.outputs.cache-prefix }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
 
-    # A manual release repair may change tests/workflows after a tag exists.
-    # The product still comes from that tag; reject any production-input drift.
-    - name: Bind validation to tagged production inputs
-      env:
-        RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-      run: |
-        python3 .github/scripts/verify-release-inputs.py --tag "$RELEASE_TAG" \
-          --output .build/ci-logs/release-validation.json
-
     - name: Build focused test products
+      if: ${{ steps.reuse_ci.outputs.reuse != 'true' }}
       id: focused_build
       run: bash .github/scripts/run-focused-tests.sh build
 
     - name: Run focused release regressions
+      if: ${{ steps.reuse_ci.outputs.reuse != 'true' }}
       timeout-minutes: 30
       env:
         CI: 'true'
       run: bash .github/scripts/run-focused-tests.sh run
 
     - name: Preserve focused release test logs
-      if: ${{ always() }}
+      if: ${{ always() && steps.reuse_ci.outputs.reuse != 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: focused-test-logs
@@ -80,7 +101,7 @@ jobs:
     # CLI batches below compile optimized production binaries with warnings as
     # errors. Avoid a duplicate Intel release build and full Debug suite here.
     - name: Save Swift Package Manager cache
-      if: ${{ always() && !cancelled() && steps.focused_build.outcome == 'success' && steps.spm_cache.outputs.cache-hit != 'true' }}
+      if: ${{ always() && !cancelled() && steps.reuse_ci.outputs.reuse != 'true' && steps.focused_build.outcome == 'success' && steps.spm_cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: |
@@ -92,7 +113,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-validation
-        path: .build/ci-logs/release-validation.json
+        path: ${{ runner.temp }}/release-validation.json
         if-no-files-found: error
 
   build-cli-tools:
