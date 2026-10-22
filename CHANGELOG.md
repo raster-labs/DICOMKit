@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-10-22
+
+### Fixed — strict time parsing
+
+- `DICOMTime.parseStrict` validates one TM value from a String or borrowed bytes, preserving omitted components and exact microseconds. `DataElement.strictTimeValue` validates original bytes without trimming invalid whitespace or NUL.
+- The shared parser rejects incomplete components, non-ASCII digits, unexpected suffixes, misplaced or excessive fractional digits, invalid ranges and values exceeding the TM byte limit. `parse` retains explicitly documented `HH:MM:SS[.fraction]` compatibility; strict APIs reject colons. The historical `timeValue` accessor still trims its input and is not a strict admission API.
+- Study-time CLI validation now uses the canonical strict parser while retaining its no-padding policy. Scalar parsing does not establish a leap event, timezone, full-file validity or application acceptance.
+
 ## [2.7.0] - 2026-10-18
 
 ### Added — verified source work metrics

@@ -106,13 +106,10 @@ extension ImageConverter {
         /// HH 00-23, MM 00-59 and SS 00-60 (PS3.5 2026a Table 6.2-1). Nil otherwise; the HH:MM:SS
         /// form that ``DICOMTime/parse(_:)`` reads is not accepted here.
         public static func studyTime(_ raw: String) -> DICOMTime? {
-            let parts = raw.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
-            let main = parts[0]
-            guard [2, 4, 6].contains(main.count), main.allSatisfy(isDigit) else { return nil }
-            if parts.count == 2 {
-                guard main.count == 6, (1...6).contains(parts[1].count), parts[1].allSatisfy(isDigit) else { return nil }
-            }
-            return DICOMTime.parse(raw)
+            // Command-line values do not accept DICOM padding. The canonical TM
+            // parser owns component widths, repertoire, ranges and fraction rules.
+            guard raw.utf8.last != 0x20 else { return nil }
+            return DICOMTime.parseStrict(raw)
         }
 
         /// Study Date / Time (0008,0020 / 0008,0030) of one run. Both are Type 2, "Date / Time the
