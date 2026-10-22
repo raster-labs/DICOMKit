@@ -132,11 +132,7 @@ struct DICOMExternalAllocationTests {
         #expect(state.value.pointee.total == 6 * page)
         #expect(state.value.pointee.admits == 3)
         state.value.pointee.ledgerToInspect = ledger
-        state.value.pointee.ledgerAddress = UnsafeMutableRawPointer(ledger)
         state.value.pointee.ledgerToken = ledger.pointee.externalToken
-        state.value.pointee.ownerAddress = UnsafeMutableRawPointer(alias.mappedOwner)
-        state.value.pointee.payloadAddress = alias.mappedOwner.pointee.payload
-        state.value.pointee.ownerToken = alias.mappedOwner.pointee.externalToken
         destroy(budget)
         destroy(buffer)
         #expect(state.value.pointee.contextReleases == 0)
@@ -268,11 +264,7 @@ struct ExternalAllocationState {
     var failures = 0
     var lastRelease: UInt64 = 0
     var ledgerToken: UInt64 = 0
-    var ownerToken: UInt64 = 0
     var ledgerToInspect: UnsafeMutablePointer<DICOMMappedLedger>?
-    var ledgerAddress: UnsafeMutableRawPointer?
-    var ownerAddress: UnsafeMutableRawPointer?
-    var payloadAddress: UnsafeMutableRawPointer?
 }
 
 // All fixture storage is prepared before callback entry. Callback bodies never allocate.
@@ -352,23 +344,29 @@ private func externalTransfer(_ raw: UnsafeMutableRawPointer?, _ token: UInt64, 
 private func externalRelease(_ raw: UnsafeMutableRawPointer?, _ token: UInt64) {
     guard let state = raw?.assumingMemoryBound(to: ExternalAllocationState.self) else { return }
     // The ledger is pinned through owner release, and its mutex must already be unlocked.
+    var localReceipt: DICOMAllocationReceipt?
     if token != state.pointee.ledgerToken, let ledger = state.pointee.ledgerToInspect {
-        _ = DICOMMappedStorage.receipt(ledger)
+        localReceipt = DICOMMappedStorage.receipt(ledger)
     }
     pthread_mutex_lock(&state.pointee.mutex)
     defer { pthread_mutex_unlock(&state.pointee.mutex) }
     guard token > 0, token < 128, state.pointee.records[Int(token)].live else {
         state.pointee.failures += 1; return
     }
-    if token == state.pointee.ledgerToken {
-        if !mappingIsGone(state.pointee.ledgerAddress) { state.pointee.failures += 1 }
-    }
-    if token == state.pointee.ownerToken {
-        if !mappingIsGone(state.pointee.ownerAddress) || !mappingIsGone(state.pointee.payloadAddress) {
+    let record = state.pointee.records[Int(token)]
+    if let localReceipt {
+        // A retired address can immediately belong to another allocation. Inspect
+        // this still-live ledger's accounting instead of querying global VM state.
+        // The real munmap-failure tests above separately require charges and tokens
+        // to remain live when payload, owner or ledger retirement fails.
+        var expected = state.pointee.usage
+        expected[record.resource] -= record.payload
+        expected.metadata -= record.control
+        if localReceipt.current != expected
+            || localReceipt.currentTotal != state.pointee.total - record.payload - record.control {
             state.pointee.failures += 1
         }
     }
-    let record = state.pointee.records[Int(token)]
     state.pointee.usage[record.resource] -= record.payload
     state.pointee.usage.metadata -= record.control
     state.pointee.total -= record.payload + record.control
@@ -385,30 +383,8 @@ private func externalReleaseContext(_ raw: UnsafeMutableRawPointer?) {
     state.pointee.contextOwners -= 1
     state.pointee.contextReleases += 1
     if state.pointee.contextOwners == 0, state.pointee.total != 0 { state.pointee.failures += 1 }
-}
-
-private func mappingIsGone(_ address: UnsafeMutableRawPointer?) -> Bool {
-    guard let address else { return true }
-    #if canImport(Darwin)
-    // Darwin mincore reports residency and can succeed for an unmapped range.
-    // Query the next VM region instead; a covering region means it is still mapped.
-    let original = mach_vm_address_t(UInt(bitPattern: address))
-    var regionAddress = original
-    var size: mach_vm_size_t = 0
-    var information = vm_region_basic_info_data_64_t()
-    var count = mach_msg_type_number_t(MemoryLayout<vm_region_basic_info_data_64_t>.size
-        / MemoryLayout<integer_t>.size)
-    var object: mach_port_t = 0
-    let status = withUnsafeMutablePointer(to: &information) { pointer in
-        pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-            mach_vm_region(mach_task_self_, &regionAddress, &size, VM_REGION_BASIC_INFO_64,
-                $0, &count, &object)
-        }
+    if state.pointee.contextOwners == 0, state.pointee.ledgerToken != 0,
+       state.pointee.lastRelease != state.pointee.ledgerToken {
+        state.pointee.failures += 1
     }
-    if object != 0 { mach_port_deallocate(mach_task_self_, object) }
-    return status == KERN_INVALID_ADDRESS || (status == KERN_SUCCESS && regionAddress > original)
-    #else
-    var vector: UInt8 = 0
-    return mincore(address, DICOMAllocationBudget.controlCapacity, &vector) != 0 && errno == ENOMEM
-    #endif
 }

@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
+    inputs:
+      full_suite:
+        description: 'Run the complete Debug suite, optimized source-envelope tests and OCR/CPU render checks'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,8 +33,9 @@ jobs:
       id: apple_toolchain
       run: bash .github/scripts/setup-stable-swift.sh
 
-    # Fail on an unusable Vision model before compiling the package.
+    # Only full coverage uses Vision; the focused default has no OCR dependency.
     - name: Check hosted Vision runtime
+      if: ${{ inputs.full_suite }}
       timeout-minutes: 5
       run: |
         xcrun swiftc -parse-as-library -target "$(uname -m)-apple-macosx15.0" \
@@ -54,19 +61,41 @@ jobs:
     - name: Audit DICOM tags against PS3.6
       run: python3 Scripts/audit_tags.py . --strict
 
+    - name: Build and discover focused Debug test products
+      if: ${{ !inputs.full_suite }}
+      id: focused_build
+      timeout-minutes: 120
+      run: bash .github/scripts/run-focused-tests.sh build
+
+    - name: Run focused tests (81 Core and 6 CLI)
+      if: ${{ !inputs.full_suite }}
+      timeout-minutes: 30
+      run: bash .github/scripts/run-focused-tests.sh run
+
+    - name: Preserve focused test logs
+      if: ${{ always() && !inputs.full_suite }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: focused-test-logs
+        path: .build/ci-logs/focused-${{ github.run_id }}-${{ github.run_attempt }}/
+        if-no-files-found: warn
+
     # Prepare each test configuration before its timed execution steps. Release
     # products also supply the real split/merge binaries used by workshop tests.
     # --skip-build is safe only after the matching build of this checkout.
     - name: Build release package
+      if: ${{ inputs.full_suite }}
       id: release_build
       run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release
 
     # Only DICOMKitTests contains the optimized source-envelope gate. Build its test product
     # with the same testability settings used by execution; Debug covers all tests.
     - name: Build and discover optimized DICOMKit tests
+      if: ${{ inputs.full_suite }}
       run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests list > release-test-discovery.log
 
     - name: Run optimized source-envelope tests
+      if: ${{ inputs.full_suite }}
       timeout-minutes: 30
       run: |
         set -o pipefail
@@ -74,28 +103,32 @@ jobs:
         grep -q "Test run with 1 test in 1 suite passed" release-source-envelope-test.log
 
     - name: Build and discover debug tests
+      if: ${{ inputs.full_suite }}
       run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays list > debug-test-discovery.log
 
     # Vision and network XCTest cases share host services. Keep the local/release
     # process model, without spawning one XCTest process per method.
     - name: Check hosted OCR service
+      if: ${{ inputs.full_suite }}
       timeout-minutes: 30
       run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip-build --filter TextRegionDetectorTests
 
-    - name: Run tests
+    - name: Run complete Debug suite
+      if: ${{ inputs.full_suite }}
       timeout-minutes: 30
       run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip-build --skip largeSparseSource
 
     # GPU_RENDERING_PLAN.md M7: the CPU backend remains independently usable.
     - name: Run render tests with Metal forced off
+      if: ${{ inputs.full_suite }}
       env:
         DICOMKIT_RENDER_BACKEND: cpu
       run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --skip-build --filter 'DICOMRenderKitTests|WindowLUTParityTests|ExportWindowParityTests'
 
-    # Preserve valid build products after a test failure; every later run still
-    # executes the complete build and test gates against its checked-out source.
+    # Preserve valid builds after a test failure. Each run rebuilds its selected
+    # products at the checked-out source before executing --skip-build tests.
     - name: Save Swift Package Manager cache
-      if: ${{ always() && !cancelled() && steps.release_build.outcome == 'success' && steps.spm_cache.outputs.cache-hit != 'true' }}
+      if: ${{ always() && !cancelled() && (steps.focused_build.outcome == 'success' || steps.release_build.outcome == 'success') && steps.spm_cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: |

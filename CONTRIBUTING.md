@@ -120,11 +120,20 @@ swift test
 
 DICOMKit uses GitHub Actions for automated testing and validation:
 
-- **CI Workflow**: Runs on every push and pull request
-  - Builds the package on multiple Xcode versions
-  - Runs the comprehensive test suite (1,464+ tests)
-  - Validates code quality and compiler warnings
-  - Tests platform compatibility (iOS, macOS, visionOS)
+- **CI Workflow**: Runs on pushes and pull requests to `main` and `develop`.
+  - The default macOS test job uses Swift 6.4 and builds only the `DICOMCoreTests`
+    and `DICOMKitTests` Debug test products. It runs 81 Core tests covering strict
+    TM parsing, compatibility, data elements, regressions and external allocation
+    ownership, followed by the six `ImageConverterOutputRulesTests` XCTest cases.
+  - Both selections explicitly disable parallel testing and fail if the expected
+    completion counts are absent. This is focused coverage, not a full-suite pass.
+  - The strict tag audit and existing code-quality, iOS/macOS platform-build,
+    documentation and dependency-report jobs remain enabled. Those jobs may build
+    package targets beyond the focused test products.
+  - Select `full_suite` when manually dispatching `ci.yml` for complete Debug test
+    execution, optimized source-envelope cases, hosted Vision/OCR checks and CPU
+    rendering tests with Metal disabled. This also builds the Release package used
+    by workshop tests. `full_suite` defaults to `false`.
   
 - **Scheduled Tests**: Runs weekly on Mondays
   - Comprehensive test suite with verbose output
@@ -141,25 +150,37 @@ DICOMKit uses GitHub Actions for automated testing and validation:
   - Creates GitHub releases with artifacts
   - Generates release notes
 
-All CI workflows are located in `.github/workflows/`:
+CI workflows are located in `.github/workflows/`:
+
 - `ci.yml` - Main continuous integration
 - `scheduled-tests.yml` - Weekly comprehensive testing
 - `docs.yml` - Documentation deployment
 - `release.yml` - Release automation
 
-Before submitting a PR, ensure your changes pass locally:
+Run the focused selection from a clean DICOMKit checkout:
+
 ```bash
-# Build the project
-swift build
-
-# Run all tests
-swift test
-
-# Build in release mode
-swift build -c release
+bash .github/scripts/run-focused-tests.sh build
+bash .github/scripts/run-focused-tests.sh run
 ```
 
-The CI will automatically run these checks when you open a pull request.
+The helper also accepts `all` (the default) to perform both phases. The `run`
+phase requires a successful build at the same clean HEAD and uses matching Debug
+settings with `--skip-build`. Logs and the build marker are retained under
+`.build/ci-logs/focused-<run-id>-<attempt>/` (`focused-local-1` outside Actions).
+CI uploads the focused logs even when a test fails. Compilation and execution
+have separate time limits; changing the maintained selection requires updating
+its expected completion counts.
+
+To request the full CI test selection:
+
+```bash
+gh workflow run ci.yml --ref main -f full_suite=true
+```
+
+Run checks appropriate to each change before submission. A focused pass does not
+replace full-suite evidence when broader coverage is required; retain the exact
+source revision and scope of any reused validation.
 
 ### Test Example
 
