@@ -606,7 +606,8 @@ public struct DataElement: Sendable {
     
     /// Extracts the value as a DICOM Time (for TM VR)
     ///
-    /// Parses the DICOM Time string (HHMMSS.FFFFFF format) into a structured DICOMTime.
+    /// Compatibility accessor using trimmed `stringValue` and legacy colon support.
+    /// Use `strictTimeValue` to validate original TM bytes and padding.
     /// Reference: PS3.5 Section 6.2 - TM Value Representation
     public var timeValue: DICOMTime? {
         guard vr == .TM, let string = stringValue else {
@@ -615,6 +616,16 @@ public struct DataElement: Sendable {
         return DICOMTime.parse(string)
     }
     
+    /// Extracts one strict TM value directly from the original bytes.
+    ///
+    /// Unlike `timeValue`, this does not use the compatibility String accessor,
+    /// which trims whitespace and NUL. It rejects malformed padding, colon forms,
+    /// multiple values and query syntax. See `DICOMTime.parseStrict` for limits.
+    public var strictTimeValue: DICOMTime? {
+        guard vr == .TM else { return nil }
+        return valueData.withUnsafeBytes { DICOMTime.parseStrict($0) }
+    }
+
     /// Extracts the value as a DICOM DateTime (for DT VR)
     ///
     /// Parses the DICOM DateTime string into a structured DICOMDateTime.

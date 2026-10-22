@@ -86,7 +86,7 @@ final class ImageConverterOutputRulesTests: XCTestCase {
             XCTAssertNil(rules.studyDate(bad), bad)
         }
         for good in ["09", "0930", "093000", "093000.5", "235960.123456"] { XCTAssertNotNil(rules.studyTime(good), good) }
-        for bad in ["9", "093", "24", "0960", "093061", "09:30", "0930.5", "093000.", "093000.1234567", "093000 "] {
+        for bad in ["", "9", "093", "24", "0960", "093061", "09:30", "09:30:00", "0930.5", "093000.", "093000.1234567", "093000 ", " 093000", "093000\0", "093000x"] {
             XCTAssertNil(rules.studyTime(bad), bad)
         }
         let lines = rules.valueViolations(patientName: nil, patientID: nil, studyDescription: nil, seriesDescription: nil,

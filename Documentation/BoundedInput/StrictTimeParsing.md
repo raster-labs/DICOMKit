@@ -1,0 +1,13 @@
+# Strict TM scalar parsing
+
+Use `DICOMTime.parseStrict(_:)` on either a String or borrowed `UnsafeRawBufferPointer` for a single DICOM Time value. Use `DataElement.strictTimeValue` when starting from an element; it checks the VR and reads `valueData` directly. Do not first call `stringValue`, which removes characters that strict validation must examine.
+
+The shared grammar implements [PS3.5 2026d Table 6.2-1, TM](https://dicom.nema.org/medical/DICOM/current/output/chtml/part05/sect_6.2.html): ASCII `HH`, `HHMM`, or `HHMMSS[.F…FFFFFF]`, hours 00–23, minutes 00–59 and seconds 00–60. Fractions require seconds and one through six digits. Only trailing ASCII SPACE padding is accepted, within 14 bytes including padding. Incomplete components, Unicode digits, signs, controls, NUL, embedded whitespace, suffixes and extra fraction digits are rejected. Empty scalar values, query ranges, empty-match syntax and multiple values return nil.
+
+The result contains scalar components only and retains no input. Missing minute, second and fraction components remain nil. Fractions are represented exactly in microseconds, without rounding or truncation. The existing `DICOMTime` representation does not retain the fractional digit count, so `.1` and `.100000` have the same numeric representation. Callers needing the original textual precision must retain that source information separately. Second 60 is preserved syntactically; the parser cannot prove a real leap event without date and timezone context. It does not assign a timezone or normalize through Calendar.
+
+The borrowed API uses fixed scalar state, rejects buffers longer than 14 bytes before reading their contents, and performs no String/Data/array conversion. The String API bounds its UTF-8 traversal before parsing; constructing or bridging the caller's String is outside the borrowed API's storage contract. A returned value remains valid after the input buffer is released. No callback, source owner or allocation ledger is added.
+
+`DICOMTime.parse(_:)` is the compatibility entry point. It uses the same grammar and also permits complete `HH:MM:SS[.F…FFFFFF]` values, up to 16 bytes including trailing SPACE. Arbitrary colon removal and malformed-prefix recovery are no longer supported. `DataElement.timeValue` retains its historical trimming behavior and colon compatibility; use `strictTimeValue` for admission. CLI study-time input uses strict parsing and continues to disallow padding.
+
+These APIs parse one scalar. Encoded Value Field evenness, contextual multi-value padding, file structure, calendar/date context, metadata projection and application acceptance remain separate checks.

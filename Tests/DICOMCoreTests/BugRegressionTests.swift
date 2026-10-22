@@ -43,7 +43,7 @@ struct BugRegressionTests {
         #expect(DICOMTime.parse("") == nil)
         #expect(DICOMTime.parse(".") == nil)
         #expect(DICOMTime.parse("..") == nil)
-        #expect(DICOMTime.parse(":") == nil) // becomes "" after colon removal
+        #expect(DICOMTime.parse(":") == nil) // no complete hour component
 
         // Reached via DataElement.timeValue on a zero-length TM element.
         let emptyTM = DataElement(tag: Tag(group: 0x0008, element: 0x0030), vr: .TM, length: 0, valueData: Data())

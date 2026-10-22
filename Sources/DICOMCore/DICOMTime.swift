@@ -5,7 +5,8 @@ import Foundation
 /// Represents a time in DICOM format.
 /// Reference: DICOM PS3.5 Section 6.2 - TM Value Representation
 ///
-/// NEMA-verified: 2026a, checked 2026-09-25 — matches the TM row of PS3.5 2026a Table 6.2-1 (HH, HHMM, HHMMSS, 1-6 fractional digits, SS up to 60 for a leap second, 14 bytes max; the doc comment said 16). The ACR-NEMA HH:MM:SS form is accepted on read only.
+/// Grammar checked against PS3.5 2026d Table 6.2-1. Use `parseStrict` for DICOM
+/// admission; `parse` also accepts the documented ACR-NEMA HH:MM:SS form.
 ///
 /// The TM format is a string of characters with format HHMMSS.FFFFFF where:
 /// - HH = hour (00-23)
@@ -46,86 +47,105 @@ public struct DICOMTime: Sendable, Hashable {
         self.microsecond = microsecond
     }
     
-    /// Parses a DICOM TM string into a DICOMTime
+    /// Parses a TM value with compatibility for ACR-NEMA `HH:MM:SS[.FFFFFF]`.
     ///
-    /// Accepts various formats:
-    /// - HH (2 characters)
-    /// - HHMM (4 characters)
-    /// - HHMMSS (6 characters)
-    /// - HHMMSS.FFFFFF (13 characters; 14 bytes with padding)
-    ///
-    /// Also handles legacy formats with colons (HH:MM:SS).
-    ///
-    /// Reference: DICOM PS3.5 Section 6.2 - TM Value Representation
-    ///
-    /// - Parameter string: The TM string to parse
-    /// - Returns: A DICOMTime if parsing succeeds, nil otherwise
+    /// Accepts complete HH, HHMM or HHMMSS components and 1–6 fractional digits
+    /// only after seconds. Only trailing ASCII SPACE padding is allowed. Invalid
+    /// suffixes, incomplete components and excessive fractions are rejected.
+    /// Colon syntax is a deliberate compatibility extension, not valid DICOM TM.
+    /// Use `parseStrict` when validating DICOM metadata.
     public static func parse(_ string: String) -> DICOMTime? {
-        let trimmed = string.trimmingCharacters(in: .whitespaces)
-        
-        // Handle legacy format with colons
-        let normalized = trimmed.replacingOccurrences(of: ":", with: "")
-        
-        // Separate the main part from fractional seconds.
-        // Keep empty subsequences so an empty/dot-only value yields an empty
-        // main part (handled by the length guard below) instead of trapping.
-        let parts = normalized.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
-        let mainPart = parts.isEmpty ? "" : String(parts[0])
-        let fractionalPart = parts.count > 1 ? String(parts[1]) : nil
-
-        guard mainPart.count >= 2 else {
-            return nil
-        }
-        
-        // Parse hour (first 2 characters)
-        let hourStr = String(mainPart.prefix(2))
-        guard let hour = Int(hourStr), hour >= 0, hour <= 23 else {
-            return nil
-        }
-        
-        // Parse minute (characters 3-4, if present)
-        var minute: Int? = nil
-        if mainPart.count >= 4 {
-            let minuteStartIndex = mainPart.index(mainPart.startIndex, offsetBy: 2)
-            let minuteEndIndex = mainPart.index(mainPart.startIndex, offsetBy: 4)
-            let minuteStr = String(mainPart[minuteStartIndex..<minuteEndIndex])
-            guard let m = Int(minuteStr), m >= 0, m <= 59 else {
-                return nil
-            }
-            minute = m
-        }
-        
-        // Parse second (characters 5-6, if present)
-        var second: Int? = nil
-        if mainPart.count >= 6 {
-            let secondStartIndex = mainPart.index(mainPart.startIndex, offsetBy: 4)
-            let secondEndIndex = mainPart.index(mainPart.startIndex, offsetBy: 6)
-            let secondStr = String(mainPart[secondStartIndex..<secondEndIndex])
-            guard let s = Int(secondStr), s >= 0, s <= 60 else {
-                return nil
-            }
-            second = s
-        }
-        
-        // Parse fractional seconds (up to 6 digits)
-        var microsecond: Int? = nil
-        if let frac = fractionalPart {
-            // Pad or truncate to 6 digits
-            let paddedFrac: String
-            if frac.count < 6 {
-                paddedFrac = frac + String(repeating: "0", count: 6 - frac.count)
-            } else {
-                paddedFrac = String(frac.prefix(6))
-            }
-            guard let us = Int(paddedFrac), us >= 0 else {
-                return nil
-            }
-            microsecond = us
-        }
-        
-        return DICOMTime(hour: hour, minute: minute, second: second, microsecond: microsecond)
+        parseBytes(string.utf8, allowLegacyColons: true)
     }
-    
+
+    /// Parses one strict DICOM TM value (PS3.5 Table 6.2-1).
+    ///
+    /// Accepts ASCII HH, HHMM, HHMMSS or HHMMSS followed by a decimal point and
+    /// 1–6 digits, with trailing ASCII SPACE padding, at most 14 bytes total.
+    /// Empty values, query matching syntax, delimiters and colon forms return nil.
+    /// Unpadded values are accepted; encoded Value Field evenness is a separate
+    /// structural check. Omitted components remain nil. Fractions are represented
+    /// exactly in microseconds; the original fractional digit count is not retained.
+    /// Second 60 is preserved as leap-second syntax; the actual leap event requires
+    /// date and timezone context and is not established by this scalar parser.
+    public static func parseStrict(_ string: String) -> DICOMTime? {
+        parseBytes(string.utf8, allowLegacyColons: false)
+    }
+
+    /// Parses borrowed bytes without copying or retaining them.
+    ///
+    /// Uses the same strict grammar as the String overload. The caller must keep
+    /// the buffer valid for this synchronous call. Work is bounded by the 14-byte
+    /// TM limit, and the result contains only scalar components. No String, Data,
+    /// array, owner or callback is created or retained by this parser.
+    public static func parseStrict(_ bytes: UnsafeRawBufferPointer) -> DICOMTime? {
+        guard bytes.count <= 14 else { return nil }
+        return parseBytes(bytes, allowLegacyColons: false)
+    }
+
+    private static func parseBytes<Bytes: BidirectionalCollection>(
+        _ bytes: Bytes, allowLegacyColons: Bool
+    ) -> DICOMTime? where Bytes.Element == UInt8 {
+        // Bound traversal even for a non-contiguous String UTF-8 view. The two
+        // additional compatibility bytes account only for the two legacy colons.
+        let limit = allowLegacyColons ? 16 : 14
+        var cursor = bytes.startIndex
+        var count = 0
+        while cursor != bytes.endIndex {
+            guard count < limit else { return nil }
+            bytes.formIndex(after: &cursor)
+            count += 1
+        }
+        guard count >= 2 else { return nil }
+        var end = bytes.endIndex
+        while end != bytes.startIndex {
+            let previous = bytes.index(before: end)
+            guard bytes[previous] == 0x20 else { break }
+            end = previous
+        }
+        cursor = bytes.startIndex
+        func pair() -> Int? {
+            guard cursor != end else { return nil }
+            let tens = bytes[cursor]
+            bytes.formIndex(after: &cursor)
+            guard cursor != end else { return nil }
+            let units = bytes[cursor]
+            bytes.formIndex(after: &cursor)
+            guard (48...57).contains(tens), (48...57).contains(units) else { return nil }
+            return Int(tens - 48) * 10 + Int(units - 48)
+        }
+        guard let hour = pair(), hour <= 23 else { return nil }
+        // Standard syntax keeps the 14-byte limit even on the compatibility API.
+        let legacy = cursor != end && bytes[cursor] == 0x3A
+        guard legacy ? allowLegacyColons : count <= 14 else { return nil }
+        if cursor == end { return DICOMTime(hour: hour) }
+        if legacy { bytes.formIndex(after: &cursor) }
+        guard let minute = pair(), minute <= 59 else { return nil }
+        if cursor == end {
+            return legacy ? nil : DICOMTime(hour: hour, minute: minute)
+        }
+        if legacy {
+            guard bytes[cursor] == 0x3A else { return nil }
+            bytes.formIndex(after: &cursor)
+        }
+        guard let second = pair(), second <= 60 else { return nil }
+        if cursor == end { return DICOMTime(hour: hour, minute: minute, second: second) }
+        guard bytes[cursor] == 0x2E else { return nil }
+        bytes.formIndex(after: &cursor)
+        var fraction = 0
+        var digits = 0
+        while cursor != end {
+            let byte = bytes[cursor]
+            guard digits < 6, (48...57).contains(byte) else { return nil }
+            fraction = fraction * 10 + Int(byte - 48)
+            digits += 1
+            bytes.formIndex(after: &cursor)
+        }
+        guard digits > 0 else { return nil }
+        for _ in digits..<6 { fraction *= 10 }
+        return DICOMTime(hour: hour, minute: minute, second: second, microsecond: fraction)
+    }
+
     /// Returns time components as DateComponents
     ///
     /// Useful for combining with a DICOMDate to create a full Date object.
