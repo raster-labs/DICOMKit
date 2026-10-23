@@ -67,8 +67,20 @@ Other CID 9301 codes: `110500` Doctor canceled procedure, `110501` Equipment fai
 - `--study-uid`: Study Instance UID (0020,000D) for the procedure (required)
 - `--modality`: Modality (0008,0060) — required, Type 1 in the N-CREATE (PS3.4 Table F.7.2-1)
 - `--status`: Initial status (default and only value: "IN PROGRESS", PS3.4 F.7.2.1.2)
+- `--patient-name`: Patient's Name (0010,0010)
+- `--patient-id`: Patient ID (0010,0020)
 - `--patient-sex`: Patient's Sex (0010,0040), Enumerated Values M, F, O (PS3.3 Table C.2-3)
 - `--patient-birth-date`: Patient's Birth Date (0010,0030) as YYYYMMDD (VR DA)
+- `--accession`: Accession Number (0008,0050); when supplied without `--scheduled-step-id` or `--requested-procedure-id`, `DICOMMPPSService.create` performs a best-effort MWL C-FIND on the same SCP to populate missing Scheduled Step Attributes Sequence (0040,0270) linking fields
+- `--scheduled-step-id`: Scheduled Procedure Step ID (0040,0009) inside (0040,0270)
+- `--requested-procedure-id`: Requested Procedure ID (0040,1001) inside (0040,0270)
+- `--requested-procedure-description`: Requested Procedure Description (0032,1060) inside (0040,0270)
+- `--procedure-step-id`: Performed Procedure Step ID (0040,0253)
+- `--description`: Performed Procedure Step Description (0040,0254)
+- `--performing-physician`: Performing Physician's Name (0008,1050)
+- `--station-name`: Performed Station Name (0040,0242)
+- `--location`: Performed Location (0040,0243)
+- `--study-id`: Study ID (0020,0010)
 - `--timeout`: Connection timeout in seconds (default: 60)
 - `-v, --verbose`: Show verbose output
 
@@ -78,12 +90,17 @@ Other CID 9301 codes: `110500` Doctor canceled procedure, `110501` Equipment fai
 - `--mpps-uid`: MPPS SOP Instance UID to update (required)
 - `--status`: New Performed Procedure Step Status (0040,0252) — COMPLETED or
   DISCONTINUED (required; PS3.3 Table C.4-14 Enumerated Values, PS3.4 F.7.2.2.2)
-- `--study-uid`: Study Instance UID for referenced images
-- `--series-uid`: Series Instance UID (0020,000E) of the Performed Series item
+- `--study-uid`: Study Instance UID (0020,000D) for referenced images and legacy N-SET Scheduled Step Attributes Sequence (0040,0270) fallback
+- `--series-uid`: Series Instance UID (0020,000E) of the Performed Series Sequence (0040,0340) item (can be supplied with or without `--image-uid`)
 - `--image-uid`: SOP Instance UIDs for referenced images (can be repeated; needs
   `--study-uid` and `--series-uid`)
 - `--sop-class-uid`: Referenced SOP Class UID (0008,1150) of those images
+- `--protocol-name`: Protocol Name (0018,1030) for the Performed Series item (default: `UNSPECIFIED`)
+- `--series-description`: Series Description (0008,103E) for the Performed Series item
+- `--operator-name`: Operators' Name (0008,1070) for the Performed Series item
+- `--performing-physician`: Performing Physician's Name (0008,1050) for the Performed Series item
 - `--discontinuation-reason`: `CODE|SCHEME|MEANING` for (0040,0281), only with DISCONTINUED
+- `--legacy-nset-scheduled-attributes`: Explicitly include Scheduled Step Attributes Sequence (0040,0270) on the first N-SET attempt (`DICOMMPPSService.update` also retries automatically with (0040,0270) if the standard N-SET without (0040,0270) fails and a Study Instance UID or cached N-CREATE step is available)
 - `--timeout`: Connection timeout in seconds (default: 60)
 - `-v, --verbose`: Show verbose output
 

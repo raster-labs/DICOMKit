@@ -403,4 +403,52 @@ final class MPPSDataSetConformanceTests: XCTestCase {
         XCTAssertEqual(result.sopInstanceUID, "9.9", "the SCP's UID wins (PS3.7 10.1.5.1.4)")
         XCTAssertFalse(MPPSOperationResult(sopInstanceUID: "1.1", status: .success).sopInstanceUIDWasReassigned)
     }
+
+    func test_nSet_scheduledStepAttributesFallsBackToReferencedSOPStudyUID() {
+        let step = MPPSProcedureStep(
+            sopInstanceUID: "1.2.3.4",
+            status: .completed,
+            studyInstanceUID: nil,
+            endDateTime: Date(),
+            referencedSOPs: [("1.2.3.99", "1.2.3.4", "1.2.3.4.5")],
+            referencedSOPClassUID: "1.2.840.10008.5.1.4.1.1.2",
+            protocolName: "Chest CT"
+        )
+        let data = DICOMMPPSService.buildNSetAttributes(
+            procedureStep: step, includeScheduledStepAttributes: true, transferSyntax: explicitLE)
+        XCTAssertTrue(contains(data, 0x0040, 0x0270))
+        XCTAssertEqual(
+            asciiValue(data, 0x0020, 0x000D)?.trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")),
+            "1.2.3.99",
+            "Study Instance UID (0020,000D) inside (0040,0270) falls back to referencedSOPs.first?.studyUID")
+    }
+
+    #if canImport(Network)
+    func test_update_retriesWithScheduledStepAttributesWhenFirstNSetFails() async throws {
+        var behavior = MockPrintSCPBehavior()
+        behavior.failOn = .nSetRequest
+        behavior.failStatus = DIMSEStatus.from(0x0110)
+        let scp = MockPrintSCP(behavior: behavior)
+        try await scp.start()
+        defer { Task { await scp.stop() } }
+        let port = await scp.port
+
+        let result = try await DICOMMPPSService.update(
+            host: "127.0.0.1",
+            port: port,
+            callingAE: "SCU",
+            calledAE: "SCP",
+            mppsInstanceUID: "1.2.3.4.5",
+            status: .completed,
+            referencedSOPs: [("1.2.3", "1.2.3.4", "1.2.3.4.5")],
+            studyInstanceUID: "1.2.3",
+            timeout: 5,
+            referencedSOPClassUID: "1.2.840.10008.5.1.4.1.1.2",
+            protocolName: "Chest CT"
+        )
+        XCTAssertEqual(result.status, .success)
+        let assocCount = await scp.associationCount
+        XCTAssertEqual(assocCount, 2, "expected initial standard N-SET attempt followed by legacy (0040,0270) retry")
+    }
+    #endif
 }
