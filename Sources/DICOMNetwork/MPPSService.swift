@@ -496,6 +496,26 @@ public struct MPPSProcedureStep: Sendable {
 /// )
 /// ```
 public enum DICOMMPPSService {
+
+    /// Thread-safe in-memory cache of recently created MPPS procedure steps,
+    /// keyed by SOP Instance UID so a subsequent `update` (N-SET) in the same
+    /// process can preserve Scheduled Step Attributes Sequence (0040,0270)
+    /// linking fields when talking to legacy SCPs that require (0040,0270) in N-SET.
+    private static let createdStepsLock = NSLock()
+    nonisolated(unsafe) private static var createdSteps: [String: MPPSProcedureStep] = [:]
+
+    private static func cacheCreatedStep(_ step: MPPSProcedureStep, effectiveUID: String) {
+        createdStepsLock.lock()
+        defer { createdStepsLock.unlock() }
+        createdSteps[step.sopInstanceUID] = step
+        createdSteps[effectiveUID] = step
+    }
+
+    private static func cachedCreatedStep(for uid: String) -> MPPSProcedureStep? {
+        createdStepsLock.lock()
+        defer { createdStepsLock.unlock() }
+        return createdSteps[uid]
+    }
     
     /// Creates a new MPPS instance (N-CREATE)
     ///
@@ -632,6 +652,49 @@ public enum DICOMMPPSService {
         
         // Generate a new SOP Instance UID for the MPPS
         let mppsInstanceUID = UIDGenerator.generateUID().value
+
+        // When an Accession Number is supplied without the worklist item's
+        // Scheduled Procedure Step ID or Requested Procedure ID, query the MWL
+        // on the same SCP (best-effort) to populate missing linking attributes
+        // so strict RIS/MWL SCPs transition the scheduled step to IN PROGRESS.
+        var resolvedPatientName = patientName
+        var resolvedPatientID = patientID
+        var resolvedPatientBirthDate = patientBirthDate
+        var resolvedPatientSex = patientSex
+        var resolvedSPSID = scheduledProcedureStepID
+        var resolvedRequestedProcID = requestedProcedureID
+        var resolvedRequestedProcDesc = requestedProcedureDescription
+        var resolvedSPSDesc = scheduledProcedureStepDescription
+        if let acc = accessionNumber?.trimmingCharacters(in: .whitespaces), !acc.isEmpty,
+           (resolvedSPSID?.isEmpty ?? true) || (resolvedRequestedProcID?.isEmpty ?? true),
+           status == .inProgress,
+           let mod = modality?.trimmingCharacters(in: .whitespaces), !mod.isEmpty
+        {
+            if let items = try? await DICOMModalityWorklistService.find(
+                host: host,
+                port: port,
+                callingAE: callingAE,
+                calledAE: calledAE,
+                matching: WorklistQueryKeys.default().accessionNumber(acc),
+                timeout: min(timeout, 5)
+            ), let matched = items.first(where: {
+                $0.accessionNumber?.trimmingCharacters(in: .whitespaces) == acc
+            }) {
+                func fill(_ current: String?, _ fallback: String?) -> String? {
+                    if let c = current?.trimmingCharacters(in: .whitespaces), !c.isEmpty { return current }
+                    if let f = fallback?.trimmingCharacters(in: .whitespaces), !f.isEmpty { return f }
+                    return current
+                }
+                resolvedSPSID = fill(resolvedSPSID, matched.scheduledProcedureStepID)
+                resolvedRequestedProcID = fill(resolvedRequestedProcID, matched.requestedProcedureID)
+                resolvedRequestedProcDesc = fill(resolvedRequestedProcDesc, matched.requestedProcedureDescription)
+                resolvedSPSDesc = fill(resolvedSPSDesc, matched.scheduledProcedureStepDescription)
+                resolvedPatientName = fill(resolvedPatientName, matched.patientName)
+                resolvedPatientID = fill(resolvedPatientID, matched.patientID)
+                resolvedPatientBirthDate = fill(resolvedPatientBirthDate, matched.patientBirthDate)
+                resolvedPatientSex = fill(resolvedPatientSex, matched.patientSex)
+            }
+        }
         
         let procedureStep = MPPSProcedureStep(
             sopInstanceUID: mppsInstanceUID,
@@ -639,8 +702,8 @@ public enum DICOMMPPSService {
             studyInstanceUID: studyInstanceUID,
             startDateTime: Date(),
             attributes: attributes,
-            patientName: patientName,
-            patientID: patientID,
+            patientName: resolvedPatientName,
+            patientID: resolvedPatientID,
             modality: modality,
             procedureStepID: procedureStepID,
             procedureStepDescription: procedureStepDescription,
@@ -648,27 +711,29 @@ public enum DICOMMPPSService {
             performingPhysicianName: performingPhysicianName,
             performedStationName: performedStationName,
             accessionNumber: accessionNumber,
-            scheduledProcedureStepID: scheduledProcedureStepID,
-            patientBirthDate: patientBirthDate,
-            patientSex: patientSex,
+            scheduledProcedureStepID: resolvedSPSID,
+            patientBirthDate: resolvedPatientBirthDate,
+            patientSex: resolvedPatientSex,
             studyID: studyID,
             performedLocation: performedLocation,
             performedProcedureTypeDescription: performedProcedureTypeDescription,
             procedureCode: procedureCode,
             performedProtocolCodes: performedProtocolCodes,
-            requestedProcedureID: requestedProcedureID,
-            requestedProcedureDescription: requestedProcedureDescription,
-            scheduledProcedureStepDescription: scheduledProcedureStepDescription,
+            requestedProcedureID: resolvedRequestedProcID,
+            requestedProcedureDescription: resolvedRequestedProcDesc,
+            scheduledProcedureStepDescription: resolvedSPSDesc,
             scheduledProtocolCodes: scheduledProtocolCodes,
             referencedStudySOPInstanceUID: referencedStudySOPInstanceUID
         )
         
-        return try await performNCreate(
+        let result = try await performNCreate(
             host: host,
             port: port,
             configuration: config,
             procedureStep: procedureStep
         )
+        cacheCreatedStep(procedureStep, effectiveUID: result.sopInstanceUID)
+        return result
     }
     
     /// Updates an existing MPPS instance (N-SET)
@@ -766,22 +831,31 @@ public enum DICOMMPPSService {
             }
         }
         
+        let cached = cachedCreatedStep(for: mppsInstanceUID)
+        let effectiveStudyUID = studyInstanceUID
+            ?? referencedSOPs.first?.studyUID
+            ?? cached?.studyInstanceUID
+
         let procedureStep = MPPSProcedureStep(
             sopInstanceUID: mppsInstanceUID,
             status: status,
-            studyInstanceUID: studyInstanceUID,
+            studyInstanceUID: effectiveStudyUID,
             endDateTime: Date(),
             referencedSOPs: referencedSOPs,
             referencedSOPClassUID: referencedSOPClassUID,
             protocolName: protocolName,
             performedSeries: series,
             attributes: attributes,
-            procedureStepID: procedureStepID,
-            performingPhysicianName: performingPhysicianName,
-            accessionNumber: accessionNumber,
-            scheduledProcedureStepID: scheduledProcedureStepID,
-            performedProtocolCodes: performedProtocolCodes,
-            requestedProcedureID: requestedProcedureID ?? procedureStepID,
+            procedureStepID: procedureStepID ?? cached?.procedureStepID,
+            performingPhysicianName: performingPhysicianName ?? cached?.performingPhysicianName,
+            accessionNumber: accessionNumber ?? cached?.accessionNumber,
+            scheduledProcedureStepID: scheduledProcedureStepID ?? cached?.scheduledProcedureStepID,
+            performedProtocolCodes: performedProtocolCodes.isEmpty ? (cached?.performedProtocolCodes ?? []) : performedProtocolCodes,
+            requestedProcedureID: requestedProcedureID ?? procedureStepID ?? cached?.requestedProcedureID,
+            requestedProcedureDescription: cached?.requestedProcedureDescription,
+            scheduledProcedureStepDescription: cached?.scheduledProcedureStepDescription,
+            scheduledProtocolCodes: cached?.scheduledProtocolCodes ?? [],
+            referencedStudySOPInstanceUID: cached?.referencedStudySOPInstanceUID,
             discontinuationReason: discontinuationReason
         )
         
@@ -924,7 +998,15 @@ public enum DICOMMPPSService {
         }
     }
     
-    /// Performs the N-SET operation
+    /// Performs the N-SET operation.
+    ///
+    /// By default (`configuration.includeScheduledStepAttributesInNSet == false`),
+    /// the N-SET omits Scheduled Step Attributes Sequence (0040,0270) per PS3.4
+    /// Table F.7.2-1. If the SCP closes/aborts the connection or returns a
+    /// processing/missing-attribute failure after receiving the N-SET (as legacy
+    /// SCPs such as dcm4che-2.0 / RASTERRIS and older Orthanc builds do when
+    /// dereferencing (0040,0270) in their N-SET handler), this method automatically
+    /// retries once on a new association with (0040,0270) included.
     private static func performNSet(
         host: String,
         port: UInt16,
@@ -934,6 +1016,56 @@ public enum DICOMMPPSService {
         // Reject an illegal transition before opening a connection.
         try validate(procedureStep, for: .nSet)
 
+        do {
+            return try await performSingleNSet(
+                host: host,
+                port: port,
+                configuration: configuration,
+                procedureStep: procedureStep,
+                includeScheduledStepAttributes: configuration.includeScheduledStepAttributesInNSet
+            )
+        } catch let error as NSetSendFailure where !configuration.includeScheduledStepAttributesInNSet
+            && shouldRetryNSetWithScheduledStepAttributes(after: error.underlying)
+        {
+            do {
+                return try await performSingleNSet(
+                    host: host,
+                    port: port,
+                    configuration: configuration,
+                    procedureStep: procedureStep,
+                    includeScheduledStepAttributes: true
+                )
+            } catch let retryError as NSetSendFailure {
+                throw retryError.underlying
+            }
+        } catch let error as NSetSendFailure {
+            throw error.underlying
+        }
+    }
+
+    private struct NSetSendFailure: Error {
+        let underlying: Error
+    }
+
+    private static func shouldRetryNSetWithScheduledStepAttributes(after error: Error) -> Bool {
+        guard let networkError = error as? DICOMNetworkError else { return false }
+        switch networkError {
+        case .connectionClosed, .associationAborted, .connectionFailed:
+            return true
+        case .mppsOperationFailed(_, let status, _, _):
+            return status.rawValue == 0x0110 || status.rawValue == 0x0120 || status.rawValue == 0x0121
+        default:
+            return false
+        }
+    }
+
+    private static func performSingleNSet(
+        host: String,
+        port: UInt16,
+        configuration: MPPSConfiguration,
+        procedureStep: MPPSProcedureStep,
+        includeScheduledStepAttributes: Bool
+    ) async throws -> MPPSOperationResult {
         // Create association configuration
         let associationConfig = AssociationConfiguration(
             callingAETitle: configuration.callingAETitle,
@@ -975,15 +1107,20 @@ public enum DICOMMPPSService {
                 ?? implicitVRLittleEndianTransferSyntaxUID
             
             // Perform the N-SET operation
-            let result = try await sendNSet(
-                association: association,
-                presentationContextID: 1,
-                maxPDUSize: negotiated.maxPDUSize,
-                procedureStep: procedureStep,
-                includeScheduledStepAttributes: configuration.includeScheduledStepAttributesInNSet,
-                transferSyntax: acceptedTransferSyntax,
-                specificCharacterSet: configuration.specificCharacterSet
-            )
+            let result: MPPSOperationResult
+            do {
+                result = try await sendNSet(
+                    association: association,
+                    presentationContextID: 1,
+                    maxPDUSize: negotiated.maxPDUSize,
+                    procedureStep: procedureStep,
+                    includeScheduledStepAttributes: includeScheduledStepAttributes,
+                    transferSyntax: acceptedTransferSyntax,
+                    specificCharacterSet: configuration.specificCharacterSet
+                )
+            } catch {
+                throw NSetSendFailure(underlying: error)
+            }
             
             // Release association gracefully
             try await association.release()
@@ -1324,7 +1461,7 @@ public enum DICOMMPPSService {
         } else {
             item.append((refStudyTag, encodeEmptySequence(tag: refStudyTag, explicit: explicit)))
         }
-        add(0x0020, 0x000D, .UI, procedureStep.studyInstanceUID)                  // Study Instance UID 1
+        add(0x0020, 0x000D, .UI, procedureStep.studyInstanceUID ?? procedureStep.referencedSOPs.first?.studyUID) // Study Instance UID 1
         add(0x0032, 0x1060, .LO, procedureStep.requestedProcedureDescription)     // Requested Procedure Description 2
         add(0x0040, 0x0007, .LO, procedureStep.scheduledProcedureStepDescription) // SPS Description 2
         item.append((Tag(group: 0x0040, element: 0x0008), encodeCodeSequence(      // Scheduled Protocol Code Sequence 2
