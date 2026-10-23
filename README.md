@@ -4,6 +4,10 @@ Bounded source parsing and managed JPEG/JPEG-LS decoding are available through e
 allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
 for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
 
+### v2.9.0 MPPS N-CREATE worklist linking and N-SET update compatibility
+
+`DICOMMPPSService.create` performs a best-effort Modality Worklist (`C-FIND`) lookup by Accession Number `(0008,0050)` when `scheduledProcedureStepID` or `requestedProcedureID` is omitted on an `IN PROGRESS` creation, populating missing `Scheduled Step Attributes Sequence` `(0040,0270)` linking fields. `DICOMMPPSService.update` sends a PS3.4 Table F.7.2-1 conformant `N-SET` first and automatically retries with `(0040,0270)` included if the SCP rejects or aborts the standard `N-SET`. `dicom-mpps update` forwards `--study-uid` and standalone `--series-uid` `PerformedSeries` items to `DICOMMPPSService.update`, matching `DICOMStudio` CLI Workshop.
+
 ### v2.8.0 strict time parsing
 
 `DICOMTime.parseStrict` validates one TM value from a String or borrowed bytes.

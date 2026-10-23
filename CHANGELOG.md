@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-10-23
+
 ### Fixed — dicom-mpps N-CREATE worklist linking and N-SET update compatibility
 
 - **`DICOMMPPSService.create` automatic MWL linking**: when an `IN PROGRESS` MPPS instance is created with an Accession Number `(0008,0050)` and Modality `(0008,0060)` but without `scheduledProcedureStepID` `(0040,0009)` or `requestedProcedureID` `(0040,1001)`, `DICOMMPPSService.create` performs a best-effort Modality Worklist `C-FIND` against the same SCP to populate missing `Scheduled Step Attributes Sequence` `(0040,0270)` linking fields and patient demographics so strict RIS/MWL SCPs transition the scheduled procedure step.
