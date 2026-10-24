@@ -1,0 +1,218 @@
+{
+  "status": "Passed",
+  "packaged_gui_cases": 17,
+  "qido_executions": 9,
+  "qido_reset_observations": 1,
+  "dimse_executions": 3,
+  "dimse_preflight_refusals": 4,
+  "cli_replays": 16,
+  "synthetic_loopback_only": true,
+  "console_limitation": "Native accessibility truncates the latest console item. Verified its visible prefix and status, full wire responses, exact request equality and independently parsed CLI output; not a claim of full GUI console byte equality. Tool reset confirmed cleared form/preview and disabled Run; no post-reset request executed.",
+  "cases": [
+    {
+      "case": "dimse-01-study",
+      "command": "dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level study --patient-name 'AUDIT*' --study-date 20260101-20261231 --modality CT --study-description 'M3*' --timeout 60 --format json --verbose",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_bytes_equal": true,
+      "identifier_sha256": "a2f92fa8686f395f8ca09327247c6e19e0c0f3d11820f99618d53ae5353628aa",
+      "expected_uid": "2.25.301",
+      "visible_console_prefix_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "dimse-02-series",
+      "command": "dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level series --modality CT --study-uid 2.25.301 --timeout 60 --format json --verbose",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_bytes_equal": true,
+      "identifier_sha256": "2775b18b946df0d430dc6ff8c601120c2305b9ec0536d2aa82dab8337432bf95",
+      "expected_uid": "2.25.301.1",
+      "visible_console_prefix_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "dimse-03-image-modality-refused",
+      "command": "dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level image --modality CT --study-uid 2.25.301 --series-uid 2.25.301.1 --timeout 60 --format json --verbose",
+      "cli_exit": 64,
+      "gui_status": "ERROR",
+      "rejected_without_association": true,
+      "recorded_gui_associations": 2,
+      "status": "Passed"
+    },
+    {
+      "case": "dimse-04-image-valid",
+      "command": "dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level image --study-uid 2.25.301 --series-uid 2.25.301.1 --timeout 60 --format json --verbose",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_bytes_equal": true,
+      "identifier_sha256": "92a5fb17766489d3edd999b6fbdfb7535c4b8e4a5cd6d156b387d2d6a7c07f6b",
+      "expected_uid": "2.25.301.1.1",
+      "visible_console_prefix_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "dimse-05-patient-uid-refused",
+      "command": "dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level patient --study-uid 2.25.301 --timeout 60 --format json --verbose",
+      "cli_exit": 64,
+      "gui_status": "ERROR",
+      "rejected_without_association": true,
+      "recorded_gui_associations": 3,
+      "status": "Passed"
+    },
+    {
+      "case": "dimse-06-patient-date-refused",
+      "command": "dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level patient --study-date 20260101-20261231 --timeout 60 --format json --verbose",
+      "cli_exit": 64,
+      "gui_status": "ERROR",
+      "rejected_without_association": true,
+      "recorded_gui_associations": 3,
+      "status": "Passed"
+    },
+    {
+      "case": "dimse-07-patient-description-refused",
+      "command": "dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level patient --study-description 'M3*' --timeout 60 --format json --verbose",
+      "cli_exit": 64,
+      "gui_status": "ERROR",
+      "rejected_without_association": true,
+      "recorded_gui_associations": 3,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-01-all-studies",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level study --patient-id P1 --modality CT --limit 100 --offset 0 --format table",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/studies?00080061=CT&00100020=P1&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301"
+      ],
+      "wire_and_cli_json_equal": false,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-02-all-series",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level series --patient-id P1 --modality CT --pps-start-date 20260115 --pps-start-time 090000-100000 --sps-id SPS-A --requested-procedure-id RP-A --limit 100 --offset 0 --format table",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/series?00080060=CT&00100020=P1&00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301.1"
+      ],
+      "wire_and_cli_json_equal": false,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-03-study-hidden-pps",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level study --patient-id P1 --modality CT --limit 100 --offset 0 --format dicom-json",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/studies?00080061=CT&00100020=P1&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301"
+      ],
+      "wire_and_cli_json_equal": true,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-04-series-restored",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level series --patient-id P1 --modality CT --pps-start-date 20260115 --pps-start-time 090000-100000 --sps-id SPS-A --requested-procedure-id RP-A --limit 100 --offset 0 --format dicom-json",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/series?00080060=CT&00100020=P1&00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301.1"
+      ],
+      "wire_and_cli_json_equal": true,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-05-study-series",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level series --patient-id P1 --modality CT --study 1.2.826.0.1.3680043.10.543.301 --pps-start-date 20260115 --pps-start-time 090000-100000 --sps-id SPS-A --requested-procedure-id RP-A --limit 100 --offset 0 --format dicom-json",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?00080060=CT&00100020=P1&00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301.1"
+      ],
+      "wire_and_cli_json_equal": true,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-06-all-instances",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level instance --patient-id P1 --modality CT --pps-start-date 20260115 --pps-start-time 090000-100000 --sps-id SPS-A --requested-procedure-id RP-A --limit 100 --offset 0 --format dicom-json",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/instances?00080060=CT&00100020=P1&00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301.1.1",
+        "1.2.826.0.1.3680043.10.543.301.1.2"
+      ],
+      "wire_and_cli_json_equal": true,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-07-study-instances",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level instance --patient-id P1 --modality CT --study 1.2.826.0.1.3680043.10.543.301 --pps-start-date 20260115 --pps-start-time 090000-100000 --sps-id SPS-A --requested-procedure-id RP-A --limit 100 --offset 0 --format dicom-json",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00080060=CT&00100020=P1&00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301.1.1",
+        "1.2.826.0.1.3680043.10.543.301.1.2"
+      ],
+      "wire_and_cli_json_equal": true,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-08-series-instances-hidden",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level instance --patient-id P1 --study 1.2.826.0.1.3680043.10.543.301 --series 1.2.826.0.1.3680043.10.543.301.1 --limit 100 --offset 0 --format dicom-json",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?00100020=P1&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301.1.1",
+        "1.2.826.0.1.3680043.10.543.301.1.2"
+      ],
+      "wire_and_cli_json_equal": true,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-09-study-instances-restored",
+      "command": "dicom-wado query http://127.0.0.1:49396/dicom-web --level instance --patient-id P1 --modality CT --study 1.2.826.0.1.3680043.10.543.301 --pps-start-date 20260115 --pps-start-time 090000-100000 --sps-id SPS-A --requested-procedure-id RP-A --limit 100 --offset 0 --format dicom-json",
+      "cli_exit": 0,
+      "gui_status": "SUCCESS",
+      "request_path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00080060=CT&00100020=P1&00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0",
+      "expected_uids": [
+        "1.2.826.0.1.3680043.10.543.301.1.1",
+        "1.2.826.0.1.3680043.10.543.301.1.2"
+      ],
+      "wire_and_cli_json_equal": true,
+      "visible_console_prefix_equal": true,
+      "request_and_response_equal": true,
+      "status": "Passed"
+    },
+    {
+      "case": "qido-10-tool-reset-cleared",
+      "observed": "Tool change cleared form and command preview; Run disabled until URL supplied",
+      "status": "Passed",
+      "network_execution": false
+    }
+  ]
+}

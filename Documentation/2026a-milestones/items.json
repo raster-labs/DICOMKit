@@ -2,8 +2,8 @@
   "schema_version": 1,
   "source_review_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
   "branch": "codex/dicom-2026a-milestones",
-  "authorized_current_milestone": "M2",
-  "stop_before": "M3",
+  "authorized_current_milestone": "M3",
+  "stop_before": "M4",
   "counts": {
     "all": 68,
     "active": 46,
@@ -730,7 +730,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
@@ -758,36 +758,186 @@
           "id": "NET-01-A-AC01",
           "assertion": "Isolated-process tests for each study/series/instance endpoint with offset=-1, limit=-1, nonnumeric values and extremely large values: no process termination; invalid syntax returns 400.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?offset=-1",
+                "/dicom-web/studies?limit=-1",
+                "/dicom-web/studies?offset=abc",
+                "/dicom-web/studies?limit=1.5",
+                "/dicom-web/studies?offset=99999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                "/dicom-web/studies?limit=99999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                "/dicom-web/series?offset=-1",
+                "/dicom-web/series?limit=-1",
+                "/dicom-web/series?offset=abc",
+                "/dicom-web/series?limit=1.5",
+                "/dicom-web/series?offset=99999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                "/dicom-web/series?limit=99999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                "/dicom-web/instances?offset=-1",
+                "/dicom-web/instances?limit=-1",
+                "/dicom-web/instances?offset=abc",
+                "/dicom-web/instances?limit=1.5",
+                "/dicom-web/instances?offset=99999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                "/dicom-web/instances?limit=99999999999999999999999999999999999999999999999999999999999999999999999999999999"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testAllResourcesRejectMalformedPaginationAndDuplicatePredicates",
+              "line": 58,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testAllResourcesRejectMalformedPaginationAndDuplicatePredicates"
+            }
+          ]
         },
         {
           "id": "NET-01-A-AC02",
           "assertion": "Both limit=0 and offset=0 are legal values. With limit=0 (including offset=0), JSON results are [] with HTTP 200; include the required pagination warning when matches remain. offset=0 with a positive or absent limit starts at the first match and does not itself require an empty result.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                6,
+                7,
+                8,
+                17,
+                18,
+                19,
+                28,
+                29,
+                30
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?limit=0",
+                "/dicom-web/studies?offset=0",
+                "/dicom-web/studies?offset=0&limit=1",
+                "/dicom-web/series?limit=0",
+                "/dicom-web/series?offset=0",
+                "/dicom-web/series?offset=0&limit=1",
+                "/dicom-web/instances?limit=0",
+                "/dicom-web/instances?offset=0",
+                "/dicom-web/instances?offset=0&limit=1"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testLimitZeroAndFinalPageWarningsUseFilteredTotal",
+              "line": 214,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testLimitZeroAndFinalPageWarningsUseFilteredTotal"
+            }
+          ]
         },
         {
           "id": "NET-01-A-AC03",
           "assertion": "offset beyond match count returns 200 and []; an in-range limit bounds results correctly; repeat identical queries over unchanged data and compare result order.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                9,
+                20,
+                31,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                131
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?offset=9223372036854775807&limit=9223372036854775807",
+                "/dicom-web/series?offset=9223372036854775807&limit=9223372036854775807",
+                "/dicom-web/instances?offset=9223372036854775807&limit=9223372036854775807",
+                "/dicom-web/studies?",
+                "/dicom-web/studies?",
+                "/dicom-web/studies?",
+                "/dicom-web/studies?offset=1&limit=1",
+                "/dicom-web/series?",
+                "/dicom-web/series?",
+                "/dicom-web/series?",
+                "/dicom-web/series?offset=1&limit=1",
+                "/dicom-web/instances?",
+                "/dicom-web/instances?",
+                "/dicom-web/instances?",
+                "/dicom-web/instances?offset=1&limit=1",
+                "/dicom-web/studies?"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testDirectProviderPaginationIsBoundedAndStable",
+              "line": 71,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testDirectProviderPaginationIsBoundedAndStable"
+            }
+          ]
         },
         {
           "id": "NET-01-A-AC04",
           "assertion": "Exercise provider APIs directly with negative/extreme inputs and prove no invalid range or addition overflow occurs.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testDirectProviderPaginationIsBoundedAndStable",
+              "line": 71,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testDirectProviderPaginationIsBoundedAndStable"
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "Negative offset/limit values reach array ranges; offset=-1 on an empty store reaches an invalid negative index. start+limit can overflow. Invalid numeric syntax currently falls back silently."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-02-A",
@@ -798,7 +948,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/InMemoryStorageProvider.swift",
@@ -816,29 +966,84 @@
           "id": "NET-02-A-AC01",
           "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient’s series.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                45,
+                46,
+                50,
+                51
+              ],
+              "probe_paths": [
+                "/dicom-web/series?PatientID=NO_MATCH",
+                "/dicom-web/series?PatientID=P1",
+                "/dicom-web/series?00100020=NO_MATCH",
+                "/dicom-web/series?00100020=P1"
+              ]
+            }
+          ]
         },
         {
           "id": "NET-02-A-AC02",
           "assertion": "All Series searches honor StudyInstanceUID, StudyDate, AccessionNumber and ModalitiesInStudy while still combining requested series predicates with AND semantics.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                63
+              ],
+              "probe_paths": [
+                "/dicom-web/series?StudyDate=20260101-20260131&AccessionNumber=ACC-A&ModalitiesInStudy=MR&Modality=CT"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testParentPredicatesUIDListsAndInstanceNumberAreConjunctive",
+              "line": 97,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testParentPredicatesUIDListsAndInstanceNumberAreConjunctive"
+            }
+          ]
         },
         {
           "id": "NET-02-A-AC03",
           "assertion": "Patient filters on a scoped study-series request cannot return a nonmatching patient. Test both keyword and tag spellings.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                48,
+                53
+              ],
+              "probe_paths": [
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?PatientID=P2",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?00100020=P2"
+              ]
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "searchSeries selects studies by optional URL UID then checks only series predicates. Patient filters and study-level filters for the All Series resource never constrain results."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-02-B",
@@ -849,7 +1054,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/InMemoryStorageProvider.swift",
@@ -862,29 +1067,85 @@
           "id": "NET-02-B-AC01",
           "assertion": "Create two patients with CT and MR series. /instances?PatientID=NO_MATCH returns []; /instances?Modality=CT returns only CT instances.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                55,
+                56,
+                57
+              ],
+              "probe_paths": [
+                "/dicom-web/instances?PatientID=NO_MATCH",
+                "/dicom-web/instances?00100020=NO_MATCH",
+                "/dicom-web/instances?Modality=CT"
+              ]
+            }
+          ]
         },
         {
           "id": "NET-02-B-AC02",
           "assertion": "Study Instances honors permitted series filters; All Instances honors study plus series filters together.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                58,
+                59,
+                65
+              ],
+              "probe_paths": [
+                "/dicom-web/instances?StudyInstanceUID=1.2.826.0.1.3680043.10.543.301&Modality=CT",
+                "/dicom-web/instances?StudyDate=20260101-20260131&Modality=CT",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?Modality=MR"
+              ]
+            }
+          ]
         },
         {
           "id": "NET-02-B-AC03",
           "assertion": "Study Series Instances honors patient and instance predicates without leaking instances outside either path UID.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                49,
+                54,
+                60,
+                61,
+                145
+              ],
+              "probe_paths": [
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?PatientID=P2",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?00100020=P2",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?InstanceNumber=2&PatientID=P1",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?SOPInstanceUID=1.2.826.0.1.3680043.10.543.302.1.2",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?00100020=P1&limit=100&offset=0"
+              ]
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "searchInstances applies only instance predicates, ignoring permitted patient, study and series filters. All Instances can return other patients or modalities."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-02-C",
@@ -895,7 +1156,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/InMemoryStorageProvider.swift",
@@ -913,22 +1174,77 @@
           "id": "NET-02-C-AC01",
           "assertion": "Store instances numbered 1 and 2 plus one missing Instance Number. Query InstanceNumber=2 and 00200013=2; only the second instance matches.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                66,
+                67,
+                70,
+                71
+              ],
+              "probe_paths": [
+                "/dicom-web/instances?InstanceNumber=2",
+                "/dicom-web/instances?InstanceNumber=1",
+                "/dicom-web/instances?00200013=2",
+                "/dicom-web/instances?00200013=1"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testDirectProviderPaginationIsBoundedAndStable",
+              "line": 71,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testDirectProviderPaginationIsBoundedAndStable"
+            }
+          ]
         },
         {
           "id": "NET-02-C-AC02",
           "assertion": "Combine number and SOP UID filters and verify intersections; test supported IS lexical representations according to the declared matching policy.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                68,
+                69,
+                72,
+                73
+              ],
+              "probe_paths": [
+                "/dicom-web/instances?InstanceNumber=%2B2",
+                "/dicom-web/instances?InstanceNumber=2&SOPInstanceUID=1.2.826.0.1.3680043.10.543.301.1.2",
+                "/dicom-web/instances?00200013=%2B2",
+                "/dicom-web/instances?00200013=2&SOPInstanceUID=1.2.826.0.1.3680043.10.543.301.1.2"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testParentPredicatesUIDListsAndInstanceNumberAreConjunctive",
+              "line": 97,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testParentPredicatesUIDListsAndInstanceNumberAreConjunctive"
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "InstanceNumber is parsed into StorageQuery but matchesInstanceQuery explicitly ignores it."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-02-D",
@@ -939,7 +1255,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
@@ -957,29 +1273,234 @@
           "id": "NET-02-D-AC01",
           "assertion": "Fixtures differ only by PPS date/time or Scheduled Procedure Step ID/Requested Procedure ID. Each required filter excludes the nonmatching series.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                83,
+                84,
+                85,
+                86,
+                87,
+                88,
+                89,
+                90,
+                92,
+                96,
+                97,
+                98,
+                99,
+                100,
+                101,
+                102,
+                103,
+                105,
+                109,
+                110,
+                111,
+                112,
+                113,
+                114,
+                115,
+                116,
+                118,
+                122
+              ],
+              "probe_paths": [
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260115",
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260117",
+                "/dicom-web/series?PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/series?PerformedProcedureStepStartTime=150000-160000",
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=NO_MATCH",
+                "/dicom-web/series?RequestAttributesSequence.RequestedProcedureID=RP-B",
+                "/dicom-web/series?RequestAttributesSequence.RequestedProcedureID=NO_MATCH",
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/instances?PerformedProcedureStepStartDate=20260115",
+                "/dicom-web/instances?PerformedProcedureStepStartDate=20260117",
+                "/dicom-web/instances?PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/instances?PerformedProcedureStepStartTime=150000-160000",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=NO_MATCH",
+                "/dicom-web/instances?RequestAttributesSequence.RequestedProcedureID=RP-B",
+                "/dicom-web/instances?RequestAttributesSequence.RequestedProcedureID=NO_MATCH",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartDate=20260115",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartDate=20260117",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartTime=150000-160000",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=NO_MATCH",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.RequestedProcedureID=RP-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.RequestedProcedureID=NO_MATCH",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260115-20260116"
+              ]
+            }
+          ]
         },
         {
           "id": "NET-02-D-AC02",
           "assertion": "Test 00400275.00400009 and RequestAttributesSequence.ScheduledProcedureStepID, including mixed keyword/tag paths, against equivalent expected results.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                87,
+                92,
+                93,
+                94,
+                100,
+                105,
+                106,
+                107,
+                113,
+                118,
+                119,
+                120
+              ],
+              "probe_paths": [
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/series?00400275.00400009=SPS-B",
+                "/dicom-web/series?00400275.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/instances?00400275.00400009=SPS-B",
+                "/dicom-web/instances?00400275.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00400275.00400009=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00400275.ScheduledProcedureStepID=SPS-B"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testSequencePredicatesRequireOneMatchingItem",
+              "line": 140,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testSequencePredicatesRequireOneMatchingItem"
+            }
+          ]
         },
         {
           "id": "NET-02-D-AC03",
           "assertion": "Cover multiple sequence items, missing sequences and date/time ranges; verify the same filters on permitted instance resources.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                83,
+                84,
+                85,
+                86,
+                87,
+                88,
+                89,
+                90,
+                91,
+                92,
+                95,
+                96,
+                97,
+                98,
+                99,
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                108,
+                109,
+                110,
+                111,
+                112,
+                113,
+                114,
+                115,
+                116,
+                117,
+                118,
+                121,
+                122,
+                123
+              ],
+              "probe_paths": [
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260115",
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260117",
+                "/dicom-web/series?PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/series?PerformedProcedureStepStartTime=150000-160000",
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=NO_MATCH",
+                "/dicom-web/series?RequestAttributesSequence.RequestedProcedureID=RP-B",
+                "/dicom-web/series?RequestAttributesSequence.RequestedProcedureID=NO_MATCH",
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260115&PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/series?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/series?00400275.00400009=SPS-A&00400275.00401001=RP-B",
+                "/dicom-web/instances?PerformedProcedureStepStartDate=20260115",
+                "/dicom-web/instances?PerformedProcedureStepStartDate=20260117",
+                "/dicom-web/instances?PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/instances?PerformedProcedureStepStartTime=150000-160000",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=NO_MATCH",
+                "/dicom-web/instances?RequestAttributesSequence.RequestedProcedureID=RP-B",
+                "/dicom-web/instances?RequestAttributesSequence.RequestedProcedureID=NO_MATCH",
+                "/dicom-web/instances?PerformedProcedureStepStartDate=20260115&PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/instances?00400275.00400009=SPS-A&00400275.00401001=RP-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartDate=20260115",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartDate=20260117",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartTime=150000-160000",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=NO_MATCH",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.RequestedProcedureID=RP-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.RequestedProcedureID=NO_MATCH",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?PerformedProcedureStepStartDate=20260115&PerformedProcedureStepStartTime=090000-100000",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?RequestAttributesSequence.ScheduledProcedureStepID=SPS-B",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00400275.00400009=SPS-A&00400275.00401001=RP-B",
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260115-20260116",
+                "/dicom-web/series?PerformedProcedureStepStartDate=20260114-20260116&PerformedProcedureStepStartTime=100000-120000"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testSequencePredicatesRequireOneMatchingItem",
+              "line": 140,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testSequencePredicatesRequireOneMatchingItem"
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testCombinedDateTimeRangesIncludeMiddleDays",
+              "line": 149,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testCombinedDateTimeRangesIncludeMiddleDays"
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "PPS start date/time and nested Request Attributes Sequence filters are placed in customParameters and never evaluated by the shipped provider."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-02-E",
@@ -990,7 +1511,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/InMemoryStorageProvider.swift",
@@ -1013,29 +1534,123 @@
           "id": "NET-02-E-AC01",
           "assertion": "For stored UIDs A/B/C, query A,B and receive exactly A/B at each supported UID level; a single UID remains unchanged.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                81,
+                82
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?StudyInstanceUID=1.2.826.0.1.3680043.10.543.301%2C1.2.826.0.1.3680043.10.543.302",
+                "/dicom-web/studies?0020000D=1.2.826.0.1.3680043.10.543.301%2C1.2.826.0.1.3680043.10.543.302",
+                "/dicom-web/series?SeriesInstanceUID=1.2.826.0.1.3680043.10.543.301.1%2C1.2.826.0.1.3680043.10.543.302.1",
+                "/dicom-web/series?0020000E=1.2.826.0.1.3680043.10.543.301.1%2C1.2.826.0.1.3680043.10.543.302.1",
+                "/dicom-web/instances?SOPInstanceUID=1.2.826.0.1.3680043.10.543.301.1.1%2C1.2.826.0.1.3680043.10.543.302.1.2",
+                "/dicom-web/instances?00080018=1.2.826.0.1.3680043.10.543.301.1.1%2C1.2.826.0.1.3680043.10.543.302.1.2",
+                "/dicom-web/instances?SOPClassUID=1.2.840.10008.5.1.4.1.1.2%2C1.2.840.10008.5.1.4.1.1.4",
+                "/dicom-web/instances?00080016=1.2.840.10008.5.1.4.1.1.2"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testStudyUIDListExcludesThirdStudyForKeywordAndTag",
+              "line": 117,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testStudyUIDListExcludesThirdStudyForKeywordAndTag"
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testParentPredicatesUIDListsAndInstanceNumberAreConjunctive",
+              "line": 97,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testParentPredicatesUIDListsAndInstanceNumberAreConjunctive"
+            }
+          ]
         },
         {
           "id": "NET-02-E-AC02",
           "assertion": "Exercise percent-encoded commas through the HTTP query bridge and both keyword/tag names.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                74,
+                75,
+                76,
+                77,
+                78,
+                79
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?StudyInstanceUID=1.2.826.0.1.3680043.10.543.301%2C1.2.826.0.1.3680043.10.543.302",
+                "/dicom-web/studies?0020000D=1.2.826.0.1.3680043.10.543.301%2C1.2.826.0.1.3680043.10.543.302",
+                "/dicom-web/series?SeriesInstanceUID=1.2.826.0.1.3680043.10.543.301.1%2C1.2.826.0.1.3680043.10.543.302.1",
+                "/dicom-web/series?0020000E=1.2.826.0.1.3680043.10.543.301.1%2C1.2.826.0.1.3680043.10.543.302.1",
+                "/dicom-web/instances?SOPInstanceUID=1.2.826.0.1.3680043.10.543.301.1.1%2C1.2.826.0.1.3680043.10.543.302.1.2",
+                "/dicom-web/instances?00080018=1.2.826.0.1.3680043.10.543.301.1.1%2C1.2.826.0.1.3680043.10.543.302.1.2"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testRawRequestPreservesRepeatedFieldsAndDecodesExactlyOnce",
+              "line": 48,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testRawRequestPreservesRepeatedFieldsAndDecodesExactlyOnce"
+            }
+          ]
         },
         {
           "id": "NET-02-E-AC03",
           "assertion": "A UID list combined with a patient or modality filter returns their intersection, not their union.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                80,
+                148
+              ],
+              "probe_paths": [
+                "/dicom-web/instances?StudyInstanceUID=1.2.826.0.1.3680043.10.543.301%2C1.2.826.0.1.3680043.10.543.302&Modality=MR",
+                "/dicom-web/series?00100020=P1&0020000D=1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302&limit=100&offset=0"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testParentPredicatesUIDListsAndInstanceNumberAreConjunctive",
+              "line": 97,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testParentPredicatesUIDListsAndInstanceNumberAreConjunctive"
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "Study, series and SOP instance UID filters compare a comma-separated UID list as one literal string."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-02-F",
@@ -1046,7 +1661,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
@@ -1064,29 +1679,123 @@
           "id": "NET-02-F-AC01",
           "assertion": "Request an available optional attribute absent from default output; confirm it appears with its dictionary tag/VR/value.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                33,
+                34,
+                35,
+                131,
+                132,
+                133
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?",
+                "/dicom-web/studies?",
+                "/dicom-web/studies?",
+                "/dicom-web/studies?",
+                "/dicom-web/studies?includefield=PatientAge",
+                "/dicom-web/studies?includefield=00101010"
+              ]
+            }
+          ]
         },
         {
           "id": "NET-02-F-AC02",
           "assertion": "Test keyword, hex-tag, nested path, repeated includefield and includefield=all; verify mandatory default fields remain present.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                132,
+                133,
+                134,
+                135,
+                136,
+                137,
+                138,
+                139
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?includefield=PatientAge",
+                "/dicom-web/studies?includefield=00101010",
+                "/dicom-web/studies?includefield=all",
+                "/dicom-web/studies?includefield=PatientAge%2CPatientBirthDate",
+                "/dicom-web/studies?includefield=PatientAge&includefield=PatientBirthDate",
+                "/dicom-web/series?includefield=RequestAttributesSequence.RequestingService",
+                "/dicom-web/series?includefield=00400275.00321033",
+                "/dicom-web/series?includefield=RequestAttributesSequence.00321033"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testReturnProjectionPreservesDefaultsRepeatedCommaAndNestedFields",
+              "line": 174,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testReturnProjectionPreservesDefaultsRepeatedCommaAndNestedFields"
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testProjectionRespectsEntityBoundariesAndPrivateCreators",
+              "line": 195,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testProjectionRespectsEntityBoundariesAndPrivateCreators"
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testKnownConditionalDefaultsAndSOPClassesInStudyAreReturned",
+              "line": 225,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testKnownConditionalDefaultsAndSOPClassesInStudyAreReturned"
+            }
+          ]
         },
         {
           "id": "NET-02-F-AC03",
           "assertion": "Reject the disallowed combination of all with other includefield entries rather than silently choosing one.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                127,
+                128
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?includefield=all&includefield=PatientBirthDate",
+                "/dicom-web/studies?includefield=all,PatientBirthDate"
+              ]
+            },
+            {
+              "source": "Tests/DICOMWebTests/QIDOServerIntegrityTests.swift",
+              "method": "QIDOServerIntegrityTests.testReturnProjectionPreservesDefaultsRepeatedCommaAndNestedFields",
+              "line": 174,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMWebTests.log",
+              "log_token": "testReturnProjectionPreservesDefaultsRepeatedCommaAndNestedFields"
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "includefield is listed among handled parameters but has no parsed return-key representation or response selection, so requested extra attributes are discarded."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-03-A",
@@ -1097,7 +1806,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/dicom-wado/DICOMWado.swift",
@@ -1120,36 +1829,189 @@
           "id": "NET-03-A-AC01",
           "assertion": "Capture requests for all six QIDO resource forms using the same synthetic options and compare against independent expected keys.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                140,
+                141,
+                142,
+                143,
+                144,
+                145
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?00080061=CT&limit=100&offset=0",
+                "/dicom-web/series?00080060=CT&limit=100&offset=0",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?00080060=CT&limit=100&offset=0",
+                "/dicom-web/instances?00080060=CT&limit=100&offset=0",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00080060=CT&limit=100&offset=0",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?00100020=P1&limit=100&offset=0"
+              ]
+            },
+            {
+              "source": "Tests/dicom-wadoTests/QIDOOutgoingResourceTests.swift",
+              "method": "QIDOOutgoingResourceTests.testRealParserBuildsSixResourceFormsWithExactKeys",
+              "line": 7,
+              "passed_log": "Documentation/2026a-milestones/M3/dicom-wadoTests.log",
+              "log_token": "testRealParserBuildsSixResourceFormsWithExactKeys"
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.sixResources",
+              "line": 44,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "All six forms expose and preview exactly their effective request"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-01-all-studies",
+                "qido-02-all-series",
+                "qido-05-study-series",
+                "qido-06-all-instances",
+                "qido-07-study-instances",
+                "qido-08-series-instances-hidden"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "NET-03-A-AC02",
           "assertion": "A study-series instance request with --modality CT must be rejected/explained before sending; it must not send a disallowed ModalitiesInStudy parameter.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                150
+              ],
+              "probe_paths": [
+                null
+              ]
+            },
+            {
+              "source": "Tests/dicom-wadoTests/QIDOOutgoingResourceTests.swift",
+              "method": "QIDOOutgoingResourceTests.testUnsupportedScopeRefusesBeforeURLConfigurationOrDispatch",
+              "line": 26,
+              "passed_log": "Documentation/2026a-milestones/M3/dicom-wadoTests.log",
+              "log_token": "testUnsupportedScopeRefusesBeforeURLConfigurationOrDispatch"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-08-series-instances-hidden"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "NET-03-A-AC03",
           "assertion": "All Instances still supports permitted study and series filtering; the repair must not reject valid relational searches.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                143,
+                146
+              ],
+              "probe_paths": [
+                "/dicom-web/instances?00080060=CT&limit=100&offset=0",
+                "/dicom-web/instances?00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0"
+              ]
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.sixResources",
+              "line": 44,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "All six forms expose and preview exactly their effective request"
+            },
+            {
+              "source": "Tests/dicom-wadoTests/QIDOOutgoingResourceTests.swift",
+              "method": "QIDOOutgoingResourceTests.testRelationalInstancePPSKeysAreAcceptedWithoutIgnoredBehavior",
+              "line": 51,
+              "passed_log": "Documentation/2026a-milestones/M3/dicom-wadoTests.log",
+              "log_token": "testRelationalInstancePPSKeysAreAcceptedWithoutIgnoredBehavior"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-06-all-instances"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "NET-03-A-AC04",
           "assertion": "CLI and Workshop produce identical target resource and effective query parameters for equivalent supported input.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                140,
+                141,
+                142,
+                143,
+                144,
+                145
+              ],
+              "probe_paths": [
+                "/dicom-web/studies?00080061=CT&limit=100&offset=0",
+                "/dicom-web/series?00080060=CT&limit=100&offset=0",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?00080060=CT&limit=100&offset=0",
+                "/dicom-web/instances?00080060=CT&limit=100&offset=0",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00080060=CT&limit=100&offset=0",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?00100020=P1&limit=100&offset=0"
+              ]
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.sixResources",
+              "line": 44,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "All six forms expose and preview exactly their effective request"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-01-all-studies",
+                "qido-02-all-series",
+                "qido-05-study-series",
+                "qido-06-all-instances",
+                "qido-07-study-instances",
+                "qido-08-series-instances-hidden"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "Builders add study keys before selecting scoped URLs. Instance-level modality becomes ModalitiesInStudy even for a study-series instance resource where that study-level filter is not permitted."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-03-B",
@@ -1163,7 +2025,7 @@
         "WS-FIX-03"
       ],
       "scope_decision": "Share the hidden-filter regression matrix with WS-FIX-03; retain separate warning-rule ownership without duplicate implementation.",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/dicom-wado/DICOMWado.swift",
@@ -1191,29 +2053,114 @@
           "id": "NET-03-B-AC01",
           "assertion": "Set a series PPS filter, change to study, and verify the preview and captured request both omit/refuse that filter consistently.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                151
+              ],
+              "probe_paths": [
+                null
+              ]
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.retainedSeriesFilters",
+              "line": 68,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Series study instance transitions hide, retain and restore all four PPS fields"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-02-all-series",
+                "qido-03-study-hidden-pps"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "NET-03-B-AC02",
           "assertion": "Use a PPS filter on All Instances or Study Instances; it is transmitted without an incorrect ignored warning.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Documentation/2026a-milestones/M3/queries/results.json",
+              "zero_based_indices": [
+                146,
+                147
+              ],
+              "probe_paths": [
+                "/dicom-web/instances?00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0",
+                "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?00400244=20260115&00400245=090000-100000&00400275.00400009=SPS-A&00400275.00401001=RP-A&limit=100&offset=0"
+              ]
+            },
+            {
+              "source": "Tests/dicom-wadoTests/QIDOOutgoingResourceTests.swift",
+              "method": "QIDOOutgoingResourceTests.testRelationalInstancePPSKeysAreAcceptedWithoutIgnoredBehavior",
+              "line": 51,
+              "passed_log": "Documentation/2026a-milestones/M3/dicom-wadoTests.log",
+              "log_token": "testRelationalInstancePPSKeysAreAcceptedWithoutIgnoredBehavior"
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.retainedSeriesFilters",
+              "line": 68,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Series study instance transitions hide, retain and restore all four PPS fields"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-06-all-instances",
+                "qido-07-study-instances"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "NET-03-B-AC03",
           "assertion": "Switch back to series and verify any restored value is visible and represented identically in preview and execution.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.retainedSeriesFilters",
+              "line": 68,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Series study instance transitions hide, retain and restore all four PPS fields"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-04-series-restored",
+                "qido-09-study-instances-restored"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "The CLI warns that series keys are ignored at every instance level, although All Instances and Study Instances permit them, then still sends them. Workshop retains hidden PPS fields after changing to study level and can execute a filter absent from its preview."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-04-A",
@@ -1224,7 +2171,7 @@
       "milestone": "M3",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMNetwork/QueryService.swift",
@@ -1242,29 +2189,136 @@
           "id": "NET-04-A-AC01",
           "assertion": "IMAGE plus valid Study/Series UIDs and modality CT produces an explicit rejection/explanation, rather than silently equaling the unfiltered request.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMNetworkTests/QueryFilterPreflightTests.swift",
+              "method": "QueryFilterPreflightTests.testEveryBuilderFilterIsEitherEmittedOrRefusedAtEveryLevel",
+              "line": 9,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMNetworkTests.log",
+              "log_token": "testEveryBuilderFilterIsEitherEmittedOrRefusedAtEveryLevel"
+            },
+            {
+              "source": "Tests/DICOMNetworkTests/QueryFilterPreflightTests.swift",
+              "method": "QueryFilterPreflightTests.testUnsupportedFilterFailsBeforeTransport",
+              "line": 48,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMNetworkTests.log",
+              "log_token": "testUnsupportedFilterFailsBeforeTransport"
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopDIMSEFilterTests.swift",
+              "method": "M3WorkshopDIMSEFilterTests.refuseDroppedFilters",
+              "line": 19,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Unsupported filters refuse before a query header or network operation"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "dimse-03-image-modality-refused"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/dimse-cli/results.json",
+              "runs": [
+                "refuse-image-modality"
+              ]
+            }
+          ]
         },
         {
           "id": "NET-04-A-AC02",
           "assertion": "PATIENT plus study date/description/UID filters produces the same explicit policy.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMNetworkTests/QueryFilterPreflightTests.swift",
+              "method": "QueryFilterPreflightTests.testEveryBuilderFilterIsEitherEmittedOrRefusedAtEveryLevel",
+              "line": 9,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMNetworkTests.log",
+              "log_token": "testEveryBuilderFilterIsEitherEmittedOrRefusedAtEveryLevel"
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopDIMSEFilterTests.swift",
+              "method": "M3WorkshopDIMSEFilterTests.refuseDroppedFilters",
+              "line": 19,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Unsupported filters refuse before a query header or network operation"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "dimse-05-patient-uid-refused",
+                "dimse-06-patient-date-refused",
+                "dimse-07-patient-description-refused"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/dimse-cli/results.json",
+              "runs": [
+                "refuse-patient-study-date",
+                "refuse-patient-study-description",
+                "refuse-patient-study-uid"
+              ]
+            }
+          ]
         },
         {
           "id": "NET-04-A-AC03",
           "assertion": "Valid STUDY modality still maps to (0008,0061) and SERIES modality to (0008,0060); CLI and Workshop show only effective filters.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMNetworkTests/QueryFilterPreflightTests.swift",
+              "method": "QueryFilterPreflightTests.testAcceptedIdentifiersCarryCorrectModalityTagsAndUnchangedQueryExpressions",
+              "line": 62,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMNetworkTests.log",
+              "log_token": "testAcceptedIdentifiersCarryCorrectModalityTagsAndUnchangedQueryExpressions"
+            },
+            {
+              "source": "Tests/dicom-queryTests/QueryLevelOptionTests.swift",
+              "method": "QueryLevelOptionTests.testAppliedFiltersReflectAcceptedWireKeysAndPreserveMatchingExpressions",
+              "line": 72,
+              "passed_log": "Documentation/2026a-milestones/M3/dicom-queryTests.log",
+              "log_token": "testAppliedFiltersReflectAcceptedWireKeysAndPreserveMatchingExpressions"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "dimse-01-study",
+                "dimse-02-series"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/dimse-cli/results.json",
+              "runs": [
+                "study-ct",
+                "series-ct"
+              ]
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "IMAGE modality and PATIENT study filters are accepted and can be displayed, but disappear from the query without a warning. Warning generation does not accept modality."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "NET-05-A",
@@ -1963,7 +3017,7 @@
         "NET-03-A"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
@@ -1996,36 +3050,139 @@
           "id": "WS-FIX-03-AC01",
           "assertion": "Series-to-study transition excludes all four stale keys from outbound request and preview.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.retainedSeriesFilters",
+              "line": 68,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Series study instance transitions hide, retain and restore all four PPS fields"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-02-all-series",
+                "qido-03-study-hidden-pps"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "WS-FIX-03-AC02",
           "assertion": "Switching back to an allowed level restores values consistently if the product intentionally retains them.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.retainedSeriesFilters",
+              "line": 68,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Series study instance transitions hide, retain and restore all four PPS fields"
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.scopeAndToolTransitions",
+              "line": 99,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Scoped parent filters and modality are excluded, then restored; tool changes clear them"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-04-series-restored",
+                "qido-08-series-instances-hidden",
+                "qido-09-study-instances-restored"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "WS-FIX-03-AC03",
           "assertion": "Changing tool clears old state as before.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.scopeAndToolTransitions",
+              "line": 99,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Scoped parent filters and modality are excluded, then restored; tool changes clear them"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-10-tool-reset-cleared"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         },
         {
           "id": "WS-FIX-03-AC04",
           "assertion": "Capture requests for fresh and transitioned forms and compare normalized parameters; include scoped and unscoped resources after network semantics correction.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
+          "result": "Passed",
+          "evidence": [
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.freshAndTransitionedParity",
+              "line": 125,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "UID-list scopes and a transitioned form equal fresh equivalent state"
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.sixResources",
+              "line": 44,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "All six forms expose and preview exactly their effective request"
+            },
+            {
+              "source": "Tests/DICOMStudioTests/M3WorkshopQIDOFilterTests.swift",
+              "method": "M3WorkshopQIDOFilterTests.retainedSeriesFilters",
+              "line": 68,
+              "passed_log": "Documentation/2026a-milestones/M3/DICOMStudioTests.log",
+              "log_token": "Series study instance transitions hide, retain and restore all four PPS fields"
+            },
+            {
+              "source": "Documentation/2026a-milestones/M3/ui-replay/ui-verification.json",
+              "cases": [
+                "qido-01-all-studies",
+                "qido-02-all-series",
+                "qido-05-study-series",
+                "qido-06-all-instances",
+                "qido-07-study-instances",
+                "qido-08-series-instances-hidden",
+                "qido-03-study-hidden-pps",
+                "qido-04-series-restored",
+                "qido-09-study-instances-restored"
+              ],
+              "interpretation": "Actual packaged-app request capture, returned IDs/status, visible console prefix and CLI replay. No full GUI console byte-equality claim."
+            }
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
       "baseline_observations": [
         "Visibility removes all four fields/flags from the UI and preview, but raw values remain stored and the executor unconditionally appends them."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M3",
+        "report": "M3/REPORT.md",
+        "evidence": "M3/verification.json",
+        "acceptance": "M3/acceptance.json",
+        "qualification": "35 item criteria passed; supplemental packaged UID-list/non-ASCII matching-input case unexecuted, covered by shared Workshop/CLI/HTTP tests. See report limits."
+      }
     },
     {
       "id": "WS-FIX-04",
@@ -4064,12 +5221,13 @@
     }
   ],
   "current_summary": {
-    "completed": 19,
-    "not_started": 27,
+    "completed": 30,
+    "not_started": 16,
     "deferred": 22,
     "M0": "Completed",
     "M1": "Completed",
-    "M2": "Completed"
+    "M2": "Completed",
+    "M3": "Completed"
   },
   "baseline_caveats": [
     {

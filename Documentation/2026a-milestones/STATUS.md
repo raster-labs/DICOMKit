@@ -1,9 +1,25 @@
 # DICOM 2026a milestone status
 
-Updated 24 October 2026. **M0, M1 and M2 are complete; M3 has not started.**
+Updated 24 October 2026. **M0–M3 item criteria are complete. Stop before M4.**
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
-commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repairs attribute integrity and workflow datasets.
+commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repairs query safety and filters.
+
+## Completed M3 items
+
+NET-01-A, NET-02-A–F, NET-03-A/B, NET-04-A and WS-FIX-03 are implemented;
+all 35 item criteria have executed evidence. 538 focused runtime tests,
+153 independent QIDO probes, eight DIMSE CLI cases and 30 audit regressions passed.
+The qualified packaged app passed 17 GUI checks, with 16 CLI replays matching
+captured requests. See [M3 report](M3/REPORT.md), [acceptance](M3/acceptance.json),
+[verification](M3/verification.json) and [reproduction](M3/REPRODUCE.md).
+
+Full GUI console byte equality is not claimed because accessibility truncates it.
+A supplemental packaged UID-list/non-ASCII matching-input case remains unexecuted;
+HTTP/CLI/shared Workshop tests cover those semantics. Four existing external DIMSE
+integration tests also remain unexecuted. External providers require explicit
+canonical-matching adoption; no external backend is qualified. Remote results
+must be checked on the pushed commit; local tests do not stand in for CI.
 
 ## Completed M2 items
 
@@ -78,15 +94,15 @@ These are audit-contract corrections; no product options or defaults changed.
 | M0 baseline and audits | 3 | Completed |
 | M1 command/execution safety | 4 | Completed |
 | M2 attribute integrity and workflow datasets | 12 | Completed |
-| M3 query safety and filters | 11 | Not started |
+| M3 query safety and filters | 11 | Completed (35 item criteria) |
 | M4 service reliability | 5 | Not started |
 | M5 remaining Studio contracts | 7 | Not started |
 | M6 print and printscp Workshop coverage | 2 | Not started |
 | M7 final qualification | 2 | Not started |
 | Other enhancements and dormant components | 22 | Deferred |
 
-Of the 68 original actions, **19 are completed, 27 active items remain pending,
-and 22 remain deferred**. 22 product bug-fix actions remain open. The
+Of the 68 original actions, **30 are completed, 16 active items remain pending,
+and 22 remain deferred**. 11 product bug-fix actions remain open. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or
@@ -95,5 +111,5 @@ passing cached-binary tests are retained as historical evidence only; their
 equivalence to this source was not established. Preparation and gates for the
 later verification are in [M0/REPRODUCE.md](M0/REPRODUCE.md).
 
-Stop here before M3. Push M2 on the existing milestone branch. Merging into main,
-releasing and beginning M3 require the user’s next instruction.
+M3 is the latest authorized milestone. Stop before M4; merging into main,
+releasing and beginning M4 require the user’s next instruction.

@@ -1,0 +1,32 @@
+DICOM Query (C-FIND)
+====================
+  Server:            127.0.0.1:49492
+  Calling AE Title:  M3CLI
+  Called AE Title:   M3SCP
+  Query Level:       STUDY
+  Information Model: Study Root
+  Timeout:           5s
+  Filters:
+    Patient Name:    AUDIT*
+    Study Date:      20260101-20261231
+    Modality:        CT
+    Study Desc:      M3*
+
+[
+  {
+    "(0008,0020)" : "20261024",
+    "(0008,0030)" : "103000",
+    "(0008,0050)" : "M31",
+    "(0008,0052)" : "STUDY",
+    "(0008,0061)" : "CT",
+    "(0008,0090)" : "TEST^PHYSICIAN",
+    "(0008,1030)" : "M3 CT STUDY",
+    "(0010,0010)" : "AUDIT^CT",
+    "(0010,0020)" : "M3CT",
+    "(0010,0030)" : "19800101",
+    "(0020,000D)" : "2.25.301",
+    "(0020,0010)" : "1",
+    "(0020,1206)" : "1",
+    "(0020,1208)" : "1"
+  }
+]

@@ -1433,7 +1433,7 @@ let package = Package(
             // DICOMPrintKit: the viewer-presentation geometry and film-pixel
             // transform the print path bakes into marks.
             dependencies: [
-                "DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork", "dicom-mwl",
+                "DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork", "dicom-mwl", "dicom-wado",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             resources: [

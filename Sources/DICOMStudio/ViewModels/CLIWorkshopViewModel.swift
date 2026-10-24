@@ -6802,6 +6802,13 @@ case "dicom-study":
         )
     }
 
+    /// The same effective state used by the rendered form and command preview.
+    /// Retained hidden values never reach the request builder.
+    func effectiveQIDORequest(resolvedModality: String? = nil) throws -> QIDORequest {
+        try WorkshopQIDOParameters.request(values: parameterValues, definitions: parameterDefinitions,
+                                            resolvedModality: resolvedModality)
+    }
+
     /// Executes a QIDO-RS query against a DICOMweb server — the in-app `dicom-wado query`.
     private func executeDicomQIDO() async {
         /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
@@ -6816,92 +6823,41 @@ case "dicom-study":
             return
         }
 
-        let levelStr = paramValue("level").lowercased()
-        let limit = Int(paramValue("limit")) ?? 100
-        let offset = Int(paramValue("offset")) ?? 0
-        let fuzzyMatching = paramValue("fuzzy-matching") == "true"
-        let strictModality = paramValue("strict-modality") == "true"
+        let effective = WorkshopQIDOParameters.effectiveValues(parameterValues, definitions: parameterDefinitions)
+        func effectiveValue(_ id: String) -> String { effective.first { $0.parameterID == id }?.stringValue ?? "" }
+        let levelStr = effectiveValue("level").lowercased()
+        let strictModality = effectiveValue("strict-modality") == "true"
         let fmt = QIDOOutputFormat(rawValue: paramValue("output-format").lowercased()) ?? .table
         let verbose = paramValue("verbose") == "true"
 
-        // PS3.18 8.3.4.4: limit and offset are unsigned (the CLI's validate(), exit 64).
-        if let message = DICOMwebOptionRules.pagingProblem(limit: limit, offset: offset) {
-            refuse(message, exitCode: 64)
-            return
-        }
-
         do {
-            let client = try DICOMwebClientFactory.makeClient(from: profile)
-
-            // The QIDO-RS query the options describe (PS3.18 10.6.1; Table 8.3.4-1), built
-            // in the CLI's order (QueryCommand.buildQuery).
-            var query = QIDOQuery().limit(limit).offset(offset)
-            if fuzzyMatching { query = query.fuzzyMatching(true) }
-            query = query.includeAllFields()
-            let patientName = paramValue("patient-name")
-            let patientID = paramValue("patient-id")
-            let studyDate = paramValue("study-date")
-            let studyUID = paramValue("study-uid")
-            let seriesUID = paramValue("series-uid")
-            let accession = paramValue("accession")
-            let studyDesc = paramValue("study-description")
-
-            if !patientName.isEmpty { query = query.patientName(patientName) }
-            if !patientID.isEmpty { query = query.patientID(patientID) }
-            if !studyDate.isEmpty { query = query.studyDate(studyDate) }
-            if !studyUID.isEmpty { query = query.studyInstanceUID(studyUID) }
-            if !seriesUID.isEmpty { query = query.seriesInstanceUID(seriesUID) }
-            if !accession.isEmpty { query = query.accessionNumber(accession) }
-            // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), then
-            // the matching key per level (PS3.18 Table 10.6.1-5): Modality (0008,0060) at
-            // series level, Modalities In Study (0008,0061) at study / instance level.
-            let resolved = Self.resolveModalityOption(paramValue("modality"), strict: strictModality, verbose: verbose)
+            let resolved = Self.resolveModalityOption(effectiveValue("modality"), strict: strictModality, verbose: verbose)
             if let message = resolved.error {
                 refuse(message, exitCode: 1)
                 return
             }
             for line in resolved.lines { appendConsoleOutput(line + "\n") }
-            if !resolved.value.isEmpty {
-                if levelStr == "series" {
-                    query = query.modality(resolved.value)
-                } else {
-                    query = query.modalitiesInStudy(resolved.value)
-                }
-            }
-            if !studyDesc.isEmpty { query = query.studyDescription(studyDesc) }
-
-            // Series-level matching keys (PS3.18 Table 10.6.1-5). The parameter
-            // definitions hide these outside the series level, so no misplaced-key
-            // warning is reachable here — unlike the CLI, where the flags can be
-            // typed at any level.
-            let ppsStartDate = paramValue("pps-start-date")
-            let ppsStartTime = paramValue("pps-start-time")
-            let qidoSPSID = paramValue("qido-sps-id")
-            let qidoRequestedProcedureID = paramValue("qido-requested-procedure-id")
-            if !ppsStartDate.isEmpty { query = query.performedProcedureStepStartDate(ppsStartDate) }
-            if !ppsStartTime.isEmpty { query = query.performedProcedureStepStartTime(ppsStartTime) }
-            if !qidoSPSID.isEmpty { query = query.scheduledProcedureStepID(qidoSPSID) }
-            if !qidoRequestedProcedureID.isEmpty {
-                query = query.requestedProcedureID(qidoRequestedProcedureID)
-            }
+            let request = try effectiveQIDORequest(resolvedModality: resolved.value)
+            let query = request.query
+            let client = try DICOMwebClientFactory.makeClient(from: profile)
 
             // --verbose mirrors the CLI's stderr chrome: a header before the query and a
             // "Found N …" line after the results. Without it, ONLY the formatted result.
             if verbose {
                 appendConsoleOutput("DICOMweb Server: \(profile.baseURL)\n")
                 appendConsoleOutput("Query Level: \(levelStr)\n")
-                appendConsoleOutput("Limit: \(limit), Offset: \(offset)\n")
+                appendConsoleOutput("Limit: \(query.toParameters()["limit"] ?? "100"), Offset: \(query.toParameters()["offset"] ?? "0")\n")
                 appendConsoleOutput("\n")
             }
 
             // Dispatch mirrors the CLI run(): when the scoping UIDs are present the
             // query is path-scoped (GET /studies/{uid}/series, /studies/{uid}/series/{uid}/instances,
-            // /studies/{uid}/instances); the root all-series/all-instances resources are
-            // optional in PS3.18 and only used when the query is unscoped.
+            // /studies/{uid}/instances). Root all-series/all-instances support is
+            // optional for proxy servers (PS3.18 Table 10.6.1-1).
             switch levelStr {
             case "series":
                 let results: QIDOSeriesResults
-                if !studyUID.isEmpty {
+                if let studyUID = request.studyUID {
                     results = try await client.searchSeries(studyUID: studyUID, query: query)
                 } else {
                     results = try await client.searchAllSeries(query: query)
@@ -6915,9 +6871,9 @@ case "dicom-study":
 
             case "instance":
                 let results: QIDOInstanceResults
-                if !studyUID.isEmpty, !seriesUID.isEmpty {
+                if let studyUID = request.studyUID, let seriesUID = request.seriesUID {
                     results = try await client.searchInstances(studyUID: studyUID, seriesUID: seriesUID, query: query)
-                } else if !studyUID.isEmpty {
+                } else if let studyUID = request.studyUID {
                     results = try await client.searchInstances(studyUID: studyUID, query: query)
                 } else {
                     results = try await client.searchAllInstances(query: query)
@@ -6939,6 +6895,8 @@ case "dicom-study":
                 addToHistory(toolName: "dicom-qido", command: commandPreview, exitCode: 0,
                              output: "\(results.results.count) studies returned\(total)")
             }
+        } catch let error as DICOMwebOptionRefusal {
+            refuse(error.message, exitCode: Int(error.exitCode))
         } catch {
             refuse(error.localizedDescription, exitCode: 1)
         }
@@ -8112,6 +8070,21 @@ case "dicom-study":
             return
         }
 
+        // Refuse unsupported supplied filters before any output claims they were
+        // applied. Keep query matching expressions (ranges/wildcards) unchanged.
+        func buildKeys() -> QueryKeys {
+            DICOMQueryService.buildQueryKeys(
+                level: level, patientName: patientName, patientID: patientID,
+                studyDate: studyDate, modality: modality, accession: accession,
+                studyDescription: studyDesc, referringPhysician: referringPhysician,
+                studyUID: studyUID, seriesUID: seriesUID, seriesDate: seriesDate,
+                instanceUID: instanceUID, includeParentLevelReturnKeys: includeParentKeys)
+        }
+        if let reason = buildKeys().rejectionReason {
+            refuse(reason, exitCode: 64)
+            return
+        }
+
         // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), as the
         // CLI's run() does before any connection: alias note (verbose), retired/unknown
         // warning, or --strict-modality rejection (exit 1).
@@ -8122,62 +8095,19 @@ case "dicom-study":
         }
         modality = resolved.value
         for line in resolved.lines { appendConsoleOutput(line + "\n") }
+        let queryKeys = buildKeys()
 
         // Verbose header via the SHARED NetworkConsole formatter (DICOMNetwork), gated on
         // --verbose so a plain run is just the results table — identical to the CLI. The
         // filter list uses the same canonical order/labels as the CLI's appliedFilters().
         if verbose {
             let model = (level == .patient) ? "Patient Root" : "Study Root"
-            var filters: [(label: String, value: String)] = []
-            func addFilter(_ label: String, _ value: String) {
-                if !value.isEmpty { filters.append((label, value)) }
-            }
-            addFilter("Patient Name:", patientName)
-            addFilter("Patient ID:", patientID)
-            addFilter("Study Date:", studyDate)
-            addFilter("Modality:", modality)
-            addFilter("Study UID:", studyUID)
-            addFilter("Series UID:", seriesUID)
-            addFilter("Accession:", accession)
-            addFilter("Study Desc:", studyDesc)
-            addFilter("Referring Physician:", referringPhysician)
             appendConsoleOutput(NetworkConsole.queryHeader(
                 host: host, port: port,
                 callingAE: callingAET, calledAE: calledAET,
                 level: level, informationModel: model,
-                timeout: Int(timeout), filters: filters))
+                timeout: Int(timeout), filters: DICOMQueryService.appliedFilters(in: queryKeys)))
         }
-
-        // PS3.4 C.4.1.2.1: patient/study filters cannot be matched at SERIES or IMAGE
-        // level under the hierarchical model. The CLI warns on stderr rather than dropping
-        // them silently; the Workshop prints the SAME text (the level named by its
-        // Query/Retrieve Level (0008,0052) value, PS3.4 Table C.6.2-1) into the console.
-        let ignoredFilters = DICOMQueryService.ignoredParentLevelFilters(
-            level: level,
-            patientName: patientName, patientID: patientID,
-            studyDate: studyDate, accession: accession,
-            studyDescription: studyDesc, referringPhysician: referringPhysician)
-        if !ignoredFilters.isEmpty {
-            appendConsoleOutput(
-                "Warning: \(ignoredFilters.joined(separator: ", ")) cannot be matched at \(level.rawValue) level "
-                + "under the hierarchical query model and will be ignored "
-                + "(PS3.4 C.4.1.2.1: only the Unique Keys of the levels above may be sent). "
-                + "Query at STUDY level first, then narrow with --study-uid.\n")
-        }
-
-        // Build C-FIND keys via the SHARED package mapping (DICOMNetwork) — the same
-        // code the dicom-query CLI and the CLI-parity reference use, so input→C-FIND
-        // cannot drift. Pass the SAME argument set as the CLI (incl. accession and
-        // study-description) so the keys — and therefore the result table — match.
-        let queryKeys = DICOMQueryService.buildQueryKeys(
-            level: level,
-            patientName: patientName, patientID: patientID,
-            studyDate: studyDate, modality: modality,
-            accession: accession, studyDescription: studyDesc,
-            referringPhysician: referringPhysician,
-            studyUID: studyUID, seriesUID: seriesUID,
-            seriesDate: seriesDate, instanceUID: instanceUID,
-            includeParentLevelReturnKeys: includeParentKeys)
 
         do {
             let informationModel: QueryRetrieveInformationModel = (level == .patient) ? .patientRoot : .studyRoot

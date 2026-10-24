@@ -50,6 +50,21 @@ final class QueryOutputFormatTests: XCTestCase {
         XCTAssertEqual(keys, keys.sorted(), text)
     }
 
+    func testDICOMJSONRetainsUTF8PersonNameGroupsAndDescription() throws {
+        let result = GenericQueryResult(attributes: [
+            .specificCharacterSet: Data("ISO_IR 192".utf8),
+            .patientName: Data("YAMADA^TARO=山田^太郎".utf8),
+            .studyDescription: Data("検査".utf8)
+        ], level: .study)
+        let text = DICOMQuery.formatter(format: .dicomJSON, level: .study, csvKeywords: false).format(results: [result])
+        let objects = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [[String: Any]])
+        let name = try XCTUnwrap(objects.first?["00100010"] as? [String: Any])
+        let groups = try XCTUnwrap((name["Value"] as? [[String: String]])?.first)
+        XCTAssertEqual(groups["Alphabetic"], "YAMADA^TARO")
+        XCTAssertEqual(groups["Ideographic"], "山田^太郎")
+        XCTAssertEqual((objects.first?["00081030"] as? [String: Any])?["Value"] as? [String], ["検査"])
+    }
+
     func testJSONSummaryIsUnchanged() {
         let text = DICOMQuery.formatter(format: .json, level: .study, csvKeywords: false).format(results: [study()])
         XCTAssertTrue(text.contains("\"(0010,0010)\" : \"MÜLLER^HANS\""), text)

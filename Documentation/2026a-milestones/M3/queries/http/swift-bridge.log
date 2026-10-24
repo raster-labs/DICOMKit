@@ -1,0 +1,11 @@
+Test Suite 'Selected tests' started at 2026-10-24 17:35:16.863.
+Test Suite 'DICOMWebTests.xctest' started at 2026-10-24 17:35:16.869.
+Test Suite 'M3QueryProcessHarnessTests' started at 2026-10-24 17:35:16.869.
+Test Case '-[DICOMWebTests.M3QueryProcessHarnessTests testQueryProcessHarness]' started.
+Test Case '-[DICOMWebTests.M3QueryProcessHarnessTests testQueryProcessHarness]' passed (4.195 seconds).
+Test Suite 'M3QueryProcessHarnessTests' passed at 2026-10-24 17:35:21.064.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.195 (4.196) seconds
+Test Suite 'DICOMWebTests.xctest' passed at 2026-10-24 17:35:21.064.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.195 (4.196) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 17:35:21.064.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.195 (4.201) seconds

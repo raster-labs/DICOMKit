@@ -78,6 +78,11 @@ public struct QueryKeys: Sendable, Hashable {
     
     /// The query keys
     public private(set) var keys: [QueryKey]
+
+    /// A high-level filter combination that cannot be represented by this
+    /// baseline query. The service refuses it before opening an association.
+    /// Kept with the builder so dropping a filter cannot silently broaden a query.
+    public internal(set) var rejectionReason: String?
     
     /// Creates a query keys builder
     ///

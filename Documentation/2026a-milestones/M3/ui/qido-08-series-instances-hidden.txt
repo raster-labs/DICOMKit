@@ -1,0 +1,102 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 240
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button (selected) Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 split group
+				36 container
+					37 scroll area Secondary Actions: Scroll Up, Scroll Down
+					38 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					39 button Description: Run command, Help: Executes the constructed DICOM command
+				40 splitter (disabled, settable, float) 860
+				41 container
+					42 text Command Preview Valid $ Select a tool to build a command
+					43 button Description: Copy command, Help: Copies the command to the clipboard
+					44 text Console SUCCESS
+					45 button Description: Copy console output, Help: Copies the console output to the clipboard
+					46 button Clear console output
+					47 scroll area Secondary Actions: Scroll Up, Scroll Down
+						48 text $ dicom-wado query http://127.0.0.1:49396/dicom-web --level study --patient-id P1 --modality CT --limit 100 --offset 0 --format table
+
+========================================================================================================================
+Study Instance UID   Patient's Name                 Study Date Modalities in Study  Number of Study Related Series
+========================================================================================================================
+1.2.826.0.1.36800... Müller^Synthetic               20260115   CT, MR               2                             
+========================================================================================================================
+
+							49 text $ dicom-wado query http://127.0.0.1:49396/dicom-web --level instance --patient-id P1 --study 1.2.826.0.1.3680043.10.543.301 --series 1.2.826.0.1.3680043.10.543.301.1 --limit 100 --offset 0 --format dicom-json
+
+[
+  {
+    "00080016" : {
+      "Value" : [
+        "1.2.840.10008.5.1.4.1.1.2"
+      ],
+      "vr" : "UI"
+    },
+    "00080018" : {
+      "Value" : [
+        "1.2.826.0.1.3680043.10.543.301.1.1"
+      ],
+      "vr" : "UI"
+    },
+    "00081190" : {
+      "Value" : [
+        "http://127.0.0.1:8042/dicom
+						50 scroll bar (settable, float) 0
+							51 value indicator (settable, float) 0
+							52 increment arrow button
+							53 decrement arrow button
+							54 increment page button
+							55 decrement page button
+					56 text History
+					57 button Clear
+					58 scroll area
+						59 text dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido
+	60 toolbar
+		61 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		62 search text field (settable) Search features
+			63 button Search
+	64 close button
+	65 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	66 minimize button
+	67 text DICOM Studio
+68 menu bar
+	69 DICOMStudio
+	70 File
+	71 Edit
+	72 View
+	73 Image
+	74 Window
+	75 Help

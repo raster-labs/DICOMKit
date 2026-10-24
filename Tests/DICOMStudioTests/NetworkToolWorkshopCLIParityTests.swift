@@ -229,11 +229,11 @@ struct NetworkToolWorkshopCLIParityTests {
                      "--sps-id", "--requested-procedure-id"] {
             let def = try #require(parameter(flag: flag, in: "dicom-qido"),
                                    "dicom-qido Workshop spec is missing \(flag)")
-            // They only match at the series level, so the form must scope them there
-            // rather than letting a study query send a key the server will ignore.
+            // PS3.18 10.6.1.2.1 also permits series attributes on All Instances
+            // and Study's Instances; the resource predicate narrows instance scope.
             let condition = try #require(def.visibleWhen, "\(flag) has no visibleWhen")
             #expect(condition.parameterId == "level")
-            #expect(condition.values == ["series"])
+            #expect(condition.values == ["series", "instance"])
         }
     }
 

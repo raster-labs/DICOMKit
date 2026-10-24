@@ -478,17 +478,17 @@ public actor DICOMwebServer {
         guard accepts(request, Self.metadataMediaTypes) else {
             return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
         }
-        let query = parseQIDOQuery(from: request.queryParameters)
+        let query = try parseQIDOQuery(from: request, resource: .allStudies)
         
         let studies = try await storage.searchStudies(query: query)
         let totalCount = try await storage.countStudies(query: query)
         
-        let json = try encodeStudyResultsAsJSON(studies: studies)
+        let json = try encodeStudyResultsAsJSON(studies: studies, query: query)
         
         var headers: [String: String] = [:]
         headers["X-Total-Count"] = "\(totalCount)"
         // PS3.18 8.3.4.4.1: remaining = total - (offset + results)
-        let remaining = totalCount - (query.offset + studies.count)
+        let remaining = max(0, totalCount - min(query.offset, totalCount) - studies.count)
         if remaining > 0 {
             headers["Warning"] = warning("There are \(remaining) additional results that can be requested")
         }
@@ -500,14 +500,18 @@ public actor DICOMwebServer {
         guard accepts(request, Self.metadataMediaTypes) else {
             return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
         }
-        let query = parseQIDOQuery(from: request.queryParameters)
+        let resource: QIDOResource = studyUID == nil ? .allSeries : .studySeries
+        let query = try parseQIDOQuery(from: request, resource: resource)
         
         let series = try await storage.searchSeries(studyUID: studyUID, query: query)
         
-        let json = try encodeSeriesResultsAsJSON(series: series)
+        let json = try encodeSeriesResultsAsJSON(series: series, query: query, resource: resource)
         
         var headers: [String: String] = [:]
-        headers["X-Total-Count"] = "\(series.count)"
+        let total = try await storage.countSeries(studyUID: studyUID, query: query)
+        headers["X-Total-Count"] = "\(total)"
+        let remaining = max(0, total - min(query.offset, total) - series.count)
+        if remaining > 0 { headers["Warning"] = warning("There are \(remaining) additional results that can be requested") }
         
         return .ok(json: json, headers: headers)
     }
@@ -516,14 +520,18 @@ public actor DICOMwebServer {
         guard accepts(request, Self.metadataMediaTypes) else {
             return .notAcceptable(supportedTypes: Self.metadataMediaTypes)
         }
-        let query = parseQIDOQuery(from: request.queryParameters)
+        let resource: QIDOResource = seriesUID != nil ? .studySeriesInstances : studyUID != nil ? .studyInstances : .allInstances
+        let query = try parseQIDOQuery(from: request, resource: resource)
         
         let instances = try await storage.searchInstances(studyUID: studyUID, seriesUID: seriesUID, query: query)
         
-        let json = try encodeInstanceResultsAsJSON(instances: instances)
+        let json = try encodeInstanceResultsAsJSON(instances: instances, query: query, resource: resource)
         
         var headers: [String: String] = [:]
-        headers["X-Total-Count"] = "\(instances.count)"
+        let total = try await storage.countInstances(studyUID: studyUID, seriesUID: seriesUID, query: query)
+        headers["X-Total-Count"] = "\(total)"
+        let remaining = max(0, total - min(query.offset, total) - instances.count)
+        if remaining > 0 { headers["Warning"] = warning("There are \(remaining) additional results that can be requested") }
         
         return .ok(json: json, headers: headers)
     }
@@ -1732,78 +1740,48 @@ public actor DICOMwebServer {
     /// (`PatientName=` and `00100010=` are equivalent), so both are accepted for
     /// every key. Covers every required matching attribute of PS3.18 Table
     /// 10.6.1-5 plus the common optional ones.
-    private func parseQIDOQuery(from parameters: [String: String]) -> StorageQuery {
+    private func parseQIDOQuery(from request: DICOMwebRequest, resource: QIDOResource) throws -> StorageQuery {
+        guard !request.hasMalformedQueryEncoding else { throw QIDOQueryRules.refusal("Malformed percent encoding in query") }
         var query = StorageQuery()
-        func value(_ keyword: String, _ tag: String) -> String? {
-            let v = parameters[keyword] ?? parameters[tag]
-            return (v?.isEmpty ?? true) ? nil : v
+        var seen: Set<String> = []
+        var includes: [String] = []
+        for item in request.queryItems {
+            let key = item.name, value = item.value ?? ""
+            if key == "includefield" {
+                for field in value.components(separatedBy: ",") {
+                    includes.append(field == "all" ? "all" : try QIDOQueryRules.canonicalPath(field))
+                }
+                continue
+            }
+            if ["offset", "limit", "fuzzymatching"].contains(key) {
+                guard seen.insert(key).inserted else { throw QIDOQueryRules.refusal("Repeated query parameter: \(key)") }
+                switch key {
+                case "offset": query.offset = try QIDOQueryRules.nonnegativeInteger(value, name: key)
+                case "limit": query.limit = try QIDOQueryRules.nonnegativeInteger(value, name: key)
+                default:
+                    guard ["true", "false"].contains(value.lowercased()) else { throw QIDOQueryRules.refusal("fuzzymatching must be true or false") }
+                    query.fuzzyMatching = value.lowercased() == "true"
+                }
+                continue
+            }
+            let canonical = try QIDOQueryRules.canonicalPath(key)
+            guard let level = QIDOResource.matchingLevel(for: canonical), resource.allows(level) else {
+                throw QIDOQueryRules.refusal("Unsupported matching attribute \(key) for \(resource.pathTemplate)")
+            }
+            guard seen.insert(canonical).inserted else { throw QIDOQueryRules.refusal("Repeated matching attribute: \(key)") }
+            try QIDOQueryRules.validate(value, path: canonical)
+            query.matchingAttributes[canonical] = value
         }
-
-        // Study level
-        query.patientName = value("PatientName", "00100010")
-        query.patientID = value("PatientID", "00100020")
-        query.accessionNumber = value("AccessionNumber", "00080050")
-        query.studyInstanceUID = value("StudyInstanceUID", "0020000D")
-        query.studyID = value("StudyID", "00200010")
-        query.studyDescription = value("StudyDescription", "00081030")
-        query.referringPhysicianName = value("ReferringPhysicianName", "00080090")
-        if let date = value("StudyDate", "00080020") {
-            query.studyDate = StorageQuery.DateRange(dicomValue: date)
+        if includes.contains("all") {
+            guard includes.count == 1 else { throw QIDOQueryRules.refusal("includefield=all cannot be combined with another includefield") }
+            query.includeAll = true
+        } else { query.includeFields = includes }
+        guard query.matchingAttributes.isEmpty || storage.supportsCanonicalQIDOMatching else {
+            throw DICOMwebError.notImplemented(message: "Storage provider has not adopted canonical QIDO matching")
         }
-        if let time = value("StudyTime", "00080030") {
-            query.studyTime = StorageQuery.DateRange(dicomValue: time, format: "HHmmss")
-        }
-        if let modalities = value("ModalitiesInStudy", "00080061") {
-            query.modalitiesInStudy = modalities
-                .split(whereSeparator: { $0 == "\\" || $0 == "," })
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-        }
-
-        // Series level
-        query.seriesInstanceUID = value("SeriesInstanceUID", "0020000E")
-        query.modality = value("Modality", "00080060")
-        query.seriesDescription = value("SeriesDescription", "0008103E")
-        query.bodyPartExamined = value("BodyPartExamined", "00180015")
-        if let number = value("SeriesNumber", "00200011").flatMap({ Int($0) }) {
-            query.seriesNumber = number
-        }
-
-        // Instance level
-        query.sopInstanceUID = value("SOPInstanceUID", "00080018")
-        query.sopClassUID = value("SOPClassUID", "00080016")
-        if let number = value("InstanceNumber", "00200013").flatMap({ Int($0) }) {
-            query.instanceNumber = number
-        }
-
-        // Anything else (e.g. PerformedProcedureStepStartDate) is kept for
-        // providers that can match on it.
-        let handled: Set<String> = [
-            "PatientName", "00100010", "PatientID", "00100020", "AccessionNumber", "00080050",
-            "StudyInstanceUID", "0020000D", "StudyID", "00200010", "StudyDescription", "00081030",
-            "ReferringPhysicianName", "00080090", "StudyDate", "00080020", "StudyTime", "00080030",
-            "ModalitiesInStudy", "00080061", "SeriesInstanceUID", "0020000E", "Modality", "00080060",
-            "SeriesDescription", "0008103E", "BodyPartExamined", "00180015", "SeriesNumber", "00200011",
-            "SOPInstanceUID", "00080018", "SOPClassUID", "00080016", "InstanceNumber", "00200013",
-            "offset", "limit", "fuzzymatching", "includefield",
-        ]
-        for (k, v) in parameters where !handled.contains(k) {
-            query.customParameters[k] = v
-        }
-
-        if let offset = parameters["offset"], let value = Int(offset) {
-            query.offset = value
-        }
-        if let limit = parameters["limit"], let value = Int(limit) {
-            query.limit = value
-        }
-        if let fuzzy = parameters["fuzzymatching"], fuzzy.lowercased() == "true" {
-            query.fuzzyMatching = true
-        }
-        
         return query
     }
-    
+
     private func buildMultipartDICOMResponse(instances: [InstanceInfo]) -> (data: Data, boundary: String) {
         let boundary = "----DICOMBoundary\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
         var body = Data()
@@ -1835,7 +1813,7 @@ public actor DICOMwebServer {
         return try encoder.encodeMultiple(elementArrays)
     }
     
-    private func encodeStudyResultsAsJSON(studies: [StudyRecord]) throws -> Data {
+    private func encodeStudyResultsAsJSON(studies: [StudyRecord], query: StorageQuery) throws -> Data {
         var results: [[String: Any]] = []
         
         for study in studies {
@@ -1885,13 +1863,13 @@ public actor DICOMwebServer {
             dict["00201206"] = createDICOMJSONValue(vr: "IS", value: "\(study.numberOfStudyRelatedSeries)")
             dict["00201208"] = createDICOMJSONValue(vr: "IS", value: "\(study.numberOfStudyRelatedInstances)")
             
-            results.append(dict)
+            results.append(try QIDOResponseProjection.project(base: dict, attributes: study.attributes, query: query, resource: .allStudies))
         }
         
         return try DICOMJSONWriter().data(with: results)
     }
     
-    private func encodeSeriesResultsAsJSON(series: [SeriesRecord]) throws -> Data {
+    private func encodeSeriesResultsAsJSON(series: [SeriesRecord], query: StorageQuery, resource: QIDOResource) throws -> Data {
         var results: [[String: Any]] = []
         
         for s in series {
@@ -1917,13 +1895,13 @@ public actor DICOMwebServer {
             
             dict["00201209"] = createDICOMJSONValue(vr: "IS", value: "\(s.numberOfSeriesRelatedInstances)")
             
-            results.append(dict)
+            results.append(try QIDOResponseProjection.project(base: dict, attributes: s.attributes, query: query, resource: resource))
         }
         
         return try DICOMJSONWriter().data(with: results)
     }
     
-    private func encodeInstanceResultsAsJSON(instances: [InstanceRecord]) throws -> Data {
+    private func encodeInstanceResultsAsJSON(instances: [InstanceRecord], query: StorageQuery, resource: QIDOResource) throws -> Data {
         var results: [[String: Any]] = []
         
         for instance in instances {
@@ -1954,7 +1932,7 @@ public actor DICOMwebServer {
             dict["00081190"] = createDICOMJSONValue(vr: "UR",                   // Retrieve URL
                 value: "\(configuration.baseURL.absoluteString)/studies/\(instance.studyInstanceUID)/series/\(instance.seriesInstanceUID)/instances/\(instance.sopInstanceUID)")
             
-            results.append(dict)
+            results.append(try QIDOResponseProjection.project(base: dict, attributes: instance.attributes, query: query, resource: resource))
         }
         
         return try DICOMJSONWriter().data(with: results)
@@ -1983,6 +1961,8 @@ public actor DICOMwebServer {
             return .notFound()
         case .timeout:
             return .serviceUnavailable()
+        case .notImplemented:
+            return .notImplemented(message: error.localizedDescription)
         default:
             return .internalError(message: error.localizedDescription)
         }

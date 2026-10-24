@@ -1369,8 +1369,8 @@ public enum ToolCatalogHelpers: Sendable {
                     parameterType: .textField, placeholder: "e.g. 20260101 or 20260101-20260310",
                     helpText: "Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)"
                 ),
-                // Modalities In Study (0008,0061) at study / instance level, Modality (0008,0060)
-                // at series level (PS3.18 Table 10.6.1-5), validated by the shared
+                // Modalities In Study (0008,0061) for studies; Modality (0008,0060)
+                // for series and relational instance resources, validated by the shared
                 // ModalityOptionValidator as the CLI does (PS3.3 C.7.3.1.1.1).
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
@@ -1387,12 +1387,12 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study", displayName: "Study Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Study Instance UID to filter results (0020,000D)"
+                    helpText: "A single Study Instance UID scopes series/instance paths; a comma-separated UID list remains a matching filter (0020,000D)"
                 ),
                 CLIParameterDefinition(
                     id: "series-uid", flag: "--series", displayName: "Series Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Series Instance UID to filter results (0020,000E)"
+                    helpText: "A single Series Instance UID with a study scopes instance paths; a comma-separated UID list remains a matching filter (0020,000E)"
                 ),
                 CLIParameterDefinition(
                     id: "accession", flag: "--accession-number", displayName: "Accession Number",
@@ -1405,36 +1405,35 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "Study description filter — supports wildcards (0008,1030)",
                     isAdvanced: true
                 ),
-                // Series-level matching keys of PS3.18 Table 10.6.1-5. They only match at
-                // the series level, so — exactly like the CLI, which warns and ignores them
-                // elsewhere — the fields appear only when Query Level is `series`.
+                // Series IE matching keys also apply to All Instances and Study's
+                // Instances. WorkshopQIDOParameters applies the exact resource scope.
                 CLIParameterDefinition(
                     id: "pps-start-date", flag: "--pps-start-date", displayName: "PPS Start Date",
                     parameterType: .textField, placeholder: "e.g. 20260101 or 20260101-20260310",
                     helpText: "Performed Procedure Step Start Date (0040,0244) — YYYYMMDD or a range",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 CLIParameterDefinition(
                     id: "pps-start-time", flag: "--pps-start-time", displayName: "PPS Start Time",
                     parameterType: .textField, placeholder: "e.g. 101500 or 100000-180000",
                     helpText: "Performed Procedure Step Start Time (0040,0245) — HHMMSS or a range",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 CLIParameterDefinition(
                     id: "qido-sps-id", flag: "--sps-id", displayName: "Scheduled Procedure Step ID",
                     parameterType: .textField, placeholder: "e.g. SPS001",
                     helpText: "Scheduled Procedure Step ID inside Request Attributes Sequence (0040,0275.0040,0009)",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 CLIParameterDefinition(
                     id: "qido-requested-procedure-id", flag: "--requested-procedure-id", displayName: "Requested Procedure ID",
                     parameterType: .textField, placeholder: "e.g. RP1",
                     helpText: "Requested Procedure ID inside Request Attributes Sequence (0040,0275.0040,1001)",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 // limit / offset are the unsigned paging parameters of PS3.18 Table 8.3.4-1 /
                 // 8.3.4.4 (the CLI refuses a negative value); fuzzymatching=true is 8.3.4.2.
@@ -4767,6 +4766,55 @@ case "dicom-script":
 
 // MARK: - 16.3 Command Builder Helpers
 
+/// QIDO retains form values across resource changes, but only applicable values
+/// participate in visibility, preview, validation and the actual request.
+public enum WorkshopQIDOParameters {
+    public static let matchingTags: [String: String] = [
+        "patient-name": "00100010", "patient-id": "00100020", "study-date": "00080020",
+        "accession": "00080050", "study-description": "00081030",
+        "pps-start-date": "00400244", "pps-start-time": "00400245",
+        "qido-sps-id": "00400275.00400009", "qido-requested-procedure-id": "00400275.00401001",
+    ]
+
+    public static func isApplicable(_ id: String, values: [CLIParameterValue]) -> Bool {
+        func value(_ key: String) -> String? { values.first { $0.parameterID == key }?.stringValue }
+        let level = value("level").flatMap { $0.isEmpty ? nil : $0 } ?? "study"
+        guard let resource = try? QIDOResource.resolve(level: level, studyUID: value("study-uid"), seriesUID: value("series-uid")) else { return true }
+        // UID controls select the resource as well as supplying matching keys.
+        if id == "series-uid" { return level != "study" }
+        if id == "modality" || id == "strict-modality" {
+            return resource == .allStudies || resource.allows(.series)
+        }
+        guard let tag = matchingTags[id], let attributeLevel = QIDOResource.matchingLevel(for: tag) else { return true }
+        return resource.allows(attributeLevel)
+    }
+
+    public static func effectiveValues(_ values: [CLIParameterValue], definitions: [CLIParameterDefinition]) -> [CLIParameterValue] {
+        values.filter { value in
+            guard let definition = definitions.first(where: { $0.id == value.parameterID }) else { return false }
+            return CommandBuilderHelpers.isVisible(definition, parameterValues: values, parameterDefinitions: definitions)
+        }
+    }
+
+    public static func request(values: [CLIParameterValue], definitions: [CLIParameterDefinition],
+                               resolvedModality: String? = nil) throws -> QIDORequest {
+        let effective = effectiveValues(values, definitions: definitions)
+        func value(_ id: String) -> String {
+            effective.first { $0.parameterID == id }?.stringValue
+                ?? definitions.first { $0.id == id }?.defaultValue ?? ""
+        }
+        guard let limit = Int(value("limit")), let offset = Int(value("offset")) else {
+            throw DICOMwebOptionRefusal(.usage, "--limit and --offset must be nonnegative integers")
+        }
+        try DICOMwebOptionRules.validatePaging(limit: limit, offset: offset)
+        var parameters: [String: String] = ["limit": String(limit), "offset": String(offset)]
+        if value("fuzzy-matching") == "true" { parameters["fuzzymatching"] = "true" }
+        for (id, tag) in matchingTags where !value(id).isEmpty { parameters[tag] = value(id) }
+        return try QIDORequest(level: value("level"), studyUID: value("study-uid"), seriesUID: value("series-uid"),
+                               query: QIDOQuery(parameters: parameters), modality: resolvedModality ?? value("modality"))
+    }
+}
+
 /// Helpers for building CLI command strings from parameters.
 public enum CommandBuilderHelpers: Sendable {
 
@@ -5017,8 +5065,12 @@ public enum CommandBuilderHelpers: Sendable {
         parameterValues: [CLIParameterValue],
         parameterDefinitions: [CLIParameterDefinition]
     ) -> Bool {
-        isVisible(def, parameterValues: parameterValues,
-                  parameterDefinitions: parameterDefinitions, visiting: [])
+        // qido-sps-id is unique to the QIDO form; do not apply resource rules to
+        // the similarly named DIMSE/WADO parameters in other tools.
+        if parameterDefinitions.contains(where: { $0.id == "qido-sps-id" }),
+           !WorkshopQIDOParameters.isApplicable(def.id, values: parameterValues) { return false }
+        return isVisible(def, parameterValues: parameterValues,
+                         parameterDefinitions: parameterDefinitions, visiting: [])
     }
 
     /// Transitive visibility check. `visiting` carries the ids already being resolved on the
