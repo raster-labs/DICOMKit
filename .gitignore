@@ -47,3 +47,6 @@ memory/
 # Claude Code local-only settings and runtime state
 .claude/settings.local.json
 .claude/*.lock
+
+# Python audit tooling caches
+__pycache__/

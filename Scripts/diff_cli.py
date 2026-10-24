@@ -51,7 +51,75 @@ GROUPS = {
            'dicom-pdf', 'dicom-anon'],
     'G4': ['dicom-ai', 'dicom-report', 'dicom-measure', 'dicom-3d', 'dicom-viewer', 'dicom-script'],
 }
-ALL_TOOLS = [t for g in GROUPS.values() for t in g]
+
+
+def swift_code(src, mask_strings=False):
+    """Mask comments (and optionally strings), retaining offsets and line numbers.
+
+    This is a source-inventory helper, not evaluation of conditional Swift code.
+    Package.swift's literal executable declarations are the inventory authority.
+    """
+    out, i = list(src), 0
+
+    def mask(start, end):
+        out[start:end] = ['\n' if c == '\n' else ' ' for c in src[start:end]]
+
+    while i < len(src):
+        start = i
+        if src.startswith('//', i):
+            i = src.find('\n', i)
+            if i < 0:
+                i = len(src)
+            mask(start, i)
+        elif src.startswith('/*', i):
+            i, depth = i + 2, 1
+            while i < len(src) and depth:
+                if src.startswith('/*', i):
+                    depth, i = depth + 1, i + 2
+                elif src.startswith('*/', i):
+                    depth, i = depth - 1, i + 2
+                else:
+                    i += 1
+            mask(start, i)
+        elif src[i] == '"':
+            quote = '"""' if src.startswith('"""', i) else '"'
+            i += len(quote)
+            while i < len(src):
+                if src[i] == '\\':
+                    i += 2
+                elif src.startswith(quote, i):
+                    i += len(quote)
+                    break
+                else:
+                    i += 1
+            if mask_strings:
+                mask(start, min(i, len(src)))
+        else:
+            i += 1
+    return ''.join(out)
+
+
+def active_tools(manifest=None):
+    """Enabled literal dicom-* executable products in Package.swift, in declaration order."""
+    if manifest is None:
+        with open(os.path.join(ROOT, 'Package.swift'), encoding='utf-8') as source:
+            manifest = source.read()
+    code = swift_code(manifest)
+    names = []
+    for match in re.finditer(r'\.executable\s*\(', swift_code(manifest, mask_strings=True)):
+        name = re.match(r'\s*name\s*:\s*"(dicom-[^"]+)"', code[match.end():])
+        if name:
+            names.append(name.group(1))
+    return names
+
+
+def source_tools():
+    """CLI source directories, including products disabled in Package.swift."""
+    return sorted(name for name in os.listdir(SOURCES)
+                  if name.startswith('dicom-') and os.path.isdir(os.path.join(SOURCES, name)))
+
+
+ALL_TOOLS = active_tools()
 
 # Findings whose fix changes a public option name, an accepted value, a JSON key or a shared DICOMKit
 # type, waiting for the owner (PEND). Key: substring of the finding text; value: P-item name.
@@ -112,8 +180,8 @@ def option_names(kind, attr, var):
             names.append('-' + var[0])
         if '.long' in attr and not custom:
             names.append('--' + kebab(var))
-    if 'inversion' in (attr or ''):
-        names = [n for n in names] + ['--no-' + kebab(var).replace('enable-', '', 1) if False else '--no-' + kebab(var)]
+    if re.search(r'\binversion\s*:\s*\.prefixedNo\b', swift_code(attr or '', mask_strings=True)):
+        names += ['--no-' + name[2:] for name in names if name.startswith('--')]
     return names or ['--' + kebab(var)]
 
 
@@ -165,7 +233,7 @@ def extract_options(src, fname):
         hm = HELP.search(attr)
         help_text = swift_help(hm.group(1) or hm.group(2) or '') if hm else ''
         if not default and kind == 'Flag':
-            default = 'false'
+            default = 'nil' if typ.endswith('?') else 'false'
         documented = INLINE_DEFAULT.search(help_text)
         out.append({
             'file': fname, 'line': src.count('\n', 0, m.start()) + 1, 'kind': kind, 'var': var,
@@ -386,6 +454,18 @@ def check_contract(rep, parts, tool, options):
 
 # --- report emission -----------------------------------------------------------------------------
 
+def run_check(rep, name, check, missing_parts=()):
+    """An unavailable/broken audit check is a visible failure, never a passing skip."""
+    if missing_parts:
+        rep.check(name, 0, wrong=['AUDIT ERROR: missing standard parts ' +
+                                 ', '.join(f'PS3.{n}' for n in sorted(missing_parts))])
+        return
+    try:
+        check()
+    except (Exception, SystemExit) as error:
+        rep.check(name, 0, wrong=[f'AUDIT ERROR: {type(error).__name__}: {error}'])
+
+
 def emit_contract(parts, tool):
     files, options, outputs, commands = surface(tool)
     rows = CONTRACT.get(tool, {})
@@ -396,7 +476,7 @@ def emit_contract(parts, tool):
     print('|---|---|---|---|---|---|---|---|')
     for o in options:
         name = ', '.join(o['names'])
-        row = rows.get(o['names'][-1]) or rows.get(o['names'][0])
+        row = rows.get(o['names'][0]) or rows.get(o['names'][-1])
         concept, ref, allowed, verdict = (row + ('', ''))[:4] if row else ('', '', '', 'plumbing')
         accepts = o['type'].replace('|', '\\|')
         print(f"| `{name}` | {concept} | {ref} | {allowed} | `{accepts}` | | `{o['default'] or '—'}` | {verdict} |")
@@ -425,7 +505,19 @@ def main():
     ap.add_argument('--list-surface', action='store_true', help='print the extracted options per tool and exit')
     args = ap.parse_args()
 
-    tools = args.tool or (GROUPS[args.group] if args.group else ALL_TOOLS)
+    active, sources = active_tools(), source_tools()
+    tools = ([args.emit_contract] if args.emit_contract else args.tool or
+             ([t for t in GROUPS[args.group] if t in active] if args.group else active))
+    unknown = set(tools + ([args.emit_contract] if args.emit_contract else [])) - set(sources)
+    if unknown:
+        ap.error('no CLI source directory for ' + ', '.join(sorted(unknown)))
+    inactive = sorted(set(sources) - set(active))
+    print(f'CLI inventory: {len(active)} active executable products; {len(sources)} source directories; '
+          f'{len(inactive)} disabled/source-only ({", ".join(inactive) or "none"})')
+    print(f'Audit selection: {len(tools)} tool(s); disabled sources require explicit --tool selection')
+    for tool in tools:
+        if tool not in active:
+            print(f'SOURCE-ONLY {tool}: not an active Package.swift executable product')
     if args.emit_contract:
         emit_contract({}, args.emit_contract)
         return
@@ -449,21 +541,20 @@ def main():
         return
 
     rep = dw.Report(args.verbose)
-    core_files = dw.read_all(os.path.join(SOURCES, 'DICOMCore'))
     for tool in tools:
         files, options, outputs, commands = surface(tool)
         tags, local_tags = dk.tag_constants(os.path.join(SOURCES, 'DICOMCore'), files)
         print(f'\n== {tool} ({len(files)} files, {len(options)} options)')
         checks = [
-            ('generic', lambda: check_generic(rep, parts, tool, files, tags, local_tags)),
-            ('transfer_syntax_names', lambda: check_transfer_syntax_names(rep, parts[6], tool, files, options)),
-            ('defaults', lambda: check_documented_defaults(rep, tool, files, options)),
-            ('contract', lambda: check_contract(rep, parts, tool, options)),
+            ('generic', {3, 4, 5, 6, 10, 15, 16}, lambda: check_generic(rep, parts, tool, files, tags, local_tags)),
+            ('transfer_syntax_names', {6}, lambda: check_transfer_syntax_names(rep, parts[6], tool, files, options)),
+            ('defaults', set(), lambda: check_documented_defaults(rep, tool, files, options)),
+            ('contract', set(), lambda: check_contract(rep, parts, tool, options)),
         ]
-        for name, fn in checks:
+        for name, required, fn in checks:
             if args.only and args.only not in name:
                 continue
-            fn()
+            run_check(rep, f'{tool}: {name}', fn, required - parts.keys())
     print(f'\n{rep.failed} check(s) with wrong or missing values, {rep.pending} pending owner approval')
     sys.exit(1 if rep.failed else 0)
 
