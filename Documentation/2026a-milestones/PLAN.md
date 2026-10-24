@@ -4,7 +4,7 @@ This plan addresses all 68 review items: **46 active items and 22 explicitly def
 
 Baseline: `4b68d7e22829418c88e48dd53d98b25fee50d90d` in `repository root`. The checkout was unchanged and clean when this plan was prepared.
 
-**Implementation status:** M0 only is authorized. The current result is tracked in [STATUS.md](STATUS.md); M1 remains unstarted. The gates below describe later work and do not claim execution.
+**Implementation status:** M0–M2 are complete. M2 is the latest authorized milestone; stop before M3. Current results are in [STATUS.md](STATUS.md) and [M2/REPORT.md](M2/REPORT.md). Later gates remain unexecuted.
 
 The [item ledger](items.json) preserves every finding and acceptance assertion. This plan adds sequencing, dependencies, scoped alternatives and separate CLI/app gates.
 
@@ -36,7 +36,7 @@ Only the two print coverage items move from optional enhancement to planned impl
 | M6 | 2 | Print SCU and Print SCP in CLI Workshop | Only enhancement milestone |
 | M7 | 2 | Final source and packaged app qualification | Final acceptance |
 
-Start with the M0 baseline package. Run M1, M2 and M3 as parallel critical tracks, with pagination first in M3. Do not delay P1 work for the low-priority audit alias repair. M4 and M5 follow the primitives they use. M6 is the only enhancement milestone. M7 closes qualification after integration.
+Start with the M0 baseline package. M1, M2 and M3 have parallelizable dependencies, with pagination first in M3. Execution follows the user’s one-milestone-at-a-time authorization; this dependency graph does not authorize later work. Do not delay P1 work for the low-priority audit alias repair. M4 and M5 follow the primitives they use. M6 is the only enhancement milestone. M7 closes qualification after integration.
 
 ```mermaid
 flowchart TD

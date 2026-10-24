@@ -62,6 +62,26 @@ public enum TagEditRules {
         return .LO
     }
 
+    /// Resolve ambiguous numeric VRs from the final edit context, never dictionary order.
+    public static func resolvedWriteVR(for tag: Tag, existing: VR?, in dataSet: DataSet) throws -> VR {
+        let alternatives = (DataElementDictionary.lookup(tag: tag)?.vr ?? []).filter { $0 != .UN }
+        if alternatives.contains(.US), alternatives.contains(.SS), existing != .OW {
+            if let representation = dataSet[.pixelRepresentation] {
+                guard representation.vr == .US, representation.valueData.count == 2,
+                      let value = representation.uint16Value, value <= 1 else {
+                    throw TagEditRefusal("--set \(tag.description): US/SS requires final Pixel Representation (0028,0103) to be US VM 1 with value 0 or 1")
+                }
+                return value == 0 ? .US : .SS
+            }
+            if let existing, existing == .US || existing == .SS { return existing }
+            throw TagEditRefusal("--set \(tag.description): ambiguous US/SS VR; supply Pixel Representation (0028,0103)=0 or 1")
+        }
+        if alternatives.count > 1, existing == nil {
+            throw TagEditRefusal("--set \(tag.description): ambiguous VR \(alternatives.map(\.rawValue).joined(separator: "/")); no contextual text encoding is available")
+        }
+        return writeVR(for: tag, existing: existing)
+    }
+
     // MARK: - PS3.5 Table 6.2-1 limits
 
     /// How Table 6.2-1 counts a Value's length.
@@ -128,52 +148,12 @@ public enum TagEditRules {
         default:
             break
         }
-        for value in values(of: text, vr: vr) {
-            if let problem = stringValueProblem(value, vr: vr) { return problem }
-        }
-        return nil
-    }
-
-    private static func stringValueProblem(_ value: String, vr: VR) -> String? {
-        if value.isEmpty { return nil }  // a zero-length Value is always encodable
-        if let allowed = repertoires[vr], let bad = value.first(where: { !allowed.contains($0) }) {
-            return "\"\(value)\": character \"\(bad)\" is not allowed in VR \(vr.rawValue) (PS3.5 Table 6.2-1)"
-        }
-        let controlAllowed: Set<Character> = singleValuedTextVRs.contains(vr)
-            ? ["\t", "\n", "\r", "\u{0C}", "\u{1B}", "\r\n"] : ["\u{1B}"]
-        if let bad = value.unicodeScalars.first(where: { $0.value < 0x20 || $0.value == 0x7F }),
-           !controlAllowed.contains(Character(bad)) {
-            return "\"\(value)\": control character U+\(String(format: "%04X", bad.value)) is not allowed in VR \(vr.rawValue) (PS3.5 Table 6.2-1)"
-        }
-        if vr == .AE, value.allSatisfy({ $0 == " " }) {
-            return "an AE Value consisting solely of spaces shall not be used (PS3.5 Table 6.2-1)"
-        }
-        if vr == .IS, let n = Int(value.trimmingCharacters(in: .whitespaces)),
-           n < Int(Int32.min) || n > Int(Int32.max) {
-            return "\"\(value)\": IS must be in the range -2^31 to 2^31-1 (PS3.5 Table 6.2-1)"
-        }
-        guard let limit = lengthLimits[vr] else { return nil }
-        let parts = vr == .PN ? value.split(separator: "=", omittingEmptySubsequences: false).map(String.init) : [value]
-        if vr == .PN, parts.count > 3 {
-            return "\"\(value)\": PN has at most 3 component groups (PS3.5 6.2.1)"
-        }
-        for part in parts {
-            if vr == .PN, part.split(separator: "^", omittingEmptySubsequences: false).count > 5 {
-                return "\"\(part)\": a PN component group has at most 5 components (PS3.5 Table 6.2-1, 6.2.1)"
-            }
-            let length = limit.unit == .bytes ? part.utf8.count : part.count
-            if limit.fixed ? length != limit.max : length > limit.max {
-                let rule = limit.fixed ? "exactly \(limit.max)" : "at most \(limit.max)"
-                let unit = limit.unit == .bytes ? "bytes" : "characters"
-                let scope = vr == .PN ? " per component group" : ""
-                return "\"\(part)\" is \(length) \(unit); VR \(vr.rawValue) allows \(rule) \(unit)\(scope) (PS3.5 Table 6.2-1)"
-            }
-        }
-        return nil
+        return DICOMValueRules.textProblem(text, vr: vr)
     }
 
     /// Parses decimal text for a binary numeric VR, checking the Table 6.2-1 range.
     public static func numericValues(_ text: String, vr: VR) -> (doubles: [Double], problem: String?) {
+        if text.isEmpty { return ([], nil) }
         var out: [Double] = []
         for raw in values(of: text, vr: vr) {
             let value = raw.trimmingCharacters(in: .whitespaces)
@@ -205,8 +185,19 @@ public enum TagEditRules {
 
     /// The element `--set` writes, or the reason it cannot.
     public static func element(tag: Tag, vr: VR, text: String) -> Result<DataElement, TagEditRefusal> {
+        let vmText = isPrivateCreator(tag) ? "1" : DataElementDictionary.lookup(tag: tag)?.vm
+        let context = "VR \(vr.rawValue), VM \(vmText ?? "unknown")"
         if let problem = valueProblem(text, vr: vr) {
-            return .failure(TagEditRefusal("--set \(tag.description): \(problem)"))
+            return .failure(TagEditRefusal("--set \(tag.description): [\(context)] \(problem)"))
+        }
+        let parts = values(of: text, vr: vr)
+        let emptyValue = text.isEmpty || (!singleValuedTextVRs.contains(vr) && parts.allSatisfy(\.isEmpty))
+        if (tag == .sopClassUID || tag == .sopInstanceUID), emptyValue {
+            return .failure(TagEditRefusal("--set \(tag.description): [\(context)] a SOP identity must contain a non-empty UID"))
+        }
+        if !emptyValue, let vmText, let vm = DICOMValueRules.ValueMultiplicity(vmText),
+           !vm.allows(parts.count) {
+            return .failure(TagEditRefusal("--set \(tag.description): [\(context)] got \(values(of: text, vr: vr).count) Values (PS3.6 Table 6-1)"))
         }
         if numericVRs.contains(vr) {
             let numbers = numericValues(text, vr: vr).doubles

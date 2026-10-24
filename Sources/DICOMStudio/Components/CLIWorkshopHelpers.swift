@@ -1268,7 +1268,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "sop-class-uid", flag: "--sop-class-uid", displayName: "Referenced SOP Class UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.10008.5.1.4.1.1.2 (CT)",
-                    helpText: "SOP Class UID (0008,1150) of the referenced images, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Without it the Secondary Capture class is sent, which is wrong for anything but SC",
+                    helpText: "Actual SOP Class UID (0008,1150) of every referenced image, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Required with --image-uid; no class is inferred",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
                 CLIParameterDefinition(

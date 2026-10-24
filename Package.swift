@@ -828,6 +828,8 @@ let package = Package(
                 // key warning (D249), PS3.5 9.1 UID root rule (D250), PS3.10 8.1/8.2/8.5/8.6
                 // File-set rules (D253), PS3.5 A.1/A.2/A.3/A.5 native decompress targets (D267),
                 // PS3.6 Table A-1 keywords of the convert catalog (D268).
+                "TextEncodingIntegrityTests.swift",
+                "TagEditIntegrityTests.swift",
                 "Validation/IODNameTableTests.swift",
                 "ArchiveStudyDateWarningTests.swift",
                 "UIDRootRuleTests.swift",

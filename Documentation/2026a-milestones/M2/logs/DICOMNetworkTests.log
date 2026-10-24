@@ -1,0 +1,1991 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[13 / 68]
+[20 / 31] DICOMNetworkTests-product
+[30 / 42] DICOMNetworkTests-product
+[31 / 42] DICOMNetworkTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:10:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+  8 |     
+  9 |     func testStorageCommitmentSCPConfigurationCreation() throws {
+ 10 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 11 |         
+ 12 |         let config = StorageCommitmentSCPConfiguration(aeTitle: aeTitle)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:23:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 21 |     
+ 22 |     func testStorageCommitmentSCPConfigurationWithCustomPort() throws {
+ 23 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 24 |         
+ 25 |         let config = StorageCommitmentSCPConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:34:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 32 |     
+ 33 |     func testStorageCommitmentSCPConfigurationWithCustomMaxPDUSize() throws {
+ 34 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 35 |         
+ 36 |         let config = StorageCommitmentSCPConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:45:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 43 |     
+ 44 |     func testStorageCommitmentSCPConfigurationWithCustomMaxAssociations() throws {
+ 45 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 46 |         
+ 47 |         let config = StorageCommitmentSCPConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:56:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 54 |     
+ 55 |     func testStorageCommitmentSCPConfigurationWithMinimumMaxAssociations() throws {
+ 56 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 57 |         
+ 58 |         let config = StorageCommitmentSCPConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:68:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 66 |     
+ 67 |     func testStorageCommitmentSCPConfigurationWithWhitelist() throws {
+ 68 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 69 |         
+ 70 |         let config = StorageCommitmentSCPConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:80:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 78 |     
+ 79 |     func testStorageCommitmentSCPConfigurationWithBlacklist() throws {
+ 80 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 81 |         
+ 82 |         let config = StorageCommitmentSCPConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:92:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 90 |     
+ 91 |     func testStorageCommitmentSCPConfigurationHashable() throws {
+ 92 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 93 |         
+ 94 |         let config1 = StorageCommitmentSCPConfiguration(aeTitle: aeTitle, port: 11112)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:105:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+103 |     
+104 |     func testIsCallingAEAllowedWithNoFilters() throws {
+105 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+106 |         let config = StorageCommitmentSCPConfiguration(aeTitle: aeTitle)
+107 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:113:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+111 |     
+112 |     func testIsCallingAEAllowedWithWhitelist() throws {
+113 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+114 |         let config = StorageCommitmentSCPConfiguration(
+115 |             aeTitle: aeTitle,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:125:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+123 |     
+124 |     func testIsCallingAEAllowedWithBlacklist() throws {
+125 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+126 |         let config = StorageCommitmentSCPConfiguration(
+127 |             aeTitle: aeTitle,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentSCPTests.swift:136:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+134 |     
+135 |     func testBlacklistTakesPrecedenceOverWhitelist() throws {
+136 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+137 |         let config = StorageCommitmentSCPConfiguration(
+138 |             aeTitle: aeTitle,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:310:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+308 |     
+309 |     func testStorageCommitmentConfigurationCreation() throws {
+310 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+311 |         let calledAE = try AETitle("PACS")
+312 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:311:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+309 |     func testStorageCommitmentConfigurationCreation() throws {
+310 |         let callingAE = try AETitle("MY_SCU")
+311 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+312 |         
+313 |         let config = StorageCommitmentConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:327:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+325 |     
+326 |     func testStorageCommitmentConfigurationCustomValues() throws {
+327 |         let callingAE = try AETitle("SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+328 |         let calledAE = try AETitle("SCP")
+329 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:328:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+326 |     func testStorageCommitmentConfigurationCustomValues() throws {
+327 |         let callingAE = try AETitle("SCU")
+328 |         let calledAE = try AETitle("SCP")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+329 |         
+330 |         let config = StorageCommitmentConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:346:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+344 |     
+345 |     func testStorageCommitmentConfigurationHashable() throws {
+346 |         let callingAE = try AETitle("SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+347 |         let calledAE = try AETitle("SCP")
+348 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:347:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+345 |     func testStorageCommitmentConfigurationHashable() throws {
+346 |         let callingAE = try AETitle("SCU")
+347 |         let calledAE = try AETitle("SCP")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+348 |         
+349 |         let config1 = StorageCommitmentConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:386:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+384 |     
+385 |     func testCommitmentNotificationListenerConfigurationCreation() throws {
+386 |         let aeTitle = try AETitle("MY_SCU")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+387 |         
+388 |         let config = CommitmentNotificationListenerConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:402:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+400 |     
+401 |     func testCommitmentNotificationListenerConfigurationCustomValues() throws {
+402 |         let aeTitle = try AETitle("SCU")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+403 |         let whitelist: Set<String> = ["PACS1", "PACS2"]
+404 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:424:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+422 |     
+423 |     func testCommitmentNotificationListenerConfigurationMinimumAssociations() throws {
+424 |         let aeTitle = try AETitle("SCU")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+425 |         
+426 |         // Setting 0 should result in 1
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:436:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+434 |     
+435 |     func testCommitmentNotificationListenerConfigurationIsCallingAEAllowed() throws {
+436 |         let aeTitle = try AETitle("SCU")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+437 |         
+438 |         // No whitelist - all allowed
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:453:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+451 |     
+452 |     func testCommitmentNotificationListenerConfigurationHashable() throws {
+453 |         let aeTitle = try AETitle("SCU")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+454 |         
+455 |         let config1 = CommitmentNotificationListenerConfiguration(aeTitle: aeTitle, port: 11113)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:537:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+535 |     func testCommitmentNotificationListenerCreation() async throws {
+536 |         let config = CommitmentNotificationListenerConfiguration(
+537 |             aeTitle: try AETitle("MY_SCU")
+    |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+538 |         )
+539 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:550:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+548 |     func testCommitmentNotificationListenerStartStop() async throws {
+549 |         let config = CommitmentNotificationListenerConfiguration(
+550 |             aeTitle: try AETitle("MY_SCU"),
+    |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+551 |             port: 19123 // Use a high port that's likely available
+552 |         )
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:569:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+567 |     func testCommitmentNotificationListenerCannotStartTwice() async throws {
+568 |         let config = CommitmentNotificationListenerConfiguration(
+569 |             aeTitle: try AETitle("MY_SCU"),
+    |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+570 |             port: 19124
+571 |         )
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:595:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+593 |     func testCommitmentNotificationListenerWaitForResultTimeout() async throws {
+594 |         let config = CommitmentNotificationListenerConfiguration(
+595 |             aeTitle: try AETitle("MY_SCU"),
+    |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+596 |             port: 19125
+597 |         )
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:625:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+623 |     
+624 |     func testStorageCommitmentConfigurationWithRetryPolicy() throws {
+625 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+626 |         let calledAE = try AETitle("PACS")
+627 |         let retryPolicy = RetryPolicy.aggressive
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:626:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+624 |     func testStorageCommitmentConfigurationWithRetryPolicy() throws {
+625 |         let callingAE = try AETitle("MY_SCU")
+626 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+627 |         let retryPolicy = RetryPolicy.aggressive
+628 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:641:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+639 |     
+640 |     func testStorageCommitmentConfigurationDefaultRetryPolicy() throws {
+641 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+642 |         let calledAE = try AETitle("PACS")
+643 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:642:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+640 |     func testStorageCommitmentConfigurationDefaultRetryPolicy() throws {
+641 |         let callingAE = try AETitle("MY_SCU")
+642 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+643 |         
+644 |         let config = StorageCommitmentConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:654:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+652 |     
+653 |     func testStorageCommitmentConfigurationNoRetryPolicy() throws {
+654 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+655 |         let calledAE = try AETitle("PACS")
+656 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:655:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+653 |     func testStorageCommitmentConfigurationNoRetryPolicy() throws {
+654 |         let callingAE = try AETitle("MY_SCU")
+655 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+656 |         
+657 |         let config = StorageCommitmentConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:668:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+666 |     
+667 |     func testStorageCommitmentConfigurationCustomRetryPolicy() throws {
+668 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+669 |         let calledAE = try AETitle("PACS")
+670 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:669:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+667 |     func testStorageCommitmentConfigurationCustomRetryPolicy() throws {
+668 |         let callingAE = try AETitle("MY_SCU")
+669 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+670 |         
+671 |         let customPolicy = RetryPolicy(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:690:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+688 |     
+689 |     func testStorageCommitmentConfigurationHashableWithRetryPolicy() throws {
+690 |         let callingAE = try AETitle("SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+691 |         let calledAE = try AETitle("SCP")
+692 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageCommitmentServiceTests.swift:691:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+689 |     func testStorageCommitmentConfigurationHashableWithRetryPolicy() throws {
+690 |         let callingAE = try AETitle("SCU")
+691 |         let calledAE = try AETitle("SCP")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+692 |         
+693 |         let config1 = StorageCommitmentConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:10:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+  8 |     
+  9 |     func testStorageSCPConfigurationDefaults() throws {
+ 10 |         let aeTitle = try AETitle("MY_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 11 |         
+ 12 |         let config = StorageSCPConfiguration(aeTitle: aeTitle)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:27:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 25 |     
+ 26 |     func testStorageSCPConfigurationCustomValues() throws {
+ 27 |         let aeTitle = try AETitle("CUSTOM_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 28 |         let sopClasses: Set<String> = ["1.2.840.10008.5.1.4.1.1.2"]
+ 29 |         let transferSyntaxes: Set<String> = ["1.2.840.10008.1.2.1"]
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:59:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 57 |     
+ 58 |     func testStorageSCPConfigurationEffectiveSOPClasses() throws {
+ 59 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 60 |         
+ 61 |         // With nil, should return common SOP Classes
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:72:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 70 |     
+ 71 |     func testStorageSCPConfigurationEffectiveTransferSyntaxes() throws {
+ 72 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 73 |         
+ 74 |         // With nil, should return common transfer syntaxes
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:85:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 83 |     
+ 84 |     func testStorageSCPConfigurationCallingAEAllowed_NoLists() throws {
+ 85 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 86 |         let config = StorageSCPConfiguration(aeTitle: aeTitle)
+ 87 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:94:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 92 |     
+ 93 |     func testStorageSCPConfigurationCallingAEAllowed_WhitelistOnly() throws {
+ 94 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 95 |         let whitelist: Set<String> = ["ALLOWED_SCU", "ANOTHER_ALLOWED"]
+ 96 |         let config = StorageSCPConfiguration(aeTitle: aeTitle, callingAEWhitelist: whitelist)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:104:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+102 |     
+103 |     func testStorageSCPConfigurationCallingAEAllowed_BlacklistOnly() throws {
+104 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+105 |         let blacklist: Set<String> = ["BLOCKED_SCU"]
+106 |         let config = StorageSCPConfiguration(aeTitle: aeTitle, callingAEBlacklist: blacklist)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:113:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+111 |     
+112 |     func testStorageSCPConfigurationCallingAEAllowed_BlacklistTakesPrecedence() throws {
+113 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+114 |         let whitelist: Set<String> = ["ALLOWED_SCU", "BLOCKED_BUT_WHITELISTED"]
+115 |         let blacklist: Set<String> = ["BLOCKED_BUT_WHITELISTED"]
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:127:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+125 |     
+126 |     func testStorageSCPConfigurationMaxConcurrentAssociationsMinimum() throws {
+127 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+128 |         
+129 |         // Zero should become 1
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:158:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+156 |     
+157 |     func testStorageSCPConfigurationHashable() throws {
+158 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+159 |         
+160 |         let config1 = StorageSCPConfiguration(aeTitle: aeTitle, port: 11112)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:369:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+367 |     
+368 |     func testDICOMStorageServerCreation() async throws {
+369 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+370 |         let config = StorageSCPConfiguration(aeTitle: aeTitle, port: 12345)
+371 |         let handler = DefaultStorageHandler(storageDirectory: URL(fileURLWithPath: "/tmp/test"))
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:383:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+381 |     
+382 |     func testDICOMStorageServerStartStop() async throws {
+383 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+384 |         // Let the OS select an available ephemeral port for this lifecycle test.
+385 |         let config = StorageSCPConfiguration(aeTitle: aeTitle, port: 0)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageSCPTests.swift:404:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+402 |     
+403 |     func testDICOMStorageServerDoubleStartFails() async throws {
+404 |         let aeTitle = try AETitle("TEST_SCP")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+405 |         let config = StorageSCPConfiguration(aeTitle: aeTitle, port: 0)
+406 |         let handler = DefaultStorageHandler(storageDirectory: URL(fileURLWithPath: "/tmp/test"))
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageServiceTests.swift:128:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+126 |     
+127 |     func testStorageConfigurationDefaults() throws {
+128 |         let callingAE = try AETitle("CALLING")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+129 |         let calledAE = try AETitle("CALLED")
+130 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageServiceTests.swift:129:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+127 |     func testStorageConfigurationDefaults() throws {
+128 |         let callingAE = try AETitle("CALLING")
+129 |         let calledAE = try AETitle("CALLED")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+130 |         
+131 |         let config = StorageConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageServiceTests.swift:146:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+144 |     
+145 |     func testStorageConfigurationCustomValues() throws {
+146 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+147 |         let calledAE = try AETitle("PACS")
+148 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageServiceTests.swift:147:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+145 |     func testStorageConfigurationCustomValues() throws {
+146 |         let callingAE = try AETitle("MY_SCU")
+147 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+148 |         
+149 |         let config = StorageConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageServiceTests.swift:169:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+167 |     
+168 |     func testStorageConfigurationHashable() throws {
+169 |         let callingAE = try AETitle("SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+170 |         let calledAE = try AETitle("SCP")
+171 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/StorageServiceTests.swift:170:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+168 |     func testStorageConfigurationHashable() throws {
+169 |         let callingAE = try AETitle("SCU")
+170 |         let calledAE = try AETitle("SCP")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+171 |         
+172 |         let config1 = StorageConfiguration(
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:192:64: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 190 | final class PrintSCPParserTests: XCTestCase {
+ 191 | 
+ 192 |     private let configuration = PrintSCPConfiguration(aeTitle: try! AETitle("DCMPRINT"), port: 0)
+     |                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 193 | 
+ 194 |     private func parse(_ elements: [DataElement], explicitVR: Bool = true) throws -> PrintAttributeSet {
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintConformanceTests.swift:341:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+339 |         }
+340 |         let acceptPDU = AssociateAcceptPDU(
+341 |             calledAETitle: try AETitle("PRINTER"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+342 |             callingAETitle: try AETitle("SCU"),
+343 |             presentationContexts: accepted,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintConformanceTests.swift:342:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+340 |         let acceptPDU = AssociateAcceptPDU(
+341 |             calledAETitle: try AETitle("PRINTER"),
+342 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+343 |             presentationContexts: accepted,
+344 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintConformanceTests.swift:581:59: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+579 |         let handler = RefusingPrintHandler(message: message)
+580 |         let server = DICOMPrintServer(
+581 |             configuration: PrintSCPConfiguration(aeTitle: try AETitle("DCMPRINT"), port: 0),
+    |                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+582 |             delegate: handler)
+583 |         try await server.start()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintConformanceTests.swift:637:59: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+635 |         let handler = CollectingPrintHandler()
+636 |         let server = DICOMPrintServer(
+637 |             configuration: PrintSCPConfiguration(aeTitle: try AETitle("DCMPRINT"), port: 0),
+    |                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+638 |             delegate: handler)
+639 |         try await server.start()
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[36 / 42] DICOMNetworkTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/NetworkDeferredRows2026aTests.swift:103:59: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+101 | 
+102 |     func testMoveOriginatorIsWrittenOnTheCStoreRequest() throws {
+103 |         let config = StorageConfiguration(callingAETitle: try AETitle("SCP"), calledAETitle: try AETitle("DEST"))
+    |                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+104 |         XCTAssertNil(config.moveOriginatorAETitle)
+105 |         let move = config.withMoveOriginator(aeTitle: "ORIGIN", messageID: 42)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/NetworkDeferredRows2026aTests.swift:103:94: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+101 | 
+102 |     func testMoveOriginatorIsWrittenOnTheCStoreRequest() throws {
+103 |         let config = StorageConfiguration(callingAETitle: try AETitle("SCP"), calledAETitle: try AETitle("DEST"))
+    |                                                                                              `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+104 |         XCTAssertNil(config.moveOriginatorAETitle)
+105 |         let move = config.withMoveOriginator(aeTitle: "ORIGIN", messageID: 42)
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:10:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+  8 |     
+  9 |     func testQueryConfigurationDefaults() throws {
+ 10 |         let callingAE = try AETitle("CALLING")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 11 |         let calledAE = try AETitle("CALLED")
+ 12 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:11:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+  9 |     func testQueryConfigurationDefaults() throws {
+ 10 |         let callingAE = try AETitle("CALLING")
+ 11 |         let calledAE = try AETitle("CALLED")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 12 |         
+ 13 |         let config = QueryConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:28:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 26 |     
+ 27 |     func testQueryConfigurationCustomValues() throws {
+ 28 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 29 |         let calledAE = try AETitle("PACS")
+ 30 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:29:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 27 |     func testQueryConfigurationCustomValues() throws {
+ 28 |         let callingAE = try AETitle("MY_SCU")
+ 29 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 30 |         
+ 31 |         let config = QueryConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:51:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 49 |     
+ 50 |     func testQueryConfigurationHashable() throws {
+ 51 |         let callingAE = try AETitle("SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 52 |         let calledAE = try AETitle("SCP")
+ 53 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:52:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 50 |     func testQueryConfigurationHashable() throws {
+ 51 |         let callingAE = try AETitle("SCU")
+ 52 |         let calledAE = try AETitle("SCP")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 53 |         
+ 54 |         let config1 = QueryConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:514:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+512 |     func testQueryConfigurationCarriesSpecificCharacterSet() throws {
+513 |         let config = QueryConfiguration(
+514 |             callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+515 |             specificCharacterSet: "ISO_IR 100")
+516 |         XCTAssertEqual(config.specificCharacterSet, "ISO_IR 100")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:514:64: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+512 |     func testQueryConfigurationCarriesSpecificCharacterSet() throws {
+513 |         let config = QueryConfiguration(
+514 |             callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("SCP"),
+    |                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+515 |             specificCharacterSet: "ISO_IR 100")
+516 |         XCTAssertEqual(config.specificCharacterSet, "ISO_IR 100")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:517:56: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+515 |             specificCharacterSet: "ISO_IR 100")
+516 |         XCTAssertEqual(config.specificCharacterSet, "ISO_IR 100")
+517 |         let plain = QueryConfiguration(callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("SCP"))
+    |                                                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+518 |         XCTAssertNil(plain.specificCharacterSet)
+519 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryServiceTests.swift:517:91: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+515 |             specificCharacterSet: "ISO_IR 100")
+516 |         XCTAssertEqual(config.specificCharacterSet, "ISO_IR 100")
+517 |         let plain = QueryConfiguration(callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("SCP"))
+    |                                                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+518 |         XCTAssertNil(plain.specificCharacterSet)
+519 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:65:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 63 |         let sub = RetrieveExtendedNegotiation(relationalRetrieval: true).subItem(for: studyRootMove)
+ 64 |         let rq = AssociateRequestPDU(
+ 65 |             calledAETitle: try AETitle("PACS"), callingAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 66 |             presentationContexts: [try PresentationContext(id: 1, abstractSyntax: studyRootMove,
+ 67 |                                                            transferSyntaxes: [explicitVRLittleEndianTransferSyntaxUID])],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:65:65: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 63 |         let sub = RetrieveExtendedNegotiation(relationalRetrieval: true).subItem(for: studyRootMove)
+ 64 |         let rq = AssociateRequestPDU(
+ 65 |             calledAETitle: try AETitle("PACS"), callingAETitle: try AETitle("SCU"),
+    |                                                                 `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 66 |             presentationContexts: [try PresentationContext(id: 1, abstractSyntax: studyRootMove,
+ 67 |                                                            transferSyntaxes: [explicitVRLittleEndianTransferSyntaxUID])],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:73:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 71 | 
+ 72 |         let ac = AssociateAcceptPDU(
+ 73 |             calledAETitle: try AETitle("PACS"), callingAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 74 |             presentationContexts: [AcceptedPresentationContext(id: 1, result: .acceptance,
+ 75 |                                                                transferSyntax: explicitVRLittleEndianTransferSyntaxUID)],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:73:65: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 71 | 
+ 72 |         let ac = AssociateAcceptPDU(
+ 73 |             calledAETitle: try AETitle("PACS"), callingAETitle: try AETitle("SCU"),
+    |                                                                 `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 74 |             presentationContexts: [AcceptedPresentationContext(id: 1, result: .acceptance,
+ 75 |                                                                transferSyntax: explicitVRLittleEndianTransferSyntaxUID)],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:96:60: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 94 | 
+ 95 |     func testConfigurationDefaultsAreBaseline() throws {
+ 96 |         let config = RetrieveConfiguration(callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("PACS"))
+    |                                                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 97 |         XCTAssertEqual(config.priority, .medium)
+ 98 |         XCTAssertNil(config.extendedNegotiation)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:96:95: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 94 | 
+ 95 |     func testConfigurationDefaultsAreBaseline() throws {
+ 96 |         let config = RetrieveConfiguration(callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("PACS"))
+    |                                                                                               `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 97 |         XCTAssertEqual(config.priority, .medium)
+ 98 |         XCTAssertNil(config.extendedNegotiation)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:107:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+105 |                                relational: Bool = false) throws -> RetrieveConfiguration {
+106 |         RetrieveConfiguration(
+107 |             callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("PACS"), timeout: 10,
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+108 |             priority: priority,
+109 |             extendedNegotiation: relational ? RetrieveExtendedNegotiation(relationalRetrieval: true) : nil)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrievePriorityExtendedNegotiationTests.swift:107:64: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+105 |                                relational: Bool = false) throws -> RetrieveConfiguration {
+106 |         RetrieveConfiguration(
+107 |             callingAETitle: try AETitle("SCU"), calledAETitle: try AETitle("PACS"), timeout: 10,
+    |                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+108 |             priority: priority,
+109 |             extendedNegotiation: relational ? RetrieveExtendedNegotiation(relationalRetrieval: true) : nil)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrieveServiceTests.swift:124:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+122 |     
+123 |     func testRetrieveConfigurationDefaults() throws {
+124 |         let callingAE = try AETitle("CALLING")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+125 |         let calledAE = try AETitle("CALLED")
+126 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrieveServiceTests.swift:125:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+123 |     func testRetrieveConfigurationDefaults() throws {
+124 |         let callingAE = try AETitle("CALLING")
+125 |         let calledAE = try AETitle("CALLED")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+126 |         
+127 |         let config = RetrieveConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrieveServiceTests.swift:142:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+140 |     
+141 |     func testRetrieveConfigurationCustomValues() throws {
+142 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+143 |         let calledAE = try AETitle("PACS")
+144 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrieveServiceTests.swift:143:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+141 |     func testRetrieveConfigurationCustomValues() throws {
+142 |         let callingAE = try AETitle("MY_SCU")
+143 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+144 |         
+145 |         let config = RetrieveConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrieveServiceTests.swift:165:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+163 |     
+164 |     func testRetrieveConfigurationHashable() throws {
+165 |         let callingAE = try AETitle("SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+166 |         let calledAE = try AETitle("SCP")
+167 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/RetrieveServiceTests.swift:166:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+164 |     func testRetrieveConfigurationHashable() throws {
+165 |         let callingAE = try AETitle("SCU")
+166 |         let calledAE = try AETitle("SCP")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+167 |         
+168 |         let config1 = RetrieveConfiguration(
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:13:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 11 |     
+ 12 |     func test_serverEntry_initializationWithAETitle() {
+ 13 |         let aeTitle = try! AETitle("PACS_SERVER")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 14 |         let server = ServerEntry(
+ 15 |             host: "pacs.hospital.com",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:54:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 52 |     
+ 53 |     func test_serverEntry_defaultValues() {
+ 54 |         let aeTitle = try! AETitle("TEST")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 55 |         let server = ServerEntry(host: "test.com", aeTitle: aeTitle)
+ 56 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:66:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 64 |     
+ 65 |     func test_serverEntry_weightNormalization() {
+ 66 |         let aeTitle = try! AETitle("TEST")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 67 |         let server = ServerEntry(
+ 68 |             host: "test.com",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:78:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 76 |     
+ 77 |     func test_serverEntry_description() {
+ 78 |         let aeTitle = try! AETitle("PACS")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 79 |         let server = ServerEntry(
+ 80 |             host: "test.com",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:94:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 92 |     
+ 93 |     func test_serverEntry_identifiable() {
+ 94 |         let aeTitle = try! AETitle("TEST")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 95 |         let server1 = ServerEntry(host: "test1.com", aeTitle: aeTitle)
+ 96 |         let server2 = ServerEntry(host: "test2.com", aeTitle: aeTitle)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:103:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+101 |     
+102 |     func test_serverEntry_hashable() {
+103 |         let aeTitle = try! AETitle("TEST")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+104 |         let server1 = ServerEntry(host: "test.com", aeTitle: aeTitle)
+105 |         let server2 = ServerEntry(host: "test.com", aeTitle: aeTitle)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:398:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+396 |     
+397 |     func test_configuration_initialization() throws {
+398 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+399 |         var pool = ServerPool()
+400 |         try pool.addServer(host: "test.com", aeTitle: "PACS")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:439:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+437 |     
+438 |     func test_configuration_defaultValues() throws {
+439 |         let callingAE = try AETitle("TEST")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+440 |         let pool = ServerPool()
+441 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:457:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+455 |     
+456 |     func test_configuration_circuitBreakerThresholdNormalization() throws {
+457 |         let callingAE = try AETitle("TEST")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+458 |         let pool = ServerPool()
+459 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:470:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+468 |     
+469 |     func test_configuration_description() throws {
+470 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+471 |         var pool = ServerPool()
+472 |         try pool.addServer(host: "test.com", aeTitle: "PACS")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:610:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+608 |         
+609 |         let config = DICOMStorageClientConfiguration(
+610 |             callingAETitle: try AETitle("MY_SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+611 |             serverPool: pool
+612 |         )
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/DICOMStorageClientTests.swift:629:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+627 |         
+628 |         let config = DICOMStorageClientConfiguration(
+629 |             callingAETitle: try AETitle("MY_SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+630 |             serverPool: pool
+631 |         )
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:9:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+  7 |     @Test("Valid AE Title creation")
+  8 |     func testValidAETitle() throws {
+  9 |         let aeTitle = try AETitle("PACS_SERVER")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 10 |         #expect(aeTitle.value == "PACS_SERVER")
+ 11 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:15:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 13 |     @Test("AE Title trims whitespace")
+ 14 |     func testAETitleTrimsWhitespace() throws {
+ 15 |         let aeTitle = try AETitle("  MYSERVER  ")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 16 |         #expect(aeTitle.value == "MYSERVER")
+ 17 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:21:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 19 |     @Test("AE Title padded value")
+ 20 |     func testAETitlePaddedValue() throws {
+ 21 |         let aeTitle = try AETitle("TEST")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 22 |         #expect(aeTitle.paddedValue.count == 16)
+ 23 |         #expect(aeTitle.paddedValue == "TEST            ")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:28:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 26 |     @Test("AE Title data is 16 bytes")
+ 27 |     func testAETitleData() throws {
+ 28 |         let aeTitle = try AETitle("DICOMKIT")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 29 |         #expect(aeTitle.data.count == 16)
+ 30 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:34:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 32 |     @Test("Maximum length AE Title")
+ 33 |     func testMaxLengthAETitle() throws {
+ 34 |         let aeTitle = try AETitle("1234567890123456")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 35 |         #expect(aeTitle.value == "1234567890123456")
+ 36 |         #expect(aeTitle.value.count == 16)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:91:23: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 89 |     @Test("AE Title description")
+ 90 |     func testAETitleDescription() throws {
+ 91 |         let aeTitle = try AETitle("DICOMKIT")
+    |                       `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 92 |         #expect(aeTitle.description == "DICOMKIT")
+ 93 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:97:19: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 95 |     @Test("AE Title equality")
+ 96 |     func testAETitleEquality() throws {
+ 97 |         let ae1 = try AETitle("TEST")
+    |                   `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 98 |         let ae2 = try AETitle("TEST")
+ 99 |         let ae3 = try AETitle("OTHER")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:98:19: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 96 |     func testAETitleEquality() throws {
+ 97 |         let ae1 = try AETitle("TEST")
+ 98 |         let ae2 = try AETitle("TEST")
+    |                   `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 99 |         let ae3 = try AETitle("OTHER")
+100 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:99:19: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 97 |         let ae1 = try AETitle("TEST")
+ 98 |         let ae2 = try AETitle("TEST")
+ 99 |         let ae3 = try AETitle("OTHER")
+    |                   `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+100 |         
+101 |         #expect(ae1 == ae2)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:108:20: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+106 |     func testAETitleHashable() throws {
+107 |         var set: Set<AETitle> = []
+108 |         set.insert(try AETitle("SERVER1"))
+    |                    `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+109 |         set.insert(try AETitle("SERVER2"))
+110 |         set.insert(try AETitle("SERVER1"))  // Duplicate
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:109:20: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+107 |         var set: Set<AETitle> = []
+108 |         set.insert(try AETitle("SERVER1"))
+109 |         set.insert(try AETitle("SERVER2"))
+    |                    `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+110 |         set.insert(try AETitle("SERVER1"))  // Duplicate
+111 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AETitleTests.swift:110:20: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+108 |         set.insert(try AETitle("SERVER1"))
+109 |         set.insert(try AETitle("SERVER2"))
+110 |         set.insert(try AETitle("SERVER1"))  // Duplicate
+    |                    `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+111 |         
+112 |         #expect(set.count == 2)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:25:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 23 |         
+ 24 |         let request = AssociateRequestPDU(
+ 25 |             calledAETitle: try AETitle("PACS_SERVER"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 26 |             callingAETitle: try AETitle("MY_CLIENT"),
+ 27 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:26:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 24 |         let request = AssociateRequestPDU(
+ 25 |             calledAETitle: try AETitle("PACS_SERVER"),
+ 26 |             callingAETitle: try AETitle("MY_CLIENT"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 27 |             presentationContexts: [context],
+ 28 |             implementationClassUID: "1.2.3.4.5.6.7.8.9"
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:49:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 47 |         
+ 48 |         let request = AssociateRequestPDU(
+ 49 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 50 |             callingAETitle: try AETitle("SCU"),
+ 51 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:50:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 48 |         let request = AssociateRequestPDU(
+ 49 |             calledAETitle: try AETitle("SCP"),
+ 50 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 51 |             presentationContexts: [context],
+ 52 |             implementationClassUID: "1.2.3.4.5"
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:80:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 78 |         
+ 79 |         let request = AssociateRequestPDU(
+ 80 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 81 |             callingAETitle: try AETitle("SCU"),
+ 82 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:81:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 79 |         let request = AssociateRequestPDU(
+ 80 |             calledAETitle: try AETitle("SCP"),
+ 81 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 82 |             presentationContexts: [context],
+ 83 |             implementationClassUID: "1.2.3.4.5",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:103:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+101 |         
+102 |         let original = AssociateRequestPDU(
+103 |             calledAETitle: try AETitle("PACS_SERVER"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+104 |             callingAETitle: try AETitle("MY_CLIENT"),
+105 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:104:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+102 |         let original = AssociateRequestPDU(
+103 |             calledAETitle: try AETitle("PACS_SERVER"),
+104 |             callingAETitle: try AETitle("MY_CLIENT"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+105 |             presentationContexts: [context],
+106 |             maxPDUSize: 32768,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:140:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+138 |         
+139 |         let accept = AssociateAcceptPDU(
+140 |             calledAETitle: try AETitle("MY_CLIENT"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+141 |             callingAETitle: try AETitle("PACS_SERVER"),
+142 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:141:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+139 |         let accept = AssociateAcceptPDU(
+140 |             calledAETitle: try AETitle("MY_CLIENT"),
+141 |             callingAETitle: try AETitle("PACS_SERVER"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+142 |             presentationContexts: [accepted],
+143 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:162:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+160 |         
+161 |         let accept = AssociateAcceptPDU(
+162 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+163 |             callingAETitle: try AETitle("SCP"),
+164 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:163:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+161 |         let accept = AssociateAcceptPDU(
+162 |             calledAETitle: try AETitle("SCU"),
+163 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+164 |             presentationContexts: [accepted],
+165 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:184:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+182 |         
+183 |         let accept = AssociateAcceptPDU(
+184 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+185 |             callingAETitle: try AETitle("SCP"),
+186 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:185:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+183 |         let accept = AssociateAcceptPDU(
+184 |             calledAETitle: try AETitle("SCU"),
+185 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+186 |             presentationContexts: contexts,
+187 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:204:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+202 |         
+203 |         let original = AssociateAcceptPDU(
+204 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+205 |             callingAETitle: try AETitle("SCP"),
+206 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:205:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+203 |         let original = AssociateAcceptPDU(
+204 |             calledAETitle: try AETitle("SCU"),
+205 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+206 |             presentationContexts: contexts,
+207 |             maxPDUSize: 32768,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:233:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+231 |         
+232 |         let original = AssociateAcceptPDU(
+233 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+234 |             callingAETitle: try AETitle("SCP"),
+235 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:234:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+232 |         let original = AssociateAcceptPDU(
+233 |             calledAETitle: try AETitle("SCU"),
+234 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+235 |             presentationContexts: contexts,
+236 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:352:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+350 |         ]
+351 |         let original = AssociateRequestPDU(
+352 |             calledAETitle: try AETitle("PACS"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+353 |             callingAETitle: try AETitle("SCU"),
+354 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:353:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+351 |         let original = AssociateRequestPDU(
+352 |             calledAETitle: try AETitle("PACS"),
+353 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+354 |             presentationContexts: contexts,
+355 |             implementationClassUID: "1.2.3.4",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:373:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+371 |     func testAcceptRoleSelectionRoundTrip() throws {
+372 |         let original = AssociateAcceptPDU(
+373 |             calledAETitle: try AETitle("PACS"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+374 |             callingAETitle: try AETitle("SCU"),
+375 |             presentationContexts: [
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:374:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+372 |         let original = AssociateAcceptPDU(
+373 |             calledAETitle: try AETitle("PACS"),
+374 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+375 |             presentationContexts: [
+376 |                 AcceptedPresentationContext(id: 1, result: .acceptance, transferSyntax: "1.2.840.10008.1.2.1"),
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:433:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+431 |     func testNegotiatedAssociationRoles() throws {
+432 |         let accept = AssociateAcceptPDU(
+433 |             calledAETitle: try AETitle("PACS"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+434 |             callingAETitle: try AETitle("SCU"),
+435 |             presentationContexts: [AcceptedPresentationContext(id: 3, result: .acceptance, transferSyntax: "1.2.840.10008.1.2.1")],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:434:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+432 |         let accept = AssociateAcceptPDU(
+433 |             calledAETitle: try AETitle("PACS"),
+434 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+435 |             presentationContexts: [AcceptedPresentationContext(id: 3, result: .acceptance, transferSyntax: "1.2.840.10008.1.2.1")],
+436 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:454:44: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+452 | 
+453 |     private func request(_ roles: [SCPSCURoleSelection]) throws -> AssociateRequestPDU {
+454 |         AssociateRequestPDU(calledAETitle: try AETitle("PEER"), callingAETitle: try AETitle("LOCAL"),
+    |                                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+455 |             presentationContexts: [try PresentationContext(id: 1, abstractSyntax: uid,
+456 |                 transferSyntaxes: ["1.2.840.10008.1.2.1"])],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:454:81: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+452 | 
+453 |     private func request(_ roles: [SCPSCURoleSelection]) throws -> AssociateRequestPDU {
+454 |         AssociateRequestPDU(calledAETitle: try AETitle("PEER"), callingAETitle: try AETitle("LOCAL"),
+    |                                                                                 `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+455 |             presentationContexts: [try PresentationContext(id: 1, abstractSyntax: uid,
+456 |                 transferSyntaxes: ["1.2.840.10008.1.2.1"])],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:461:43: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+459 | 
+460 |     private func accept(_ roles: [SCPSCURoleSelection]) throws -> AssociateAcceptPDU {
+461 |         AssociateAcceptPDU(calledAETitle: try AETitle("PEER"), callingAETitle: try AETitle("LOCAL"),
+    |                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+462 |             presentationContexts: [AcceptedPresentationContext(id: 1, result: .acceptance,
+463 |                 transferSyntax: "1.2.840.10008.1.2.1")],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociatePDUTests.swift:461:80: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+459 | 
+460 |     private func accept(_ roles: [SCPSCURoleSelection]) throws -> AssociateAcceptPDU {
+461 |         AssociateAcceptPDU(calledAETitle: try AETitle("PEER"), callingAETitle: try AETitle("LOCAL"),
+    |                                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+462 |             presentationContexts: [AcceptedPresentationContext(id: 1, result: .acceptance,
+463 |                 transferSyntax: "1.2.840.10008.1.2.1")],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:48:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 46 |         )
+ 47 |         let acceptPDU = AssociateAcceptPDU(
+ 48 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 49 |             callingAETitle: try AETitle("SCP"),
+ 50 |             presentationContexts: [acceptedContext],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:49:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 47 |         let acceptPDU = AssociateAcceptPDU(
+ 48 |             calledAETitle: try AETitle("SCU"),
+ 49 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 50 |             presentationContexts: [acceptedContext],
+ 51 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:208:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+206 |     func testDefaultConfiguration() throws {
+207 |         let config = AssociationConfiguration(
+208 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+209 |             calledAETitle: try AETitle("SCP"),
+210 |             host: "localhost",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:209:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+207 |         let config = AssociationConfiguration(
+208 |             callingAETitle: try AETitle("SCU"),
+209 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+210 |             host: "localhost",
+211 |             implementationClassUID: "1.2.3.4.5"
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:226:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+224 |     func testCustomConfiguration() throws {
+225 |         let config = AssociationConfiguration(
+226 |             callingAETitle: try AETitle("MY_SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+227 |             calledAETitle: try AETitle("PACS"),
+228 |             host: "192.168.1.100",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:227:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+225 |         let config = AssociationConfiguration(
+226 |             callingAETitle: try AETitle("MY_SCU"),
+227 |             calledAETitle: try AETitle("PACS"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+228 |             host: "192.168.1.100",
+229 |             port: 11112,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:251:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+249 |     func testConfigurationHashable() throws {
+250 |         let config1 = AssociationConfiguration(
+251 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+252 |             calledAETitle: try AETitle("SCP"),
+253 |             host: "localhost",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:252:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+250 |         let config1 = AssociationConfiguration(
+251 |             callingAETitle: try AETitle("SCU"),
+252 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+253 |             host: "localhost",
+254 |             implementationClassUID: "1.2.3.4.5"
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:258:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+256 |         
+257 |         let config2 = AssociationConfiguration(
+258 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+259 |             calledAETitle: try AETitle("SCP"),
+260 |             host: "localhost",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:259:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+257 |         let config2 = AssociationConfiguration(
+258 |             callingAETitle: try AETitle("SCU"),
+259 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+260 |             host: "localhost",
+261 |             implementationClassUID: "1.2.3.4.5"
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:280:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+278 |         
+279 |         let acceptPDU = AssociateAcceptPDU(
+280 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+281 |             callingAETitle: try AETitle("SCP"),
+282 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:281:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+279 |         let acceptPDU = AssociateAcceptPDU(
+280 |             calledAETitle: try AETitle("SCU"),
+281 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+282 |             presentationContexts: contexts,
+283 |             maxPDUSize: 32768,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:304:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+302 |         // Remote is smaller
+303 |         let acceptPDU1 = AssociateAcceptPDU(
+304 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+305 |             callingAETitle: try AETitle("SCP"),
+306 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:305:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+303 |         let acceptPDU1 = AssociateAcceptPDU(
+304 |             calledAETitle: try AETitle("SCU"),
+305 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+306 |             presentationContexts: contexts,
+307 |             maxPDUSize: 8192,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:316:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+314 |         // Local is smaller
+315 |         let acceptPDU2 = AssociateAcceptPDU(
+316 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+317 |             callingAETitle: try AETitle("SCP"),
+318 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:317:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+315 |         let acceptPDU2 = AssociateAcceptPDU(
+316 |             calledAETitle: try AETitle("SCU"),
+317 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+318 |             presentationContexts: contexts,
+319 |             maxPDUSize: 65536,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:336:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+334 |         
+335 |         let acceptPDU = AssociateAcceptPDU(
+336 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+337 |             callingAETitle: try AETitle("SCP"),
+338 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:337:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+335 |         let acceptPDU = AssociateAcceptPDU(
+336 |             calledAETitle: try AETitle("SCU"),
+337 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+338 |             presentationContexts: contexts,
+339 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:359:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+357 |         
+358 |         let acceptPDU = AssociateAcceptPDU(
+359 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+360 |             callingAETitle: try AETitle("SCP"),
+361 |             presentationContexts: contexts,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:360:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+358 |         let acceptPDU = AssociateAcceptPDU(
+359 |             calledAETitle: try AETitle("SCU"),
+360 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+361 |             presentationContexts: contexts,
+362 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:394:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+392 |     func testDefaultARTIMTimeout() throws {
+393 |         let config = AssociationConfiguration(
+394 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+395 |             calledAETitle: try AETitle("SCP"),
+396 |             host: "localhost",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:395:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+393 |         let config = AssociationConfiguration(
+394 |             callingAETitle: try AETitle("SCU"),
+395 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+396 |             host: "localhost",
+397 |             implementationClassUID: "1.2.3.4.5"
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:406:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+404 |     func testCustomARTIMTimeout() throws {
+405 |         let config = AssociationConfiguration(
+406 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+407 |             calledAETitle: try AETitle("SCP"),
+408 |             host: "localhost",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:407:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+405 |         let config = AssociationConfiguration(
+406 |             callingAETitle: try AETitle("SCU"),
+407 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+408 |             host: "localhost",
+409 |             implementationClassUID: "1.2.3.4.5",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:419:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+417 |     func testDisabledARTIMTimeout() throws {
+418 |         let config = AssociationConfiguration(
+419 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+420 |             calledAETitle: try AETitle("SCP"),
+421 |             host: "localhost",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/AssociationTests.swift:420:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+418 |         let config = AssociationConfiguration(
+419 |             callingAETitle: try AETitle("SCU"),
+420 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+421 |             host: "localhost",
+422 |             implementationClassUID: "1.2.3.4.5",
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:192:64: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 190 | final class PrintSCPParserTests: XCTestCase {
+ 191 | 
+ 192 |     private let configuration = PrintSCPConfiguration(aeTitle: try! AETitle("DCMPRINT"), port: 0)
+     |                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 193 | 
+ 194 |     private func parse(_ elements: [DataElement], explicitVR: Bool = true) throws -> PrintAttributeSet {
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:248:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 246 |     func testUnsupportedFilmSizeIsRejected() throws {
+ 247 |         let restricted = PrintSCPConfiguration(
+ 248 |             aeTitle: try AETitle("DCMPRINT"), port: 0, supportedFilmSizes: [.a4])
+     |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 249 |         let attributes = try parse([
+ 250 |             DataElement.string(tag: .filmSizeID, vr: .CS, value: "14INX17IN")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:406:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 404 |     func testOversizedImageIsRejectedWithImageLargerThanImageBox() throws {
+ 405 |         let small = PrintSCPConfiguration(
+ 406 |             aeTitle: try AETitle("DCMPRINT"), port: 0, maxImageBoxPixelDimension: 16)
+     |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 407 |         let item = SequenceItem(elements: [
+ 408 |             DataElement.uint16(tag: .rows, value: 64),
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:477:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 475 |     func testPrinterAttributesAreReadableByTheSCUParser() throws {
+ 476 |         let configuration = PrintSCPConfiguration(
+ 477 |             aeTitle: try AETitle("DCMPRINT"), port: 0,
+     |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 478 |             printerName: "EMULATOR-1", manufacturer: "DICOMKit",
+ 479 |             manufacturerModelName: "Print Emulator")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:761:59: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 759 |         let failing = FailingPrintHandler()
+ 760 |         let failingServer = DICOMPrintServer(
+ 761 |             configuration: PrintSCPConfiguration(aeTitle: try AETitle("FAILSCP"), port: 0),
+     |                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 762 |             delegate: failing)
+ 763 |         try await failingServer.start()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:803:26: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 801 |         let blocked = DICOMPrintServer(
+ 802 |             configuration: PrintSCPConfiguration(
+ 803 |                 aeTitle: try AETitle("BLOCKSCP"), port: 0,
+     |                          `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 804 |                 callingAEBlacklist: ["TEST_SCU"]),
+ 805 |             delegate: CollectingPrintHandler())
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:874:13: warning: variable 'assembler' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 872 |             }
+ 873 |         }
+ 874 |         var assembler = MessageAssembler()
+     |             `- warning: variable 'assembler' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 875 |         while true {
+ 876 |             let pdu = try await association.receive()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:1232:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1230 |         }
+1231 |         let acceptPDU = AssociateAcceptPDU(
+1232 |             calledAETitle: try AETitle("PRINTER"),
+     |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1233 |             callingAETitle: try AETitle("SCU"),
+1234 |             presentationContexts: accepted,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:1233:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1231 |         let acceptPDU = AssociateAcceptPDU(
+1232 |             calledAETitle: try AETitle("PRINTER"),
+1233 |             callingAETitle: try AETitle("SCU"),
+     |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1234 |             presentationContexts: accepted,
+1235 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:1354:26: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1352 |         let server = DICOMPrintServer(
+1353 |             configuration: PrintSCPConfiguration(
+1354 |                 aeTitle: try AETitle("IDLESCP"), port: 0,
+     |                          `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1355 |                 associationIdleTimeout: 0.5),
+1356 |             delegate: CollectingPrintHandler())
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:1389:26: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1387 |         let server = DICOMPrintServer(
+1388 |             configuration: PrintSCPConfiguration(
+1389 |                 aeTitle: try AETitle("BUSYSCP"), port: 0,
+     |                          `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1390 |                 associationIdleTimeout: 1.0),
+1391 |             delegate: handler)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:1414:26: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1412 |         let server = DICOMPrintServer(
+1413 |             configuration: PrintSCPConfiguration(
+1414 |                 aeTitle: try AETitle("ONESCP"), port: 0,
+     |                          `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+1415 |                 maxConcurrentAssociations: 1,
+1416 |                 associationIdleTimeout: 30),
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintServiceTests.swift:166:40: warning: 'bin1' is deprecated: use FilmDestination.bin(1): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 164 |         XCTAssertEqual(FilmDestination.magazine.rawValue, "MAGAZINE")
+ 165 |         XCTAssertEqual(FilmDestination.processor.rawValue, "PROCESSOR")
+ 166 |         XCTAssertEqual(FilmDestination.bin1.rawValue, "BIN_1")
+     |                                        `- warning: 'bin1' is deprecated: use FilmDestination.bin(1): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 167 |         XCTAssertEqual(FilmDestination.bin2.rawValue, "BIN_2")
+ 168 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintServiceTests.swift:167:40: warning: 'bin2' is deprecated: use FilmDestination.bin(2): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 165 |         XCTAssertEqual(FilmDestination.processor.rawValue, "PROCESSOR")
+ 166 |         XCTAssertEqual(FilmDestination.bin1.rawValue, "BIN_1")
+ 167 |         XCTAssertEqual(FilmDestination.bin2.rawValue, "BIN_2")
+     |                                        `- warning: 'bin2' is deprecated: use FilmDestination.bin(2): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 168 |     }
+ 169 |     
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintServiceTests.swift:471:31: warning: 'bin2' is deprecated: use FilmDestination.bin(2): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 469 |             printPriority: .low,
+ 470 |             mediumType: .mammoBlueFilm,
+ 471 |             filmDestination: .bin2,
+     |                               `- warning: 'bin2' is deprecated: use FilmDestination.bin(2): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 472 |             filmSessionLabel: "Mammography Study"
+ 473 |         )
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintServiceTests.swift:479:50: warning: 'bin2' is deprecated: use FilmDestination.bin(2): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 477 |         XCTAssertEqual(session.printPriority, .low)
+ 478 |         XCTAssertEqual(session.mediumType, .mammoBlueFilm)
+ 479 |         XCTAssertEqual(session.filmDestination, .bin2)
+     |                                                  `- warning: 'bin2' is deprecated: use FilmDestination.bin(2): PS3.3 Table C.13-1 defines BIN_i with no maximum [#DeprecatedDeclaration]
+ 480 |         XCTAssertEqual(session.filmSessionLabel, "Mammography Study")
+ 481 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintServiceTests.swift:2510:17: warning: variable 'item' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+2508 |         // Explicit VR LE sequence with a single item wrapping `content`.
+2509 |         func sequence(_ group: UInt16, _ element: UInt16, content: Data) -> Data {
+2510 |             var item = le16(0xFFFE) + le16(0xE000) + le32(UInt32(content.count)) + content
+     |                 `- warning: variable 'item' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+2511 |             var d = le16(group) + le16(element)
+2512 |             d.append(contentsOf: [0x53, 0x51]) // "SQ"
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/TLSConfigurationTests.swift:329:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+327 |     
+328 |     func testConfigurationWithPrevalidatedAETitlesAndTLS() {
+329 |         let callingAE = try! AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+330 |         let calledAE = try! AETitle("PACS")
+331 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/TLSConfigurationTests.swift:330:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+328 |     func testConfigurationWithPrevalidatedAETitlesAndTLS() {
+329 |         let callingAE = try! AETitle("MY_SCU")
+330 |         let calledAE = try! AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+331 |         
+332 |         let config = DICOMClientConfiguration(
+
+macro expansion #expect:1:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UpperLayerConformanceTests.swift:280:57: note: expanded code originates here
+278 |     @Test("Only SPACE (20H) padding is trimmed")
+279 |     func onlySpaceIsTrimmed() throws {
+280 |         #expect(try AETitle("  PACS  ").value == "PACS")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkValue(try AETitle("  PACS  ").value == "PACS",expression: .__fromSyntaxNode(#"try AETitle("  PACS  ").value == "PACS""#),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+    +-------------------------------------------------------------------
+281 |         #expect(try AETitle("MY PACS").value == "MY PACS")
+282 |         let tabPadded = "\tPACS"
+
+macro expansion #expect:1:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UpperLayerConformanceTests.swift:281:59: note: expanded code originates here
+279 |     func onlySpaceIsTrimmed() throws {
+280 |         #expect(try AETitle("  PACS  ").value == "PACS")
+281 |         #expect(try AETitle("MY PACS").value == "MY PACS")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkValue(try AETitle("MY PACS").value == "MY PACS",expression: .__fromSyntaxNode(#"try AETitle("MY PACS").value == "MY PACS""#),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+    +-------------------------------------------------------------------
+282 |         let tabPadded = "\tPACS"
+283 |         #expect(throws: DICOMNetworkError.self) { _ = try AETitle(tabPadded) }
+
+macro expansion #expect:1:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UpperLayerConformanceTests.swift:291:75: note: expanded code originates here
+289 |             #expect(throws: DICOMNetworkError.self, "\(bad.unicodeScalars.map { $0.value })") { _ = try AETitle(bad) }
+290 |         }
+291 |         #expect(try AETitle("!#$%&'()*+,-./:").value == "!#$%&'()*+,-./:")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkValue(try AETitle("!#$%&'()*+,-./:").value == "!#$%&'()*+,-./:",expression: .__fromSyntaxNode(#"try AETitle("!#$%&'()*+,-./:").value == "!#$%&'()*+,-./:""#),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+    +-------------------------------------------------------------------
+292 |         #expect(try AETitle(";<=>?@[]^_`{|}~").value == ";<=>?@[]^_`{|}~")
+293 |     }
+
+macro expansion #expect:1:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UpperLayerConformanceTests.swift:292:75: note: expanded code originates here
+290 |         }
+291 |         #expect(try AETitle("!#$%&'()*+,-./:").value == "!#$%&'()*+,-./:")
+292 |         #expect(try AETitle(";<=>?@[]^_`{|}~").value == ";<=>?@[]^_`{|}~")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkValue(try AETitle(";<=>?@[]^_`{|}~").value == ";<=>?@[]^_`{|}~",expression: .__fromSyntaxNode(#"try AETitle(";<=>?@[]^_`{|}~").value == ";<=>?@[]^_`{|}~""#),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+    +-------------------------------------------------------------------
+293 |     }
+294 | 
+
+macro expansion #expect:1:22: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UpperLayerConformanceTests.swift:306:67: note: expanded code originates here
+304 |     @Test("Length is counted in bytes: 16 allowed, 17 rejected")
+305 |     func sixteenBytes() throws {
+306 |         #expect(try AETitle("ABCDEFGHIJKLMNOP").value.count == 16)
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkValue(try AETitle("ABCDEFGHIJKLMNOP").value.count == 16,expression: .__fromSyntaxNode(#"try AETitle("ABCDEFGHIJKLMNOP").value.count == 16"#),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                      `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+    +-------------------------------------------------------------------
+307 |         let seventeen = "ABCDEFGHIJKLMNOPQ"
+308 |         #expect(throws: DICOMNetworkError.self) { _ = try AETitle(seventeen) }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:241:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+239 |         
+240 |         let request = AssociateRequestPDU(
+241 |             calledAETitle: try AETitle("PACS_SERVER"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+242 |             callingAETitle: try AETitle("MY_CLIENT"),
+243 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:242:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+240 |         let request = AssociateRequestPDU(
+241 |             calledAETitle: try AETitle("PACS_SERVER"),
+242 |             callingAETitle: try AETitle("MY_CLIENT"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+243 |             presentationContexts: [context],
+244 |             implementationClassUID: "1.2.3.4.5.6.7.8.9",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:262:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+260 |         
+261 |         let request = AssociateRequestPDU(
+262 |             calledAETitle: try AETitle("PACS_SERVER"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+263 |             callingAETitle: try AETitle("MY_CLIENT"),
+264 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:263:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+261 |         let request = AssociateRequestPDU(
+262 |             calledAETitle: try AETitle("PACS_SERVER"),
+263 |             callingAETitle: try AETitle("MY_CLIENT"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+264 |             presentationContexts: [context],
+265 |             implementationClassUID: "1.2.3.4.5.6.7.8.9"
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:282:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+280 |         
+281 |         let request = AssociateRequestPDU(
+282 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+283 |             callingAETitle: try AETitle("SCU"),
+284 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:283:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+281 |         let request = AssociateRequestPDU(
+282 |             calledAETitle: try AETitle("SCP"),
+283 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+284 |             presentationContexts: [context],
+285 |             implementationClassUID: "1.2.3.4.5",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:308:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+306 |         
+307 |         let original = AssociateRequestPDU(
+308 |             calledAETitle: try AETitle("PACS_SERVER"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+309 |             callingAETitle: try AETitle("MY_CLIENT"),
+310 |             presentationContexts: [context],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:309:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+307 |         let original = AssociateRequestPDU(
+308 |             calledAETitle: try AETitle("PACS_SERVER"),
+309 |             callingAETitle: try AETitle("MY_CLIENT"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+310 |             presentationContexts: [context],
+311 |             maxPDUSize: 32768,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:346:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+344 |         
+345 |         let accept = AssociateAcceptPDU(
+346 |             calledAETitle: try AETitle("MY_CLIENT"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+347 |             callingAETitle: try AETitle("PACS_SERVER"),
+348 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:347:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+345 |         let accept = AssociateAcceptPDU(
+346 |             calledAETitle: try AETitle("MY_CLIENT"),
+347 |             callingAETitle: try AETitle("PACS_SERVER"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+348 |             presentationContexts: [accepted],
+349 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:367:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+365 |         
+366 |         let accept = AssociateAcceptPDU(
+367 |             calledAETitle: try AETitle("MY_CLIENT"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+368 |             callingAETitle: try AETitle("PACS_SERVER"),
+369 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:368:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+366 |         let accept = AssociateAcceptPDU(
+367 |             calledAETitle: try AETitle("MY_CLIENT"),
+368 |             callingAETitle: try AETitle("PACS_SERVER"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+369 |             presentationContexts: [accepted],
+370 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:388:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+386 |         
+387 |         let accept = AssociateAcceptPDU(
+388 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+389 |             callingAETitle: try AETitle("SCP"),
+390 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:389:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+387 |         let accept = AssociateAcceptPDU(
+388 |             calledAETitle: try AETitle("SCU"),
+389 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+390 |             presentationContexts: [accepted],
+391 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:413:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+411 |         
+412 |         let original = AssociateAcceptPDU(
+413 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+414 |             callingAETitle: try AETitle("SCP"),
+415 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:414:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+412 |         let original = AssociateAcceptPDU(
+413 |             calledAETitle: try AETitle("SCU"),
+414 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+415 |             presentationContexts: [accepted],
+416 |             maxPDUSize: 32768,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:443:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+441 |         
+442 |         let config = AssociationConfiguration(
+443 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+444 |             calledAETitle: try AETitle("SCP"),
+445 |             host: "localhost",
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:444:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+442 |         let config = AssociationConfiguration(
+443 |             callingAETitle: try AETitle("SCU"),
+444 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+445 |             host: "localhost",
+446 |             port: 11112,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:460:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+458 |         
+459 |         let config = VerificationConfiguration(
+460 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+461 |             calledAETitle: try AETitle("SCP"),
+462 |             userIdentity: userIdentity
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:461:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+459 |         let config = VerificationConfiguration(
+460 |             callingAETitle: try AETitle("SCU"),
+461 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+462 |             userIdentity: userIdentity
+463 |         )
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:477:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+475 |         
+476 |         let config = QueryConfiguration(
+477 |             callingAETitle: try AETitle("SCU"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+478 |             calledAETitle: try AETitle("SCP"),
+479 |             userIdentity: userIdentity
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:478:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+476 |         let config = QueryConfiguration(
+477 |             callingAETitle: try AETitle("SCU"),
+478 |             calledAETitle: try AETitle("SCP"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+479 |             userIdentity: userIdentity
+480 |         )
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:531:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+529 |         
+530 |         let acceptPDU = AssociateAcceptPDU(
+531 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+532 |             callingAETitle: try AETitle("SCP"),
+533 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:532:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+530 |         let acceptPDU = AssociateAcceptPDU(
+531 |             calledAETitle: try AETitle("SCU"),
+532 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+533 |             presentationContexts: [accepted],
+534 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:554:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+552 |         
+553 |         let acceptPDU = AssociateAcceptPDU(
+554 |             calledAETitle: try AETitle("SCU"),
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+555 |             callingAETitle: try AETitle("SCP"),
+556 |             presentationContexts: [accepted],
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/UserIdentityTests.swift:555:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+553 |         let acceptPDU = AssociateAcceptPDU(
+554 |             calledAETitle: try AETitle("SCU"),
+555 |             callingAETitle: try AETitle("SCP"),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+556 |             presentationContexts: [accepted],
+557 |             maxPDUSize: 16384,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/VerificationServiceTests.swift:88:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 86 |     
+ 87 |     func testVerificationConfigurationDefaults() throws {
+ 88 |         let callingAE = try AETitle("CALLING")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 89 |         let calledAE = try AETitle("CALLED")
+ 90 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/VerificationServiceTests.swift:89:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 87 |     func testVerificationConfigurationDefaults() throws {
+ 88 |         let callingAE = try AETitle("CALLING")
+ 89 |         let calledAE = try AETitle("CALLED")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 90 |         
+ 91 |         let config = VerificationConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/VerificationServiceTests.swift:105:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+103 |     
+104 |     func testVerificationConfigurationCustomValues() throws {
+105 |         let callingAE = try AETitle("MY_SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+106 |         let calledAE = try AETitle("PACS")
+107 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/VerificationServiceTests.swift:106:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+104 |     func testVerificationConfigurationCustomValues() throws {
+105 |         let callingAE = try AETitle("MY_SCU")
+106 |         let calledAE = try AETitle("PACS")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+107 |         
+108 |         let config = VerificationConfiguration(
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/VerificationServiceTests.swift:126:25: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+124 |     
+125 |     func testVerificationConfigurationHashable() throws {
+126 |         let callingAE = try AETitle("SCU")
+    |                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+127 |         let calledAE = try AETitle("SCP")
+128 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/VerificationServiceTests.swift:127:24: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+125 |     func testVerificationConfigurationHashable() throws {
+126 |         let callingAE = try AETitle("SCU")
+127 |         let calledAE = try AETitle("SCP")
+    |                        `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+128 |         
+129 |         let config1 = VerificationConfiguration(
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[38 / 42] DICOMNetworkTests-product
+[40 / 42] DICOMNetworkTests-product
+Build complete! (7.17 sec)
+Test Suite 'Selected tests' started at 2026-10-24 16:21:42.078.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-24 16:21:42.083.
+Test Suite 'MPPSDataSetConformanceTests' started at 2026-10-24 16:21:42.083.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_create_withCompletedThrowsBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_create_withCompletedThrowsBeforeConnecting]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_explicitPerformedSeriesTakesPrecedence]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_explicitPerformedSeriesTakesPrecedence]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_carriesEveryType1And2AttributeOfF72_1]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_carriesEveryType1And2AttributeOfF72_1]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_doesNotCarryAttributesTheTableDoesNotAllowAtRoot]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_doesNotCarryAttributesTheTableDoesNotAllowAtRoot]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_extraAttributesAreWritten]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_extraAttributesAreWritten]' passed (0.023 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_latin1PatientNameDeclaresISO_IR_100AndKeepsEveryByte]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_latin1PatientNameDeclaresISO_IR_100AndKeepsEveryByte]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nestedTextValuesDriveTheCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nestedTextValuesDriveTheCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nonLatin1ValueChoosesUTF8]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nonLatin1ValueChoosesUTF8]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_overrideForcesTheDeclaredCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_overrideForcesTheDeclaredCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_pureASCIIDoesNotForceASpecificCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_pureASCIIDoesNotForceASpecificCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_requestedProcedureIDIsNotThePerformedStepID]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_requestedProcedureIDIsNotThePerformedStepID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuationReasonAbsentUnlessDiscontinued]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuationReasonAbsentUnlessDiscontinued]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuedCarriesDiscontinuationReasonCodeSequence]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuedCarriesDiscontinuationReasonCodeSequence]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_latin1OperatorsNameDeclaresCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_latin1OperatorsNameDeclaresCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_omitsScheduledStepAttributesByDefault]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_omitsScheduledStepAttributesByDefault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_scheduledStepAttributesFallsBackToReferencedSOPStudyUID]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_scheduledStepAttributesFallsBackToReferencedSOPStudyUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_operationResult_reportsReassignedSOPInstanceUID]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_operationResult_reportsReassignedSOPInstanceUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_carriesRealSOPClassAndType1ProtocolName]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_carriesRealSOPClassAndType1ProtocolName]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_legacyTupleWithoutClassIsRejected]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_legacyTupleWithoutClassIsRejected]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_completedWithoutSeriesThrowsBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_completedWithoutSeriesThrowsBeforeConnecting]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_retriesWithScheduledStepAttributesWhenFirstNSetFails]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_retriesWithScheduledStepAttributesWhenFirstNSetFails]' passed (0.008 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_withInProgressThrowsBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_withInProgressThrowsBeforeConnecting]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_completedRequiresAPerformedSeriesItem]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_completedRequiresAPerformedSeriesItem]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsAnyStatusButInProgress]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsAnyStatusButInProgress]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsEndDateTimeWhileInProgress]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsEndDateTimeWhileInProgress]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nSetRejectsInProgress]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nSetRejectsInProgress]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nSetRequiresEndDateTime]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nSetRequiresEndDateTime]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_warningStatusesCountAsSuccessWithWarning]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_warningStatusesCountAsSuccessWithWarning]' passed (0.000 seconds).
+Test Suite 'MPPSDataSetConformanceTests' passed at 2026-10-24 16:21:42.121.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.037 (0.038) seconds
+Test Suite 'MPPSReferenceIntegrityTests' started at 2026-10-24 16:21:42.121.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testCapturedNSetPreservesActualClassesWithBothTransferSyntaxes]' started.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testCapturedNSetPreservesActualClassesWithBothTransferSyntaxes]' passed (0.008 seconds).
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testEncodedReferencesPreserveCTMRSCAndMixedPairs]' started.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testEncodedReferencesPreserveCTMRSCAndMixedPairs]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testManualMPPSCapturePeer]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/MPPSReferenceIntegrityTests.swift:159: -[DICOMNetworkTests.MPPSReferenceIntegrityTests testManualMPPSCapturePeer] : Test skipped - Set DICOMKIT_M2_CAPTURE_DIR only for the manual packaged-app capture session
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testManualMPPSCapturePeer]' skipped (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testMissingAndMalformedClassesRefuseBeforeNetworking]' started.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testMissingAndMalformedClassesRefuseBeforeNetworking]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testTypedPairsRejectMissingClassOrInstanceUID]' started.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testTypedPairsRejectMissingClassOrInstanceUID]' passed (0.000 seconds).
+Test Suite 'MPPSReferenceIntegrityTests' passed at 2026-10-24 16:21:42.132.
+	 Executed 5 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.011 (0.011) seconds
+Test Suite 'MWLMPPSCLIEndToEndTests' started at 2026-10-24 16:21:42.132.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createFailureAndWarningAreWordedPerAnnexC]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createFailureAndWarningAreWordedPerAnnexC]' passed (1.073 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsNonDABirthDate]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsNonDABirthDate]' passed (0.126 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsPatientSexOutsideEnumeratedValues]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsPatientSexOutsideEnumeratedValues]' passed (0.126 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsTerminalStatus]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsTerminalStatus]' passed (0.125 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsUnknownStatusWord]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRejectsUnknownStatusWord]' passed (0.122 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRequiresModality]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_createRequiresModality]' passed (0.125 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_discontinuationReasonOnlyWithDiscontinued]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_discontinuationReasonOnlyWithDiscontinued]' passed (0.124 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_helpCitesCID9300CodesWithTheirTableD1Meanings]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_helpCitesCID9300CodesWithTheirTableD1Meanings]' passed (0.128 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_rootHelpNamesTheEnumeratedStatusValues]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_rootHelpNamesTheEnumeratedStatusValues]' passed (0.124 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateAcceptsStatusWordSpellings]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateAcceptsStatusWordSpellings]' passed (0.373 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateCompletedWithoutSeriesFailsBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateCompletedWithoutSeriesFailsBeforeConnecting]' passed (0.126 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateRejectsImageUIDWithoutClassBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateRejectsImageUIDWithoutClassBeforeConnecting]' passed (0.373 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateRejectsImageUIDWithoutSeries]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateRejectsImageUIDWithoutSeries]' passed (0.126 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateRejectsInProgress]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMPPS_updateRejectsInProgress]' passed (0.124 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_definedTermDoesNotWarn]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_definedTermDoesNotWarn]' passed (0.727 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_helpCitesRangeMatchingClauses]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_helpCitesRangeMatchingClauses]' passed (0.129 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_helpListsTheScheduledProcedureStepStatusDefinedTerms]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_helpListsTheScheduledProcedureStepStatusDefinedTerms]' passed (0.127 seconds).
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_ppsStatusWordAsSPSStatusWarnsBeforeTheQuery]' started.
+Test Case '-[DICOMNetworkTests.MWLMPPSCLIEndToEndTests testMWL_ppsStatusWordAsSPSStatusWarnsBeforeTheQuery]' passed (0.124 seconds).
+Test Suite 'MWLMPPSCLIEndToEndTests' passed at 2026-10-24 16:21:46.438.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 4.302 (4.306) seconds
+Test Suite 'MWLToMPPSWorkflowConformanceTests' started at 2026-10-24 16:21:46.438.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_nCreateAndNSetAddressTheSameProcedureStepInstance]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_nCreateAndNSetAddressTheSameProcedureStepInstance]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_nCreateScheduledStepAttributesCarryTheWorklistIdentifiers]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_nCreateScheduledStepAttributesCarryTheWorklistIdentifiers]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_performedStepMatchesTheScheduledDemographicsAndModality]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_performedStepMatchesTheScheduledDemographicsAndModality]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_theStudyInstanceUIDIsNeverRegeneratedAcrossStages]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_theStudyInstanceUIDIsNeverRegeneratedAcrossStages]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_carriesEveryRootLevelType1And2Attribute]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_carriesEveryRootLevelType1And2Attribute]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_declaresCorrectVRsForEveryAttribute]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_declaresCorrectVRsForEveryAttribute]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_newItemIsScheduled]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_newItemIsScheduled]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_scheduledProcedureStepSequenceIsPresentWithOneItem]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_scheduledProcedureStepSequenceIsPresentWithOneItem]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_scheduledStepItemCarriesEveryType1And2Attribute]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_mwlCreate_scheduledStepItemCarriesEveryType1And2Attribute]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_carriesEveryType1AttributeWithAValue]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_carriesEveryType1AttributeWithAValue]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_carriesEveryType2AttributeOfTheInformationAndResultsModules]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_carriesEveryType2AttributeOfTheInformationAndResultsModules]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_carriesEveryType2AttributeOfTheRelationshipModule]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_carriesEveryType2AttributeOfTheRelationshipModule]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_doesNotCarryAStatusTheStateMachineForbids]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_doesNotCarryAStatusTheStateMachineForbids]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_statusIsInProgressAndNoEndDateTimeIsValued]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nCreate_statusIsInProgressAndNoEndDateTimeIsValued]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_carriesNoDiscontinuationReason]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_carriesNoDiscontinuationReason]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_carriesPerformedSeriesWithEveryNestedAttribute]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_carriesPerformedSeriesWithEveryNestedAttribute]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_carriesTerminalStatusAndType1EndDateTime]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_carriesTerminalStatusAndType1EndDateTime]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_omitsAttributesTheNSetColumnDoesNotAllow]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_omitsAttributesTheNSetColumnDoesNotAllow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_referencesTheAcquiredInstanceByItsRealSOPClass]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_referencesTheAcquiredInstanceByItsRealSOPClass]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_withoutAnyAcquiredSeriesIsRejected]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_withoutAnyAcquiredSeriesIsRejected]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_afterPartialAcquisitionKeepsTheSeriesAlreadyStored]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_afterPartialAcquisitionKeepsTheSeriesAlreadyStored]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_carriesTerminalStatusAndType1EndDateTime]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_carriesTerminalStatusAndType1EndDateTime]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_carriesTheReasonCodeSequenceWithACompleteCodeItem]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_carriesTheReasonCodeSequenceWithACompleteCodeItem]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_isAllowedWithNothingAcquired]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_isAllowedWithNothingAcquired]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_omitsAttributesTheNSetColumnDoesNotAllow]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_omitsAttributesTheNSetColumnDoesNotAllow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_workflow_onlyTheTwoTerminalTransitionsAreAccepted]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_workflow_onlyTheTwoTerminalTransitionsAreAccepted]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_workflow_terminalStateWithoutAnEndDateTimeIsRejected]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_workflow_terminalStateWithoutAnEndDateTimeIsRejected]' passed (0.000 seconds).
+Test Suite 'MWLToMPPSWorkflowConformanceTests' passed at 2026-10-24 16:21:46.452.
+	 Executed 27 tests, with 0 failures (0 unexpected) in 0.011 (0.014) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-10-24 16:21:46.452.
+	 Executed 78 tests, with 1 test skipped and 0 failures (0 unexpected) in 4.361 (4.369) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 16:21:46.452.
+	 Executed 78 tests, with 1 test skipped and 0 failures (0 unexpected) in 4.361 (4.374) seconds

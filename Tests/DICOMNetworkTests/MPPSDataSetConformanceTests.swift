@@ -152,14 +152,14 @@ final class MPPSDataSetConformanceTests: XCTestCase {
         XCTAssertEqual(occurrences(data, 0x0008, 0x1155), 2)
     }
 
-    func test_performedSeries_legacyTupleWithoutClassFallsBackToSecondaryCapture() {
+    func test_performedSeries_legacyTupleWithoutClassIsRejected() {
         let step = MPPSProcedureStep(
-            sopInstanceUID: "1", status: .completed,
+            sopInstanceUID: "1", status: .completed, endDateTime: Date(),
             referencedSOPs: [("1.2.3", "1.2.3.4", "1.2.3.4.5")])
-        let series = step.effectivePerformedSeries
-        XCTAssertEqual(series.count, 1)
-        XCTAssertEqual(series.first?.referencedImages.first?.sopClassUID, MPPSProcedureStep.legacyReferencedSOPClassUID)
-        XCTAssertEqual(series.first?.protocolName, "UNSPECIFIED", "Type 1 Protocol Name is never empty")
+        XCTAssertThrowsError(try DICOMMPPSService.validate(step, for: .nSet)) { error in
+            XCTAssertTrue(String(describing: error).contains("cannot be inferred"))
+        }
+        XCTAssertTrue(step.effectivePerformedSeries.isEmpty, "Never synthesize a guessed class")
     }
 
     func test_explicitPerformedSeriesTakesPrecedence() {

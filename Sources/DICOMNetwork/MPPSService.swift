@@ -242,9 +242,8 @@ public struct MPPSProcedureStep: Sendable {
     /// SOP Class per instance and the Type 1 Protocol Name.
     public let referencedSOPs: [(studyUID: String, seriesUID: String, sopInstanceUID: String)]
 
-    /// SOP Class UID applied to every `referencedSOPs` entry. When nil the legacy
-    /// Secondary Capture placeholder is used — non-conformant for anything that is
-    /// not an SC image; pass the real class or use `performedSeries`.
+    /// SOP Class UID applied to every `referencedSOPs` entry. Required when that
+    /// list is used; pass the real class or use `performedSeries` for mixed classes.
     public let referencedSOPClassUID: String?
 
     /// Protocol Name (0018,1030) applied to series built from `referencedSOPs`.
@@ -430,8 +429,9 @@ public struct MPPSProcedureStep: Sendable {
         return values
     }
 
-    /// Secondary Capture Image Storage — the placeholder used for `referencedSOPs`
-    /// entries when `referencedSOPClassUID` is nil.
+    /// Secondary Capture Image Storage. Retained for source compatibility only;
+    /// it is never substituted for a missing referenced SOP Class UID.
+    @available(*, deprecated, message: "Supply each referenced object's actual SOP Class UID; no fallback is used")
     public static let legacyReferencedSOPClassUID = "1.2.840.10008.5.1.4.1.1.7"
 
     /// Detached Study Management SOP Class — the class MWL SCPs put in Referenced
@@ -445,7 +445,8 @@ public struct MPPSProcedureStep: Sendable {
         if !performedSeries.isEmpty { return performedSeries }
         var order: [String] = []
         var grouped: [String: [MPPSReferencedInstance]] = [:]
-        let classUID = referencedSOPClassUID ?? Self.legacyReferencedSOPClassUID
+        // validate(_:for:) rejects this incomplete legacy input before networking.
+        guard let classUID = referencedSOPClassUID, !classUID.isEmpty else { return [] }
         for ref in referencedSOPs {
             if grouped[ref.seriesUID] == nil { order.append(ref.seriesUID) }
             grouped[ref.seriesUID, default: []].append(
@@ -753,8 +754,8 @@ public enum DICOMMPPSService {
     ///     Procedure ID (0040,1001) when `requestedProcedureID` is nil (legacy)
     ///   - timeout: Connection timeout in seconds (default: 60)
     ///   - referencedSOPClassUID: Referenced SOP Class UID (0008,1150) for every
-    ///     `referencedSOPs` entry — the images' real class. Nil falls back to the
-    ///     Secondary Capture placeholder, which is wrong for anything else.
+    ///     `referencedSOPs` entry — the images' real class. Required when that
+    ///     list is used; `performedSeries` carries a separate class per instance.
     ///   - protocolName: Protocol Name (0018,1030), Type 1 in every Performed Series item
     ///   - performedSeries: fully described Performed Series items (preferred over `referencedSOPs`)
     ///   - seriesDescription / operatorsName / performingPhysicianName: Type 2 series attributes
@@ -812,8 +813,13 @@ public enum DICOMMPPSService {
         // `referencedSOPs`; `performedSeries` items carry their own.
         var series = performedSeries
         if series.isEmpty, !referencedSOPs.isEmpty,
+           referencedSOPClassUID == nil || referencedSOPClassUID?.isEmpty == true {
+            throw DICOMNetworkError.invalidState(missingReferencedSOPClassMessage)
+        }
+        if series.isEmpty, !referencedSOPs.isEmpty,
            seriesDescription != nil || operatorsName != nil {
-            let classUID = referencedSOPClassUID ?? MPPSProcedureStep.legacyReferencedSOPClassUID
+            // Presence was checked above; validation below also checks UID syntax.
+            let classUID = referencedSOPClassUID ?? ""
             var order: [String] = []
             var grouped: [String: [MPPSReferencedInstance]] = [:]
             for ref in referencedSOPs {
@@ -888,6 +894,26 @@ public enum DICOMMPPSService {
     ///
     /// - Throws: `DICOMNetworkError.invalidState` naming the clause that is violated
     public static func validate(_ step: MPPSProcedureStep, for operation: Operation) throws {
+        if step.performedSeries.isEmpty, !step.referencedSOPs.isEmpty {
+            guard let classUID = step.referencedSOPClassUID, !classUID.isEmpty else {
+                throw DICOMNetworkError.invalidState(missingReferencedSOPClassMessage)
+            }
+            guard DICOMValueRules.isValidUID(classUID) else {
+                throw DICOMNetworkError.invalidState("Referenced SOP Class UID (0008,1150) must be a valid DICOM UID")
+            }
+        }
+        for series in step.effectivePerformedSeries {
+            guard DICOMValueRules.isValidUID(series.seriesInstanceUID) else {
+                throw DICOMNetworkError.invalidState("Series Instance UID (0020,000E) must be a valid DICOM UID")
+            }
+            for reference in series.referencedImages + series.referencedNonImageInstances {
+                guard DICOMValueRules.isValidUID(reference.sopClassUID),
+                      DICOMValueRules.isValidUID(reference.sopInstanceUID) else {
+                    throw DICOMNetworkError.invalidState(
+                        "Every MPPS reference requires valid Referenced SOP Class/Instance UIDs (0008,1150)/(0008,1155) (PS3.4 Table F.7.2-1)")
+                }
+            }
+        }
         switch operation {
         case .nCreate:
             guard step.status == .inProgress else {
@@ -924,6 +950,29 @@ public enum DICOMMPPSService {
             }
         }
     }
+
+    /// Shared preflight for the CLI and Workshop's explicit image UID fields.
+    /// A UID alone does not identify its SOP Class; callers must supply the class
+    /// from the referenced object. Mixed classes use `MPPSPerformedSeries`.
+    public static func imageReferenceInputError(
+        imageUIDs: [String], studyUID: String?, seriesUID: String?, sopClassUID: String?
+    ) -> String? {
+        guard !imageUIDs.isEmpty else { return nil }
+        guard let studyUID, !studyUID.isEmpty, let seriesUID, !seriesUID.isEmpty else {
+            return "--image-uid needs --study-uid and --series-uid: Referenced Image Sequence (0008,1140) items live in a Performed Series Sequence (0040,0340) item with its Series Instance UID (0020,000E) (PS3.4 Table F.7.2-1)"
+        }
+        guard let sopClassUID, !sopClassUID.isEmpty else { return missingReferencedSOPClassMessage }
+        for (value, option) in [(studyUID, "--study-uid"), (seriesUID, "--series-uid"), (sopClassUID, "--sop-class-uid")] {
+            guard DICOMValueRules.isValidUID(value) else { return "\(option) must be a valid DICOM UID" }
+        }
+        guard imageUIDs.allSatisfy({ DICOMValueRules.isValidUID($0) }) else {
+            return "--image-uid must be a valid DICOM UID for every referenced image"
+        }
+        return nil
+    }
+
+    public static let missingReferencedSOPClassMessage =
+        "--image-uid requires --sop-class-uid from the referenced object: Referenced SOP Class UID (0008,1150) cannot be inferred from a SOP Instance UID (PS3.4 Table F.7.2-1)"
     
     // MARK: - Private Implementation
     

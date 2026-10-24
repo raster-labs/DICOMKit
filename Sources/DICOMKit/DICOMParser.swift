@@ -463,7 +463,8 @@ struct DICOMParser: ~Copyable {
             elementCount += 1
         }
         
-        return .success(capture == nil ? DataSet(elements: elements) : DataSet())
+        let parsed = capture == nil ? DataSet(elements: elements) : DataSet()
+        return .success(isExplicitVR ? parsed : parsed.resolvingImplicitSignedVR())
     }
     
     // MARK: - Encapsulated Pixel Data Parsing

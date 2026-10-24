@@ -1,0 +1,4 @@
+{
+  "baseURL": "http://127.0.0.1:64297/dicom-web",
+  "purpose": "Capture CLI/packaged Workshop UPS client requests only"
+}

@@ -21,7 +21,7 @@ public struct DataSet: Sendable {
     /// DICOM files occasionally violate this rule.
     /// - Parameter elements: Array of data elements
     public init(elements: [DataElement]) {
-        self.elements = Dictionary(elements.map { ($0.tag, $0) }, uniquingKeysWith: { _, last in last })
+        self.elements = Self.bindingTextContext(in: Dictionary(elements.map { ($0.tag, $0) }, uniquingKeysWith: { _, last in last }), inherited: "")
     }
     
     /// Accesses a data element by tag

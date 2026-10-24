@@ -200,6 +200,18 @@ final class MWLMPPSCLIEndToEndTests: XCTestCase {
         XCTAssertTrue(result.stderr.contains("(0040,0340)"))
     }
 
+    func testMPPS_updateRejectsImageUIDWithoutClassBeforeConnecting() throws {
+        for extra in [[], ["--sop-class-uid", ""], ["--sop-class-uid", "1..2"]] {
+            let result = try run("dicom-mpps", [
+                "update", "host.invalid", "--aet", "T", "--mpps-uid", "1.2.3", "--status", "COMPLETED",
+                "--study-uid", "1.2.4", "--series-uid", "1.2.4.1", "--image-uid", "1.2.4.1.1"
+            ] + extra)
+            XCTAssertEqual(result.exitCode, 64, result.all)
+            XCTAssertTrue(result.stderr.contains("--sop-class-uid"), result.stderr)
+            XCTAssertFalse(result.stdout.contains("Connecting"), result.stdout)
+        }
+    }
+
     /// PS3.4 Table F.7.2-1: COMPLETED needs a Performed Series item (final state 1);
     /// the engine refuses before connecting.
     func testMPPS_updateCompletedWithoutSeriesFailsBeforeConnecting() throws {

@@ -1,0 +1,24 @@
+{
+  "files" : [
+    {
+      "errorCount" : 1,
+      "errors" : [
+        {
+          "message" : "(0008,1110)[1]: Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1]",
+          "tag" : "(0010,1010)"
+        }
+      ],
+      "filePath" : "\/private\/tmp\/dicomkit-m2-ui\/nested-invalid-AS.dcm",
+      "isValid" : false,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 1,
+  "totalErrors" : 1,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 0
+}

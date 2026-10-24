@@ -13,10 +13,12 @@ This is the current implementation ledger for the 24 October 2026 review at
 - [M0 reproduction and later qualification procedure](M0/REPRODUCE.md)
 - [M1 completion report](M1/REPORT.md)
 - [M1 verification and reproduction](M1/REPRODUCE.md)
+- [M2 completion report](M2/REPORT.md)
+- [M2 verification and reproduction](M2/REPRODUCE.md)
 - [Existing print command contracts for the later M6 milestone](print-cli-contract.json)
 
 Use **one branch**, `codex/dicom-2026a-milestones`, for the milestone series.
-The current authorization is **M1 only**. M0 and M1 are complete; stop before M2. After each separately
+The current authorization is **M2 only**. M0, M1 and M2 are complete. Stop before M3. After each separately
 authorized milestone, update STATUS.md, the item criteria/results and the
 milestone evidence before pushing. Do not merge into main or release merely
 because one milestone passes.

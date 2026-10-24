@@ -488,7 +488,8 @@ extension DataElement {
     public static func string(tag: Tag, vr: VR, value: String) -> DataElement {
         let writer = DICOMWriter()
         let valueData = writer.serializeString(value, vr: vr)
-        return DataElement(tag: tag, vr: vr, length: UInt32(valueData.count), valueData: valueData)
+        return DataElement(tag: tag, vr: vr, length: UInt32(valueData.count), valueData: valueData,
+                           specificCharacterSet: "ISO_IR 192")
     }
     
     /// Creates a data element with multiple string values
@@ -499,9 +500,7 @@ extension DataElement {
     ///   - values: Array of string values
     /// - Returns: A new data element
     public static func strings(tag: Tag, vr: VR, values: [String]) -> DataElement {
-        let writer = DICOMWriter()
-        let valueData = writer.serializeStrings(values, vr: vr)
-        return DataElement(tag: tag, vr: vr, length: UInt32(valueData.count), valueData: valueData)
+        string(tag: tag, vr: vr, value: values.joined(separator: "\\"))
     }
     
     /// Creates a data element with a UInt16 value

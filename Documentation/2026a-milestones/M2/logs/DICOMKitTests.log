@@ -1,0 +1,139 @@
+Building for debugging...
+[Computing dependencies]
+[2 / 44]
+[4 / 9] DICOMKitTests-product
+[6 / 11] DICOMKitTests-product
+[11 / 12] DICOMKitTests-product
+[13 / 13] DICOMKitTests-product
+Build complete! (8.31 sec)
+Test Suite 'Selected tests' started at 2026-10-24 16:20:32.851.
+Test Suite 'DICOMKitTests.xctest' started at 2026-10-24 16:20:32.856.
+Test Suite 'FileMetaMediaStorageUIDTests' started at 2026-10-24 16:20:32.856.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_anonymizer_anonymize_regenerateUIDs_fileMetaFollows]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_anonymizer_anonymize_regenerateUIDs_fileMetaFollows]' passed (0.002 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_anonymizer_deidentify_fileMetaFollowsRegeneratedUID]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_anonymizer_deidentify_fileMetaFollowsRegeneratedUID]' passed (0.004 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_argumentsOmitted_usesDataSetUIDs]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_argumentsOmitted_usesDataSetUIDs]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_conflictingArguments_dataSetWins]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_conflictingArguments_dataSetWins]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_dataSetWithoutUIDs_argumentsAreWrittenToBoth]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_dataSetWithoutUIDs_argumentsAreWrittenToBoth]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_dicomdir_dataSetNotModified]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_dicomdir_dataSetNotModified]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_emptyDataSetInstanceUID_isReplaced]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_emptyDataSetInstanceUID_isReplaced]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_matchingArguments]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_matchingArguments]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_nonOptionalStringArgumentStillCompiles]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_nonOptionalStringArgumentStillCompiles]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_nothingGiven_secondaryCaptureAndGeneratedUIDInBoth]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_nothingGiven_secondaryCaptureAndGeneratedUIDInBoth]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_onlyClassInDataSet_instanceFromArgument]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_onlyClassInDataSet_instanceFromArgument]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_onlyTransferSyntax_usesDataSetUIDs]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_onlyTransferSyntax_usesDataSetUIDs]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_roundTrip_agreesAndGroupLengthCorrect]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_create_roundTrip_agreesAndGroupLengthCorrect]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_imageConverter_secondaryCapture_fileMetaEqualsDataSet]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_imageConverter_secondaryCapture_fileMetaEqualsDataSet]' passed (0.005 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_synchronizing_dataSetWithoutUIDs_keepsFileMeta]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_synchronizing_dataSetWithoutUIDs_keepsFileMeta]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_synchronizing_fixesMismatchAndRecomputesGroupLength]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_synchronizing_fixesMismatchAndRecomputesGroupLength]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_uidManager_regenerate_fileMetaFollowsNewSOPInstanceUID]' started.
+Test Case '-[DICOMKitTests.FileMetaMediaStorageUIDTests test_uidManager_regenerate_fileMetaFollowsNewSOPInstanceUID]' passed (0.001 seconds).
+Test Suite 'FileMetaMediaStorageUIDTests' passed at 2026-10-24 16:20:32.871.
+	 Executed 17 tests, with 0 failures (0 unexpected) in 0.014 (0.015) seconds
+Test Suite 'TagEditIntegrityTests' started at 2026-10-24 16:20:32.871.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testCompatibleLegacyCopyKeepsBytesAndNewTextPromotesWhenNecessary]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testCompatibleLegacyCopyKeepsBytesAndNewTextPromotesWhenNecessary]' passed (0.030 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testCopySelectorFormsAndRefusals]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testCopySelectorFormsAndRefusals]' passed (0.003 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testEmptyTypeTwoFieldAndRequiredSOPIdentityControls]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testEmptyTypeTwoFieldAndRequiredSOPIdentityControls]' passed (0.003 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testImplicitItemContextInheritanceAndOverride]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testImplicitItemContextInheritanceAndOverride]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testMultiplicityFixedRangeAndStep]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testMultiplicityFixedRangeAndStep]' passed (0.004 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testNineMalformedEditsFailBothPathsWithoutPartialChanges]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testNineMalformedEditsFailBothPathsWithoutPartialChanges]' passed (0.018 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testSignedValuesRoundTripExplicitAndImplicitAndExplicitVRIsPreserved]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testSignedValuesRoundTripExplicitAndImplicitAndExplicitVRIsPreserved]' passed (0.002 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testSignedValueUsesFinalContextInBothSetOrders]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testSignedValueUsesFinalContextInBothSetOrders]' passed (0.005 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testUnsignedAmbiguousAndExistingSignedControls]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testUnsignedAmbiguousAndExistingSignedControls]' passed (0.004 seconds).
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testValidValuesEmptyValuesAndNumericBounds]' started.
+Test Case '-[DICOMKitTests.TagEditIntegrityTests testValidValuesEmptyValuesAndNumericBounds]' passed (0.004 seconds).
+Test Suite 'TagEditIntegrityTests' passed at 2026-10-24 16:20:32.943.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.072 (0.072) seconds
+Test Suite 'ToolEngineStandardTests' started at 2026-10-24 16:20:32.943.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testApplyChangesUsesTheRules]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testApplyChangesUsesTheRules]' passed (0.001 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testApplyCheckedChangesRefusesTheWholeEdit]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testApplyCheckedChangesRefusesTheWholeEdit]' passed (0.001 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testComparisonReportNamesPrivateCreator]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testComparisonReportNamesPrivateCreator]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testEncapsulatedFragmentsAreNotDescended]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testEncapsulatedFragmentsAreNotDescended]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testFileWithoutPreambleIsAnnotatedFromByteZero]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testFileWithoutPreambleIsAnnotatedFromByteZero]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testFilterMatchesKeywordsExactly]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testFilterMatchesKeywordsExactly]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testIgnorePrivateInsideSequenceItems]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testIgnorePrivateInsideSequenceItems]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testItemsAndDelimitersAreAnnotated]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testItemsAndDelimitersAreAnnotated]' passed (0.001 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testJSONCarriesBinaryValuesAndPrivateCreatorName]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testJSONCarriesBinaryValuesAndPrivateCreatorName]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testOffsetKeepsAnnotationsOnTheirBytes]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testOffsetKeepsAnnotationsOnTheirBytes]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testPixelDifferenceIsPerSample]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testPixelDifferenceIsPerSample]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testPlanarConfigurationIsNormalised]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testPlanarConfigurationIsNormalised]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testPrivateCreatorIsNamed]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testPrivateCreatorIsNamed]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testSignedAndBitsStored]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testSignedAndBitsStored]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testStatisticsNameTheUIDs]' started.
+Test Case '-[DICOMKitTests.ToolEngineStandardTests testStatisticsNameTheUIDs]' passed (0.000 seconds).
+Test Suite 'ToolEngineStandardTests' passed at 2026-10-24 16:20:32.949.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds
+Test Suite 'DICOMKitTests.xctest' passed at 2026-10-24 16:20:32.949.
+	 Executed 42 tests, with 0 failures (0 unexpected) in 0.092 (0.094) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 16:20:32.949.
+	 Executed 42 tests, with 0 failures (0 unexpected) in 0.092 (0.098) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "M2 text encoding and edited identity integrity" started.
+◇ Test "New UTF-8 values obtain a declaration and retain leading spaces" started.
+◇ Test "Copying text from Latin-1 into a UTF-8 dataset retains the selected text" started.
+◇ Test "Selected metadata retains its text decoding context without adding an unrequested tag" started.
+◇ Test "Nested UTF-8 override is independent of its Latin-1 parent and validates its bytes" started.
+◇ Test "Edited SOP class and instance agree with File Meta and actual encoded group length" started.
+◇ Test "Invalid charset aliases fail both dry-run and edit before output; legal ISO2022 round trips" started.
+◇ Test "Explicit charset conversion changes every affected value, never only its label" started.
+◇ Test "An empty Item declaration overrides its parent rather than inheriting Latin-1" started.
+◇ Test "Unicode edit transcodes all legacy and nested text, preserving unedited values" started.
+◇ Test "Raw Latin-1 and nested inherited/overridden declarations decode and round trip" started.
+◇ Test "Unsupported, malformed and unrepresentable encodings fail without substitution" started.
+◇ Test "File writer recomputes stale meta group length even without an identity change" started.
+◇ Test "Copying a complete mixed-charset dataset preserves explicit Item overrides" started.
+✔ Test "New UTF-8 values obtain a declaration and retain leading spaces" passed after 0.001 seconds.
+✔ Test "Selected metadata retains its text decoding context without adding an unrequested tag" passed after 0.001 seconds.
+✔ Test "Raw Latin-1 and nested inherited/overridden declarations decode and round trip" passed after 0.001 seconds.
+✔ Test "An empty Item declaration overrides its parent rather than inheriting Latin-1" passed after 0.001 seconds.
+✔ Test "File writer recomputes stale meta group length even without an identity change" passed after 0.001 seconds.
+✔ Test "Nested UTF-8 override is independent of its Latin-1 parent and validates its bytes" passed after 0.001 seconds.
+✔ Test "Unsupported, malformed and unrepresentable encodings fail without substitution" passed after 0.002 seconds.
+✔ Test "Copying a complete mixed-charset dataset preserves explicit Item overrides" passed after 0.026 seconds.
+✔ Test "Explicit charset conversion changes every affected value, never only its label" passed after 0.027 seconds.
+✔ Test "Unicode edit transcodes all legacy and nested text, preserving unedited values" passed after 0.027 seconds.
+✔ Test "Copying text from Latin-1 into a UTF-8 dataset retains the selected text" passed after 0.027 seconds.
+✔ Test "Edited SOP class and instance agree with File Meta and actual encoded group length" passed after 0.028 seconds.
+✔ Test "Invalid charset aliases fail both dry-run and edit before output; legal ISO2022 round trips" passed after 0.029 seconds.
+✔ Suite "M2 text encoding and edited identity integrity" passed after 0.029 seconds.
+✔ Test run with 13 tests in 1 suite passed after 0.029 seconds.

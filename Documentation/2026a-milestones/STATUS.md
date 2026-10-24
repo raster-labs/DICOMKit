@@ -1,9 +1,21 @@
 # DICOM 2026a milestone status
 
-Updated 24 October 2026. **M0 and M1 are complete; M2 has not started.**
+Updated 24 October 2026. **M0, M1 and M2 are complete; M3 has not started.**
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
-commit at the start of M0. M0 repaired audit infrastructure; M1 repairs command and execution safety.
+commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repairs attribute integrity and workflow datasets.
+
+## Completed M2 items
+
+A-01–A-09, NET-06-A, NET-06-B and NET-07-A are implemented and verified.
+508 focused runtime tests passed; one opt-in receiver test was skipped in the
+normal run and passed separately during the actual network capture. All 30
+audit regressions and 72 repeatable CLI process probes passed. Packaged Workshop
+edits, metadata display, validation and applicable UPS/MPPS routes were exercised;
+independent file and wire inspections passed. See [M2 report](M2/REPORT.md),
+[verification](M2/verification.json) and [reproduction](M2/REPRODUCE.md).
+The generic UPS attribute-update route is backend-only and explicitly UI-not-applicable.
+Remote CI must be checked on the pushed M2 commit; local evidence is not remote CI.
 
 ## Completed M1 items
 
@@ -65,7 +77,7 @@ These are audit-contract corrections; no product options or defaults changed.
 |---|---:|---|
 | M0 baseline and audits | 3 | Completed |
 | M1 command/execution safety | 4 | Completed |
-| M2 attribute integrity and workflow datasets | 12 | Not started |
+| M2 attribute integrity and workflow datasets | 12 | Completed |
 | M3 query safety and filters | 11 | Not started |
 | M4 service reliability | 5 | Not started |
 | M5 remaining Studio contracts | 7 | Not started |
@@ -73,8 +85,8 @@ These are audit-contract corrections; no product options or defaults changed.
 | M7 final qualification | 2 | Not started |
 | Other enhancements and dormant components | 22 | Deferred |
 
-Of the 68 original actions, **7 are completed, 39 active items remain pending,
-and 22 remain deferred**. 34 product bug-fix actions remain open. The
+Of the 68 original actions, **19 are completed, 27 active items remain pending,
+and 22 remain deferred**. 22 product bug-fix actions remain open. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or
@@ -83,5 +95,5 @@ passing cached-binary tests are retained as historical evidence only; their
 equivalence to this source was not established. Preparation and gates for the
 later verification are in [M0/REPRODUCE.md](M0/REPRODUCE.md).
 
-Stop here before M2. Push M1 on the existing milestone branch. Merging into main,
-releasing and beginning M2 require the user’s next instruction.
+Stop here before M3. Push M2 on the existing milestone branch. Merging into main,
+releasing and beginning M3 require the user’s next instruction.

@@ -6352,9 +6352,6 @@ case "dicom-study":
         // repeated flags emitted in the command preview.
         let sets    = CommandBuilderHelpers.splitMultiValue(setRaw)
         let deletes = CommandBuilderHelpers.splitMultiValue(deleteRaw)
-        // --tags (copy) is a single option the CLI itself comma-splits, so plain
-        // comma splitting matches the CLI exactly here.
-        let copyTags = tagsRaw.isEmpty ? [String]() : tagsRaw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 
         guard !sets.isEmpty || !deletes.isEmpty || deletePrivate || !copyFromPath.isEmpty else {
             // The CLI throws the shared TagEditorError (exit 1): same text.
@@ -6392,6 +6389,7 @@ case "dicom-study":
                 guard FileManager.default.fileExists(atPath: fileURL.path) else {
                     return ("Error: \(TagEditorError.fileNotFound(fileURL.path).localizedDescription)\n", 1)
                 }
+                let copyTags = try TagEditor().parseTagSelectors(tagsRaw)
                 if let cfURL = copyFromURL, !FileManager.default.fileExists(atPath: cfURL.path) {
                     return ("Error: \(TagEditorError.fileNotFound(cfURL.path).localizedDescription)\n", 1)
                 }
@@ -6439,6 +6437,7 @@ case "dicom-study":
                     output: resolvedOutputPath, input: fileURL.path)
                 if !dryRun {
                     let modifiedFile = DICOMFile(fileMetaInformation: dicomFile.fileMetaInformation, dataSet: dataSet)
+                        .synchronizingMediaStorageUIDs()
                     let outData = try modifiedFile.write()
                     let destURL  = URL(fileURLWithPath: destPath)
                     try FileManager.default.createDirectory(
@@ -9987,12 +9986,12 @@ case "dicom-study":
         // Image references are only encoded inside a Performed Series item, which needs
         // the Study and Series Instance UIDs (PS3.4 Table F.7.2-1) — the CLI's guard.
         let imageUIDs = isCreate ? [] : CommandBuilderHelpers.splitMultiValue(imageUIDsRaw).filter { !$0.isEmpty }
-        if !isCreate, !imageUIDs.isEmpty, studyUID.isEmpty || seriesUID.isEmpty {
-            refuse("--image-uid needs --study-uid and --series-uid: Referenced Image Sequence (0008,1140) items live in a Performed Series Sequence (0040,0340) item with its Series Instance UID (0020,000E) (PS3.4 Table F.7.2-1)", exitCode: 64)
+        if let error = DICOMMPPSService.imageReferenceInputError(
+            imageUIDs: imageUIDs, studyUID: optional(studyUID), seriesUID: optional(seriesUID),
+            sopClassUID: optional(sopClassUID)
+        ) {
+            refuse(error, exitCode: 64)
             return
-        }
-        if !isCreate, !imageUIDs.isEmpty, sopClassUID.isEmpty {
-            appendConsoleOutput("warning: --sop-class-uid not given; Referenced SOP Class UID defaults to Secondary Capture (1.2.840.10008.5.1.4.1.1.7), which is non-conformant for CT/MR/… images\n")
         }
 
         // Header via the SHARED NetworkConsole formatter (DICOMNetwork) — the IDENTICAL

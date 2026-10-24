@@ -379,7 +379,7 @@ extension DICOMMPPSCommand {
         @Option(name: .long, help: "SOP Instance UID (0008,1155) of a referenced image, repeatable; needs --study-uid and --series-uid to form the Performed Series item")
         var imageUid: [String] = []
 
-        @Option(name: .long, help: "SOP Class UID (0008,1150) of the referenced images, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Without it the Secondary Capture class is sent, which is wrong for anything but SC")
+        @Option(name: .long, help: "Actual SOP Class UID (0008,1150) of every referenced image, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Required with --image-uid; no class is inferred")
         var sopClassUid: String?
 
         @Option(name: .long, help: "Protocol Name (0018,1030) — Type 1 in every Performed Series item (default: UNSPECIFIED)")
@@ -429,16 +429,10 @@ extension DICOMMPPSCommand {
                 reason = try DICOMMPPSCommand.parseCodedEntry(discontinuationReason, option: "--discontinuation-reason")
             }
 
-            // Image references are only encoded inside a Performed Series item, which
-            // needs the Study and Series Instance UIDs; without them the --image-uid
-            // values used to be dropped silently.
-            if !imageUid.isEmpty, studyUid == nil || seriesUid == nil {
-                throw ValidationError("--image-uid needs --study-uid and --series-uid: Referenced Image Sequence (0008,1140) items live in a Performed Series Sequence (0040,0340) item with its Series Instance UID (0020,000E) (PS3.4 Table F.7.2-1)")
-            }
-
-            if !imageUid.isEmpty, sopClassUid == nil {
-                FileHandle.standardError.write(Data(
-                    "warning: --sop-class-uid not given; Referenced SOP Class UID defaults to Secondary Capture (1.2.840.10008.5.1.4.1.1.7), which is non-conformant for CT/MR/… images\n".utf8))
+            if let error = DICOMMPPSService.imageReferenceInputError(
+                imageUIDs: imageUid, studyUID: studyUid, seriesUID: seriesUid, sopClassUID: sopClassUid
+            ) {
+                throw ValidationError(error)
             }
             
             // Verbose header via the SHARED NetworkConsole formatter (DICOMNetwork).

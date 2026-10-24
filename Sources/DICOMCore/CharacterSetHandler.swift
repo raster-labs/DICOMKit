@@ -49,6 +49,54 @@ public struct CharacterSetHandler: Sendable {
         return CharacterSetHandler(characterSets: [value1] + extensions)
     }
     
+    /// Strict declarations from PS3.3 2026a C.12.1.1.2, Tables C.12-2...5.
+    /// `from` deliberately keeps its historical tolerant aliases; editing and
+    /// validation must not mistake those aliases for legal declarations.
+    public static func isSupported(specificCharacterSet: String) -> Bool {
+        let terms = specificCharacterSet.components(separatedBy: "\\")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+        let singleByteNumbers = [100, 101, 109, 110, 144, 127, 126, 138, 148, 203, 13, 166]
+        let withoutExtensions = Set(singleByteNumbers.map { "ISO_IR \($0)" })
+            .union(["", "ISO_IR 192", "GB18030", "GBK"])
+        if terms.count == 1 { return withoutExtensions.contains(terms[0]) }
+
+        let singleByteExtensions = Set(([6] + singleByteNumbers).map { "ISO 2022 IR \($0)" })
+        let allExtensions = singleByteExtensions.union(["ISO 2022 IR 87", "ISO 2022 IR 159",
+                                                        "ISO 2022 IR 149", "ISO 2022 IR 58"])
+        // Empty Value 1 denotes ISO 2022 IR 6. Multibyte extension sets are
+        // permitted only as Values 2...n; later empty Values and duplicates are invalid.
+        let first = terms[0].isEmpty ? "ISO 2022 IR 6" : terms[0]
+        guard singleByteExtensions.contains(first), terms.dropFirst().allSatisfy(allExtensions.contains) else { return false }
+        let resolved = [first] + terms.dropFirst()
+        return Set(resolved).count == resolved.count
+    }
+
+    /// Strict conversion path used for edits. Never silently discards an unknown
+    /// escape sequence or accepts replacement characters from a failed decode.
+    public static func decodeStrict(_ data: Data, specificCharacterSet: String) -> String? {
+        guard isSupported(specificCharacterSet: specificCharacterSet) else { return nil }
+        let terms = specificCharacterSet.components(separatedBy: "\\")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+        var allowed = Set(terms.compactMap { CharacterSetEncoding.from(definedTerm: $0) })
+        allowed.insert(.isoIR6) // default G0 and the required return-to-default designation
+        if allowed.contains(.isoIR13) { allowed.insert(.isoIR14) }
+        let bytes = [UInt8](data)
+        var index = 0
+        while index < bytes.count {
+            if bytes[index] == ISO2022.escape {
+                guard specificCharacterSet.contains("ISO 2022") else { return nil }
+                let (designation, length) = ISO2022.parseEscape(bytes, at: index)
+                guard let (_, set) = designation, allowed.contains(set) else { return nil }
+                index += length
+            } else {
+                index += 1
+            }
+        }
+        guard let value = from(specificCharacterSet: specificCharacterSet).decode(data) else { return nil }
+        if specificCharacterSet.contains("ISO 2022"), value.contains("\u{FFFD}") { return nil }
+        return value
+    }
+
     /// Creates a character set handler with specific character set encodings
     ///
     /// - Parameter characterSets: Array of character set encodings

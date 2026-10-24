@@ -1069,7 +1069,12 @@ public actor DICOMwebServer {
         }
         
         // 11.4.2: the new Workitem is in the SCHEDULED state
-        var workitem = parseWorkitemFromJSON(json, workitemUID: workitemUID)
+        var workitem: Workitem
+        do {
+            workitem = try parseWorkitemFromJSON(json, workitemUID: workitemUID)
+        } catch {
+            return .badRequest(message: error.localizedDescription)
+        }
         workitem.state = .scheduled
         workitem.transactionUID = nil
         
@@ -1121,7 +1126,11 @@ public actor DICOMwebServer {
         }
         
         // Apply updates from JSON
-        applyWorkitemUpdates(&workitem, from: json)
+        do {
+            try applyWorkitemUpdates(&workitem, from: json)
+        } catch {
+            return .badRequest(message: error.localizedDescription)
+        }
         
         // Save the updated workitem
         try await upsStorage.updateWorkitem(workitem)
@@ -1425,12 +1434,10 @@ public actor DICOMwebServer {
         }
         
         // Scheduling info
-        if let scheduledStart = workitem.scheduledStartDateTime {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFullDate, .withTime, .withDashSeparatorInDate, .withColonSeparatorInTime]
+        if let scheduledStart = workitem.scheduledStartDICOMString {
             json[UPSTag.scheduledProcedureStepStartDateTime] = [
                 "vr": "DT",
-                "Value": [formatter.string(from: scheduledStart)]
+                "Value": [scheduledStart]
             ]
         }
         
@@ -1495,7 +1502,7 @@ public actor DICOMwebServer {
     }
     
     /// Parses a Workitem from DICOM JSON
-    private func parseWorkitemFromJSON(_ json: [String: Any], workitemUID: String) -> Workitem {
+    private func parseWorkitemFromJSON(_ json: [String: Any], workitemUID: String) throws -> Workitem {
         var workitem = Workitem(workitemUID: workitemUID)
         
         // Parse state
@@ -1515,9 +1522,7 @@ public actor DICOMwebServer {
         workitem.patientID = extractString(from: json, tag: UPSTag.patientID)
         
         // Parse scheduling
-        if let dateStr = extractString(from: json, tag: UPSTag.scheduledProcedureStepStartDateTime) {
-            workitem.scheduledStartDateTime = parseDateTime(dateStr)
-        }
+        try applyScheduledStart(&workitem, from: json)
         
         // Parse labels
         workitem.procedureStepLabel = extractString(from: json, tag: UPSTag.procedureStepLabel)
@@ -1534,18 +1539,15 @@ public actor DICOMwebServer {
     }
     
     /// Applies updates from JSON to an existing workitem
-    private func applyWorkitemUpdates(_ workitem: inout Workitem, from json: [String: Any]) {
+    private func applyWorkitemUpdates(_ workitem: inout Workitem, from json: [String: Any]) throws {
+        // Validate before modifying any field; a rejected update is atomic.
+        try applyScheduledStart(&workitem, from: json)
         // Update patient info if provided
         if let patientName = extractPersonName(from: json, tag: UPSTag.patientName) {
             workitem.patientName = patientName
         }
         if let patientID = extractString(from: json, tag: UPSTag.patientID) {
             workitem.patientID = patientID
-        }
-        
-        // Update scheduling if provided
-        if let dateStr = extractString(from: json, tag: UPSTag.scheduledProcedureStepStartDateTime) {
-            workitem.scheduledStartDateTime = parseDateTime(dateStr)
         }
         
         // Update labels if provided
@@ -1599,19 +1601,20 @@ public actor DICOMwebServer {
         return nil
     }
     
-    /// Parses a DICOM DateTime string to Date
-    private func parseDateTime(_ string: String) -> Date? {
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withFullDate, .withTime, .withDashSeparatorInDate, .withColonSeparatorInTime]
-        if let date = isoFormatter.date(from: string) {
-            return date
+    private struct InvalidScheduledStart: LocalizedError {
+        var errorDescription: String? {
+            "Scheduled Procedure Step Start DateTime (0040,4005) must contain one valid compact DICOM DT value (PS3.5 Table 6.2-1)"
         }
-        
-        // Try without time component using a simple parser
-        // DICOM date format is yyyyMMdd
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMMdd"
-        return dateFormatter.date(from: string)
+    }
+
+    private func applyScheduledStart(_ workitem: inout Workitem, from json: [String: Any]) throws {
+        let tag = UPSTag.scheduledProcedureStepStartDateTime
+        guard let rawElement = json[tag] else { return }
+        guard let element = rawElement as? [String: Any], element["vr"] as? String == "DT",
+              let values = element["Value"] as? [String], values.count == 1,
+              workitem.setScheduledStartDateTime(dicomValue: values[0]) else {
+            throw InvalidScheduledStart()
+        }
     }
     
     /// Generates a DICOM UID using the 2.25 root and timestamp/random components

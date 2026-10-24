@@ -81,6 +81,7 @@ actor MockPrintSCP {
     private(set) var port: UInt16 = 0
     private(set) var associationCount = 0
     private(set) var commandLog: [DIMSECommand] = []
+    private(set) var receivedDataSets: [Data] = []
     private(set) var releasedCleanly = false
 
     private var didInjectFailure = false
@@ -147,6 +148,7 @@ actor MockPrintSCP {
 
     // Callbacks from the per-connection handler.
     func record(command: DIMSECommand) { commandLog.append(command) }
+    func record(dataSet: Data) { receivedDataSets.append(dataSet) }
     func recordCleanRelease() { releasedCleanly = true }
     func nextFilmBoxIndex() -> Int { filmBoxCounter += 1; return filmBoxCounter }
     func shouldInjectFailure(for command: DIMSECommand) -> Bool {
@@ -271,6 +273,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
     private func handle(message: AssembledMessage) async throws {
         guard let command = message.commandSet.command else { return }
         await owner.record(command: command)
+        if let dataSet = message.dataSet { await owner.record(dataSet: dataSet) }
 
         if behavior.silentAfterAccept {
             return // swallow the request — the SCU's timeout must fire

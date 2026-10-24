@@ -2,8 +2,8 @@
   "schema_version": 1,
   "source_review_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
   "branch": "codex/dicom-2026a-milestones",
-  "authorized_current_milestone": "M1",
-  "stop_before": "M2",
+  "authorized_current_milestone": "M2",
+  "stop_before": "M3",
   "counts": {
     "all": 68,
     "active": 46,
@@ -31,7 +31,7 @@
       "milestone": "M2",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMKit/TagEditing/TagEditRules.swift",
@@ -65,21 +65,24 @@
           "assertion": "Reject each of the nine recorded malformed inputs with a nonzero CLI result and a tag/VR/VM-specific diagnostic; actual writes must leave the original file unchanged and produce no malformed output.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "72-process CLI campaign rejects all nine malformed values in dry-run, output-file and in-place modes; originals unchanged and rejected output absent."
         },
         {
           "id": "A-01-AC02",
-          "assertion": "Run the same nine inputs through Workshop; its status, diagnostic and write/no-write behavior must agree with CLI. This GUI parity case is proposed and has not been executed.",
+          "assertion": "Run the same nine inputs through Workshop; its status, diagnostic and write/no-write behavior must agree with CLI.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Packaged Workshop repeats all nine values in dry-run and write modes: 18 error results, tag/VR/VM diagnostics, unchanged fixture hashes and absent rejected output."
         },
         {
           "id": "A-01-AC03",
           "assertion": "Retain observed valid Rows=512 acceptance and Rows=65536 rejection; introduce complete VR grammar and VM rules without treating permissible empty Type 2 values or legal partial-precision DT as malformed.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Core/Kit grammar, VM and bounds controls plus actual app Rows=512, Rows=65536, empty PN, partial DT and fractional/offset DT controls pass."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
@@ -94,7 +97,18 @@
         "Accepted: exit 0, SET line, 1 change(s) applied; dry-run did not write a file.",
         "Accepted: exit 0, SET line, 1 change(s) applied; dry-run did not write a file."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/ui-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-02",
@@ -105,7 +119,7 @@
       "milestone": "M2",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/dicom-tags/main.swift",
@@ -134,28 +148,32 @@
           "assertion": "After the recorded SOPInstanceUID edit, both (0008,0018) and (0002,0003) must equal 2.25.222222222.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI and app instance-only edits independently decode both UIDs as 2.25.222222222."
         },
         {
           "id": "A-02-AC02",
           "assertion": "Add a separate SOPClassUID-edit fixture: (0008,0016) and (0002,0002) must agree; do not treat changing the class UID as proof the dataset satisfies the new IOD.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Separate CLI/app class-only edits synchronize dataset and meta class; no new-IOD conformance claim."
         },
         {
           "id": "A-02-AC03",
           "assertion": "Recompute (0002,0000) from actual encoded File Meta bytes whenever identity updates change meta length.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Independent encoded-byte inspectors verify group length after class-only and changed-length instance edits; all inspected GUI outputs agree."
         },
         {
           "id": "A-02-AC04",
           "assertion": "Validator must reject intentionally mismatched dataset/meta identity; run equivalent edit/read-back in the packaged Workshop.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Validator mismatch fixtures fail; separate class mismatch is automated; packaged edit/readback and same-level CLI/app report comparison pass."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
@@ -164,7 +182,17 @@
         "Dataset (0008,0018)=2.25.222222222; meta (0002,0003)=2.25.123456789.",
         "Exit 0; isValid=true; zero errors and warnings."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-03",
@@ -175,7 +203,7 @@
       "milestone": "M2",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMCore/DICOMWriter.swift",
@@ -201,39 +229,54 @@
       "acceptance_criteria": [
         {
           "id": "A-03-AC01",
-          "assertion": "Decode the recorded ISO_IR 100 PN bytes as M\u00fcller^J\u00f6rg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
+          "assertion": "Decode the recorded ISO_IR 100 PN bytes as Müller^Jörg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Actual app metadata view reads Müller^Jörg from ISO_IR 100; Core, discovery and compatible-copy controls pass."
         },
         {
           "id": "A-03-AC02",
           "assertion": "For the recorded edit into a default-character-repertoire dataset, encode and declare a consistent character set; if UTF-8 remains the chosen encoding, emit (0008,0005)=ISO_IR 192.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI/app Unicode edits emit ISO_IR 192 and exact Müller^患者 UTF-8 bytes."
         },
         {
           "id": "A-03-AC03",
           "assertion": "Add legacy-charset edit fixtures with unedited text and sequence-item inheritance/overrides; preserve existing encoding or transcode all affected values consistently, never only relabel mixed byte streams.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "13 charset tests cover unchanged legacy text, nested inheritance/overrides, Japanese ISO 2022, copy-all and strict invalid declaration/byte refusal."
         },
         {
           "id": "A-03-AC04",
           "assertion": "Validate exact output text and declaration through CLI and packaged Workshop. Preserve significant leading whitespace in text VRs as a separate regression case.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI/app files independently preserve Latin-1 PN, Japanese PN, Unicode declaration/text and significant leading whitespace; actual metadata display is recorded."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
       "baseline_observations": [
         "Actual output contains UTF-8 text but has no (0008,0005) declaration.",
-        "PatientName displayed as raw hexadecimal rather than M\u00fcller^J\u00f6rg."
+        "PatientName displayed as raw hexadecimal rather than Müller^Jörg."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/ui-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-04",
@@ -247,7 +290,7 @@
         "A-05"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMKit/Validation/DICOMValidator.swift",
@@ -261,28 +304,32 @@
           "assertion": "Reject nested AS=Y123 at level 2 with the item path and leaf tag (0010,1010) in the diagnostic, matching the root control.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Nested AS fixture fails CLI/app level 2 with (0008,1110)[1] and leaf (0010,1010)."
         },
         {
           "id": "A-04-AC02",
           "assertion": "Add multiple items, nested sequences and undefined-length sequence variants; visit every leaf and apply VR/VM/value checks.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "M2AttributeIntegrityTests visits multiple items, deeper nesting and undefined-length sequence variants."
         },
         {
           "id": "A-04-AC03",
           "assertion": "Do not demand top-level SOP Class/Instance UID attributes inside every item; apply IOD conditions only within the relevant module/item context.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "The same test accepts valid items without root SOP identity; nested checking is attribute validation, not blanket IOD root validation."
         },
         {
           "id": "A-04-AC04",
           "assertion": "Run the same validation fixture through Workshop and ensure failure status and item-path diagnostics match CLI.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Packaged nested AS/date reports match CLI; actual console path/leaf diagnostic is captured."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
@@ -290,7 +337,18 @@
         "Level 2: exit 0; isValid=true; zero errors/warnings.",
         "Level 2: exit 1; isValid=false; invalid AS error for (0010,1010)."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/ui-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-05",
@@ -303,7 +361,7 @@
         "A-01"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMKit/Validation/DICOMValidator.swift",
@@ -327,28 +385,32 @@
           "assertion": "Reject DA=20260231 and DT=20269999112233 with isValid=false and nonzero validation exit.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI and packaged validation reject impossible DA and malformed DT; report/exit statuses agree."
         },
         {
           "id": "A-05-AC02",
           "assertion": "Add valid/invalid Gregorian boundary controls, including 20240229 valid and 20230229 invalid, using exact component checks rather than permissive date normalization.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Core and validator exact Gregorian boundary tests include valid 20240229 and invalid 20230229; packaged valid leap fixture passes."
         },
         {
           "id": "A-05-AC03",
           "assertion": "Add legal DT partial precision, fractions and UTC-offset cases; e.g. DT=2026 and DT=20261024103000.123456+0530 remain valid, while non-trailing missing components and out-of-range components fail.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Core/validator tests cover compact partial precision, fractions, offsets and missing/out-of-range components; actual CLI/app positive controls pass."
         },
         {
           "id": "A-05-AC04",
           "assertion": "Run invalid and valid controls through the shared validator and packaged Workshop.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Actual app JSON reports for invalid DA/DT and valid leap/partial/fraction fixtures match CLI at level 2."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
@@ -356,7 +418,18 @@
         "Level 2: exit 0; isValid=true; zero errors/warnings.",
         "Level 2: exit 0; isValid=true; zero errors/warnings."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/ui-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-06",
@@ -369,7 +442,7 @@
         "A-02"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMKit/Validation/DICOMValidator.swift",
@@ -383,28 +456,32 @@
           "assertion": "The recorded combined-empty fixture must return isValid=false, nonzero exit and diagnostics identifying the invalid Type 1 meta attributes.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Combined-empty fixture is invalid at levels 1 and 2 in CLI and packaged app, with required meta diagnostics."
         },
         {
           "id": "A-06-AC02",
           "assertion": "Add individual empty, malformed-UID, VR, version-field and encoded-group-length cases for the six mandatory meta elements; all invalid cases must fail and a correct file must pass.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Ten M2 validator tests include every mandatory meta field empty/wrong-VR plus UID, version and raw encoded group length controls; valid/forward-compatible version passes."
         },
         {
           "id": "A-06-AC03",
           "assertion": "Reject the A-02 mismatched instance identity, and add the separate class-identity mismatch case.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Separate class and instance mismatch tests fail at both levels; actual instance mismatch CLI/app reports agree."
         },
         {
           "id": "A-06-AC04",
           "assertion": "Check both explicit --level 1 meta-validation behavior and --level 2 behavior, plus equivalent Workshop validation.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Six packaged level-1/2 reports match fresh CLI in every field except path/duration: two invalid fixtures plus valid base per level."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
@@ -412,7 +489,17 @@
         "Level 2: exit 0; isValid=true; zero errors/warnings.",
         "Level 2: exit 0; isValid=true; zero errors/warnings."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-07",
@@ -425,7 +512,7 @@
         "A-01"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMKit/Validation/DICOMValidator.swift",
@@ -454,28 +541,41 @@
           "assertion": "For the recorded Rows/LO fixture, standards-conformance status must be invalid and process exit nonzero without requiring --strict; identify expected US and actual LO.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Rows/LO is invalid without strict mode; CLI nonzero and app error identify actual LO and expected US."
         },
         {
           "id": "A-07-AC02",
           "assertion": "If tolerant parsing is retained, report parsing success separately from conformance validity, rather than one ambiguous isValid=true.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Parser retains the explicit wire VR and can read the fixture; separate validator result is isValid=false. Parsing success is not reported as conformance success."
         },
         {
           "id": "A-07-AC03",
           "assertion": "Add --strict JSON/text controls proving consistency between exit status and reported conformance result; add correct US Rows=512 control and permitted multi-VR controls.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI and actual app JSON/text with strict off/on all report invalid/error; correct US and permitted alternative-VR controls pass."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
       "baseline_observations": [
         "Level 2: exit 0; isValid=true; zero errors and one Unexpected VR LO warning."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-08",
@@ -488,7 +588,7 @@
         "A-03"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/dicom-tags/main.swift",
@@ -507,28 +607,32 @@
           "assertion": "The recorded numeric selector and keyword selector must resolve exactly the same one tag and report one requested copy.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Numeric pair, parenthesized pair, compact hex and keyword select exactly one PN in actual CLI and app writes."
         },
         {
           "id": "A-08-AC02",
           "assertion": "Add actual-write comparisons of selected element VR and bytes under a charset-compatible source/destination; separately ensure charset-aware copying satisfies A-03.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Actual Latin-1-to-Latin-1 CLI copy changes a distinct destination PN and preserves source PN VR/raw bytes and ISO_IR 100; app compatible copy matches. Cross-charset copying is covered separately."
         },
         {
           "id": "A-08-AC03",
           "assertion": "Add numeric lists, keyword lists, supported mixed-list syntax and unresolved-tag cases; requested but invalid selectors must fail explicitly instead of reporting silent zero changes.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "TagEditIntegrityTests covers numeric/keyword/mixed lists and rejects unresolved, malformed and absent selected tags."
         },
         {
           "id": "A-08-AC04",
           "assertion": "Use the same parser in Workshop and CLI; verify the actual Workshop command/settings and copy result.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI/Workshop use shared parseTagSelectors; packaged controls, preview, copy results and independent bytes agree."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
@@ -536,7 +640,17 @@
         "Exit 0; 0 change(s) applied.",
         "Exit 0; one COPY line and 1 change(s) applied; text preview is <binary> because of A-03."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "A-09",
@@ -549,7 +663,7 @@
         "A-01"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMKit/TagEditing/TagEditRules.swift",
@@ -563,35 +677,49 @@
           "assertion": "With PixelRepresentation=1, inserting missing SmallestImagePixelValue=-1 must choose SS VM 1, succeed, and serialize signed -1; for Explicit VR Little Endian the value bytes must be FF FF.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI/app insertion uses final PixelRepresentation=1 and writes SS VM1 with FF FF for -1."
         },
         {
           "id": "A-09-AC02",
           "assertion": "Add PixelRepresentation=0 unsigned controls, negative unsigned refusal, existing SS update and explicit-VR/implicit-VR round-trip cases.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Kit tests cover unsigned/refusal/existing-SS and explicit/implicit readback, including inherited item context; actual existing-SS update is independently checked."
         },
         {
           "id": "A-09-AC03",
           "assertion": "Resolve the VR from the final edited dataset when both PixelRepresentation and a dependent attribute are changed together, or explicitly refuse an ambiguous edit; do not select the first dictionary alternative silently.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Both set orders resolve from final edited context; missing/invalid ambiguous context fails rather than choosing the first alternative."
         },
         {
           "id": "A-09-AC04",
           "assertion": "Run equivalent insert/update cases in Workshop and CLI.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Packaged insert -1 and existing SS update -2 agree with CLI; independent bytes are FF FF and FE FF."
         }
       ],
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
       "baseline_observations": [
         "Exit 1: -1 is out of range for VR US (0...65535)."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/cli-verification.json",
+          "M2/gui-file-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "NET-01-A",
@@ -686,7 +814,7 @@
       "acceptance_criteria": [
         {
           "id": "NET-02-A-AC01",
-          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient\u2019s series.",
+          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient’s series.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Not run"
@@ -1253,7 +1381,7 @@
         "A-05"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
@@ -1267,28 +1395,41 @@
           "assertion": "Create a workitem with a known scheduled instant; retrieve/search responses emit (0040,4005) vr DT accepted by an independent DT parser.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Real server request-router tests inspect retrieve/search DICOM JSON DT and independently decode its instant."
         },
         {
           "id": "NET-06-A-AC02",
           "assertion": "Cover fractional seconds and nonzero UTC offsets, and compare decoded instants rather than only string shape.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Fractional seconds and +0530 offset retain exact 20261024103000.123456+0530 and UTC instant 05:00:00.123456."
         },
         {
           "id": "NET-06-A-AC03",
           "assertion": "Confirm the separate client encoder is unchanged or uses the same verified primitive.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Separate client encoder remains unchanged; actual CLI/app create JSON bodies match and use compact DT."
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "Scheduled Procedure Step Start DateTime (0040,4005) is emitted using ISO8601 separators but labeled vr DT."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/network-parity.json",
+          "M2/ui-verification.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "NET-06-B",
@@ -1302,7 +1443,7 @@
         "NET-06-A"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
@@ -1326,28 +1467,40 @@
           "assertion": "Create and update with 20261024103000.123456+0530; retrieve and verify the scheduled time and instant survive.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Server create/update/retrieve tests retain exact fractional/offset DT and independently decoded instant."
         },
         {
           "id": "NET-06-B-AC02",
-          "assertion": "Test valid truncated precision allowed by the attribute\u2019s usage, and separately reject invalid components and separated ISO-only values.",
+          "assertion": "Test valid truncated precision allowed by the attribute’s usage, and separately reject invalid components and separated ISO-only values.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Legal truncated precision passes; invalid components and ISO-only separated syntax fail before storage."
         },
         {
           "id": "NET-06-B-AC03",
           "assertion": "An invalid update does not erase the previously valid scheduled time.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Invalid updates leave the previous schedule intact. Generic attribute update has no Workshop route; UI is Not applicable for this backend-only operation, not a substituted state-change test."
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "The parser tries separated ISO formats and yyyyMMdd rather than ordinary compact full DICOM DT; valid scheduling data can be lost or misread."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/network-parity.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "NET-07-A",
@@ -1361,7 +1514,7 @@
         "A-06"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMNetwork/MPPSService.swift",
@@ -1395,28 +1548,41 @@
           "assertion": "With a CT UID and no class/file source, refuse before network access rather than emit SC.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CLI missing class exits 64; app reports error. Six successful sends produce exactly six associations, so both refusals add zero connections."
         },
         {
           "id": "NET-07-A-AC02",
           "assertion": "Decode emitted MPPS data for CT, MR, SC and a mixed list; each reference class/instance pair matches the selected source object.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Independent MPPS wire decoder verifies CT/MR/SC pairs from CLI/app. Existing typed API mixed-list tests and explicit/implicit N-SET capture tests pass."
         },
         {
           "id": "NET-07-A-AC03",
           "assertion": "CLI and Workshop use identical validation and decoded output expectations; preserve explicitly supplied correct class values.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Shared preflight and explicit supplied classes agree across clients; captured datasets match except generated PPS End Date/Time."
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "An omitted SOP Class UID causes every supplied image reference to use Secondary Capture, producing wrong (0008,1150)/(0008,1155) pairs for CT/MR images. Warning and continuing does not fix the data."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification": {
+        "milestone": "M2",
+        "result": "Passed",
+        "evidence": [
+          "M2/verification.json",
+          "M2/network-parity.json",
+          "M2/ui-verification.json"
+        ],
+        "note": "Local source-qualified implementation, focused runtime tests, independent bytes/captures and applicable packaged-app routes. Remote CI is checked separately on the pushed commit."
+      }
     },
     {
       "id": "NET-08-A",
@@ -1893,7 +2059,7 @@
           "id": "WS-FIX-04-AC01",
           "assertion": "If implemented: one-command and multi-command synthetic scripts match CLI outputs, file effects and exit propagation for supported tools.",
           "applicability": "Not applicable to selected correction",
-          "reason": "Live dispatcher enhancement is excluded; use AC02\u2013AC04.",
+          "reason": "Live dispatcher enhancement is excluded; use AC02–AC04.",
           "result": "Not run"
         },
         {
@@ -3898,12 +4064,12 @@
     }
   ],
   "current_summary": {
-    "completed": 7,
-    "not_started": 39,
+    "completed": 19,
+    "not_started": 27,
     "deferred": 22,
     "M0": "Completed",
     "M1": "Completed",
-    "M2": "Not started"
+    "M2": "Completed"
   },
   "baseline_caveats": [
     {

@@ -1,0 +1,24 @@
+[
+  {
+    "argv": [
+      "ups",
+      "http://127.0.0.1:64297/dicom-web",
+      "--create",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/ups-capture-fixtures/cli-workitem.json"
+    ],
+    "exit": 0,
+    "stdout": "Created worklist item:\n  UID: 2.25.20261024001\n  Retrieve URL: http://127.0.0.1:64297/dicom-web/workitems/2.25.20261024001\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ups",
+      "http://127.0.0.1:64297/dicom-web",
+      "--get",
+      "2.25.20261024001"
+    ],
+    "exit": 0,
+    "stdout": "=========================================================================================\nWorklist UID     State                Label                          Patient             \n=========================================================================================\n2.25.20261024001 SCHEDULED            M2 synthetic schedule                              \n=========================================================================================\n\n",
+    "stderr": ""
+  }
+]
