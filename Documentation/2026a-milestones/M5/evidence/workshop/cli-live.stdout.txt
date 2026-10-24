@@ -1,0 +1,113 @@
+[2026-10-24 19:28:33] Starting script execution: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/valid.dcmscript
+[2026-10-24 19:28:33] Variables: [:]
+[2026-10-24 19:28:33] Executing: dicom-info /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/synthetic.dcm --format json
+[2026-10-24 19:28:33] Output: {
+  "dataSet" : [
+    {
+      "name" : "Specific Character Set",
+      "tag" : "(0008,0005)",
+      "value" : "ISO_IR 192",
+      "vr" : "CS"
+    },
+    {
+      "name" : "SOP Class UID",
+      "tag" : "(0008,0016)",
+      "value" : "1.2.840.10008.5.1.4.1.1.2",
+      "vr" : "UI"
+    },
+    {
+      "name" : "SOP Instance UID",
+      "tag" : "(0008,0018)",
+      "value" : "2.25.505.1.1",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Study Date",
+      "tag" : "(0008,0020)",
+      "value" : "20260115",
+      "vr" : "DA"
+    },
+    {
+      "name" : "Accession Number",
+      "tag" : "(0008,0050)",
+      "value" : "TEST-ACCESSION",
+      "vr" : "SH"
+    },
+    {
+      "name" : "Modality",
+      "tag" : "(0008,0060)",
+      "value" : "CT",
+      "vr" : "CS"
+    },
+    {
+      "name" : "Study Description",
+      "tag" : "(0008,1030)",
+      "value" : "BEFORE",
+      "vr" : "LO"
+    },
+    {
+      "name" : "Patient's Name",
+      "tag" : "(0010,0010)",
+      "value" : "M5^SYNTHETIC",
+      "vr" : "PN"
+    },
+    {
+      "name" : "Patient ID",
+      "tag" : "(0010,0020)",
+      "value" : "M5-001",
+      "vr" : "LO"
+    },
+    {
+      "name" : "Study Instance UID",
+      "tag" : "(0020,000D)",
+      "value" : "2.25.505",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Series Instance UID",
+      "tag" : "(0020,000E)",
+      "value" : "2.25.505.1",
+      "vr" : "UI"
+    }
+  ],
+  "fileMetaInformation" : [
+    {
+      "name" : "File Meta Information Group Length",
+      "tag" : "(0002,0000)",
+      "value" : "116",
+      "vr" : "UL"
+    },
+    {
+      "name" : "File Meta Information Version",
+      "tag" : "(0002,0001)",
+      "value" : "00 01",
+      "vr" : "OB"
+    },
+    {
+      "name" : "Media Storage SOP Class UID",
+      "tag" : "(0002,0002)",
+      "value" : "1.2.840.10008.5.1.4.1.1.2",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Media Storage SOP Instance UID",
+      "tag" : "(0002,0003)",
+      "value" : "2.25.505.1.1",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Transfer Syntax UID",
+      "tag" : "(0002,0010)",
+      "value" : "1.2.840.10008.1.2.1",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Implementation Class UID",
+      "tag" : "(0002,0012)",
+      "value" : "2.25.505.99",
+      "vr" : "UI"
+    }
+  ]
+}
+[2026-10-24 19:28:33] Script execution completed successfully
+Script execution completed successfully

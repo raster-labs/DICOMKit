@@ -4,7 +4,7 @@ This plan addresses all 68 review items: **46 active items and 22 explicitly def
 
 Baseline: `4b68d7e22829418c88e48dd53d98b25fee50d90d` in `repository root`. The checkout was unchanged and clean when this plan was prepared.
 
-**Implementation status:** M0–M4 item criteria are complete (M4: 14 passed, one conditional not applicable). Stop before M5. Qualification limits remain recorded in the milestone reports. Current results are in [STATUS.md](STATUS.md) and [M4/REPORT.md](M4/REPORT.md). Later gates remain unexecuted.
+**Implementation status:** M0–M5 item criteria are complete (M5: 22 passed, two conditional not applicable). M6 is in progress and M7 is authorized next. Do not merge main; the user will merge. Qualification limits remain recorded in the milestone reports. Current results are in [STATUS.md](STATUS.md) and [M5/REPORT.md](M5/REPORT.md). Later gates remain unexecuted.
 
 The [item ledger](items.json) preserves every finding and acceptance assertion. This plan adds sequencing, dependencies, scoped alternatives and separate CLI/app gates.
 

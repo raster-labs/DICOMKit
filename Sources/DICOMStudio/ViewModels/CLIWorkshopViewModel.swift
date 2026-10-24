@@ -1053,9 +1053,38 @@ public final class CLIWorkshopViewModel {
         return fileURL.path
     }
 
-    /// Checks whether all required parameters are satisfied.
+    /// Explains an operation that cannot be executed by Workshop. The CLI may
+    /// still support the displayed command; this is an app capability boundary.
+    public var executionUnavailableReason: String? {
+        if selectedToolID == "dicom-script" {
+            let operation = paramValue("operation")
+            if !["run", "validate", "template"].contains(operation) {
+                return "Choose Run with Dry Run enabled, Validate, or Template."
+            }
+            if operation == "run", paramValue("dryRun") != "true" {
+                return "Live script execution is unavailable in Workshop. Enable Dry Run, choose Validate or Template, or run the command in a terminal."
+            }
+        }
+        if selectedToolID == "dicom-qr", !["auto", "review"].contains(paramValue("mode")) {
+            return "Choose Auto to retrieve every matching study, or Review to list matches without retrieval. Interactive selection is unavailable in Workshop."
+        }
+        return nil
+    }
+
+    /// Labels the supported scripting actions without implying live execution.
+    public var runActionTitle: String {
+        guard selectedToolID == "dicom-script" else { return "Run" }
+        switch paramValue("operation") {
+        case "validate": return "Validate"
+        case "template": return "Generate Template"
+        case "run" where paramValue("dryRun") == "true": return "Dry Run"
+        default: return "Run"
+        }
+    }
+
+    /// Checks required fields and the selected in-app execution capability.
     public var isCommandValid: Bool {
-        CommandBuilderHelpers.validateRequired(
+        executionUnavailableReason == nil && CommandBuilderHelpers.validateRequired(
             parameterValues: parameterValues,
             parameterDefinitions: parameterDefinitions
         )
@@ -5150,19 +5179,33 @@ private func executeDicomStudy() async {
         let variablesParam = paramValue("variables")
         let logParam = paramValue("log")
         let logScoped = securityScopedURLs["log"]
-        let resolvedLog: String? = logParam.isEmpty ? nil
-            : OutputAccess.resolveWritableURL(forPath: logParam, scopedURL: logScoped, subfolder: "dicom-script").url.path
 
         let scopedURL = securityScopedURLs["scriptPath"]
         let accessing = scopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scopedURL?.stopAccessingSecurityScopedResource() } }
         let url = scopedURL ?? URL(fileURLWithPath: scriptPath)
 
-        // Run/validate via the SHARED DICOMKit script engine (ScriptExecutor /
-        // ScriptValidator) — the exact code the dicom-script CLI runs — so the app and
-        // CLI emit byte-identical output. Output flows through the injected `log` closure
-        // (the CLI prints the same lines to stdout); execution of nested tools isn't
-        // supported in-app, so the runner throws (never reached on a dry run).
+        // OutputAccess probes/creates directories. Refuse unsupported nested
+        // command names before that preparation; the executor rechecks the same
+        // policy before opening its log. Validation never needs an output path.
+        if operation == "run" {
+            do {
+                let issues = try ScriptValidator().validateCommandNames(scriptPath: url.path)
+                if !issues.isEmpty { throw ScriptError.invalidCommand(issues.joined(separator: "; ")) }
+            } catch {
+                let message = "Error: \(error.localizedDescription)\n"
+                appendConsoleOutput(message)
+                consoleStatus = .error; service.setConsoleStatus(.error)
+                addToHistory(toolName: "dicom-script", command: commandPreview, exitCode: 1, output: message)
+                return
+            }
+        }
+        let resolvedLog: String? = operation != "run" || logParam.isEmpty ? nil
+            : OutputAccess.resolveWritableURL(forPath: logParam, scopedURL: logScoped, subfolder: "dicom-script").url.path
+
+        // The shared executor checks nested command names before previewing.
+        // Validation and successful previews use the same engines and console
+        // as the CLI; no nested command is executed here.
         let (output, exitCode): (String, Int) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             var log = ""
             do {
@@ -5219,7 +5262,17 @@ private func executeDicomStudy() async {
     public func executeCommand() async {
         guard let tool = selectedTool() else { return }
         rebuildCommandPreview()
-        ensureOutputDirectories()
+        // Refuse unsupported states before entering Running, writing directories,
+        // or creating an execution-history entry (also covers programmatic calls).
+        if let reason = executionUnavailableReason {
+            consoleOutput = ""
+            service.setConsoleOutput("")
+            appendConsoleOutput("Cannot run in Workshop: \(reason)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            return
+        }
+        if tool.id != "dicom-script" { ensureOutputDirectories() }
 
         consoleOutput = ""
         consoleStatus = .running
@@ -9204,16 +9257,7 @@ case "dicom-study":
         }
         let isReviewOnly = modeStr == "review"
 
-        let modeLabel: String = {
-            switch modeStr {
-            case "auto", "automatic": return "Automatic"
-            case "review": return "Review"
-            // The app cannot prompt for a study selection, so the in-app
-            // "interactive" state retrieves every match and previews as --auto —
-            // the header reports Automatic to match the pasted command's output.
-            default: return "Automatic"
-            }
-        }()
+        let modeLabel = isReviewOnly ? "Review" : "Automatic"
 
         // Transfer syntax via the SHARED DICOMCore parser (TransferSyntax.parse) —
         // the IDENTICAL alias map the CLI uses; an unrecognized name is a usage error.

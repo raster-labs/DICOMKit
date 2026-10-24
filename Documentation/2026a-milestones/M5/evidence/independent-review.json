@@ -1,0 +1,73 @@
+{
+  "review": "M5 independent source review",
+  "execution": "Read-only source review; no builds, tests, CLI runtime or GUI execution by reviewer",
+  "source_sha256": {
+    "Sources/DICOMToolbox/Models/ToolboxCommandContract.swift": "cc1d98ff34ecec9949cd53f061fe442b4ee2790150c4b1cc71830dc459f75f38",
+    "Sources/DICOMToolbox/Models/CommandBuilder.swift": "16002030b7b94802dc662ac6588b959483fd0f6c417239f35c0b04db681c8184",
+    "Sources/DICOMToolbox/Models/CommandHistory.swift": "a5fc751af7a0a804ab1ee67f5a39b1dec11947bbcb49c8dc71218cb3134e9c01",
+    "Sources/DICOMToolbox/Models/ToolRegistry.swift": "160751fa883d0aba1b5f5a740a0bc9a9a55024a821fe1667a20e7c7de92c1050",
+    "Sources/DICOMToolbox/Views/ConsoleView.swift": "2aaf8ca469dc9df429c2b1f676924cd3f4758cca44f2ce21c92b444b0dd4d418",
+    "Tests/DICOMToolboxTests/M5ToolboxContractTests.swift": "cf494a922d2923d0352002425c907bd0d19890c5921928e3b1ff5dd768aeef3f",
+    "Sources/DICOMKit/Scripting/ScriptEngine.swift": "b96c75e2f49b846d8e6ca11f506aed76b9898efcaa437d6996ec5e704fedaa79",
+    "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift": "759dae06c36f290749fae1c570a58d04ed43a32573c17a469c510ef15bc1dc0d",
+    "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift": "c3cf98362518684413d5f4abc031d8ee9b9c6abadac99811d796efcf72b97526",
+    "Sources/DICOMStudio/Views/CLIWorkshopView.swift": "145af6541aed0771e7778501cf122b2a0639710e93c12492b7af5d99cf03762f",
+    "Tests/DICOMStudioTests/M5WorkshopContractTests.swift": "d90aa89b9155034034555fcf79e94e5790e1c72abed28c35bed71006a4668359"
+  },
+  "toolbox": {
+    "blocking_findings": [],
+    "reviewed": [
+      "Current ps315/basic CLI profile tokens and explicit alias semantics",
+      "Legacy profile/keep/regenerate-uids parameter refusal through preview and Run",
+      "Independent persisted argv refusal before history replay/copy/export",
+      "Retain UIDs on/off mapping matches CLI declarations",
+      "Required positional template name and refusal of retired template --output",
+      "Focused tests preserve new contract; runtime oracle remains separate"
+    ]
+  },
+  "workshop": {
+    "blocking_findings": [],
+    "other_paths": "Live Workshop refusal precedes output preparation; QR stale modes are refused; current PHI definition is singular; root assignment versus option=value distinction and active package names appear consistent.",
+    "resolved_findings": [
+      {
+        "id": "M5-REVIEW-01",
+        "criterion": "WS-FIX-04-AC04",
+        "file": "Sources/DICOMKit/Scripting/ScriptEngine.swift",
+        "method": "parseConditional",
+        "input": "if exists absent.dcm\ndicom-info input.dcm | dicom-not-a-tool input.dcm\nendif",
+        "source_reason": "Every block line is parsed as a single ToolCommand; the first known tool hides pipeline members in arguments, so the new commandNameIssues recursion does not discover the unknown tool. Validation and dry-run can report success. This is source-deterministic, not runtime observed.",
+        "required_resolution": "Parse supported block statements or explicitly refuse unsupported pipeline-in-conditional syntax before output/log preparation; add combined conditional/pipeline negative test.",
+        "status": "Resolved in source review",
+        "resolution": "parseConditional now rejects unquoted pipes with line-numbered parse error before any logging/execution; quoted pipe arguments remain literal. Added exact negative traverses full validator, shared dry-run and Workshop; positive quoted-pipe parse assertion added.",
+        "runtime_status": "Reviewer did not build or run; parent owns final automated/CLI/GUI qualification."
+      }
+    ]
+  },
+  "prior_source_sha256": {
+    "Sources/DICOMToolbox/Models/ToolboxCommandContract.swift": "cc1d98ff34ecec9949cd53f061fe442b4ee2790150c4b1cc71830dc459f75f38",
+    "Sources/DICOMToolbox/Models/CommandBuilder.swift": "16002030b7b94802dc662ac6588b959483fd0f6c417239f35c0b04db681c8184",
+    "Sources/DICOMToolbox/Models/CommandHistory.swift": "a5fc751af7a0a804ab1ee67f5a39b1dec11947bbcb49c8dc71218cb3134e9c01",
+    "Sources/DICOMToolbox/Models/ToolRegistry.swift": "160751fa883d0aba1b5f5a740a0bc9a9a55024a821fe1667a20e7c7de92c1050",
+    "Sources/DICOMToolbox/Views/ConsoleView.swift": "2aaf8ca469dc9df429c2b1f676924cd3f4758cca44f2ce21c92b444b0dd4d418",
+    "Tests/DICOMToolboxTests/M5ToolboxContractTests.swift": "ceae9f19cc337cfa8f6d483d35c13e15a832ceacec7eedf6a269890de7b098ae",
+    "Sources/DICOMKit/Scripting/ScriptEngine.swift": "2dde8e81af588ff7405641edaffb06e4db39173abc28d91a8ef3c57034bd8ac0",
+    "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift": "759dae06c36f290749fae1c570a58d04ed43a32573c17a469c510ef15bc1dc0d",
+    "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift": "c3cf98362518684413d5f4abc031d8ee9b9c6abadac99811d796efcf72b97526",
+    "Sources/DICOMStudio/Views/CLIWorkshopView.swift": "145af6541aed0771e7778501cf122b2a0639710e93c12492b7af5d99cf03762f",
+    "Tests/DICOMStudioTests/M5WorkshopContractTests.swift": "746ac760c738261ac8eabd9277485ac3ff58ca2abeac711b8366497f11bc8e5d"
+  },
+  "phi_oracle_review": {
+    "classification": "Oracle argument mismatch; no product defect identified",
+    "evidence": "work/m5/qualified/workshop-process.log records phi-true exit 1 with Cannot determine which pixels to blank",
+    "cause": "Scripts/verify_m5_workshop.py phi CLI argv left default cleanPixelData=true, while paired Workshop values set clean-pixel-data=false. Allow Burned-in PHI does not bypass unresolved active cleaning plans.",
+    "source_contract": [
+      "Sources/dicom-anon/DICOMAnon.swift:94: cleaning defaults true; inversion declares --no-clean-pixel-data",
+      "Sources/dicom-anon/DICOMAnon.swift:158: allow-burned-in-phi accepts residual PHI with cleaning disabled, output marked Patient Identity Removed=NO",
+      "Sources/DICOMKit/Anonymization/AnonymizationWorkflow.swift:400: active pixel workflow executes before header-pass allow/refusal guard",
+      "Sources/DICOMKit/Anonymization/AnonymizationWorkflow.swift:444: header warning refusal bypass requires allowBurnedInPHI"
+    ],
+    "required_oracle_change": "Pass --no-clean-pixel-data in both phi-false and phi-true CLI argv to match Workshop. Assert false refuses unwritten, true with allow flag writes PatientIdentityRemoved=NO and retains original Pixel Data.",
+    "change_authority": "Advised parent; no source/test/script changes by reviewer",
+    "runtime_status": "Existing failed log inspected; no rerun performed."
+  }
+}

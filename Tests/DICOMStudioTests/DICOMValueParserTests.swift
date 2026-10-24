@@ -42,7 +42,7 @@ struct DICOMValueParserTests {
     @Test("Format time with fractional seconds")
     func testFormatTimeWithFraction() {
         let result = DICOMValueParser.formatTime("143025.123456")
-        #expect(result == "14:30:25")
+        #expect(result == "14:30:25.123456")
     }
 
     @Test("Short time returns original")

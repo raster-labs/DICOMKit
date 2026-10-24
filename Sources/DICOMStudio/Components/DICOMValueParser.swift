@@ -12,6 +12,7 @@
 // 148/166/203); descriptions are display text.
 
 import Foundation
+import DICOMCore
 
 /// Platform-independent helper for parsing and formatting DICOM value representations.
 ///
@@ -26,13 +27,15 @@ public enum DICOMValueParser: Sendable {
     ///   - vr: The two-character VR code (e.g., "DA", "TM", "PN").
     /// - Returns: A formatted display string.
     public static func format(value: String, vr: String) -> String {
+        // Temporal values are checked before general whitespace trimming. A
+        // malformed value must remain visible, not become a different valid one.
+        if vr.uppercased() == "TM" { return value.isEmpty ? "(empty)" : formatTime(value) }
+        if vr.uppercased() == "DT" { return value.isEmpty ? "(empty)" : formatDateTime(value) }
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "(empty)" }
 
         switch vr.uppercased() {
         case "DA": return formatDate(trimmed)
-        case "TM": return formatTime(trimmed)
-        case "DT": return formatDateTime(trimmed)
         case "AS": return formatAge(trimmed)
         case "PN": return formatPersonName(trimmed)
         case "DS": return formatDecimalString(trimmed)
@@ -58,41 +61,45 @@ public enum DICOMValueParser: Sendable {
         return "\(year)-\(month)-\(day)"
     }
 
-    /// Formats a DICOM Time (TM) value.
-    ///
-    /// Input format: HHMMSS.FFFFFF
-    /// Output format: HH:MM:SS
+    /// Formats one valid DICOM Time (TM), preserving omitted components and
+    /// the original 1–6 fractional digits. Invalid input is returned unchanged.
+    /// Only legal trailing ASCII SPACE padding is omitted from valid display.
     public static func formatTime(_ value: String) -> String {
-        let cleaned = value.trimmingCharacters(in: .whitespaces)
-        guard cleaned.count >= 4 else { return value }
-        let digits = cleaned.filter { $0.isWholeNumber || $0 == "." }
-        let parts = digits.split(separator: ".", maxSplits: 1)
-        let timeDigits = String(parts[0])
-        guard timeDigits.count >= 4 else { return value }
-
-        let hour = String(timeDigits.prefix(2))
-        let minute = String(timeDigits.dropFirst(2).prefix(2))
-        if timeDigits.count >= 6 {
-            let second = String(timeDigits.dropFirst(4).prefix(2))
-            return "\(hour):\(minute):\(second)"
-        }
-        return "\(hour):\(minute)"
+        guard DICOMValueRules.isValidTime(value) else { return value }
+        return separatedTime(withoutTemporalPadding(value))
     }
 
-    /// Formats a DICOM DateTime (DT) value.
-    ///
-    /// Input format: YYYYMMDDHHMMSS.FFFFFF&ZZXX
-    /// Output format: YYYY-MM-DD HH:MM:SS
+    /// Formats one valid DICOM DateTime (DT) without creating a Foundation Date.
+    /// This retains partial precision, fractional trailing zeroes and the exact
+    /// signed UTC offset; it never invents omitted components or changes zones.
+    /// Invalid input is returned unchanged rather than silently repaired.
     public static func formatDateTime(_ value: String) -> String {
-        let cleaned = value.trimmingCharacters(in: .whitespaces)
-        guard cleaned.count >= 8 else { return value }
-        let datePart = formatDate(String(cleaned.prefix(8)))
-        if cleaned.count >= 12 {
-            let timeStr = String(cleaned.dropFirst(8).prefix(6))
-            let timePart = formatTime(timeStr)
-            return "\(datePart) \(timePart)"
+        guard DICOMValueRules.parseDateTime(value) != nil else { return value }
+        var lexical = withoutTemporalPadding(value)
+        var offset = ""
+        if lexical.count >= 9, let sign = lexical.suffix(5).first, sign == "+" || sign == "-" {
+            offset = " " + String(lexical.suffix(5))
+            lexical.removeLast(5)
         }
-        return datePart
+        let digits = Array(lexical.prefix { $0 != "." })
+        var result = String(digits[0..<4])
+        if digits.count >= 6 { result += "-" + String(digits[4..<6]) }
+        if digits.count >= 8 { result += "-" + String(digits[6..<8]) }
+        if digits.count >= 10 { result += " " + separatedTime(String(lexical.dropFirst(8))) }
+        return result + offset
+    }
+
+    private static func withoutTemporalPadding(_ value: String) -> String {
+        String(value.reversed().drop(while: { $0 == " " }).reversed())
+    }
+
+    /// Called only after strict TM/DT validation. Work on lexical components,
+    /// because numeric/time objects discard the number of fractional digits.
+    private static func separatedTime(_ value: String) -> String {
+        let digits = Array(value.prefix { $0 != "." })
+        return stride(from: 0, to: digits.count, by: 2)
+            .map { String(digits[$0..<$0 + 2]) }.joined(separator: ":")
+            + String(value.dropFirst(digits.count))
     }
 
     /// Formats a DICOM Age String (AS) value.

@@ -206,20 +206,18 @@ public enum ToolRegistry {
         icon: "person.fill.questionmark",
         category: .fileProcessing,
         description: "Anonymize patient data in DICOM files",
-        discussion: "Removes or replaces patient-identifying information from DICOM files according to DICOM PS3.15 Attribute Confidentiality Profiles. Supports date shifting, UID regeneration, and custom tag actions for clinical trials and research.",
+        discussion: "Applies the CLI’s PS3.15 Basic Application Level Confidentiality Profile and default pixel-cleaning workflow. Retention options are explicit; a profile label does not certify that an output is de-identified. Review the output before release.",
         parameters: [
             ParameterDefinition(id: "inputPath", cliFlag: "@argument", label: "Input File", help: "Path to the DICOM file", type: .file, isRequired: true),
             ParameterDefinition(id: "output", cliFlag: "--output", label: "Output Path", help: "Output file or directory", type: .file),
-            ParameterDefinition(id: "profile", cliFlag: "--profile", label: "Profile", help: "Anonymization profile", type: .enumeration, defaultValue: "basic", enumValues: [
-                EnumValue(label: "Basic", value: "basic"),
-                EnumValue(label: "Clinical Trial", value: "clinical-trial"),
-                EnumValue(label: "Research", value: "research"),
+            ParameterDefinition(id: "profile", cliFlag: "--profile", label: "Profile", help: "PS3.15 Basic Application Level Confidentiality Profile; basic is an alias", type: .enumeration, defaultValue: "ps315", enumValues: [
+                EnumValue(label: "PS3.15", value: "ps315", description: "Basic Application Level Confidentiality Profile; review retention options and output."),
+                EnumValue(label: "Basic (alias)", value: "basic", description: "Alias for the same PS3.15 workflow; not a separate retention policy."),
             ]),
-            ParameterDefinition(id: "shift-dates", cliFlag: "--shift-dates", label: "Date Shift (days)", help: "Shift dates by N days", type: .integer),
-            ParameterDefinition(id: "regenerate-uids", cliFlag: "--regenerate-uids", label: "Regenerate UIDs", help: "Generate new UIDs", type: .boolean),
+            ParameterDefinition(id: "shift-dates", cliFlag: "--shift-dates", label: "Date Shift (days)", help: "Retain Longitudinal Temporal Information With Modified Dates Option: shift dates by N days", type: .integer),
+            ParameterDefinition(id: "retain-uids", cliFlag: "--retain-uids", label: "Retain UIDs", help: "Retain UIDs Option: preserve original UIDs. Off regenerates UIDs consistently.", type: .boolean),
             ParameterDefinition(id: "remove", cliFlag: "--remove", label: "Tags to Remove", help: "Tags to remove", type: .repeatable),
             ParameterDefinition(id: "replace", cliFlag: "--replace", label: "Tags to Replace", help: "Tags to replace (TAG=VALUE)", type: .repeatable),
-            ParameterDefinition(id: "keep", cliFlag: "--keep", label: "Tags to Keep", help: "Tags to preserve", type: .repeatable),
             ParameterDefinition(id: "recursive", cliFlag: "--recursive", label: "Recursive", help: "Process directories recursively", type: .boolean),
             ParameterDefinition(id: "dry-run", cliFlag: "--dry-run", label: "Dry Run", help: "Preview changes", type: .boolean),
             ParameterDefinition(id: "backup", cliFlag: "--backup", label: "Create Backup", help: "Back up original files", type: .boolean),
@@ -846,8 +844,8 @@ public enum ToolRegistry {
             SubcommandDefinition(id: "validate", name: "Validate", description: "Validate a script", parameters: [
                 ParameterDefinition(id: "script", cliFlag: "@argument", label: "Script File", help: "Script file to validate", type: .file, isRequired: true),
             ]),
-            SubcommandDefinition(id: "template", name: "Template", description: "Generate a script template", parameters: [
-                ParameterDefinition(id: "output", cliFlag: "--output", label: "Output File", help: "Template output file", type: .file),
+            SubcommandDefinition(id: "template", name: "Template", description: "Print a named script template to the console", parameters: [
+                ParameterDefinition(id: "template-name", cliFlag: "@argument", label: "Template Name", help: "Required template name; generated script is printed to the console", type: .enumeration, isRequired: true, enumValues: ToolboxCommandContract.scriptTemplates.map { EnumValue(label: $0.capitalized, value: $0) }),
             ]),
         ]
     )

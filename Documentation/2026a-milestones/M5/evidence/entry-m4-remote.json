@@ -1,0 +1,67 @@
+{
+  "checked_at_utc": "2026-10-24 13:37:48 UTC",
+  "commit": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+  "branch": "codex/dicom-2026a-milestones",
+  "remote_branch": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+  "remote_main": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
+  "main_unchanged": true,
+  "runs": [
+    {
+      "name": "Command safety",
+      "id": 40097744357,
+      "head_sha": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40097744357"
+    },
+    {
+      "name": "Audit tooling",
+      "id": 40097744356,
+      "head_sha": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40097744356"
+    },
+    {
+      "name": "Service reliability",
+      "id": 40097744469,
+      "head_sha": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40097744469"
+    },
+    {
+      "name": "Query safety and filters",
+      "id": 40097744317,
+      "head_sha": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40097744317"
+    },
+    {
+      "name": "Attribute and workflow integrity",
+      "id": 40097744331,
+      "head_sha": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40097744331"
+    }
+  ],
+  "all_five_workflows_passed": true,
+  "service_artifact": {
+    "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40097744469/artifacts/12562310132",
+    "sha256": "32f613a1a241c6f367331b5f01deeafbed0880ce2caf5b156c70c924a29e6541",
+    "bytes": 144225
+  },
+  "service_log_checked": {
+    "focused_tests": 512,
+    "cancellation_cli": 4,
+    "cancellation_workshop": 4,
+    "normal_releases": 8,
+    "aborts": 0,
+    "durability_process": 20,
+    "durability_workshop": 3,
+    "capabilities_http_cli": 30,
+    "wadl_schema": "Passed"
+  }
+}

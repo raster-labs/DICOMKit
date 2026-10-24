@@ -1,0 +1,802 @@
+{
+  "schema_version": 1,
+  "milestone": "M5",
+  "kind": "Independent reconciliation of parent-executed local evidence against frozen M5 source",
+  "reviewed_at_utc": "2026-10-24T14:17:43.291835+00:00",
+  "summary": {
+    "criteria": 24,
+    "Passed": 22,
+    "Not applicable": 2,
+    "missing_criteria": 0
+  },
+  "criteria": [
+    {
+      "criterion_id": "WS-FIX-04-AC01",
+      "item_id": "WS-FIX-04",
+      "assertion": "If implemented: one-command and multi-command synthetic scripts match CLI outputs, file effects and exit propagation for supported tools.",
+      "result": "Not applicable",
+      "reason": "Selected correction disables live Workshop execution before Run. Implementing a dispatcher is excluded; the conditional implementation acceptance gate is retained for any future expansion."
+    },
+    {
+      "criterion_id": "WS-FIX-04-AC02",
+      "item_id": "WS-FIX-04",
+      "assertion": "If deferred: live execution is disabled or refused before starting with clear wording; it is not presented as a supported workflow.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testLiveScriptRefusesBeforeExecutionAndOutputPreparation",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 51,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 44
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/workshop/workshop.json",
+          "cases": [
+            "workshop-live-refused"
+          ]
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-01"
+          ]
+        }
+      ],
+      "observation": "Live action is unavailable with explicit CLI guidance before execution/output preparation; stale direct invocation also refuses."
+    },
+    {
+      "criterion_id": "WS-FIX-04-AC03",
+      "item_id": "WS-FIX-04",
+      "assertion": "Template, validation and dry-run remain functional and accurately labeled.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testTemplateValidateAndDryRunUseSharedSupportedEngines",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 71,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 54
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/workshop/results.json",
+          "cases": [
+            "template-workflow",
+            "template-pipeline",
+            "template-query",
+            "template-archive",
+            "template-anonymize",
+            "validate",
+            "dry-run"
+          ]
+        },
+        {
+          "path": "evidence/workshop/workshop.json"
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-02",
+            "GUI-03",
+            "GUI-04"
+          ]
+        },
+        {
+          "path": "evidence/ui/script-dry-run-observation.json"
+        }
+      ],
+      "observation": "All five templates pass CLI/VM checks; native UI checks workflow template, Validate and Dry Run. GUI Dry Run is operator-witnessed, not proved by the no-change AX delta alone."
+    },
+    {
+      "criterion_id": "WS-FIX-04-AC04",
+      "item_id": "WS-FIX-04",
+      "assertion": "Unsupported nested commands are identified deterministically and never reported successful.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testUnknownNestedToolsFailValidationAndDryRunDeterministically",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 103,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 56
+        },
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testDryRunNameCheckPreservesOptionAndVariableValues",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 172,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 40
+        },
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testRecognizedScriptToolsMatchActivePackageProducts",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 140,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 48
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/workshop/results.json",
+          "cases": [
+            "unknown-root",
+            "unknown-pipeline",
+            "unknown-conditional",
+            "unknown-option-equals",
+            "conditional-pipeline"
+          ]
+        },
+        {
+          "path": "evidence/workshop/workshop.json"
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-05"
+          ]
+        },
+        {
+          "path": "evidence/independent-review.json"
+        }
+      ],
+      "observation": "Unknown root/pipeline/conditional tool names fail Validate and Dry Run. Unsupported unquoted pipeline syntax inside a conditional fails with its line number before a hidden nested command can be accepted; quoted pipe data remains allowed."
+    },
+    {
+      "criterion_id": "WS-FIX-06-AC01",
+      "item_id": "WS-FIX-06",
+      "assertion": "No mode labeled Interactive silently retrieves all matches without a selection affordance.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testQRHasExplicitAutoAndReviewAndRefusesStaleInteractiveBeforeDispatch",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 206,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 46
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/workshop/workshop.json",
+          "cases": [
+            "qr-review",
+            "qr-auto",
+            "stale-interactive"
+          ]
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-08",
+            "GUI-09"
+          ]
+        }
+      ],
+      "observation": "Catalog offers explicit Review and Auto modes; persisted Interactive cannot silently dispatch retrieve-all."
+    },
+    {
+      "criterion_id": "WS-FIX-06-AC02",
+      "item_id": "WS-FIX-06",
+      "assertion": "Canceling an implemented selection performs no retrieval.",
+      "result": "Not applicable",
+      "reason": "No interactive selection was implemented. WS-ENH-04 remains deferred. This cancellation criterion is retained for any future interactive-selection implementation; Review is not called interactive selection."
+    },
+    {
+      "criterion_id": "WS-FIX-06-AC03",
+      "item_id": "WS-FIX-06",
+      "assertion": "Preview and execution mode agree; Auto remains explicit.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testQRHasExplicitAutoAndReviewAndRefusesStaleInteractiveBeforeDispatch",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 206,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 46
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/workshop/results.json",
+          "cases": [
+            "qr-review",
+            "qr-auto"
+          ]
+        },
+        {
+          "path": "evidence/workshop/workshop.json",
+          "cases": [
+            "qr-review",
+            "qr-auto"
+          ]
+        },
+        {
+          "path": "evidence/ui/comparisons.json"
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-08",
+            "GUI-09"
+          ]
+        }
+      ],
+      "observation": "Preview and execution agree: Review retrieves zero files; Auto retrieves one matching synthetic file. GUI and paired CLI raw datasets compare equal."
+    },
+    {
+      "criterion_id": "WS-FIX-07-AC01",
+      "item_id": "WS-FIX-07",
+      "assertion": "Full fractional TIME and positive/negative-offset DATETIME preserve exact meaningful components.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testTimePrecisionIncludingLeapSecondAndPartialValues",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 8,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 27
+        },
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testDateTimeRetainsEveryLegalPartialPrecisionAndExactOffset",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 19,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 17
+        },
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 69,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 25
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/sr-results.json"
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-10"
+          ]
+        },
+        {
+          "path": "evidence/ui/sr-copied-positive-offset.txt"
+        }
+      ],
+      "observation": "Fraction digits/trailing zeroes and both offset signs are retained; native selection/copy retains the positive-offset fraction and offset."
+    },
+    {
+      "criterion_id": "WS-FIX-07-AC02",
+      "item_id": "WS-FIX-07",
+      "assertion": "Different fractions/offsets are distinguishable in the detailed value representation.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testDetailedRepresentationsDistinguishFractionsOffsetsAndOmittedSeconds",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 37,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 19
+        },
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 69,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 25
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/sr-results.json"
+        },
+        {
+          "path": "evidence/ui/sr-narrative.txt"
+        }
+      ],
+      "observation": "Adjacent microsecond fractions, offsets and omitted seconds have distinguishable exact displays."
+    },
+    {
+      "criterion_id": "WS-FIX-07-AC03",
+      "item_id": "WS-FIX-07",
+      "assertion": "Partial HH, HHMM, date-only and other valid partial DT values remain accurate.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testTimePrecisionIncludingLeapSecondAndPartialValues",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 8,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 27
+        },
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testDateTimeRetainsEveryLegalPartialPrecisionAndExactOffset",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 19,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 17
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/sr-results.json"
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-10"
+          ]
+        }
+      ],
+      "observation": "HH, HHMM, year/month/date/hour/minute DT and partial DT with offset preserve their represented precision."
+    },
+    {
+      "criterion_id": "WS-FIX-07-AC04",
+      "item_id": "WS-FIX-07",
+      "assertion": "No DICOM file bytes are modified by display formatting.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5SRTemporalPrecisionTests.testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift",
+          "source_line": 69,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 25
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/ui/comparisons.json"
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-10"
+          ]
+        },
+        {
+          "path": "evidence/sr-fixture/manifest.json"
+        }
+      ],
+      "observation": "Physical-file unit check and GUI before/after hash preserve fixture SHA256 699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6. Formatting/copy does not write the source."
+    },
+    {
+      "criterion_id": "WS-FIX-08-AC01",
+      "item_id": "WS-FIX-08",
+      "assertion": "All Workshop tool definition lists have unique IDs.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testEveryCatalogDefinitionHasUniqueParameterIdentity",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 30,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 42
+        }
+      ],
+      "observation": "Every frozen Workshop definition list has unique parameter identities; this is catalog coverage, not a claim that every tool was executed."
+    },
+    {
+      "criterion_id": "WS-FIX-08-AC02",
+      "item_id": "WS-FIX-08",
+      "assertion": "Enabling the control emits one flag; disabling omits it as intended.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testBurnedInPHIHasOneBindingAndOneFlagInBothExperienceModes",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 37,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 38
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/workshop/workshop.json",
+          "cases": [
+            "phi-false",
+            "phi-true"
+          ]
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-06",
+            "GUI-07"
+          ]
+        }
+      ],
+      "observation": "One bound parameter yields exactly one override flag when enabled and none when disabled."
+    },
+    {
+      "criterion_id": "WS-FIX-08-AC03",
+      "item_id": "WS-FIX-08",
+      "assertion": "Both expert and beginner/advanced UI presentations expose one stable control.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testBurnedInPHIHasOneBindingAndOneFlagInBothExperienceModes",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 37,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 38
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-06",
+            "GUI-07"
+          ]
+        }
+      ],
+      "observation": "Beginner advanced disclosure and Advanced mode show one stable control with retained value."
+    },
+    {
+      "criterion_id": "WS-FIX-08-AC04",
+      "item_id": "WS-FIX-08",
+      "assertion": "Anonymization semantics remain governed by the shared workflow.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMStudioTests.M5WorkshopContractTests.testSinglePHIControlPreservesSharedAnonymizationRefusalAndIdentityMarking",
+          "source": "evidence/source-snapshot/Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+          "source_line": 230,
+          "log": "evidence/DICOMStudioTests.log",
+          "log_line": 52
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/workshop/results.json",
+          "cases": [
+            "phi-false",
+            "phi-true"
+          ]
+        },
+        {
+          "path": "evidence/workshop/workshop.json",
+          "cases": [
+            "phi-false",
+            "phi-true"
+          ]
+        },
+        {
+          "path": "evidence/ui/ui-verification.json",
+          "cases": [
+            "GUI-06",
+            "GUI-07"
+          ]
+        }
+      ],
+      "observation": "With pixel cleaning explicitly disabled in both clients, no override refuses without output; override writes unchanged pixels with Patient Identity Removed = NO. This is not de-identification certification."
+    },
+    {
+      "criterion_id": "TB-FIX-01-AC01",
+      "item_id": "TB-FIX-01",
+      "assertion": "All offered profile tokens pass CLI argument validation.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testProfilesMatchCurrentCLIAndDoNotImplySeparateRetentionPolicies",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 9,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 19
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testCurrentAnonPresetsProduceValidatedCurrentArguments",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 54,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 11
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/results.json",
+          "cases": [
+            "anon-ps315",
+            "anon-basic",
+            "anon-ps315-retain",
+            "anon-basic-retain"
+          ]
+        }
+      ],
+      "observation": "Only ps315/basic are offered; actual CLI accepts both. basic is an alias, not a separate privacy policy."
+    },
+    {
+      "criterion_id": "TB-FIX-01-AC02",
+      "item_id": "TB-FIX-01",
+      "assertion": "Unsupported stored preset values receive clear migration/refusal wording.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testLegacyProfilesRefuseWithActionableRebuildInstructions",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 21,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 15
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testRetiredPersistedArgvCannotReplayCopyOrExportAsExecutableText",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 62,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 23
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testPersistedLegacyParameterDictionaryCannotHideBehindCurrentArgv",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 76,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 17
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/results.json",
+          "cases": [
+            "retired-profile-clinical",
+            "retired-profile-research"
+          ]
+        }
+      ],
+      "observation": "Unsupported persisted profile names receive actionable rebuild/refusal wording; no implicit policy migration is claimed."
+    },
+    {
+      "criterion_id": "TB-FIX-01-AC03",
+      "item_id": "TB-FIX-01",
+      "assertion": "PS3.15 option selection remains explicit; no de-identification certification is inferred from a profile label.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testProfilesMatchCurrentCLIAndDoNotImplySeparateRetentionPolicies",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 9,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 19
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testUIDRegenerationIsDefaultAndRetentionIsExplicit",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 44,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 29
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/independent-review.json"
+        },
+        {
+          "path": "evidence/toolbox-cli/toolbox-cli-manifest.json"
+        }
+      ],
+      "observation": "Retention controls remain explicit and profile wording does not imply a complete de-identification guarantee."
+    },
+    {
+      "criterion_id": "TB-FIX-02-AC01",
+      "item_id": "TB-FIX-02",
+      "assertion": "Generated anonymization argv contains no undeclared options.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testCurrentAnonPresetsProduceValidatedCurrentArguments",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 54,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 11
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testRemovedSettingsAreNotSilentlyDroppedEvenWhenFalse",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 33,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 21
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testValidatedArgumentsStillPreserveLiteralDataAndNegativeDateShift",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 111,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 31
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/toolbox-cli-manifest.json"
+        },
+        {
+          "path": "evidence/toolbox-cli/results.json"
+        }
+      ],
+      "observation": "Twelve retained library-generated argv cases run with current CLI declarations. Retired keep/regenerate-uids are refused; structured argv and literal metacharacters are preserved."
+    },
+    {
+      "criterion_id": "TB-FIX-02-AC02",
+      "item_id": "TB-FIX-02",
+      "assertion": "Saved presets using the old flags are either explicitly migrated with verified semantics or rejected with actionable wording.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testRemovedSettingsAreNotSilentlyDroppedEvenWhenFalse",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 33,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 21
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testRetiredPersistedArgvCannotReplayCopyOrExportAsExecutableText",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 62,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 23
+        },
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testPersistedLegacyParameterDictionaryCannotHideBehindCurrentArgv",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 76,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 17
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/results.json",
+          "cases": [
+            "retired-regenerate",
+            "retired-keep"
+          ]
+        }
+      ],
+      "observation": "Old parameter dictionaries and raw history argv are checked independently. Unsupported legacy flags are refused for Run/replay/copy/export with rebuilding guidance, including stored false values."
+    },
+    {
+      "criterion_id": "TB-FIX-02-AC03",
+      "item_id": "TB-FIX-02",
+      "assertion": "Current UID retention/regeneration behavior is tested using synthetic files and the actual shared workflow.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testUIDRegenerationIsDefaultAndRetentionIsExplicit",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 44,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 29
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/results.json",
+          "cases": [
+            "anon-ps315",
+            "anon-basic",
+            "anon-ps315-retain",
+            "anon-basic-retain",
+            "anon-all-current-controls"
+          ]
+        },
+        {
+          "path": "evidence/toolbox-cli/toolbox-cli-manifest.json"
+        }
+      ],
+      "observation": "Synthetic outputs show default Study/Series/SOP UID replacement and explicit retain-uids equality, with consistent File Meta/dataset identity and unchanged input. Backup is at outputURL.appendingPathExtension(backup)."
+    },
+    {
+      "criterion_id": "TB-FIX-03-AC01",
+      "item_id": "TB-FIX-03",
+      "assertion": "Each offered template generates accepted argv and valid template output.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testTemplateNameIsRequiredAndAllFiveNamesArePositional",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 83,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 27
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/results.json",
+          "cases": [
+            "template-workflow",
+            "template-pipeline",
+            "template-query",
+            "template-archive",
+            "template-anonymize"
+          ]
+        },
+        {
+          "path": "evidence/toolbox-cli/toolbox-cli-manifest.json"
+        }
+      ],
+      "observation": "All five template names are positional; emitted stdout saved by the test and each generated script validated by real CLI."
+    },
+    {
+      "criterion_id": "TB-FIX-03-AC02",
+      "item_id": "TB-FIX-03",
+      "assertion": "Missing template name is prevented or reported consistently.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testTemplateNameIsRequiredAndAllFiveNamesArePositional",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 83,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 27
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/results.json",
+          "cases": [
+            "missing-template"
+          ]
+        }
+      ],
+      "observation": "Library form/validated invocation requires a template name; real CLI missing-name invocation exits 64."
+    },
+    {
+      "criterion_id": "TB-FIX-03-AC03",
+      "item_id": "TB-FIX-03",
+      "assertion": "No --output reaches the CLI; optional app file saving is labeled as an app action.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMToolboxTests.M5ToolboxContractTests.testSavedTemplateOutputRefusesWithConsoleCopyGuidance",
+          "source": "evidence/source-snapshot/Tests/DICOMToolboxTests/M5ToolboxContractTests.swift",
+          "source_line": 98,
+          "log": "evidence/DICOMToolboxTests.log",
+          "log_line": 25
+        }
+      ],
+      "evidence": [
+        {
+          "path": "evidence/toolbox-cli/results.json",
+          "cases": [
+            "retired-template-output"
+          ]
+        },
+        {
+          "path": "evidence/independent-review.json"
+        }
+      ],
+      "observation": "No template --output is emitted; stale stored output requests refuse with console-copy guidance. Test-side saving of stdout is explicitly separate from the CLI; no new app-save feature is claimed."
+    }
+  ],
+  "counts": {
+    "regular_suite_passes": 740,
+    "regular_XCTest_passes": 55,
+    "regular_SwiftTesting_passes": 685,
+    "initial_opt_in_skips": 1,
+    "separately_activated_XCTest_passes": 1,
+    "unresolved_skips": 0,
+    "python_audit_regressions": 30,
+    "toolbox_CLI_cases": 23,
+    "workshop_CLI_cases": 22,
+    "workshop_VM_actions": 23,
+    "packaged_GUI_cases": 10,
+    "additional_GUI_QR_CLI_replays": 2
+  },
+  "counting_note": "VM actions and CLI/GUI cases are behavioral cases, not additional Swift test methods. The Toolbox export harness is already one of its 11 XCTest passes. The separately activated Workshop harness is one XCTest method covering 23 VM actions. Skips are never counted as passes.",
+  "limitations": [
+    "Local focused M5 qualification only; not complete-project DICOM conformance or a clinical deployment certification.",
+    "DICOMToolbox is a separate library not linked into DICOMStudio and has no standalone app target in this repository. Its form/validated argv/history tests and actual CLI process oracle are executed; packaged Toolbox UI is not applicable, not passed.",
+    "No live Workshop script dispatcher or actual interactive QR selection was added; the two conditional criteria remain not applicable and those enhancements stay deferred.",
+    "Only workflow template was manually exercised in native UI. All five templates were exercised by actual CLI and ViewModel runtime.",
+    "GUI Dry Run is explicitly operator-witnessed; its retained AX file is a no-change delta, supplemented by the observation record and separate automated evidence.",
+    "Synthetic metadata/one-pixel fixtures and loopback service only. No physical printer, external PACS, complete IOD, OCR/pixel-cleaning quality, or broad interoperability claim.",
+    "M0 audit regressions test extraction behavior; they do not close unrelated findings or establish all-tool runtime coverage.",
+    "The audit was rerun on a coherent frozen M5 overlay after concurrent M6 edits invalidated a mixed-tree run. M6 edits and mixed-tree failures are excluded from this M5 record.",
+    "No M5 exact-head remote CI, merge, release, or publication is asserted by this local evidence package."
+  ]
+}

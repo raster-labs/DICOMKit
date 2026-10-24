@@ -138,6 +138,11 @@ public struct ConsoleView: View {
                     statusIndicator
                 }
 
+                if !isRunning, let builder = commandBuilder {
+                    ForEach(builder.validationMessages(values: parameterValues, subcommand: subcommand), id: \.self) { issue in
+                        Text(issue).font(.caption).foregroundStyle(.red).textSelection(.enabled)
+                    }
+                }
                 Divider()
 
                 // Output area
@@ -203,8 +208,13 @@ public struct ConsoleView: View {
 
     private func executeCommand() {
         guard !isRunning, isCommandValid, let toolID, let builder = commandBuilder else { return }
-        runInvocation(builder.buildInvocation(values: parameterValues, subcommand: subcommand),
-                      toolID: toolID, subcommand: subcommand, values: parameterValues)
+        do {
+            let invocation = try builder.validatedInvocation(values: parameterValues, subcommand: subcommand)
+            runInvocation(invocation, toolID: toolID, subcommand: subcommand, values: parameterValues)
+        } catch {
+            output = error.localizedDescription
+            status = .completed(exitCode: -1)
+        }
     }
 
     private func runInvocation(_ invocation: CommandInvocation, toolID: String,
@@ -255,7 +265,7 @@ public struct ConsoleView: View {
     private func rerunEntry(_ entry: CommandHistoryEntry) {
         guard !isRunning else { return }
         guard let invocation = entry.replayInvocation else {
-            output = "This history entry has no verified argument list. Select the tool and parameters to run it again."
+            output = entry.replayRefusalReason ?? "Select the tool and parameters to run it again."
             status = .completed(exitCode: -1)
             return
         }

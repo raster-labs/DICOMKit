@@ -1,9 +1,26 @@
 # DICOM 2026a milestone status
 
-Updated 24 October 2026. **M0–M4 item criteria are complete. Stop before M5.**
+Updated 24 October 2026. **M0–M5 item criteria are complete; M6 is in progress and M7 is authorized next; the user retains merge authority.**
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
 commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repaired query safety and filters; M4 repaired service reliability.
+
+## Completed M5 items
+
+WS-FIX-04/06/07/08 and TB-FIX-01/02/03 are complete: 22 criteria passed and two
+conditional alternatives are not applicable. The frozen M5 source passed 740
+focused suite tests, one separately activated Workshop harness and 30 audit
+regressions. Actual process campaigns passed 23 Toolbox CLI cases and 22 CLI /23
+Workshop ViewModel actions. Ten packaged-app cases verified script refusal and
+supported actions, explicit Auto/Review modes, the single PHI control, and exact
+SR temporal display/copy. The SR source bytes stayed unchanged. Counts describe
+different overlapping layers, not one additive test total.
+
+See [M5 report](M5/REPORT.md), [acceptance](M5/acceptance.json),
+[verification](M5/verification.json) and [reproduction](M5/REPRODUCE.md).
+Toolbox remains a separate library; it is not linked into DICOMStudio and no
+packaged Toolbox UI qualification is claimed. M6 print integration proceeds
+under the user's authorization to complete remaining milestones, with no merge.
 
 ## Completed M4 items
 
@@ -117,13 +134,14 @@ These are audit-contract corrections; no product options or defaults changed.
 | M2 attribute integrity and workflow datasets | 12 | Completed |
 | M3 query safety and filters | 11 | Completed (35 item criteria) |
 | M4 service reliability | 5 | Completed (14 passed, 1 conditional not applicable) |
-| M5 remaining Studio contracts | 7 | Not started |
-| M6 print and printscp Workshop coverage | 2 | Not started |
+| M5 remaining Studio contracts | 7 | Completed (22 passed, 2 conditional not applicable) |
+| M6 print and printscp Workshop coverage | 2 | In progress |
 | M7 final qualification | 2 | Not started |
 | Other enhancements and dormant components | 22 | Deferred |
 
-Of the 68 original actions, **35 are completed, 11 active items remain pending,
-and 22 remain deferred**. Six product bug-fix actions remain open. The
+Of the 68 original actions, **42 are completed, four active items remain pending,
+and 22 remain deferred**. All planned bug-fix milestones are complete; print
+integration and final qualification remain. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or
@@ -132,5 +150,7 @@ passing cached-binary tests are retained as historical evidence only; their
 equivalence to this source was not established. Preparation and gates for the
 later verification are in [M0/REPRODUCE.md](M0/REPRODUCE.md).
 
-M4 is the latest authorized milestone. Stop before M5; merging into main,
-releasing and beginning M5 require the user’s next instruction.
+The user authorized completion of M5–M7 on 24 October 2026, after M4 was pushed.
+Continue sequentially, update documents after each milestone and push the same
+branch. Do not merge main; the user will merge. Deferred enhancements remain
+outside scope. Unavailable qualification evidence must stay explicit.

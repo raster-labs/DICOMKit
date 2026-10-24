@@ -1,0 +1,16 @@
+{
+  "baseline_commit": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+  "branch": "codex/dicom-2026a-milestones",
+  "changed_file_manifest": "implementation-freeze.json",
+  "changed_snapshot": "source-snapshot/",
+  "snapshot_files": 27,
+  "snapshot_hashes_verified": true,
+  "baseline_build_inputs": "baseline-build-inputs/",
+  "baseline_build_inputs_read_method": "git show 441ae21ab09bbb18687baa06baa131831a3ac10d:<path>; not current worktree",
+  "m6_excluded": true,
+  "binary_manifest": "binary-hashes.json",
+  "binary_note": "Hashes recorded at M5 qualification; no mutable M6 binary or source was substituted.",
+  "audit_tree": "Isolated git archive of baseline commit plus exact 27-file frozen M5 overlay. Parent ran the final 30 regressions there after concurrent M6 extraction invalidated an earlier mixed-tree audit.",
+  "mixed_tree_attempt": "Excluded from M5 pass/failure totals; retained separately at work/m6/audit-during-extraction.log.",
+  "remote_evidence": "entry-m4-remote.json is M4 entry evidence only; not an M5 exact-head CI claim."
+}

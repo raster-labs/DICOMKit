@@ -181,14 +181,15 @@ struct DicomScriptCommandTests {
         #expect(!invalid)
     }
 
-    @Test("dicom-script template with output")
-    func testTemplateWithOutput() {
+    @Test("dicom-script template uses its required positional name")
+    func testTemplateWithName() {
         let builder = CommandBuilder(tool: ToolRegistry.dicomScript)
         let command = builder.buildCommand(values: [
-            "output": "/scripts/new.dscript",
+            "template-name": "workflow",
         ], subcommand: "template")
         #expect(command.contains("template"))
-        #expect(command.contains("--output /scripts/new.dscript"))
+        #expect(command == "dicom-script template workflow")
+        #expect(!command.contains("--output"))
     }
 }
 

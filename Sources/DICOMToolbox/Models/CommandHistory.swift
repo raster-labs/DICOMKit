@@ -17,12 +17,18 @@ public struct CommandHistoryEntry: Identifiable, Codable, Sendable {
     /// Legacy text is never offered as executable script, including when copied from history.
     public var copyableCommand: String {
         if let invocation = replayInvocation { return invocation.commandString }
-        return (["# Legacy/unrecognized entry: rebuild in Toolbox before running."] +
+        return (["# " + (replayRefusalReason ?? "Legacy/unrecognized entry: rebuild in Toolbox before running.").replacingOccurrences(of: "\n", with: " ")] +
                 commandString.components(separatedBy: .newlines).map { "# " + $0 }).joined(separator: "\n")
     }
+    public var replayRefusalReason: String? {
+        guard let invocation, invocation.executable == toolID, ToolRegistry.tool(withID: toolID) != nil else {
+            return "Legacy/unrecognized entry: rebuild in Toolbox before running; no verified argument list is available."
+        }
+        let issues = ToolboxCommandContract.issues(toolID: toolID, values: parameterValues, subcommand: subcommand)
+        return issues.first ?? ToolboxCommandContract.replayIssue(invocation)
+    }
     public var replayInvocation: CommandInvocation? {
-        guard let invocation, invocation.executable == toolID,
-              ToolRegistry.tool(withID: toolID) != nil else { return nil }
+        guard replayRefusalReason == nil, let invocation else { return nil }
         return invocation
     }
     /// When the command was executed

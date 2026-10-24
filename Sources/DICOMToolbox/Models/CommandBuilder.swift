@@ -55,7 +55,25 @@ public final class CommandBuilder: Sendable {
     ///   - subcommand: Optional subcommand name for tools with subcommands
     /// - Returns: The complete CLI command string
     public func buildCommand(values: [String: String], subcommand: String? = nil) -> String {
-        buildInvocation(values: values, subcommand: subcommand).commandString
+        let issues = ToolboxCommandContract.issues(toolID: tool.id, values: values, subcommand: subcommand)
+        if !issues.isEmpty { return issues.map { "# Cannot run: " + $0.replacingOccurrences(of: "\n", with: " ") }.joined(separator: "\n") }
+        return buildInvocation(values: values, subcommand: subcommand).commandString
+    }
+
+    /// Use for execution. Formatting remains separate from refusal/migration policy.
+    public func validatedInvocation(values: [String: String], subcommand: String? = nil) throws -> CommandInvocation {
+        let issues = validationMessages(values: values, subcommand: subcommand)
+        guard issues.isEmpty else { throw ToolboxCommandValidationError(messages: issues) }
+        let invocation = buildInvocation(values: values, subcommand: subcommand)
+        if let issue = ToolboxCommandContract.replayIssue(invocation) {
+            throw ToolboxCommandValidationError(messages: [issue])
+        }
+        return invocation
+    }
+
+    public func validationMessages(values: [String: String], subcommand: String? = nil) -> [String] {
+        ToolboxCommandContract.issues(toolID: tool.id, values: values, subcommand: subcommand)
+            + missingRequiredParameters(values: values, subcommand: subcommand).map { "Provide a valid \($0)." }
     }
 
     public func buildInvocation(values: [String: String], subcommand: String? = nil) -> CommandInvocation {
@@ -203,6 +221,7 @@ public final class CommandBuilder: Sendable {
     ///   - subcommand: Optional subcommand name
     /// - Returns: `true` if all required parameters are satisfied
     public func isValid(values: [String: String], subcommand: String? = nil) -> Bool {
+        guard ToolboxCommandContract.issues(toolID: tool.id, values: values, subcommand: subcommand).isEmpty else { return false }
         let parameters: [ParameterDefinition]
         if let subcommand, let subcommands = tool.subcommands,
            let sub = subcommands.first(where: { $0.id == subcommand }) {

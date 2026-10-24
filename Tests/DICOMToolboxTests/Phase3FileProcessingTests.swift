@@ -348,9 +348,9 @@ struct DicomAnonCommandTests {
     func testWithProfile() {
         let command = builder.buildCommand(values: [
             "inputPath": "scan.dcm",
-            "profile": "clinical-trial",
+            "profile": "ps315",
         ])
-        #expect(command.contains("--profile clinical-trial"))
+        #expect(command.contains("--profile ps315"))
     }
 
     @Test("dicom-anon with date shift")
@@ -362,13 +362,13 @@ struct DicomAnonCommandTests {
         #expect(command.contains("--shift-dates 30"))
     }
 
-    @Test("dicom-anon with regenerate UIDs")
-    func testWithRegenerateUIDs() {
+    @Test("dicom-anon with retain UIDs")
+    func testWithRetainUIDs() {
         let command = builder.buildCommand(values: [
             "inputPath": "scan.dcm",
-            "regenerate-uids": "true",
+            "retain-uids": "true",
         ])
-        #expect(command.contains("--regenerate-uids"))
+        #expect(command.contains("--retain-uids"))
     }
 
     @Test("dicom-anon with custom tag actions")
@@ -377,12 +377,11 @@ struct DicomAnonCommandTests {
             "inputPath": "scan.dcm",
             "remove": "0010,0010,0010,0020",
             "replace": "0008,0080=HOSPITAL",
-            "keep": "0010,0040",
         ])
         #expect(command.contains("--remove 0010,0010"))
         #expect(command.contains("--remove 0010,0020"))
         #expect(command.contains("--replace 0008,0080=HOSPITAL"))
-        #expect(command.contains("--keep 0010,0040"))
+        #expect(!command.contains("--keep"))
     }
 
     @Test("dicom-anon with all boolean flags")
@@ -412,12 +411,11 @@ struct DicomAnonCommandTests {
         let command = builder.buildCommand(values: [
             "inputPath": "scan.dcm",
             "output": "anon/",
-            "profile": "research",
+            "profile": "ps315",
             "shift-dates": "90",
-            "regenerate-uids": "true",
+            "retain-uids": "true",
             "remove": "0010,0030",
             "replace": "0010,0010=ANONYMOUS",
-            "keep": "0020,000D",
             "recursive": "true",
             "dry-run": "true",
             "backup": "true",
@@ -426,12 +424,12 @@ struct DicomAnonCommandTests {
         #expect(command.contains("dicom-anon"))
         #expect(command.contains("scan.dcm"))
         #expect(command.contains("--output anon/"))
-        #expect(command.contains("--profile research"))
+        #expect(command.contains("--profile ps315"))
         #expect(command.contains("--shift-dates 90"))
-        #expect(command.contains("--regenerate-uids"))
+        #expect(command.contains("--retain-uids"))
         #expect(command.contains("--remove 0010,0030"))
         #expect(command.contains("--replace 0010,0010=ANONYMOUS"))
-        #expect(command.contains("--keep 0020,000D"))
+        #expect(!command.contains("--keep"))
         #expect(command.contains("--recursive"))
         #expect(command.contains("--dry-run"))
         #expect(command.contains("--backup"))
@@ -443,29 +441,30 @@ struct DicomAnonCommandTests {
 
 @Suite("DicomAnon Profile Tests")
 struct DicomAnonProfileTests {
-    @Test("dicom-anon has 3 profiles")
+    @Test("dicom-anon offers the two current CLI profile tokens")
     func testProfileCount() {
         let tool = ToolRegistry.dicomAnon
         let profileParam = tool.parameters.first { $0.id == "profile" }
         #expect(profileParam != nil)
-        #expect(profileParam?.enumValues?.count == 3)
+        #expect(profileParam?.enumValues?.count == 2)
     }
 
-    @Test("Profile options include basic, clinical-trial, research")
+    @Test("Profile options include ps315 and the basic alias")
     func testProfileValues() {
         let tool = ToolRegistry.dicomAnon
         let profileParam = tool.parameters.first { $0.id == "profile" }
         let values = profileParam?.enumValues?.map(\.value) ?? []
         #expect(values.contains("basic"))
-        #expect(values.contains("clinical-trial"))
-        #expect(values.contains("research"))
+        #expect(values.contains("ps315"))
+        #expect(!values.contains("research"))
+        #expect(!values.contains("clinical-trial"))
     }
 
-    @Test("Default profile is basic")
+    @Test("Default profile is ps315")
     func testDefaultProfile() {
         let tool = ToolRegistry.dicomAnon
         let profileParam = tool.parameters.first { $0.id == "profile" }
-        #expect(profileParam?.defaultValue == "basic")
+        #expect(profileParam?.defaultValue == "ps315")
     }
 }
 

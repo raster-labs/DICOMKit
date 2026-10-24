@@ -268,7 +268,7 @@ public enum ToolCatalogHelpers: Sendable {
                               hasSubcommands: true),
             CLIToolDefinition(id: "dicom-script", name: "dicom-script", displayName: "Scripting",
                               category: .automation, sfSymbol: "scroll",
-                              briefDescription: "Run, validate, and template DICOM processing scripts",
+                              briefDescription: "Dry-run, validate, and generate script templates; live execution uses the CLI",
                               hasSubcommands: true),
         ]
     }
@@ -791,15 +791,10 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "mode", flag: "", displayName: "Operation Mode",
-                    parameterType: .flagPicker, placeholder: "interactive",
-                    helpText: "Interactive: in-app retrieves all results without a prompt (previews as --auto); Auto: retrieve all matches; Review: query only",
-                    defaultValue: "interactive",
-                    allowedValues: ["interactive", "auto", "review"],
-                    // The app cannot prompt for a study selection, so its
-                    // "interactive" state behaves as --auto — preview the
-                    // truthful token rather than a --interactive the pasted
-                    // command would answer differently.
-                    cliMapping: ["interactive": "--auto"]
+                    parameterType: .flagPicker, placeholder: "auto",
+                    helpText: "Auto: retrieve every matching study without selection. Review: query and list matches without retrieving files.",
+                    defaultValue: "auto",
+                    allowedValues: ["auto", "review"]
                 ),
                 CLIParameterDefinition(
                     id: "method", flag: "--method", displayName: "Retrieval Method",
@@ -2444,12 +2439,6 @@ public enum ToolCatalogHelpers: Sendable {
                     id: "force", flag: "--force", displayName: "Force Parse",
                     parameterType: .booleanToggle, placeholder: "",
                     helpText: "Force parsing of files without DICM prefix",
-                    isAdvanced: true
-                ),
-                CLIParameterDefinition(
-                    id: "allow-burned-in-phi", flag: "--allow-burned-in-phi", displayName: "Allow Burned-in PHI",
-                    parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Proceed even when the pixels may still carry PHI (Burned In Annotation = YES, or overlay planes present) (--profile ps315). Without this, such files are refused unwritten, because without --clean-pixel-data only the data set is de-identified.",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
@@ -4677,7 +4666,7 @@ case "dicom-script":
                 CLIParameterDefinition(
                     id: "operation", flag: "", displayName: "Operation",
                     parameterType: .subcommand, placeholder: "run",
-                    helpText: "run: execute a workflow script; validate: check a script for errors; template: generate a starter script",
+                    helpText: "run: preview a script with Dry Run enabled; validate: check script syntax and tool names; template: generate a starter script. Live execution is available through the CLI only.",
                     isRequired: true,
                     defaultValue: "run",
                     allowedValues: ["run", "validate", "template"]
@@ -4686,7 +4675,7 @@ case "dicom-script":
                 CLIParameterDefinition(
                     id: "scriptPath", flag: "", displayName: "Script File",
                     parameterType: .filePath, placeholder: "workflow.dcmscript",
-                    helpText: "Path to the DICOM Script Language (.dcmscript) file to execute or validate",
+                    helpText: "DICOM Script Language (.dcmscript) file to preview or validate; Workshop does not execute nested commands",
                     isRequired: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["run", "validate"])
                 ),
@@ -4713,10 +4702,10 @@ case "dicom-script":
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["run", "validate"])
                 ),
                 CLIParameterDefinition(
-                    id: "dryRun", flag: "--dry-run", displayName: "Dry Run",
+                    id: "dryRun", flag: "--dry-run", displayName: "Dry Run (required in Workshop)",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Dry run — show what would be executed without running any commands",
-                    defaultValue: "false",
+                    helpText: "Check the script and show planned commands without executing them. To execute commands, use dicom-script in a terminal.",
+                    defaultValue: "true",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["run"])
                 ),
                 CLIParameterDefinition(
@@ -4915,10 +4904,7 @@ public enum CommandBuilderHelpers: Sendable {
                 }
             case .flagPicker:
                 // Flag pickers emit "--<value>" (e.g. "--auto") instead of "--flag value".
-                // A cliMapping entry overrides the literal token when the in-app state
-                // executes as a different CLI mode (e.g. dicom-qr's "interactive" state
-                // cannot prompt in-app — it retrieves all matches, so it previews as
-                // the truthful --auto).
+                // A cliMapping entry can map a display value to its CLI token.
                 if let mapped = def.cliMapping[value.stringValue], !mapped.isEmpty {
                     parts.append(mapped)
                 } else {

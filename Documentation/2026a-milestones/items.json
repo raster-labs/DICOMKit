@@ -2,8 +2,8 @@
   "schema_version": 1,
   "source_review_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
   "branch": "codex/dicom-2026a-milestones",
-  "authorized_current_milestone": "M4",
-  "stop_before": "M5",
+  "authorized_current_milestone": "M6",
+  "stop_before": "Merge into main (user retains merge authority)",
   "counts": {
     "all": 68,
     "active": 46,
@@ -229,11 +229,11 @@
       "acceptance_criteria": [
         {
           "id": "A-03-AC01",
-          "assertion": "Decode the recorded ISO_IR 100 PN bytes as Müller^Jörg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
+          "assertion": "Decode the recorded ISO_IR 100 PN bytes as M\u00fcller^J\u00f6rg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
-          "verification_detail": "Actual app metadata view reads Müller^Jörg from ISO_IR 100; Core, discovery and compatible-copy controls pass."
+          "verification_detail": "Actual app metadata view reads M\u00fcller^J\u00f6rg from ISO_IR 100; Core, discovery and compatible-copy controls pass."
         },
         {
           "id": "A-03-AC02",
@@ -241,7 +241,7 @@
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
-          "verification_detail": "CLI/app Unicode edits emit ISO_IR 192 and exact Müller^患者 UTF-8 bytes."
+          "verification_detail": "CLI/app Unicode edits emit ISO_IR 192 and exact M\u00fcller^\u60a3\u8005 UTF-8 bytes."
         },
         {
           "id": "A-03-AC03",
@@ -263,7 +263,7 @@
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
       "baseline_observations": [
         "Actual output contains UTF-8 text but has no (0008,0005) declaration.",
-        "PatientName displayed as raw hexadecimal rather than Müller^Jörg."
+        "PatientName displayed as raw hexadecimal rather than M\u00fcller^J\u00f6rg."
       ],
       "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
       "verification": {
@@ -964,7 +964,7 @@
       "acceptance_criteria": [
         {
           "id": "NET-02-A-AC01",
-          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient’s series.",
+          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient\u2019s series.",
           "applicability": "Required when the stated condition applies",
           "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
           "result": "Passed",
@@ -2542,7 +2542,7 @@
         },
         {
           "id": "NET-06-B-AC02",
-          "assertion": "Test valid truncated precision allowed by the attribute’s usage, and separately reject invalid components and separated ISO-only values.",
+          "assertion": "Test valid truncated precision allowed by the attribute\u2019s usage, and separately reject invalid components and separated ISO-only values.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
@@ -3233,7 +3233,7 @@
       "milestone": "M5",
       "dependency_item_ids": [],
       "scope_decision": "Use the disable-before-run correction. The alternative of implementing a live script dispatcher is excluded from this plan.",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
@@ -3256,29 +3256,45 @@
           "id": "WS-FIX-04-AC01",
           "assertion": "If implemented: one-command and multi-command synthetic scripts match CLI outputs, file effects and exit propagation for supported tools.",
           "applicability": "Not applicable to selected correction",
-          "reason": "Live dispatcher enhancement is excluded; use AC02–AC04.",
-          "result": "Not run"
+          "reason": "Live dispatcher enhancement is excluded; use AC02\u2013AC04.",
+          "result": "Not applicable",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-04-AC02",
           "assertion": "If deferred: live execution is disabled or refused before starting with clear wording; it is not presented as a supported workflow.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-04-AC03",
           "assertion": "Template, validation and dry-run remain functional and accurately labeled.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-04-AC04",
           "assertion": "Unsupported nested commands are identified deterministically and never reported successful.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -3367,7 +3383,7 @@
       "milestone": "M5",
       "dependency_item_ids": [],
       "scope_decision": "Rename/remove the misleading mode. Actual interactive selection (WS-ENH-04) is deferred.",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift",
@@ -3386,21 +3402,33 @@
           "assertion": "No mode labeled Interactive silently retrieves all matches without a selection affordance.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-06-AC02",
           "assertion": "Canceling an implemented selection performs no retrieval.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "Interactive selection is deferred; Auto and Review are explicit. No selection-cancel workflow is implemented.",
+          "result": "Not applicable",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-06-AC03",
           "assertion": "Preview and execution mode agree; Auto remains explicit.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -3421,7 +3449,7 @@
         "A-03"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMStudio/Components/DICOMValueParser.swift",
@@ -3440,28 +3468,44 @@
           "assertion": "Full fractional TIME and positive/negative-offset DATETIME preserve exact meaningful components.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-07-AC02",
           "assertion": "Different fractions/offsets are distinguishable in the detailed value representation.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-07-AC03",
           "assertion": "Partial HH, HHMM, date-only and other valid partial DT values remain accurate.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-07-AC04",
           "assertion": "No DICOM file bytes are modified by display formatting.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -3479,7 +3523,7 @@
       "milestone": "M5",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift",
@@ -3503,28 +3547,44 @@
           "assertion": "All Workshop tool definition lists have unique IDs.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-08-AC02",
           "assertion": "Enabling the control emits one flag; disabling omits it as intended.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-08-AC03",
           "assertion": "Both expert and beginner/advanced UI presentations expose one stable control.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "WS-FIX-08-AC04",
           "assertion": "Anonymization semantics remain governed by the shared workflow.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -3876,7 +3936,7 @@
         "AUD-01"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMToolbox/Models/ToolRegistry.swift",
@@ -3900,21 +3960,33 @@
           "assertion": "All offered profile tokens pass CLI argument validation.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "TB-FIX-01-AC02",
           "assertion": "Unsupported stored preset values receive clear migration/refusal wording.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "TB-FIX-01-AC03",
           "assertion": "PS3.15 option selection remains explicit; no de-identification certification is inferred from a profile label.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -3934,7 +4006,7 @@
         "AUD-01"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMToolbox/Models/ToolRegistry.swift",
@@ -3953,21 +4025,33 @@
           "assertion": "Generated anonymization argv contains no undeclared options.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "TB-FIX-02-AC02",
           "assertion": "Saved presets using the old flags are either explicitly migrated with verified semantics or rejected with actionable wording.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "TB-FIX-02-AC03",
           "assertion": "Current UID retention/regeneration behavior is tested using synthetic files and the actual shared workflow.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -3988,7 +4072,7 @@
         "TB-FIX-04"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMToolbox/Models/ToolRegistry.swift",
@@ -4007,21 +4091,33 @@
           "assertion": "Each offered template generates accepted argv and valid template output.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "TB-FIX-03-AC02",
           "assertion": "Missing template name is prevented or reported consistently.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         },
         {
           "id": "TB-FIX-03-AC03",
           "assertion": "No --output reaches the CLI; optional app file saving is labeled as an app action.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "M5/acceptance.json",
+            "M5/verification.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -4500,7 +4596,7 @@
         "WS-FIX-08"
       ],
       "scope_decision": "Implement and qualify Workshop coverage. The original optional exclusion alternative is superseded by the requested print enhancement scope.",
-      "status": "Not started",
+      "status": "In progress",
       "source_locations": [
         {
           "path": "Package.swift",
@@ -4567,7 +4663,7 @@
         "WS-FIX-08"
       ],
       "scope_decision": "Implement and qualify Workshop coverage with service lifecycle behavior. The original optional exclusion alternative is superseded by the requested print enhancement scope.",
-      "status": "Not started",
+      "status": "In progress",
       "source_locations": [
         {
           "path": "Package.swift",
@@ -5261,14 +5357,18 @@
     }
   ],
   "current_summary": {
-    "completed": 35,
-    "not_started": 11,
+    "completed": 42,
+    "not_started": 2,
     "deferred": 22,
     "M0": "Completed",
     "M1": "Completed",
     "M2": "Completed",
     "M3": "Completed",
-    "M4": "Completed"
+    "M4": "Completed",
+    "in_progress": 2,
+    "M5": "Completed",
+    "M6": "In progress",
+    "M7": "Not started"
   },
   "baseline_caveats": [
     {
@@ -5281,5 +5381,9 @@
         "TB-FIX-02"
       ]
     }
+  ],
+  "authorized_remaining_milestones": [
+    "M6",
+    "M7"
   ]
 }

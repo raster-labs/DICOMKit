@@ -270,25 +270,33 @@ public struct CLIWorkshopView: View {
     /// Run button pinned at the bottom of the filters panel (after all filters).
     /// (The TESTING-ONLY "Compare CLI" button lives at the top of the right panel.)
     private var actionFooter: some View {
-        HStack(spacing: 10) {
-            if viewModel.isCommandValid {
-                Label("Ready", systemImage: "checkmark.circle.fill")
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.green)
-                    .help("Command is valid")
+        VStack(alignment: .leading, spacing: 8) {
+            if let reason = viewModel.executionUnavailableReason {
+                Label(reason, systemImage: "info.circle")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer()
+            HStack(spacing: 10) {
+                if viewModel.isCommandValid {
+                    Label("Ready", systemImage: "checkmark.circle.fill")
+                        .labelStyle(.iconOnly)
+                        .foregroundStyle(.green)
+                        .help("Command is valid")
+                }
+                Spacer()
 
-            Button {
-                Task { await viewModel.executeCommand() }
-            } label: {
-                Label("Run", systemImage: "play.fill")
-                    .font(.body)
+                Button {
+                    Task { await viewModel.executeCommand() }
+                } label: {
+                    Label(viewModel.runActionTitle, systemImage: "play.fill")
+                        .font(.body)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!viewModel.isCommandValid || viewModel.consoleStatus == .running)
+                .accessibilityLabel(viewModel.runActionTitle + " command")
+                .accessibilityHint(viewModel.executionUnavailableReason ?? "Runs the selected Workshop action")
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(!viewModel.isCommandValid || viewModel.consoleStatus == .running)
-            .accessibilityLabel("Run command")
-            .accessibilityHint("Executes the constructed DICOM command")
         }
         .padding(.horizontal)
         .padding(.vertical, 8)

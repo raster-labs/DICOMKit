@@ -161,26 +161,30 @@ struct EndToEndWorkflowTests {
         #expect(command.contains("--metadata"))
     }
 
-    @Test("Anonymization workflow with clinical trial profile")
-    func testAnonymizationWorkflow() {
+    @Test("PS3.15 anonymization workflow with default UID regeneration")
+    func testAnonymizationWorkflow() throws {
         let tool = ToolRegistry.tool(withID: "dicom-anon")!
         let builder = CommandBuilder(tool: tool)
         let values: [String: String] = [
             "inputPath": "patient_scan.dcm",
             "output": "anon_scan.dcm",
-            "profile": "clinical-trial",
+            "profile": "ps315",
             "shift-dates": "30",
-            "regenerate-uids": "true",
+            "retain-uids": "false",
             "backup": "true",
             "audit-log": "audit.csv",
         ]
         #expect(builder.isValid(values: values))
+        let invocation = try builder.validatedInvocation(values: values)
         let command = builder.buildCommand(values: values)
+        #expect(command == invocation.commandString)
         #expect(command.contains("dicom-anon"))
         #expect(command.contains("patient_scan.dcm"))
-        #expect(command.contains("--profile clinical-trial"))
+        #expect(command.contains("--profile ps315"))
+        #expect(command.contains("--output anon_scan.dcm"))
         #expect(command.contains("--shift-dates 30"))
-        #expect(command.contains("--regenerate-uids"))
+        #expect(!invocation.arguments.contains("--regenerate-uids"))
+        #expect(!invocation.arguments.contains("--retain-uids"))
         #expect(command.contains("--backup"))
         #expect(command.contains("--audit-log audit.csv"))
     }
