@@ -307,7 +307,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let response = NCreateResponse(
                 messageIDBeingRespondedTo: messageID,
                 affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.mock.session.1",
+                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.2.1",
                 status: .success,
                 hasDataSet: false,
                 presentationContextID: contextID
@@ -319,12 +319,12 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let imageBoxCount = imageBoxCount(fromFilmBoxRequest: message.dataSet,
                                               explicitVR: negotiatedExplicitVR)
             let uids = (1...imageBoxCount).map {
-                "1.2.826.0.1.3680043.9.mock.imagebox.\(boxIndex).\($0)"
+                "1.2.826.0.1.3680043.9.9001.3.\(boxIndex).\($0)"
             }
             let response = NCreateResponse(
                 messageIDBeingRespondedTo: messageID,
                 affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.mock.filmbox.\(boxIndex)",
+                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.4.\(boxIndex)",
                 status: .success,
                 hasDataSet: true,
                 presentationContextID: contextID
@@ -338,7 +338,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let response = NCreateResponse(
                 messageIDBeingRespondedTo: messageID,
                 affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.mock.other.1",
+                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.5.1",
                 status: .success,
                 hasDataSet: false,
                 presentationContextID: contextID
@@ -365,7 +365,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let dataSet: Data? = behavior.omitPrintJobUID
                 ? nil
                 : PrintSCPEncoder.printJobReference(
-                    printJobUID: "1.2.826.0.1.3680043.9.mock.job.1",
+                    printJobUID: "1.2.826.0.1.3680043.9.9001.1.1",
                     explicitVR: negotiatedExplicitVR)
             let response = NActionResponse(
                 messageIDBeingRespondedTo: messageID,

@@ -101,9 +101,9 @@ struct CLIWorkshopHelpersTests {
 
     // MARK: - ToolCatalogHelpers
 
-    @Test("allTools returns exactly 33 tools")
+    @Test("allTools returns exactly 35 tools")
     func testAllToolsCount() {
-        #expect(ToolCatalogHelpers.allTools().count == 33)
+        #expect(ToolCatalogHelpers.allTools().count == 35)
     }
 
     @Test("totalToolCount is 33")

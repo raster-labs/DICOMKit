@@ -1,0 +1,44 @@
+[
+  {
+    "name": "native",
+    "command": "dicom-print send pacs://127.0.0.1:57192 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/native.dcm --called-aet M6PIXELS --aet M6WORKSHOP --raw --timeout 5 --format json",
+    "expectedExit": 0,
+    "timeoutSeconds": 30
+  },
+  {
+    "name": "rle",
+    "command": "dicom-print send pacs://127.0.0.1:57192 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/rle.dcm --called-aet M6PIXELS --aet M6WORKSHOP --raw --timeout 5 --format json",
+    "expectedExit": 0,
+    "timeoutSeconds": 30
+  },
+  {
+    "name": "jpeg",
+    "command": "dicom-print send pacs://127.0.0.1:57192 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/jpeg.dcm --called-aet M6PIXELS --aet M6WORKSHOP --raw --timeout 5 --format json",
+    "expectedExit": 0,
+    "timeoutSeconds": 30
+  },
+  {
+    "name": "three-files",
+    "command": "dicom-print send pacs://127.0.0.1:57192 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/frame1.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/frame2.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/frame3.dcm --called-aet M6PIXELS --aet M6WORKSHOP --raw --timeout 5 --format json --layout 'STANDARD\\2,2'",
+    "expectedExit": 0,
+    "timeoutSeconds": 30
+  },
+  {
+    "name": "all-frames",
+    "command": "dicom-print send pacs://127.0.0.1:57192 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/multi.dcm --called-aet M6PIXELS --aet M6WORKSHOP --raw --timeout 5 --format json --all-frames --layout 'STANDARD\\2,2'",
+    "expectedExit": 0,
+    "timeoutSeconds": 30
+  },
+  {
+    "name": "single-frame2",
+    "command": "dicom-print send pacs://127.0.0.1:57192 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/frame2.dcm --called-aet M6PIXELS --aet M6WORKSHOP --raw --timeout 5 --format json",
+    "expectedExit": 0,
+    "timeoutSeconds": 30
+  },
+  {
+    "name": "selected-frame2",
+    "command": "dicom-print send pacs://127.0.0.1:57192 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/fixtures/multi.dcm --called-aet M6PIXELS --aet M6WORKSHOP --raw --timeout 5 --format json --frame 2",
+    "expectedExit": 0,
+    "timeoutSeconds": 30
+  }
+]

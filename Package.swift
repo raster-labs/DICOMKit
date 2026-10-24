@@ -350,6 +350,11 @@ let package = Package(
                 "DICOMNetwork"
             ]
         ),
+        .target(
+            name: "DICOMPrintCommandSupport",
+            dependencies: ["DICOMPrintKit", "DICOMNetwork", "DICOMKit", "DICOMCore",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")]
+        ),
         .testTarget(
             name: "DICOMCoreTests",
             dependencies: [
@@ -538,6 +543,7 @@ let package = Package(
         .testTarget(
             name: "dicom-printTests",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "dicom-print", "DICOMNetwork", "DICOMPrintKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
@@ -546,6 +552,7 @@ let package = Package(
         .testTarget(
             name: "dicom-printscpTests",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "dicom-printscp", "DICOMNetwork", "DICOMPrintKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
@@ -1186,6 +1193,7 @@ let package = Package(
         .executableTarget(
             name: "dicom-print",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMNetwork",
@@ -1200,6 +1208,7 @@ let package = Package(
         .executableTarget(
             name: "dicom-printscp",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMNetwork",
@@ -1412,6 +1421,7 @@ let package = Package(
         .target(
             name: "DICOMStudio",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
@@ -1433,6 +1443,7 @@ let package = Package(
             // DICOMPrintKit: the viewer-presentation geometry and film-pixel
             // transform the print path bakes into marks.
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork", "dicom-mwl", "dicom-wado",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],

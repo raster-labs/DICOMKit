@@ -1,0 +1,40 @@
+{
+  "id": "DC-R03",
+  "title": "DCMTK SCU to DICOMKit: implicit VR",
+  "status": "passed",
+  "elapsed_seconds": 0.4240675420000004,
+  "observations": {
+    "films": [
+      {
+        "file": "film-20261024-201213-001.png",
+        "sha256": "d579c95949cdf85d7d5bfa0ad21e6e21562d2e1edcc0313cf37fadc9f8013fa2"
+      }
+    ],
+    "dimse_messages": 18,
+    "accepted_contexts": [
+      {
+        "1": {
+          "abstract": "1.2.840.10008.5.1.1.9",
+          "offered": [
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2"
+        },
+        "3": {
+          "abstract": "1.2.840.10008.5.1.1.23",
+          "offered": [
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2"
+        }
+      }
+    ],
+    "received_bits": 12,
+    "received_size": [
+      16,
+      16
+    ]
+  }
+}

@@ -172,6 +172,11 @@ private actor DICOMStudioSCPDelegate: StorageDelegate {
 @Observable
 public final class CLIWorkshopViewModel {
     private let service: CLIWorkshopService
+    public var isPrintCommandRunning = false
+    public var printListenerPort: UInt16?
+    public var printCancellationRequested = false
+    @ObservationIgnored var printCommandTask: Task<Void, Never>?
+
 
     /// Callback to open a retrieved file in the Viewer tab.
     /// Set by MainViewModel to wire navigation.
@@ -428,6 +433,7 @@ public final class CLIWorkshopViewModel {
     /// category's first tool — so the parameter form, command preview, and
     /// console all update to the new selection (rather than showing stale state).
     public func selectCategory(_ tab: CLIWorkshopTab) {
+        guard !isPrintCommandRunning else { return }
         activeTab = tab
         if tab == .listener {
             selectTool(id: nil)
@@ -438,6 +444,7 @@ public final class CLIWorkshopViewModel {
 
     /// Selects a tool by ID.
     public func selectTool(id: String?) {
+        guard !isPrintCommandRunning else { return }
         selectedToolID = id
         service.setSelectedToolID(id)
         // Reset parameters when tool changes
@@ -812,6 +819,13 @@ public final class CLIWorkshopViewModel {
 
     // MARK: - 16.3 Parameter Configuration
 
+    /// Commits a fully validated import to both the form and its backing state.
+    func replaceParameterValues(_ values: [CLIParameterValue]) {
+        parameterValues = values
+        service.setParameterValues(values)
+        rebuildCommandPreview()
+    }
+
     /// Sets parameter definitions for the selected tool.
     public func setParameterDefinitions(_ defs: [CLIParameterDefinition]) {
         parameterDefinitions = defs
@@ -1056,6 +1070,7 @@ public final class CLIWorkshopViewModel {
     /// Explains an operation that cannot be executed by Workshop. The CLI may
     /// still support the displayed command; this is an app capability boundary.
     public var executionUnavailableReason: String? {
+        if isPrintToolSelected { return printCommandValidationError }
         if selectedToolID == "dicom-script" {
             let operation = paramValue("operation")
             if !["run", "validate", "template"].contains(operation) {
@@ -1073,6 +1088,7 @@ public final class CLIWorkshopViewModel {
 
     /// Labels the supported scripting actions without implying live execution.
     public var runActionTitle: String {
+        if selectedToolID == "dicom-printscp", paramValue("subcommand") == "serve" { return "Start" }
         guard selectedToolID == "dicom-script" else { return "Run" }
         switch paramValue("operation") {
         case "validate": return "Validate"
@@ -1084,7 +1100,8 @@ public final class CLIWorkshopViewModel {
 
     /// Checks required fields and the selected in-app execution capability.
     public var isCommandValid: Bool {
-        executionUnavailableReason == nil && CommandBuilderHelpers.validateRequired(
+        if isPrintToolSelected { return printCommandValidationError == nil }
+        return         executionUnavailableReason == nil && CommandBuilderHelpers.validateRequired(
             parameterValues: parameterValues,
             parameterDefinitions: parameterDefinitions
         )
@@ -5262,6 +5279,7 @@ private func executeDicomStudy() async {
     public func executeCommand() async {
         guard let tool = selectedTool() else { return }
         rebuildCommandPreview()
+        if isPrintToolSelected { await executePrintCommand(); return }
         // Refuse unsupported states before entering Running, writing directories,
         // or creating an execution-history entry (also covers programmatic calls).
         if let reason = executionUnavailableReason {

@@ -19,6 +19,10 @@ public struct CLIWorkshopView: View {
     @State private var showFileImporter = false
     @State private var fileImporterParamID: String = ""
     @State private var fileImporterIsDirectory = false
+    @State private var showPrintImport = false
+    @State private var printImportText = ""
+    @State private var printImportError: String?
+
 
     /// Tracks which copy button most recently fired, so we can show a transient
     /// "Copied!" confirmation in place of its copy icon. The token guards against
@@ -74,6 +78,13 @@ public struct CLIWorkshopView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .onDisappear { viewModel.stopPrintCommand() }
+        #if canImport(AppKit)
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            viewModel.stopPrintCommand()
+        }
+        #endif
+        .sheet(isPresented: $showPrintImport) { printImportSheet }
         .overlay {
             if viewModel.isLoading {
                 ProgressView("Loading…")
@@ -81,6 +92,27 @@ public struct CLIWorkshopView: View {
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
             }
         }
+    }
+
+    private var printImportSheet: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Import Print Command").font(.headline)
+            Text("Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.")
+                .font(.callout)
+            TextEditor(text: $printImportText).font(.body.monospaced())
+                .frame(minHeight: 120).accessibilityLabel("Print command to import")
+            if let error = printImportError { Text(error).foregroundStyle(.red).font(.callout) }
+            HStack {
+                Button("Cancel") { showPrintImport = false }
+                Spacer()
+                Button("Import") {
+                    do {
+                        try viewModel.importPrintCommand(printImportText)
+                        showPrintImport = false
+                    } catch { printImportError = String(describing: error) }
+                }.disabled(printImportText.isEmpty)
+            }
+        }.padding().frame(width: 600)
     }
 
     // MARK: - Tab Picker
@@ -232,7 +264,16 @@ public struct CLIWorkshopView: View {
                             Divider()
 
                             VStack(alignment: .leading, spacing: 8) {
-                                if viewModel.isNetworkToolSelected {
+                                if viewModel.isPrintToolSelected {
+                                    Text(viewModel.printSettingsLocation)
+                                        .font(.callout).textSelection(.enabled)
+                                    Button("Import Command") {
+                                        printImportText = ""
+                                        printImportError = nil
+                                        showPrintImport = true
+                                    }.disabled(viewModel.isPrintCommandRunning)
+                                }
+                                if viewModel.isNetworkToolSelected && !viewModel.isPrintToolSelected {
                                     if viewModel.isDICOMwebToolSelected {
                                         dicomwebServerSelectionSection
                                     } else {
@@ -244,7 +285,7 @@ public struct CLIWorkshopView: View {
                                 Text("Parameters")
                                     .font(.title3.bold())
 
-                                parameterGrid
+                                parameterGrid.disabled(viewModel.isPrintCommandRunning)
                             }
                             .padding()
                         }
@@ -285,6 +326,15 @@ public struct CLIWorkshopView: View {
                         .help("Command is valid")
                 }
                 Spacer()
+                if viewModel.isPrintCommandRunning {
+                    if let port = viewModel.printListenerPort {
+                        Text("Listening on port \(port)").font(.callout)
+                    }
+                    Button(viewModel.printCancellationRequested ? "Stopping…" : "Stop") {
+                        viewModel.stopPrintCommand()
+                    }.disabled(viewModel.printCancellationRequested)
+                    .accessibilityLabel("Stop print command")
+                }
 
                 Button {
                     Task { await viewModel.executeCommand() }
@@ -633,7 +683,12 @@ public struct CLIWorkshopView: View {
     /// The input control for a non-boolean parameter.
     @ViewBuilder
     private func controlForParameter(_ param: CLIParameterDefinition) -> some View {
-        if (param.parameterType == .enumPicker || param.parameterType == .flagPicker || (param.parameterType == .subcommand && !param.allowedValues.isEmpty)) && !param.allowedValues.isEmpty {
+        if viewModel.isPrintToolSelected && param.isRepeatable {
+            CLIWorkshopPrintListField(rawValue: parameterBinding(for: param.id), label: param.displayName,
+                isFileList: param.id == "paths" || param.id == "scp.SimulateCommand.paths") { urls in
+                    viewModel.setPrintFileURLs(urls, forParameterID: param.id)
+                }
+        } else if (param.parameterType == .enumPicker || param.parameterType == .flagPicker || (param.parameterType == .subcommand && !param.allowedValues.isEmpty)) && !param.allowedValues.isEmpty {
             enumPickerField(param: param)
         } else if param.parameterType == .filePath || param.parameterType == .outputPath {
             filePathField(param: param)

@@ -1,0 +1,8 @@
+{
+  "id": "PY-R01",
+  "title": "pynetdicom SCU to DICOMKit: color, mixed-VR Job Done ACK and retained Job",
+  "status": "failed",
+  "error": "'Dataset' object has no attribute 'ReferencedPrintJobSequence'",
+  "elapsed_seconds": 0.3068279999999999,
+  "observations": {}
+}

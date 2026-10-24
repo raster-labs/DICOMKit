@@ -1,0 +1,71 @@
+{
+  "utc": "2026-10-24T14:53:06.682580+00:00",
+  "scope": "M6 shared CLI/Workshop integration read-only review, plus owned test/campaign work",
+  "reviewedSHA256": {
+    "Sources/DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift": "bffcbc387f46015c670debe3fa43fd463e674408b58fe4793781778cdd2780d2",
+    "Sources/DICOMStudio/Components/CLIWorkshopPrintCommandCodec.swift": "696247721380f4643d4f5fe2a22b014afa55904d09b93491760102180af9954c",
+    "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift": "fbedf6d7721473673f3fa2c3837a1eebc8c6cbcd2a272848e52a9adfc997dd23",
+    "Sources/DICOMPrintCommandSupport/PrintCommandContext.swift": "f789345c2906bbc637d9e8faa6e46a8844754ccab758a4439018a2b163df49c7"
+  },
+  "findings": [
+    {
+      "id": "M6-R1",
+      "issue": "Imported form was not synchronized to service, loadFromService restored stale parameters",
+      "state": "Resolved and qualified",
+      "evidence": [
+        "work/m6/qualified-v2/DICOMStudioTests.log",
+        "work/m6/workshop-campaign-v4/results.json"
+      ],
+      "assertion": "Import replaces VM and service state; focused test verifies reload persistence; all18 baseline request imports executed."
+    },
+    {
+      "id": "M6-R2",
+      "issue": "Print console cleared only local state, backing service concatenated preceding runs",
+      "state": "Resolved and qualified",
+      "evidence": [
+        "work/m6/qualified-v2/DICOMStudioTests.log",
+        "work/m6/workshop-campaign-v4/results.json"
+      ],
+      "assertion": "Focused preflight and listener restart tests verify old console reset and service reload equality."
+    },
+    {
+      "id": "M6-R3",
+      "issue": "Runtime ValidationError exited64 in actual CLI, but Workshop generic catch recorded1",
+      "state": "Resolved and qualified",
+      "evidence": [
+        "work/m6/qualified-v2/DICOMStudioTests.log",
+        "work/m6/workshop-campaign-v4/results.json"
+      ],
+      "assertion": "Actual CLI and VM duplicate/missing registry operations both exit64, verified in v4 corpus."
+    }
+  ],
+  "no_new_blocker": "Codec reviewed independently by workshop agent; startup waiter reviewed by this agent. No other definite M6 source blocker identified.",
+  "campaign": {
+    "requests": 25,
+    "routes": 10,
+    "corpus": "work/m6/workshop-requests.json",
+    "runner": "work/m6/run_workshop_campaign.py",
+    "isolation": "Separate CLI/Workshop settings and output roots; local synthetic peers only; no physical paper output",
+    "v1": "Root execution failed resource cap256 while default film raster504x612; corrected all campaign caps1024",
+    "v2": "Retained failed evidence that exposed runtime64/1 mismatch; repaired and qualified by v4",
+    "claim_limits": "Actual existing-binary CLI and ViewModel execution, no native GUI or hardware claim. PNG/TIFF decoded pixel equality; PDF complete-container production only. Extension uses independently DCMTK-generated RLE/JPEG inputs with native controls but receivers remain same-library.",
+    "baselineRequests": 18,
+    "imageExtensionRequests": 7,
+    "baselinePassed": true,
+    "baselineEvidence": "work/m6/workshop-campaign-v4/results.json",
+    "baselineArtifacts": "work/m6/workshop-campaign-v4/artifacts.json",
+    "extensionPassed": true,
+    "extensionEvidence": "work/m6/workshop-image-extension/results.json",
+    "extensionRunner": "work/m6/run_workshop_image_extension.py",
+    "v3": "All18 CLI/VM comparisons passed; final artifact expectation incorrectly assumed PNG+TIFF together. Existing single-image-format precedence means TIFF+PDF; corrected oracle and passedv4.",
+    "imageControls": [
+      "RLE andJPEG lossless decoded rendering equalsnative",
+      "3files equals3-frame all-frames",
+      "frame2 equalsindependently extractedsingle anddiffersframe1",
+      "CLI/VMJSON+pixels equal",
+      "receiver observedfilledcounts1,1,1,3,3,1,1 eachside"
+    ]
+  },
+  "outside_checkout_M7_patch": "work/m7/studio-test-repairs.diff:5testfiles prepared only, not applied; source hashes recorded",
+  "nativeGUI": "Blocked by locked macOS session; AC03 remains partially verified, not passed."
+}

@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 904, in main
+    function(case);record['status']='passed'
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 827, in <lambda>
+    ('PY-F03','DICOMKit SCU to pynetdicom: N-SET failure and cleanup',lambda c:py_forward(c,'set-failure')),
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 699, in py_forward
+    messages,associations=decode_capture(proxy.directory); assert_correlations(messages); assert_release(associations)
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 312, in assert_release
+    require(5 in a['pdu_types']['c2s'] and 6 in a['pdu_types']['s2c'],'normal release missing')
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 51, in require
+    raise AssertionError(message)
+AssertionError: normal release missing

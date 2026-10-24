@@ -1,7 +1,7 @@
 import XCTest
 import DICOMNetwork
 import DICOMPrintKit
-@testable import dicom_printscp
+@testable import DICOMPrintCommandSupport
 
 /// P-PRINT-JSON: `dicom-printscp status --format json` keys each attribute the emulator
 /// would answer an N-GET with by its PS3.6 2026a Table 6-1 keyword, beside the older
@@ -21,7 +21,7 @@ final class PrinterStatusJSONTests: XCTestCase {
     }
 
     func testHelpSaysTheOldKeysAreDeprecated() {
-        let help = StatusCommand.helpMessage().split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        let help = SCPStatusCommand.helpMessage().split(whereSeparator: \.isWhitespace).joined(separator: " ")
         XCTAssertTrue(help.contains("PS3.6 keyword (PrinterStatus,"))
         XCTAssertTrue(help.contains("are deprecated"))
     }

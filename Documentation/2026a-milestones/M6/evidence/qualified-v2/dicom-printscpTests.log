@@ -1,0 +1,68 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 715]
+[Planning deferred tasks]
+[2 / 60] J2KCodecNEON
+[4 / 13] dicom-printscp
+[9 / 19] dicom-printscp
+[11 / 16] dicom-printscpTests-product
+[16 / 21] dicom-printscpTests-product
+[18 / 21] dicom-printscpTests-product
+[20 / 21] dicom-printscpTests-product
+[22 / 22] dicom-printscpTests-product
+Build complete! (2.48 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:10:45.222.
+Test Suite 'dicom-printscpTests.xctest' started at 2026-10-24 20:10:45.227.
+Test Suite 'EmulatorOptionTermsTests' started at 2026-10-24 20:10:45.227.
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testServeHelpNamesAttributesAndSOPClasses]' started.
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testServeHelpNamesAttributesAndSOPClasses]' passed (0.017 seconds).
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testSimulateDensityTakesHundredthsOfOD]' started.
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testSimulateDensityTakesHundredthsOfOD]' passed (0.018 seconds).
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testSimulateLayoutTakesImageDisplayFormats]' started.
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testSimulateLayoutTakesImageDisplayFormats]' passed (0.064 seconds).
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testSimulateTakesStandardTermsAndRejectsSixteenBitsStored]' started.
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testSimulateTakesStandardTermsAndRejectsSixteenBitsStored]' passed (0.023 seconds).
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testStandardTermsAreAcceptedAsAliases]' started.
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testStandardTermsAreAcceptedAsAliases]' passed (0.000 seconds).
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testTermListsCoverTheDefinedTerms]' started.
+Test Case '-[dicom_printscpTests.EmulatorOptionTermsTests testTermListsCoverTheDefinedTerms]' passed (0.000 seconds).
+Test Suite 'EmulatorOptionTermsTests' passed at 2026-10-24 20:10:45.349.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.122 (0.122) seconds
+Test Suite 'M6SCPCommandTests' started at 2026-10-24 20:10:45.349.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testCancellationStopsListenerAndAllowsImmediateRestart]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testCancellationStopsListenerAndAllowsImmediateRestart]' passed (0.166 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testConfigPrecedenceAndPaperGateAreSharedWithoutBinding]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testConfigPrecedenceAndPaperGateAreSharedWithoutBinding]' passed (0.081 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testNumericResourceRefusalsHappenInParserBeforeEffects]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testNumericResourceRefusalsHappenInParserBeforeEffects]' passed (0.690 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testOccupiedPortDoesNotStopExistingListener]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testOccupiedPortDoesNotStopExistingListener]' passed (0.102 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testOptionalInvertedFlagsPreserveNilAndExplicitFalse]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testOptionalInvertedFlagsPreserveNilAndExplicitFalse]' passed (0.042 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testQueuesJSONMatchesObjectContractAndDoesNotCreateSettings]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testQueuesJSONMatchesObjectContractAndDoesNotCreateSettings]' passed (0.099 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testQuietServeStillReportsListenerStateAndStopsAtDuration]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testQuietServeStillReportsListenerStateAndStopsAtDuration]' passed (0.106 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testRepeatedArgumentsKeepValuesAndOrder]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testRepeatedArgumentsKeepValuesAndOrder]' passed (0.011 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testRepeatedOutputLastRasterFormatAndNonePreserveContract]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testRepeatedOutputLastRasterFormatAndNonePreserveContract]' passed (0.006 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testRootDefaultsAndAllCommandsUseSharedParser]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testRootDefaultsAndAllCommandsUseSharedParser]' passed (0.278 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testSaveConfigExitsBeforeSimulateInputOrOutputEffects]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testSaveConfigExitsBeforeSimulateInputOrOutputEffects]' passed (0.109 seconds).
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testSimulateProducesFilesAndNativeOpenCallbacksAfterWrites]' started.
+Test Case '-[dicom_printscpTests.M6SCPCommandTests testSimulateProducesFilesAndNativeOpenCallbacksAfterWrites]' passed (0.036 seconds).
+Test Suite 'M6SCPCommandTests' passed at 2026-10-24 20:10:47.073.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 1.723 (1.724) seconds
+Test Suite 'PrinterStatusJSONTests' started at 2026-10-24 20:10:47.073.
+Test Case '-[dicom_printscpTests.PrinterStatusJSONTests testHelpSaysTheOldKeysAreDeprecated]' started.
+Test Case '-[dicom_printscpTests.PrinterStatusJSONTests testHelpSaysTheOldKeysAreDeprecated]' passed (0.015 seconds).
+Test Case '-[dicom_printscpTests.PrinterStatusJSONTests testStatusJSONHasKeywordAndDeprecatedKeys]' started.
+Test Case '-[dicom_printscpTests.PrinterStatusJSONTests testStatusJSONHasKeywordAndDeprecatedKeys]' passed (0.000 seconds).
+Test Suite 'PrinterStatusJSONTests' passed at 2026-10-24 20:10:47.088.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.015 (0.015) seconds
+Test Suite 'dicom-printscpTests.xctest' passed at 2026-10-24 20:10:47.088.
+	 Executed 20 tests, with 0 failures (0 unexpected) in 1.860 (1.861) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:10:47.088.
+	 Executed 20 tests, with 0 failures (0 unexpected) in 1.860 (1.866) seconds

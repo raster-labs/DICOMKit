@@ -36,7 +36,7 @@ Only the two print coverage items move from optional enhancement to planned impl
 | M6 | 2 | Print SCU and Print SCP in CLI Workshop | Only enhancement milestone |
 | M7 | 2 | Final source and packaged app qualification | Final acceptance |
 
-Start with the M0 baseline package. M1, M2 and M3 have parallelizable dependencies, with pagination first in M3. Execution follows the user’s one-milestone-at-a-time authorization; this dependency graph does not authorize later work. Do not delay P1 work for the low-priority audit alias repair. M4 and M5 follow the primitives they use. M6 is the only enhancement milestone. M7 closes qualification after integration.
+Start with the M0 baseline package. M1, M2 and M3 have parallelizable dependencies, with pagination first in M3. The user has now authorized completion of all remaining milestones on the existing branch, with milestone checkpoints and no merge to main. Do not delay P1 work for the low-priority audit alias repair. M4 and M5 follow the primitives they use. M6 is the only enhancement milestone. M7 closes qualification after integration.
 
 ```mermaid
 flowchart TD
@@ -437,9 +437,9 @@ Simulator output, independent DICOM print interoperability, operating-system spo
 
 ## Detailed print implementation contract
 
-M6.0 establishes shared contracts and configuration decisions. M6.1 and M6.2 can then proceed in parallel. M6.3 requires both adapters and feeds the final M7 qualification record. All gates below are proposed and unexecuted.
+M6.0 establishes shared contracts and configuration decisions. M6.1 and M6.2 can then proceed in parallel. M6.3 requires both adapters and feeds the final M7 qualification record. These gates define the required acceptance scope; current executed and pending results are recorded in M6/REPORT.md.
 
-### Current print foundation
+### Frozen pre-M6 print foundation
 
 Add `dicom-print` and `dicom-printscp` to DICOMStudio CLI Workshop with their **existing** command contracts. Complete Workshop parity means six print subcommands and four printscp subcommands, including their default-command behavior. It does not mean new Print Management SOP Classes, layouts, rendering capabilities, transports, devices, presets, or a replacement for the separate Print Center and Print SCP screens. The other nine missing CLI tools remain out of scope.
 

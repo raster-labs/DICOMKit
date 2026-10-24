@@ -5,6 +5,21 @@ All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
 commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repaired query safety and filters; M4 repaired service reliability.
 
+## M6 implementation checkpoint — native verification pending
+
+Both print tools now use the same command parser and execution layer in the CLI
+and Workshop. All six `dicom-print` and four `dicom-printscp` routes execute.
+The corrected source passed **932 focused tests** and **38 audit regressions**;
+two optional tests are explicitly skipped. Independent print checks passed 24
+cases; one DCMTK optional-capability refusal could not be demonstrated with that
+peer and is recorded separately, with the refusal tested using pynetdicom.
+
+The actual Workshop execution harness passed 25 actions and equivalent CLI
+comparisons, including independent RLE/JPEG inputs and multi-frame selection. The fresh packaged app builds and is signed with the project's
+sandbox entitlements, but the Mac is locked. Native GUI verification remains
+blocked; ViewModel tests do not substitute for it. M6 remains in progress.
+M7 preparation has begun; final qualification is not yet accepted.
+
 ## Completed M5 items
 
 WS-FIX-04/06/07/08 and TB-FIX-01/02/03 are complete: 22 criteria passed and two
@@ -15,6 +30,9 @@ Workshop ViewModel actions. Ten packaged-app cases verified script refusal and
 supported actions, explicit Auto/Review modes, the single PHI control, and exact
 SR temporal display/copy. The SR source bytes stayed unchanged. Counts describe
 different overlapping layers, not one additive test total.
+
+All six CI workflows passed on M5 commit `c91c79d9655929eef97ccffd601a9ef4297241d6`;
+see [remote verification](M5/remote-verification.json).
 
 See [M5 report](M5/REPORT.md), [acceptance](M5/acceptance.json),
 [verification](M5/verification.json) and [reproduction](M5/REPRODUCE.md).

@@ -1,0 +1,17 @@
+{
+  "gray8": {
+    "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified-lut-diagnostic/fixtures/gray8.dcm",
+    "sha256": "a42b40df5448cf6e954ec179ebce9eb2821e0987015dd8ae86ae2b7868af0273",
+    "pixel_sha256": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880"
+  },
+  "gray12": {
+    "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified-lut-diagnostic/fixtures/gray12.dcm",
+    "sha256": "353629fb37895e6f85ae2dfe2081e861e3837cbaac17e91781175e793ca473bf",
+    "pixel_sha256": "00d7eb3be1e53e8a4342eeb32b3b1098eab272ed1ff059124cf92de955a6973d"
+  },
+  "rgb8": {
+    "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified-lut-diagnostic/fixtures/rgb8.dcm",
+    "sha256": "59981e76fcc38f1433c4de579d59178510b417bef4c82fd80b56a8fba66071d6",
+    "pixel_sha256": "aea12e23047f1420174be56c9eb30e773cafa9c9e9ba16493cf5df6edd9d570e"
+  }
+}

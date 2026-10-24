@@ -102,6 +102,13 @@ FILES = {
     'DICOMStudio/Components/CLIToolBuilder.swift': ('G1', 'ST'),
     'DICOMStudio/Components/CLIToolTerminalCompare.swift': ('G1', 'ST'),
     'DICOMStudio/Components/CLIWorkshopHelpers.swift': ('G1', 'ST'),
+    'DICOMStudio/Components/CLIWorkshopPrintCatalog.swift': ('G1', 'ST'),
+    'DICOMStudio/Components/CLIWorkshopPrintSCPCatalog.swift': ('G1', 'ST'),
+    'DICOMStudio/Components/CLIWorkshopPrintCommandCodec.swift': ('G1', 'ST'),
+    'DICOMStudio/Services/CLIWorkshopPrintExecutor.swift': ('G1', 'ST'),
+    'DICOMStudio/Services/CLIWorkshopPrintSCPExecutor.swift': ('G1', 'ST'),
+    'DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift': ('G1', 'ST'),
+    'DICOMStudio/Views/CLIWorkshopPrintControls.swift': ('G1', 'CR'),
     'DICOMStudio/Components/ImportValidation.swift': ('G1', 'ST'),
     'DICOMStudio/Components/IntegratedTerminalHelpers.swift': ('G1', 'ST'),
     'DICOMStudio/Components/ParameterBuilderHelpers.swift': ('G1', 'ST'),
@@ -437,6 +444,7 @@ WORKSHOP_TOOLS = {           # Workshop tool id -> CLI tool directory
     'dicom-query': 'dicom-query', 'dicom-send': 'dicom-send', 'dicom-retrieve': 'dicom-retrieve',
     'dicom-qr': 'dicom-qr', 'dicom-mwl': 'dicom-mwl', 'dicom-mpps': 'dicom-mpps',
     'dicom-qido': 'dicom-wado', 'dicom-wado': 'dicom-wado', 'dicom-stow': 'dicom-wado', 'dicom-ups': 'dicom-wado',
+    'dicom-print': 'dicom-print', 'dicom-printscp': 'dicom-printscp',
     'dicom-study': 'dicom-study', 'dicom-uid': 'dicom-uid', 'dicom-script': 'dicom-script',
 }
 # dicom-wado is split into four Workshop tools; each sees only its subcommand's options.
@@ -585,6 +593,11 @@ def parse_definition(call):
     """`CLIParameterDefinition(...)` call text -> dict of its literal arguments. A non-literal `allowedValues:`
     is resolved to its values where it can be (`resolve_value_list`), else kept as the expression text;
     `visibility` and `mapping` carry the parsed `visibleWhen` / `visibleWhenAll` and `cliMapping`."""
+    return parse_definition_arguments(split_swift_arguments(call))
+
+
+def split_swift_arguments(call):
+    """Top-level argument expressions, retaining literals and nested calls."""
     body = call[call.index('(') + 1:-1]
     args, depth, cur, i, n = [], 0, '', 0, len(body)
     while i < n:
@@ -612,6 +625,10 @@ def parse_definition(call):
         i += 1
     if cur.strip():
         args.append(cur)
+    return [a.strip() for a in args]
+
+
+def parse_definition_arguments(args):
     d = {}
     for a in args:
         if ':' not in a:
@@ -671,6 +688,75 @@ def workshop_surface():
             for t in ids:
                 out[t].append(d)
             i = k
+    for tool_id, filename in [('dicom-print', 'CLIWorkshopPrintCatalog.swift'),
+                              ('dicom-printscp', 'CLIWorkshopPrintSCPCatalog.swift')]:
+        out[tool_id] = print_catalog_surface(tool_id, filename)
+    return out
+
+
+
+def print_catalog_surface(tool_id, filename):
+    path = os.path.join(SOURCES, 'DICOMStudio', 'Components', filename)
+    src = dw.read(path)
+    start = re.search(r'(?:return\s+)?\[\s*CLIParameterDefinition\(', src)
+    if not start:
+        raise ValueError(f'{filename}: parameter array not found')
+    # Resolve only the local literal string lists used for visibility. Any
+    # unsupported expression is an audit error rather than silently hidden.
+    lists = {}
+    def values(expr):
+        out = []
+        for part in expr.split('+'):
+            part = part.strip()
+            if part in lists:
+                out.extend(lists[part])
+            else:
+                parsed, literal = swift_string_list(part)
+                if not literal:
+                    raise ValueError(f'{filename}: unresolved command list {expr!r}')
+                out.extend(parsed)
+        return out
+    for m in re.finditer(r'let\s+(\w+)\s*=\s*([^\n]+)', src[:start.start()]):
+        if m.group(2).strip().startswith('[') or '+' in m.group(2):
+            lists[m.group(1)] = values(m.group(2))
+    out = []
+    body = src[start.start():]
+    i = 0
+    while True:
+        match = re.search(r'\b(CLIParameterDefinition|field)\(', body[i:])
+        if not match:
+            break
+        j = i + match.start()
+        k = dc.balanced(body, i + match.end() - 1)
+        call = body[j:k]
+        if match.group(1) == 'CLIParameterDefinition':
+            definition = parse_definition(call)
+        else:
+            args = split_swift_arguments(call)
+            if len(args) < 3 or not all(STR.fullmatch(x) for x in args[:3]):
+                raise ValueError(f'{filename}: unsupported field identity {call}')
+            definition = {'id': STR.fullmatch(args[0]).group(1),
+                          'flag': STR.fullmatch(args[1]).group(1),
+                          'displayName': STR.fullmatch(args[2]).group(1),
+                          'parameterType': 'textField', 'defaultValue': ''}
+            offset = 3
+            if args[offset].startswith('.'):
+                definition['parameterType'] = args[offset][1:]
+                offset += 1
+            named = dict(a.split(':', 1) for a in args[offset:])
+            named = {key.strip(): val.strip() for key, val in named.items()}
+            definition.update(parse_definition_arguments([
+                {'value': 'defaultValue', 'allowed': 'allowedValues',
+                 'required': 'isRequired', 'repeated': 'isRepeatable',
+                 'help': 'helpText'}.get(key, key) + ': ' + val
+                for key, val in named.items() if key != 'commands']))
+            definition['visibility'] = [('operation', values(named['commands']))]
+        definition['file'] = filename
+        definition['line'] = src.count('\n', 0, start.start() + j) + 1
+        out.append(definition)
+        i = k
+    if not out:
+        raise ValueError(f'{filename}: no definitions extracted')
     return out
 
 
@@ -766,7 +852,7 @@ def option_commands(tool, files, options):
         name = dc.struct_name_for_var(src, pos)
         o['command'] = None
         if name:
-            m = re.search(r'struct\s+' + re.escape(name) + r'\s*:\s*(?:Async)?ParsableCommand\s*\{', src)
+            m = re.search(r'struct\s+' + re.escape(name) + r'\s*:\s*(?:(?:Async)?ParsableCommand|PrintExecutableCommand)\s*\{', src)
             cmds = dc.extract_commands(src[m.start():]) if m else []
             o['command'] = cmds[0] if cmds else None
     return options
@@ -808,7 +894,7 @@ def check_workshop_parity(rep, ws, tool_id):
                      by_name.get(token))
             if o is None:
                 wrong.append(f'{tool_id}: {p.get("id")} cliMapping "{value}" emits {token} '
-                             f'(CLIWorkshopHelpers.swift:{p["line"]}), not a {tool} option')
+                             f'({p.get("file", "CLIWorkshopHelpers.swift")}:{p["line"]}), not a {tool} option')
             else:
                 offered.add(o['names'][-1])
                 matched += 1
@@ -822,7 +908,7 @@ def check_workshop_parity(rep, ws, tool_id):
                     else:
                         matched += 1
             continue
-        key = f'{tool_id}: {flag} (CLIWorkshopHelpers.swift:{p["line"]})'
+        key = f'{tool_id}: {flag} ({p.get("file", "CLIWorkshopHelpers.swift")}:{p["line"]})'
         flag = POSITIONAL.get(tool, {}).get(flag, flag)
         if flag not in by_name:
             if flag in EXEMPT:

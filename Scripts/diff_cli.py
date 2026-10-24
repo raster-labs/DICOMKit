@@ -246,19 +246,25 @@ def extract_options(src, fname):
 def struct_name_for_var(src, pos):
     """The ParsableCommand (sub)command that encloses position `pos`."""
     best = None
-    for m in re.finditer(r'struct\s+(\w+)\s*:\s*(?:Async)?ParsableCommand', src):
+    for m in re.finditer(r'struct\s+(\w+)\s*:\s*(?:(?:Async)?ParsableCommand|PrintExecutableCommand)', src):
         if m.start() < pos:
             best = m.group(1)
     return best
 
 
 def extract_commands(src):
-    """Command names: explicit `commandName:` literals, else the kebab-cased ParsableCommand struct name
-    (ArgumentParser's default)."""
+    """Literal command names from complete command bodies, excluding forwarding wrappers."""
     out = []
-    for m in re.finditer(r'struct\s+(\w+)\s*:\s*(?:Async)?ParsableCommand\s*\{', src):
-        body = src[m.end():m.end() + 2000]
-        cm = re.search(r'commandName:\s*"([^"]+)"', body.split('\n    }')[0])
+    masked = swift_code(src, mask_strings=True)
+    for m in re.finditer(r'struct\s+(\w+)\s*:\s*(?:(?:Async)?ParsableCommand|PrintExecutableCommand)\s*\{', src):
+        depth, end = 1, m.end()
+        while end < len(masked) and depth:
+            depth += (masked[end] == '{') - (masked[end] == '}')
+            end += 1
+        body = src[m.end():end - 1]
+        if re.search(r'let\s+configuration\s*=\s*\w+\.configuration\b', body):
+            continue  # Declared on the shared root included by tool_files.
+        cm = re.search(r'commandName:\s*"([^"]+)"', body)
         out.append(cm.group(1) if cm else kebab(m.group(1)))
     return out
 
@@ -280,8 +286,20 @@ def extract_outputs(src, fname):
     return out
 
 
-def tool_files(tool):
-    return dw.read_all(os.path.join(SOURCES, tool))
+def tool_files(tool, sources=None):
+    """CLI adapter plus explicitly shared declaration files; never another tool's options."""
+    sources = SOURCES if sources is None else sources
+    files = dw.read_all(os.path.join(sources, tool))
+    prefix = {'dicom-print': 'SCU', 'dicom-printscp': 'SCP'}.get(tool)
+    if prefix:
+        shared = dw.read_all(os.path.join(sources, 'DICOMPrintCommandSupport'))
+        selected = {name: text for name, text in shared.items()
+                    if name.startswith(prefix) or name == 'PrintCommandContext.swift'}
+        if not any(name.startswith(prefix) for name in selected):
+            raise ValueError(f'{tool}: shared {prefix} command declarations are missing')
+        files.update({'../DICOMPrintCommandSupport/' + name: text
+                      for name, text in selected.items()})
+    return files
 
 
 def surface(tool):

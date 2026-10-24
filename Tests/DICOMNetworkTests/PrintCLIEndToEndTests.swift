@@ -14,6 +14,7 @@ import DICOMKit
 @testable import DICOMNetwork
 
 #if os(macOS)
+import Darwin
 
 final class PrintCLIEndToEndTests: XCTestCase {
 
@@ -38,38 +39,71 @@ final class PrintCLIEndToEndTests: XCTestCase {
         let stderr: String
     }
 
+    private enum ProcessRunError: Error {
+        case timeout(arguments: [String], stdout: String, stderr: String)
+    }
+
     @discardableResult
-    private func runCLI(_ arguments: [String], timeout: TimeInterval = 30) throws -> RunResult {
+    private func runCLI(
+        _ arguments: [String], timeout: TimeInterval = 30,
+        executable: URL? = nil
+    ) throws -> RunResult {
+        // Files keep either output stream from blocking the child while the
+        // deadline is being observed. Sequential Pipe reads cannot do that.
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dicom-print-process-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let stdoutURL = directory.appendingPathComponent("stdout.txt")
+        let stderrURL = directory.appendingPathComponent("stderr.txt")
+        FileManager.default.createFile(atPath: stdoutURL.path, contents: nil)
+        FileManager.default.createFile(atPath: stderrURL.path, contents: nil)
+        let stdoutFile = try FileHandle(forWritingTo: stdoutURL)
+        let stderrFile = try FileHandle(forWritingTo: stderrURL)
+        defer { try? stdoutFile.close(); try? stderrFile.close() }
+
         let process = Process()
-        process.executableURL = binaryURL
+        process.executableURL = executable ?? binaryURL
         process.arguments = arguments
-
-        let stdoutPipe = Pipe()
-        let stderrPipe = Pipe()
-        process.standardOutput = stdoutPipe
-        process.standardError = stderrPipe
-
+        process.standardOutput = stdoutFile
+        process.standardError = stderrFile
+        let deadline = ProcessInfo.processInfo.systemUptime + timeout
         try process.run()
-
-        // Read pipes concurrently to avoid deadlock on full buffers.
-        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-
-        let deadline = Date().addingTimeInterval(timeout)
-        while process.isRunning && Date() < deadline {
-            Thread.sleep(forTimeInterval: 0.05)
+        while process.isRunning && ProcessInfo.processInfo.systemUptime < deadline {
+            Thread.sleep(forTimeInterval: 0.01)
         }
-        if process.isRunning {
+        let timedOut = process.isRunning
+        if timedOut {
             process.terminate()
-            XCTFail("dicom-print did not exit within \(timeout)s: \(arguments)")
+            let grace = ProcessInfo.processInfo.systemUptime + 1
+            while process.isRunning && ProcessInfo.processInfo.systemUptime < grace {
+                Thread.sleep(forTimeInterval: 0.01)
+            }
+            if process.isRunning { _ = Darwin.kill(process.processIdentifier, SIGKILL) }
+            let killDeadline = ProcessInfo.processInfo.systemUptime + 1
+            while process.isRunning && ProcessInfo.processInfo.systemUptime < killDeadline {
+                Thread.sleep(forTimeInterval: 0.01)
+            }
         }
-        process.waitUntilExit()
+        // Never waitUntilExit unconditionally: the timeout itself must remain bounded.
+        try stdoutFile.synchronize()
+        try stderrFile.synchronize()
+        let stdout = String(data: try Data(contentsOf: stdoutURL), encoding: .utf8) ?? ""
+        let stderr = String(data: try Data(contentsOf: stderrURL), encoding: .utf8) ?? ""
+        if timedOut { throw ProcessRunError.timeout(arguments: arguments, stdout: stdout, stderr: stderr) }
+        return RunResult(exitCode: process.terminationStatus, stdout: stdout, stderr: stderr)
+    }
 
-        return RunResult(
-            exitCode: process.terminationStatus,
-            stdout: String(data: stdoutData, encoding: .utf8) ?? "",
-            stderr: String(data: stderrData, encoding: .utf8) ?? ""
-        )
+    func testProcessDeadlineThrowsInsteadOfWaitingForOutputEOF() throws {
+        let started = ProcessInfo.processInfo.systemUptime
+        XCTAssertThrowsError(try runCLI(
+            ["5"], timeout: 0.1, executable: URL(fileURLWithPath: "/bin/sleep")
+        )) { error in
+            guard case ProcessRunError.timeout = error else {
+                return XCTFail("Expected explicit timeout, got \(error)")
+            }
+        }
+        XCTAssertLessThan(ProcessInfo.processInfo.systemUptime - started, 3)
     }
 
     /// Writes a minimal but valid Explicit VR LE DICOM file (2×2 8-bit
@@ -78,11 +112,11 @@ final class PrintCLIEndToEndTests: XCTestCase {
         var meta = DataSet()
         meta.setString("1.2.840.10008.1.2.1", for: Tag(group: 0x0002, element: 0x0010), vr: .UI) // Transfer Syntax
         meta.setString("1.2.840.10008.5.1.4.1.1.7", for: Tag(group: 0x0002, element: 0x0002), vr: .UI) // SC Storage
-        meta.setString("1.2.826.0.1.3680043.9.e2e.1", for: Tag(group: 0x0002, element: 0x0003), vr: .UI)
+        meta.setString("1.2.826.0.1.3680043.9.9002.1", for: Tag(group: 0x0002, element: 0x0003), vr: .UI)
 
         var dataSet = DataSet()
         dataSet.setString("1.2.840.10008.5.1.4.1.1.7", for: Tag(group: 0x0008, element: 0x0016), vr: .UI)
-        dataSet.setString("1.2.826.0.1.3680043.9.e2e.1", for: Tag(group: 0x0008, element: 0x0018), vr: .UI)
+        dataSet.setString("1.2.826.0.1.3680043.9.9002.1", for: Tag(group: 0x0008, element: 0x0018), vr: .UI)
         dataSet.setUInt16(2, for: .rows)
         dataSet.setUInt16(2, for: .columns)
         dataSet.setUInt16(8, for: .bitsAllocated)
@@ -166,7 +200,7 @@ final class PrintCLIEndToEndTests: XCTestCase {
             return XCTFail("stdout is not a JSON object: \(result.stdout)")
         }
         XCTAssertEqual(object["success"] as? Bool, true)
-        XCTAssertEqual(object["printJobUID"] as? String, "1.2.826.0.1.3680043.9.mock.job.1")
+        XCTAssertEqual(object["printJobUID"] as? String, "1.2.826.0.1.3680043.9.9001.1.1")
         XCTAssertNotNil(object["filmSessionUID"])
     }
 

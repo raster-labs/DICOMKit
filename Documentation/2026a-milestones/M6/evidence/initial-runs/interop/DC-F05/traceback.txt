@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 904, in main
+    function(case);record['status']='passed'
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 816, in <lambda>
+    ('DC-F05','DICOMKit SCU to DCMTK: IDENTITY Presentation LUT',lambda c:dc_forward(c,shape='identity')),
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 623, in dc_forward
+    require(operation(messages,0x150,LUT),'LUT cleanup missing')
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 51, in require
+    raise AssertionError(message)
+AssertionError: LUT cleanup missing

@@ -1,0 +1,45 @@
+name: Print Workshop
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Sources/DICOMPrintCommandSupport/**'
+      - 'Sources/DICOMPrintKit/**'
+      - 'Sources/DICOMNetwork/**'
+      - 'Sources/DICOMStudio/**'
+      - 'Sources/dicom-print/**'
+      - 'Sources/dicom-printscp/**'
+      - 'Tests/**'
+      - 'Scripts/verify_m6*'
+      - 'Scripts/*audit_m*.py'
+      - 'Scripts/cli_contracts.py'
+      - 'Scripts/diff_cli.py'
+      - 'Scripts/diff_studio.py'
+      - 'Package.*'
+      - '.github/workflows/print-workshop.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  print:
+    name: M6 print CLI and Workshop contracts
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Select toolchain
+        run: bash .github/scripts/select-swift-toolchain.sh 27.0
+      - name: Verify print contracts
+        run: bash Scripts/verify_m6.sh m6-verification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: print-workshop-${{ github.sha }}
+          path: m6-verification/

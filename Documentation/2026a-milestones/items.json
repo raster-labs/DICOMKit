@@ -229,11 +229,11 @@
       "acceptance_criteria": [
         {
           "id": "A-03-AC01",
-          "assertion": "Decode the recorded ISO_IR 100 PN bytes as M\u00fcller^J\u00f6rg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
+          "assertion": "Decode the recorded ISO_IR 100 PN bytes as Müller^Jörg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
-          "verification_detail": "Actual app metadata view reads M\u00fcller^J\u00f6rg from ISO_IR 100; Core, discovery and compatible-copy controls pass."
+          "verification_detail": "Actual app metadata view reads Müller^Jörg from ISO_IR 100; Core, discovery and compatible-copy controls pass."
         },
         {
           "id": "A-03-AC02",
@@ -241,7 +241,7 @@
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
-          "verification_detail": "CLI/app Unicode edits emit ISO_IR 192 and exact M\u00fcller^\u60a3\u8005 UTF-8 bytes."
+          "verification_detail": "CLI/app Unicode edits emit ISO_IR 192 and exact Müller^患者 UTF-8 bytes."
         },
         {
           "id": "A-03-AC03",
@@ -263,7 +263,7 @@
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
       "baseline_observations": [
         "Actual output contains UTF-8 text but has no (0008,0005) declaration.",
-        "PatientName displayed as raw hexadecimal rather than M\u00fcller^J\u00f6rg."
+        "PatientName displayed as raw hexadecimal rather than Müller^Jörg."
       ],
       "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
       "verification": {
@@ -964,7 +964,7 @@
       "acceptance_criteria": [
         {
           "id": "NET-02-A-AC01",
-          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient\u2019s series.",
+          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient’s series.",
           "applicability": "Required when the stated condition applies",
           "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
           "result": "Passed",
@@ -2542,7 +2542,7 @@
         },
         {
           "id": "NET-06-B-AC02",
-          "assertion": "Test valid truncated precision allowed by the attribute\u2019s usage, and separately reject invalid components and separated ISO-only values.",
+          "assertion": "Test valid truncated precision allowed by the attribute’s usage, and separately reject invalid components and separated ISO-only values.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
@@ -3256,7 +3256,7 @@
           "id": "WS-FIX-04-AC01",
           "assertion": "If implemented: one-command and multi-command synthetic scripts match CLI outputs, file effects and exit propagation for supported tools.",
           "applicability": "Not applicable to selected correction",
-          "reason": "Live dispatcher enhancement is excluded; use AC02\u2013AC04.",
+          "reason": "Live dispatcher enhancement is excluded; use AC02–AC04.",
           "result": "Not applicable",
           "evidence": [
             "M5/acceptance.json",
@@ -4619,29 +4619,29 @@
           "id": "WS-COV-07-AC01",
           "assertion": "A capability decision is recorded: implemented/qualified or explicitly excluded.",
           "applicability": "Replaced by stricter scoped gate",
-          "reason": "Both tools must be implemented and qualified in Workshop; exclusion does not close this milestone.",
-          "result": "Not run"
+          "reason": "Implemented using shared print command support; physical output remains separately unqualified.",
+          "result": "Passed"
         },
         {
           "id": "WS-COV-07-AC02",
           "assertion": "If implemented, every exposed subcommand/flag has a real execution route and no unsupported operation is presented as successful.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "Both actual CLIs, all ten Workshop execution routes, 932 focused passes and 38 audit regressions; independent print campaign 24 passed, with one separate DCMTK peer limitation.",
+          "result": "Passed"
         },
         {
           "id": "WS-COV-07-AC03",
           "assertion": "Compare visible form values, generated command/argv and actual request/output on synthetic inputs.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "CLI/Workshop ViewModel value/argv/output comparisons passed; visible packaged form verification awaits unlocked desktop.",
+          "result": "Partially verified"
         },
         {
           "id": "WS-COV-07-AC04",
           "assertion": "Qualify an actual packaged-app action before claiming GUI runtime parity.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "Fresh sandbox-entitled packaged app built; Mac locked. Native action not executed and no GUI runtime parity claimed.",
+          "result": "Blocked"
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -4686,29 +4686,29 @@
           "id": "WS-COV-08-AC01",
           "assertion": "A capability decision is recorded: implemented/qualified or explicitly excluded.",
           "applicability": "Replaced by stricter scoped gate",
-          "reason": "Both tools must be implemented and qualified in Workshop; exclusion does not close this milestone.",
-          "result": "Not run"
+          "reason": "Implemented using shared print command support; physical output remains separately unqualified.",
+          "result": "Passed"
         },
         {
           "id": "WS-COV-08-AC02",
           "assertion": "If implemented, every exposed subcommand/flag has a real execution route and no unsupported operation is presented as successful.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "Both actual CLIs, all ten Workshop execution routes, 932 focused passes and 38 audit regressions; independent print campaign 24 passed, with one separate DCMTK peer limitation.",
+          "result": "Passed"
         },
         {
           "id": "WS-COV-08-AC03",
           "assertion": "Compare visible form values, generated command/argv and actual request/output on synthetic inputs.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "CLI/Workshop ViewModel value/argv/output comparisons passed; visible packaged form verification awaits unlocked desktop.",
+          "result": "Partially verified"
         },
         {
           "id": "WS-COV-08-AC04",
           "assertion": "Qualify an actual packaged-app action before claiming GUI runtime parity.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "Fresh sandbox-entitled packaged app built; Mac locked. Native action not executed and no GUI runtime parity claimed.",
+          "result": "Blocked"
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",

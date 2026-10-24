@@ -1,0 +1,272 @@
+{"level":"info","message":"Listening on port 57188 as M6PIXELS","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association from M6WORKSHOP (127.0.0.1:57196)","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792853389236140.126831","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792853389236546.980662 — 1×1, 1 image box","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6WORKSHOP",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792853389236546.980662",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792853389236140.126831",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792853389237190.415686",
+  "receivedAt" : "2026-10-24T14:49:49Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/cli/film-001.png","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792853389236140.126831","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association released by M6WORKSHOP","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association from M6WORKSHOP (127.0.0.1:57197)","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792853389264612.318560","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792853389264945.635693 — 1×1, 1 image box","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6WORKSHOP",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792853389264945.635693",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792853389264612.318560",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792853389265521.706705",
+  "receivedAt" : "2026-10-24T14:49:49Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/cli/film-002.png","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792853389264612.318560","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association released by M6WORKSHOP","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association from M6WORKSHOP (127.0.0.1:57199)","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792853389292642.848742","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792853389292975.252225 — 1×1, 1 image box","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6WORKSHOP",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792853389292975.252225",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792853389292642.848742",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792853389293542.688830",
+  "receivedAt" : "2026-10-24T14:49:49Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/cli/film-003.png","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792853389292642.848742","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association released by M6WORKSHOP","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association from M6WORKSHOP (127.0.0.1:57200)","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792853389318702.971612","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792853389318982.893031 — 2×2, 4 image boxes","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 2 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 3 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6WORKSHOP",
+  "columns" : 2,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 3,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792853389318982.893031",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792853389318702.971612",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "STANDARD\\2,2",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792853389319990.933646",
+  "receivedAt" : "2026-10-24T14:49:49Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/cli/film-004.png","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"filmReceived","message":"Film printed — 2×2, 3/4 images","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792853389318702.971612","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association released by M6WORKSHOP","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association from M6WORKSHOP (127.0.0.1:57201)","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792853389344676.635296","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792853389344974.339732 — 2×2, 4 image boxes","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 2 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 3 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6WORKSHOP",
+  "columns" : 2,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 3,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792853389344974.339732",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792853389344676.635296",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "STANDARD\\2,2",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792853389345937.249465",
+  "receivedAt" : "2026-10-24T14:49:49Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/cli/film-005.png","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"filmReceived","message":"Film printed — 2×2, 3/4 images","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792853389344676.635296","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association released by M6WORKSHOP","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association from M6WORKSHOP (127.0.0.1:57202)","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792853389370340.363399","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792853389370648.480751 — 1×1, 1 image box","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6WORKSHOP",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792853389370648.480751",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792853389370340.363399",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792853389371197.51812",
+  "receivedAt" : "2026-10-24T14:49:49Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/cli/film-006.png","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792853389370340.363399","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association released by M6WORKSHOP","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association from M6WORKSHOP (127.0.0.1:57203)","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792853389396307.985609","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792853389396587.959620 — 1×1, 1 image box","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-24T14:49:49Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6WORKSHOP",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792853389396587.959620",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792853389396307.985609",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792853389397109.374543",
+  "receivedAt" : "2026-10-24T14:49:49Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/cli/film-007.png","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792853389396307.985609","time":"2026-10-24T14:49:49Z"}
+{"callingAE":"M6WORKSHOP","level":"connection","message":"Association released by M6WORKSHOP","time":"2026-10-24T14:49:49Z"}
+{"level":"info","message":"Stopped — 7 associations, 7 films, 0 errors (reached --max-films 7)","time":"2026-10-24T14:49:49Z"}

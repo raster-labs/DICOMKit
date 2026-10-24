@@ -1,0 +1,220 @@
+{
+  "status": "qualified_with_explicit_peer_limitation",
+  "passed": 24,
+  "failed": 0,
+  "unqualified_peer": 1,
+  "rows": [
+    {
+      "id": "DC-F01",
+      "title": "DICOMKit SCU to DCMTK: Printer status",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-F01/result.json",
+      "wire": "evidence/interop-qualified/DC-F01/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-F02",
+      "title": "DICOMKit SCU to DCMTK: exact raw grayscale 8-bit",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-F02/result.json",
+      "wire": "evidence/interop-qualified/DC-F02/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-F03",
+      "title": "DICOMKit SCU to DCMTK: exact raw grayscale 12-bit",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-F03/result.json",
+      "wire": "evidence/interop-qualified/DC-F03/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-F04",
+      "title": "DICOMKit SCU to DCMTK: implicit VR",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-F04/result.json",
+      "wire": "evidence/interop-qualified/DC-F04/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-F05",
+      "title": "DICOMKit SCU to DCMTK: IDENTITY Presentation LUT",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-F05/result.json",
+      "wire": "evidence/interop-qualified/DC-F05/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-F06",
+      "title": "DICOMKit SCU to DCMTK: LIN OD Presentation LUT",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-F06/result.json",
+      "wire": "evidence/interop-qualified/DC-F06/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-F07",
+      "title": "DICOMKit SCU to DCMTK: unavailable required LUT refuses before print",
+      "status": "unqualified_peer",
+      "result": "evidence/interop-qualified/DC-F07/result.json",
+      "wire": "evidence/interop-qualified/DC-F07/wire/decoded.json",
+      "reason": "DCMTK3.7 accepts LUT despite SupportsPresentationLUT=false; refusal not qualified with this peer. PY-F08 supplies independent rejection coverage."
+    },
+    {
+      "id": "DC-R01",
+      "title": "DCMTK SCU to DICOMKit: 8-bit grayscale",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-R01/result.json",
+      "wire": "evidence/interop-qualified/DC-R01/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-R02",
+      "title": "DCMTK SCU to DICOMKit: 12-bit grayscale",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-R02/result.json",
+      "wire": "evidence/interop-qualified/DC-R02/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-R03",
+      "title": "DCMTK SCU to DICOMKit: implicit VR",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-R03/result.json",
+      "wire": "evidence/interop-qualified/DC-R03/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-R04",
+      "title": "DCMTK SCU to DICOMKit: IDENTITY Presentation LUT",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-R04/result.json",
+      "wire": "evidence/interop-qualified/DC-R04/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-R05",
+      "title": "DCMTK SCU to DICOMKit: LIN OD Presentation LUT",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-R05/result.json",
+      "wire": "evidence/interop-qualified/DC-R05/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "DC-R06",
+      "title": "DCMTK SCU to DICOMKit: separate annotation context and literal text",
+      "status": "passed",
+      "result": "evidence/interop-qualified/DC-R06/result.json",
+      "wire": "evidence/interop-qualified/DC-R06/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F01",
+      "title": "DICOMKit SCU to pynetdicom: exact planar color",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-F01/result.json",
+      "wire": "evidence/interop-qualified/PY-F01/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F02",
+      "title": "DICOMKit SCU to pynetdicom: repeated annotations",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-F02/result.json",
+      "wire": "evidence/interop-qualified/PY-F02/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F03",
+      "title": "DICOMKit SCU to pynetdicom: N-SET failure and cleanup",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-F03/result.json",
+      "wire": "evidence/interop-qualified/PY-F03/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F04",
+      "title": "DICOMKit SCU to pynetdicom: Printer FAILURE prevents print",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-F04/result.json",
+      "wire": "evidence/interop-qualified/PY-F04/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F05",
+      "title": "DICOMKit SCU to pynetdicom: Printer WARNING surfaced",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-F05/result.json",
+      "wire": "evidence/interop-qualified/PY-F05/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F06",
+      "title": "DICOMKit SCU to pynetdicom: N-ACTION warning surfaced",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-F06/result.json",
+      "wire": "evidence/interop-qualified/PY-F06/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F07",
+      "title": "DICOMKit SCU to pynetdicom: interleaved Done ACK and second-association Job query",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-F07/result.json",
+      "wire": "evidence/interop-qualified/PY-F07/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-F08",
+      "title": "DICOMKit SCU to pynetdicom: rejected required LUT prevents print",
+      "status": "passed",
+      "result": "evidence/interop-qualified-lut-diagnostic/PY-F08/result.json",
+      "wire": "evidence/interop-qualified-lut-diagnostic/PY-F08/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-R01",
+      "title": "pynetdicom SCU to DICOMKit: color, mixed-VR Job Done ACK and terminal deletion",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-R01/result.json",
+      "wire": "evidence/interop-qualified/PY-R01/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-R02",
+      "title": "pynetdicom SCU to DICOMKit: invalid color planarity refused",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-R02/result.json",
+      "wire": "evidence/interop-qualified/PY-R02/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-R03",
+      "title": "pynetdicom SCU to DICOMKit: no Job context means no event",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-R03/result.json",
+      "wire": "evidence/interop-qualified/PY-R03/wire/decoded.json",
+      "reason": null
+    },
+    {
+      "id": "PY-R04",
+      "title": "pynetdicom SCU to DICOMKit: no event ACK, Job retained across associations",
+      "status": "passed",
+      "result": "evidence/interop-qualified/PY-R04/result.json",
+      "wire": "evidence/interop-qualified/PY-R04/wire/decoded.json",
+      "reason": null
+    }
+  ],
+  "same_product_and_peer_binary_hashes_across_runs": true,
+  "all_run": "evidence/interop-qualified/results.json",
+  "targeted_oracle_repair_run": "evidence/interop-qualified-lut-diagnostic/results.json",
+  "oracle_repair": "Exact Presentation LUT SOP Class UID is an unambiguous unsupported-class diagnostic; literal acronym not required. No product change between runs.",
+  "runner_sha256": "5b108ad88b32471e2ad0b7e06fb58f48612917f7d9d2ec34c6afe65e710e1d21",
+  "limitations": [
+    "DCMTK receiver does not support color or Annotation Box; those use independent pynetdicom.",
+    "No physical print, calibration, density measurement, diagnostic image quality or full IOD validation claim.",
+    "Only explicitly selected/executed cases qualify; unselected cases remain not run.",
+    "Pynetdicom oracle is a bounded test peer, not a vendor printer conformance statement.",
+    "Existing DICOMKit SCP tolerates color PlanarConfiguration 0 with a diagnostic; negative gate uses illegal value 2. Tolerance of 0 does not establish strict C.13-5 conformance."
+  ]
+}

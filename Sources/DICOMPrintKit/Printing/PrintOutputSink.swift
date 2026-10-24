@@ -43,12 +43,17 @@ public struct CompositePrintSink: PrintOutputSink {
     public let sinks: [any PrintOutputSink]
 
     /// When true, one sink's failure fails the whole emit; otherwise failures
-    /// are collected and only reported if *every* sink failed.
+    /// are collected and thrown only if *every* sink failed. The optional
+    /// diagnostic callback still reports each unsuccessful destination.
     public let requiresAll: Bool
+    /// Reports a failed destination even when another sink preserves the film.
+    public let onFailure: (@Sendable (String, String) -> Void)?
 
-    public init(_ sinks: [any PrintOutputSink], requiresAll: Bool = false) {
+    public init(_ sinks: [any PrintOutputSink], requiresAll: Bool = false,
+                onFailure: (@Sendable (String, String) -> Void)? = nil) {
         self.sinks = sinks
         self.requiresAll = requiresAll
+        self.onFailure = onFailure
     }
 
     public var sinkName: String {
@@ -61,6 +66,7 @@ public struct CompositePrintSink: PrintOutputSink {
             do {
                 try await sink.emit(film)
             } catch {
+                onFailure?(sink.sinkName, error.localizedDescription)
                 if requiresAll { throw error }
                 failures.append(error)
             }

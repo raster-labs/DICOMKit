@@ -88,6 +88,8 @@ public enum ToolCatalogHelpers: Sendable {
         tools.append(contentsOf: fileOrganizationTools())
         tools.append(contentsOf: dataExportTools())
         tools.append(contentsOf: networkOperationsTools())
+        tools.append(CLIWorkshopPrintCatalog.definition)
+        tools.append(CLIWorkshopPrintSCPCatalog.definition)
         tools.append(contentsOf: automationTools())
         return tools
     }
@@ -4749,7 +4751,9 @@ case "dicom-script":
     /// Public catalog accessor. Path fields are intentionally left empty; every other
     /// parameter keeps whatever `defaultValue` its raw definition declares.
     public static func parameterDefinitions(for toolID: String) -> [CLIParameterDefinition] {
-        rawParameterDefinitions(for: toolID)
+        if toolID == "dicom-print" { return CLIWorkshopPrintCatalog.parameters }
+        if toolID == "dicom-printscp" { return CLIWorkshopPrintSCPCatalog.parameters }
+        return rawParameterDefinitions(for: toolID)
     }
 }
 
@@ -4814,6 +4818,12 @@ public enum CommandBuilderHelpers: Sendable {
         parameterValues: [CLIParameterValue],
         parameterDefinitions: [CLIParameterDefinition]
     ) -> String {
+        if toolName == "dicom-print" || toolName == "dicom-printscp" {
+            guard let argv = try? CLIWorkshopPrintCommandCodec.arguments(
+                toolID: toolName, parameterValues: parameterValues,
+                parameterDefinitions: parameterDefinitions) else { return toolName }
+            return argv.map(shellEscape).joined(separator: " ")
+        }
         // Catalog names may contain a fixed subcommand ("dicom-wado query").
         // Split only these trusted prefixes; an arbitrary executable/path with
         // spaces is still one literal token, not shell syntax to interpret.

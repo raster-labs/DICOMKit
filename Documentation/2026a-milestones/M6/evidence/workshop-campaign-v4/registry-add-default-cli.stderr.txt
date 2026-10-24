@@ -1,0 +1,5 @@
+✓ Printer 'Synthetic; O'Neil 雪' added successfully
+  Set as default printer
+
+Use with:
+  dicom-print send pacs://127.0.0.1:11112 image.dcm --aet M6WORKSHOP

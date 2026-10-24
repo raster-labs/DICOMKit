@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "send",
+    "pacs://127.0.0.1:56801",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified/fixtures/gray8.dcm",
+    "--layout",
+    "1x1",
+    "--film-size",
+    "8x10",
+    "--raw",
+    "--aet",
+    "M6DKSCU",
+    "--called-aet",
+    "DCMTK_M6",
+    "--timeout",
+    "8",
+    "--format",
+    "json",
+    "--presentation-lut",
+    "lin-od"
+  ],
+  "pid": 27156,
+  "exit_code": 0,
+  "elapsed_seconds": 0.25288533300000005,
+  "timed_out": false,
+  "stopped_by_harness": false
+}

@@ -78,6 +78,11 @@ public enum PrintConsoleFormatter {
                 lines.append("  Error: \(error)")
             }
         }
+        if !result.warnings.isEmpty {
+            lines.append(contentsOf: result.warnings.map { "Warning: \($0.message)" })
+        } else if result.status.isWarning {
+            lines.append("Warning: \(result.status)")
+        }
         return lines
     }
 
@@ -93,6 +98,20 @@ public enum PrintConsoleFormatter {
         if result.filmBoxUIDs.count > 1 { dict["filmBoxUIDs"] = result.filmBoxUIDs }
         if result.printJobUIDs.count > 1 { dict["printJobUIDs"] = result.printJobUIDs }
         if let error = result.errorMessage { dict["error"] = error }
+        if !result.warnings.isEmpty {
+            dict["warnings"] = result.warnings.map { warning -> [String: Any] in
+                var entry: [String: Any] = [
+                    "status": String(format: "0x%04X", warning.status.rawValue),
+                    "filmBoxUID": warning.filmBoxUID,
+                    "message": warning.message
+                ]
+                if let detail = warning.detail { entry["detail"] = detail }
+                return entry
+            }
+        } else if result.status.isWarning {
+            dict["warnings"] = [["status": String(format: "0x%04X", result.status.rawValue),
+                                  "message": result.status.description]]
+        }
         return json(from: dict)
     }
 
