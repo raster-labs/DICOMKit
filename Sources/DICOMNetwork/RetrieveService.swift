@@ -1115,12 +1115,13 @@ public enum DICOMRetrieveService {
     /// merged: completed and warning sub-operations add up; failed
     /// sub-operations and the Failed SOP Instance UID List are those of the
     /// last pass only (earlier failures were instances of classes not yet
-    /// proposed, which the next pass re-requested); remaining is 0; the status
-    /// is the last pass's.
+    /// proposed, which the next pass re-requested); remaining and status are
+    /// those of the last pass. A cancelled pass is terminal, including when
+    /// some sub-operations failed before cancellation.
     static func mergeGetPassResults(previous: RetrieveResult?, next: RetrieveResult) -> RetrieveResult {
         guard let previous else { return next }
         let progress = RetrieveProgress(
-            remaining: 0,
+            remaining: next.progress.remaining,
             completed: previous.progress.completed + next.progress.completed,
             failed: next.progress.failed,
             warning: previous.progress.warning + next.progress.warning
@@ -1174,6 +1175,9 @@ public enum DICOMRetrieveService {
                             continuation: continuation
                         )
                         merged = mergeGetPassResults(previous: merged, next: passResult)
+                        // FE00 terminates the retrieve, even when its failed
+                        // count would otherwise trigger another context batch.
+                        if passResult.status.isCancel { break }
                     }
 
                     if let merged {

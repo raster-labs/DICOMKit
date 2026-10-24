@@ -1,0 +1,49 @@
+name: Service reliability
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Sources/DICOMNetwork/**'
+      - 'Sources/DICOMWeb/**'
+      - 'Sources/DICOMStudio/**'
+      - 'Sources/dicom-server/**'
+      - 'Sources/dicom-query/**'
+      - 'Sources/dicom-qr/**'
+      - 'Sources/dicom-retrieve/**'
+      - 'Sources/dicom-send/**'
+      - 'Sources/dicom-wado/**'
+      - 'Tests/**'
+      - 'Scripts/verify_m4*'
+      - 'Scripts/m4_client_outcome_peer.py'
+      - 'Scripts/m3_dimse_capture_peer.py'
+      - 'Scripts/verify_m3_queries.py'
+      - 'Scripts/Fixtures/WADL/**'
+      - '.github/scripts/select-swift-toolchain.sh'
+      - 'Package.*'
+      - '.github/workflows/service-reliability.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  services:
+    name: M4 cancellation, capabilities and restart gates
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Select toolchain
+        run: bash .github/scripts/select-swift-toolchain.sh 27.0
+      - name: Verify services against the checked out sources
+        run: bash Scripts/verify_m4.sh m4-verification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: service-reliability-${{ github.sha }}
+          path: m4-verification/

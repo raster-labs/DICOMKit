@@ -715,6 +715,11 @@ public enum DICOMQueryService {
             
             return results
             
+        } catch let cancellation as QueryCancelledError {
+            // FE00 is a terminal DIMSE response, not a broken association.
+            // Release normally while preserving the explicit partial outcome.
+            try? await association.release()
+            throw cancellation
         } catch {
             // Attempt to abort the association on error
             try? await association.abort()
@@ -792,8 +797,7 @@ public enum DICOMQueryService {
                     // Success - query complete
                     break
                 } else if status.isCancel {
-                    // Cancelled - return what we have
-                    break
+                    throw QueryCancelledError(partialResults: results)
                 } else if status.isFailure {
                     // Failure
                     throw DICOMNetworkError.queryFailed(status)

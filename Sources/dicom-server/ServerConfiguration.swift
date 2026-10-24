@@ -75,6 +75,7 @@ public struct ServerConfiguration: Sendable, Codable {
     ///
     /// - Throws: `ServerError.invalidConfiguration` naming the offending value
     public func validated() throws -> ServerConfiguration {
+        try DatabaseManager.validateConnectionString(databaseURL)
         let ae = try ServerProtocol.validatedAETitle(aeTitle, option: "--aet")
         let allowed = try allowedCallingAETitles.map { titles in
             Set(try titles.map { try ServerProtocol.validatedAETitle($0, option: "--allowed-ae") })

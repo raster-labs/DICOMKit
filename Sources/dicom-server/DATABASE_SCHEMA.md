@@ -1,10 +1,13 @@
 # Database Schema Documentation for dicom-server
 
-This document describes the database schemas for persistent storage implementations of dicom-server. The current Phase A-C implementation uses in-memory storage; full database persistence is planned for future versions (v1.5+).
+These SQL schemas are design proposals. No SQLite/PostgreSQL database is created
+or migrated by the server. As of M4 (24 October 2026), the supported durable mode
+is `filesystem://`, rebuilt from Part 10 files before listening. See the
+[current server README](README.md) for migration guidance.
 
 ## Overview
 
-The dicom-server metadata index supports two persistent database backends:
+The proposed metadata index describes two future database backends:
 - **SQLite**: Lightweight, file-based database suitable for small to medium deployments (<100K studies)
 - **PostgreSQL**: Full-featured relational database for large-scale deployments (>100K studies)
 

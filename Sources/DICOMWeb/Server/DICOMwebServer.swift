@@ -15,7 +15,7 @@ import DICOMKit
 /// Tables I.1-1, I.2-2; QIDO return attributes per Tables 10.6.3-3..5; UPS behaviour per
 /// PS3.4 CC.1.1-2, CC.2.1.3, CC.2.2.3, CC.2.5.3, CC.2.6.3, CC.2.7.3. Not implemented and
 /// answered 501: frames, rendered, thumbnail and bulk data retrieval; application/dicom+xml
-/// metadata; the 8.9 Capabilities Description (a JSON document is served instead).
+/// metadata. The 8.9 Capabilities Description is available as WADL XML or Annex G JSON.
 /// Not in PS3.18: DELETE on studies/series/instances, the X-Total-Count header.
 ///
 /// Reference: PS3.18 - Web Services
@@ -141,14 +141,37 @@ public actor DICOMwebServer {
     /// - Parameter request: The HTTP request
     /// - Returns: The HTTP response
     public func handleRequest(_ request: DICOMwebRequest) async -> DICOMwebResponse {
-        // Handle CORS preflight
-        if request.method == .options {
+        guard let relativePath = serviceRelativePath(request.path) else {
+            return .notFound(message: "No route matched for \(request.method.rawValue) \(request.path)")
+        }
+        // A browser preflight has both headers; Origin alone must not swallow
+        // the standard OPTIONS service-base Retrieve Capabilities transaction.
+        if request.method == .options, request.header("Origin") != nil,
+           request.header("Access-Control-Request-Method") != nil {
             return handleCORSPreflight(request)
+        }
+        if request.method == .options, relativePath.isEmpty || relativePath == "/" {
+            var response = handleStandardCapabilities(request)
+            addCORSHeaders(to: &response, request: request)
+            response.headers["Server"] = configuration.serverName
+            return response
         }
         
         // Match route
         guard let match = router.match(path: request.path, method: request.method, queryParameters: request.queryParameters) else {
+            if let methods = DICOMwebCapabilitiesDescription.methods(relativePath: relativePath, upsEnabled: upsStorage != nil) {
+                return DICOMwebResponse(statusCode: 405, headers: ["Allow": methods.joined(separator: ", "), "Content-Length": "0"])
+            }
             return .notFound(message: "No route matched for \(request.method.rawValue) \(request.path)")
+        }
+
+        // Capability views must reflect a dynamically attached UPS provider;
+        // do not serve a cached description from an earlier configuration.
+        if case .capabilities = match.handlerType {
+            var response = handleCapabilities()
+            addCORSHeaders(to: &response, request: request)
+            response.headers["Server"] = configuration.serverName
+            return response
         }
         
         // Check server-side cache for GET requests
@@ -1038,7 +1061,7 @@ public actor DICOMwebServer {
         return .ok(json: jsonData)
     }
     
-    /// Handles POST /workitems and POST /workitems/{workitemUID} - Create workitem
+    /// Handles POST /workitems, optionally with ?workitem={UID} - Create workitem
     private func handleCreateWorkitem(parameters: [String: String], request: DICOMwebRequest) async throws -> DICOMwebResponse {
         guard let upsStorage = upsStorage else {
             return .init(statusCode: 501, headers: ["Content-Type": "application/json"],
@@ -1093,7 +1116,7 @@ public actor DICOMwebServer {
         return DICOMwebResponse(statusCode: 201, headers: ["Location": locationURL])
     }
     
-    /// Handles PUT /workitems/{workitemUID} - Update workitem
+    /// Handles POST /workitems/{workitemUID} and its compatibility PUT alias - Update workitem
     private func handleUpdateWorkitem(parameters: [String: String], request: DICOMwebRequest) async throws -> DICOMwebResponse {
         guard let upsStorage = upsStorage else {
             return .init(statusCode: 501, headers: ["Content-Type": "application/json"],
@@ -1634,10 +1657,36 @@ public actor DICOMwebServer {
     }
     
     // MARK: - Capabilities
+
+    private func serviceRelativePath(_ path: String) -> String? {
+        var prefix = configuration.pathPrefix
+        while prefix.hasSuffix("/") { prefix.removeLast() }
+        guard prefix.isEmpty || path == prefix || path.hasPrefix(prefix + "/") else { return nil }
+        return String(path.dropFirst(prefix.count))
+    }
+
+    /// PS3.18 8.9: no query parameters or request payload, mandatory Accept,
+    /// and a WADL description of the implemented service (Annexes G and H).
+    private func handleStandardCapabilities(_ request: DICOMwebRequest) -> DICOMwebResponse {
+        let headers = ["Allow": "GET, OPTIONS", "Vary": "Accept, Accept-Charset", "Content-Length": "0"]
+        guard !request.hasMalformedQueryEncoding, request.queryItems.isEmpty,
+              request.body?.isEmpty != false else {
+            return DICOMwebResponse(statusCode: 400, headers: headers)
+        }
+        guard let mediaType = DICOMwebCapabilitiesDescription.selectedMediaType(request) else {
+            return DICOMwebResponse(statusCode: 406, headers: headers)
+        }
+        do {
+            let data = try DICOMwebCapabilitiesDescription.data(baseURL: configuration.baseURL, upsEnabled: upsStorage != nil, mediaType: mediaType)
+            var headers = headers
+            headers["Content-Type"] = mediaType
+            headers["Content-Length"] = String(data.count)
+            return DICOMwebResponse(statusCode: 200, headers: headers, body: data)
+        } catch { return .internalError(message: "Unable to encode capabilities") }
+    }
     
     /// Serves DICOMKit's JSON capabilities document at GET / and GET /capabilities. This is
-    /// not the PS3.18 8.9 Retrieve Capabilities Transaction (OPTIONS / returning a WADL
-    /// Capabilities Description, Annex H), which is not implemented.
+    /// a compatibility extension; OPTIONS at the service base implements PS3.18 8.9.
     private func handleCapabilities() -> DICOMwebResponse {
         // Build capabilities based on server configuration
         let capabilities = DICOMwebCapabilities(
@@ -1652,9 +1701,11 @@ public actor DICOMwebServer {
                 delete: true,
                 rendered: false,
                 thumbnails: false,
-                bulkdata: true
+                bulkdata: false
             ),
-            mediaTypes: DICOMwebCapabilities.MediaTypeSupport(),
+            mediaTypes: DICOMwebCapabilities.MediaTypeSupport(
+                retrieve: [DICOMwebCapabilitiesDescription.multipart, "application/dicom", "application/dicom+json"],
+                store: [DICOMwebCapabilitiesDescription.multipart, "application/dicom"], rendered: []),
             transferSyntaxes: [
                 "1.2.840.10008.1.2.1",     // Explicit VR Little Endian
                 "1.2.840.10008.1.2",       // Implicit VR Little Endian
@@ -1675,7 +1726,10 @@ public actor DICOMwebServer {
                 maxRequestSize: configuration.maxRequestBodySize,
                 partialSuccess: true
             ),
-            authenticationMethods: [.none, .basic, .bearer, .apiKey]
+            authenticationMethods: [.none],
+            extensions: ["capabilities": "OPTIONS \(configuration.baseURL.absoluteString)",
+                         "characterSets": "UTF-8", "frames": "unsupported", "bulkdata": "unsupported",
+                         "upsEventSubscriptions": "unsupported", "authentication": "Provided by the embedding HTTP server"]
         )
         
         let json = capabilities.toJSONDictionary()

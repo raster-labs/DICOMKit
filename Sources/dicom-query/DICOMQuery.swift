@@ -147,15 +147,15 @@ struct DICOMQuery: AsyncParsableCommand {
             timeout: TimeInterval(timeout)
         )
 
-        let results = try await executor.executeQuery(
-            level: level.queryLevel,
-            queryKeys: queryKeys
-        )
-
         // Format and output results via the shared formatter (DICOMNetwork).
         let formatter = Self.formatter(format: format, level: level.queryLevel, csvKeywords: csvKeywords)
-        let output = formatter.format(results: results)
-        print(output, terminator: "")
+        do {
+            let results = try await executor.executeQuery(level: level.queryLevel, queryKeys: queryKeys)
+            print(formatter.format(results: results), terminator: "")
+        } catch let cancellation as QueryCancelledError {
+            print(formatter.format(results: cancellation.partialResults), terminator: "")
+            throw cancellation
+        }
         #else
         throw ValidationError("Network functionality is not available on this platform")
         #endif

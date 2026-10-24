@@ -8133,6 +8133,11 @@ case "dicom-study":
             service.setConsoleStatus(.success)
             addToHistory(toolName: "dicom-query", command: commandPreview, exitCode: 0,
                          output: "\(results.count) result(s) found")
+        } catch let cancellation as QueryCancelledError {
+            let fmt = QueryOutputFormat(rawValue: outputFormat) ?? .table
+            let formatter = Self.queryResultFormatter(format: fmt, level: level, csvKeywords: csvKeywords)
+            appendConsoleOutput(formatter.format(results: cancellation.partialResults))
+            refuse(cancellation.description, exitCode: 1)
         } catch {
             // ArgumentParser prints a thrown error as `Error: <description>` and exits 1.
             let errorDetail = (error as? DICOMNetworkError)?.description ?? error.localizedDescription
@@ -8871,7 +8876,7 @@ case "dicom-study":
                     }
                 }
                 // C-GET summary via the SHARED formatter (handles the 0-instances case).
-                appendConsoleOutput(NetworkConsole.cGetSummary(received: receivedCount))
+                appendConsoleOutput(NetworkConsole.cGetSummary(received: receivedCount, status: finalResult?.status))
                 // PS3.4 C.4.3.2.1: same success rule as C-MOVE (Table C.4-3 wording).
                 if let result = finalResult {
                     let check = NetworkConsole.retrieveFinalResponse(result, service: .cGet)
@@ -9053,7 +9058,7 @@ case "dicom-study":
                                         throw error
                                     }
                                 }
-                                var text = NetworkConsole.cGetSummary(received: savedPaths.count)
+                                var text = NetworkConsole.cGetSummary(received: savedPaths.count, status: finalResult?.status)
                                 var failure: String?
                                 if let result = finalResult {
                                     let check = NetworkConsole.retrieveFinalResponse(result, service: .cGet)

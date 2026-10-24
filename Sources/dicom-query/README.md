@@ -307,7 +307,7 @@ If you don't specify a filter, the attribute will be returned in results but won
 ## Exit Codes
 
 - `0`: Success (the C-FIND completed; an empty result set is still a success)
-- `1`: Connection error, association rejected, or a C-FIND Failure status (PS3.4 Table C.4-1)
+- `1`: Connection error, association rejected, C-FIND Failure, or Cancel (FE00). On cancellation, partial results are printed in the selected format and the error states that they are incomplete (PS3.4 Table C.4-1).
 - `64`: Invalid arguments (usage error, e.g. `--level series` without `--study-uid`)
 
 ## Limitations

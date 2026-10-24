@@ -1,0 +1,54 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 143-144
+~					98 text Console ERROR
++					146 button Description: Copy console output, Help: Copies the console output to the clipboard
+~					100 button Clear console output
++					147 scroll area Secondary Actions: Scroll Up, Scroll Down
++						148 text $ dicom-retrieve 127.0.0.1:52948 --aet M4CLIENT --called-aet M4PEER --method c-move --move-dest M4DEST --study-uid 2.25.404 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/received --parallel 1 --priority medium --timeout 10
+
+DICOM Retrieve (C-MOVE)
+=======================
+  Server:            127.0.0.1:52948
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4PEER
+  Method:            C-MOVE
+  Move Destination:  M4DEST
+  Level:             STUDY
+  Study UID:         2.25.404
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/received
+  Organization:      Flat
+  Timeout:           10s
+
+Executing C-MOVE...
+C-MOVE Result:
+  Status:            Cancel (0xFE00): Sub-operations terminated due to Cancel Indication
+  Number of Completed Sub-operations: 1
+  Number of Failed Sub-operations: 1
+  Number of Warning Sub-operations: 1
+
+❌ Retrieval returned non-success status
+Failed SOP Instance UID List (0008,0058), 1 UID(s):
+  2.25.404.9
+Final C-MOVE response: Cancel (0xFE00): Sub-operations terminated due to Cancel Indication — Number of Remaining Sub-operations: 2, Number of Completed Sub-operations: 1, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 1
+Error: C-MOVE final response Cancel (0xFE00): Sub-operations terminated due to Cancel Indication (Number of Remaining Sub-operations: 2, Number of Completed Sub-operations: 1, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 1); Failed SOP Instance UID List (0008,0058): 2.25.404.9
+
++							149 text $ dicom-retrieve 127.0.0.1:52948 --aet M4CLIENT --called-aet M4PEER --method c-move --move-dest M4DEST --study-uid 2.25.404 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/received --parallel 1 --priority medium --timeout 10
+
+DICOM Retrieve (C-MOVE)
+=======================
+  Server:            127.0.0.1:52948
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4PEER
+  Method:            C-MOVE
+  Move Destination:  M4DEST
+  Level:             STUDY
+  Study UID:      
++						150 scroll bar (settable, float) 0
++							151 value indicator (settable, float) 0
++							152 increment arrow button
++							153 decrement arrow button
++							154 increment page button
++							155 decrement page button
++					156 text History
+~						107 text dicom-query dicom-query dicom-retrieve
+The focused UI element is 140 text field (settable) Description: Output Directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/received, Placeholder: Choose a folder… (defaults to ~/Downloads/DICOMStudio)

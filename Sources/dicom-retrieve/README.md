@@ -190,6 +190,10 @@ dicom-retrieve pacs://pacs.hospital.org:11112 \
   --verbose
 ```
 
+## Cancellation
+
+A terminal FE00 response is reported as cancellation with exit 1. Completed, failed, warning and remaining counts and the Failed SOP Instance UID List are retained. C-GET stops further storage-context passes after FE00; received files remain available. The CLI and DICOMStudio Workshop use the same outcome formatting.
+
 ## Exit Codes
 
 - `0` - The final C-MOVE/C-GET response was Success (0000) with no failed sub-operations (PS3.4 C.4.2.2.1 / C.4.3.2.1)

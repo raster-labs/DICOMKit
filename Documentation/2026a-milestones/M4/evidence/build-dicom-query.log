@@ -1,0 +1,11 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 628]
+[Planning deferred tasks]
+[2 / 50]
+[4 / 10] DICOMWeb
+[6 / 12] DICOMWeb
+[11 / 12] DICOMWeb
+[12 / 13] dicom-query-product
+[13 / 13] dicom-query-product
+Build complete! (2.82 sec)

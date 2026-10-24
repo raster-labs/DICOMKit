@@ -2,8 +2,8 @@
   "schema_version": 1,
   "source_review_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
   "branch": "codex/dicom-2026a-milestones",
-  "authorized_current_milestone": "M3",
-  "stop_before": "M4",
+  "authorized_current_milestone": "M4",
+  "stop_before": "M5",
   "counts": {
     "all": 68,
     "active": 46,
@@ -2329,7 +2329,7 @@
       "milestone": "M4",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/dicom-server/ServerSession.swift",
@@ -2348,28 +2348,36 @@
           "assertion": "Loopback test with many delayed matches: cancel after the first pending response, observe a final FE00 and no newly generated matches after cancellation is processed.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Five delayed matches with deterministic checkpoints: before-first yields FE00 immediately; midstream sends one pending then FE00; completion race sends five pending then exactly one FE00. Real ServerSession loopback; independent captured command parsing confirms statuses. CLI/Workshop controlled outcomes are supplementary, not proof they originated a C-CANCEL.",
+          "evidence": "M4/acceptance.json#NET-05-A-AC01"
         },
         {
           "id": "NET-05-A-AC02",
           "assertion": "Cancellation of a different message ID does not cancel the active request; subsequent legal association use remains possible.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Wrong message ID and wrong presentation context are ignored. Both original and reused message ID requests return five matches plus success; intervening C-ECHO succeeds after late cancel.",
+          "evidence": "M4/acceptance.json#NET-05-A-AC02"
         },
         {
           "id": "NET-05-A-AC03",
           "assertion": "Allow already-sent/in-flight pending responses before FE00; do not assert instantaneous zero additional bytes.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Tests allow previously transmitted pending responses and assert the no-new-match boundary only after a deterministic post-send checkpoint and processed cancellation. They do not require instantaneous absence of all in-flight bytes.",
+          "evidence": "M4/acceptance.json#NET-05-A-AC03"
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "The dispatcher awaits the whole FIND handler, the match loop does not read cancellation, and later C-CANCEL is discarded."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification_evidence": "M4/acceptance.json",
+      "verification_detail": "M4 local implementation, CLI/service and applicable packaged DICOMStudio gates complete; external qualification limits remain in M4/REPORT.md."
     },
     {
       "id": "NET-05-B",
@@ -2382,7 +2390,7 @@
         "NET-05-A"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/dicom-server/ServerSession.swift",
@@ -2401,28 +2409,36 @@
           "assertion": "Use a delayed Storage SCP and several instances; cancel mid-transfer, then verify FE00, no further initiated stores, and exact completed/failed/warning counts.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Independent delayed Storage SCP receives only three of five requested stores in the mixed case. After cancellation, in-flight third store settles, FE00 reports completed 1 / failed 1 / warning 1; no fourth store starts. Silent destination deadline reports one failed attempted store and association reuse succeeds.",
+          "evidence": "M4/acceptance.json#NET-05-B-AC01"
         },
         {
           "id": "NET-05-B-AC02",
           "assertion": "If Remaining is included, it equals sub-operations not initiated due to cancellation.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Captured FE00 Remaining is 5 before any store, 2 after three initiated stores, 0 after all five. Mixed completed/failed/warning counters sum to the three initiated stores.",
+          "evidence": "M4/acceptance.json#NET-05-B-AC02"
         },
         {
           "id": "NET-05-B-AC03",
           "assertion": "Mix successful/warning/failed stores before cancellation and verify counter classes and Failed SOP Instance UID List rules.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Mixed responses success/B000/A700 yield completed 1 / warning 1 / failed 1. Failed SOP Instance UID List contains only 2.25.401.1.3 and no Specific Character Set. All-completed cancellation has no failure identifier.",
+          "evidence": "M4/acceptance.json#NET-05-B-AC03"
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "MOVE continues initiating outgoing C-STORE operations and emits its ordinary final status because no cancellation is processed during the transfer loop."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification_evidence": "M4/acceptance.json",
+      "verification_detail": "M4 local implementation, CLI/service and applicable packaged DICOMStudio gates complete; external qualification limits remain in M4/REPORT.md."
     },
     {
       "id": "NET-06-A",
@@ -2709,7 +2725,7 @@
       "milestone": "M4",
       "dependency_item_ids": [],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
@@ -2733,28 +2749,36 @@
           "assertion": "OPTIONS at the configured service base with supported Accept returns 200 and a parseable, structurally conforming capabilities payload.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Configured base paths produce 200 JSON/XML WADL. JSON structure and XML/JSON method parity checked. Saved XML independently validates against pinned official WADL XSD with local XML schema catalog; schema_validation.status=passed.",
+          "evidence": "M4/acceptance.json#NET-09-A-AC01"
         },
         {
           "id": "NET-09-A-AC02",
           "assertion": "Check advertised resource methods against implemented handlers and test content negotiation/error responses.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Every advertised method is checked against routing; every advertised GET and declared response media type is executed with synthetic storage/UPS fixtures. UPS create/update response contracts are exercised. HTTP negotiation/error cases cover weighting, exclusions, charset, invalid query/body and method.",
+          "evidence": "M4/acceptance.json#NET-09-A-AC02"
         },
         {
           "id": "NET-09-A-AC03",
           "assertion": "A browser CORS preflight remains valid without swallowing a standard capabilities request.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "CORS preflight is 204 with allow headers and no body; ordinary Origin-bearing OPTIONS capabilities request remains 200 with negotiated payload.",
+          "evidence": "M4/acceptance.json#NET-09-A-AC03"
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "Every OPTIONS request is treated as CORS preflight and returns 204; the private GET document is not the required base-resource capabilities transaction."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification_evidence": "M4/acceptance.json",
+      "verification_detail": "M4 local implementation, CLI/service and applicable packaged DICOMStudio gates complete; external qualification limits remain in M4/REPORT.md."
     },
     {
       "id": "NET-09-B",
@@ -2767,7 +2791,7 @@
         "NET-09-A"
       ],
       "scope_decision": "",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
@@ -2786,28 +2810,36 @@
           "assertion": "For each advertised true retrieval capability, execute a minimal valid request against an appropriate fixture and verify it is implemented.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "All 16 advertised GET targets are asserted in the focused fixture test, including each retrieval route/media type. Six external HTTP dataset/metadata retrieval routes return 200; CLI study/series/instance downloads equal fixture bytes.",
+          "evidence": "M4/acceptance.json#NET-09-B-AC01"
         },
         {
           "id": "NET-09-B-AC02",
           "assertion": "With the current unsupported bulk-data handler, both private and standard capability views disclose it as unavailable.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Unsupported bulk/rendered/thumbnail/frame handlers return 501. Standard WADL omits those resource capabilities; both private capability views declare bulkdata=false and rendered=false.",
+          "evidence": "M4/acceptance.json#NET-09-B-AC02"
         },
         {
           "id": "NET-09-B-AC03",
           "assertion": "Implementing bulk data later requires real payload/media-type acceptance cases before changing the capability flag.",
           "applicability": "Required when the stated condition applies",
-          "reason": "",
-          "result": "Not run"
+          "reason": "Condition not triggered: M4 does not implement bulk-data retrieval and keeps the capability unavailable. Retain this criterion as a mandatory future gate: real bulk payload and media-type acceptance cases must pass before advertising support. This is neither an executed pass nor a waiver.",
+          "result": "Not applicable",
+          "verification_detail": "Condition not triggered: M4 does not implement bulk-data retrieval and keeps the capability unavailable. Retain this criterion as a mandatory future gate: real bulk payload and media-type acceptance cases must pass before advertising support. This is neither an executed pass nor a waiver.",
+          "evidence": "M4/acceptance.json#NET-09-B-AC03"
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "The GET document advertises bulkdata:true while the bulk-data retrieval handler always returns 501."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification_evidence": "M4/acceptance.json",
+      "verification_detail": "M4 local implementation, CLI/service and applicable packaged DICOMStudio gates complete; external qualification limits remain in M4/REPORT.md."
     },
     {
       "id": "NET-10-A",
@@ -2818,7 +2850,7 @@
       "milestone": "M4",
       "dependency_item_ids": [],
       "scope_decision": "Prefer a persistent index or deterministic restart reindex for the existing durable contract. Explicit refusal is permitted as an interim containment, not a durability pass. No PostgreSQL enhancement.",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/dicom-server/DatabaseManager.swift",
@@ -2842,28 +2874,36 @@
           "assertion": "Store a synthetic instance, stop the process, restart with the same data directory and configured durable mode: FIND locates it and GET/MOVE retrieve the same SOP identity.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Real dicom-server process stores a synthetic instance, terminates/restarts in filesystem mode, and CLI FIND/GET/MOVE recover the same SOP identity and exact dataset hash. FIND also succeeds after SIGKILL/restart. Three Workshop ViewModel routes succeed against restarted server. Process restart durability only; no power-loss qualification.",
+          "evidence": "M4/acceptance.json#NET-10-A-AC01"
         },
         {
           "id": "NET-10-A-AC02",
           "assertion": "Reindex handles duplicate SOP UIDs and unreadable/corrupt files deterministically with visible errors; it does not silently claim a complete index.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Fresh executable startup visibly refuses duplicate UID, corrupt/truncated/trailing-garbage/unreadable files and symlinks. Focused tests verify no usable partial index, idempotent identical retransmission, conflict preservation and missing indexed file errors.",
+          "evidence": "M4/acceptance.json#NET-10-A-AC02"
         },
         {
           "id": "NET-10-A-AC03",
           "assertion": "If durable SQLite is unavailable, startup clearly refuses that mode or explicitly selects volatile behavior; PostgreSQL help and error behavior agree.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Default durable mode is explicitly filesystem reindex. SQLite and PostgreSQL command/backend URL modes refuse startup with clear diagnostics; help names them unimplemented and points to filesystem. This refusal is only AC03 evidence: AC01 independently establishes actual durable reindex behavior.",
+          "evidence": "M4/acceptance.json#NET-10-A-AC03"
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
       "baseline_observations": [
         "Default SQLite mode constructs a database URL but stores metadata only in memory and does not rebuild from disk at startup. After restart, stored files can remain while FIND/GET/MOVE cannot discover them. PostgreSQL explicitly rejects initialization and is a separate unavailable capability."
       ],
-      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status."
+      "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
+      "verification_evidence": "M4/acceptance.json",
+      "verification_detail": "M4 local implementation, CLI/service and applicable packaged DICOMStudio gates complete; external qualification limits remain in M4/REPORT.md."
     },
     {
       "id": "WS-FIX-01",
@@ -5221,13 +5261,14 @@
     }
   ],
   "current_summary": {
-    "completed": 30,
-    "not_started": 16,
+    "completed": 35,
+    "not_started": 11,
     "deferred": 22,
     "M0": "Completed",
     "M1": "Completed",
     "M2": "Completed",
-    "M3": "Completed"
+    "M3": "Completed",
+    "M4": "Completed"
   },
   "baseline_caveats": [
     {

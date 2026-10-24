@@ -1,0 +1,10 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 599]
+[Planning deferred tasks]
+[2 / 48]
+[4 / 10] DICOMWeb
+[6 / 12] DICOMWeb
+[11 / 12] dicom-wado-product
+[12 / 12] dicom-wado-product
+Build complete! (2.34 sec)

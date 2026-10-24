@@ -4579,7 +4579,7 @@ always applied, with the standard's retention options (`--retain-dates` /
 - Full DICOM networking services (C-ECHO, C-FIND, C-STORE, C-MOVE, C-GET)
 - Structured logging system with multiple log levels
 - Comprehensive statistics tracking
-- Support for SQLite and PostgreSQL backends
+- Durable Part 10 filesystem storage with complete startup reindex (`--database filesystem`, default); SQLite and PostgreSQL are explicitly unavailable
 - Access control with AE Title filtering
 - Multi-threaded connection handling
 

@@ -361,7 +361,8 @@ public enum NetworkConsole {
         }
         if result.isSuccess { return (lines, nil) }
         let described = DIMSEServiceStatusText.describe(result.status, service: service)
-        let counts = DIMSEServiceStatusText.subOperationCounts(result.progress)
+        let counts = (result.status.isCancel ? "Number of Remaining Sub-operations: \(result.progress.remaining), " : "")
+            + DIMSEServiceStatusText.subOperationCounts(result.progress)
         lines.append("Final \(service.rawValue) response: " + described + " — " + counts)
         var text = "\(service.rawValue) final response " + described + " (" + counts + ")"
         if !result.failedSOPInstanceUIDs.isEmpty {
@@ -371,7 +372,10 @@ public enum NetworkConsole {
     }
 
     /// C-GET completion summary.
-    public static func cGetSummary(received: Int) -> String {
+    public static func cGetSummary(received: Int, status: DIMSEStatus? = nil) -> String {
+        if status?.isCancel == true {
+            return "\nC-GET cancelled — \(received) file(s) received before cancellation\n"
+        }
         if received == 0 {
             return "\n⚠️ C-GET completed but received 0 instances. "
                 + "The SCP matched the request but sent no images — likely no storage "

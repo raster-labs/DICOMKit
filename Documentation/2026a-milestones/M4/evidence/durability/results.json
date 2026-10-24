@@ -1,0 +1,357 @@
+{
+  "passed": true,
+  "process_cases": 20,
+  "workshop_cases": 3,
+  "sop_instance_uid": "1.2.826.0.1.3680043.10.543.301.1.1",
+  "dataset_sha256": "c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963",
+  "records": [
+    {
+      "name": "store",
+      "exit": 0,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/fixtures/synthetic-0.dcm"
+      ]
+    },
+    {
+      "name": "find-before-restart",
+      "exit": 0,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "--level",
+        "study",
+        "--study-uid",
+        "1.2.826.0.1.3680043.10.543.301",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "identical-retransmission",
+      "exit": 0,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/fixtures/synthetic-0.dcm"
+      ]
+    },
+    {
+      "name": "conflicting-retransmission",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/conflict.dcm"
+      ]
+    },
+    {
+      "name": "exclusive-process-lock",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/store",
+        "--port",
+        "53202",
+        "--aet",
+        "M4SCP"
+      ]
+    },
+    {
+      "name": "find-after-restart",
+      "exit": 0,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "--level",
+        "study",
+        "--study-uid",
+        "1.2.826.0.1.3680043.10.543.301",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "get-after-restart",
+      "exit": 0,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "--method",
+        "c-get",
+        "--study-uid",
+        "1.2.826.0.1.3680043.10.543.301",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/get"
+      ]
+    },
+    {
+      "name": "move-after-restart",
+      "exit": 0,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "--method",
+        "c-move",
+        "--study-uid",
+        "1.2.826.0.1.3680043.10.543.301",
+        "--move-dest",
+        "M4DEST",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/unused"
+      ]
+    },
+    {
+      "name": "find-after-kill",
+      "exit": 0,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "53191",
+        "--aet",
+        "M4CLIENT",
+        "--called-aet",
+        "M4SCP",
+        "--timeout",
+        "5",
+        "--level",
+        "study",
+        "--study-uid",
+        "1.2.826.0.1.3680043.10.543.301",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "duplicate-uid",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/duplicate-uid",
+        "--port",
+        "53217",
+        "--aet",
+        "M4SCP"
+      ]
+    },
+    {
+      "name": "corrupt-file",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/corrupt-file",
+        "--port",
+        "53218",
+        "--aet",
+        "M4SCP"
+      ]
+    },
+    {
+      "name": "truncated-file",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/truncated-file",
+        "--port",
+        "53219",
+        "--aet",
+        "M4SCP"
+      ]
+    },
+    {
+      "name": "trailing-garbage",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/trailing-garbage",
+        "--port",
+        "53220",
+        "--aet",
+        "M4SCP"
+      ]
+    },
+    {
+      "name": "symbolic-link",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/symbolic-link",
+        "--port",
+        "53221",
+        "--aet",
+        "M4SCP"
+      ]
+    },
+    {
+      "name": "unreadable-file",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/unreadable-file",
+        "--port",
+        "53222",
+        "--aet",
+        "M4SCP"
+      ]
+    },
+    {
+      "name": "refuse-sqlite",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/backend-sqlite",
+        "--port",
+        "53223",
+        "--aet",
+        "M4SCP",
+        "--database",
+        "sqlite"
+      ]
+    },
+    {
+      "name": "refuse-postgres",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/backend-postgres",
+        "--port",
+        "53224",
+        "--aet",
+        "M4SCP",
+        "--database",
+        "postgres"
+      ]
+    },
+    {
+      "name": "refuse-postgresql",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/backend-postgresql",
+        "--port",
+        "53225",
+        "--aet",
+        "M4SCP",
+        "--database",
+        "postgresql"
+      ]
+    },
+    {
+      "name": "refuse-url-sqlite",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/url-test",
+        "--port",
+        "53226",
+        "--aet",
+        "M4SCP",
+        "--database-url",
+        "sqlite:///tmp/m4.db"
+      ]
+    },
+    {
+      "name": "refuse-url-postgres",
+      "exit": 1,
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/url-test",
+        "--port",
+        "53227",
+        "--aet",
+        "M4SCP",
+        "--database-url",
+        "postgres://localhost/m4"
+      ]
+    }
+  ],
+  "scope": "Completed store persists across SIGTERM and SIGKILL; no power-loss qualification",
+  "binaries": {
+    "dicom-server": "22dd4369252d563629692d2f8a12f1218e230e6aebcfb823b3fe209c468c64a0",
+    "dicom-send": "22c90ceadfce67e67c36a5375d9dff2718ed0b36cfec996be4b0c0a092a21f5d",
+    "dicom-query": "d5fb3e1b6bdcc7c5e6566056df2e4e622f72e84bb14a937456a5f32645aa9cf1",
+    "dicom-retrieve": "18ee1b4767aab515468b3a3c3a5dd659a67c5caaeb103ce6d9b57dd5ddbc4a77"
+  }
+}

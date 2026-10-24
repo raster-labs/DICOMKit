@@ -1,0 +1,32 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[1 / 61]
+[4 / 5] DICOMNetworkTests-product
+Build complete! (0.90 sec)
+Test Suite 'Selected tests' started at 2026-10-24 18:40:59.601.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-24 18:40:59.606.
+Test Suite 'QueryRetrieveCLIStandardTests' started at 2026-10-24 18:40:59.606.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRQueryHelpNamesStandardConcepts]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRQueryHelpNamesStandardConcepts]' passed (0.760 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRResumeExitsNonZeroWhenAStudyFails]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRResumeExitsNonZeroWhenAStudyFails]' passed (2.256 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveExitCodesForUsageAndTransportFailure]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveExitCodesForUsageAndTransportFailure]' passed (2.418 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveHelpNamesStandardConcepts]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveHelpNamesStandardConcepts]' passed (0.140 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceAwareDescriptionsPerPS34]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceAwareDescriptionsPerPS34]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34RetrieveTables2026a]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34RetrieveTables2026a]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34StoreAndFindTables2026a]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34StoreAndFindTables2026a]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testToolsUseTheSharedStatusTable]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testToolsUseTheSharedStatusTable]' passed (0.000 seconds).
+Test Suite 'QueryRetrieveCLIStandardTests' passed at 2026-10-24 18:41:05.184.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 5.576 (5.578) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-10-24 18:41:05.184.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 5.576 (5.578) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 18:41:05.184.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 5.576 (5.582) seconds

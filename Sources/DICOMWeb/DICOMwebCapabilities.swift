@@ -1,6 +1,6 @@
 import Foundation
 
-// NEMA-verified: 2026a, checked 2026-09-28 — media types and the 11 transfer syntaxes checked against PS3.18 2026a Table 8.7.3-2 and PS3.6 Table A-1 (all registered; A-1 names in the comments). This JSON document is DICOMKit's own: PS3.18 8.9 defines OPTIONS / returning a WADL Capabilities Description (Annex H), which is not implemented
+// NEMA-verified: 2026a, checked 2026-09-28 — media types and transfer syntaxes checked against PS3.18 2026a Table 8.7.3-2 and PS3.6 Table A-1. This type describes DICOMKit's private JSON document; the server separately implements OPTIONS / WADL (PS3.18 8.9, Annex H).
 /// DICOMweb server capabilities
 ///
 /// Describes the capabilities and supported features of a DICOMweb server.
@@ -101,7 +101,7 @@ extension DICOMwebCapabilities {
             delete: Bool = false,
             rendered: Bool = false,
             thumbnails: Bool = false,
-            bulkdata: Bool = true
+            bulkdata: Bool = false
         ) {
             self.wadoRS = wadoRS
             self.qidoRS = qidoRS
@@ -279,9 +279,11 @@ extension DICOMwebCapabilities {
             delete: true,
             rendered: false,
             thumbnails: false,
-            bulkdata: true
+            bulkdata: false
         ),
-        mediaTypes: MediaTypeSupport(),
+        mediaTypes: MediaTypeSupport(
+            retrieve: ["multipart/related; type=\"application/dicom\"", "application/dicom", "application/dicom+json"],
+            store: ["multipart/related; type=\"application/dicom\"", "application/dicom"], rendered: []),
         transferSyntaxes: [
             "1.2.840.10008.1.2.1",     // Explicit VR Little Endian
             "1.2.840.10008.1.2",       // Implicit VR Little Endian
@@ -305,7 +307,7 @@ extension DICOMwebCapabilities {
             maxRequestSize: 500 * 1024 * 1024, // 500 MB
             partialSuccess: true
         ),
-        authenticationMethods: [.none, .basic, .bearer, .apiKey]
+        authenticationMethods: [.none]
     )
     
     /// Minimal capabilities for simple servers

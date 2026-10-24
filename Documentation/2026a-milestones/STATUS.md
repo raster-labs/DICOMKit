@@ -1,9 +1,30 @@
 # DICOM 2026a milestone status
 
-Updated 24 October 2026. **M0–M3 item criteria are complete. Stop before M4.**
+Updated 24 October 2026. **M0–M4 item criteria are complete. Stop before M5.**
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
-commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repairs query safety and filters.
+commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repaired query safety and filters; M4 repaired service reliability.
+
+## Completed M4 items
+
+NET-05-A/B, NET-09-A/B and NET-10-A are complete. Fourteen criteria passed;
+one future bulk-data criterion is explicitly not applicable and remains a future
+gate. **512 unique focused tests**, **30 audit regressions**, three activated
+process-harness methods, 20 durability process cases, 30 capabilities HTTP/CLI
+cases, four cancellation CLI/four Workshop ViewModel cases, and three restarted
+server Workshop ViewModel cases passed. All initial focused-suite skips have
+subsequent passing evidence. These counts overlap in coverage and are not additive.
+
+The freshly linked packaged app passed seven GUI cases and seven equivalent CLI
+replays. Cancellation status/partial results/counts, WADO byte identity and
+restart query/retrieve integrity were checked. No full GUI console byte equality
+is claimed. See [M4 report](M4/REPORT.md), [acceptance](M4/acceptance.json),
+[verification](M4/verification.json) and [reproduction](M4/REPRODUCE.md).
+
+The server now defaults to filesystem restart reindex; unimplemented SQLite and
+PostgreSQL selections are refused with migration guidance. External PACS,
+other operating systems, power-loss durability and full IOD/codec qualification
+remain unexecuted. These local results do not substitute for exact-commit CI.
 
 ## Completed M3 items
 
@@ -95,14 +116,14 @@ These are audit-contract corrections; no product options or defaults changed.
 | M1 command/execution safety | 4 | Completed |
 | M2 attribute integrity and workflow datasets | 12 | Completed |
 | M3 query safety and filters | 11 | Completed (35 item criteria) |
-| M4 service reliability | 5 | Not started |
+| M4 service reliability | 5 | Completed (14 passed, 1 conditional not applicable) |
 | M5 remaining Studio contracts | 7 | Not started |
 | M6 print and printscp Workshop coverage | 2 | Not started |
 | M7 final qualification | 2 | Not started |
 | Other enhancements and dormant components | 22 | Deferred |
 
-Of the 68 original actions, **30 are completed, 16 active items remain pending,
-and 22 remain deferred**. 11 product bug-fix actions remain open. The
+Of the 68 original actions, **35 are completed, 11 active items remain pending,
+and 22 remain deferred**. Six product bug-fix actions remain open. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or
@@ -111,5 +132,5 @@ passing cached-binary tests are retained as historical evidence only; their
 equivalence to this source was not established. Preparation and gates for the
 later verification are in [M0/REPRODUCE.md](M0/REPRODUCE.md).
 
-M3 is the latest authorized milestone. Stop before M4; merging into main,
-releasing and beginning M4 require the user’s next instruction.
+M4 is the latest authorized milestone. Stop before M5; merging into main,
+releasing and beginning M5 require the user’s next instruction.

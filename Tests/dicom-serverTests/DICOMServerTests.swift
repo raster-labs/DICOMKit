@@ -185,25 +185,22 @@ final class DICOMServerTests: XCTestCase {
     
     // MARK: - Database Manager Tests
     
-    func test_DatabaseManager_SQLiteInitialization() throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let dbPath = tempDir.appendingPathComponent("test-\(UUID().uuidString).db").path
-        let connectionString = "sqlite://\(dbPath)"
-        
-        let database = try DatabaseManager(connectionString: connectionString)
-        XCTAssertNotNil(database)
-        
-        // Cleanup
-        try? FileManager.default.removeItem(atPath: dbPath)
+    func test_DatabaseManager_SQLiteRefusedWithDurableMigrationGuidance() {
+        XCTAssertThrowsError(try DatabaseManager(connectionString: "sqlite:///tmp/index.db")) { error in
+            XCTAssertTrue(String(describing: error).contains("SQLite is not implemented"))
+            XCTAssertTrue(String(describing: error).contains("--database filesystem"))
+        }
     }
-    
-    func test_DatabaseManager_PostgreSQLInitialization() throws {
-        let connectionString = "postgres://user:pass@localhost/testdb"
-        
-        let database = try DatabaseManager(connectionString: connectionString)
-        XCTAssertNotNil(database)
+
+    func test_DatabaseManager_PostgreSQLRefusedWithDurableMigrationGuidance() {
+        for value in ["postgres://localhost/testdb", "postgresql://localhost/testdb"] {
+            XCTAssertThrowsError(try DatabaseManager(connectionString: value)) { error in
+                XCTAssertTrue(String(describing: error).contains("PostgreSQL is not supported"))
+                XCTAssertTrue(String(describing: error).contains("--database filesystem"))
+            }
+        }
     }
-    
+
     func test_DatabaseManager_InvalidConnectionString() {
         let connectionString = "invalid://connection"
         
@@ -561,30 +558,31 @@ final class DICOMServerTests: XCTestCase {
         
         // Create test dataset
         var dataSet = DataSet()
-        dataSet.setString("STUDY_UID_123", for: .studyInstanceUID, vr: .UI)
-        dataSet.setString("SERIES_UID_456", for: .seriesInstanceUID, vr: .UI)
-        dataSet.setString("INSTANCE_UID_789", for: .sopInstanceUID, vr: .UI)
+        dataSet.setString("1.2.3.123", for: .studyInstanceUID, vr: .UI)
+        dataSet.setString("1.2.3.456", for: .seriesInstanceUID, vr: .UI)
+        dataSet.setString("1.2.3.789", for: .sopInstanceUID, vr: .UI)
+        dataSet.setString("1.2.840.10008.5.1.4.1.1.2", for: .sopClassUID, vr: .UI)
         
         // Store
         let filePath = try await storage.storeReceived(
             dataSetData: ServerProtocol.encodeDataSet(dataSet, transferSyntaxUID: "1.2.840.10008.1.2.1"),
-            sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "INSTANCE_UID_789",
+            sopClassUID: "1.2.840.10008.5.1.4.1.1.2", sopInstanceUID: "1.2.3.789",
             transferSyntaxUID: "1.2.840.10008.1.2.1", serverAETitle: "TEST_SCP", callingAETitle: nil
         ).filePath
         
         // Verify directory structure
-        XCTAssertTrue(filePath.contains("STUDY_UID_123"))
-        XCTAssertTrue(filePath.contains("SERIES_UID_456"))
-        XCTAssertTrue(filePath.hasSuffix("INSTANCE_UID_789.dcm"))
+        XCTAssertTrue(filePath.contains("1.2.3.123"))
+        XCTAssertTrue(filePath.contains("1.2.3.456"))
+        XCTAssertTrue(filePath.hasSuffix("1.2.3.789.dcm"))
         
         // Verify study directory exists
-        let studyDir = tempDir.appendingPathComponent("STUDY_UID_123").path
+        let studyDir = tempDir.appendingPathComponent("1.2.3.123").path
         var isDirectory: ObjCBool = false
         XCTAssertTrue(FileManager.default.fileExists(atPath: studyDir, isDirectory: &isDirectory))
         XCTAssertTrue(isDirectory.boolValue)
         
         // Verify series directory exists
-        let seriesDir = tempDir.appendingPathComponent("STUDY_UID_123/SERIES_UID_456").path
+        let seriesDir = tempDir.appendingPathComponent("1.2.3.123/1.2.3.456").path
         XCTAssertTrue(FileManager.default.fileExists(atPath: seriesDir, isDirectory: &isDirectory))
         XCTAssertTrue(isDirectory.boolValue)
         
