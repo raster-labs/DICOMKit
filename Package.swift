@@ -1430,7 +1430,10 @@ let package = Package(
             name: "DICOMStudioTests",
             // DICOMPrintKit: the viewer-presentation geometry and film-pixel
             // transform the print path bakes into marks.
-            dependencies: ["DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork"],
+            dependencies: [
+                "DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork", "dicom-mwl",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
             resources: [
                 // Small synthetic DICOM the print tests render (see
                 // StudioTestFixtures). PHI-free — generated, not patient data.

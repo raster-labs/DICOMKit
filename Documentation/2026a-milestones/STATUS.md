@@ -1,9 +1,17 @@
 # DICOM 2026a milestone status
 
-Updated 24 October 2026. **M0 is complete; M1 has not started.**
+Updated 24 October 2026. **M0 and M1 are complete; M2 has not started.**
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
-commit at the start of M0. Only audit scripts/tests, fixtures and documents changed.
+commit at the start of M0. M0 repaired audit infrastructure; M1 repairs command and execution safety.
+
+## Completed M1 items
+
+WS-FIX-01, WS-FIX-02, WS-FIX-05 and TB-FIX-04 are implemented and verified.
+151 Workshop tests, 488 Toolbox tests and 30 audit regressions passed. The fresh
+packaged app passed the recorded form/preview checks and synthetic tag execution;
+CLI/app outputs are byte-identical. See [M1 report](M1/REPORT.md) for exact evidence,
+API/history migration behavior, environment observations and qualification limits.
 
 ## Completed M0 items
 
@@ -56,7 +64,7 @@ These are audit-contract corrections; no product options or defaults changed.
 | Milestone | Items | Status |
 |---|---:|---|
 | M0 baseline and audits | 3 | Completed |
-| M1 command/execution safety | 4 | Not started |
+| M1 command/execution safety | 4 | Completed |
 | M2 attribute integrity and workflow datasets | 12 | Not started |
 | M3 query safety and filters | 11 | Not started |
 | M4 service reliability | 5 | Not started |
@@ -65,8 +73,8 @@ These are audit-contract corrections; no product options or defaults changed.
 | M7 final qualification | 2 | Not started |
 | Other enhancements and dormant components | 22 | Deferred |
 
-Of the 68 original actions, **3 are completed, 43 active items remain pending,
-and 22 remain deferred**. All 38 product bug-fix actions remain open. The
+Of the 68 original actions, **7 are completed, 39 active items remain pending,
+and 22 remain deferred**. 34 product bug-fix actions remain open. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or
@@ -75,5 +83,5 @@ passing cached-binary tests are retained as historical evidence only; their
 equivalence to this source was not established. Preparation and gates for the
 later verification are in [M0/REPRODUCE.md](M0/REPRODUCE.md).
 
-Stop here before M1. Push the M0 result on the existing milestone branch;
-merging into main, releasing and beginning M1 are not part of this milestone.
+Stop here before M2. Push M1 on the existing milestone branch. Merging into main,
+releasing and beginning M2 require the user’s next instruction.

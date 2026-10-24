@@ -4777,9 +4777,16 @@ public enum CommandBuilderHelpers: Sendable {
         parameterValues: [CLIParameterValue],
         parameterDefinitions: [CLIParameterDefinition]
     ) -> String {
-        var parts: [String] = [toolName]
+        // Catalog names may contain a fixed subcommand ("dicom-wado query").
+        // Split only these trusted prefixes; an arbitrary executable/path with
+        // spaces is still one literal token, not shell syntax to interpret.
+        let isCatalogPrefix = ToolCatalogHelpers.allTools().contains { $0.name == toolName }
+        var parts = isCatalogPrefix
+            ? toolName.split(whereSeparator: { $0.isWhitespace }).map { shellEscape(String($0)) }
+            : [shellEscape(toolName)]
+        let subcommandInsertionIndex = parts.count
         if let sub = subcommand, !sub.isEmpty {
-            parts.append(sub)
+            parts.append(shellEscape(sub))
         }
 
         // Some DIMSE tools use a positional host:port argument:
@@ -4867,7 +4874,7 @@ public enum CommandBuilderHelpers: Sendable {
                 if let mapped = def.cliMapping[value.stringValue], !mapped.isEmpty {
                     parts.append(mapped)
                 } else {
-                    parts.append("--\(value.stringValue)")
+                    parts.append(shellEscape("--\(value.stringValue)"))
                 }
             case .filePath, .outputPath:
                 if def.flag.isEmpty {
@@ -4886,13 +4893,12 @@ public enum CommandBuilderHelpers: Sendable {
                         deferredMappedTokens.removeAll()
                     }
                 } else {
-                    parts.append(def.flag)
-                    parts.append(shellEscape(value.stringValue))
+                    parts.append(contentsOf: optionTokens(flag: def.flag, value: value.stringValue))
                 }
             case .subcommand:
-                // Subcommands are positional — insert right after the tool name (index 1)
+                // Insert after the executable and any fixed catalog subcommand.
                 if !value.stringValue.isEmpty {
-                    parts.insert(value.stringValue, at: 1)
+                    parts.insert(shellEscape(value.stringValue), at: subcommandInsertionIndex)
                 }
             default:
                 if def.flag.isEmpty {
@@ -4917,12 +4923,10 @@ public enum CommandBuilderHelpers: Sendable {
                     // behaves identically when pasted into a terminal — and
                     // matches the in-app executor, which splits the same way.
                     for item in splitMultiValue(value.stringValue) {
-                        parts.append(def.flag)
-                        parts.append(shellEscape(item))
+                        parts.append(contentsOf: optionTokens(flag: def.flag, value: item))
                     }
                 } else {
-                    parts.append(def.flag)
-                    parts.append(shellEscape(value.stringValue))
+                    parts.append(contentsOf: optionTokens(flag: def.flag, value: value.stringValue))
                 }
             }
         }
@@ -4956,13 +4960,27 @@ public enum CommandBuilderHelpers: Sendable {
             .filter { !$0.isEmpty }
     }
 
-    /// Shell-escapes a file path.
-    public static func shellEscape(_ path: String) -> String {
-        if path.contains(" ") || path.contains("'") || path.contains("\"") {
-            let escaped = path.replacingOccurrences(of: "'", with: "'\\''")
-            return "'\(escaped)'"
+    /// Serializes a named option without letting a leading-hyphen value become
+    /// another option. Shell quoting alone cannot disambiguate ArgumentParser's
+    /// input: `--date '-20261024'` still needs `--date=-20261024`.
+    private static func optionTokens(flag: String, value: String) -> [String] {
+        if value.hasPrefix("-") {
+            return [shellEscape("\(flag)=\(value)")]
         }
-        return path
+        return [flag, shellEscape(value)]
+    }
+
+    /// Quotes one literal argument for POSIX-compatible shells, including zsh.
+    /// Preserve readable ASCII tokens; quote everything that could expand,
+    /// split or execute in a shell. An empty argument must remain an argument.
+    public static func shellEscape(_ value: String) -> String {
+        let safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@%+=:,./-"
+        // zsh expands an unquoted leading '=' through its command path (e.g.
+        // '=ls' becomes '/bin/ls'), even though '=' inside a token is literal.
+        if !value.isEmpty && !value.hasPrefix("=") && value.utf8.allSatisfy({ safe.utf8.contains($0) }) {
+            return value
+        }
+        return "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 
     /// Evaluates one visibility condition against the current values, falling back to

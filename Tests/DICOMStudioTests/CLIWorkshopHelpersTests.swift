@@ -819,7 +819,7 @@ struct CLIWorkshopHelpersTests {
             CLIParameterValue(parameterID: "patient-name", stringValue: "DOE^JOHN"),
         ]
         let cmd = CommandBuilderHelpers.buildCommand(toolName: "dicom-mwl", parameterValues: vals, parameterDefinitions: defs)
-        #expect(cmd.contains("--patient-name DOE^JOHN"))
+        #expect(cmd.contains("--patient-name 'DOE^JOHN'"))
     }
 
     @Test("buildCommand includes parameters without visibleWhen (always visible)")

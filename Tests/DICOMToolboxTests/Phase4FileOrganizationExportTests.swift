@@ -390,7 +390,7 @@ struct DicomPdfCommandTests {
         #expect(command.contains("dicom-pdf"))
         #expect(command.contains("report.pdf"))
         #expect(command.contains("--output report.dcm"))
-        #expect(command.contains("--patient-name SMITH^JOHN"))
+        #expect(command.contains("--patient-name 'SMITH^JOHN'"))
         #expect(command.contains("--patient-id 12345"))
     }
 
@@ -481,7 +481,7 @@ struct DicomImageMetadataTests {
             "patient-id": "67890",
             "modality": "SC",
         ])
-        #expect(command.contains("--patient-name DOE^JANE"))
+        #expect(command.contains("--patient-name 'DOE^JANE'"))
         #expect(command.contains("--patient-id 67890"))
         #expect(command.contains("--modality SC"))
     }
@@ -512,7 +512,7 @@ struct DicomImageMetadataTests {
         #expect(command.contains("dicom-image"))
         #expect(command.contains("photo.jpg"))
         #expect(command.contains("--output photo.dcm"))
-        #expect(command.contains("--patient-name DOE^JANE"))
+        #expect(command.contains("--patient-name 'DOE^JANE'"))
         #expect(command.contains("--patient-id 67890"))
         #expect(command.contains("--modality OT"))
         #expect(command.contains("--use-exif"))

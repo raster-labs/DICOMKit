@@ -16,7 +16,7 @@ struct DicomStudySubcommandTests {
         #expect(command.contains("dicom-study"))
         #expect(command.contains("organize"))
         #expect(command.contains("/data/studies"))
-        #expect(command.contains("--pattern {PatientName}/{StudyDate}"))
+        #expect(command.contains("--pattern '{PatientName}/{StudyDate}'"))
     }
 
     @Test("dicom-study organize with output directory")
@@ -218,7 +218,7 @@ struct CommandExecutionTests {
     func testSuccessfulExecution() async throws {
         let executor = CommandExecutor()
         let collector = OutputCollector()
-        let exitCode = try await executor.execute(command: "echo hello") { line in
+        let exitCode = try await executor.execute(invocation: .init(executable: "/bin/echo", arguments: ["hello"])) { line in
             collector.append(line)
         }
         #expect(exitCode == 0)
@@ -229,7 +229,7 @@ struct CommandExecutionTests {
     func testFailedExecution() async throws {
         let executor = CommandExecutor()
         let collector = OutputCollector()
-        let exitCode = try await executor.execute(command: "exit 42") { line in
+        let exitCode = try await executor.execute(invocation: .init(executable: "/usr/bin/python3", arguments: ["-c", "import sys; sys.exit(42)"])) { line in
             collector.append(line)
         }
         #expect(exitCode == 42)
@@ -239,7 +239,7 @@ struct CommandExecutionTests {
     func testStderrCapture() async throws {
         let executor = CommandExecutor()
         let collector = OutputCollector()
-        let exitCode = try await executor.execute(command: "echo error_msg >&2") { line in
+        let exitCode = try await executor.execute(invocation: .init(executable: "/usr/bin/python3", arguments: ["-c", "import sys; sys.stderr.write('error_msg')"])) { line in
             collector.append(line)
         }
         #expect(exitCode == 0)
@@ -250,7 +250,7 @@ struct CommandExecutionTests {
     func testMultilineOutput() async throws {
         let executor = CommandExecutor()
         let collector = OutputCollector()
-        let exitCode = try await executor.execute(command: "echo line1; echo line2; echo line3") { line in
+        let exitCode = try await executor.execute(invocation: .init(executable: "/usr/bin/printf", arguments: ["%s\\n", "line1", "line2", "line3"])) { line in
             collector.append(line)
         }
         #expect(exitCode == 0)
@@ -269,21 +269,26 @@ struct CommandExecutionTests {
             await executor.cancel()
         }
 
-        let exitCode = try await executor.execute(command: "sleep 60") { line in
-            collector.append(line)
-        }
-        // Terminated processes typically return non-zero
-        #expect(exitCode != 0)
+        do {
+            _ = try await executor.execute(invocation: .init(executable: "/bin/sleep", arguments: ["60"])) { line in
+                collector.append(line)
+            }
+            Issue.record("Cancelled command returned normally")
+        } catch is CancellationError { }
+        #expect(await executor.isRunning == false)
     }
 
     @Test("CommandExecutor handles command not found")
     func testCommandNotFound() async throws {
         let executor = CommandExecutor()
         let collector = OutputCollector()
-        let exitCode = try await executor.execute(command: "nonexistent_command_xyz_12345") { line in
-            collector.append(line)
-        }
-        #expect(exitCode != 0)
+        do {
+            _ = try await executor.execute(invocation: .init(executable: "nonexistent_command_xyz_12345", arguments: [])) { line in
+                collector.append(line)
+            }
+            Issue.record("Unknown executable returned normally")
+        } catch CommandExecutor.ExecutionError.executableNotFound { }
+        #expect(await executor.isRunning == false)
     }
 }
 

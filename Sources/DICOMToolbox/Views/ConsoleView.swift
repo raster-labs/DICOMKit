@@ -15,6 +15,7 @@ public struct ConsoleView: View {
 
     @State private var executor = CommandExecutor()
     @State private var showHistory = false
+    @State private var runningCommand: String?
 
     public init(
         toolID: String?,
@@ -47,7 +48,8 @@ public struct ConsoleView: View {
     }
 
     private var commandString: String {
-        commandBuilder?.buildCommand(values: parameterValues, subcommand: subcommand) ?? "Select a tool to begin"
+        if isRunning, let runningCommand { return runningCommand }
+        return commandBuilder?.buildCommand(values: parameterValues, subcommand: subcommand) ?? "Select a tool to begin"
     }
 
     private var isCommandValid: Bool {
@@ -102,9 +104,6 @@ public struct ConsoleView: View {
                         Button(action: {
                             Task {
                                 await executor.cancel()
-                                status = .completed(exitCode: -1)
-                                output += "\n[Cancelled]"
-                                onCommandCompleted?(false, "Command cancelled")
                             }
                         }) {
                             Label("Cancel", systemImage: "stop.fill")
@@ -172,12 +171,13 @@ public struct ConsoleView: View {
                         output = ""
                         status = .idle
                     }
-                    .disabled(output.isEmpty)
+                    .disabled(output.isEmpty || isRunning)
                     .accessibilityLabel("Clear console output")
                 }
             }
             .padding(8)
         }
+        .onDisappear { Task { await executor.cancel() } }
     }
 
     @ViewBuilder
@@ -202,76 +202,65 @@ public struct ConsoleView: View {
     // MARK: - Command Execution
 
     private func executeCommand() {
-        guard isCommandValid, let toolID else { return }
-        let cmd = commandString
-        output = ""
-        status = .running
+        guard !isRunning, isCommandValid, let toolID, let builder = commandBuilder else { return }
+        runInvocation(builder.buildInvocation(values: parameterValues, subcommand: subcommand),
+                      toolID: toolID, subcommand: subcommand, values: parameterValues)
+    }
 
+    private func runInvocation(_ invocation: CommandInvocation, toolID: String,
+                               subcommand: String?, values: [String: String]) {
+        output = ""
+        runningCommand = invocation.commandString
+        status = .running
         let entry = CommandHistoryEntry(
             toolID: toolID,
             subcommand: subcommand,
-            parameterValues: parameterValues,
-            commandString: cmd
+            parameterValues: values,
+            commandString: invocation.commandString,
+            invocation: invocation
         )
 
-        Task {
-            do {
-                let exitCode = try await executor.execute(command: cmd) { line in
-                    Task { @MainActor in
-                        output += line
-                    }
-                }
-                await MainActor.run {
-                    status = .completed(exitCode: exitCode)
-                    let completed = entry.withExitCode(exitCode)
-                    CommandHistory.addEntry(completed, to: &historyEntries)
-                    CommandHistory.save(historyEntries)
-                    onCommandCompleted?(exitCode == 0, exitCode == 0 ? "Command completed successfully" : "Command failed (exit code \(exitCode))")
-                }
-            } catch {
-                await MainActor.run {
-                    output += "\nError: \(error.localizedDescription)"
-                    status = .completed(exitCode: -1)
-                    let failed = entry.withExitCode(-1)
-                    CommandHistory.addEntry(failed, to: &historyEntries)
-                    CommandHistory.save(historyEntries)
-                    onCommandCompleted?(false, "Command error: \(error.localizedDescription)")
-                }
+        Task { @MainActor in
+            // Drain queued UI output before publishing the final status/history entry.
+            let (stream, continuation) = AsyncStream<String>.makeStream()
+            let outputTask = Task { @MainActor in
+                for await chunk in stream { output += chunk }
             }
+            let exitCode: Int
+            let message: String
+            do {
+                exitCode = try await executor.execute(invocation: invocation) { chunk in
+                    continuation.yield(chunk)
+                }
+                message = exitCode == 0 ? "Command completed successfully" : "Command failed (exit code \(exitCode))"
+            } catch is CancellationError {
+                exitCode = -1
+                message = "Command cancelled"
+                continuation.yield("\n[Cancelled]")
+            } catch {
+                exitCode = -1
+                message = "Command error: \(error.localizedDescription)"
+                continuation.yield("\nError: \(error.localizedDescription)")
+            }
+            continuation.finish()
+            await outputTask.value
+            status = .completed(exitCode: exitCode)
+            runningCommand = nil
+            CommandHistory.addEntry(entry.withExitCode(exitCode), to: &historyEntries)
+            CommandHistory.save(historyEntries)
+            onCommandCompleted?(exitCode == 0, message)
         }
     }
 
     private func rerunEntry(_ entry: CommandHistoryEntry) {
-        output = ""
-        status = .running
-        let cmd = entry.commandString
-
-        Task {
-            do {
-                let exitCode = try await executor.execute(command: cmd) { line in
-                    Task { @MainActor in
-                        output += line
-                    }
-                }
-                await MainActor.run {
-                    status = .completed(exitCode: exitCode)
-                    let rerun = CommandHistoryEntry(
-                        toolID: entry.toolID,
-                        subcommand: entry.subcommand,
-                        parameterValues: entry.parameterValues,
-                        commandString: cmd,
-                        exitCode: exitCode
-                    )
-                    CommandHistory.addEntry(rerun, to: &historyEntries)
-                    CommandHistory.save(historyEntries)
-                }
-            } catch {
-                await MainActor.run {
-                    output += "\nError: \(error.localizedDescription)"
-                    status = .completed(exitCode: -1)
-                }
-            }
+        guard !isRunning else { return }
+        guard let invocation = entry.replayInvocation else {
+            output = "This history entry has no verified argument list. Select the tool and parameters to run it again."
+            status = .completed(exitCode: -1)
+            return
         }
+        runInvocation(invocation, toolID: entry.toolID, subcommand: entry.subcommand,
+                      values: entry.parameterValues)
     }
 
     // MARK: - History Popover
@@ -306,7 +295,7 @@ public struct ConsoleView: View {
                                     .foregroundStyle(exitCode == 0 ? .green : .red)
                                     .font(.caption)
                             }
-                            Text(entry.commandString)
+                            Text(entry.displayCommand)
                                 .font(.system(.caption, design: .monospaced))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -314,11 +303,16 @@ public struct ConsoleView: View {
                         Text(entry.timestamp, style: .relative)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
+                        if entry.replayInvocation == nil {
+                            Text("Display only — rebuild parameters to run again")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
                         NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(entry.commandString, forType: .string)
+                        NSPasteboard.general.setString(entry.copyableCommand, forType: .string)
                     }
                 }
                 .frame(width: 450, height: 300)

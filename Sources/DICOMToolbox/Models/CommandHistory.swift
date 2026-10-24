@@ -11,6 +11,20 @@ public struct CommandHistoryEntry: Identifiable, Codable, Sendable {
     public let parameterValues: [String: String]
     /// The full command string that was generated
     public let commandString: String
+    /// Present for safe replay; older history contains display text only.
+    public let invocation: CommandInvocation?
+    public var displayCommand: String { invocation?.commandString ?? commandString }
+    /// Legacy text is never offered as executable script, including when copied from history.
+    public var copyableCommand: String {
+        if let invocation = replayInvocation { return invocation.commandString }
+        return (["# Legacy/unrecognized entry: rebuild in Toolbox before running."] +
+                commandString.components(separatedBy: .newlines).map { "# " + $0 }).joined(separator: "\n")
+    }
+    public var replayInvocation: CommandInvocation? {
+        guard let invocation, invocation.executable == toolID,
+              ToolRegistry.tool(withID: toolID) != nil else { return nil }
+        return invocation
+    }
     /// When the command was executed
     public let timestamp: Date
     /// The exit code (nil if not yet completed)
@@ -27,13 +41,15 @@ public struct CommandHistoryEntry: Identifiable, Codable, Sendable {
         parameterValues: [String: String],
         commandString: String,
         timestamp: Date = Date(),
-        exitCode: Int? = nil
+        exitCode: Int? = nil,
+        invocation: CommandInvocation? = nil
     ) {
         self.id = id
         self.toolID = toolID
         self.subcommand = subcommand
         self.parameterValues = parameterValues
-        self.commandString = commandString
+        self.commandString = invocation?.commandString ?? commandString
+        self.invocation = invocation
         self.timestamp = timestamp
         self.exitCode = exitCode
     }
@@ -47,7 +63,8 @@ public struct CommandHistoryEntry: Identifiable, Codable, Sendable {
             parameterValues: parameterValues,
             commandString: commandString,
             timestamp: timestamp,
-            exitCode: code
+            exitCode: code,
+            invocation: invocation
         )
     }
 }
@@ -97,7 +114,7 @@ public final class CommandHistory: Sendable {
         for entry in entries.reversed() {
             let dateFormatter = ISO8601DateFormatter()
             lines.append("# \(dateFormatter.string(from: entry.timestamp))")
-            lines.append(entry.commandString)
+            lines.append(entry.copyableCommand)
             lines.append("")
         }
         return lines.joined(separator: "\n")

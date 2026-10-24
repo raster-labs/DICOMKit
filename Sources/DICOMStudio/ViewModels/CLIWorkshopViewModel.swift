@@ -1173,13 +1173,18 @@ public final class CLIWorkshopViewModel {
         // the shared DICOMweb client, but the dicom-wado CLI has no basic-auth
         // flags (--token is Bearer-only) — the state is not CLI-representable,
         // so the preview must not present as paste-runnable.
-        if ["dicom-qido", "dicom-wado", "dicom-stow", "dicom-ups"].contains(tool.name) {
+        // Catalog command names include subcommands (e.g. "dicom-wado query");
+        // authentication capability belongs to the stable tool identity.
+        if ["dicom-qido", "dicom-wado", "dicom-stow", "dicom-ups"].contains(tool.id) {
             let rawAuth = values.first(where: { $0.parameterID == "auth" })?.stringValue ?? ""
             let effectiveAuth = rawAuth.isEmpty
                 ? (parameterDefinitions.first(where: { $0.id == "auth" })?.defaultValue ?? "")
                 : rawAuth
             if effectiveAuth == "basic" {
-                preview = "# in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)\n# " + preview
+                // A quoted argument can contain a newline. Comment every line
+                // so copying this app-only preview cannot run a trailing line.
+                let commented = preview.components(separatedBy: "\n").map { "# " + $0 }.joined(separator: "\n")
+                preview = "# in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)\n" + commented
             }
         }
         commandPreview = preview

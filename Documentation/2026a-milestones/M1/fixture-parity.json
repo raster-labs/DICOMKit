@@ -1,0 +1,21 @@
+{
+  "app_sha256": "7d0d089513b42989d8b4f18508ef2e3b3946289e32f1611628965b59698abfe0",
+  "cli_sha256": "7d0d089513b42989d8b4f18508ef2e3b3946289e32f1611628965b59698abfe0",
+  "byte_identical": true,
+  "size": 382,
+  "input_unchanged": true,
+  "attributes": {
+    "0008,0008": {
+      "vr": "CS",
+      "value": "ORIGINAL\\PRIMARY"
+    },
+    "0008,1030": {
+      "vr": "LO",
+      "value": "M1 $HOME (literal)"
+    },
+    "0010,0010": {
+      "vr": "PN",
+      "value": "DOE*"
+    }
+  }
+}

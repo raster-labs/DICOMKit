@@ -1,0 +1,103 @@
+{
+  "milestone": "M1",
+  "date": "2026-10-24",
+  "branch": "codex/dicom-2026a-milestones",
+  "base_commit": "f839ca310555c314a21476d98e1d6ff4616446e7",
+  "scope": [
+    "WS-FIX-01",
+    "WS-FIX-02",
+    "WS-FIX-05",
+    "TB-FIX-04"
+  ],
+  "status": "Local implementation and verification completed",
+  "toolchain": {
+    "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.0\nBuild version 27A266a"
+  },
+  "source_manifest_digest_sha256": "e1e8c5be10b39c5a5a3ed84c9e6164db74fceac2730b07a716912861ce4cbb17",
+  "source_manifest_file_count": 1865,
+  "changed_source_sha256": {
+    ".github/workflows/command-safety.yml": "6db0a9e63055ab7a022d0244c9260b799c4f351c371a1aec4dcf5819d2a91a56",
+    "Package.swift": "7607297873c58f8f12e3ed1e52af088f1cd52b37d57fcc3a16e8b4656cd6dc7e",
+    "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift": "204037b5dcf363c2ae346a1bfb2ae2dc07433f259f1b4a6043ce413563ab2d82",
+    "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift": "d103c6d72f451188f5c041939451849a183810dd6229679277dadc5eecc139f3",
+    "Sources/DICOMToolbox/Models/CommandBuilder.swift": "feaa3630516f75e779022cf4143a6e615a8e2cdd3b609c3ea5ed22fa1ec697c6",
+    "Sources/DICOMToolbox/Models/CommandExecutor.swift": "81defcf32481f6abe2e9388252a7b862aa087cde73cbd11801f7141f08ff6e8e",
+    "Sources/DICOMToolbox/Models/CommandHistory.swift": "cbd4e7e5a7a60b884acec8ab5f4d17d71a45e04e8dca0b45d732f7377b4fbe61",
+    "Sources/DICOMToolbox/Views/ConsoleView.swift": "b1a118c543eb53a245413e63e3d95c383dabd824818469eb7adc83cba1bc9674",
+    "Tests/DICOMStudioTests/CLIWorkshopBasicAuthPreviewTests.swift": "7ba435724383afdebf9a7f4ca135ca7e0855a521da5f2a92256328f26762455e",
+    "Tests/DICOMStudioTests/CLIWorkshopHelpersTests.swift": "2c67e097a040bc9a18f23b83f08afeaa579f88c21e0d2c93132678a38ca8bdf7",
+    "Tests/DICOMStudioTests/WorkshopShellArgumentSafetyTests.swift": "33453654ab3c3b6d215aa2a6d8df8a530754713c448474f89959306051bdbacb",
+    "Tests/DICOMToolboxTests/CommandArgumentSafetyTests.swift": "711ba8ac83cafdd8d407257fe01caf420482c4adf39b5721d61d2fd711f6acff",
+    "Tests/DICOMToolboxTests/DICOMToolboxTests.swift": "41785d3e5ef16c2a74bc576475eb076ed379276710c73d7318aac71c44d5dff8",
+    "Tests/DICOMToolboxTests/Phase4FileOrganizationExportTests.swift": "c40782fd68a9e2f88e60f5a404515ceb90204e1b4a5ddf86cf8e36492fa5e896",
+    "Tests/DICOMToolboxTests/Phase5NetworkOperationsTests.swift": "75ab14cbabfa83cee43289c10b6d2c74991644824daffb72e03feb2765c5e656",
+    "Tests/DICOMToolboxTests/Phase6AutomationTests.swift": "6d85e9c790b9bdd35cd0750180ecbb95d550e2016937a7aa289b7a489a945f4f"
+  },
+  "dependency_lock_sha256": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+  "build": {
+    "studio_app": "Passed: xcodebuild DICOMStudio scheme Debug/macOS; CODE_SIGNING_ALLOWED=NO; cross-import overlays enabled. Incremental final verification succeeded without recompiling or relinking the UI-tested app.",
+    "cli": "Passed: fresh dicom-tags product and dicom-mwl dependency of DICOMStudioTests.",
+    "app_info": "2.2.12",
+    "app_file_manifest_digest_sha256": "68bb203f2a22030ff78a4c5c0fc954de3e2c979736b5500d30360d42e0cbb65b",
+    "app_files_sha256": {
+      "Contents/Info.plist": "0dec4d6bf0223b722d8ed4698df224d0daef73ce2242ba8b73e495753dd41474",
+      "Contents/MacOS/DICOMStudio": "363913fcf2c48e8f6993a5064acacd696557b3068bedad2fd37dfa739b218624",
+      "Contents/MacOS/DICOMStudio.debug.dylib": "c501955c7b8d09b11cd31ab3eeea0587bd1f6102a79fff54dd71ecfc91f3f742",
+      "Contents/MacOS/__preview.dylib": "0936b7cbfe55d70534b884ea295d74a6857be67f78db4f88e410d6c95a0d4c3d",
+      "Contents/PkgInfo": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "Contents/Resources/AppIcon.icns": "d8c931b086cb5682398d1953f8f019090d77dd904975450f12e65d935e941468",
+      "Contents/Resources/Assets.car": "b2a13d3277174a88915e8d33a39727dc41335c33ea1da2e22d313d1a1745c1d1",
+      "Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Info.plist": "4b32cf440e64cbeddaf6c81c7f64c94b9b69446bbf282a183d0cc25cfd28901b",
+      "Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Resources/DataElementDictionary.txt": "76686cbcc2007e4e128cb880636ab062d948fdf9884d8e19549c76a9ebd4f919",
+      "Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Info.plist": "f2a1bdce8c9ac48cae12e244a1faee7c4eb4ce397e9364de54e9460a43c6395c",
+      "Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Resources/FrameRender.metal.txt": "1ca5889c9ca61321bb27e323d1c80f8532a4c1d3802c19b10f87748de092afa7",
+      "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Info.plist": "b005991c19f79fc04dd7f4d913ced59b182de485bf0c644bc6419c500a0f1543",
+      "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Resources/default.metallib": "659aa6f38c5ef771eba04b683dd950daa81cdfb94f6104d0b3aaa9ca3cca288b"
+    },
+    "cli_sha256": {
+      "dicom-tags": "f3e06154264ec78db55aa2653a16bac742443a296b03a5c970839738ec8c29a3",
+      "dicom-mwl": "525cf9d879e01c7802a8faa68bf1cd192d4e2c402672e53d1a30c3b5c10024a5"
+    }
+  },
+  "tests": [
+    {
+      "name": "Focused Workshop and existing parity tests",
+      "result": "Passed",
+      "tests": 151,
+      "suites": 4,
+      "log": "studio-tests.log"
+    },
+    {
+      "name": "Complete Toolbox package tests",
+      "result": "Passed",
+      "tests": 488,
+      "suites": 82,
+      "log": "toolbox-tests.log"
+    },
+    {
+      "name": "M0 audit regressions",
+      "result": "Passed",
+      "tests": 30,
+      "log": "audit-regression.log"
+    }
+  ],
+  "ui_evidence": "ui-verification.json",
+  "fixture_evidence": "fixture-parity.json",
+  "review": "Independent source review resolved command-prefix quoting, zsh leading-equals expansion, legacy-history copy safety, output buffering, descendant cancellation and process-group reuse hazards.",
+  "limitations": [
+    "Independent MWL peer matching/interoperability (M7)",
+    "Physical printing (later print/qualification milestones)",
+    "Linux runtime qualification",
+    "The synthetic fixture is not a complete clinical IOD.",
+    "No standalone Toolbox GUI runtime check; actual executor and SwiftUI source compilation passed.",
+    "Documents-path file access was not qualified; temporary-fixture packaged execution passed."
+  ],
+  "log_sha256": {
+    "studio-tests.log": "f5e230d73f7a64f1642a2f0387d03a738638aee57235fa88c5c29e83a9ff99c1",
+    "toolbox-tests.log": "40b68b0028dc5e662889816ac2abd98dd094253bce20c7e17641fe6d8f8115d2",
+    "audit-regression.log": "1abc526e1e9b78bf7526461622efb4a0e9623f6288822a8950c63579825cc50c"
+  },
+  "remote_verification": "Check the pushed implementation commit in the Command safety GitHub Actions workflow; this record makes no remote CI claim.",
+  "manifest_digest_format": "SHA-256 of UTF-8 concatenation of sorted relative path + NUL + lowercase file SHA-256 + LF for each entry. Source entries are tracked Sources/Tests/Package.swift/Package.resolved plus new source/test files; app entries are every regular bundle file."
+}
