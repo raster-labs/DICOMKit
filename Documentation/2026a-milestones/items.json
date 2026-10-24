@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source_review_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
   "branch": "codex/dicom-2026a-milestones",
-  "authorized_current_milestone": "M6",
+  "authorized_current_milestone": "M7",
   "stop_before": "Merge into main (user retains merge authority)",
   "counts": {
     "all": 68,
@@ -229,11 +229,11 @@
       "acceptance_criteria": [
         {
           "id": "A-03-AC01",
-          "assertion": "Decode the recorded ISO_IR 100 PN bytes as Müller^Jörg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
+          "assertion": "Decode the recorded ISO_IR 100 PN bytes as M\u00fcller^J\u00f6rg, without replacing characters or displaying them as undecodable binary in a textual metadata view.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
-          "verification_detail": "Actual app metadata view reads Müller^Jörg from ISO_IR 100; Core, discovery and compatible-copy controls pass."
+          "verification_detail": "Actual app metadata view reads M\u00fcller^J\u00f6rg from ISO_IR 100; Core, discovery and compatible-copy controls pass."
         },
         {
           "id": "A-03-AC02",
@@ -241,7 +241,7 @@
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
-          "verification_detail": "CLI/app Unicode edits emit ISO_IR 192 and exact Müller^患者 UTF-8 bytes."
+          "verification_detail": "CLI/app Unicode edits emit ISO_IR 192 and exact M\u00fcller^\u60a3\u8005 UTF-8 bytes."
         },
         {
           "id": "A-03-AC03",
@@ -263,7 +263,7 @@
       "baseline_evidence_status": "Original cached-CLI reproduction plus current-source review; see observation-level provenance",
       "baseline_observations": [
         "Actual output contains UTF-8 text but has no (0008,0005) declaration.",
-        "PatientName displayed as raw hexadecimal rather than Müller^Jörg."
+        "PatientName displayed as raw hexadecimal rather than M\u00fcller^J\u00f6rg."
       ],
       "m0_disposition": "Known open product finding; M0 does not repair or waive it, regardless of literal-audit exit status.",
       "verification": {
@@ -964,7 +964,7 @@
       "acceptance_criteria": [
         {
           "id": "NET-02-A-AC01",
-          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient’s series.",
+          "assertion": "Store two studies for different synthetic patients. /series?PatientID=NO_MATCH returns []; a matching patient returns only that patient\u2019s series.",
           "applicability": "Required when the stated condition applies",
           "reason": "See M3/acceptance.json for exact executed checks and applicability limits.",
           "result": "Passed",
@@ -2542,7 +2542,7 @@
         },
         {
           "id": "NET-06-B-AC02",
-          "assertion": "Test valid truncated precision allowed by the attribute’s usage, and separately reject invalid components and separated ISO-only values.",
+          "assertion": "Test valid truncated precision allowed by the attribute\u2019s usage, and separately reject invalid components and separated ISO-only values.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
@@ -3256,7 +3256,7 @@
           "id": "WS-FIX-04-AC01",
           "assertion": "If implemented: one-command and multi-command synthetic scripts match CLI outputs, file effects and exit propagation for supported tools.",
           "applicability": "Not applicable to selected correction",
-          "reason": "Live dispatcher enhancement is excluded; use AC02–AC04.",
+          "reason": "Live dispatcher enhancement is excluded; use AC02\u2013AC04.",
           "result": "Not applicable",
           "evidence": [
             "M5/acceptance.json",
@@ -5275,7 +5275,7 @@
       "milestone": "M7",
       "dependency_item_ids": [],
       "scope_decision": "Preparation begins in M0 and per-milestone evidence is collected throughout; final closure belongs only to M7.",
-      "status": "Not started",
+      "status": "In progress",
       "source_locations": [
         {
           "path": "Package.swift"
@@ -5290,21 +5290,24 @@
           "assertion": "No zero-test suite is marked passed.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Every claimed pass has nonzero executed evidence; zero-test framework notices are not counted. Optional fixture and opt-in harness skips remain explicit; separate harness activation is identified where claimed."
         },
         {
           "id": "QUAL-01-AC02",
           "assertion": "CLI/app source and binary identities are recorded.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Frozen source, lockfile/build inputs, all41 CLI binaries, test executables and final signed app identities are recorded."
         },
         {
           "id": "QUAL-01-AC03",
           "assertion": "Meaningful option combinations and all claimed subcommands have results; skips and unavailable backends remain explicit.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Blocked",
+          "verification_detail": "147 CLI routes, full Studio tests and process/VM campaigns pass; final native packaged UI groups remain unexecuted while the Mac is locked."
         }
       ],
       "baseline_evidence_status": "Not executed in the initial review",
@@ -5321,7 +5324,7 @@
       "milestone": "M7",
       "dependency_item_ids": [],
       "scope_decision": "Prepare independent peers early. Test existing retained capabilities and the two print roles; do not add other enhancements.",
-      "status": "Not started",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Documentation/ConformanceStatement.md"
@@ -5333,21 +5336,24 @@
           "assertion": "Independent expected datasets and network exchanges validate matching, return keys, cancellation, status and references.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Independent network34 and print24 cases establish the documented matching, return-key, cancellation/status/reference and print paths. One DCMTK peer limitation remains separate."
         },
         {
           "id": "QUAL-02-AC02",
           "assertion": "Claimed codecs and TLS profiles have actual supported-platform/runtime evidence.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Bounded macOS runtime evidence:78 codec passes,10 explicit unsupported refusals,two verified strict-precision interoperability limits,and8 TLS cases. Complete TLS profiles/other platforms/physical devices are expressly unqualified, not claimed passed."
         },
         {
           "id": "QUAL-02-AC03",
           "assertion": "Unsupported capabilities remain explicitly excluded.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "verification_detail": "Conformance statement distinguishes implemented, refused, limited and unqualified capabilities;22 deferred items remain unchanged."
         }
       ],
       "baseline_evidence_status": "External interoperability unexecuted",
@@ -5357,18 +5363,18 @@
     }
   ],
   "current_summary": {
-    "completed": 42,
-    "not_started": 2,
+    "completed": 43,
+    "not_started": 0,
     "deferred": 22,
     "M0": "Completed",
     "M1": "Completed",
     "M2": "Completed",
     "M3": "Completed",
     "M4": "Completed",
-    "in_progress": 2,
+    "in_progress": 3,
     "M5": "Completed",
     "M6": "In progress",
-    "M7": "Not started"
+    "M7": "In progress \u2014 final native GUI blocked"
   },
   "baseline_caveats": [
     {
@@ -5385,5 +5391,14 @@
   "authorized_remaining_milestones": [
     "M6",
     "M7"
+  ],
+  "qualification_caveats": [
+    {
+      "id": "M7-COV-01",
+      "finding": "dicom-script Workshop defaults --dry-run to true, while the CLI default is false.",
+      "classification": "Real default difference, intentional M5 safety/presentation decision; CLI flags are not specified by DICOM.",
+      "handling": "Keep the literal static-audit finding visible. Runtime parity compares explicit effective arguments; no product change or new enhancement is inferred.",
+      "not_a_claim": "Identical defaults for all CLI and Workshop controls"
+    }
   ]
 }

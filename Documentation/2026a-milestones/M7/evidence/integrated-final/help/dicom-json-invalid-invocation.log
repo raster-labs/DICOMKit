@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input file (DICOM or JSON)
+Usage: dicom-json <input> [--output <output>] [--reverse] [--pretty] [--no-sort-keys] [--include-empty] [--no-include-empty] [--inline-threshold <inline-threshold>] [--bulk-data-url <bulk-data-url>] [--metadata-only] [--filter-tag <filter-tag> ...] [--verbose]
+  See 'dicom-json --help' for more information.

@@ -1,0 +1,3 @@
+Error: Provide UIDs as arguments or use --file to validate a DICOM file
+Usage: dicom-uid validate [<uids> ...] [--file <file>] [--check-registry] [--json]
+  See 'dicom-uid validate --help' for more information.

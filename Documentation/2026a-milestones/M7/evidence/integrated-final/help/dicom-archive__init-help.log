@@ -1,0 +1,10 @@
+OVERVIEW: Initialize a new DICOM archive
+
+USAGE: dicom-archive init --path <path> [--force]
+
+OPTIONS:
+  -p, --path <path>       Path for the new archive directory
+  --force                 Overwrite existing archive
+  --version               Show the version.
+  -h, --help              Show help information.
+

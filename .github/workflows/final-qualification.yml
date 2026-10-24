@@ -1,0 +1,58 @@
+name: Final qualification contracts
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Sources/**'
+      - 'Tests/**'
+      - 'Scripts/verify_m7*'
+      - 'Package.*'
+      - '.github/workflows/final-qualification.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualification:
+    name: Integrated command inventory and M7 regressions
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Select toolchain
+        run: bash .github/scripts/select-swift-toolchain.sh 27.0
+      - name: Build all CLI tools and check every command route
+        run: |
+          mkdir -p m7-ci
+          swift build --disable-automatic-resolution -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays > m7-ci/build.log 2>&1
+          bin_dir="$(swift build --disable-automatic-resolution --show-bin-path)"
+          echo "DICOMKIT_TEST_BIN_DIR=$bin_dir" >> "$GITHUB_ENV"
+          python3 -B Scripts/verify_m7_help_inventory.py --bin-dir "$bin_dir" --output-dir m7-ci/help
+      - name: Verify corrected JPEG process, diagnostics and TLS refusal
+        shell: bash
+        run: |
+          set -euo pipefail
+          common=(--disable-automatic-resolution -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays)
+          swift test "${common[@]}" --test-product DICOMCoreTests --filter 'M7JPEGExtendedProcessTests|M7NativePixelDataVRTests|JLICodec|JPEGInterchangeFormat|TransferSyntaxConverter' > m7-ci/core.log 2>&1
+          grep -F 'Suite "M7 JPEG Extended 8-bit coding process" passed' m7-ci/core.log
+          swift test "${common[@]}" --test-product DICOMKitTests --filter ConversionDiagnosticsTests > m7-ci/diagnostics.log 2>&1
+          grep -F "Test Suite 'ConversionDiagnosticsTests' passed" m7-ci/diagnostics.log
+          swift test "${common[@]}" --test-product dicom-serverTests --filter M7ServerTLSRefusalTests > m7-ci/server.log 2>&1
+          grep -F "Test Suite 'M7ServerTLSRefusalTests' passed" m7-ci/server.log
+      - name: Verify full Studio test product with actual CLI binaries
+        run: |
+          swift test --disable-automatic-resolution -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --test-product DICOMStudioTests > m7-ci/studio.log 2>&1
+          grep -E 'Test run with [1-9][0-9]* tests .*passed' m7-ci/studio.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-qualification-contracts-${{ github.sha }}
+          path: m7-ci/
+# Independent peers, physical output and native packaged GUI have their own
+# evidence. A green test-only workflow does not claim those gates passed.

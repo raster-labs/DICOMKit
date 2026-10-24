@@ -66,4 +66,8 @@ Packaged Workshop controls, visible values, native file access, preview/copy/imp
 
 Existing SCP compatibility tolerance accepts color Planar Configuration 0 with a diagnostic; it does not prove strict PS3.3 C.13-5 conformance. The negative independent case uses value 2 and outbound color requires value 1. The finite suite does not exhaust every retry, malformed request, codec, layout or parameter combination. No physical printer/film, CUPS dispatch to a real queue, calibration, density measurement, diagnostic image quality, complete IOD or clinical-deployment claim is made.
 
-The standards basis is frozen DICOM 2026a: PS3.4 Annex H; PS3.7 normalized DIMSE; PS3.3 C.13/C.11.4; PS3.5/PS3.8 encoding and transport. [Standard provenance](evidence/standard-provenance.json) identifies the exact source hashes. This is a local in-progress M6 checkpoint; exact-head remote CI, M7, merge and release are not asserted.
+The standards basis is frozen DICOM 2026a: PS3.4 Annex H; PS3.7 normalized DIMSE; PS3.3 C.13/C.11.4; PS3.5/PS3.8 encoding and transport. [Standard provenance](evidence/standard-provenance.json) identifies the exact source hashes. All seven remote CI workflows passed for M6 commit `3ee9af8a945b76aee72f0062ffb09139bb04d8a9`; see [remote verification](remote-verification.json). M6 remains in progress because native GUI acceptance is blocked. M7 completion, merge and release are not asserted.
+
+## Final M7 descendant recheck
+
+The final repaired M7 source re-runs all M6 focused gates: 933 passes and one ordinary opt-in skip (the legacy DCMTK synthetic fixture now runs successfully). Independent print again records 24 passes and one peer limitation; 25 CLI/VM comparisons also pass with final binary identities. See [M7 evidence](../M7/verification.json). These later results do not rewrite the historical M6 checkpoint or close its native GUI criteria.

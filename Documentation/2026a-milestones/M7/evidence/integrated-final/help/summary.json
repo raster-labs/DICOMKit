@@ -1,0 +1,3536 @@
+{
+  "tools": 41,
+  "routes": 147,
+  "passed": true,
+  "records": [
+    {
+      "tool": "dicom-3d",
+      "subcommands": [],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "mpr"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "mpr",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "mpr",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "mip"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "mip",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "mip",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "minip"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "minip",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "minip",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "average"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "average",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "average",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "surface"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "surface",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "surface",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "export"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "export",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "export",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "encode-volume"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "encode-volume",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "encode-volume",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "decode-volume"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "decode-volume",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "decode-volume",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "inspect"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "inspect",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "inspect",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-3d",
+      "subcommands": [
+        "backends"
+      ],
+      "binary_sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "backends",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+          "backends",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "classify"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "classify",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "classify",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "segment"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "segment",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "segment",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "detect"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "detect",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "detect",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "enhance"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "enhance",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "enhance",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "batch"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "batch",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "batch",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "registry"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "registry",
+        "add"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "add",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "add",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "registry",
+        "list"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "list",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "list",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "registry",
+        "remove"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "remove",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "remove",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "registry",
+        "search"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "search",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "search",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "registry",
+        "info"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "info",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "info",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-ai",
+      "subcommands": [
+        "registry",
+        "clear"
+      ],
+      "binary_sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "clear",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+          "registry",
+          "clear",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-anon",
+      "subcommands": [],
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [
+        "init"
+      ],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "init",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "init",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [
+        "import"
+      ],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "import",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "import",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [
+        "query"
+      ],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "query",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "query",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [
+        "list"
+      ],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "list",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "list",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [
+        "export"
+      ],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "export",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "export",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [
+        "check"
+      ],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "check",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "check",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-archive",
+      "subcommands": [
+        "stats"
+      ],
+      "binary_sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "stats",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+          "stats",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-compress",
+      "subcommands": [],
+      "binary_sha256": "bd207c509ffe89388c48a2f5517678e074339b406942be19237c611d5ec3d947",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-compress",
+      "subcommands": [
+        "compress"
+      ],
+      "binary_sha256": "bd207c509ffe89388c48a2f5517678e074339b406942be19237c611d5ec3d947",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "compress",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "compress",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-compress",
+      "subcommands": [
+        "decompress"
+      ],
+      "binary_sha256": "bd207c509ffe89388c48a2f5517678e074339b406942be19237c611d5ec3d947",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "decompress",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "decompress",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-compress",
+      "subcommands": [
+        "info"
+      ],
+      "binary_sha256": "bd207c509ffe89388c48a2f5517678e074339b406942be19237c611d5ec3d947",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "info",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "info",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-compress",
+      "subcommands": [
+        "batch"
+      ],
+      "binary_sha256": "bd207c509ffe89388c48a2f5517678e074339b406942be19237c611d5ec3d947",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "batch",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "batch",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-compress",
+      "subcommands": [
+        "backends"
+      ],
+      "binary_sha256": "bd207c509ffe89388c48a2f5517678e074339b406942be19237c611d5ec3d947",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "backends",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+          "backends",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-convert",
+      "subcommands": [],
+      "binary_sha256": "669fd8101413db95d73d58a503c6fcab05ab159b9b502b5d8b0352716181f37f",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-dcmdir",
+      "subcommands": [],
+      "binary_sha256": "817062932004d46ad730f676e1d6f0a84180e4ccb2350fd2bd24556160ad4d74",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-dcmdir",
+      "subcommands": [
+        "create"
+      ],
+      "binary_sha256": "817062932004d46ad730f676e1d6f0a84180e4ccb2350fd2bd24556160ad4d74",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "create",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "create",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-dcmdir",
+      "subcommands": [
+        "validate"
+      ],
+      "binary_sha256": "817062932004d46ad730f676e1d6f0a84180e4ccb2350fd2bd24556160ad4d74",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "validate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "validate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-dcmdir",
+      "subcommands": [
+        "dump"
+      ],
+      "binary_sha256": "817062932004d46ad730f676e1d6f0a84180e4ccb2350fd2bd24556160ad4d74",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "dump",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "dump",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-dcmdir",
+      "subcommands": [
+        "update"
+      ],
+      "binary_sha256": "817062932004d46ad730f676e1d6f0a84180e4ccb2350fd2bd24556160ad4d74",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "update",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+          "update",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-diff",
+      "subcommands": [],
+      "binary_sha256": "fc9325dc2dcc3cd63c14737c2ad595edad45a3efa4ee9d7f44826f7aa074915d",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-diff",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-diff",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-dump",
+      "subcommands": [],
+      "binary_sha256": "4ede7f8141a876b20aede6868eb2f0af667e39cdc6afd8ea35b827825e9a08b2",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dump",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dump",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-echo",
+      "subcommands": [],
+      "binary_sha256": "a689e087fc9581c6a7ccbe55472b7ef4545507e6107219d03f944820581dc46b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-echo",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-echo",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-export",
+      "subcommands": [],
+      "binary_sha256": "6d8416e7964e9b804d08c4b5ca376b68dafb61bc80e8e17d3fbc3edaad999bb4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-export",
+      "subcommands": [
+        "single"
+      ],
+      "binary_sha256": "6d8416e7964e9b804d08c4b5ca376b68dafb61bc80e8e17d3fbc3edaad999bb4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "single",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "single",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-export",
+      "subcommands": [
+        "contact-sheet"
+      ],
+      "binary_sha256": "6d8416e7964e9b804d08c4b5ca376b68dafb61bc80e8e17d3fbc3edaad999bb4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "contact-sheet",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "contact-sheet",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-export",
+      "subcommands": [
+        "animate"
+      ],
+      "binary_sha256": "6d8416e7964e9b804d08c4b5ca376b68dafb61bc80e8e17d3fbc3edaad999bb4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "animate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "animate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-export",
+      "subcommands": [
+        "bulk"
+      ],
+      "binary_sha256": "6d8416e7964e9b804d08c4b5ca376b68dafb61bc80e8e17d3fbc3edaad999bb4",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "bulk",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+          "bulk",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [
+        "dicom-to-hl7"
+      ],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "dicom-to-hl7",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "dicom-to-hl7",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [
+        "hl7-to-dicom"
+      ],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "hl7-to-dicom",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "hl7-to-dicom",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [
+        "dicom-to-fhir"
+      ],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "dicom-to-fhir",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "dicom-to-fhir",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [
+        "fhir-to-dicom"
+      ],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "fhir-to-dicom",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "fhir-to-dicom",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [
+        "batch"
+      ],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "batch",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "batch",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [
+        "listen"
+      ],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "listen",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "listen",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-gateway",
+      "subcommands": [
+        "forward"
+      ],
+      "binary_sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "forward",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+          "forward",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-image",
+      "subcommands": [],
+      "binary_sha256": "946913607dff13acf17d94ca98e64d5cd4023f4e19f5e8633e4f1f5f107ddb24",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-image",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-image",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-info",
+      "subcommands": [],
+      "binary_sha256": "feec778109d2d5c531d2e4752a082051c982adff102b1dd6930d6bb0b2dac163",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "info"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "info",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "info",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "validate"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "validate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "validate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "transcode"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "transcode",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "transcode",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "reduce"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "reduce",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "reduce",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "roi"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "roi",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "roi",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "benchmark"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "benchmark",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "benchmark",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "compare"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "compare",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "compare",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-j2k",
+      "subcommands": [
+        "completions"
+      ],
+      "binary_sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "completions",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+          "completions",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-jpip",
+      "subcommands": [],
+      "binary_sha256": "83ba8541c699c73f0af6323b9aed8f0194e1625053c3bc7621da2d123c383fe5",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-jpip",
+      "subcommands": [
+        "fetch"
+      ],
+      "binary_sha256": "83ba8541c699c73f0af6323b9aed8f0194e1625053c3bc7621da2d123c383fe5",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "fetch",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "fetch",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-jpip",
+      "subcommands": [
+        "uri"
+      ],
+      "binary_sha256": "83ba8541c699c73f0af6323b9aed8f0194e1625053c3bc7621da2d123c383fe5",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "uri",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "uri",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-jpip",
+      "subcommands": [
+        "serve"
+      ],
+      "binary_sha256": "83ba8541c699c73f0af6323b9aed8f0194e1625053c3bc7621da2d123c383fe5",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "serve",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "serve",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-jpip",
+      "subcommands": [
+        "info"
+      ],
+      "binary_sha256": "83ba8541c699c73f0af6323b9aed8f0194e1625053c3bc7621da2d123c383fe5",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "info",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+          "info",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-json",
+      "subcommands": [],
+      "binary_sha256": "43a625dd7fcbcd8868bdbf4ccf44a979c33779ba6763df8fe7a1d84ab72ca9c5",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-json",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-json",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-measure",
+      "subcommands": [],
+      "binary_sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-measure",
+      "subcommands": [
+        "distance"
+      ],
+      "binary_sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "distance",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "distance",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-measure",
+      "subcommands": [
+        "area"
+      ],
+      "binary_sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "area",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "area",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-measure",
+      "subcommands": [
+        "angle"
+      ],
+      "binary_sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "angle",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "angle",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-measure",
+      "subcommands": [
+        "roi"
+      ],
+      "binary_sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "roi",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "roi",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-measure",
+      "subcommands": [
+        "hu"
+      ],
+      "binary_sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "hu",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "hu",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-measure",
+      "subcommands": [
+        "pixel"
+      ],
+      "binary_sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "pixel",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+          "pixel",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-merge",
+      "subcommands": [],
+      "binary_sha256": "5f163834f5dfe1e5900ec48746f246772b2bb2d7a28bda11b46c11b963e6f139",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-merge",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-merge",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-mpps",
+      "subcommands": [],
+      "binary_sha256": "24058234700742e9635dfdf19a91ea01911be1eff61260d238dd58ba7ae7dae8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-mpps",
+      "subcommands": [
+        "create"
+      ],
+      "binary_sha256": "24058234700742e9635dfdf19a91ea01911be1eff61260d238dd58ba7ae7dae8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+          "create",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+          "create",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-mpps",
+      "subcommands": [
+        "update"
+      ],
+      "binary_sha256": "24058234700742e9635dfdf19a91ea01911be1eff61260d238dd58ba7ae7dae8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+          "update",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+          "update",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-mwl",
+      "subcommands": [],
+      "binary_sha256": "7c478c8ac3186071233bcf2c8a907b42912ce278c7868db5ba9bb47f023bd002",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mwl",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mwl",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-mwl",
+      "subcommands": [
+        "query"
+      ],
+      "binary_sha256": "7c478c8ac3186071233bcf2c8a907b42912ce278c7868db5ba9bb47f023bd002",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mwl",
+          "query",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mwl",
+          "query",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-pdf",
+      "subcommands": [],
+      "binary_sha256": "a9e0c7d95ff2c344d62bc196fbb30cd5226b700af6f6a737d9d74c06604d7001",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-pdf",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-pdf",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-pixedit",
+      "subcommands": [],
+      "binary_sha256": "1efee8f9042f2eb11639c18c5594a4088473521f9c662a6e3e86a94ac256a1e8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-pixedit",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-pixedit",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-print",
+      "subcommands": [],
+      "binary_sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-print",
+      "subcommands": [
+        "status"
+      ],
+      "binary_sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "status",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "status",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-print",
+      "subcommands": [
+        "send"
+      ],
+      "binary_sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "send",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "send",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-print",
+      "subcommands": [
+        "job"
+      ],
+      "binary_sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "job",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "job",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-print",
+      "subcommands": [
+        "list-printers"
+      ],
+      "binary_sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "list-printers",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "list-printers",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-print",
+      "subcommands": [
+        "add-printer"
+      ],
+      "binary_sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "add-printer",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "add-printer",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-print",
+      "subcommands": [
+        "remove-printer"
+      ],
+      "binary_sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "remove-printer",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+          "remove-printer",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-printscp",
+      "subcommands": [],
+      "binary_sha256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-printscp",
+      "subcommands": [
+        "serve"
+      ],
+      "binary_sha256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "serve",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "serve",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-printscp",
+      "subcommands": [
+        "simulate"
+      ],
+      "binary_sha256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "simulate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "simulate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-printscp",
+      "subcommands": [
+        "status"
+      ],
+      "binary_sha256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "status",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "status",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-printscp",
+      "subcommands": [
+        "queues"
+      ],
+      "binary_sha256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "queues",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "queues",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-qr",
+      "subcommands": [],
+      "binary_sha256": "2884bbe66af11baf0b5d35cf6dd05b783ed7ecdcc8bf137c011b28ba6a34cb9b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-qr",
+      "subcommands": [
+        "query"
+      ],
+      "binary_sha256": "2884bbe66af11baf0b5d35cf6dd05b783ed7ecdcc8bf137c011b28ba6a34cb9b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+          "query",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+          "query",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-qr",
+      "subcommands": [
+        "resume"
+      ],
+      "binary_sha256": "2884bbe66af11baf0b5d35cf6dd05b783ed7ecdcc8bf137c011b28ba6a34cb9b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+          "resume",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+          "resume",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-query",
+      "subcommands": [],
+      "binary_sha256": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-report",
+      "subcommands": [],
+      "binary_sha256": "431d099ef120c9e18cc144b14a2f17e8eddb6e3eecfa7e793bc683d273ec0e1a",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-report",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-report",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-retrieve",
+      "subcommands": [],
+      "binary_sha256": "cd24a6f9a690b83914efbe37184baf1296bfb4e544108decbf92e6cc041e76ea",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-script",
+      "subcommands": [],
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-script",
+      "subcommands": [
+        "run"
+      ],
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "run",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "run",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-script",
+      "subcommands": [
+        "validate"
+      ],
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "validate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "validate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-script",
+      "subcommands": [
+        "template"
+      ],
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "template",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+          "template",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-send",
+      "subcommands": [],
+      "binary_sha256": "fed329f5b86c408fc393a95f8130c1d9ee021101fc634cccba15297b7aec0440",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-server",
+      "subcommands": [],
+      "binary_sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-server",
+      "subcommands": [
+        "start"
+      ],
+      "binary_sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "start",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "start",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-server",
+      "subcommands": [
+        "status"
+      ],
+      "binary_sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "status",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "status",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-server",
+      "subcommands": [
+        "stop"
+      ],
+      "binary_sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "stop",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "stop",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-server",
+      "subcommands": [
+        "stats"
+      ],
+      "binary_sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "stats",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+          "stats",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-split",
+      "subcommands": [],
+      "binary_sha256": "f89771ad87427c647426cb082f453ddc92f2fff65fb904f46ba7b9503e5b1e6f",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-split",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-split",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-study",
+      "subcommands": [],
+      "binary_sha256": "4a012623a1f436ebee14d2d30266433048662262dd8b305fa52e29a4504d0fee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-study",
+      "subcommands": [
+        "organize"
+      ],
+      "binary_sha256": "4a012623a1f436ebee14d2d30266433048662262dd8b305fa52e29a4504d0fee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "organize",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "organize",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-study",
+      "subcommands": [
+        "summary"
+      ],
+      "binary_sha256": "4a012623a1f436ebee14d2d30266433048662262dd8b305fa52e29a4504d0fee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "summary",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "summary",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-study",
+      "subcommands": [
+        "check"
+      ],
+      "binary_sha256": "4a012623a1f436ebee14d2d30266433048662262dd8b305fa52e29a4504d0fee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "check",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "check",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-study",
+      "subcommands": [
+        "stats"
+      ],
+      "binary_sha256": "4a012623a1f436ebee14d2d30266433048662262dd8b305fa52e29a4504d0fee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "stats",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "stats",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-study",
+      "subcommands": [
+        "compare"
+      ],
+      "binary_sha256": "4a012623a1f436ebee14d2d30266433048662262dd8b305fa52e29a4504d0fee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "compare",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+          "compare",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-tags",
+      "subcommands": [],
+      "binary_sha256": "971952b7737aeb34fd4c6ce001d6962680da260e9ca534b899f32761c690a5fa",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-uid",
+      "subcommands": [],
+      "binary_sha256": "36d278cee35d353ec2821c3a10eea07149878b4e6d1aba96099b53d846092fcf",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-uid",
+      "subcommands": [
+        "generate"
+      ],
+      "binary_sha256": "36d278cee35d353ec2821c3a10eea07149878b4e6d1aba96099b53d846092fcf",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "generate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "generate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-uid",
+      "subcommands": [
+        "validate"
+      ],
+      "binary_sha256": "36d278cee35d353ec2821c3a10eea07149878b4e6d1aba96099b53d846092fcf",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "validate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "validate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-uid",
+      "subcommands": [
+        "lookup"
+      ],
+      "binary_sha256": "36d278cee35d353ec2821c3a10eea07149878b4e6d1aba96099b53d846092fcf",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "lookup",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "lookup",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-uid",
+      "subcommands": [
+        "regenerate"
+      ],
+      "binary_sha256": "36d278cee35d353ec2821c3a10eea07149878b4e6d1aba96099b53d846092fcf",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "regenerate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+          "regenerate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-validate",
+      "subcommands": [],
+      "binary_sha256": "b4dcfee556c23f4c56dc748bacb416312b14bda4edb7b7bf3d0df78ca052a798",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-video",
+      "subcommands": [],
+      "binary_sha256": "62fc91ab753f322b1f3706ceb6351d205739b4a39fcd788580f4828a1a8ead1b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-video",
+      "subcommands": [
+        "convert"
+      ],
+      "binary_sha256": "62fc91ab753f322b1f3706ceb6351d205739b4a39fcd788580f4828a1a8ead1b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "convert",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "convert",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-video",
+      "subcommands": [
+        "batch"
+      ],
+      "binary_sha256": "62fc91ab753f322b1f3706ceb6351d205739b4a39fcd788580f4828a1a8ead1b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "batch",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "batch",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-video",
+      "subcommands": [
+        "extract"
+      ],
+      "binary_sha256": "62fc91ab753f322b1f3706ceb6351d205739b4a39fcd788580f4828a1a8ead1b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "extract",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "extract",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-video",
+      "subcommands": [
+        "probe"
+      ],
+      "binary_sha256": "62fc91ab753f322b1f3706ceb6351d205739b4a39fcd788580f4828a1a8ead1b",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "probe",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+          "probe",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-viewer",
+      "subcommands": [],
+      "binary_sha256": "a42ef3e0193d285df5d9f13995ad6becdcab9974a8f140bfd71de5263110d0ad",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-viewer",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-viewer",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-wado",
+      "subcommands": [],
+      "binary_sha256": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-wado",
+      "subcommands": [
+        "retrieve"
+      ],
+      "binary_sha256": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "retrieve",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "retrieve",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-wado",
+      "subcommands": [
+        "query"
+      ],
+      "binary_sha256": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "query",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "query",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-wado",
+      "subcommands": [
+        "store"
+      ],
+      "binary_sha256": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "store",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "store",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-wado",
+      "subcommands": [
+        "ups"
+      ],
+      "binary_sha256": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "ups",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+          "ups",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    },
+    {
+      "tool": "dicom-xml",
+      "subcommands": [],
+      "binary_sha256": "f2763b8f473e08968195ecc677e962eafbe8ededcb161976c4d187db26de9f2f",
+      "help": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-xml",
+          "--help"
+        ],
+        "exit": 0,
+        "passed": true
+      },
+      "invalid-invocation": {
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-xml",
+          "--dicomkit-m7-invalid-option"
+        ],
+        "exit": 64,
+        "passed": true
+      }
+    }
+  ]
+}

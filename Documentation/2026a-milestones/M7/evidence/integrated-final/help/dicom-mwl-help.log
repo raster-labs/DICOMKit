@@ -1,0 +1,76 @@
+OVERVIEW: DICOM Modality Worklist Management (MWL C-FIND)
+
+Query and manage DICOM Modality Worklist items. Implements the Modality
+Worklist Information Model (MWL) for querying scheduled procedure steps
+from a worklist SCP server.
+
+URL Format:
+  hostname               - PACS server hostname or IP address
+  hostname:port          - Hostname with embedded port
+  --port port            - Optional explicit port (default: 11112)
+
+Examples:
+  # Query worklist for today
+  dicom-mwl query server --port 11112 --aet MODALITY --date today
+
+  # Query with filters
+  dicom-mwl query server:11112 --aet MODALITY \
+    --date 20240315 --station CT1 --patient "DOE^JOHN"
+
+  # Query a date range (both bounds inclusive)
+  dicom-mwl query server --port 11112 --aet MODALITY \
+    --date 20240705-20240707
+
+  # Query an open-ended date range (everything from today onward)
+  dicom-mwl query server --port 11112 --aet MODALITY \
+    --date today-
+
+  # Query a combined date+time range as one continuous interval
+  # (PS3.4 Table K.6-1, remark under Scheduled Procedure Step Start
+  # Time (0040,0003)): July 5 10:00 through July 7 18:00
+  dicom-mwl query server --port 11112 --aet MODALITY \
+    --date 20240705-20240707 --time 1000-1800
+
+  # Filter to only SCHEDULED steps (PS3.3 Table C.4-10 Defined Term)
+  dicom-mwl query server --port 11112 --aet MODALITY \
+    --sps-status SCHEDULED
+
+  # Filter by modality and date with JSON output
+  dicom-mwl query 192.168.1.100 --port 11112 --aet MODALITY \
+    --modality CT --date today --json
+
+  # Verbose output showing all attributes
+  dicom-mwl query server --port 11112 --aet MODALITY \
+    --date today --verbose
+
+Date/Time filter syntax (PS3.4 C.2.2.2.5.1 for DA, C.2.2.2.5.2 for TM):
+  --date YYYYMMDD              Single Value Matching
+  --date YYYYMMDD-YYYYMMDD     Range Matching (both bounds inclusive)
+  --date YYYYMMDD-             Open-ended range (that date onward)
+  --date -YYYYMMDD             Open-ended range (up to and including that date)
+  --date today | tomorrow      Convenience shorthands, usable as a bound too
+  --time HHMMSS[-HHMMSS]       Same Single Value / Range Matching for time;
+                               a TM value may be HH, HHMM or HHMMSS[.FFFFFF]
+                               (PS3.5 Table 6.2-1), never across midnight
+
+SPS Status (0040,0020) Defined Terms (PS3.3 Table C.4-10):
+  SCHEDULED, ARRIVED, READY, STARTED, DEPARTED
+(IN PROGRESS / COMPLETED / DISCONTINUED are Performed Procedure Step
+Status values, PS3.3 Table C.4-14, and never appear in a worklist.)
+
+Note: If the server returns a limited number of results, adjust the
+server-side maximum results configuration (e.g., MaximumResults in
+Orthanc, or max_worklist_results in dcm4chee).
+
+Reference: PS3.4 Annex K - Modality Worklist Information Model
+
+USAGE: dicom-mwl <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  query                   Query Modality Worklist (C-FIND)
+
+  See 'dicom-mwl help <subcommand>' for detailed help.

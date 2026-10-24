@@ -1,0 +1,12 @@
+OVERVIEW: Validate a DICOM workflow script
+
+USAGE: dicom-script validate <script-path> [--verbose]
+
+ARGUMENTS:
+  <script-path>           Script file path
+
+OPTIONS:
+  -v, --verbose           Show verbose validation output
+  --version               Show the version.
+  -h, --help              Show help information.
+

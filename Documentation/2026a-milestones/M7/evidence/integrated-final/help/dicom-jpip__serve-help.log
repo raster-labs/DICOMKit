@@ -1,0 +1,24 @@
+OVERVIEW: Start an embedded JPIP server for local DICOM files
+
+Launches a JPIP server that serves DICOM files from a local directory.
+Clients can then use dicom-jpip fetch or any JPIP-compatible viewer.
+
+Examples:
+  dicom-jpip serve --directory /path/to/dicoms
+  dicom-jpip serve --port 8081 --directory /path/to/dicoms --max-clients 10
+
+USAGE: dicom-jpip serve [--port <port>] [--directory <directory>] [--max-clients <max-clients>] [--client-bandwidth <client-bandwidth>] [--verbose]
+
+OPTIONS:
+  -p, --port <port>       Port to listen on (default: 8080) (default: 8080)
+  -d, --directory <directory>
+                          Directory of DICOM files to serve (default: .)
+  --max-clients <max-clients>
+                          Maximum concurrent clients (default: 16) (default: 16)
+  --client-bandwidth <client-bandwidth>
+                          Per-client bandwidth limit in bytes/sec (0 =
+                          unlimited) (default: 0)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

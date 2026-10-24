@@ -1,0 +1,65 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 628]
+[Planning deferred tasks]
+[1 / 63] CompressionFamily
+[5 / 6] dicom-validateTests-product
+[7 / 7] dicom-validateTests-product
+Build complete! (1.37 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:51:33.164.
+Test Suite 'dicom-validateTests.xctest' started at 2026-10-24 20:51:33.169.
+Test Suite 'IODOptionTests' started at 2026-10-24 20:51:33.169.
+Test Case '-[dicom_validateTests.IODOptionTests testEngineShortNamesAndUnsupportedIODsPassThrough]' started.
+Test Case '-[dicom_validateTests.IODOptionTests testEngineShortNamesAndUnsupportedIODsPassThrough]' passed (0.003 seconds).
+Test Case '-[dicom_validateTests.IODOptionTests testEngineUIDsAreTableA1SOPClasses]' started.
+Test Case '-[dicom_validateTests.IODOptionTests testEngineUIDsAreTableA1SOPClasses]' passed (0.000 seconds).
+Test Case '-[dicom_validateTests.IODOptionTests testTableA1KeywordsAndUIDsReachTheEngineIOD]' started.
+Test Case '-[dicom_validateTests.IODOptionTests testTableA1KeywordsAndUIDsReachTheEngineIOD]' passed (0.000 seconds).
+Test Case '-[dicom_validateTests.IODOptionTests testTableA1KeywordValidatesLikeTheEngineName]' started.
+Test Case '-[dicom_validateTests.IODOptionTests testTableA1KeywordValidatesLikeTheEngineName]' passed (0.030 seconds).
+Test Suite 'IODOptionTests' passed at 2026-10-24 20:51:33.203.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.034 (0.035) seconds
+Test Suite 'M2AttributeIntegrityTests' started at 2026-10-24 20:51:33.203.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testCalendarAndDTBoundaries]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testCalendarAndDTBoundaries]' passed (0.005 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testCorrectMetaAndForwardCompatibleVersionPassAtBothLevels]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testCorrectMetaAndForwardCompatibleVersionPassAtBothLevels]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testEachRequiredMetaValueRejectsEmptyAndWrongVRAtBothLevels]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testEachRequiredMetaValueRejectsEmptyAndWrongVRAtBothLevels]' passed (0.004 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testEncodedGroupLengthAndIdentityMismatchesRejectAtBothLevels]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testEncodedGroupLengthAndIdentityMismatchesRejectAtBothLevels]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testEveryNestedItemCheckedWithoutRootRequirements]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testEveryNestedItemCheckedWithoutRootRequirements]' passed (0.002 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testMalformedMetaUIDsAndVersionReject]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testMalformedMetaUIDsAndVersionReject]' passed (0.002 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testMalformedNumericValueLengthFails]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testMalformedNumericValueLengthFails]' passed (0.000 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testUndecodableDefaultAEAndStoredGrammarReject]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testUndecodableDefaultAEAndStoredGrammarReject]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testWirePaddingAndEmptyValueBoundaries]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testWirePaddingAndEmptyValueBoundaries]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testWrongVRAndReportsAgreeWithoutStrict]' started.
+Test Case '-[dicom_validateTests.M2AttributeIntegrityTests testWrongVRAndReportsAgreeWithoutStrict]' passed (0.001 seconds).
+Test Suite 'M2AttributeIntegrityTests' passed at 2026-10-24 20:51:33.222.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.018 (0.019) seconds
+Test Suite 'ValidatorStandardTests' started at 2026-10-24 20:51:33.222.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testContentCreatorsNameIsNotRequiredInPresentationStates]' started.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testContentCreatorsNameIsNotRequiredInPresentationStates]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.ValidatorStandardTests testIODPrefixesArePS36TableA1Names]' started.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testIODPrefixesArePS36TableA1Names]' passed (0.002 seconds).
+Test Case '-[dicom_validateTests.ValidatorStandardTests testMaximumLengthsAreErrors]' started.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testMaximumLengthsAreErrors]' passed (0.004 seconds).
+Test Case '-[dicom_validateTests.ValidatorStandardTests testPersonNameComponentGroupsAndDuplicateDateErrors]' started.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testPersonNameComponentGroupsAndDuplicateDateErrors]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.ValidatorStandardTests testRepertoireViolationsAreErrors]' started.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testRepertoireViolationsAreErrors]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.ValidatorStandardTests testRootConceptNameCodeSequenceIsType1C]' started.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testRootConceptNameCodeSequenceIsType1C]' passed (0.001 seconds).
+Test Case '-[dicom_validateTests.ValidatorStandardTests testVMAgainstPS36]' started.
+Test Case '-[dicom_validateTests.ValidatorStandardTests testVMAgainstPS36]' passed (0.001 seconds).
+Test Suite 'ValidatorStandardTests' passed at 2026-10-24 20:51:33.232.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.010 (0.010) seconds
+Test Suite 'dicom-validateTests.xctest' passed at 2026-10-24 20:51:33.232.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.062 (0.063) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:51:33.232.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.062 (0.068) seconds

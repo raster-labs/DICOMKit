@@ -38,6 +38,7 @@ or against the engine symbol the Workshop and the CLI both call (the CLI source 
 """
 import os
 import re
+import diff_cli as dc
 
 # No pending rows. P-STUDIO-MWL-CREATE (2026-10-06): worklist-item creation (HL7 ORM^O01 / REST, not a DIMSE
 # service) moved to the Networking panel; the Workshop's dicom-mwl offers only the CLI's `query`
@@ -115,9 +116,64 @@ def literals(s):
 
 
 def cli_sources(ctx, tool):
-    """Every Swift file of a dicom-* tool, concatenated (the CLI side of an engine-call check)."""
-    d = os.path.join(ctx['sources'], tool)
-    return '\n'.join(ctx['dw'].read(os.path.join(d, f)) for f in sorted(os.listdir(d)) if f.endswith('.swift'))
+    """Tool-owned declarations, including extracted shared commands, as in the CLI audit."""
+    files = dc.tool_files(tool, sources=ctx['sources'])
+    return '\n'.join(files[name] for name in sorted(files))
+
+
+def query_preflight_issues(vm, cli, service, dw):
+    """Static wiring checks, not a substitute for the M3 request-capture tests."""
+    vm, cli, service = (dc.swift_code(s) for s in (vm, cli, service))
+    execute = dw.func_body(vm, r'private func executeDicomQuery\(\) async')
+    build = dw.func_body(execute, r'func buildKeys\(\) -> QueryKeys')
+    validate = dw.func_body(cli, r'func validate\(\) throws')
+    cli_build = dw.func_body(cli, r'func buildQueryKeys\(\) -> QueryKeys')
+    run = dw.func_body(cli, r'mutating func run\(\) async throws')
+    wrong = []
+    guard = re.search(r'if let reason = buildKeys\(\)\.rejectionReason\s*\{\s*'
+                      r'refuse\(reason, exitCode: 64\)\s*return\s*\}', execute)
+    dispatch = execute.find('DICOMQueryService.find(')
+    header = execute.find('NetworkConsole.queryHeader(')
+    if ('DICOMQueryService.buildQueryKeys(' not in build or guard is None
+            or dispatch < 0 or header < 0 or guard.end() > min(dispatch, header)):
+        wrong.append('dicom-query Workshop must refuse shared buildQueryKeys().rejectionReason with exit 64 before the header and C-FIND dispatch')
+    if ('DICOMQueryService.buildQueryKeys(' not in cli_build
+            or not re.search(r'if let reason = buildQueryKeys\(\)\.rejectionReason\s*\{\s*throw ValidationError\(reason\)\s*\}', validate)
+            or 'try validate()' not in run
+            or not 0 <= run.find('try validate()') < run.find('NetworkConsole.queryHeader(')):
+        wrong.append('dicom-query CLI must validate the same shared rejectionReason before its header and dispatch')
+    if ('keys.rejectionReason =' not in service
+            or 'cannot be matched at \\(level.rawValue) level' not in service
+            or 'let unsupported = unsupportedFilters(' not in service):
+        wrong.append('DICOMQueryService must build the unsupported-filter refusal with QueryLevel.rawValue (IMAGE)')
+    return wrong
+
+
+def qido_preflight_issues(vm, helpers, cli, dw):
+    """Follow current Workshop -> effective request -> shared QIDO/paging validation."""
+    vm, helpers, cli = (dc.swift_code(s) for s in (vm, helpers, cli))
+    execute = dw.func_body(vm, r'private func executeDicomQIDO\(\) async')
+    effective = dw.func_body(vm, r'func effectiveQIDORequest\(')
+    policy = dw.enum_body(helpers, 'WorkshopQIDOParameters')
+    request = dw.func_body(policy, r'public static func request\(')
+    query_command = block_or_empty(cli, r'struct QueryCommand: AsyncParsableCommand\s*\{', 'QIDO CLI command')
+    cli_request = dw.func_body(query_command, r'func buildRequest\(\) throws -> QIDORequest')
+    cli_run = dw.func_body(query_command, r'func run\(\) async throws')
+    wrong = []
+    call = execute.find('try effectiveQIDORequest(')
+    client = execute.find('DICOMwebClientFactory.makeClient(')
+    if ('try WorkshopQIDOParameters.request(' not in effective
+            or not 0 <= call < client):
+        wrong.append('dicom-qido Workshop must build the effective shared request before constructing the HTTP client')
+    if ('let effective = effectiveValues(values, definitions: definitions)' not in request
+            or not re.search(r'guard let limit = Int\(value\("limit"\)\), let offset = Int\(value\("offset"\)\) else\s*\{\s*throw DICOMwebOptionRefusal', request)
+            or not 0 <= request.find('try DICOMwebOptionRules.validatePaging(limit: limit, offset: offset)')
+                     < request.find('return try QIDORequest(')):
+        wrong.append('WorkshopQIDOParameters.request must strictly parse limit/offset and call validatePaging before QIDORequest, using effective values')
+    if ('try QIDORequest(' not in cli_request
+            or not 0 <= cli_run.find('try buildRequest()') < cli_run.find('DICOMwebClient(configuration:')):
+        wrong.append('dicom-wado query must build the same QIDORequest before constructing the HTTP client')
+    return wrong
 
 
 def engine_calls(ws_text, cli_text, calls, label, matched, wrong, cli_calls=None):
@@ -562,8 +618,8 @@ def check_validation_panel(rep, parts, files, ctx):
 def check_query_retrieve_levels(rep, parts, files, ctx):
     """dicom-query --level offers the Query/Retrieve Level (0008,0052) values of PS3.4 2026a Tables
     C.6.1-1 / C.6.2-1 (PATIENT, STUDY, SERIES, IMAGE) in lower case, the executor maps every value (and the
-    CLI alias "instance") onto DICOMNetwork.QueryLevel, and the parent-level warning names the level by
-    QueryLevel.rawValue — mirroring the CLI fix 695d961 (no "instance" on the wire)."""
+    CLI alias "instance") onto DICOMNetwork.QueryLevel. Both adapters refuse unsupported supplied filters
+    through the shared preflight before dispatch; its message uses QueryLevel.rawValue (IMAGE)."""
     dw = ctx['dw']
     ws = ctx['workshop_surface']()
     vm = src(files, 'CLIWorkshopViewModel.swift')
@@ -609,10 +665,10 @@ def check_query_retrieve_levels(rep, parts, files, ctx):
         else:
             matched += 1
     exec_body = block(vm, r'private func executeDicomQuery\(\) async \{', 'executeDicomQuery')
-    if 'cannot be matched at \\(level.rawValue) level' not in exec_body:
-        wrong.append('the parent-level filter warning must name the level by QueryLevel.rawValue (IMAGE), as the CLI does')
-    else:
-        matched += 1
+    preflight = query_preflight_issues(vm, cli_sources(ctx, 'dicom-query'),
+                                      read(ctx, 'DICOMNetwork/QueryService.swift'), dw)
+    wrong.extend(preflight)
+    matched += 3 - len(preflight)
     if '"INSTANCE"' in exec_body:
         wrong.append('executeDicomQuery still spells the IMAGE level as "INSTANCE"')
     for needle in ('csvHeader: csvKeywords ? .keyword : .tag', 'DICOMJSONEncoder(configuration: .init(prettyPrinted: true)).encodeMultiple'):
@@ -986,12 +1042,15 @@ def check_web_rules(rep, parts, files, ctx):
         matched += 1
     cli_wado = cli_sources(ctx, 'dicom-wado')
     ws_calls = ['DICOMwebOptionRules.' + c for c in ('uriContentType(', 'uriFrameNumber(', 'uriRegion(', 'uriAnnotation(', 'uriParameterWarnings(',
-                                                 'pagingProblem(', 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
+                                                 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
         + ['changeStateTarget(optionValue:', 'catch let e as DICOMwebOptionRefusal']
     cli_calls = ['DICOMwebOptionRules.' + c for c in ('uriContentType(', 'uriFrameNumber(', 'uriRegion(', 'uriAnnotation(', 'uriParameterWarnings(',
                                                   'validatePaging(', 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
         + ['changeStateTarget(optionValue:']
     matched = engine_calls(vm, cli_wado, ws_calls, 'dicom-wado option rules', matched, wrong, cli_calls=cli_calls)
+    preflight = qido_preflight_issues(vm, src(files, 'CLIWorkshopHelpers.swift'), cli_wado, dw)
+    wrong.extend(preflight)
+    matched += 3 - len(preflight)
     matched = no_local_copy(vm, engine + states, ('PS3.18', 'Change Workitem State', 'parameter'), ('enum WorkshopWADOOptionRules', 'func upsState('),
                             'dicom-wado option rules', matched, wrong)
     for lit in literals(read(ctx, 'dicom-wado/DICOMWado.swift')):

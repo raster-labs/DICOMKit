@@ -1,0 +1,4 @@
+❌ Conversion failed
+Cannot convert JPEG-LS Lossless Image Compression [1.2.840.10008.1.2.4.80] to Explicit VR Little Endian [1.2.840.10008.1.2.1].
+Reason: The DICOM data could not be parsed.
+Details: Parsing failed: JPEG-LS precision mismatch is outside the selected recovery policy

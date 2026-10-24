@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input video file
+Usage: dicom-video probe <input> [--trust-input] [--verbose]
+  See 'dicom-video probe --help' for more information.

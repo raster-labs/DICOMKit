@@ -1,0 +1,90 @@
+[
+  {
+    "name": "TLS12-custom-trust",
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ],
+    "certificate_hostname": "localhost",
+    "success": true
+  },
+  {
+    "name": "TLS12-modified-cipher-subset",
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ],
+    "certificate_hostname": "localhost",
+    "success": true
+  },
+  {
+    "name": "TLS13-custom-trust",
+    "version": "TLSv1.3",
+    "cipher": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLSv1.3",
+      256
+    ],
+    "certificate_hostname": "localhost",
+    "success": true
+  },
+  {
+    "name": "TLS13-modified-cipher-subset",
+    "version": "TLSv1.3",
+    "cipher": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLSv1.3",
+      256
+    ],
+    "certificate_hostname": "localhost",
+    "success": true
+  },
+  {
+    "name": "untrusted-system-root-refused",
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ],
+    "certificate_hostname": "localhost",
+    "success": true
+  },
+  {
+    "name": "wrong-custom-root-refused",
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ],
+    "certificate_hostname": "localhost",
+    "success": true
+  },
+  {
+    "name": "wrong-hostname-refused",
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ],
+    "certificate_hostname": "wrong-host.invalid",
+    "success": true
+  },
+  {
+    "name": "TLS13-only-client-refuses-TLS12-peer",
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ],
+    "certificate_hostname": "localhost",
+    "success": true
+  }
+]

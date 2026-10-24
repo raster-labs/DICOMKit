@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file1>'
+Help:  <file1>  First DICOM file to compare
+Usage: dicom-diff <file1> <file2> [--format <format>] [--ignore-tag <ignore-tag> ...] [--ignore-private] [--compare-pixels] [--tolerance <tolerance>] [--quick] [--show-identical] [--verbose]
+  See 'dicom-diff --help' for more information.

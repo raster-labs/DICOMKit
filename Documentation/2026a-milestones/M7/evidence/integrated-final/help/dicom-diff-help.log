@@ -1,0 +1,38 @@
+OVERVIEW: Compare two DICOM files and report differences
+
+Compares metadata tags and optionally pixel data between two DICOM files.
+Supports filtering, tolerance settings, and multiple output formats.
+
+Exit status: 0 identical, 1 different, 2 a file is missing or cannot be
+read as DICOM (64: invalid arguments).
+
+Examples:
+  dicom-diff file1.dcm file2.dcm
+  dicom-diff --compare-pixels --tolerance 5 original.dcm processed.dcm
+  dicom-diff --ignore-tag 0008,0012 --format json file1.dcm file2.dcm
+
+USAGE: dicom-diff <file1> <file2> [--format <format>] [--ignore-tag <ignore-tag> ...] [--ignore-private] [--compare-pixels] [--tolerance <tolerance>] [--quick] [--show-identical] [--verbose]
+
+ARGUMENTS:
+  <file1>                 First DICOM file to compare
+  <file2>                 Second DICOM file to compare
+
+OPTIONS:
+  -f, --format <format>   Output format: text, json, summary (default: text)
+  --ignore-tag <ignore-tag>
+                          Tag to ignore, repeatable: (gggg,eeee), gggg,eeee,
+                          ggggeeee or a PS3.6 keyword (e.g. '(0008,0018)' or
+                          'SOPInstanceUID')
+  --ignore-private        Ignore private data elements (odd group number, PS3.5
+                          7.1), also inside sequence items
+  --compare-pixels        Compare Pixel Data (7FE0,0010) sample by sample
+                          (decoded; PS3.5 8.1.1) instead of as one element
+  --tolerance <tolerance> Largest Pixel Sample Value difference (PS3.5 8.1.1)
+                          in Pixel Data (7FE0,0010) still treated as identical
+                          (default: 0) (default: 0.0)
+  --quick                 Quick mode: metadata only, overrides --compare-pixels
+  --show-identical        Show identical tags in detailed mode
+  --verbose               Verbose output with detailed information
+  --version               Show the version.
+  -h, --help              Show help information.
+

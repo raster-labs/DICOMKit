@@ -1,0 +1,7 @@
+Starting DICOM Server...
+  AE Title: M4SCP
+  Port: 59054
+  Data Directory: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m4/durability/trailing-garbage
+  Database: filesystem://
+  Max Connections: 10
+2026-10-24T15:23:19.875Z [INFO] [PACSServer] Starting DICOM server on port 59054

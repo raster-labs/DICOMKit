@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "milestone": "M7",
+  "status": "In progress \u2014 native packaged GUI blocked",
+  "recorded_utc": "2026-10-24T15:45:23.572156+00:00",
+  "branch": "codex/dicom-2026a-milestones",
+  "source_manifest": "source-hashes.json",
+  "artifact_manifest": "artifact-hashes.json",
+  "integrated_regressions": {
+    "exit_code": 0,
+    "script": "Scripts/verify_m7.sh",
+    "suites": {
+      "Studio_full": {
+        "log": "evidence/integrated-final/studio-full-tests.log",
+        "XCTest_executed": 87,
+        "XCTest_skipped": 4,
+        "XCTest_failed": 0,
+        "XCTest_passed": 83,
+        "SwiftTesting_suites": 492,
+        "SwiftTesting_framework_reported_tests": 5380,
+        "SwiftTesting_overall_result": "Passed",
+        "SwiftTesting_skipped": [
+          "\u279c Test \"Per-format codec comparison on SampleStudies\" skipped: \"Requires optional SampleStudies codec fixtures\""
+        ],
+        "SwiftTesting_count_note": "Framework reported run count; optional skips are not executed passes."
+      },
+      "Core_codecs": {
+        "log": "evidence/integrated-final/core-codec-tests.log",
+        "SwiftTesting_suites": 15,
+        "SwiftTesting_passed": 75
+      },
+      "Conversion_diagnostics": {
+        "log": "evidence/integrated-final/conversion-diagnostics-tests.log",
+        "XCTest_executed": 18,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 18
+      },
+      "M2_DICOMCoreTests": {
+        "log": "evidence/integrated-final/m2/DICOMCoreTests.log",
+        "XCTest_executed": 16,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 16,
+        "SwiftTesting_suites": 10,
+        "SwiftTesting_passed": 219
+      },
+      "M2_DICOMKitTests": {
+        "log": "evidence/integrated-final/m2/DICOMKitTests.log",
+        "XCTest_executed": 42,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 42,
+        "SwiftTesting_suites": 1,
+        "SwiftTesting_passed": 13
+      },
+      "M2_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m2/DICOMNetworkTests.log",
+        "XCTest_executed": 78,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 77
+      },
+      "M2_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m2/DICOMStudioTests.log",
+        "SwiftTesting_suites": 5,
+        "SwiftTesting_passed": 33
+      },
+      "M2_DICOMWebTests": {
+        "log": "evidence/integrated-final/m2/DICOMWebTests.log",
+        "XCTest_executed": 46,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 46,
+        "SwiftTesting_suites": 2,
+        "SwiftTesting_passed": 28
+      },
+      "M2_dicom-tagsTests": {
+        "log": "evidence/integrated-final/m2/dicom-tagsTests.log",
+        "XCTest_executed": 13,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 13
+      },
+      "M2_dicom-validateTests": {
+        "log": "evidence/integrated-final/m2/dicom-validateTests.log",
+        "XCTest_executed": 21,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 21
+      },
+      "M3_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m3/DICOMNetworkTests.log",
+        "XCTest_executed": 104,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 104
+      },
+      "M3_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m3/DICOMStudioTests.log",
+        "SwiftTesting_suites": 6,
+        "SwiftTesting_passed": 159
+      },
+      "M3_DICOMWebTests": {
+        "log": "evidence/integrated-final/m3/DICOMWebTests.log",
+        "XCTest_executed": 22,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 21,
+        "SwiftTesting_suites": 21,
+        "SwiftTesting_passed": 217
+      },
+      "M3_dicom-queryTests": {
+        "log": "evidence/integrated-final/m3/dicom-queryTests.log",
+        "XCTest_executed": 14,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 14
+      },
+      "M3_dicom-wadoTests": {
+        "log": "evidence/integrated-final/m3/dicom-wadoTests.log",
+        "XCTest_executed": 27,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 27
+      },
+      "M4_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m4/DICOMNetworkTests.log",
+        "XCTest_executed": 108,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 108
+      },
+      "M4_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m4/DICOMStudioTests.log",
+        "XCTest_executed": 2,
+        "XCTest_skipped": 2,
+        "XCTest_failed": 0,
+        "XCTest_passed": 0,
+        "SwiftTesting_suites": 3,
+        "SwiftTesting_passed": 142
+      },
+      "M4_DICOMWebTests": {
+        "log": "evidence/integrated-final/m4/DICOMWebTests.log",
+        "XCTest_executed": 23,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 22,
+        "SwiftTesting_suites": 12,
+        "SwiftTesting_passed": 89
+      },
+      "M4_dicom-queryTests": {
+        "log": "evidence/integrated-final/m4/dicom-queryTests.log",
+        "XCTest_executed": 14,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 14
+      },
+      "M4_dicom-retrieveTests": {
+        "log": "evidence/integrated-final/m4/dicom-retrieveTests.log",
+        "XCTest_executed": 9,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 9
+      },
+      "M4_dicom-serverTests": {
+        "log": "evidence/integrated-final/m4/dicom-serverTests.log",
+        "XCTest_executed": 105,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 105
+      },
+      "M4_dicom-wadoTests": {
+        "log": "evidence/integrated-final/m4/dicom-wadoTests.log",
+        "XCTest_executed": 27,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 27
+      },
+      "M5_DICOMRoundTripTests": {
+        "log": "evidence/integrated-final/m5/DICOMRoundTripTests.log",
+        "XCTest_executed": 28,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 28
+      },
+      "M5_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m5/DICOMStudioTests.log",
+        "XCTest_executed": 17,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 16,
+        "SwiftTesting_suites": 4,
+        "SwiftTesting_passed": 197
+      },
+      "M5_DICOMToolboxTests": {
+        "log": "evidence/integrated-final/m5/DICOMToolboxTests.log",
+        "XCTest_executed": 11,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 11,
+        "SwiftTesting_suites": 82,
+        "SwiftTesting_passed": 488
+      },
+      "M6_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m6/DICOMNetworkTests.log",
+        "XCTest_executed": 409,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 409
+      },
+      "M6_DICOMPrintKitTests": {
+        "log": "evidence/integrated-final/m6/DICOMPrintKitTests.log",
+        "XCTest_executed": 379,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 379,
+        "SwiftTesting_suites": 9,
+        "SwiftTesting_passed": 84
+      },
+      "M6_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m6/DICOMStudioTests.log",
+        "XCTest_executed": 23,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 22
+      },
+      "M6_dicom-printTests": {
+        "log": "evidence/integrated-final/m6/dicom-printTests.log",
+        "XCTest_executed": 19,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 19
+      },
+      "M6_dicom-printscpTests": {
+        "log": "evidence/integrated-final/m6/dicom-printscpTests.log",
+        "XCTest_executed": 20,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 20
+      }
+    },
+    "counting": "Overlapping suite/milestone counts are not additive. Ordinary opt-in skips are not passes; separately activated harness evidence is retained."
+  },
+  "static_audits": {
+    "CLI_exit_code": 0,
+    "Kit_exit_code": 0,
+    "Studio_exit_code": 1,
+    "Studio_callbacks": 178,
+    "Studio_execution_errors": 0,
+    "Studio_retained_findings": 3,
+    "audit_regressions_passed": 48,
+    "audit_only_reconciliation": "evidence/post-build-audit-reconciliation.json",
+    "findings": "evidence/studio-audit-repair-verification.json"
+  },
+  "CLI_inventory": {
+    "executables": 41,
+    "routes": 147,
+    "help_passed": 147,
+    "invalid_invocation_exit64": 147
+  },
+  "independent_codecs": {
+    "executed": 90,
+    "selected": 90,
+    "passed": 78,
+    "supported_refusal": 10,
+    "interoperability_limit": 2,
+    "failed": 0,
+    "meaning": "Only passed counts as codec qualification. Supported refusals and independently verified interoperability limits are separate. Exit0 means no unexpected failure, not complete codec support."
+  },
+  "independent_network": {
+    "passed": 34,
+    "failed": 0,
+    "evidence": "evidence/network-qualified"
+  },
+  "independent_TLS": {
+    "client_cases": 8,
+    "positive": 4,
+    "negative": 4,
+    "endpoint_controls": 8,
+    "activated_XCTest_methods": 1,
+    "evidence": "evidence/tls-qualified",
+    "full_PS3_15_profile_qualified": false
+  },
+  "independent_print": {
+    "passed": 24,
+    "failed": 0,
+    "peer_limited": 1,
+    "evidence": "evidence/print-qualified"
+  },
+  "print_Workshop": {
+    "VM_actions": 25,
+    "CLI_comparisons": 25,
+    "native_GUI_actions": 0,
+    "evidence": [
+      "evidence/workshop-qualified",
+      "evidence/workshop-images-qualified"
+    ]
+  },
+  "app_build": {
+    "status": "Passed",
+    "signed_with_project_sandbox_entitlements": true,
+    "native_runtime": "Blocked \u2014 Mac locked",
+    "planned_native_groups": 28,
+    "checklist": "evidence/native-final-checklist.json"
+  },
+  "remote_CI": "Check the exact pushed head; local results are not remote CI.",
+  "scope_limits": [
+    "macOS arm64 synthetic qualification, not every supported platform or clinical/physical device qualification.",
+    "10 codec refusals and two strict precision interoperability limits are not codec passes.",
+    "Complete TLS profiles, mutual TLS, revocation and complete cipher matrices remain unqualified.",
+    "Physical printer/film, real CUPS dispatch, calibration and diagnostic image quality remain unqualified.",
+    "No main merge, release or deployment."
+  ]
+}

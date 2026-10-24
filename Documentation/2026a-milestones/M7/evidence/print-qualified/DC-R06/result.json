@@ -1,0 +1,54 @@
+{
+  "id": "DC-R06",
+  "title": "DCMTK SCU to DICOMKit: separate annotation context and literal text",
+  "status": "passed",
+  "elapsed_seconds": 0.34738762499999964,
+  "observations": {
+    "films": [
+      {
+        "file": "film-20261024-205155-001.png",
+        "sha256": "4baad8beabef34ddd1e3ca3edc658309d4b27f3d7498db2e129a94b7c56a13e3"
+      }
+    ],
+    "dimse_messages": 20,
+    "accepted_contexts": [
+      {
+        "1": {
+          "abstract": "1.2.840.10008.5.1.1.9",
+          "offered": [
+            "1.2.840.10008.1.2.1",
+            "1.2.840.10008.1.2.2",
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        },
+        "3": {
+          "abstract": "1.2.840.10008.5.1.1.23",
+          "offered": [
+            "1.2.840.10008.1.2.1",
+            "1.2.840.10008.1.2.2",
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        },
+        "5": {
+          "abstract": "1.2.840.10008.5.1.1.15",
+          "offered": [
+            "1.2.840.10008.1.2.1",
+            "1.2.840.10008.1.2.2",
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        }
+      }
+    ],
+    "received_bits": 12,
+    "received_size": [
+      16,
+      16
+    ]
+  }
+}

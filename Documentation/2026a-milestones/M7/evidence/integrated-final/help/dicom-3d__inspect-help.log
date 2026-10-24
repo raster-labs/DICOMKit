@@ -1,0 +1,20 @@
+OVERVIEW: Display metadata from a JP3D volumetric document without decoding
+
+Reads only the JSON sidecar embedded in a JP3D DICOM document, printing
+geometry, spacing, compression mode, and patient/study metadata.
+The JP3D codestream is not decoded, so this is near-instantaneous.
+
+Examples:
+  dicom-3d inspect volume.jp3d.dcm
+  dicom-3d inspect volume.jp3d.dcm --json
+
+USAGE: dicom-3d inspect <input-path> [--json]
+
+ARGUMENTS:
+  <input-path>            JP3D DICOM document file to inspect
+
+OPTIONS:
+  --json                  Output raw sidecar JSON instead of formatted text
+  --version               Show the version.
+  -h, --help              Show help information.
+

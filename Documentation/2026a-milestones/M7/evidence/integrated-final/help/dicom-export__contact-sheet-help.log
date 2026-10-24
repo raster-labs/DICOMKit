@@ -1,0 +1,24 @@
+OVERVIEW: Generate a contact sheet from multiple DICOM files
+
+USAGE: dicom-export contact-sheet <inputs> ... --output <output> [--columns <columns>] [--thumbnail-size <thumbnail-size>] [--spacing <spacing>] [--format <format>] [--quality <quality>] [--apply-window] [--labels]
+
+ARGUMENTS:
+  <inputs>                Paths to DICOM files
+
+OPTIONS:
+  -o, --output <output>   Output file path
+  --columns <columns>     Number of columns (default: 4)
+  --thumbnail-size <thumbnail-size>
+                          Thumbnail size in pixels (default: 256)
+  --spacing <spacing>     Spacing between thumbnails in pixels (default: 4)
+  --format <format>       Output format: png, jpeg (values: png, jpeg, tiff;
+                          default: png)
+  --quality <quality>     JPEG quality (1-100) (default: 90)
+  --apply-window          deprecated: no effect; the file's VOI (Window Center
+                          (0028,1050) and Window Width (0028,1051), else VOI
+                          LUT Sequence (0028,3010), else the full pixel range)
+                          is always applied
+  --labels                Add filename labels below thumbnails
+  --version               Show the version.
+  -h, --help              Show help information.
+

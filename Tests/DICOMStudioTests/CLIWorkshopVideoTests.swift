@@ -298,7 +298,7 @@ struct CLIWorkshopVideoTests {
 
     /// Metadata reaches the preview with the CLI's own flag spellings.
     @Test("metadata flags preview with their CLI spellings")
-    func metadataPreview() {
+    func metadataPreview() throws {
         let cmd = CommandBuilderHelpers.buildCommand(
             toolName: "dicom-video",
             parameterValues: values(operation: "convert", [
@@ -311,12 +311,28 @@ struct CLIWorkshopVideoTests {
             ]),
             parameterDefinitions: definitions)
 
-        for fragment in ["--patient-name Doe^Jane", "--patient-id P123",
-                         "--patient-birth-date 19800101", "--patient-sex F",
-                         "--accession-number A99", "--study-id S1",
-                         "--referring-physician Ref^Dr", "--modality ES",
-                         "--manufacturer Acme"] {
-            #expect(cmd.contains(fragment), "expected \(fragment) in: \(cmd)")
+        // Capture literal argv with a shell builtin; dicom-video is never
+        // launched. Carets and spaces must survive safe preview quoting.
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "capture() { printf '%s\\0' \"$@\"; }\ncapture " + cmd]
+        let output = Pipe()
+        process.standardOutput = output
+        try process.run()
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        #expect(process.terminationStatus == 0)
+        #expect(data.last == 0)
+        let argv = data.split(separator: 0, omittingEmptySubsequences: false).dropLast()
+            .map { String(decoding: $0, as: UTF8.self) }
+        #expect(Array(argv.prefix(3)) == ["dicom-video", "convert", "clip.mp4"])
+        for (flag, value) in [("--output", "clip.dcm"), ("--patient-name", "Doe^Jane"), ("--patient-id", "P123"),
+                              ("--patient-birth-date", "19800101"), ("--patient-sex", "F"),
+                              ("--accession-number", "A99"), ("--study-id", "S1"),
+                              ("--referring-physician", "Ref^Dr"), ("--modality", "ES"),
+                              ("--manufacturer", "Acme"), ("--institution-name", "General Hospital")] {
+            let index = try #require(argv.firstIndex(of: flag))
+            #expect(argv.dropFirst(index + 1).first == value, "Literal value for \(flag)")
         }
     }
 

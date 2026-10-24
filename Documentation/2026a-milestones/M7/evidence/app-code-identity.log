@@ -1,0 +1,26 @@
+Executable=/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio
+Executable=/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio
+Identifier=com.rasterlab.DICOMStudio
+Format=app bundle with Mach-O thin (arm64)
+CodeDirectory v=20400 size=434 flags=0x2(adhoc) hashes=3+7 location=embedded
+VersionPlatform=1
+VersionMin=984576
+VersionSDK=1769472
+Hash type=sha256 size=32
+CandidateCDHash sha256=d9cf232b4f30410d8dcc1eeb4b614b76836f28c9
+CandidateCDHashFull sha256=d9cf232b4f30410d8dcc1eeb4b614b76836f28c92489167074dfa431d90f543a
+Hash choices=sha256
+CMSDigest=d9cf232b4f30410d8dcc1eeb4b614b76836f28c92489167074dfa431d90f543a
+CMSDigestType=2
+Executable Segment base=0
+Executable Segment limit=16384
+Executable Segment flags=0x1
+Page size=16384
+CDHash=d9cf232b4f30410d8dcc1eeb4b614b76836f28c9
+Signature=adhoc
+Info.plist entries=25
+TeamIdentifier=not set
+Sealed Resources version=2 rules=13 files=10
+Internal requirements count=0 size=12
+Total signatures=1
+Chosen signature=1

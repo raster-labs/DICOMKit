@@ -1,0 +1,4 @@
+Failed SOP Instance UID List (0008,0058), 1 UID(s):
+  2.25.404.9
+Final C-MOVE response: Cancel (0xFE00): Sub-operations terminated due to Cancel Indication — Number of Remaining Sub-operations: 2, Number of Completed Sub-operations: 1, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 1
+Error: C-MOVE final response Cancel (0xFE00): Sub-operations terminated due to Cancel Indication (Number of Remaining Sub-operations: 2, Number of Completed Sub-operations: 1, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 1); Failed SOP Instance UID List (0008,0058): 2.25.404.9

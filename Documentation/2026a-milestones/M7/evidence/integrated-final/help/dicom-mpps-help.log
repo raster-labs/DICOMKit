@@ -1,0 +1,56 @@
+OVERVIEW: DICOM Modality Performed Procedure Step (MPPS) operations
+
+Create and update DICOM Modality Performed Procedure Step (MPPS) instances.
+Implements the MPPS SOP Class for notifying PACS/RIS systems about
+procedure execution status.
+
+URL Format:
+  hostname               - PACS server hostname or IP address
+  hostname:port          - Hostname with embedded port
+  --port port            - Optional explicit port (default: 11112)
+
+Examples:
+  # Create MPPS (procedure started)
+  dicom-mpps create server --port 11112 \
+    --aet MODALITY --called-aet PACS_SCP \
+    --study-uid 1.2.3.4.5.6.7.8.9 --modality CT \
+    --status "IN PROGRESS"
+  
+  # Update MPPS (procedure completed). COMPLETED needs at least one
+  # Performed Series item (PS3.4 Table F.7.2-1, final state), so name
+  # the series and the images it produced with their real SOP Class.
+  dicom-mpps update server --port 11112 \
+    --aet MODALITY \
+    --mpps-uid 1.2.840.113619.2.xxx \
+    --status COMPLETED \
+    --study-uid 1.2.3.4.5.6.7.8.9 --series-uid 1.2.3.4.5.6.7.8.9.1 \
+    --sop-class-uid 1.2.840.10008.5.1.4.1.1.2 \
+    --image-uid 1.2.3.4.5.6.7.8.9.1.1
+
+  # Discontinue with a coded reason (PS3.16 CID 9300 "Procedure
+  # Discontinuation Reason", scheme DCM)
+  dicom-mpps update server --port 11112 \
+    --aet MODALITY \
+    --mpps-uid 1.2.840.113619.2.xxx \
+    --status DISCONTINUED \
+    --discontinuation-reason "110513|DCM|Discontinued for unspecified reason"
+
+Status words (PS3.3 Table C.4-14 Enumerated Values, PS3.4 F.7.2.1.2 /
+F.7.2.2.2):
+  create  --status "IN PROGRESS"            (the only value N-CREATE may carry)
+  update  --status COMPLETED | DISCONTINUED (final; no further N-SET
+afterwards)
+
+Reference: PS3.4 Annex F - Modality Performed Procedure Step SOP Class
+
+USAGE: dicom-mpps <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  create                  Create MPPS instance (N-CREATE)
+  update                  Update MPPS instance (N-SET)
+
+  See 'dicom-mpps help <subcommand>' for detailed help.

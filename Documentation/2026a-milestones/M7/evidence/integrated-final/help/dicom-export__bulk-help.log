@@ -1,0 +1,31 @@
+OVERVIEW: Bulk export DICOM files with directory organization
+
+USAGE: dicom-export bulk <input> --output <output> [--format <format>] [--quality <quality>] [--organize-by <organize-by>] [--recursive] [--apply-window] [--embed-metadata] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input directory path
+
+OPTIONS:
+  -o, --output <output>   Output directory path
+  --format <format>       Output format: png, jpeg, tiff (values: png, jpeg,
+                          tiff; default: png)
+  --quality <quality>     JPEG quality (1-100) (default: 90)
+  --organize-by <organize-by>
+                          Folders: flat; patient = Patient ID (0010,0020), plus
+                          @Issuer of Patient ID (0010,0021) when present (PS3.3
+                          Table C.7-1; before 2026-10-01 Patient's Name); study
+                          = patient + Study Instance UID (0020,000D); series =
+                          study + Series Instance UID (0020,000E) (values:
+                          flat, patient, study, series; default: flat)
+  --recursive             Process directories recursively
+  --apply-window          deprecated: no effect; the file's VOI (Window Center
+                          (0028,1050) and Window Width (0028,1051), else VOI
+                          LUT Sequence (0028,3010), else the full pixel range)
+                          is always applied
+  --embed-metadata        Embed DICOM attributes as EXIF/TIFF tags:
+                          PatientName, StudyDate, Modality, StudyDescription,
+                          Manufacturer (PS3.6 keywords)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

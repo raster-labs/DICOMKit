@@ -1,0 +1,54 @@
+OVERVIEW: 3D reconstruction, MPR, and JP3D volumetric encoding from DICOM
+series
+
+Perform 3D volume reconstruction, MPR, projection techniques, and JP3D
+volumetric encode/decode from multi-slice DICOM series.
+
+Examples:
+  # Generate axial, sagittal, coronal MPR
+  dicom-3d mpr series/*.dcm --output mpr/ --planes axial,sagittal,coronal
+
+  # Oblique plane through a point (LPS mm), as a derived DICOM image
+  dicom-3d mpr series/*.dcm --output obl/ --planes oblique \
+    --oblique-normal 0,1,1 --oblique-point 0,-20,35 --format dcm
+
+  # Maximum Intensity Projection
+  dicom-3d mip series/*.dcm --output mip.png --thickness 20
+
+  # 3D surface rendering
+  dicom-3d surface series/*.dcm --threshold 200 --output surface.stl
+
+  # Encode a slice series as a JP3D volume document
+  dicom-3d encode-volume series/*.dcm --output volume.jp3d.dcm
+  dicom-3d encode-volume ./series/ --output volume.jp3d.dcm --mode
+lossless-htj2k
+
+  # Decode a JP3D document back to individual DICOM slices
+  dicom-3d decode-volume volume.jp3d.dcm --output ./decoded/
+
+  # Inspect JP3D document metadata (no decode)
+  dicom-3d inspect volume.jp3d.dcm
+  dicom-3d inspect volume.jp3d.dcm --json
+
+USAGE: dicom-3d <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  mpr                     Generate Multi-Planar Reformation (MPR) images
+  mip                     Generate Maximum Intensity Projection (MIP)
+  minip                   Generate Minimum Intensity Projection (MinIP)
+  average                 Generate Average Intensity Projection
+  surface                 Extract 3D surface mesh using Marching Cubes
+  export                  Export volume in various formats (NIfTI, MetaImage)
+  encode-volume           Encode a DICOM slice series as a JP3D volumetric
+                          document
+  decode-volume           Decode a JP3D volumetric document back to individual
+                          DICOM slices
+  inspect                 Display metadata from a JP3D volumetric document
+                          without decoding
+  backends                List available hardware acceleration backends
+
+  See 'dicom-3d help <subcommand>' for detailed help.

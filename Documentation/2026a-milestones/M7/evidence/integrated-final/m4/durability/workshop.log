@@ -1,0 +1,11 @@
+Test Suite 'Selected tests' started at 2026-10-24 20:53:19.718.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-24 20:53:19.722.
+Test Suite 'M4ClientOutcomeHarnessTests' started at 2026-10-24 20:53:19.722.
+Test Case '-[DICOMStudioTests.M4ClientOutcomeHarnessTests testRestartedServerClients]' started.
+Test Case '-[DICOMStudioTests.M4ClientOutcomeHarnessTests testRestartedServerClients]' passed (0.044 seconds).
+Test Suite 'M4ClientOutcomeHarnessTests' passed at 2026-10-24 20:53:19.767.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.044 (0.044) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-24 20:53:19.767.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.044 (0.044) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:53:19.767.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.044 (0.049) seconds

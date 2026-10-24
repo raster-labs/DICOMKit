@@ -1,0 +1,56 @@
+{
+  "scope": "Audit-only extraction and current shared-preflight wiring repair; no product or Swift-test changes and no builds.",
+  "frozen_at_utc": "2026-10-24T15:44:18.233639+00:00",
+  "files": {
+    "Scripts/diff_studio_g1.py": "4fbca1517af48c0a4f2ba4490b65b4f2e69aa5ce3834cf17c5564591f7604949",
+    "Scripts/diff_studio_g6.py": "603ab660350cd6299da34273bb688885eb416a180c11560a211ef51a65c625fd",
+    "Scripts/test_studio_audit_m7.py": "7c56de462ef2babdbd29f691276b2033bfb4e4c9761b741f688860e08a136ec3"
+  },
+  "regressions": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Scripts -p 'test_*audit*.py'",
+    "exit_code": 0,
+    "tests_passed": 48,
+    "new_tests": 10,
+    "log": "studio-audit-regressions.log"
+  },
+  "studio_audit": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 Scripts/diff_studio.py --nema ../standards",
+    "exit_code": 1,
+    "groups_completed": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6"
+    ],
+    "callbacks_completed": 178,
+    "audit_execution_errors": 0,
+    "finding_checks": 3,
+    "pending_owner_approval": 0,
+    "log": "final-studio-audit-repaired.log"
+  },
+  "retained_findings": [
+    {
+      "check": "generic dicom-anon parity",
+      "finding": "Workshop has no --profile control for CLI Basic Application Level Confidentiality Profile."
+    },
+    {
+      "check": "specific dicom-anon workflow coverage",
+      "finding": "Same absent --profile control remains separately visible; this is product-contract coverage, not by itself proof of a PS3.15 violation."
+    },
+    {
+      "check": "generic dicom-script parity",
+      "finding": "Workshop --dry-run defaults true; CLI defaults false. Intentional M5 safety preference remains visible, not exempted."
+    }
+  ],
+  "limitations": [
+    "Static wiring checks are not runtime request-capture or complete DICOM conformance proof.",
+    "Original failing log retained as final-studio-audit.log.",
+    "No native GUI, product, or Swift tests were rerun for audit-only edits."
+  ],
+  "log_sha256": {
+    "studio-audit-regressions.log": "bf13ae5af55587f94c2728274f794c6f7b862619de5bdcfc620904fee561d39b",
+    "final-studio-audit-repaired.log": "d26e3f2a6277d5425d7aa6842d695addf226184a609924b6980a28ebb539f9b0"
+  }
+}

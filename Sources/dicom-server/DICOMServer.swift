@@ -99,20 +99,21 @@ struct StartCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Verbose logging")
     var verbose: Bool = false
     
-    @Flag(name: .long, help: "Enable TLS/SSL")
+    @Flag(name: .long, help: "Request TLS (not implemented; refused without starting an unsecured listener)")
     var tls: Bool = false
     
     mutating func run() async throws {
-        // Load configuration from file if provided
+        try await startWithConfig(resolvedConfiguration())
+    }
+
+    func resolvedConfiguration() throws -> ServerConfiguration {
+        // A file may override ordinary defaults, but must never hide an explicit
+        // request for security that this listener cannot provide.
+        try ServerConfiguration.validateTLS(tls)
         if let configPath = config {
-            let serverConfig = try ServerConfiguration.load(from: configPath).validated()
-            try await startWithConfig(serverConfig)
-            return
+            return try ServerConfiguration.load(from: configPath).validated()
         }
-        
-        // Create configuration from command-line arguments
-        let serverConfig = try createConfiguration()
-        try await startWithConfig(serverConfig)
+        return try createConfiguration()
     }
     
     func createConfiguration() throws -> ServerConfiguration {

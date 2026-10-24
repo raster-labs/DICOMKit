@@ -1,0 +1,12 @@
+OVERVIEW: Generate workflow script templates
+
+USAGE: dicom-script template <template-name>
+
+ARGUMENTS:
+  <template-name>         Template name: 'workflow', 'pipeline', 'query',
+                          'archive', 'anonymize'
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+

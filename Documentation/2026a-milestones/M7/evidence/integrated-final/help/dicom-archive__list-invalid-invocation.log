@@ -1,0 +1,4 @@
+Error: Missing expected argument '--archive <archive>'
+Help:  --archive <archive>  Path to the archive
+Usage: dicom-archive list --archive <archive> [--format <format>] [--show-instances]
+  See 'dicom-archive list --help' for more information.

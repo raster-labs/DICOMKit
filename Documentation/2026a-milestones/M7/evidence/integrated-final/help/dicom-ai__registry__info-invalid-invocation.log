@@ -1,0 +1,4 @@
+Error: Missing expected argument '--name <name>'
+Help:  --name <name>  Model name
+Usage: dicom-ai registry info --name <name> [--verbose]
+  See 'dicom-ai registry info --help' for more information.

@@ -1,0 +1,33 @@
+OVERVIEW: DICOMweb client for RESTful DICOM operations
+
+Comprehensive DICOMweb client supporting WADO-RS, QIDO-RS, STOW-RS, and UPS-RS
+protocols.
+Provides RESTful HTTP/HTTPS-based access to DICOM objects without traditional
+networking.
+
+Subcommands:
+  retrieve  - WADO-RS: Retrieve studies, series, instances, frames
+  query     - QIDO-RS: Search for studies, series, instances
+  store     - STOW-RS: Upload DICOM instances to server
+  ups       - UPS-RS: Unified Worklist operations
+
+Examples:
+  dicom-wado retrieve https://pacs.example.com/dicom-web --study 1.2.3.4.5 -o
+study/
+  dicom-wado query https://pacs.example.com/dicom-web --patient-name "DOE*"
+  dicom-wado store https://pacs.example.com/dicom-web file1.dcm file2.dcm
+  dicom-wado ups https://pacs.example.com/dicom-web --search
+
+USAGE: dicom-wado <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  retrieve                Retrieve DICOM objects using WADO-RS or WADO-URI
+  query                   Search for DICOM objects using QIDO-RS
+  store                   Upload DICOM instances using STOW-RS
+  ups                     Unified Procedure Step Worklist operations (UPS-RS)
+
+  See 'dicom-wado help <subcommand>' for detailed help.

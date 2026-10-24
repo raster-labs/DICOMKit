@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "recorded_utc": "2026-10-24T15:27:17.896989+00:00",
+  "command": "DICOMKIT_VERIFY_SCRATCH=/Volumes/DICOMKit-M1-build/spm DICOMKIT_VERIFY_CACHE=/Volumes/DICOMKit-M1-build/cache bash Scripts/verify_m7.sh work/m7/integrated-final",
+  "session": 43317,
+  "source_manifest": "frozen-source-manifest.json",
+  "native_GUI": "Not executed"
+}

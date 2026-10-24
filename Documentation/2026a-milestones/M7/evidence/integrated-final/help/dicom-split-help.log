@@ -1,0 +1,114 @@
+OVERVIEW: Extract individual frames from multi-frame DICOM files
+
+Extracts individual frames from multi-frame DICOM files. Enhanced
+CT/MR/PET/XA/XRF and Legacy Converted Enhanced CT/MR/PET Image Storage
+objects become single-frame CT Image Storage, MR Image Storage, Positron
+Emission Tomography Image Storage, X-Ray Angiographic Image Storage or X-Ray
+Radiofluoroscopic Image Storage instances, with the Shared and Per-Frame
+Functional Groups Sequences flattened to the top level; Ultrasound
+Multi-frame Image Storage and the Multi-frame Secondary Capture classes
+become Ultrasound Image Storage / Secondary Capture Image Storage with the
+cine vectors resolved; Nuclear Medicine, X-Ray Angiographic, X-Ray
+Radiofluoroscopic, RT Image, Breast Tomosynthesis, X-Ray 3D, Ophthalmic
+Tomography, Enhanced US Volume and similar keep their SOP Class with one
+frame per instance. Encapsulated (compressed) sources keep their transfer
+syntax frame by frame. Supports output as DICOM files or common image
+formats (PNG, JPEG, TIFF).
+
+--frame-numbers takes Frame numbers, numbered from 1 (PS3.3 C.7.6.16.1.2:
+"Frames are implicitly numbered starting from 1"). The 0-based --frames
+(index 0 is Frame number 1) is deprecated.
+
+Examples:
+  # Extract all frames to DICOM files (Enhanced CT -> CT Image Storage)
+  dicom-split multiframe.dcm --output frames/
+
+  # Extract Frame numbers 2, 6 and 11-16
+  dicom-split multiframe.dcm --frame-numbers 2,6,11-16 --output selected/
+
+  # Keep the Enhanced SOP Class, one series per Stack ID
+  dicom-split enhanced-mr.dcm --target same --split-by stack --output stacks/
+
+  # Decode a JPEG 2000 multi-frame to native pixels while splitting
+  dicom-split j2k-multiframe.dcm --pixel-handling decode --output native/
+
+  # Split a Segmentation into Concatenation parts of 25 frames
+  dicom-split seg.dcm --frames-per 25 --output parts/
+
+  # Extract as PNG images with windowing
+  dicom-split ct-multiframe.dcm \
+    --format png \
+    --apply-window \
+    --window-center 40 \
+    --window-width 400 \
+    --output images/
+
+  # Batch processing with custom naming
+  dicom-split studies/ \
+    --output split_studies/ \
+    --pattern "frame_{number:04d}_{modality}.dcm" \
+    --recursive
+
+USAGE: dicom-split [<options>] <input>
+
+ARGUMENTS:
+  <input>                 Input DICOM file or directory
+
+OPTIONS:
+  --output <output>       Output directory for extracted frames (default: .)
+  --frame-numbers <frame-numbers>
+                          Frames to extract by Frame number, numbered from 1
+                          (PS3.3 C.7.6.16.1.2), e.g. '1,3,5-10' (default: all)
+  --frames <frames>       deprecated: 0-based index; use --frame-numbers
+  --format <format>       Output format: dicom, png, jpeg, tiff (default:
+                          dicom) (default: dicom)
+  --apply-window          Apply window/level settings to image output
+  --window-center <window-center>
+                          Window center for image rendering
+  --window-width <window-width>
+                          Window width for image rendering
+  --pattern <pattern>     Naming pattern for output files (variables: {number}
+                          / {number:04d} = 0-based frame index, {instance} =
+                          Instance Number, {stack} = Stack ID, {modality},
+                          {series} = Series Number)
+  --target <target>       SOP Class of the extracted frames: auto (the
+                          single-frame class when one exists, e.g. Enhanced CT
+                          Image Storage -> CT Image Storage), same (keep the
+                          source SOP Class), classic (require a single-frame
+                          class) (default: auto) (values: auto, same, classic;
+                          default: auto)
+  --pixel-handling <pixel-handling>
+                          Encapsulated (compressed) sources: preserve the
+                          transfer syntax per frame, or decode to Explicit VR
+                          Little Endian (default: preserve) (values: preserve,
+                          decode; default: preserve)
+  --private-groups <private-groups>
+                          Private Sequences in the Shared / Per-Frame
+                          Functional Groups Sequence items: flatten, keep, drop
+                          (default: flatten) (values: flatten, keep, drop;
+                          default: flatten)
+  --instance-number <instance-number>
+                          Instance Number (0020,0013) of the frames: frame (the
+                          1-based Frame number), instack (In-Stack Position
+                          Number (0020,9057)), original (keep the source value)
+                          (default: frame) (values: frame, instack, original;
+                          default: frame)
+  --split-by <split-by>   Write one series per: none, stack (Stack ID
+                          (0020,9056)), temporal (Temporal Position Index
+                          (0020,9128)) (default: none) (values: none, stack,
+                          temporal; default: none)
+  --new-series            Mint a new Series Instance UID (0020,000E) for the
+                          extracted frames
+  --frames-per <frames-per>
+                          Write concatenation parts of N frames (SOP class
+                          kept; the only legal split for Segmentation /
+                          Parametric Map)
+  --random-uids           Generate random SOP/Series Instance UIDs instead of
+                          deriving them from the source (derived UIDs make the
+                          split reproducible and let frame references be
+                          rewritten)
+  -r, --recursive         Recursively process directories
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

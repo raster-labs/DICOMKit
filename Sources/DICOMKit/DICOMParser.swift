@@ -1094,7 +1094,7 @@ struct DICOMParser: ~Copyable {
         return parseLeafValue(header, byteOrder: byteOrder)
     }
 
-    /// Implicit VR header; dictionary semantics and strict checks are unchanged.
+    /// Implicit VR header, including the native Pixel Data OW requirement.
     private mutating func parseImplicitVRHeader(byteOrder: ByteOrder) -> DICOMParserOutcome<ElementHeader> {
         var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
         if case .failure(let failure) = reserveElement() { return .failure(failure) }
@@ -1131,9 +1131,11 @@ struct DICOMParser: ~Copyable {
         
         // Look up VR from the dictionary
         // If not found, use UN (Unknown) per PS3.5 Section 6.2.2
-        // Canonical dictionary projection has identical first-VR semantics but
-        // does not lazily allocate the descriptive dictionary during a parse.
-        let vr = DataElementDictionary.primaryValueRepresentation(for: tag) ?? .UN
+        // Native Pixel Data in Implicit VR is always OW (PS3.5 Section 8.2),
+        // including 8-bit samples. The dictionary also permits OB for Explicit
+        // VR, so its first alternative must not decide this implicit encoding.
+        let vr: VR = tag == .pixelData ? .OW
+            : (DataElementDictionary.primaryValueRepresentation(for: tag) ?? .UN)
 
         if case .failure(let failure) = validateLength(valueLength) { return .failure(failure) }
         if valueLength == 0xFFFFFFFF && vr != .SQ && isStrict {

@@ -1,0 +1,3 @@
+JPEG XL decoder v0.12.0 0.12.0 [_NEON_BF16_,NEON] {AppleClang 21.0.0.21000099}
+Decoded to pixels.
+64 x 48, 8.817 MP/s, 10 threads.

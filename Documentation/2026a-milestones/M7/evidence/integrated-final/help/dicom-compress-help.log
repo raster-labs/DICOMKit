@@ -1,0 +1,32 @@
+OVERVIEW: DICOM compression and decompression utilities
+
+Compress, decompress, and analyze DICOM file transfer syntaxes.
+
+Examples:
+  dicom-compress info file.dcm
+  dicom-compress info file.dcm --json
+  dicom-compress compress input.dcm --output output.dcm --codec jpeg-lossless
+  dicom-compress compress input.dcm --output output.dcm --codec jpeg2000
+--quality high
+  dicom-compress decompress compressed.dcm --output uncompressed.dcm
+  dicom-compress decompress compressed.dcm --output uncompressed.dcm --syntax
+explicit-le
+  dicom-compress batch input_dir/ --output output_dir/ --codec jpeg-lossless
+--recursive
+  dicom-compress batch input_dir/ --output output_dir/ --decompress --recursive
+
+USAGE: dicom-compress <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  compress                Compress a DICOM file using a specified codec
+  decompress              Decompress a compressed DICOM file
+  info (default)          Show compression information about a DICOM file
+  batch                   Batch compress or decompress DICOM files in a
+                          directory
+  backends                List available hardware acceleration backends
+
+  See 'dicom-compress help <subcommand>' for detailed help.

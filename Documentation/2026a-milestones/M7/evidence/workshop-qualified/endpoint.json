@@ -1,0 +1,6 @@
+{
+  "url": "pacs://127.0.0.1:59319",
+  "aet": "M6CLI",
+  "retainedJobUID": "1.2.826.0.1.3680043.10.511.4.1792855685192599.906592",
+  "sameLibraryLoopback": true
+}

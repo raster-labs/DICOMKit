@@ -1,0 +1,1 @@
+Error: C-FIND cancelled (FE00); 1 partial result(s) received. Query results are incomplete.

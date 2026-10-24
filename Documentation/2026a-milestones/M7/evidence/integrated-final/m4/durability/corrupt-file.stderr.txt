@@ -1,0 +1,1 @@
+Error: Storage error: Reindex rejected /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m4/durability/corrupt-file/bad.dcm: Storage error: Not a Part 10 DICOM file

@@ -1,0 +1,255 @@
+using ../standards/part03_2026a.xml: DICOM PS3.3 2026a - Information Object Definitions
+using ../standards/part04_2026a.xml: DICOM PS3.4 2026a - Service Class Specifications
+using ../standards/part05_2026a.xml: DICOM PS3.5 2026a - Data Structures and Encoding
+using ../standards/part06_2026a.xml: DICOM PS3.6 2026a - Data Dictionary
+using ../standards/part07_2026a.xml: DICOM PS3.7 2026a - Message Exchange
+using ../standards/part08_2026a.xml: DICOM PS3.8 2026a - Network Communication Support for Message Exchange
+using ../standards/part10_2026a.xml: DICOM PS3.10 2026a - Media Storage and File Format for Media Interchange
+using ../standards/part11_2026a.xml: DICOM PS3.11 2026a - Media Storage Application Profiles
+using ../standards/part15_2026a.xml: DICOM PS3.15 2026a - Security and System Management Profiles
+using ../standards/part16_2026a.xml: DICOM PS3.16 2026a - Content Mapping Resource
+using ../standards/part18_2026a.xml: DICOM PS3.18 2026a - Web Services
+using ../standards/part19_2026a.xml: DICOM PS3.19 2026a - Application Hosting
+ok   inventory: 347 Swift files classified (ST 179, CR 57, NST 111): matched 347, wrong 0, missing 0, extra 0
+
+== G1: CLI Workshop (forms, executors, shell foundation, parameter builder, validation) (26 standard-touching files)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 17, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 16, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 125, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   Workshop audit mappings cover the extracted forms: matched 35, wrong 0, missing 0, extra 0
+Coverage: 35 Workshop forms; CLI tools without a Workshop parity check: dicom-3d, dicom-ai, dicom-gateway, dicom-j2k, dicom-jpip, dicom-measure, dicom-report, dicom-server, dicom-viewer
+Coverage: form/literal checks do not qualify runtime execution, all accepted flag combinations, packaged UI behavior or independent interoperability.
+FAIL dicom-anon: Workshop form mirrors dicom-anon (flags, defaults, picker values, contract rows): matched 32, wrong 1, missing 0, extra 0
+       wrong: dicom-anon: contract row --profile (Basic Application Level Confidentiality Profile; PS3.15 E.1, E.2, Table E.1-1) is not offered by the Workshop
+ok   dicom-archive: Workshop form mirrors dicom-archive (flags, defaults, picker values, contract rows): matched 19, wrong 0, missing 0, extra 0
+ok   dicom-compress: Workshop form mirrors dicom-compress (flags, defaults, picker values, contract rows): matched 12, wrong 0, missing 0, extra 0
+ok   dicom-convert: Workshop form mirrors dicom-convert (flags, defaults, picker values, contract rows): matched 13, wrong 0, missing 0, extra 0
+ok   dicom-dcmdir: Workshop form mirrors dicom-dcmdir (flags, defaults, picker values, contract rows): matched 14, wrong 0, missing 0, extra 0
+ok   dicom-diff: Workshop form mirrors dicom-diff (flags, defaults, picker values, contract rows): matched 8, wrong 0, missing 0, extra 0
+ok   dicom-dump: Workshop form mirrors dicom-dump (flags, defaults, picker values, contract rows): matched 9, wrong 0, missing 0, extra 0
+ok   dicom-echo: Workshop form mirrors dicom-echo (flags, defaults, picker values, contract rows): matched 9, wrong 0, missing 0, extra 0
+ok   dicom-export: Workshop form mirrors dicom-export (flags, defaults, picker values, contract rows): matched 28, wrong 0, missing 0, extra 0
+ok   dicom-image: Workshop form mirrors dicom-image (flags, defaults, picker values, contract rows): matched 18, wrong 0, missing 0, extra 0
+ok   dicom-info: Workshop form mirrors dicom-info (flags, defaults, picker values, contract rows): matched 5, wrong 0, missing 0, extra 0
+ok   dicom-json: Workshop form mirrors dicom-json (flags, defaults, picker values, contract rows): matched 10, wrong 0, missing 0, extra 0
+ok   dicom-merge: Workshop form mirrors dicom-merge (flags, defaults, picker values, contract rows): matched 13, wrong 0, missing 0, extra 0
+ok   dicom-mpps: Workshop form mirrors dicom-mpps (flags, defaults, picker values, contract rows): matched 39, wrong 0, missing 0, extra 0
+ok   dicom-mwl: Workshop form mirrors dicom-mwl (flags, defaults, picker values, contract rows): matched 19, wrong 0, missing 0, extra 0
+ok   dicom-pdf: Workshop form mirrors dicom-pdf (flags, defaults, picker values, contract rows): matched 18, wrong 0, missing 0, extra 0
+ok   dicom-pixedit: Workshop form mirrors dicom-pixedit (flags, defaults, picker values, contract rows): matched 9, wrong 0, missing 0, extra 0
+ok   dicom-print: Workshop form mirrors dicom-print (flags, defaults, picker values, contract rows): matched 39, wrong 0, missing 0, extra 0
+ok   dicom-printscp: Workshop form mirrors dicom-printscp (flags, defaults, picker values, contract rows): matched 82, wrong 0, missing 0, extra 0
+ok   dicom-qido: Workshop form mirrors dicom-wado (flags, defaults, picker values, contract rows): matched 20, wrong 0, missing 0, extra 0
+ok   dicom-qr: Workshop form mirrors dicom-qr (flags, defaults, picker values, contract rows): matched 23, wrong 0, missing 0, extra 0
+ok   dicom-query: Workshop form mirrors dicom-query (flags, defaults, picker values, contract rows): matched 20, wrong 0, missing 0, extra 0
+ok   dicom-retrieve: Workshop form mirrors dicom-retrieve (flags, defaults, picker values, contract rows): matched 18, wrong 0, missing 0, extra 0
+FAIL dicom-script: Workshop form mirrors dicom-script (flags, defaults, picker values, contract rows): matched 6, wrong 1, missing 0, extra 0
+       wrong: dicom-script: --dry-run (CLIWorkshopHelpers.swift:4706): Workshop default 'true', dicom-script default 'false'
+ok   dicom-send: Workshop form mirrors dicom-send (flags, defaults, picker values, contract rows): matched 12, wrong 0, missing 0, extra 0
+ok   dicom-split: Workshop form mirrors dicom-split (flags, defaults, picker values, contract rows): matched 18, wrong 0, missing 0, extra 0
+ok   dicom-stow: Workshop form mirrors dicom-wado (flags, defaults, picker values, contract rows): matched 6, wrong 0, missing 0, extra 0
+ok   dicom-study: Workshop form mirrors dicom-study (flags, defaults, picker values, contract rows): matched 12, wrong 0, missing 0, extra 0
+ok   dicom-tags: Workshop form mirrors dicom-tags (flags, defaults, picker values, contract rows): matched 9, wrong 0, missing 0, extra 0
+ok   dicom-uid: Workshop form mirrors dicom-uid (flags, defaults, picker values, contract rows): matched 16, wrong 0, missing 0, extra 0
+ok   dicom-ups: Workshop form mirrors dicom-wado (flags, defaults, picker values, contract rows): matched 37, wrong 0, missing 0, extra 0
+ok   dicom-validate: Workshop form mirrors dicom-validate (flags, defaults, picker values, contract rows): matched 8, wrong 0, missing 0, extra 0
+ok   dicom-video: Workshop form mirrors dicom-video (flags, defaults, picker values, contract rows): matched 31, wrong 0, missing 0, extra 0
+ok   dicom-wado: Workshop form mirrors dicom-wado (flags, defaults, picker values, contract rows): matched 26, wrong 0, missing 0, extra 0
+ok   dicom-xml: Workshop form mirrors dicom-xml (flags, defaults, picker values, contract rows): matched 10, wrong 0, missing 0, extra 0
+ok   PS3.11 2026a Tables A.1-1..N.1-1 (58 identifiers): dicom-dcmdir Workshop --profile picker is DICOMDIRProfile.allStandard and names only identifiers (D29): matched 65, wrong 0, missing 0, extra 0
+ok   PS3.10 2026a 8.1, 8.2, 8.5: the dicom-dcmdir Workshop and CLI call DICOMKit DICOMDIRFileSetRules, no Workshop copy (D132, D253): matched 16, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a Table 10-3 / Table C.7-13: dicom-export Workshop frame numbers, deprecated 0-based options, --fps default; Workshop and CLI call DICOMImageExporter.CineFrameRate / FrameSelection / BurnedInAnnotation (D127, D252): matched 38, wrong 0, missing 0, extra 0
+ok   PS3.18 F.2.5 / PS3.19 Table A.1.5-2: dicom-json / dicom-xml Workshop include-empty default and deprecation notes (D114): matched 7, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a C.7.6.16.1.2: dicom-split Workshop --frame-numbers (from 1) and deprecated 0-based --frames (D154): matched 7, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.3.1.1.1 / PS3.4 C.2.2.2.5.1: dicom-archive Workshop query --strict-modality, modality help and the ArchiveMatching.studyDateKeyWarning both surfaces call (D249): matched 8, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1: dicom-validate --iod SOP Class map (DICOMValidator.iodNameBySOPClassUID) is called by the Workshop and the CLI (D248): matched 11, wrong 0, missing 0, extra 0
+ok   PS3.5 9.1 / PS3.6 Table A-1: dicom-uid --root through UIDManager.RootRule in both surfaces (D250); dicom-dump texts mirror the CLI: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 keywords / dicom-validate --level help: ValidationModel IOD suggestions and level descriptions: matched 36, wrong 0, missing 0, extra 0
+ok   PS3.4 2026a Tables C.6.1-1 / C.6.2-1: dicom-query Workshop --level values, IMAGE on the wire, dicom-json / csv-keywords formatter (D-query level, P-QUERY-JSON): matched 17, wrong 0, missing 0, extra 0
+ok   PS3.7 2026a Tables 9.3-1 / 9.3-9 / 9.3-6 Priority and PS3.4 Table B.2-1: Workshop priority pickers, dicom-send outcome classes, warning tally and the NetworkConsole failure texts both surfaces call (D75 / P-SEND-SUMMARY Studio half, D261): matched 32, wrong 0, missing 0, extra 0
+ok   PS3.4 2026a Tables C.4-2 / C.4-3, PS3.7 Tables 9.3-10 / 9.3-7 / 9.3-9 / 9.3-6, PS3.4 C.5.2.1: dicom-retrieve / dicom-qr Workshop status wording (NetworkConsole.retrieveFinalResponse, D262), priority, relational-retrieve and CLI texts (D76 Studio half, P-RETRIEVE-PRIORITY / -EXTNEG, P-QR-PARALLEL): matched 43, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a C.4.10 (0040,0020) Defined Terms, PS3.4 Table F.7.2-1 Type 1, PS3.16 CID 9301: dicom-mwl / dicom-mpps Workshop pickers, texts and the DICOMNetwork rules both surfaces call (D85, D263, D264): matched 51, wrong 0, missing 0, extra 0
+ok   PS3.18 2026a 11.7.1.4 / 9.1.2.2.1 / 8.3.4.4, PS3.3 C.30.1 / C.30.2, PS3.4 Table CC.1.1-2: dicom-wado Workshop (qido / wado / stow / ups) DICOMwebOptionRules calls, UPS state refusal, pickers and cliMapping flags (P-WADO-UPS-STATE / -UPDATE, P-QUERY-JSON, D255, D265): matched 70, wrong 0, missing 0, extra 0
+FAIL PS3.15 E.1 / Table E.1-1: current dicom-anon Workshop option coverage and shared AnonymizationWorkflow request/execution path: matched 84, wrong 1, missing 0, extra 2
+       wrong: dicom-anon form has no control for --profile (CLI contract coverage; not a PS3.15 violation by itself)
+ok   PS3.3 2026a Table C.8-24 (8 Conversion Type Defined Terms) / Table C.24-2: dicom-image and dicom-pdf Workshop --conversion-type / --burned-in-annotation pickers, DICOMKit ConversionType.definedTerms and EncapsulatedDocumentBuilder.OptionRules (D272): matched 32, wrong 0, missing 0, extra 0
+ok   PS3.16 2026a CID 3000 (6 rows), PS3.3 A.32.5.4.1 / A.32.6.4.1 / A.32.7.4.1, C.7.1.1 Patient's Sex: dicom-video Workshop --audio-channel-source (D56) and the P-VIDEO-* refusals are DICOMKit AudioChannelSourceOption / VideoOptionConformance in both surfaces (D269): matched 40, wrong 0, missing 0, extra 0
+ok   PS3.6 2026a Table A-1 / PS3.5 A.1, A.2, A.3, A.5: dicom-compress Workshop decompress / batch --syntax picker is the 4 native targets of CompressionConsole.NativeTargetSyntax, which both surfaces resolve through (P-COMPRESS-SYNTAX, D267); info --json shared (P-COMPRESS-JSON): matched 15, wrong 0, missing 0, extra 0
+ok   PS3.6 2026a Table A-1 (7 added keywords + 3 reassigned), PS3.3 Table 10-3: dicom-convert Workshop --transfer-syntax tokens (DICOMConverter.cliTokens, P-CONVERT-TS-KEYWORDS; keywords and help DICOMConverter's in both surfaces, D268), --frame-number / deprecated --frame (P-CONVERT-FRAME): matched 29, wrong 0, missing 0, extra 0
+ok   PS3.5 2026a Table 6.2-1 / 9.1, PS3.3 Tables C.24-2 / C.12-1 / C.7.6.3.1 / C.11.2.1.2: dicom-image, dicom-pdf and dicom-pixedit Workshop and CLI call ImageConverter.OutputRules / EncapsulatedDocumentBuilder.OptionRules / PixelEditInputChecks (P-IMAGE-VR, P-PIXEDIT-RANGE, D182, D270, D272, D274): matched 42, wrong 0, missing 0, extra 0
+ok   P-CONVERT-EXIT siblings, PS3.3 2026a C.24.2: the Workshop's dicom-export bulk, dicom-image and dicom-pdf directory runs exit 1 after the summary as the CLIs do; dicom-pdf --extract skips non-documents in both surfaces (D251, D271, D273): matched 11, wrong 0, missing 0, extra 0
+ok   shell: injected server parameters are real options of the DIMSE tools / dicom-wado: matched 37, wrong 0, missing 0, extra 0
+ok   Sources/dicom-* targets (42): the shell registry, integration scenarios, parameter catalog and browser references name real tools, each once: matched 153, wrong 0, missing 0, extra 0
+ok   ToolRegistryHelpers.toolDescription: DIMSE-C names are PS3.7 2026a 9.1.x services, RESTful names occur in PS3.18 2026a, every shipped tool has a row: matched 11, wrong 0, missing 0, extra 0
+ok   ParameterCatalogHelpers: 115 rows of the 12 tool forms are options/arguments of the named tool; picker values are accepted; defaults agree: matched 197, wrong 0, missing 0, extra 1
+ok   PS3.5 Table 6.2-1 (AE 16 bytes) and PS3.8 9.1.1 (registered port 11112): parameter builder validation limits and the default port: matched 4, wrong 0, missing 0, extra 0
+ok   BrowserNavigation: 16 "PS3.x §y" references are 2026a sections (PS3.7 and PS3.18 included): matched 16, wrong 0, missing 0, extra 0
+ok   PS3.15 Table E.1-1: the 7 CommandHistoryHelpers.redactPHI keywords are Table 6-1 keywords of E.1-1 attributes: matched 7, wrong 0, missing 0, extra 0
+
+== G2: Viewer and rendering (PS3.4 N.2 pipeline, presentation states, shutters, annotations, codecs, labels) (53 standard-touching files)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 13, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 6, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 22, wrong 0, missing 0, extra 0
+ok   G2 codec: transfer-syntax names tied to a UID in Studio text are PS3.6 Table A-1 names: matched 49, wrong 0, missing 0, extra 0
+ok   G2 codec (D10): ThumbnailHelpers photometric set == PS3.3 C.7.6.3.1.2 terms (less the 2001-retired three): matched 11, wrong 0, missing 0, extra 0
+ok   G2 codec (D11): ImageMetadataHelpers.photometricLabel has a label per C.7.6.3.1.2 term (less the 2001-retired three): matched 11, wrong 0, missing 0, extra 0
+ok   G2 codec: DICOMCore Modality current codes (offered by ModalityPicker) == PS3.3 C.7.3.1.1.1 Defined Terms: matched 79, wrong 0, missing 0, extra 0
+ok   G2 codec: DICOMCore Modality retired codes == PS3.3 C.7.3.1.1.1 Retired Defined Terms: matched 18, wrong 0, missing 0, extra 0
+ok   G2 codec: the modality count the Studio doc comments quote equals the C.7.3.1.1.1 count: matched 2, wrong 0, missing 0, extra 0
+ok   G2 codec: ViewerContentKind SOP Class arcs are PS3.6 Table A-1 OID arcs whose members fit the kind: matched 64, wrong 0, missing 0, extra 0
+ok   G2 codec: ViewerAnnotationText "Uncompressed" syntaxes == the PS3.6 Table A-1 "… VR … Endian" rows: matched 5, wrong 0, missing 0, extra 0
+ok   G2 codec: ViewerNonImageContent summary rows carry PS3.6 Table 6-1 names: matched 7, wrong 0, missing 0, extra 0
+ok   G2 codec: SR narrative covers every PS3.3 Table C.17.3-7 Value Type: matched 16, wrong 0, missing 0, extra 0
+ok   G2 codec: viewer orientation letters are the PS3.3 C.7.6.1.1.1 Patient Orientation abbreviations: matched 3, wrong 0, missing 0, extra 0
+ok   G2 viewer: ShutterShape raw values == Shutter Shape (0018,1600) values of PS3.3 C.7.6.11 + C.7.6.15: matched 4, wrong 0, missing 0, extra 0
+ok   G2 viewer: VOI LUT Function strings (applyVOILUT cases, model and viewer defaults) == PS3.3 C.11.2 terms: matched 3, wrong 0, missing 0, extra 0
+ok   G2 viewer: PresentationLUTShape raw values == Presentation LUT Shape (2050,0020) values of PS3.3 C.11.6: matched 2, wrong 0, missing 0, extra 0
+ok   G2 viewer: ModalityLUTTransform default Rescale Type is a PS3.3 C.11.1.1.2 Defined Term: matched 1, wrong 0, missing 0, extra 0
+ok   G2 viewer: GraphicType raw values == Graphic Type (0070,0023) values of PS3.3 C.10.5: matched 5, wrong 0, missing 0, extra 0
+ok   G2 viewer: TextAnchorType raw values == Bounding Box / Anchor Point Annotation Units of PS3.3 2026a C.10.5 (Table C.10-5); legacy IMAGE decodes as PIXEL (P-STUDIO-ANNOTATION-UNITS): matched 3, wrong 0, missing 0, extra 0
+ok   G2 viewer: DisplayedArea default Presentation Size Mode is a PS3.3 C.10.4 value: matched 1, wrong 0, missing 0, extra 0
+ok   G2 viewer: rotationAngle values == Image Rotation (0070,0042) values of PS3.3 C.10.6: matched 4, wrong 0, missing 0, extra 0
+ok   G2 viewer: transformPoint rotates before it flips (PS3.3 Table C.10-6 Image Rotation description): matched 1, wrong 0, missing 0, extra 0
+ok   G2 viewer: applyLinearVOI is the PS3.3 C.11.2.1.2.1 LINEAR pseudo-code (ymin 0, ymax 1), 3 branches: matched 3, wrong 0, missing 0, extra 0
+ok   G2 viewer: applyLinearExactVOI is the PS3.3 C.11.2.1.3.2 LINEAR_EXACT pseudo-code (ymin 0, ymax 1), 3 branches: matched 3, wrong 0, missing 0, extra 0
+ok   G2 viewer: applySigmoidVOI is 1 / (1 + exp(−4 (x − c) / w)) (PS3.3 C.11.2.1.3.1; the formula is an image in the DocBook, not text-diffed): matched 1, wrong 0, missing 0, extra 0
+ok   G2 viewer (D28): DICOMInspectorView binary-VR set == PS3.5 Table 6.2-1 "Other …" VRs + UN: matched 7, wrong 0, missing 0, extra 0
+ok   G2 viewer: tag literals in the overlay, annotation, shutter, inspector and renderer files are PS3.6 Table 6-1 rows: matched 47, wrong 0, missing 0, extra 0
+ok   G2 viewer: SOP Class UID literals and the isWaveformFile arc agree with PS3.6 Table A-1 names: matched 23, wrong 0, missing 0, extra 0
+ok   G2 viewer: photometric string literals in the viewer files are PS3.3 C.7.6.3.1.2 terms: matched 3, wrong 0, missing 0, extra 0
+ok   G2 viewer: preset modality codes (WindowLevelPresets, DICOMVolumeViewerViewModel) are PS3.3 C.7.3.1.1.1 Defined Terms: matched 14, wrong 0, missing 0, extra 0
+ok   G2 viewer: PresentationStatePalette names vs PS3.6 Table B.1-1 Well-known Color Palettes (this app documents its own extras): matched 3, wrong 0, missing 0, extra 9
+ok   G2 viewer (D65, D68): every FrameRenderRequest the viewer builds carries the Modality LUT, VOI and ICC Profile (PS3.4 N.2; PS3.3 C.11.2.1.2.1, C.11.15.1.1): matched 2, wrong 0, missing 0, extra 0
+ok   G2 viewer (D42): ImageToSave / bridge capture / restore are given the Photometric Interpretation and Rescale Type: matched 6, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a C.11.2.1.2.1 (A6 / D65): the viewer and film-cell default window is determineModalityWindow, in modality units; no determineWindowSettings call is left: matched 7, wrong 0, missing 0, extra 0
+
+== G3: Network and web (DIMSE and print enums, DICOMweb client and model, performance-test data) (21 standard-touching files)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 31, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 44, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 18, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a C.13.1 Table C.13-1 Print Priority (Enumerated Values): NetworkingModel.PrintPriority is DICOMNetwork.PrintPriority (deprecated alias); its values are exactly the terms (P-STUDIO-PRINT-ENUMS, D22): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a C.13.1 Table C.13-1 Medium Type (Defined Terms): NetworkingModel.PrintMediumType is DICOMNetwork.MediumType (deprecated alias); its values are exactly the terms (P-STUDIO-PRINT-ENUMS, D22): matched 5, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a C.13.3 Table C.13-3 Film Size ID (Defined Terms): NetworkingModel.PrintFilmSize is DICOMNetwork.FilmSize (deprecated alias); its values are exactly the terms (P-STUDIO-PRINT-ENUMS, D22): matched 12, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a C.13.8 Table C.13-8: NetworkingModel.NetworkPrintJobState (formerly PrintJobStatus) raw values are the Execution Status Enumerated Values (P-STUDIO-PRINT-ENUMS, D22): matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 C.13.3: NetworkingModel.FilmLayout raw values are STANDARD\C,R of each case's own columns and rows: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.3 C.13.3: NetworkingViewModel passes the chosen Film Layout to DICOMPrintService.printImages(layout:) as Image Display Format: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a Tables C.13-1 / C.13-3 (D22): the print pickers and PrintOptions use DICOMNetwork PrintPriority / MediumType / FilmSize directly, no Studio copy (P-STUDIO-PRINT-ENUMS): matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 C.4.14 Table C.4-14: NetworkingModel.MPPSStatus raw values are the Performed Procedure Step Status Enumerated Values: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.4.14: Studio MPPSStatus spellings agree with DICOMNetwork.MPPSStatus (cross-check): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.4 Table C.6.1-1: NetworkingModel.NetworkQueryLevel raw values are PATIENT / STUDY / SERIES / IMAGE: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.5 Table 6.2-1 VR AE (16 bytes, Default Character Repertoire without 5CH): Studio AE Title rules delegate to DICOMNetwork.AETitle and keep no uppercase-only or case-folding rule: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.8 9.1.1 (104 well-known, 11112 registered), PS3.15 B.12 ("2762 dicom-tls"): Studio default and listed ports: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.15 2026a Annex B.12 / B.13: NetworkingModel.TLSMode selects the live TLS Secure Transport Connection Profiles (B.9-B.11 retired) through DICOMNetwork SecureTransportConnectionProfile; tls12 / tls13 deprecated (P-STUDIO-TLS-PROFILES): matched 12, wrong 0, missing 0, extra 0
+ok   PS3.5 Table 6.2-1: TagDictionaryHelpers.vrFullName — 34 VR names verbatim: matched 34, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: TagDictionaryHelpers.sampleTagEntries (15 rows: tag, name, keyword, VR, VM, not retired): matched 15, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1: PerformanceToolsHelpers UID rows (sample UIDs, transfer syntaxes, conformance SOP Classes) carry the registered name: matched 44, wrong 0, missing 0, extra 0
+ok   PS3.3 2026a Table C.30.1-1: UPSState is DICOMWeb's UPSState (deprecated Studio alias); its raw values are the 4 Procedure Step State terms; IN_PROGRESS / CANCELLED still decode (P-STUDIO-UPS-STATE-RAW): matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 C.30.1: UPS state string literals in the DICOMweb ViewModel, Helpers and View are the 4 terms: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 C.30.2: DICOMwebModel.UPSPriority raw values are the Scheduled Procedure Step Priority terms: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.4 2026a Table CC.1.1-2: UPSState.allowedTransitions (DICOMWeb UPSState.validTransitions) are the Change State targets the table allows (P-STUDIO-UPS-STATE-RAW): matched 4, wrong 0, missing 0, extra 0
+ok   PS3.18 11.7.1.4 / PS3.4 Table CC.2.1-2: Studio refuses a SCHEDULED target with DICOMWeb UPSState.changeStateRefusal, the text dicom-wado throws (D255); codes named exist: matched 11, wrong 0, missing 0, extra 0
+ok   PS3.18 Table 10.6.1-1: DICOMwebQIDOHelpers.endpointSuffix values are Search Transaction resource paths: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.18 Table 10.6.1-5: buildQIDOQuery keys are the required matching attributes of the chosen level (study: Modalities in Study): matched 7, wrong 0, missing 0, extra 1
+ok   PS3.18 Table 8.3.4-1: the search parameters the panel offers (fuzzymatching, limit, offset) are sent by buildQIDOQuery: matched 3, wrong 0, missing 0, extra 3
+ok   PS3.18 Table 9.1.2-1: WADOProtocol.protocolDescription names the 4 mandatory WADO-URI parameters (requestType=WADO): matched 4, wrong 0, missing 0, extra 0
+ok   PS3.18 Table 10.1-1: WADORetrieveMode display names are Studies Service resource names: matched 5, wrong 0, missing 0, extra 1
+ok   PS3.6 Table 6-1 / PS3.4 Table CC.2.4-1: UPSEventPayloadParser reads Event Report attributes by tag, progress nested in (0074,1002): matched 9, wrong 0, missing 0, extra 6
+ok   PS3.18 Tables 10.5.3-1 / 8.5-1: HTTP status numbers the panel names (409 for a STOW conflict) are standard codes: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1: the JPIP panel header lists the JPIP transfer syntaxes: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1 / PS3.5 A.6: the JPIP uri panel names Pixel Data Provider URL (0028,7FE0): matched 1, wrong 0, missing 0, extra 0
+ok   PS3.15 2026a Annex B.12 / B.13: DICOMwebModel.DICOMwebTLSMode selects the live TLS profiles through DICOMWeb DICOMwebConfiguration.TLSProfile; COMPATIBLE / STRICT deprecated (P-STUDIO-TLS-PROFILES): matched 9, wrong 0, missing 0, extra 0
+
+== G4: File, media and DICOMDIR (parser, data exchange profiles, import validation, metadata models) (31 standard-touching files)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 16, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 13, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 2, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 22, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 Table F.4-1: DICOMDIRParser.knownRecordTypes is the set of Directory Record Types: matched 35, wrong 0, missing 0, extra 1
+ok   PS3.3 Table F.4-1: DICOMCore DirectoryRecordType carries every current record type (cross-check): matched 35, wrong 0, missing 0, extra 0
+ok   PS3.3 Tables F.5-1..F.5-3, F.3-3: DICOMDIR record fields Studio carries are record keys: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.5 Table 6.2-1: VRDescriptions.fullName — 34 VRs, "VR Name" verbatim: matched 34, wrong 0, missing 0, extra 0
+ok   PS3.5 Table 6.2-1: VRDescriptions.category covers every VR: matched 34, wrong 0, missing 0, extra 0
+ok   PS3.5 Table 6.2-1: DICOMValueParser.format dispatches on real VR codes: matched 9, wrong 0, missing 0, extra 0
+ok   PS3.3 Tables C.12-2..C.12-5: DICOMValueParser.characterSetDescription keys are the Defined Terms: matched 32, wrong 0, missing 0, extra 0
+ok   PS3.5 7.8.1: PrivateTagIdentifier excludes the reserved odd groups: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.5 7.8.1: Private Creator Data Elements are (gggg,0010-00FF): matched 1, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1: transfer-syntax names Studio shows (DataExchangeHelpers, TransferSyntaxDescriptions) are the A-1 "UID Name" via DICOMCore: matched 9, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.3.1.1.1: modality defaults in G4 (SeriesModel, DICOMFileService, DataExchangeViewModel) are Defined Terms: matched 2, wrong 0, missing 0, extra 2
+ok   PS3.10 Table 7.1-1: File Meta elements DICOMFileService reads from the FMI group: matched 2, wrong 0, missing 0, extra 2
+ok   PS3.6 Table A-1: DICOMFileService.mediaStorageDirectoryUID is Media Storage Directory Storage: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.11 Tables A.1-1..N.1-1 (58 fixed identifiers + 6 C.1-1 templates): STD-* literals in G4 (0) and DICOMCore DICOMDIRProfile (58) are registered profiles: matched 58, wrong 0, missing 0, extra 6
+
+== G5: Derived objects, SR and security (SR, terminology, SEG, RT, parametric map, WSI, waveform, hanging protocol, measurements, anonymization) (37 standard-touching files)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 28, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 34, wrong 0, missing 0, extra 5
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 95, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: G5 coded concept literals (value, scheme, meaning; UCUM/SCT meanings case-insensitive): matched 87, wrong 0, missing 0, extra 37
+ok   PS3.16 Table 8-1 / O-1: no SRT-style SNOMED codes left in G5 (2026a uses SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1: 5 designators used in G5 are registered; 6 display names are the Table 8-1 names: matched 11, wrong 0, missing 0, extra 0
+ok   PS3.3 Table C.17.3-7 Value Types: ContentItemValueType (StructuredReportModel.swift): matched 16, wrong 0, missing 0, extra 0
+ok   PS3.3 Table C.17.3-8 Relationship Types: SRRelationshipType (StructuredReportModel.swift): matched 7, wrong 0, missing 0, extra 0
+ok   PS3.3 C.18.8-1, C.24-2 Continuity of Content Enumerated Values: ContinuityOfContent (StructuredReportModel.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.18.6.1.2 Enumerated Values: SpatialCoordGraphicType (StructuredReportModel.swift): matched 5, wrong 0, missing 0, extra 0
+ok   PS3.3 C.18.9.1.2 Enumerated Values: SpatialCoord3DGraphicType (StructuredReportModel.swift): matched 6, wrong 0, missing 0, extra 0
+ok   PS3.3 C.18.7.1.1 Enumerated Values: TemporalRangeType (StructuredReportModel.swift): matched 6, wrong 0, missing 0, extra 0
+ok   SRTreeHelpers names every ContentItemValueType case of the model (display mapping is exhaustive): matched 16, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1: SRDocumentType and SecondaryCaptureDisplayType SOP Class UIDs are registered Storage SOP Classes: matched 13, wrong 0, missing 0, extra 8
+ok   PS3.6 Table A-1: the 16 Waveform Storage SOP Classes and their names (minus " Waveform Storage") in WaveformHelpers: matched 16, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8-44 "RT ROI Interpreted Type" Defined Terms: RTROIType (SpecializedModalityModel.swift): matched 25, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8-39 "Dose Units" Defined Terms: RTDoseUnits (SpecializedModalityModel.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8-50 "Radiation Type" Defined Terms: RTRadiationType (SpecializedModalityModel.swift): matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8.20-4 "Segment Algorithm Type" Defined Terms: SegmentAlgorithmType (SpecializedModalityModel.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8.20-2 Segmentation Type: literals in SegmentationHelpers (0) are terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "Sorting Direction" Enumerated Values: ImageSortDirection (HangingProtocolModel.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.3.1.1.1: the 4 modality values of the built-in hanging protocols are Defined Terms: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 A.45.1 / A.45.2 / A.85.1-A.85.3: EncapsulatedDocumentType.mimeType values (6) are MIME Type Enumerated Values (5 in the text; unknown -> octet-stream is the app fallback): matched 6, wrong 0, missing 0, extra 3
+ok   PS3.6 Table 6-1: the 4 (name, tag) pairs CalibrationHelpers documents: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.16 2026a CID 7460 / 7461 / 7183: UCUM codes used by ROIHelpers, MeasurementPersistenceHelpers and MeasurementUnit, micrometer um / um2 included (P-STUDIO-MEASURE-UM): matched 11, wrong 0, missing 0, extra 1
+ok   PS3.15 B.12: SecurityTLSMode minimum TLS versions (3) are TLS 1.2 / 1.3: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.15 B.13: the 3 cipher suites SecurityTLSHelpers shows are B.13 suites (28 listed): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.15 Annex B: G5 files cite no TLS profile that 2026a retires (B.1, B.2, B.3, B.9, B.10, B.11): matched 5, wrong 0, missing 0, extra 0
+ok   PS3.15 E.1 / E.3: active Security panel names the Basic Profile and maps its controls to the shared AnonymizationWorkflow: matched 20, wrong 0, missing 0, extra 1
+ok   PS3.15 E.3: retained AnonPS315Support Option labels (dormant metadata, not active UI coverage): matched 10, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 95, wrong 0, missing 0, extra 0
+
+== G6: Print (PS3.3 C.13, PS3.4 Annex H: print view models, settings, printer status, Print SCP panes) (11 standard-touching files)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 7, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: PrintSCPView.attributeRows — 13 labels with a tag are the attribute name of that tag: matched 13, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: the tags the print tray reads (Instance Number, Series Description, Modality) exist and are named: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.3 C.13.3: print-sheet density defaults / preview greys are Border Density terms; the custom layout default is an Image Display Format form: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.3 C.13.1 Table C.13-1 Film Destination (MAGAZINE, PROCESSOR, BIN_i with no maximum): PrintSettingsView offers any bin: matched 8, wrong 0, missing 0, extra 1
+ok   PS3.3 C.13.8 / C.13.9 / Table C.13.9.1-1: Execution Status words in the Print SCP help, the emulated Printer Status and Status Info, and the severity presentation: matched 13, wrong 0, missing 0, extra 0
+ok   PS3.3 C.13.5 Table C.13-5: the Bits Stored 8/12 help cites the Image Box Pixel Presentation Module: matched 1, wrong 0, missing 0, extra 0
+
+178 audit callback(s) completed, 0 audit execution error(s); 3 check(s) with wrong or missing values, 0 pending owner approval

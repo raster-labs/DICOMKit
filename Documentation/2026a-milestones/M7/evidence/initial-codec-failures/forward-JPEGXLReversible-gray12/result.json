@@ -1,0 +1,58 @@
+{
+  "name": "forward-JPEGXLReversible-gray12",
+  "commands": [
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/fixtures/gray12.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/forward-JPEGXLReversible-gray12/encoded.dcm",
+        "--transfer-syntax",
+        "JPEGXLReversible"
+      ],
+      "exit": 0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/djxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/forward-JPEGXLReversible-gray12/stream.jxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/forward-JPEGXLReversible-gray12/foreign-decoded.png"
+      ],
+      "exit": 0,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    },
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/forward-JPEGXLReversible-gray12/encoded.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/forward-JPEGXLReversible-gray12/self-decoded.dcm",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "exit": 0,
+      "stdout": "2.stdout",
+      "stderr": "2.stderr"
+    }
+  ],
+  "encoded_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 1,
+    "bitsAllocated": 16,
+    "bitsStored": 12,
+    "highBit": 11,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "MONOCHROME2",
+    "planarConfiguration": null,
+    "transferSyntax": "1.2.840.10008.1.2.4.112"
+  },
+  "max_source_error": 0,
+  "mean_source_error": 0.0,
+  "status": "failed",
+  "error": "Wrong native PixelData VR",
+  "elapsed_seconds": 0.1109493330004625
+}

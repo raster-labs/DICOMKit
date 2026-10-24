@@ -1,0 +1,4 @@
+Error: Missing expected argument '<inputs> ...'
+Help:  <inputs>  Input DICOM file(s)
+Usage: dicom-uid regenerate <inputs> ... [--output <output>] [--root <root>] [--maintain-relationships] [--export-map <export-map>] [--verbose] [--dry-run]
+  See 'dicom-uid regenerate --help' for more information.

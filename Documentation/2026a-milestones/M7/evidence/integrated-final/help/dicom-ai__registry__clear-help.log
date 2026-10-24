@@ -1,0 +1,10 @@
+OVERVIEW: Clear all models from the registry
+
+USAGE: dicom-ai registry clear [--verbose] [--confirm]
+
+OPTIONS:
+  --verbose               Verbose output
+  --confirm               Confirm clearing the registry
+  --version               Show the version.
+  -h, --help              Show help information.
+

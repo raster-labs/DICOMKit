@@ -1,0 +1,71 @@
+{
+  "checkpoint": "M6 implementation; native GUI acceptance pending",
+  "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+  "branch": "codex/dicom-2026a-milestones",
+  "all_seven_success": true,
+  "runs": [
+    {
+      "id": 40104667468,
+      "name": "Command safety",
+      "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40104667468",
+      "updated_at": "2026-10-24T15:03:14Z"
+    },
+    {
+      "id": 40104667499,
+      "name": "Print Workshop",
+      "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40104667499",
+      "updated_at": "2026-10-24T15:10:39Z"
+    },
+    {
+      "id": 40104667469,
+      "name": "Audit tooling",
+      "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40104667469",
+      "updated_at": "2026-10-24T14:55:54Z"
+    },
+    {
+      "id": 40104667464,
+      "name": "Studio contracts",
+      "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40104667464",
+      "updated_at": "2026-10-24T15:05:16Z"
+    },
+    {
+      "id": 40104667441,
+      "name": "Service reliability",
+      "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40104667441",
+      "updated_at": "2026-10-24T15:06:01Z"
+    },
+    {
+      "id": 40104667457,
+      "name": "Query safety and filters",
+      "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40104667457",
+      "updated_at": "2026-10-24T15:05:44Z"
+    },
+    {
+      "id": 40104667455,
+      "name": "Attribute and workflow integrity",
+      "head_sha": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40104667455",
+      "updated_at": "2026-10-24T15:06:27Z"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+OVERVIEW: Validate a DICOMDIR file
+
+USAGE: dicom-dcmdir validate <dicomdir-path> [--check-files] [--detailed]
+
+ARGUMENTS:
+  <dicomdir-path>         Path to DICOMDIR file
+
+OPTIONS:
+  --check-files           Check that every Referenced File ID (0004,1500) names
+                          a file in the File-set (PS3.10 8.6)
+  --detailed              Detailed validation output
+  --version               Show the version.
+  -h, --help              Show help information.
+

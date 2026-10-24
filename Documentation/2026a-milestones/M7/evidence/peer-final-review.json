@@ -1,0 +1,288 @@
+{
+  "reviewed_utc": "2026-10-24T15:27:03.517655+00:00",
+  "mode": "Read-only independent final artifact/evidence review. No builds, reruns, source/docs/ledger edits.",
+  "verdict": "No source/binary identity mismatch or unsupported success claim in the reviewed final peer evidence. QUAL-02 evidence supports Passed for the explicitly bounded macOS arm64 software-peer/oracle scope; final disclosure should replace stale pending-runtime wording with these exact results. This does not close QUAL-01, M6 or M7.",
+  "freeze": {
+    "path": "work/m7/frozen-source-manifest.json",
+    "sha256": "5af0871efc0c8d5c6eac6a219b051e5c6cc44640dfd8ac746ee0eeeb40d804fc",
+    "baseline_commit": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+    "Scripts_files_checked": 92,
+    "mismatches": []
+  },
+  "identities": [
+    {
+      "campaign": "network-qualified",
+      "kind": "source",
+      "path": "Scripts/verify_m7_network_interop.py",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "source",
+      "path": "Sources/dicom-server/DICOMServer.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "source",
+      "path": "Sources/dicom-server/ServerConfiguration.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "source",
+      "path": "Sources/dicom-server/PACSServer.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "source",
+      "path": "Sources/dicom-server/ServerSession.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "source",
+      "path": "Tests/dicom-serverTests/M7ServerTLSRefusalTests.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-echo",
+      "matches_current": true,
+      "sha256": "a689e087fc9581c6a7ccbe55472b7ef4545507e6107219d03f944820581dc46b"
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+      "matches_current": true,
+      "sha256": "fed329f5b86c408fc393a95f8130c1d9ee021101fc634cccba15297b7aec0440"
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+      "matches_current": true,
+      "sha256": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0"
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+      "matches_current": true,
+      "sha256": "cd24a6f9a690b83914efbe37184baf1296bfb4e544108decbf92e6cc041e76ea"
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+      "matches_current": true,
+      "sha256": "24058234700742e9635dfdf19a91ea01911be1eff61260d238dd58ba7ae7dae8"
+    },
+    {
+      "campaign": "network-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+      "matches_current": true,
+      "sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8"
+    },
+    {
+      "campaign": "tls-qualified",
+      "kind": "source",
+      "path": "Scripts/verify_m7_tls_interop.py",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "tls-qualified",
+      "kind": "source",
+      "path": "Tests/DICOMNetworkTests/M7TLSRuntimeHarnessTests.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "tls-qualified",
+      "kind": "source",
+      "path": "Sources/DICOMNetwork/TLSConfiguration.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "tls-qualified",
+      "kind": "source",
+      "path": "Sources/DICOMNetwork/VerificationService.swift",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "tls-qualified",
+      "kind": "test executable",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMNetworkTests.xctest/Contents/MacOS/DICOMNetworkTests",
+      "matches_current": true,
+      "sha256": "a03e673354a5cceb367ec7146dbfe7d3c610cefc6439e164539f1573e26d868d"
+    },
+    {
+      "campaign": "print-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "matches_current": true,
+      "sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75"
+    },
+    {
+      "campaign": "print-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+      "matches_current": true,
+      "sha256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c"
+    },
+    {
+      "campaign": "print-qualified",
+      "kind": "binary",
+      "path": "/opt/homebrew/bin/dcmprscp",
+      "matches_current": true,
+      "sha256": "98dddc6c373a74b1f0d726bff676e59f3ebc9e1f415c4c224f92668a7fec7eb4"
+    },
+    {
+      "campaign": "print-qualified",
+      "kind": "binary",
+      "path": "/opt/homebrew/bin/dcmprscu",
+      "matches_current": true,
+      "sha256": "95bcd30a2d6040d1b5c5c203b76dd577df030b518cf9afa24f20843d2faec5c4"
+    },
+    {
+      "campaign": "print-qualified",
+      "kind": "binary",
+      "path": "/opt/homebrew/bin/dcmpsprt",
+      "matches_current": true,
+      "sha256": "9ad63bae26b5b935f6a5dee1217f28e416b02dc78a0d7ab3a198d61c1aed43ac"
+    },
+    {
+      "campaign": "print-qualified",
+      "kind": "script",
+      "path": "Scripts/verify_m6_print_interop.py",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "codecs-qualified",
+      "kind": "script",
+      "path": "Scripts/verify_m7_codecs.py",
+      "matches_frozen": true,
+      "matches_current": true
+    },
+    {
+      "campaign": "codecs-qualified",
+      "kind": "binary",
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+      "matches_current": true,
+      "sha256": "669fd8101413db95d73d58a503c6fcab05ab159b9b502b5d8b0352716181f37f"
+    }
+  ],
+  "archived_evidence_hash_mismatches": [],
+  "campaigns": {
+    "network": {
+      "path": "work/m7/network-qualified/results.json",
+      "passed": 34,
+      "scope": "Actual CLI/server with independent pynetdicom3/pydicom3 native CT/MR/SC synthetic datasets"
+    },
+    "TLS": {
+      "path": "work/m7/tls-qualified/results.json",
+      "passed_client_cases": 8,
+      "positive": 4,
+      "negative": 4,
+      "valid_endpoint_controls": 8,
+      "activated_XCTest_methods": 1,
+      "scope": "Actual library C-ECHO TLS1.2/1.3; explicit subset cipher and trust/hostname/protocol cases; private *.key excluded from export manifest"
+    },
+    "print": {
+      "path": "work/m7/print-qualified/results.json",
+      "passed": 24,
+      "unqualified_peer": [
+        "DC-F07"
+      ],
+      "failed": 0,
+      "equivalent_required_refusal_evidence": "PY-F08 passed with independently rejected LUT context; DC-F07 itself is not a pass"
+    },
+    "codec_provenance_only": {
+      "path": "work/m7/codecs-qualified/totals.json",
+      "totals": {
+        "executed": 90,
+        "selected": 90,
+        "passed": 78,
+        "supported_refusal": 10,
+        "interoperability_limit": 2,
+        "failed": 0,
+        "meaning": "Only passed counts as codec qualification. Supported refusals and independently verified interoperability limits are separate. Exit0 means no unexpected failure, not complete codec support."
+      },
+      "scope": "Reviewed final source/binary identity and result classifications; codec implementation/oracle correctness remains covered by its dedicated review, not newly re-audited here."
+    }
+  },
+  "QUAL-02_assessment": [
+    {
+      "id": "QUAL-02-AC01",
+      "recommendation": "Passed, bounded scope",
+      "basis": [
+        "Independent expected values/decoded request and response identifiers validate matching and return keys.",
+        "GET and MOVE C-CANCEL each produced FE00 with completed2/warning1/failed1/remaining2, exact failed UID, and association reuse.",
+        "C-STORE warning/failure handling, successful MOVE originator AE/message ID and CT/MR/SC MPPS reference pairs checked.",
+        "Both print roles independently exercised, including grayscale/color and optional role refusal/status behavior."
+      ],
+      "limit": "Actual-server deterministic midstream FIND cancellation is not independently established by network34; independent FIND client FE00 and M4 synchronized server tests provide separate evidence, explicitly not a universal cancellation claim."
+    },
+    {
+      "id": "QUAL-02-AC02",
+      "recommendation": "Passed for currently retained, explicitly bounded claims",
+      "basis": [
+        "TLS8 proves actual macOS library TLS1.2/1.3 subset runtime; no complete B.12/B.13 profile is retained as qualified.",
+        "Final codec90 has78 actual success cases;10 supported refusals and2 strict precision interoperability limits remain separate, not decoder/encoder passes.",
+        "Exact final peer scripts and tested binaries match frozen/current identities."
+      ],
+      "condition": "Keep codec dedicated reviewer approval and final provenance references; do not broaden to all descriptors/profiles/platforms or count refused codec cases as roundtrips."
+    },
+    {
+      "id": "QUAL-02-AC03",
+      "recommendation": "Passed for explicit exclusions",
+      "basis": [
+        "Disclosure distinguishes implemented source paths from interoperability claims.",
+        "Server TLS is unsupported and refused, including false-config plus explicit --tls.",
+        "Other platform runtimes, full security profiles, mutual TLS/revocation, physical printing and untested workflows remain unqualified."
+      ]
+    }
+  ],
+  "required_document_reconciliation": [
+    {
+      "path": "Documentation/ConformanceStatement.md",
+      "lines": [
+        98,
+        100
+      ],
+      "change": "Replace stale server-refusal/TLS8 pending-runtime wording with final network34/TLS8 evidence and exact scope. Keep overall M7/nativeM6 pending."
+    },
+    {
+      "path": "Documentation/ConformanceStatement.md",
+      "lines": [
+        46,
+        58
+      ],
+      "change": "Finalize codec-runtime wording only against the dedicated final codec review; preserve10refusals/2precisionlimits distinctly."
+    }
+  ],
+  "remaining_limits": [
+    "macOS arm64 synthetic software peers only; no hospital PACS/RIS/device or clinical IOD/diagnostic-fidelity validation.",
+    "Server native transfer-syntax transport/identity does not qualify compressed network negotiation or every registered Storage SOP class.",
+    "Full PS3.15 B.12/B.13 suites/certificate rules, mutualTLS, revocation, ATNA and serverTLS are not qualified.",
+    "TLS controls are supporting endpoint checks, not eight additional library cases or XCTest methods.",
+    "DC-F07 remains a peer limitation; required rejection behavior is independently proven by PY-F08, not waived.",
+    "No hardware printer, OS paper-queue quality, film density/calibration or other-platform runtime gate is marked passed.",
+    "Packaged native Workshop print/final UI gate remains blocked/pending; ViewModel/software-peer evidence is not a substitute."
+  ],
+  "closure_advice": "QUAL-02 can be recorded as bounded-scope Passed independently of nativeGUI qualification after final disclosure/evidence reconciliation. Leave QUAL-01, M6 and M7 pending; do not call the locked native gate unavailable/pass or waive it."
+}

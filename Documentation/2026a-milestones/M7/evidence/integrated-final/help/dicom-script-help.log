@@ -1,0 +1,24 @@
+OVERVIEW: Execute DICOM workflow scripts and pipelines
+
+Execute workflow scripts written in the DICOM Script Language (DSL).
+Supports pipeline operations, conditional logic, variable substitution,
+parallel execution, and error handling.
+
+Examples:
+  dicom-script run workflow.dcmscript
+  dicom-script run pipeline.dcmscript --var PATIENT_ID=12345
+  dicom-script validate workflow.dcmscript
+  dicom-script template workflow > workflow.dcmscript
+
+USAGE: dicom-script <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  run                     Execute a DICOM workflow script
+  validate                Validate a DICOM workflow script
+  template                Generate workflow script templates
+
+  See 'dicom-script help <subcommand>' for detailed help.

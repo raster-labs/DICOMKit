@@ -127,5 +127,12 @@
     "suites": 3,
     "log": "evidence/catalog-regression-tests.log",
     "counting_note": "Reported separately; not added to the 932 focused total."
+  },
+  "final_M7_supplement": {
+    "record": "../M7/verification.json",
+    "independent_print_passed": 24,
+    "peer_limited": 1,
+    "print_VM_CLI_comparisons": 25,
+    "native_GUI": "Still blocked; no acceptance inferred"
   }
 }

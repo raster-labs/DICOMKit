@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file path
+Usage: dicom-compress compress <input> --output <output> --codec <codec> [--quality <quality>] [--verbose] [--backend <backend>]
+  See 'dicom-compress compress --help' for more information.

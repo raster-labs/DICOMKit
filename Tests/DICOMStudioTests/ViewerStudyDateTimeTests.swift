@@ -23,7 +23,8 @@ struct ViewerStudyDateTimeTests {
             let padded = value.count % 2 == 0 ? value : value + " "
             let data = Data(padded.utf8)
             return DataElement(tag: Tag(group: group, element: element),
-                               vr: .LO, length: UInt32(data.count), valueData: data)
+                               vr: group == 0x0008 && element == 0x0020 ? .DA : (group == 0x0008 && element == 0x0030 ? .TM : .LO),
+                               length: UInt32(data.count), valueData: data)
         }
         let model = ImageViewerViewModel()
         model.dicomFile = DICOMFile(fileMetaInformation: DataSet(),
@@ -36,8 +37,8 @@ struct ViewerStudyDateTimeTests {
         let model = viewModel([(0x0008, 0x0020, "20260530"),
                                (0x0008, 0x0030, "185008.123")])
         #expect(model.studyDateForOverlay == "2026-05-30")
-        #expect(model.studyTimeForOverlay == "18:50:08")
-        #expect(model.studyDateTimeForOverlay == "2026-05-30 18:50:08")
+        #expect(model.studyTimeForOverlay == "18:50:08.123")
+        #expect(model.studyDateTimeForOverlay == "2026-05-30 18:50:08.123")
     }
 
     @Test("A time without seconds is shown as hours and minutes")

@@ -1,0 +1,10 @@
+OVERVIEW: List the paper printer queues available for --paper-queue
+
+USAGE: dicom-printscp queues [--format <format>]
+
+OPTIONS:
+  --format <format>       Output format: text, json (values: text, json;
+                          default: text)
+  --version               Show the version.
+  -h, --help              Show help information.
+

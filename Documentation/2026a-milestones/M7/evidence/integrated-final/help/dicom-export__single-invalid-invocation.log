@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Path to DICOM file
+Usage: dicom-export single <input> [--output <output>] [--format <format>] [--quality <quality>] [--embed-metadata] [--exif-fields <exif-fields>] [--apply-window] [--window-center <window-center>] [--window-width <window-width>] [--frame-number <frame-number>] [--frame <frame>]
+  See 'dicom-export single --help' for more information.

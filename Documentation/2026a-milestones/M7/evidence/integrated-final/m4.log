@@ -1,0 +1,24 @@
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.042 (0.044) seconds
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.042 (0.048) seconds
+✔ Test run with 89 tests in 12 suites passed after 0.002 seconds.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.486 (0.488) seconds
+	 Executed 105 tests, with 0 failures (0 unexpected) in 3.961 (3.969) seconds
+	 Executed 105 tests, with 0 failures (0 unexpected) in 3.961 (3.974) seconds
+	 Executed 45 tests, with 0 failures (0 unexpected) in 0.011 (0.014) seconds
+	 Executed 108 tests, with 0 failures (0 unexpected) in 4.895 (4.904) seconds
+	 Executed 108 tests, with 0 failures (0 unexpected) in 4.895 (4.909) seconds
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.029 (0.029) seconds
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.059 (0.060) seconds
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.059 (0.065) seconds
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.023 (0.023) seconds
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.023 (0.023) seconds
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.023 (0.028) seconds
+	 Executed 23 tests, with 0 failures (0 unexpected) in 0.145 (0.146) seconds
+	 Executed 27 tests, with 0 failures (0 unexpected) in 0.193 (0.195) seconds
+	 Executed 27 tests, with 0 failures (0 unexpected) in 0.193 (0.199) seconds
+	 Executed 2 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+	 Executed 2 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.001 (0.006) seconds
+✔ Test run with 142 tests in 3 suites passed after 0.078 seconds.
+M4 client outcomes:4CLI+4Workshop passed;8normal releases;0aborts
+M4 durability: 20 process cases + 3 Workshop clients passed; dataset SHA256 c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963
+M4 capabilities: 30 HTTP/CLI cases passed; schema passed

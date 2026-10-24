@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file path
+Usage: dicom-j2k reduce <input> --output <output> [--levels <levels>] [--layers <layers>] [--verbose]
+  See 'dicom-j2k reduce --help' for more information.

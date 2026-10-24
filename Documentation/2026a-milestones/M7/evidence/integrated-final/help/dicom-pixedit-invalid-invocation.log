@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file path
+Usage: dicom-pixedit <input> --output <output> [--mask-region <mask-region>] [--fill-value <fill-value>] [--crop <crop>] [--window-center <window-center>] [--window-width <window-width>] [--apply-window] [--invert] [--verbose]
+  See 'dicom-pixedit --help' for more information.

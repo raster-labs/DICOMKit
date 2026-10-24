@@ -1,0 +1,128 @@
+OVERVIEW: Listen for Print SCUs and compose received film
+
+Runs until interrupted (Ctrl-C), or until --max-films films have been
+received, or until --duration seconds have passed. Received film is
+written to --output-dir; --output none receives and discards, which is
+useful when only the protocol trace matters.
+
+The listener answers N-GET on the Printer SOP Instance
+(1.2.840.10008.5.1.1.17, PS3.4 H.4.6) with the identity flags below, so an SCU
+sees exactly the printer described on
+the command line.
+
+USAGE: dicom-printscp serve <options>
+
+OPTIONS:
+  --port <port>           TCP port to listen on (default: 11113)
+  --ae-title <ae-title>   AE title the emulator answers as (default: DCMPRINT)
+  --max-associations <max-associations>
+                          Maximum concurrent associations (default: 10)
+  --idle-timeout <idle-timeout>
+                          Seconds an idle association may sit before it is
+                          aborted; 0 disables (default: 300)
+  --allow-ae <allow-ae>   Calling AE title to accept (repeatable; default:
+                          accept all)
+  --deny-ae <deny-ae>     Calling AE title to refuse (repeatable; takes
+                          precedence over --allow-ae)
+  --max-pdu <max-pdu>     Maximum Length of a received P-DATA-TF PDU offered
+                          during negotiation (PS3.8 D.1), in bytes (default:
+                          65536)
+  --accept-color/--no-accept-color
+                          Accept the Basic Color Print Management Meta SOP
+                          Class (1.2.840.10008.5.1.1.18); --no-accept-color
+                          offers grayscale only (default: yes)
+  --presentation-lut/--no-presentation-lut
+                          Accept the Presentation LUT SOP Class
+                          (1.2.840.10008.5.1.1.23): N-CREATE of Presentation
+                          LUT Shape (2050,0020) or a Presentation LUT Sequence
+                          (default: yes)
+  --annotation-box/--no-annotation-box
+                          Accept the Basic Annotation Box SOP Class
+                          (1.2.840.10008.5.1.1.15): N-SET of Text String
+                          (2030,0020) (default: yes)
+  --annotation-boxes-per-film <annotation-boxes-per-film>
+                          Basic Annotation Box instances created per film box,
+                          referenced in Referenced Basic Annotation Box
+                          Sequence (2010,0520) (default: 6)
+  --push-job-events       Send a Print Job SOP Class (1.2.840.10008.5.1.1.14)
+                          N-EVENT-REPORT, Event Type Done (3, PS3.4 Table
+                          H.4-14), after each N-ACTION
+  --film-size <film-size> Film Size ID (2010,0050) to accept (repeatable;
+                          default: all). Values (the Defined Term is also
+                          accepted): 8x10 = 8INX10IN, 8.5x11 = 8_5INX11IN,
+                          10x12 = 10INX12IN, 10x14 = 10INX14IN, 11x14 =
+                          11INX14IN, 11x17 = 11INX17IN, 14x14 = 14INX14IN,
+                          14x17 = 14INX17IN, 24x24cm = 24CMX24CM, 24x30cm =
+                          24CMX30CM, a4 = A4, a3 = A3
+  --medium <medium>       Medium Type (2000,0030) to accept (repeatable;
+                          default: all). Values (the Defined Term is also
+                          accepted): paper = PAPER, clear-film = CLEAR FILM,
+                          blue-film = BLUE FILM, mammo-clear-film = MAMMO CLEAR
+                          FILM, mammo-blue-film = MAMMO BLUE FILM
+  --max-image-boxes <max-image-boxes>
+                          Maximum image boxes an Image Display Format
+                          (2010,0010) may declare (default: 64)
+  --max-image-dimension <max-image-dimension>
+                          Largest image dimension accepted in an image box, in
+                          pixels (default: 10000)
+  --printer-name <printer-name>
+                          Printer Name (2110,0030)
+  --manufacturer <manufacturer>
+                          Manufacturer (0008,0070)
+  --model <model>         Manufacturer's Model Name (0008,1090)
+  --serial-number <serial-number>
+                          Device Serial Number (0018,1000)
+  --software-version <software-version>
+                          Software Versions (0018,1020)
+  --printer-status <printer-status>
+                          Printer Status (2110,0010) reported to N-GET, PS3.3
+                          Table C.13-9: normal = NORMAL, warning = WARNING,
+                          failure = FAILURE
+  --status-info <status-info>
+                          Printer Status Info (2110,0020), a PS3.3 C.13.9.1
+                          Defined Term such as SUPPLY EMPTY; empty uses the
+                          status's own term
+  --dpi <dpi>             Rasterization resolution of the composed sheet
+                          (default: 600)
+  --density <density>     Density interpretation: paper, film, gsdf (default:
+                          paper)
+  --margin-mm <margin-mm> Sheet margin in millimetres (default: 5)
+  --cell-spacing-mm <cell-spacing-mm>
+                          Gap between image cells in millimetres (default: 2)
+  --annotations/--no-annotations
+                          Draw Basic Annotation Box text on the sheet (default:
+                          yes)
+  --trim-marks/--no-trim-marks
+                          Print a trim box around each image when Trim
+                          (2010,0140) is YES, PS3.3 Table C.13-3 (default: yes)
+  --max-pixels <max-pixels>
+                          Cap on the composed bitmap's longest side, in pixels
+                          (default: 12000)
+  --output <output>       Film output: png, tiff, pdf, none (repeatable)
+  --output-dir <output-dir>
+                          Directory written films are saved to (default:
+                          ~/Downloads/DICOMKit Films)
+  --name-pattern <name-pattern>
+                          File-name pattern; tokens {job} {session} {film} {ae}
+                          {index} {timestamp}
+  --paper-queue <paper-queue>
+                          Spool film to this CUPS queue (requires
+                          --allow-paper; empty uses the system default queue)
+  --allow-paper           Enable paper spooling. Required for --paper-queue to
+                          have any effect.
+  --open                  Open each written film in the default viewer
+  --config <config>       Settings file to read (default:
+                          ~/.config/dicomkit/printscp.json when it exists)
+  --save-config           Write the resolved settings back to the configuration
+                          file and exit
+  --max-films <max-films> Stop after this many films (default: run until
+                          interrupted)
+  --duration <duration>   Stop after this many seconds (default: run until
+                          interrupted)
+  --format <format>       Output format: text, json (json writes one object per
+                          event to stdout) (values: text, json; default: text)
+  -v, --verbose           Show each film's attributes as it arrives
+  --quiet                 Suppress console output; only errors are reported
+  --version               Show the version.
+  -h, --help              Show help information.
+

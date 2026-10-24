@@ -1,0 +1,3 @@
+Error: Unknown option '--dicomkit-m7-invalid-option'
+Usage: dicom-measure <subcommand>
+  See 'dicom-measure --help' for more information.

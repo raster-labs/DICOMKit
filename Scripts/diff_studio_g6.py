@@ -18,6 +18,7 @@ through DICOMPrintKit's PrintOptionCatalog (both verified in their own passes). 
 """
 import os
 import re
+import diff_cli as dc
 
 PENDING_API_APPROVAL = {}
 DEFERRED = {}
@@ -161,8 +162,11 @@ def check_film_destination_picker(rep, parts, files, ctx):
             matched += 1
         else:
             wrong.append('the bin field help must name FilmDestination.catalogTokenList, the dicom-print --film-destination tokens (D242)')
-        print_cli = dw.read(os.path.join(ctx['sources'], 'dicom-print', 'main.swift'))
-        if 'FilmDestination(catalogToken:' in print_cli:
+        # The executable now forwards to SCU declarations in DICOMPrintCommandSupport.
+        # Use the same ownership-aware discovery as the CLI audit, not a wrapper filename.
+        print_cli = '\n'.join(dc.tool_files('dicom-print', sources=ctx['sources']).values())
+        if re.search(r'guard let destination = FilmDestination\(catalogToken: argument\) else\s*\{\s*return nil\s*\}',
+                     dc.swift_code(print_cli)):
             matched += 1
         else:
             wrong.append('dicom-print no longer parses --film-destination through FilmDestination(catalogToken:); re-read the CLI')

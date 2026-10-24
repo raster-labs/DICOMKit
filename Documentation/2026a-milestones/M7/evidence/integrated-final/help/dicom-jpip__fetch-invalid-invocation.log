@@ -1,0 +1,4 @@
+Error: Missing expected argument '<server-url>'
+Help:  <server-url>  JPIP server base URL (e.g., http://pacs.example.com:8080)
+Usage: dicom-jpip fetch <server-url> --image <image> [--layers <layers>] [--level <level>] [--region <region>] [--output <output>] [--verbose]
+  See 'dicom-jpip fetch --help' for more information.

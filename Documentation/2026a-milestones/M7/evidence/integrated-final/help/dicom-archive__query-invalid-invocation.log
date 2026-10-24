@@ -1,0 +1,4 @@
+Error: Missing expected argument '--archive <archive>'
+Help:  --archive <archive>  Path to the archive
+Usage: dicom-archive query --archive <archive> [--patient-name <patient-name>] [--patient-id <patient-id>] [--study-uid <study-uid>] [--modality <modality>] [--strict-modality] [--study-date <study-date>] [--format <format>]
+  See 'dicom-archive query --help' for more information.

@@ -1,0 +1,30 @@
+OVERVIEW: Re-encode losslessly with other decomposition levels or quality
+layers
+
+Decodes every frame and re-encodes it reversibly with the given number of
+wavelet decomposition levels (the reduced resolutions a decoder can extract)
+and quality layers. The re-encode is lossless: pixel values, Rows (0028,0010),
+Columns (0028,0011) and the transfer syntax stay as they are.
+
+--levels  Number of wavelet decomposition levels (1–10). For
+          1.2.840.10008.1.2.4.202 at least enough for a base resolution
+          of 64 or less (PS3.5 10.18.1).
+--layers  Number of quality layers (1–20).
+
+Examples:
+  dicom-j2k reduce input.dcm --output thumb.dcm --levels 2
+  dicom-j2k reduce input.dcm --output preview.dcm --levels 3 --layers 4
+
+USAGE: dicom-j2k reduce <input> --output <output> [--levels <levels>] [--layers <layers>] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path
+
+OPTIONS:
+  -o, --output <output>   Output DICOM file path
+  --levels <levels>       Number of wavelet decomposition levels (1–10)
+  --layers <layers>       Number of quality layers (1–20)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

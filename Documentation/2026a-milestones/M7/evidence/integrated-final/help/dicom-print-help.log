@@ -1,0 +1,51 @@
+OVERVIEW: DICOM Print Management - print medical images to DICOM printers
+
+Send DICOM images to DICOM-compliant printers using the Print Management
+Service Class. Supports film printing, printer status queries, job monitoring,
+and printer configuration management.
+
+URL Format:
+  pacs://hostname:port     - DICOM Print protocol
+
+Examples:
+  # Query printer status
+  dicom-print status pacs://192.168.1.100:11112 --aet WORKSTATION
+
+  # Print single DICOM image
+  dicom-print send pacs://192.168.1.100:11112 image.dcm --aet WORKSTATION
+
+  # Print multiple images with layout
+  dicom-print send pacs://server:11112 *.dcm --aet APP --layout 2x3
+
+  # A scout over its slices: one image in the top row, three beneath
+  dicom-print send pacs://server:11112 *.dcm --aet APP --layout 'ROW\1,3'
+
+  # Print with specific options
+  dicom-print send pacs://server:11112 scan.dcm --aet APP \
+      --copies 2 --film-size 14x17 --orientation landscape
+
+  # Monitor print job status
+  dicom-print job pacs://server:11112 --aet APP --job-id 1.2.840...
+
+  # List configured printers (from local config)
+  dicom-print list-printers
+
+  # Add a new printer configuration
+  dicom-print add-printer --name radiology-printer \
+      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP
+
+USAGE: dicom-print <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  status                  Query DICOM printer status
+  send (default)          Send DICOM images to printer
+  job                     Query print job status
+  list-printers           List configured printers
+  add-printer             Add a new printer configuration
+  remove-printer          Remove a printer configuration
+
+  See 'dicom-print help <subcommand>' for detailed help.

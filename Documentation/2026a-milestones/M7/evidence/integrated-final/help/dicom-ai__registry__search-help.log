@@ -1,0 +1,10 @@
+OVERVIEW: Search models by tags
+
+USAGE: dicom-ai registry search --tags <tags> [--verbose]
+
+OPTIONS:
+  --tags <tags>           Tags to search for (comma-separated)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

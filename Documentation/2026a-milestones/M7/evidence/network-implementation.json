@@ -1,0 +1,88 @@
+{
+  "baseline": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+  "state": "Final-artifact network34, print24+1 peer limitation, and TLS8 qualified. Native GUI and overall milestone acceptance remain parent-gated.",
+  "files": {
+    "Tests/DICOMNetworkTests/M7TLSRuntimeHarnessTests.swift": "c383c0c077c4724b065151f2fd3da8a0bcbe1dd4841586ecb5c66289a253d95d",
+    "Tests/dicom-serverTests/M7ServerTLSRefusalTests.swift": "54767825cb3c5002526cffc0e307c5222f57812aed4d2bef1bedfc69de03e2f8",
+    "Sources/dicom-server/ServerConfiguration.swift": "f9811a8450e4ed46e81b5f29c10a5e5b801353feee61395757cfe82b70a8c789",
+    "Scripts/verify_m7_network_interop.py": "973b89c27576aa0f945985e21032290fd4fb29a537e96d3ce0a8525beac12e47",
+    "Scripts/verify_m7_tls_interop.py": "ea583d049b167639c20e08d896059753c776f2757f3bea14608c1b7acb303f94",
+    "Scripts/m7-peer-requirements.txt": "1a036c9ccf7748765a93f0fdfaa0f15147ef1869f22f77afd5123b13ce9fbb0d",
+    "Sources/dicom-server/DICOMServer.swift": "5d4896bdc89efeaf83023e49ee14b2ef1dd02aaceef03f82805d850e2ccab39b"
+  },
+  "test_suites": {
+    "M7ServerTLSRefusalTests": 4,
+    "M7TLSRuntimeHarnessTests": {
+      "methods": 1,
+      "opt_in": true,
+      "cases": 8
+    }
+  },
+  "scope": "Refuse unsupported dicom-server TLS requests before effects; independently qualify retained native DIMSE and library TLS claims. No M6 protocol edits.",
+  "limits": [
+    "Server refusal four XCTest passed in parent run; final34 network +8 TLS passed. Evidence tied to recorded binary hashes, not later rebuilt artifacts.",
+    "FIND cancellation deterministic server proof remains M4; independent client FE00 is complementary.",
+    "TLS library-only, no full PS3.15 profile or mutual TLS qualification."
+  ],
+  "initial_applied_hashes": {
+    "Tests/DICOMNetworkTests/M7TLSRuntimeHarnessTests.swift": "c383c0c077c4724b065151f2fd3da8a0bcbe1dd4841586ecb5c66289a253d95d",
+    "Tests/dicom-serverTests/M7ServerTLSRefusalTests.swift": "2655a1f6e324067cf223ad0b721b52cf76ed0c6157573720810ac75badae769f",
+    "Sources/dicom-server/ServerConfiguration.swift": "cc65ba2d0b464f5151ff5daa265e0304a98c894eca773b7a6b10b445bca21737",
+    "Scripts/verify_m7_network_interop.py": "dbebcb04959eb65e0bc89cc833bdd34e340b6a283453131a02f48360f49b3763",
+    "Scripts/verify_m7_tls_interop.py": "950d8fac5a102902f0173d8aab4d700bd23c3a76a7cc05d2c0b13375964bd8be",
+    "Scripts/m7-peer-requirements.txt": "1a036c9ccf7748765a93f0fdfaa0f15147ef1869f22f77afd5123b13ce9fbb0d"
+  },
+  "runtime": {
+    "network_precedence_repair_prior": {
+      "cases": 33,
+      "result": "Passed",
+      "directory": "work/m7/network-interop-run1",
+      "limit": "Precedence combination not yet included; final rerun required."
+    },
+    "TLS": {
+      "result": "Passed",
+      "directory": "work/m7/tls-interop-run1",
+      "client_cases": 8,
+      "positive_C_ECHO_cases": 4,
+      "negative_policy_cases": 4,
+      "independent_endpoint_control_handshakes": 8,
+      "opt_in_XCTest_methods_executed": 1,
+      "limits": "Library only; complete B.12/B.13, mutual TLS and revocation unqualified."
+    },
+    "network_final": {
+      "result": "Passed",
+      "cases": 34,
+      "directory": "work/m7/network-interop-final",
+      "included": "Combined unsecured configuration + explicit --tls refused before effects"
+    },
+    "integrated_print": {
+      "passed": 24,
+      "unqualified_peer": 1,
+      "failed": 0,
+      "directory": "work/m7/print-interop-final"
+    },
+    "network_qualified": {
+      "result": "Passed",
+      "cases": 34,
+      "directory": "work/m7/network-qualified",
+      "provenance": "Final rebuilt binaries after native Pixel Data and implicit parser repair"
+    },
+    "print_qualified": {
+      "passed": 24,
+      "unqualified_peer": 1,
+      "failed": 0,
+      "directory": "work/m7/print-qualified",
+      "provenance": "Final rebuilt binaries after native Pixel Data and implicit parser repair"
+    },
+    "TLS_qualified": {
+      "result": "Passed",
+      "directory": "work/m7/tls-qualified",
+      "client_cases": 8,
+      "positive": 4,
+      "negative": 4,
+      "valid_endpoint_controls": 8,
+      "activated_XCTest_methods": 1,
+      "private_keys": "Excluded from provenance export map"
+    }
+  }
+}

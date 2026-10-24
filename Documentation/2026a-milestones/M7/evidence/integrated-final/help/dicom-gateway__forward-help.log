@@ -1,0 +1,30 @@
+OVERVIEW: Forward DICOM events as HL7/FHIR messages (DICOM listener not
+implemented)
+
+Intended to receive DICOM instances and forward them as HL7 v2 or
+FHIR messages.
+
+Not implemented: the listener on --listen-port accepts TCP
+connections but does not implement the PS3.8 DICOM Upper Layer
+protocol or a Storage SCP (PS3.4 Annex B), so no DICOM
+association can be made with it. Use the convert subcommands
+(dicom-to-hl7, dicom-to-fhir) on files instead.
+
+USAGE: dicom-gateway forward [--listen-port <listen-port>] [--forward-hl7 <forward-hl7>] [--forward-fhir <forward-fhir>] [--message-type <message-type>] [--verbose]
+
+OPTIONS:
+  --listen-port <listen-port>
+                          TCP port to open (no PS3.8 Upper Layer / C-STORE SCP
+                          is implemented) (default: 11112)
+  --forward-hl7 <forward-hl7>
+                          HL7 destination (e.g., hl7://server:2575)
+  --forward-fhir <forward-fhir>
+                          FHIR destination (e.g.,
+                          https://fhir.example.com/ImagingStudy)
+  --message-type <message-type>
+                          HL7 message type to generate: ADT, ORM, ORU (default:
+                          ORU)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

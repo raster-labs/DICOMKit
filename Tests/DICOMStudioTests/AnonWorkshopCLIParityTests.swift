@@ -42,8 +42,13 @@ struct AnonWorkshopCLIParityTests {
 
     nonisolated private static let root: String? = CLIToolBuilder.repoRoot()
     nonisolated private static var binDir: String? {
-        guard let root else { return nil }
-        let dir = "\(root)/.build/debug"
+        let dir: String
+        if let explicit = ProcessInfo.processInfo.environment["DICOMKIT_TEST_BIN_DIR"], !explicit.isEmpty {
+            dir = explicit
+        } else {
+            guard let root else { return nil }
+            dir = "\(root)/.build/debug"
+        }
         return FileManager.default.isExecutableFile(atPath: "\(dir)/dicom-anon") ? dir : nil
     }
 

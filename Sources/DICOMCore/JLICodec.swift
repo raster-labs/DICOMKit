@@ -521,7 +521,15 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             let cfg = encoderConfiguration(descriptor: descriptor, configuration: configuration,
                                            pixelFormat: pixelFormat)
             // JLISwift writes a JFIF APP0 segment; PS3.5 2026a 8.2.1 recommends it be absent (D190).
-            return JPEGInterchangeFormat.removingJFIFSegments(Data(try JLIEncoder().encode(image, configuration: cfg)))
+            var stream = JPEGInterchangeFormat.removingJFIFSegments(
+                Data(try JLIEncoder().encode(image, configuration: cfg)))
+            if encodingTransferSyntaxUID == TransferSyntax.jpegExtended.uid, pixelFormat == .uint8 {
+                // JLISwift selects SOF0 for UInt8 DCT input. Its baseline sequential
+                // coding is also a valid subset of extended sequential coding, but
+                // PS3.5 A.4.1 requires SOF1 when the negotiated syntax is .51.
+                stream = try JPEGInterchangeFormat.promotingEightBitBaselineToExtended(stream)
+            }
+            return stream
         } catch {
             throw DICOMError.parsingFailed("JLISwift encode failed: \(error)")
         }

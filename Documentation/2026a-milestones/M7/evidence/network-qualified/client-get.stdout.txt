@@ -1,0 +1,15 @@
+DICOM Retrieve (C-GET)
+======================
+  Server:            127.0.0.1:58578
+  Calling AE Title:  M7CLIENT
+  Called AE Title:   M7PEER
+  Method:            C-GET
+  Level:             STUDY
+  Study UID:         2.25.700
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/client-get
+  Organization:      Flat
+  Timeout:           5s
+
+Executing C-GET...
+
+✅ C-GET completed — 6 file(s) received

@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Path to multi-frame DICOM file
+Usage: dicom-export animate <input> --output <output> [--fps <fps>] [--loop-count <loop-count>] [--apply-window] [--window-center <window-center>] [--window-width <window-width>] [--start-frame-number <start-frame-number>] [--end-frame-number <end-frame-number>] [--start-frame <start-frame>] [--end-frame <end-frame>] [--scale <scale>]
+  See 'dicom-export animate --help' for more information.

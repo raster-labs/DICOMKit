@@ -1,0 +1,175 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[5 / 6] DICOMWebTests-product
+[7 / 9] DICOMWebTests-product
+Build complete! (1.50 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:51:40.841.
+Test Suite 'DICOMWebTests.xctest' started at 2026-10-24 20:51:40.846.
+Test Suite 'UPSEventSystemTests' started at 2026-10-24 20:51:40.846.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAnyUPSEventWrapper]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAnyUPSEventWrapper]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAssignedEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAssignedEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCanceledEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCanceledEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCancelRequestedEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCancelRequestedEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCompletedEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCompletedEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventDispatcherIntegration]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventDispatcherIntegration]' passed (0.535 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueEnqueueDequeue]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueEnqueueDequeue]' passed (0.004 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueMaxSize]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueMaxSize]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testGlobalSubscription]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testGlobalSubscription]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testLoggingDeliveryService]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testLoggingDeliveryService]' passed (0.016 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventToDICOMJSON]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventToDICOMJSON]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventToDICOMJSON]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventToDICOMJSON]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderEventGeneration]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderEventGeneration]' passed (0.532 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderProgressEventGeneration]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderProgressEventGeneration]' passed (0.513 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionEventTypeFilter]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionEventTypeFilter]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionInterest]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionInterest]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerDeleteLock]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerDeleteLock]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptions]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptions]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptionsForEvent]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptionsForEvent]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGlobalSubscribe]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGlobalSubscribe]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerResume]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerResume]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSubscribe]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSubscribe]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSuspend]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSuspend]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerUnsubscribe]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerUnsubscribe]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionSuspended]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionSuspended]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeCaseIterable]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeCaseIterable]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeRawValues]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeRawValues]' passed (0.000 seconds).
+Test Suite 'UPSEventSystemTests' passed at 2026-10-24 20:51:42.456.
+	 Executed 30 tests, with 0 failures (0 unexpected) in 1.607 (1.610) seconds
+Test Suite 'UPSTests' started at 2026-10-24 20:51:42.456.
+Test Case '-[DICOMWebTests.UPSTests testCancellationRequestInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testCancellationRequestInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryEquality]' started.
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryEquality]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testHumanPerformerInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testHumanPerformerInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testProgressInformationInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testProgressInformationInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testReferencedInstanceInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testReferencedInstanceInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToCompleted]' started.
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToCompleted]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToInProgress]' started.
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToInProgress]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityNumericValues]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityNumericValues]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityRawValues]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSStateIsFinal]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSStateIsFinal]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSStateRawValues]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSStateRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSStateValidTransitions]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSStateValidTransitions]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testWorkitemBasicInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testWorkitemBasicInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testWorkitemDescription]' started.
+Test Case '-[DICOMWebTests.UPSTests testWorkitemDescription]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testWorkitemSchedulingInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testWorkitemSchedulingInitialization]' passed (0.000 seconds).
+Test Suite 'UPSTests' passed at 2026-10-24 20:51:42.462.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.004 (0.006) seconds
+Test Suite 'DICOMWebTests.xctest' passed at 2026-10-24 20:51:42.462.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 1.611 (1.616) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:51:42.462.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 1.611 (1.621) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "UPS scheduled DICOM DT round trips" started.
+◇ Suite "DICOMwebClient UPS-RS Tests" started.
+◇ Test "Malformed DT create payloads are rejected without storing a workitem" started.
+◇ Test "Stored Dates emit compact UTC DT; persisted raw precision survives until the date changes" started.
+◇ Test "Create, retrieve and search retain fractions, offset and instant" started.
+◇ Test "Updates preserve legal precision and reject malformed input atomically" started.
+◇ Test "WorkitemResult parsing from JSON" started.
+◇ Test "UPSCancellationRequest initialization" started.
+◇ Test "Workitem basic initialization" started.
+◇ Test "UPSCreateResponse initialization" started.
+◇ Test "Workitem cancel request URL construction" started.
+◇ Test "UPSQueryResult empty result" started.
+◇ Test "Workitem subscription suspend URL construction" started.
+◇ Test "Workitem URL construction" started.
+◇ Test "UPS query with patient ID" started.
+◇ Test "Workitem full initialization" started.
+◇ Test "UPSQueryResult parsing from JSON" started.
+◇ Test "UPS query with default parameters" started.
+◇ Test "Workitem state URL construction" started.
+◇ Test "Global workitem subscription URL construction" started.
+◇ Test "UPS query for in-progress workitems" started.
+◇ Test "Search workitems URL with query parameters" started.
+◇ Test "UPSStateChangeResponse initialization" started.
+◇ Test "UPS query with priority" started.
+◇ Test "UPS query for scheduled workitems" started.
+◇ Test "UPSCancellationResponse accepted" started.
+◇ Test "UPSCancellationResponse rejected" started.
+◇ Test "Workitem subscription URL construction" started.
+◇ Test "UPS query with pagination" started.
+◇ Test "Workitems URL construction" started.
+✔ Test "UPSCancellationRequest initialization" passed after 0.001 seconds.
+✔ Test "Workitem basic initialization" passed after 0.001 seconds.
+✔ Test "UPSCreateResponse initialization" passed after 0.001 seconds.
+✔ Test "UPSQueryResult empty result" passed after 0.001 seconds.
+✔ Test "UPS query with default parameters" passed after 0.001 seconds.
+✔ Test "Workitem full initialization" passed after 0.001 seconds.
+✔ Test "WorkitemResult parsing from JSON" passed after 0.002 seconds.
+✔ Test "UPSQueryResult parsing from JSON" passed after 0.001 seconds.
+✔ Test "UPS query with patient ID" passed after 0.001 seconds.
+✔ Test "Create, retrieve and search retain fractions, offset and instant" passed after 0.002 seconds.
+✔ Test "UPS query for in-progress workitems" passed after 0.001 seconds.
+✔ Test "UPSStateChangeResponse initialization" passed after 0.001 seconds.
+✔ Test "UPS query with priority" passed after 0.001 seconds.
+✔ Test "UPSCancellationResponse accepted" passed after 0.001 seconds.
+✔ Test "UPS query for scheduled workitems" passed after 0.001 seconds.
+✔ Test "Malformed DT create payloads are rejected without storing a workitem" passed after 0.002 seconds.
+✔ Test "UPSCancellationResponse rejected" passed after 0.001 seconds.
+✔ Test "UPS query with pagination" passed after 0.002 seconds.
+✔ Test "Stored Dates emit compact UTC DT; persisted raw precision survives until the date changes" passed after 0.002 seconds.
+✔ Test "Updates preserve legal precision and reject malformed input atomically" passed after 0.002 seconds.
+✔ Suite "UPS scheduled DICOM DT round trips" passed after 0.002 seconds.
+✔ Test "Workitem state URL construction" passed after 0.008 seconds.
+✔ Test "Workitem subscription URL construction" passed after 0.008 seconds.
+✔ Test "Workitem subscription suspend URL construction" passed after 0.008 seconds.
+✔ Test "Workitems URL construction" passed after 0.008 seconds.
+✔ Test "Workitem cancel request URL construction" passed after 0.008 seconds.
+✔ Test "Workitem URL construction" passed after 0.008 seconds.
+✔ Test "Search workitems URL with query parameters" passed after 0.008 seconds.
+✔ Test "Global workitem subscription URL construction" passed after 0.008 seconds.
+✔ Suite "DICOMwebClient UPS-RS Tests" passed after 0.008 seconds.
+✔ Test run with 28 tests in 2 suites passed after 0.008 seconds.

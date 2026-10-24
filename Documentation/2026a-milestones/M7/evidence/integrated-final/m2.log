@@ -1,0 +1,23 @@
+Test Suite 'DICOMValueRulesTests' passed at 2026-10-24 20:51:27.283.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testDataSetRefusals]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testGroup0002EditsAreRefusedByKeywordAndByTag]' passed (0.035 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testHelpNamesKeywords]' passed (0.003 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testKeywordsAreExactPS36Keywords]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testLengthLimitsAreTable621]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testPrivateCreatorValues]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testRefusedSetLeavesTheDataSetUntouched]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testRepertoiresAreTable621]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testSetKeepsOrderAndSkipLinesAndHonoursDryRun]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testSetWritesBinaryUSForRows]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testValuesOutsideTheLimitsAreRefused]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testValuesWithinTheLimitsAreAccepted]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testWriteVR]' passed (0.000 seconds).
+Test Suite 'TagEditRulesTests' passed at 2026-10-24 20:51:30.253.
+Test Suite 'dicom-tagsTests.xctest' passed at 2026-10-24 20:51:30.253.
+Test Suite 'Selected tests' passed at 2026-10-24 20:51:30.253.
+Test Suite 'M2AttributeIntegrityTests' passed at 2026-10-24 20:51:33.222.
+✔ Suite "M2 text encoding and edited identity integrity" passed after 0.030 seconds.
+✔ Suite "UPS scheduled DICOM DT round trips" passed after 0.002 seconds.
+Test Suite 'MPPSReferenceIntegrityTests' passed at 2026-10-24 20:51:55.157.
+✔ Suite "M2 Workshop attribute execution" passed after 0.414 seconds.
+PASS: 72 CLI invocations, independent identity/charset/numeric byte checks; source unchanged

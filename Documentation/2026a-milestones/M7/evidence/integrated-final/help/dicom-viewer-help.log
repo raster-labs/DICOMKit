@@ -1,0 +1,69 @@
+OVERVIEW: View DICOM images directly in the terminal
+
+Display DICOM images using ASCII art, ANSI colors, or terminal graphics
+protocols (iTerm2, Kitty, Sixel) for quick image inspection and triage.
+All registered codecs (J2K, HTJ2K, JPEG-LS, RLE …) are used automatically.
+
+Examples:
+  dicom-viewer scan.dcm
+  dicom-viewer scan.dcm --mode ascii --quality high
+  dicom-viewer scan.dcm --mode ansi --color 24bit
+  dicom-viewer ct.dcm --window-center -600 --window-width 1500
+  dicom-viewer scan.dcm --show-info
+  dicom-viewer series/*.dcm --thumbnail
+  dicom-viewer j2k.dcm --reduce 2            # 1/4 resolution preview
+  dicom-viewer ct.dcm --roi 100,50,256,256   # crop region x,y,w,h
+  dicom-viewer volume.dcm --volume           # multi-frame / JP3D volume
+  dicom-viewer --jpip "http://server/wado?..." # stream via JPIP
+
+USAGE: dicom-viewer [<options>] <file-paths> ...
+
+ARGUMENTS:
+  <file-paths>            Path(s) to DICOM file(s)
+
+OPTIONS:
+  -m, --mode <mode>       Display mode: ascii, ansi, iterm2, kitty, sixel
+                          (values: ascii, ansi, iterm2, kitty, sixel; default:
+                          ascii)
+  --quality <quality>     ASCII art quality: low, high (default: high) (values:
+                          low, high; default: high)
+  --color <color>         ANSI color depth: 256, 24bit (default: 24bit)
+                          (values: 256, 24bit; default: 24bit)
+  --window-center <window-center>
+                          Window Center (level) for display, in Modality LUT
+                          output units (e.g. HU)
+  --window-width <window-width>
+                          Window Width for display (>= 1 for LINEAR, > 0 for
+                          LINEAR_EXACT and SIGMOID; PS3.3 C.11.2.1.2.1)
+  --voi-lut-function <voi-lut-function>
+                          VOI LUT Function (0028,1056) to apply the window
+                          with: LINEAR, LINEAR_EXACT, SIGMOID (default: the
+                          file's value, else LINEAR)
+  --frame <frame>         Deprecated: 0-based index; use --frame-number (index
+                          0 is Frame number 1)
+  --frame-number <frame-number>
+                          Frame number to display, 1-based (PS3.3 Table 10-3:
+                          the first Frame is Frame number 1); default 1
+  --width <width>         Output width in characters
+  --height <height>       Output height in characters
+  --invert                Invert pixel values
+  --show-info             Show patient and study information overlay
+  --show-overlay          Draw overlay planes (60xx, PS3.3 C.9.2) and show a
+                          frame/size status line
+  --thumbnail             Display as thumbnail grid (for multiple files or
+                          frames)
+  --size <size>           Thumbnail grid size as WxH (e.g., 80x40)
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output for debugging
+  --reduce <reduce>       Resolution reduce factor n: decode at 1/2^n spatial
+                          resolution (0 = full). (default: 0)
+  --roi <roi>             Region of interest as "x,y,width,height" (pixel
+                          coordinates, 0-based).
+  --volume                Volume / multi-frame mode: display all frames as a
+                          thumbnail filmstrip.
+  --jpip <jpip>           Fetch and display image from a JPIP server URL
+                          (currently unavailable: upstream JPIP retrieval is
+                          unimplemented — see RESEARCH_ADOPTION_PLAN.md F1).
+  --version               Show the version.
+  -h, --help              Show help information.
+

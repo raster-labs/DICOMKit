@@ -1,0 +1,31 @@
+OVERVIEW: Compute PSNR / MSE between two DICOM images
+
+Decodes both DICOM files and computes pixel-level fidelity metrics
+between the reference and test image:
+  MSE   — Mean Squared Error (0 = identical)
+  PSNR  — Peak Signal-to-Noise Ratio in dB (∞ = identical, ≥50 = excellent)
+  MAE   — Mean Absolute Error
+
+Examples:
+  dicom-j2k compare ref.dcm test.dcm
+  dicom-j2k compare ref.dcm test.dcm --json
+  dicom-j2k compare ref.dcm test.dcm --frame-number 3
+
+--json keys: frameNumber is the Frame number (from 1); frame is the deprecated
+0-based index.
+
+USAGE: dicom-j2k compare <reference> <test> [--frame-number <frame-number>] [--frame <frame>] [--json]
+
+ARGUMENTS:
+  <reference>             Reference DICOM file
+  <test>                  Test DICOM file
+
+OPTIONS:
+  --frame-number <frame-number>
+                          Frame number, numbered from 1 (PS3.3 Table 10-3;
+                          default 1)
+  --frame <frame>         deprecated: 0-based index; use --frame-number
+  --json                  Output as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+
