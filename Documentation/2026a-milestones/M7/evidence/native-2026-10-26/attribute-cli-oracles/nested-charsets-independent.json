@@ -1,0 +1,393 @@
+{
+  "file": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/nested-charsets-edited.dcm",
+  "sha256": "c9b8c613a9e73ebf1292401318847fcbe72d295f4e09efa72e18eea8f2cb3b4f",
+  "size": 982,
+  "parser": "manual Explicit VR Little Endian tag/item walker + Python codecs; no DICOMKit",
+  "scopes": {
+    "ROOT": {
+      "local_declaration": "ISO_IR 100",
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00400275[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00400275[0]/00400008[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00400275[1]/": {
+      "local_declaration": "ISO_IR 192",
+      "effective_declaration": "ISO_IR 192"
+    },
+    "00400275[1]/00400008[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "ISO_IR 192"
+    },
+    "00400275[2]/": {
+      "local_declaration": "ISO_IR 192",
+      "effective_declaration": "ISO_IR 192"
+    },
+    "00400275[2]/00400008[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "ISO_IR 192"
+    }
+  },
+  "values": {
+    "00020000": {
+      "tag": "00020000",
+      "vr": "UL",
+      "offset": 132,
+      "value_offset": 140,
+      "length": 4,
+      "raw_hex": "a6000000",
+      "path": "00020000",
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00020001": {
+      "tag": "00020001",
+      "vr": "OB",
+      "offset": 144,
+      "value_offset": 156,
+      "length": 2,
+      "raw_hex": "0001",
+      "path": "00020001",
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00020002": {
+      "tag": "00020002",
+      "vr": "UI",
+      "offset": 158,
+      "value_offset": 166,
+      "length": 26,
+      "raw_hex": "312e322e3834302e31303030382e352e312e342e312e312e3700",
+      "path": "00020002",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "1.2.840.10008.5.1.4.1.1.7"
+    },
+    "00020003": {
+      "tag": "00020003",
+      "vr": "UI",
+      "offset": 192,
+      "value_offset": 200,
+      "length": 38,
+      "raw_hex": "312e322e3832362e302e312e333638303034332e31302e3534332e32303236313032362e3331",
+      "path": "00020003",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "1.2.826.0.1.3680043.10.543.20261026.31"
+    },
+    "00020010": {
+      "tag": "00020010",
+      "vr": "UI",
+      "offset": 238,
+      "value_offset": 246,
+      "length": 20,
+      "raw_hex": "312e322e3834302e31303030382e312e322e3100",
+      "path": "00020010",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "1.2.840.10008.1.2.1"
+    },
+    "00020012": {
+      "tag": "00020012",
+      "vr": "UI",
+      "offset": 266,
+      "value_offset": 274,
+      "length": 14,
+      "raw_hex": "322e32352e393837363534333231",
+      "path": "00020012",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "2.25.987654321"
+    },
+    "00020013": {
+      "tag": "00020013",
+      "vr": "SH",
+      "offset": 288,
+      "value_offset": 296,
+      "length": 14,
+      "raw_hex": "50594449434f4d20332e302e3120",
+      "path": "00020013",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "PYDICOM 3.0.1"
+    },
+    "00080005": {
+      "tag": "00080005",
+      "vr": "CS",
+      "offset": 310,
+      "value_offset": 318,
+      "length": 10,
+      "raw_hex": "49534f5f495220313030",
+      "path": "00080005",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "ISO_IR 100"
+    },
+    "00080016": {
+      "tag": "00080016",
+      "vr": "UI",
+      "offset": 328,
+      "value_offset": 336,
+      "length": 26,
+      "raw_hex": "312e322e3834302e31303030382e352e312e342e312e312e3700",
+      "path": "00080016",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "1.2.840.10008.5.1.4.1.1.7"
+    },
+    "00080018": {
+      "tag": "00080018",
+      "vr": "UI",
+      "offset": 362,
+      "value_offset": 370,
+      "length": 38,
+      "raw_hex": "312e322e3832362e302e312e333638303034332e31302e3534332e32303236313032362e3331",
+      "path": "00080018",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "1.2.826.0.1.3680043.10.543.20261026.31"
+    },
+    "00081030": {
+      "tag": "00081030",
+      "vr": "LO",
+      "offset": 408,
+      "value_offset": 416,
+      "length": 20,
+      "raw_hex": "20204e6174697665206e65737465642074657874",
+      "path": "00081030",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "  Native nested text"
+    },
+    "00100010": {
+      "tag": "00100010",
+      "vr": "PN",
+      "offset": 436,
+      "value_offset": 444,
+      "length": 12,
+      "raw_hex": "4dfc6c6c65725e4af6726720",
+      "path": "00100010",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "Müller^Jörg"
+    },
+    "0020000D": {
+      "tag": "0020000D",
+      "vr": "UI",
+      "offset": 456,
+      "value_offset": 464,
+      "length": 38,
+      "raw_hex": "312e322e3832362e302e312e333638303034332e31302e3534332e32303236313032362e3330",
+      "path": "0020000D",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "1.2.826.0.1.3680043.10.543.20261026.30"
+    },
+    "0020000E": {
+      "tag": "0020000E",
+      "vr": "UI",
+      "offset": 502,
+      "value_offset": 510,
+      "length": 38,
+      "raw_hex": "312e322e3832362e302e312e333638303034332e31302e3534332e32303236313032362e3332",
+      "path": "0020000E",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "1.2.826.0.1.3680043.10.543.20261026.32"
+    },
+    "00400275[0]/00321032": {
+      "tag": "00321032",
+      "vr": "PN",
+      "offset": 568,
+      "value_offset": 576,
+      "length": 12,
+      "raw_hex": "4dfc6c6c65725e4af6726720",
+      "path": "00400275[0]/00321032",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "Müller^Jörg"
+    },
+    "00400275[0]/00321060": {
+      "tag": "00321060",
+      "vr": "LO",
+      "offset": 588,
+      "value_offset": 596,
+      "length": 16,
+      "raw_hex": "202048e972697461676520436166e920",
+      "path": "00400275[0]/00321060",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "  Héritage Café"
+    },
+    "00400275[0]/00400008[0]/00080100": {
+      "tag": "00080100",
+      "vr": "SH",
+      "offset": 632,
+      "value_offset": 640,
+      "length": 6,
+      "raw_hex": "4c4f43414c20",
+      "path": "00400275[0]/00400008[0]/00080100",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "LOCAL"
+    },
+    "00400275[0]/00400008[0]/00080102": {
+      "tag": "00080102",
+      "vr": "SH",
+      "offset": 646,
+      "value_offset": 654,
+      "length": 8,
+      "raw_hex": "39394e4154495645",
+      "path": "00400275[0]/00400008[0]/00080102",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "99NATIVE"
+    },
+    "00400275[0]/00400008[0]/00080104": {
+      "tag": "00080104",
+      "vr": "LO",
+      "offset": 662,
+      "value_offset": 670,
+      "length": 12,
+      "raw_hex": "2020436166e920dc62657220",
+      "path": "00400275[0]/00400008[0]/00080104",
+      "effective_declaration": "ISO_IR 100",
+      "decoded": "  Café Über"
+    },
+    "00400275[1]/00080005": {
+      "tag": "00080005",
+      "vr": "CS",
+      "offset": 690,
+      "value_offset": 698,
+      "length": 10,
+      "raw_hex": "49534f5f495220313932",
+      "path": "00400275[1]/00080005",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "ISO_IR 192"
+    },
+    "00400275[1]/00321032": {
+      "tag": "00321032",
+      "vr": "PN",
+      "offset": 708,
+      "value_offset": 716,
+      "length": 14,
+      "raw_hex": "52656ec3a9655ee682a3e8808520",
+      "path": "00400275[1]/00321032",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "Renée^患者"
+    },
+    "00400275[1]/00321060": {
+      "tag": "00321060",
+      "vr": "LO",
+      "offset": 730,
+      "value_offset": 738,
+      "length": 14,
+      "raw_hex": "2020e99baae381aee6a49ce69fbb",
+      "path": "00400275[1]/00321060",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "  雪の検査"
+    },
+    "00400275[1]/00400008[0]/00080100": {
+      "tag": "00080100",
+      "vr": "SH",
+      "offset": 772,
+      "value_offset": 780,
+      "length": 6,
+      "raw_hex": "4c4f43414c20",
+      "path": "00400275[1]/00400008[0]/00080100",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "LOCAL"
+    },
+    "00400275[1]/00400008[0]/00080102": {
+      "tag": "00080102",
+      "vr": "SH",
+      "offset": 786,
+      "value_offset": 794,
+      "length": 8,
+      "raw_hex": "39394e4154495645",
+      "path": "00400275[1]/00400008[0]/00080102",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "99NATIVE"
+    },
+    "00400275[1]/00400008[0]/00080104": {
+      "tag": "00080104",
+      "vr": "LO",
+      "offset": 802,
+      "value_offset": 810,
+      "length": 14,
+      "raw_hex": "2020e99baae381aee8a8bae696ad",
+      "path": "00400275[1]/00400008[0]/00080104",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "  雪の診断"
+    },
+    "00400275[2]/00080005": {
+      "tag": "00080005",
+      "vr": "CS",
+      "offset": 832,
+      "value_offset": 840,
+      "length": 10,
+      "raw_hex": "49534f5f495220313932",
+      "path": "00400275[2]/00080005",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "ISO_IR 192"
+    },
+    "00400275[2]/00321032": {
+      "tag": "00321032",
+      "vr": "PN",
+      "offset": 850,
+      "value_offset": 858,
+      "length": 26,
+      "raw_hex": "59616d6164615e5461726f753de5b1b1e794b05ee5a4aae9838e",
+      "path": "00400275[2]/00321032",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "Yamada^Tarou=山田^太郎"
+    },
+    "00400275[2]/00321060": {
+      "tag": "00321060",
+      "vr": "LO",
+      "offset": 884,
+      "value_offset": 892,
+      "length": 14,
+      "raw_hex": "2020e697a5e69cace6a49ce69fbb",
+      "path": "00400275[2]/00321060",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "  日本検査"
+    },
+    "00400275[2]/00400008[0]/00080100": {
+      "tag": "00080100",
+      "vr": "SH",
+      "offset": 926,
+      "value_offset": 934,
+      "length": 6,
+      "raw_hex": "4c4f43414c20",
+      "path": "00400275[2]/00400008[0]/00080100",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "LOCAL"
+    },
+    "00400275[2]/00400008[0]/00080102": {
+      "tag": "00080102",
+      "vr": "SH",
+      "offset": 940,
+      "value_offset": 948,
+      "length": 8,
+      "raw_hex": "39394e4154495645",
+      "path": "00400275[2]/00400008[0]/00080102",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "99NATIVE"
+    },
+    "00400275[2]/00400008[0]/00080104": {
+      "tag": "00080104",
+      "vr": "LO",
+      "offset": 956,
+      "value_offset": 964,
+      "length": 18,
+      "raw_hex": "2020e697a5e69cace382b3e383bce3838920",
+      "path": "00400275[2]/00400008[0]/00080104",
+      "effective_declaration": "ISO_IR 192",
+      "decoded": "  日本コード"
+    }
+  },
+  "pydicom_version": "3.0.1",
+  "asserted_text_paths": {
+    "00100010": "Müller^Jörg",
+    "00400275[0]/00321032": "Müller^Jörg",
+    "00400275[0]/00321060": "  Héritage Café",
+    "00400275[0]/00400008[0]/00080104": "  Café Über",
+    "00400275[1]/00321032": "Renée^患者",
+    "00400275[1]/00321060": "  雪の検査",
+    "00400275[1]/00400008[0]/00080104": "  雪の診断",
+    "00400275[2]/00321032": "Yamada^Tarou=山田^太郎",
+    "00400275[2]/00321060": "  日本検査",
+    "00400275[2]/00400008[0]/00080104": "  日本コード",
+    "00081030": "  Native nested text"
+  },
+  "assertions_passed": true,
+  "kind": "edited-output independently checked"
+}

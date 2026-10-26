@@ -1,0 +1,238 @@
+{
+  "reviewed_utc": "2026-10-26T06:43:35.506931+00:00",
+  "checklist_id": "FINAL-17",
+  "verdict": "Saved native SR display/copy evidence passes; fractional Study Time preserves full accessibility value with visible narrow-sidebar truncation. This does not accept the complete final-app gate.",
+  "method": "Independent read-only review of saved AX text and both original-resolution screenshots, fixture/source SHA256 comparisons and git-show baseline content. No UI interaction, app launch, test, peer or build performed by reviewer.",
+  "artifact_attribution": {
+    "epoch": "First print-repair packaged app; historical artifact attribution supplied by parent, linked to saved identity snapshot",
+    "identity_record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+    "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+    "application_path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app",
+    "recorded_utc": "2026-10-26T06:07:52.029175+00:00",
+    "relevant_recorded_hashes": {
+      "Contents/Info.plist": "a1d5241af265d42049bf0d55efaea8719065eb589c99a7827b0ce13f6eb87bc2",
+      "Contents/MacOS/DICOMStudio": "26ac80f601bc2b6c34899afbda235ae9fdf66a0f3beb7fb2e32c9e7251b94fed",
+      "Contents/MacOS/DICOMStudio.debug.dylib": "e2c4cffb23d1413ccdf50b063bb782f969e7e81b42a331ef88dfc21dac6a9603",
+      "Contents/_CodeSignature/CodeResources": "dbee12d7206be3c62758f6d1a2e7512ea349cd473b174553020de6ae233ea317"
+    },
+    "limit": "These capture files do not independently encode an executable hash. Attribution follows the parent run record and saved first-repair manifest, not whatever app may be rebuilt later. No new/final app hash is asserted."
+  },
+  "SR": {
+    "rows_expected": 16,
+    "rows_exact_AX": 16,
+    "rows_visually_confirmed": 16,
+    "values": [
+      {
+        "label": "TIME fraction",
+        "vr": "TM",
+        "raw": "101530.123456",
+        "expected": "10:15:30.123456",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "TIME next fraction",
+        "vr": "TM",
+        "raw": "101530.123457",
+        "expected": "10:15:30.123457",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "TIME trailing zeros",
+        "vr": "TM",
+        "raw": "101530.120000",
+        "expected": "10:15:30.120000",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "TIME hour",
+        "vr": "TM",
+        "raw": "10",
+        "expected": "10",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "TIME minute",
+        "vr": "TM",
+        "raw": "1015",
+        "expected": "10:15",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME positive offset",
+        "vr": "DT",
+        "raw": "20261024101530.123456+0530",
+        "expected": "2026-10-24 10:15:30.123456 +0530",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME negative offset",
+        "vr": "DT",
+        "raw": "20261024101530.123456-0330",
+        "expected": "2026-10-24 10:15:30.123456 -0330",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME year",
+        "vr": "DT",
+        "raw": "2026",
+        "expected": "2026",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME month",
+        "vr": "DT",
+        "raw": "202610",
+        "expected": "2026-10",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME date",
+        "vr": "DT",
+        "raw": "20261024",
+        "expected": "2026-10-24",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME hour",
+        "vr": "DT",
+        "raw": "2026102410",
+        "expected": "2026-10-24 10",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME minute",
+        "vr": "DT",
+        "raw": "202610241015",
+        "expected": "2026-10-24 10:15",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME zeros UTC",
+        "vr": "DT",
+        "raw": "20261024101530.120000+0000",
+        "expected": "2026-10-24 10:15:30.120000 +0000",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "DATETIME partial offset",
+        "vr": "DT",
+        "raw": "2026+0530",
+        "expected": "2026 +0530",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "Malformed TIME retained",
+        "vr": "TM",
+        "raw": "101530.1234567",
+        "expected": "101530.1234567",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      },
+      {
+        "label": "Malformed DATETIME retained",
+        "vr": "DT",
+        "raw": "20260230101530+0530",
+        "expected": "20260230101530+0530",
+        "AX_exact": true,
+        "screenshot_visually_confirmed": true
+      }
+    ],
+    "copy": {
+      "selected_text": "2026-10-24 10:15:30.123456 +0530",
+      "pasted_text": "2026-10-24 10:15:30.123456 +0530",
+      "expected": "2026-10-24 10:15:30.123456 +0530",
+      "exact": true,
+      "source_evidence": [
+        "ui-viewer/sr-selected-positive-offset.txt",
+        "ui-viewer/sr-copied-positive-offset.txt"
+      ],
+      "action_provenance": "Parent reports selecting this native SR value, Cmd-C and paste. Saved AX records independently confirm exact selection and destination text; reviewer did not execute or independently observe key presses.",
+      "destination": "Print command import sheet text entry, used only as a paste surface; this evidence does not show importing or executing the timestamp."
+    }
+  },
+  "fractional_study_time": {
+    "fixture_raw_StudyTime": "101530.123456",
+    "expected_formatted": "2026-10-24 10:15:30.123456",
+    "AX_patient_header_exact": true,
+    "screenshot_viewed": true,
+    "visible_text": "2026-10-24 10:15:30.12…",
+    "visual_bound": "Approximately185px series sidebar visibly ellipsizes the single-line date/time after .12. Full .123456 is available in saved AX patient header; screenshot does not establish all six digits simultaneously visible.",
+    "assessment": "Layout truncation at this width, not evidence of lost temporal precision. Main image lower-right annotation shows date only; no full temporal overlay visibility is inferred.",
+    "source_explanation": "ViewerSeriesPaneView date uses lineLimit(1); accessibilityLabel combines full studyDateTimeForOverlay; that value uses DICOMValueParser.formatTime on original Study Time."
+  },
+  "fixture_integrity": [
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/sr-fixture/m5-sr-temporal-precision.dcm",
+      "before_sha256": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6",
+      "review_sha256": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/fractional-study-time.dcm",
+      "before_sha256": "adf09021a2c187b7aa1bf1a520411b8e8148f439a314ccdb957aaaa48fac21c2",
+      "review_sha256": "adf09021a2c187b7aa1bf1a520411b8e8148f439a314ccdb957aaaa48fac21c2",
+      "unchanged": true
+    }
+  ],
+  "source_equivalence": [
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/Components/DICOMValueParser.swift",
+      "sha256": "a73ecf60b9c883c5f5b63d444cf80a8dcf34ea5e266e2cd038cefc17f35cdb6f",
+      "matches_000fb888": true,
+      "matches_first_repair_source_snapshot": true
+    },
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/Views/ViewerNonImageContentView.swift",
+      "sha256": "87477df8b020467a20c2e0a3a4a6e9aefeb16797c8853b4f172d583bfa9406b3",
+      "matches_000fb888": true,
+      "matches_first_repair_source_snapshot": true
+    },
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/ImageViewerViewModel+PatientOverlay.swift",
+      "sha256": "f2f32f331655c388e5d57b84d7840f392994570bbe64dcef9b4b823c5a8a8d25",
+      "matches_000fb888": true,
+      "matches_first_repair_source_snapshot": true
+    },
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/Views/ViewerSeriesPaneView.swift",
+      "sha256": "538c2c742ec7a6e23aa7608943f54983596ec6fae59f6863e89d8dd1bc73216d",
+      "matches_000fb888": true,
+      "matches_first_repair_source_snapshot": true
+    }
+  ],
+  "evidence_sha256": {
+    "ui-viewer/sr-copied-positive-offset.txt": "5b0ecc28e28b03267d714c2aec3731a394e41cf68da2191948c93b6471de6d36",
+    "ui-viewer/sr-all16.png": "08f4e73b67ffe2913a87309d2d64dbe167e650b7b4aa0692654941b43ccf5c2b",
+    "ui-viewer/fractional-study-time.png": "bbcde4c4747931a72d372f56853c99abffc2c314125eb56f42242e28f42079ae",
+    "ui-viewer/sr-all16.txt": "425621478d3ae01ca689b00c3b6c3bf2b61a38310c3946864077cff533afc486",
+    "ui-viewer/fractional-study-time.txt": "8fd0d8448549a2890ef072da5e1a65cfbcddd7800d3c2f140d2ae2af944b0517",
+    "ui-viewer/sr-selected-positive-offset.txt": "99da9fc128bda4a09c6c31c6a9454788b06cbc787c969c24505ef3b024ae0bb1"
+  },
+  "supporting_manifest_sha256": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-viewer-run-card.json": "54a8eba3d389dcbac62ed274e88681d81f41cee921c21d5fd8e5d01ed8d49f92",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/sr-fixture/manifest.json": "429cec9f1ff1b9d530c1c6907a4e41a5290fff220c504c2845f579be342fb6d7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/manifest.json": "b9c532a07630465d045c1872b6a315dace57c691550441db1313c0a95d7c95d1",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json": "4cb156337f2e46bd447ff2b17f357518921111ad059658ee349bd66878a1348f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json": "03bb75ca3be26d86b5a8aab00a24fc1a31e0b37cd397c5e48ad9c762c705f243",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json": "820ac2512b42721804b1aeebb868c3e4b19a2ab72c61b9019978b3e535a4c3d9"
+  },
+  "remaining_limits": [
+    "Whole FINAL17 acceptance and final rebuilt app attribution remain parent decisions.",
+    "Full fractional timestamp simultaneous visual readability in the narrow image sidebar is not demonstrated.",
+    "No broader native qualification, unrelated partial groups, or milestone acceptance count is changed."
+  ]
+}

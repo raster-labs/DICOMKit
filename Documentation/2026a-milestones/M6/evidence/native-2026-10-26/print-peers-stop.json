@@ -1,0 +1,42 @@
+[
+  {
+    "pid": 51443,
+    "signal": "SIGINT",
+    "kind": "CLI receiver"
+  },
+  {
+    "pid": 52514,
+    "signal": "SIGTERM",
+    "kind": "independent peer"
+  },
+  {
+    "pid": 52515,
+    "signal": "SIGTERM",
+    "kind": "independent peer"
+  },
+  {
+    "pid": 52516,
+    "signal": "SIGTERM",
+    "kind": "independent peer"
+  },
+  {
+    "pid": 52517,
+    "signal": "SIGTERM",
+    "kind": "independent peer"
+  },
+  {
+    "pid": 52518,
+    "signal": "SIGTERM",
+    "kind": "independent peer"
+  },
+  {
+    "pid": 52519,
+    "signal": "SIGTERM",
+    "kind": "independent peer"
+  },
+  {
+    "pid": 52520,
+    "signal": "SIGTERM",
+    "kind": "independent peer"
+  }
+]

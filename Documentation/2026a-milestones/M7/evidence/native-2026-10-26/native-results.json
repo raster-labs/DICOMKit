@@ -1,0 +1,2538 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-24T15:08:56.108909+00:00",
+  "status": "M7 in progress:18 groups passed; ten native network groups pending. Historical observations retain source epochs and explicit limits.",
+  "plan": "Documentation/2026a-milestones/PLAN.md M7, cross-cutting acceptance and M6.3",
+  "source_review_base": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+  "final_source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+  "current_native_blocker": null,
+  "counting_policy": "Each entry is a planned case group with subcases, not an executed count. Record individual outcomes and any unavailable subcase separately. Historical M0–M5 evidence is setup/oracle context only for final GUI; unchanged automated evidence may be reused with source equivalence.",
+  "cases": [
+    {
+      "id": "FINAL-01",
+      "route": "Final packaged app provenance / Workshop catalog",
+      "item_ids": [
+        "QUAL-01"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Freeze final source and lockfile hashes, actual DICOMStudioApp target, app executable/debug dylib and CLI hashes. Quit old app and launch the exact final bundle path.",
+        "Confirm final Workshop catalog has 35 entries / 32 unique enabled executables of 41; distinguish the four dicom-wado forms. No claim for nine deferred tools.",
+        "Select each catalog entry at least once to inspect form/render and preview boundaries; execute the changed routes below. Generic serialization correctness remains supported by final parser/argv tests, without claiming every unchanged tool was executed."
+      ],
+      "evidence_to_keep": [
+        "Build/identity manifest",
+        "Launch record",
+        "Catalog screenshots and per-entry selection record"
+      ],
+      "kind": "provenance-and-inventory",
+      "observed_subcases": [
+        {
+          "id": "first-repair-all35-catalogue-selections",
+          "status": "Observed pass on first repaired packaged app",
+          "observed": "Actual native selections cover all35 catalog routes: File Inspection4, File Processing4, File Organization4, Data Export7, Network Operations13, Automation3. Every route records selected=true and sanitized rendered field observations.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-catalogue-selection.json"
+          ],
+          "limits": [
+            "Selection/form observation only; no execution claim for all35. Final app rebuild/hash/launch provenance still pending."
+          ]
+        },
+        {
+          "id": "current-package-identity-and-launch",
+          "status": "Identity passed; launch recorded by parent",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-menu-final/scp-status-final.txt"
+          ],
+          "limits": [
+            "No inference that all35catalog entries executed."
+          ]
+        }
+      ],
+      "completion_note": "All35 actual selections retain first-repair attribution. The final package source/locks/signature and launch are recorded. Later form change is print-only and final-menu native SCU/SCP actions close that delta. Generic path execution has its own current native cases and regression checks. Changed network routes remain separate pending groups; this closes provenance/inventory only.",
+      "pending_subcases": [],
+      "closure_evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-catalogue-viewer-closure.json"
+    },
+    {
+      "id": "FINAL-02",
+      "route": "dicom-tags: shell serialization and scalar edit",
+      "item_ids": [
+        "WS-FIX-01",
+        "A-01"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Use synthetic values with whitespace, apostrophe, wildcard, backslash-separated VM, dollar/semicolon literal text and a leading equals token. Copy/import where supported and execute an allowed edit.",
+        "Compare literal argv and resulting tag bytes with final CLI; no command substitution or unintended sentinel file.",
+        "Run invalid AS/DA/DT/TM/UI/VM/AE inputs in dry-run and write; reject without changing original or creating rejected output. Reuse M2 vectors, not old pass results."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "observed_subcases": [
+        {
+          "id": "first-repair-literal-edit-wrong-output-target",
+          "status": "Observed failure; repair awaiting final packaged verification",
+          "observed": "Native preview requested tags-literals.dcm after Browse selected the parent folder, but SUCCESS wrote the input basename into that folder. Independent inspection confirms exact four literal attribute values, original input SHA unchanged, unchanged pixel bytes and no MUST-NOT-EXIST shell sentinel. This is a failed destination-identity acceptance case, not a successful scalar-edit gate.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/tags-literals-before.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/tags-literals-after.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/path-grant-repair/diagnosis-and-repair.json"
+          ],
+          "limits": [
+            "Requested target was absent at diagnosis. Production/test repair is in progress/qualification; no repaired native rerun result is asserted."
+          ]
+        },
+        {
+          "id": "interim-native-audited-actions-final-source-equivalence",
+          "status": "Passed",
+          "observed": "20 distinct native actions independently verified with original interim artifact attribution and exact final source-equivalence receipt.",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-02-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          ],
+          "limits": [
+            "Synthetic corpus; assertion count is not native action count. Prior failed output-target observation remains historical and is superseded by verified repaired actions."
+          ]
+        }
+      ],
+      "completion_note": "20 native actions meet this group; final source-equivalence supports reuse without changing original app epoch.",
+      "pending_subcases": [],
+      "previous_pending_subcases": [
+        "Build and launch repaired app, repeat Browse-folder plus typed-filename case and independently verify exact destination and unchanged input.",
+        "Complete remaining explicit FINAL02 invalid-edit/CLI parity requirements on qualified final source."
+      ]
+    },
+    {
+      "id": "FINAL-03",
+      "route": "dicom-tags: identity, charset, copy and signed values",
+      "item_ids": [
+        "A-02",
+        "A-03",
+        "A-08",
+        "A-09"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Edit SOP class and instance and verify dataset/meta identities and encoded group length.",
+        "Read/edit Latin-1, UTF-8 and Japanese ISO 2022 files; preserve leading text and nested inheritance/overrides, correct declaration/bytes.",
+        "Exercise numeric pair, parenthesized pair, compact hex and keyword copy selectors; inspect copied VR/raw bytes.",
+        "Insert signed -1 then update existing SS to -2; confirm FF FF / FE FF. Unsigned negative and overflow reject."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent file-byte inspector and CLI/GUI output comparison"
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "observed_subcases": [
+        {
+          "id": "interim-native-audited-actions-final-source-equivalence",
+          "status": "Passed",
+          "observed": "14 distinct native actions independently verified with original interim artifact attribution and exact final source-equivalence receipt.",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-03-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          ],
+          "limits": [
+            "Synthetic corpus; assertion count is not native action count. Prior failed output-target observation remains historical and is superseded by verified repaired actions."
+          ]
+        }
+      ],
+      "completion_note": "14 native actions meet this group; final source-equivalence supports reuse without changing original app epoch."
+    },
+    {
+      "id": "FINAL-04",
+      "route": "dicom-info and dicom-validate",
+      "item_ids": [
+        "A-03",
+        "A-04",
+        "A-05",
+        "A-06",
+        "A-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Info displays Latin-1, UTF-8 and ISO 2022 names without altered leading significant text.",
+        "Validator level 1/2: valid controls, required meta empties, identity mismatch, nested invalid values/calendar dates and wrong registered VR.",
+        "Compare saved JSON reports with final CLI excluding only path/duration; verify text and JSON, strict false/true wrong-VR outcomes."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Saved report field comparison"
+      ],
+      "observed_subcases": [
+        {
+          "id": "four-native-info-actions",
+          "status": "Recorded; independent review pending",
+          "observed": "Four native Info actions report SUCCESS in the action record; no independent acceptance yet.",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/FINAL-04-info-native-actions.json"
+          ],
+          "limits": [
+            "Do not count these actions as independently passed."
+          ]
+        },
+        {
+          "id": "final-native-info-validator-independent-review",
+          "status": "Passed",
+          "observed": "Four Info and20validator native actions independently checked against saved complete parent JSON/console and CLI/file oracles.",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-04-verification.json"
+          ],
+          "limits": [
+            "Info JSON SQ is a byte preview, not flattened sequence item text. Eleven nested decoded paths are independently verified from saved file; no native Info display claim for those paths.",
+            "Full current Info parent JSON parsed and compared; child AX truncation does not limit the captured complete parent.",
+            "No UI/build/product execution by this read-only checker."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "previous_pending_subcases": [
+        "Independently audit four Info results against expected text/CLI.",
+        "Execute and verify the planned native validator controls."
+      ],
+      "completion_note": "24native actions (4Info+20validation) independently substantiated by162assertions,0failures; final-menu-app attribution retained."
+    },
+    {
+      "id": "FINAL-05",
+      "route": "dicom-mwl query",
+      "item_ids": [
+        "WS-FIX-02",
+        "WS-FIX-01"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Enter open-ended leading-hyphen DA and TM ranges, bounded/scalar controls and malformed forms. Preview must bind option values without interpreting a new flag.",
+        "Execute valid query against prepared peer and inspect actual SPS sequence DA/TM bytes; malformed forms reject before network. A no-peer timeout proves argument passage only, not successful MWL interoperability."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent MWL request capture/association count"
+      ]
+    },
+    {
+      "id": "FINAL-06",
+      "route": "dicom-qido / dicom-wado / dicom-stow / dicom-ups Basic authentication",
+      "item_ids": [
+        "WS-FIX-05"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "For all four stable IDs select Basic auth: preview clearly app-only and every physical line remains a comment, including multiline synthetic input.",
+        "Switch Basic/Bearer/none and confirm stable capability detection and no stale credentials. Use only synthetic credentials.",
+        "Execute each affected route once against controlled HTTP peer where supported; compare actual effective authorization header and route to permitted final CLI counterpart. Basic-only app behavior must not be falsely presented as a runnable CLI feature."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Sanitized synthetic HTTP capture"
+      ]
+    },
+    {
+      "id": "FINAL-07",
+      "route": "dicom-qido six resources and hidden-filter transitions",
+      "item_ids": [
+        "NET-03-A",
+        "NET-03-B",
+        "WS-FIX-03"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Execute all studies, all series, study series, all instances, study instances, and series instances. Correct modality matching tag and allowed resource keys.",
+        "Set PPS/series fields, switch study/series/instance scope repeatedly: hidden values absent from preview/request, restored when allowed. Study instances permits series filters.",
+        "Change tool: retained values clear. Reenter a valid request and execute it; compare with a fresh form to supplement the earlier observation-only reset.",
+        "Unsupported scoped filters refuse before dispatch or are excluded only by the documented effective-hidden-state rule; never silently broaden an explicitly accepted filter."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "HTTP query-item equality and exact expected UID sets"
+      ]
+    },
+    {
+      "id": "FINAL-08",
+      "route": "dicom-qido M3 supplement: UID lists and non-ASCII matching input",
+      "item_ids": [
+        "NET-02-E",
+        "NET-03-A",
+        "WS-FIX-03",
+        "QUAL-01"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Use a valid supported resource with comma-separated UID alternatives and an actual non-ASCII matching input such as Müller*, not merely a non-ASCII result.",
+        "Verify percent encoding, exact list values, expected union within UID key and intersection with other keys, expected results and final CLI request equality.",
+        "Retain screenshot of the typed value plus captured request. This case was explicitly unexecuted in the earlier M3 packaged run."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "UID-list/non-ASCII raw URL + decoded query items"
+      ],
+      "supplement": true
+    },
+    {
+      "id": "FINAL-09",
+      "route": "dicom-query C-FIND and cancellation result reporting",
+      "item_ids": [
+        "NET-04-A",
+        "NET-05-A"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Study and series positive queries retain range/wildcard/modality filters; valid image query succeeds.",
+        "Image modality and patient study-level filters refuse before association and verbose query header.",
+        "Consume peer FE00 before any result and after partial results: app reports cancellation/non-success without presenting complete success; match CLI response/counters."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "DIMSE Identifier capture and association counts"
+      ]
+    },
+    {
+      "id": "FINAL-10",
+      "route": "dicom-retrieve C-MOVE / C-GET",
+      "item_ids": [
+        "NET-05-B",
+        "NET-10-A"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Exercise both method routes with cancelled FE00 response, including partial counters/output.",
+        "Successful retrieve from restarted filesystem-backed server returns expected dataset bytes; compare final CLI. Backend durability/restart is independently verified and not implied by the form."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Counter/status capture",
+        "Retrieved dataset hash"
+      ]
+    },
+    {
+      "id": "FINAL-11",
+      "route": "dicom-wado retrieve",
+      "item_ids": [
+        "NET-09-A",
+        "NET-09-B"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Use existing instance/metadata retrieval route against production handler HTTP bridge and compare bytes/fields with CLI.",
+        "Capability negotiation remains backend HTTP evidence; do not invent a Workshop capability control. Unsupported server retrieval must surface failure if exercised, not success."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "FINAL-12",
+      "route": "dicom-mpps update",
+      "item_ids": [
+        "NET-07-A"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Referenced image without explicit SOP Class rejects before association.",
+        "CT, MR and Secondary Capture successful updates send the exact class/instance pairs; compare CLI excluding generated timestamps only. Intermediate MPPS update enhancement remains deferred."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "N-SET dataset inspection"
+      ]
+    },
+    {
+      "id": "FINAL-13",
+      "route": "dicom-ups existing create/retrieve",
+      "item_ids": [
+        "NET-06-A",
+        "NET-06-B"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Create with compact scheduled DICOM DT preserving fraction/offset and retrieve against production handler or controlled capture peer; compare CLI request bytes and server result semantics.",
+        "The existing table does not expose DT; keep scheduling proof in wire/output inspection. Generic UPS attribute update has no Workshop route and remains backend-only acceptance."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "DT lexical/instant inspection"
+      ]
+    },
+    {
+      "id": "FINAL-14",
+      "route": "dicom-script template / validate / dry-run / live refusal",
+      "item_ids": [
+        "WS-FIX-04"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Live run unavailable before Run with clear CLI guidance.",
+        "Generate existing template, validate it, and dry-run it with explicit no-execution outcome.",
+        "Unknown nested command and unsupported unquoted conditional pipeline reject before logs/output side effects; no success claim. All five template contracts remain covered by final CLI/VM tests; record which templates are manually exercised."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "completion_note": "All scoped subcases substantiated; parent final acceptance remains separate.",
+      "observed_native_executions": 5,
+      "preflight_only_observations": 1,
+      "independent_verification": {
+        "report": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-14-verification.json",
+        "assertions_passed": 30,
+        "assertions_failed": 0,
+        "recheck": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-final-14-16-18-recheck.json"
+      },
+      "observed_subcases": [
+        {
+          "id": "script-template",
+          "type": "execution",
+          "status": "SUCCESS",
+          "captured_argv": [
+            "dicom-script",
+            "template",
+            "workflow"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-template-before.txt": "f75bf6ee592b77fbe8f99b3f0e4c732be8913583ae45ea2aacdc1e9e23949ac6",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-template-after.txt": "6b97f0e00ccef6d336901c8ad5c93b3e075668c4b77e3c09889cdea35dfea317"
+          },
+          "full_console_compared": true
+        },
+        {
+          "id": "template-validate",
+          "type": "execution",
+          "status": "SUCCESS",
+          "captured_argv": [
+            "dicom-script",
+            "validate",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-validate-before.txt": "7f7e003fb52021e61682af4c723b5e63db6de11ba5a32f43f29a3b60a7c7067e",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-validate-after.txt": "541c744b83ce0b256d3d1dd9b6cd6516f570d45484304280c4bd68bb17179f2a"
+          },
+          "full_console_compared": true
+        },
+        {
+          "id": "template-dry-run",
+          "type": "execution",
+          "status": "SUCCESS",
+          "captured_argv": [
+            "dicom-script",
+            "run",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt",
+            "--dry-run"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-dry-run-before.txt": "b97b7366da2e04ebf8303a32e11a8f2ad513dde865d817c38647143b1c0d73a7",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-dry-run-after.txt": "7edfa5303ce3f77d62035101522e9c011fe9e8a3cd8ba8ae7f3f632f58d64032"
+          },
+          "full_console_compared": true
+        },
+        {
+          "id": "unknown-conditional",
+          "type": "execution",
+          "status": "ERROR",
+          "captured_argv": [
+            "dicom-script",
+            "run",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript",
+            "--dry-run",
+            "--log",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/unknown-conditional.log"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/unknown-conditional-before.txt": "317b51c6b8491325d62319306ea63ad7d2f913d48582bc9891bfbbd0f810f0b7",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/unknown-conditional-after.txt": "e6b511a1cef2f9c93afa6c9d22f8f81c487ecff2f6a2cf60f1d3d097dfb2900b"
+          },
+          "full_console_compared": true
+        },
+        {
+          "id": "conditional-pipeline",
+          "type": "execution",
+          "status": "ERROR",
+          "captured_argv": [
+            "dicom-script",
+            "run",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript",
+            "--dry-run",
+            "--log",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/conditional-pipeline.log"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/conditional-pipeline-before.txt": "11d0fd568cde9ec72f7bf2112d61226b10bdd53653228cf406f816575bdd171a",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/conditional-pipeline-after.txt": "c9cc97a7fcc4af6fe25615a995355c4735ea8a86b10a6f67e43aec59b839f4ab"
+          },
+          "full_console_compared": true
+        },
+        {
+          "id": "script-live-disabled",
+          "type": "preflight_only",
+          "status": "Run disabled; no execution",
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-live-disabled-before.txt": "407b2bb05c9ac5b0b79a1b8039abb3dd37d1fc79145b9a50810d33e11ec01512",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-live-disabled-copied-command.txt": "6907706e5c8edb49b74b91b207da3bbbe5287ed06eb0a85e9fe17e8ac8750cf2"
+          },
+          "copied_argv": [
+            "dicom-script",
+            "run",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript",
+            "--log",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/live.log"
+          ],
+          "limit": "Old SUCCESS belongs to previous dry-run; not counted as live result. CLI counterpart intentionally supports live execution."
+        }
+      ],
+      "limits": [
+        "Only workflow template manually exercised; allfive template contracts remain covered by separate automated evidence.",
+        "Live refusal is a disabled preflight observation; prior SUCCESS belongs to dry-run. No live native execution asserted."
+      ],
+      "pending_subcases": []
+    },
+    {
+      "id": "FINAL-15",
+      "route": "dicom-qr Review / Auto",
+      "item_ids": [
+        "WS-FIX-06"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Visible options Review and Auto; no misleading Interactive selector.",
+        "Review shows matches but produces no retrieved files. Auto retrieves exact synthetic match set; compare dataset bytes with CLI.",
+        "If a persisted Interactive value can be injected through existing supported state import, it refuses; otherwise retain final model regression evidence and mark that native subcase unexecuted rather than fabricate it."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "FINAL-16",
+      "route": "dicom-anon Allow Burned-in PHI",
+      "item_ids": [
+        "WS-FIX-08"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Beginner advanced disclosure and Advanced mode display one Allow Burned-in PHI control/identity.",
+        "False override plus pixel-cleaning disabled refuses without output; true override emits one flag and a file with PatientIdentityRemoved=NO. Mode switching retains one binding."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent output tag inspection"
+      ],
+      "completion_note": "All scoped subcases substantiated; parent final acceptance remains separate.",
+      "observed_native_executions": 2,
+      "preflight_only_observations": 0,
+      "independent_verification": {
+        "report": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-16-verification.json",
+        "assertions_passed": 22,
+        "assertions_failed": 0,
+        "recheck": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-final-14-16-18-recheck.json"
+      },
+      "observed_subcases": [
+        {
+          "id": "phi-false",
+          "type": "execution",
+          "status": "ERROR",
+          "captured_argv": [
+            "dicom-anon",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-false.dcm",
+            "--no-clean-pixel-data",
+            "--redact-style",
+            "blank",
+            "--redact-fill",
+            "black"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-false-before.txt": "b16d68e4fde889bd17c94f95ac92c12b7196512fd84a69a0e5a3813d3b8a617f",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-false-after.txt": "9627a3d6d3109b64408b087b7ef24b8b0d42585d3b2545efdc479eb07bf782e6"
+          },
+          "full_console_compared": true
+        },
+        {
+          "id": "phi-true",
+          "type": "execution",
+          "status": "SUCCESS",
+          "captured_argv": [
+            "dicom-anon",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm",
+            "--no-clean-pixel-data",
+            "--redact-style",
+            "blank",
+            "--redact-fill",
+            "black",
+            "--allow-burned-in-phi"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-true-before.txt": "a1f3f0055394c7c4ea808878ce3362ac003a6d271c1b9ea1f12582e3a080d30c",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-true-after.txt": "4c5b1abb0be08e16fc580f2a1f68d3e791c180e6963b6e8b8182da178bbf6f26"
+          },
+          "full_console_compared": true,
+          "output_sha256": "6bac1380f25d1949244fbffaa2e189226acff6d8a239421926012d53768aec4a",
+          "semantic_comparison_exclusions": [
+            "SOPInstanceUID",
+            "StudyInstanceUID",
+            "SeriesInstanceUID"
+          ],
+          "not_compared_as_bytes": "Generated UIDs intentionally differ between independent anonymization runs."
+        }
+      ],
+      "limits": [
+        "Earlier mode-B capture hid advanced options; it is not evidence of value loss. Final reexpanded Beginner and Advanced captures eachshow exactlyone enabledcontrol.",
+        "Generated identity UIDs differ intentionally; defined metadata/pixel semantics compared instead of whole-file bytes."
+      ],
+      "pending_subcases": []
+    },
+    {
+      "id": "FINAL-17",
+      "route": "SR viewer TIME/DATETIME display and copy",
+      "item_ids": [
+        "WS-FIX-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Open final synthetic SR fixture; inspect all 16 preserved partial/fraction/offset/malformed lexical cases.",
+        "Also inspect the ordinary image viewer Study Time overlay with fractional TM; shared formatting must preserve precision there as reflected by the corrected ViewerStudyDateTimeTests.",
+        "Native copy of a fraction with signed UTC offset preserves exact text; source bytes/hash unchanged."
+      ],
+      "evidence_to_keep": [
+        "Narrative screenshot/AX",
+        "Clipboard text",
+        "Source hash before/after"
+      ],
+      "surface": "Viewer, not Workshop",
+      "observed_subcases": [
+        {
+          "id": "first-repair-sr16-display-copy",
+          "status": "Observed pass on first repaired packaged app",
+          "observed": "All16 SR temporal rows exactly match expected partial/fraction/offset/malformed values in saved native AX and original-resolution screenshot. Selected positive-offset fractional timestamp and pasted text both equal 2026-10-24 10:15:30.123456 +0530. Source SR and fractional-image fixture hashes are unchanged.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/viewer-native-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-viewer/sr-all16.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-viewer/sr-all16.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-viewer/sr-selected-positive-offset.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-viewer/sr-copied-positive-offset.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-viewer/fractional-study-time.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-viewer/fractional-study-time.png"
+          ],
+          "limits": [
+            "Copy destination was only a paste surface, not an executed command. Fractional Study Time is exact in AX, but the approximately185px sidebar visibly ellipsizes after .12; all six fraction digits are not simultaneously visually demonstrated. Whole FINAL17/final rebuilt-app acceptance remains pending parent review."
+          ]
+        }
+      ],
+      "completion_note": "Original WS-FIX07 requires SR temporal precision and signed offsets through display/copy, demonstrated by native evidence. The additional ordinary-image inspection demonstrates full lexical precision in AX. Approximately185px single-line sidebar ellipsis is explicitly bounded presentation, not changed temporal formatting. Relevant viewer sources are unchanged across qualified epochs.",
+      "verified_evidence_sha256": {
+        "ui-viewer/sr-copied-positive-offset.txt": "5b0ecc28e28b03267d714c2aec3731a394e41cf68da2191948c93b6471de6d36",
+        "ui-viewer/sr-all16.png": "08f4e73b67ffe2913a87309d2d64dbe167e650b7b4aa0692654941b43ccf5c2b",
+        "ui-viewer/fractional-study-time.png": "bbcde4c4747931a72d372f56853c99abffc2c314125eb56f42242e28f42079ae",
+        "ui-viewer/sr-all16.txt": "425621478d3ae01ca689b00c3b6c3bf2b61a38310c3946864077cff533afc486",
+        "ui-viewer/fractional-study-time.txt": "8fd0d8448549a2890ef072da5e1a65cfbcddd7800d3c2f140d2ae2af944b0517",
+        "ui-viewer/sr-selected-positive-offset.txt": "99da9fc128bda4a09c6c31c6a9454788b06cbc787c969c24505ef3b024ae0bb1"
+      },
+      "fixture_integrity": [
+        {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/sr-fixture/m5-sr-temporal-precision.dcm",
+          "before_sha256": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6",
+          "review_sha256": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6",
+          "unchanged": true
+        },
+        {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/fractional-study-time.dcm",
+          "before_sha256": "adf09021a2c187b7aa1bf1a520411b8e8148f439a314ccdb957aaaa48fac21c2",
+          "review_sha256": "adf09021a2c187b7aa1bf1a520411b8e8148f439a314ccdb957aaaa48fac21c2",
+          "unchanged": true
+        }
+      ],
+      "source_equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+      "pending_subcases": [],
+      "closure_evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-catalogue-viewer-closure.json"
+    },
+    {
+      "id": "FINAL-18",
+      "route": "dicom-convert JPEG Extended M7 repair",
+      "item_ids": [
+        "QUAL-01",
+        "QUAL-02"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Convert synthetic 8-bit monochrome to JPEGExtended through actual Workshop; independently inspect .51/SOF1 and compare decompressed pixels with CLI.",
+        "Color Extended request refuses with accurate monochrome diagnostic and no output. Strict precision mismatch remains an explicit refusal/limit.",
+        "Keep Part 2 target refusal visible; do not turn recognized catalog entries into supported codec claims.",
+        "After the native PixelData repair, convert compressed >8-allocated input to native output and verify OW, length and exact CLI-matching pixel bytes; include an odd-sized 8-bit output control if its final fix is retained."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent SOF/process and pixel inspector"
+      ],
+      "completion_note": "All scoped subcases substantiated; parent final acceptance remains separate.",
+      "observed_native_executions": 6,
+      "preflight_only_observations": 0,
+      "independent_verification": {
+        "report": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-18-verification.json",
+        "assertions_passed": 44,
+        "assertions_failed": 0,
+        "recheck": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-final-14-16-18-recheck.json"
+      },
+      "observed_subcases": [
+        {
+          "id": "extended-gray8",
+          "type": "execution",
+          "status": "SUCCESS",
+          "captured_argv": [
+            "dicom-convert",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-gray8.dcm",
+            "--format",
+            "dicom",
+            "--transfer-syntax",
+            "JPEGExtended"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-gray8-before.txt": "84af4a0492d0e7b61f0280ddd13e7badfc9cc7623f87a5a619d245160fdd4e91",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-gray8-after.txt": "63437c90c1ff44e6944da3a167417e62c1eb1aeb19bc067b9989b309bb6782b2"
+          },
+          "full_console_compared": true,
+          "output_sha256": "329108662877ea5c0da7801a386a20277d18270d397b7d206c9a751fd425a9d0"
+        },
+        {
+          "id": "extended-rgb8",
+          "type": "execution",
+          "status": "ERROR",
+          "captured_argv": [
+            "dicom-convert",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-rgb8.dcm",
+            "--format",
+            "dicom",
+            "--transfer-syntax",
+            "JPEGExtended"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-rgb8-before.txt": "4c74eaca97ed80bcf1a00dba65bca3dc17726f51c5163312ab7fd4fe1406f772",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-rgb8-after.txt": "2fb6a9d95e3c8ad9d9d90ca9f31d29952a5f9ef61de3ca2c19492130363c0c3f"
+          },
+          "full_console_compared": true,
+          "codec_classification": "supported_refusal",
+          "counts_as_codec_success": false
+        },
+        {
+          "id": "part2-refusal",
+          "type": "execution",
+          "status": "ERROR",
+          "captured_argv": [
+            "dicom-convert",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/part2-refusal.dcm",
+            "--format",
+            "dicom",
+            "--transfer-syntax",
+            "JPEG2000Part2LosslessOnly"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/part2-refusal-before.txt": "23489ad9ca28257cf42167c1ee314f73d37fd8324fe13c7d43565e02d62f7355",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/part2-refusal-after.txt": "1390d64e91aac31dc8d7a5dbd34c4616ff05b0a1bfcb62bcb9a69fe7c1c62b22"
+          },
+          "full_console_compared": true,
+          "codec_classification": "supported_refusal",
+          "counts_as_codec_success": false
+        },
+        {
+          "id": "native16",
+          "type": "execution",
+          "status": "SUCCESS",
+          "captured_argv": [
+            "dicom-convert",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native16.dcm",
+            "--format",
+            "dicom",
+            "--transfer-syntax",
+            "ExplicitVRLittleEndian"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native16-before.txt": "423ab3e9c748fade2978b05a6a56b8fba27e52aee385c005cc7342a8d5f64958",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native16-after.txt": "2880ab80949acbb5d3060aee1006dc45ad9d86e0a488c218fe8820ac76d7babb"
+          },
+          "full_console_compared": true,
+          "output_sha256": "b90e2126a3b6700a7306273a2c0b70af6d382ccc2c6baceb0f72e5141b2515c7"
+        },
+        {
+          "id": "native-odd",
+          "type": "execution",
+          "status": "SUCCESS",
+          "captured_argv": [
+            "dicom-convert",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm",
+            "--format",
+            "dicom",
+            "--transfer-syntax",
+            "ExplicitVRLittleEndian"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native-odd-before.txt": "e115ca8f50af9a0714625e51baf2f23e84870eb0fd64c7d41a7f3b1b03890a39",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native-odd-after.txt": "ccdb3485cff61309de7119c38fe0fed7cc06b8451040c5a78c60a92a2afc5a30"
+          },
+          "full_console_compared": true,
+          "output_sha256": "de7f4ae0d1dc06532b5bd9b4c296f36ab85e0215d9322cec5274de40ea500bf8"
+        },
+        {
+          "id": "strict-precision-refusal",
+          "type": "execution",
+          "status": "ERROR",
+          "captured_argv": [
+            "dicom-convert",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm",
+            "--output",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/strict-precision-refusal.dcm",
+            "--format",
+            "dicom",
+            "--transfer-syntax",
+            "ExplicitVRLittleEndian"
+          ],
+          "evidence": {
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/strict-precision-refusal-before.txt": "7d921512fe94d13d3a8a51535ba745263471456bd8a1fabc02d69628b4243023",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/strict-precision-refusal-after.txt": "7af6fa2f77c77534cbfc5fa55d5030112db72f8eb0f87c1d4b1a1610c8989ff3"
+          },
+          "full_console_compared": true,
+          "codec_classification": "interoperability_limit",
+          "counts_as_codec_success": false
+        }
+      ],
+      "limits": [
+        "Three successful outputs, two supported refusals, one strict-precision interoperability limit. Refusals nevercount ascodecpasses.",
+        "Lossy instance UID generated per run; exact codestream and otherdatasetmetadata compared. Independent decoder agreement bounded1, not exactoriginalsamples."
+      ],
+      "pending_subcases": []
+    },
+    {
+      "id": "PRINT-SCU-status",
+      "route": "dicom-print status",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Observe Printer status JSON/text from actual peer; match CLI."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "observed_subcases": [
+        {
+          "id": "printer-json",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Actual native status JSON agrees with independent-settings/live-peer CLI schema and all fields. Complete copied console retained.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-status-json-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-status-json.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/status.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-output-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "repaired-status-text-cli",
+          "status": "Observed pass on first repaired packaged app",
+          "observed": "Complete native status text exactly matches the three-control campaign CLI status result and exit0, normalizing only one terminal LF. CLI diagnostics on stderr correspond to the merged native console.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-status-text-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-print-controls-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCU-send",
+      "route": "dicom-print send",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Native file Browse, literal repeatable rows, reordered inputs/annotations, defaults/advanced controls, preview/copy/import and actual send.",
+        "Exercise gray/color, raw/window settings, native/RLE/JPEG inputs, all-frames/frame-2 controls, LUT/annotation acceptance/refusal and injected failure/warning. B604 remains successful submission with visible warning.",
+        "Workshop SCU -> CLI SCP and independent peer; inspect image-box data and output."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "observed_subcases": [
+        {
+          "id": "literal-browse-copy-import",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native form/Browse, literal filename with apostrophe/semicolon/Unicode, ROW\\1,3, negative window center, two ordered literal annotation rows, Copy and Import roundtrip are captured; literal argv and actual receiver output checked.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-before-browse.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-literal.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-literal-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-copy-import.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-copy-import.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-import-roundtrip-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-output-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-cli-parity.json"
+          ],
+          "limits": [
+            "These records establish the captured ordering; they do not by themselves establish a separate manual row-reorder action."
+          ]
+        },
+        {
+          "id": "ten-send-cli-parity",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Ten native send vectors (literal, raw12, rgb8, gray8, RLE, JPEG, all-frames, frame2, extracted-frame2 control, three-files) have exact saved CLI argv, result/receiver field and decoded PNG parity as applicable. Latest report has100passed/0failed/0pending after graceful receiver flush; overlapping earlier reports are not added.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-cli-parity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-image-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/native-replay-v1/three-files.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-three-files-console.txt"
+          ],
+          "limits": [
+            "Generated UIDs and receive timestamps differ between independent submissions; exact exclusions and linkage are recorded in report."
+          ]
+        },
+        {
+          "id": "dry-run",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native dry-run completes with unreachable endpoint and no film-counter increase; complete shared diagnostic text and exact CLI argv/output agree.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-dry-run-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-dry-run-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/native-replay-v1/dry-run.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-cli-parity.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "invalid-form-preflight",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Raw+window, frame+all-frames, lone-window, layout+template and annotation without format are rejected by shared parser; captured Run is disabled. No unsupported preview-validity defect is claimed.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-invalid-raw-window.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-invalid-raw-window.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-invalid-frame-all.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-invalid-frame-all.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-invalid-lone-window.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-invalid-layout-template.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-invalid-annotation-format.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-ui-source-review.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-gray12-lut-annotations",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Exact16allocated/12stored raw samples, IDENTITY LUT reference, two ordered annotation raw values including literal spaces/semicolon, one print action and successful session delete/normal release.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-normal-peer-gray12.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-normal-peer-gray12.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-rgb",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Exact planar RGB samples and pixel metadata, one print action, successful session delete and normal release.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-normal-peer-rgb8.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-normal-peer-rgb8.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-printer-warning",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Actual Printer WARNING is surfaced and continues through one successful print action; exact gray8 samples.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-warning-peer-gray8.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-warning-peer-gray8.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-printer-failure",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Actual Printer FAILURE aborts before session/box/image creation or N-ACTION; diagnostic visible; preflight association releases normally.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-failure-peer-gray8.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-failure-peer-gray8.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-set-failure",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Image N-SET returns0106 with injected ErrorComment; no N-ACTION; matching session delete succeeds then A-ABORT.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-set-failure-peer-gray8.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-set-failure-peer-gray8.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-action-warning",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "N-ACTIONB604 is successful submission with visible warning/status/FilmBoxUID; successful cleanup/normal release.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-action-warning-peer-gray8.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-action-warning-peer-gray8.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-lut-refusal",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "LUT context actually rejected; no substitute LUT/box/image or N-ACTION. Session cleanup succeeds then A-ABORT; unsupported SOP Class diagnostic visible.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-no-lut-peer-gray8.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-no-lut-peer-gray8.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-event-ack",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "One Done event type3 on separately negotiated implicit Print Job context receives correlated message711 ACK0 while N-ACTION remains pending; session cleanup/normal release succeeds.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-event-peer-gray8.dcm-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-event-peer-gray8.dcm-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/independent-peer.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "repaired-seven-named-checkboxes",
+          "status": "Observed pass on repaired packaged app",
+          "kind": "Repaired native app observation",
+          "observed": "Actual AX exposes semantic names and stable print-option identifiers for Verbose, Check Printer Status, Verify Connection, All Frames, Stored Pixel Values, Scan Directories Recursively and Dry Run; all seven retain explicit0/1 state. Screenshot independently inspected.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/named-checkboxes-before.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/named-checkboxes-before.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          ],
+          "limits": [
+            "The captured form pane is narrow/horizontally clipped; this screenshot does not establish satisfactory layout/scroll behavior.",
+            "AX Command Preview text remains a generic placeholder despite the screenshot rendering actual argv; use screenshot/copied command for exact preview comparisons."
+          ]
+        },
+        {
+          "id": "repaired-raw-click",
+          "status": "Observed pass on repaired packaged app",
+          "kind": "Repaired native app observation",
+          "observed": "Saved native AX shows Stored Pixel Values state0 before click and1 after click; other six checkbox states are unchanged. Space-named capture still shows1 and focused window, so keyboard success is not inferred.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/named-checkboxes-before.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/checkbox-raw-click.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/checkbox-raw-space.txt"
+          ],
+          "limits": [
+            "Exact corresponding argv change and keyboard Space success remain pending in this recorded sequence."
+          ]
+        },
+        {
+          "id": "repaired-manual-row-order-cli",
+          "status": "Observed pass on first repaired packaged app",
+          "observed": "Native file rows changed frame1/frame2 to frame2/frame1 and annotation rows first/second to second/first. Copied literal argv equals actual invocation; receiver fields/annotations and native/CLI composed PNG bytes and decoded pixels agree. Both jobs correlate to their own saved outputs.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-row-order-before.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-row-order-after.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-row-order-command.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-row-order-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/final-001.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/final-002.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-print-controls-verification.json"
+          ],
+          "limits": [
+            "After-edit file rows were above scroll viewport; copied argv plus execution establish final file order. Generated UIDs/receivedAt excluded only for independent-submission field comparison."
+          ]
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Verify repaired semantic checkbox names, keyboard Space changes, state and only-corresponding argv changes in Beginner/Advanced/scroll layouts; disabled during run and restored after Stop.",
+        "Complete remaining catalog/default/advanced controls coverage without treating automated parser checks as native executions.",
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCU-job",
+      "route": "dicom-print job",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Query actual announced Print Job UID; visible status/counters and missing/deleted UID behavior match CLI."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "observed_subcases": [
+        {
+          "id": "announced-job",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native query uses an actually announced job UID and returns DONE/NORMAL; complete JSON matches final CLI query exactly without timestamp normalization.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-job-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-job-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/current-native-print-job.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/native-replay-v1/job.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-cli-parity.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "unknown-job",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native unknown UID request reports No such SOP Instance0112.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-job-unknown-console.txt"
+          ],
+          "limits": []
+        },
+        {
+          "id": "repaired-announced-job-text-cli",
+          "status": "Observed pass on first repaired packaged app",
+          "observed": "Actual native announced job UID is queried in text mode; DONE/NORMAL, creation date/time and complete diagnostic text exactly match CLI with only one terminal LF normalized.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-job-text-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-print-controls-verification.json"
+          ],
+          "limits": [
+            "Initial positional-job oracle refusal remains retained; corrected --job-id control is the qualified record."
+          ]
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Retain matching CLI missing/deleted UID control; unknown native outcome is recorded, not inferred from successful job query.",
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCU-list-printers",
+      "route": "dicom-print list-printers",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Use isolated Debug settings root; show effective registry location and compare records/schema with CLI."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "observed_subcases": [
+        {
+          "id": "populated-json",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Isolated app registry location is visible; complete populated JSON includes exact literal name, host/port/AEs/color/default and agrees with independent CLI registry control.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/list-control.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-output-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "protected-registry-boundary",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Direct terminal access to app-container registry was OS-denied; retained without bypass and not called a same-registry pass. Equivalent isolated CLI fixture supplied comparison.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/app-list-after-add.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/add-control.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/list-control.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "empty-json-original-defect",
+          "status": "Observed failure on pre-repair packaged app",
+          "observed": "Pre-repair --format json empty registry emitted text guidance instead of[]; defect preserved. Six-file repair is implemented separately and has no rebuilt-native pass in this ledger.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-empty.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-ui-source-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-ui-repair-implementation.json"
+          ],
+          "limits": [],
+          "resolution": "Original failure preserved; repaired-empty-json-text confirms native after-last-removal fix, with separate actual CLI three-scenario checks."
+        },
+        {
+          "id": "repaired-populated-persistence",
+          "status": "Observed pass on repaired packaged app",
+          "kind": "Repaired native app observation",
+          "observed": "After rebuilt app relaunch, native list JSON retains the exact previously created synthetic default profile, including literal apostrophe/semicolon/Unicode name, AEs, host, port, color and isDefault. Independently parsed copied JSON equals the old expected singleton.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-persistence-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "repaired-empty-json-text",
+          "status": "Observed pass on repaired packaged app",
+          "kind": "Repaired native app observation",
+          "observed": "After removal of last synthetic profile, native JSON parses as[] with no explanatory guidance; text mode retains No printers configured/Add a printer with guidance. Native empty JSON equals rebuilt CLI result; complete native text equals CLI stderr apart from final line terminators. Rebuilt actual CLI separately covers absent, stored-empty and last-removed registries.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-empty-json-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-empty-text-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/cli-empty-json/results.json"
+          ],
+          "limits": [
+            "Native observed state is after last-profile removal; CLI three-scenario checks are not three native executions."
+          ]
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Retain complete populated text-mode native list if required; earlier no-change AX does not prove that populated text result. Native empty-after-removal JSON/text now pass; absent/stored-empty variants have separate actual CLI evidence.",
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCU-add-printer",
+      "route": "dicom-print add-printer",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Add/update default profile in isolated registry with native visible values; duplicate/error behavior matches CLI.",
+        "Relaunch final app and confirm persisted profile; ensure sandbox vs terminal locations are explicit."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "observed_subcases": [
+        {
+          "id": "add-default-profile",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native added synthetic default profile Native; O'Neil 雪 with explicit host/port/AEs/color. Populated native JSON matches independent CLI control.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-add.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-add.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/add-control.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/list-control.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "duplicate-add-refusal",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Complete native console reports exact duplicate-name refusal.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-add-duplicate-console.txt"
+          ],
+          "limits": []
+        },
+        {
+          "id": "repaired-relaunch-persistence",
+          "status": "Observed pass on repaired packaged app",
+          "kind": "Repaired native app observation",
+          "observed": "Relaunched repaired app retains the exact pre-repair synthetic default profile. Persistence is now observed, while the original add/duplicate captures retain original binary attribution.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-persistence-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-add.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Retain duplicate-add CLI refusal/no-mutation control and any required default-profile replacement lifecycle through supported commands.",
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCU-remove-printer",
+      "route": "dicom-print remove-printer",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Remove only synthetic created profile; missing profile is error and does not mutate unrelated records."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ],
+      "observed_subcases": [
+        {
+          "id": "repaired-remove-last",
+          "status": "Observed pass on repaired packaged app",
+          "kind": "Repaired native app observation",
+          "observed": "Native removes only the exact synthetic profile Native; O'Neil 雪; subsequent list is empty. Previously listed registry contained only that profile.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-persistence-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-remove-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-empty-json-console.txt"
+          ],
+          "limits": []
+        },
+        {
+          "id": "repaired-repeat-remove",
+          "status": "Observed pass on repaired packaged app",
+          "kind": "Repaired native app observation",
+          "observed": "Repeating removal of the same missing synthetic name reports not found; later empty JSON remains[].",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-remove-missing-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/printer-empty-json-console.txt"
+          ],
+          "limits": [
+            "No unrelated second profile existed in this native sequence, so preservation of an unrelated populated record is not independently exercised here."
+          ]
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Native last-profile and repeated-missing removal observed. A populated unrelated-record preservation control and matching CLI missing-profile diagnostic are not established by this saved native sequence.",
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCP-status",
+      "route": "dicom-printscp status",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Resolve explicit/default configuration without listener; tri-state inherit/enabled/disabled and scalar defaults agree with CLI. Save/reload config; path shown accurately."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ],
+      "observed_subcases": [
+        {
+          "id": "inherit-enabled-preview",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Explicit config resolves visible Printer JSON; omitted/inherit and positive flag argv are captured. Nonverbose status does not expose effective boolean settings.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-inherit-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-inherit-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-enabled-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-enabled-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": [
+            "Positive switches in argv are not an effective-state dump; automated shared resolver evidence is distinct."
+          ]
+        },
+        {
+          "id": "disabled-save-reload",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native --no-accept-color/--no-annotations + outputnone save exact config fields; verbose reload returns complete saved configuration with false settings.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-save-config-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-save-config-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-reloaded-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "post-repair-cli-controls",
+          "status": "Observed control comparison pass",
+          "kind": "Rebuilt CLI versus pre-repair native comparison",
+          "observed": "Four planned controls now compare actual rebuilt CLI argv/results, complete JSON, saved settings and diagnostics to retained pre-repair native captures.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification-post-repair.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-post-repair-source-justification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-cli-replay-plan-post-repair.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/status-inherit.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/status-enabled.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/save-config.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/status-reloaded.json"
+          ],
+          "limits": [
+            "Native observations remain attributed to000fb888. Rebuilt SCP binary hash changed; unchanged SCP/core sources and one shared SCU empty-list branch justify the recorded comparison, not a fresh native SCP execution."
+          ]
+        },
+        {
+          "id": "repaired-granted-tristate-effective-controls",
+          "status": "Observed pass on first repaired packaged app",
+          "observed": "Browse-granted verbose status confirms exact saved baseline on inherit, only supportsColor enabled on explicit enable, and full baseline disabled on explicit disable; copied positive/inverted/omitted argv and native radio states match.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/repaired-print-controls-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/scp-repaired-inherited-status-granted-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/scp-repaired-enabled-granted-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/scp-repaired-disabled-granted-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/scp-tristate-enabled-command.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/scp-tristate-disabled-command.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/scp-tristate-return-inherit-command.txt"
+          ],
+          "limits": [
+            "Earlier ungranted inherited-status capture used default fallback DICOMKIT-PRINTER and is not inheritance success; preserved in independent review."
+          ]
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Rebuilt native checkbox state/name/keyboard verification; retain explicit/default path and inheritance semantics.",
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCP-queues",
+      "route": "dicom-printscp queues",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Enumerate OS queue names without dispatch. --paper-queue without --allow-paper refuses; no physical print."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ],
+      "observed_subcases": [
+        {
+          "id": "enumerate-without-dispatch",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native queues JSON has count0 and empty list; enumeration only.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-queues-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "paper-optin-refusal",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native Import rejects --paper-queue without --allow-paper before Run; synthetic nonexistent queue only, no physical dispatch.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-paper-gate-import.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "post-repair-cli-controls",
+          "status": "Observed control comparison pass",
+          "kind": "Rebuilt CLI versus pre-repair native comparison",
+          "observed": "Queue schema matches rebuilt CLI; both native Import and actual CLI refuse paper queue without explicit allow-paper.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification-post-repair.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-post-repair-source-justification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-cli-replay-plan-post-repair.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/queues.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/paper-import-refusal.json"
+          ],
+          "limits": [
+            "Native observations remain attributed to000fb888. Rebuilt SCP binary hash changed; unchanged SCP/core sources and one shared SCU empty-list branch justify the recorded comparison, not a fresh native SCP execution."
+          ]
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCP-simulate",
+      "route": "dicom-printscp simulate",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Browse synthetic input/config/output paths; repeated output format semantics agree with CLI (one selected image format plus PDF).",
+        "PNG/TIFF decoded pixel equality; complete PDF container only unless independently raster-checked. --save-config exits before input gathering/films.",
+        "Exercise filename tokens, failed/inaccessible sink, --open native callback, and clear saved-vs-failed file reporting."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ],
+      "observed_subcases": [
+        {
+          "id": "format-precedence-film",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Actual native ROW\\1,3/copies2/window/LUT/trim/density/two-annotation simulation produces exact recorded film fields. Repeated png,tiff,pdf selects TIFF as last image format plus PDF.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-simulate-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-simulate-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.tiff",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.pdf",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": [
+            "TIFF independently decoded; exact fresh CLI TIFF pixel parity still pending. PDF has complete-container check only, no raster/physical-print qualification."
+          ]
+        },
+        {
+          "id": "save-before-gather",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native save-config returns before attempting deliberately missing input and emits config only.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-save-before-gather-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/simulation-save.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "failed-sink-reporting",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "File sink failure is visible without Wrote/saved-file claim; film/protocol JSON remains available.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-sink-failure-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "native-open-callback",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Successful PNG output reported at exact opened-001.png path; native Preview open captured. PNG decoded independently.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-open-success-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-open-preview.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-open-preview.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/open-output/opened-001.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "post-repair-cli-controls",
+          "status": "Observed control comparison pass",
+          "kind": "Rebuilt CLI versus pre-repair native comparison",
+          "observed": "Actual rebuilt CLI matches pre-repair native save-before-gather/config diagnostics, all nonvolatile film fields, output precedence, exact decoded TIFF pixels and sink failure reporting. PDF validation remains complete-container only.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification-post-repair.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-post-repair-source-justification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-cli-replay-plan-post-repair.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/save-before-gather.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/simulate.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/sink-failure.json"
+          ],
+          "limits": [
+            "Native observations remain attributed to000fb888. Rebuilt SCP binary hash changed; unchanged SCP/core sources and one shared SCU empty-list branch justify the recorded comparison, not a fresh native SCP execution."
+          ]
+        },
+        {
+          "id": "repaired-distinct-output-path-controls",
+          "status": "Observed pass on first repaired packaged app",
+          "observed": "Three distinct native/CLI controls pass: denied0500 directory reports sink failure without saved claim (composition exit0); regular file used as directory refuses exit1 and remains a file; a newly created child directory writes one PNG with timestamp/index filename tokens and exact decoded native/CLI pixel parity.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "working_tree": "six-file print repair; no new committed revision claimed",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+            "epoch": "First print-repair packaged app; before subsequent checkbox-layout and generic-path repairs"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/denied-output-before.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/denied-output-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/output-is-file-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/new-output-child-before.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/new-output-child-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-print-controls-verification.json"
+          ],
+          "limits": [
+            "Qualified filename token subset is index and timestamp. Denied directory permissions were restored0700 by authorization; report retains0500 before/after observations. No physical printing."
+          ]
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    },
+    {
+      "id": "PRINT-SCP-serve",
+      "route": "dicom-printscp serve",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Passed",
+      "checks": [
+        "Start and observe actual bound port; CLI SCU -> Workshop SCP; inspect output files/events/counters.",
+        "Stop cancels/drains; port can be rebound and service restarted. Duration/max-films finish as configured.",
+        "Port collision reports error without stopping the existing listener. Leaving Workshop view and app termination stop listener/resources.",
+        "Exercise incoming color/gray, optional contexts and Print Job events with independent peer; no physical printing claim."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ],
+      "observed_subcases": [
+        {
+          "id": "bound-receive-stop",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native bound21114; CLI SCU sends gray8/RGB and actual native outputs/UIDs/counters verified. Stop reports2associations/2films/0errors; gray decoded pixels match independent CLI baseline.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-serve-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-serve-running.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-serve-running.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-serve-stopped-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/native-receiver/gray8.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/native-receiver/rgb8.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": [
+            "RGB output was decoded and identity-linked; no same-options exact CLI pixel equivalence is inferred where report only decodes. PDFs container-only."
+          ]
+        },
+        {
+          "id": "restart-duration",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Same port21114 successfully starts after Stop; duration2s terminates with0associations/0films/0errors.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-duration-complete-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "max-films",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Bounded native receiver terminates at one film, with exact CLI job/file identity and0errors.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-one-film-complete-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/native-receiver/one-film.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/limited-001.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "port-collision",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Native second bind on21114 reports Address already in use. Retried CLI status with required --aet returns0/NORMAL for incumbent COLLISION, proving failed native start did not stop existing listener.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-port-collision-v2-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/collision-incumbent-v2.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/collision-incumbent-v2.log",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/collision-incumbent-status-v2.json"
+          ],
+          "limits": [
+            "First health-control attempt omitted --aet and exited64; it proves no incumbent health and is preserved separately."
+          ]
+        },
+        {
+          "id": "leave-workshop",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Leaving Workshop cancels native serve, logs zero-error stop and external bind succeeds on21114 without launching a listener.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-before-leave.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-leave-cancelled-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-leave-rebind.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "app-termination",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "App was listening before native quit; exact app process absent and21114 rebind succeeds afterward.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-before-app-quit.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-before-app-quit.png",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-app-quit-rebind.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-gray",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Independent DCMTK sends12-bit grayscale with LUT/annotation to native listener;20DIMSEmessages, negotiated optional contexts, successful statuses/output and1film/0errors stop captured.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-independent-gray-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-independent-gray-stopped-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-gray-send/results.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-gray-send/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "independent-color-events",
+          "status": "Observed pass on pre-repair packaged app",
+          "observed": "Independent pynetdicom sends color with separately negotiated implicit Print Job context;16DIMSEmessages, terminal event/ACK and output captured. Post-terminal deleted Job N-GET0112 is expected: stop2associations/1film/1error, not unexplained failure.",
+          "source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-independent-color-form.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-independent-color-stopped-console.txt",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-color-send/results.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-color-send/independent-events.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-color-send/wire/decoded.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json"
+          ],
+          "limits": []
+        },
+        {
+          "id": "final-menu-source-equivalence-and-M6-closure",
+          "status": "Passed",
+          "observed": "Final menu app form/status/dry-run receipts, decoded output/PDF/peer reviews and preserved lifecycle evidence close original M6 requirements.",
+          "source_provenance": {
+            "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+            "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+            "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+            "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+          },
+          "evidence": [
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+          ],
+          "limits": [
+            "Keyboard/Space platform interaction remains disclosed, not a new M6 acceptance condition. Physical film/CUPS/calibration/clinical quality unqualified."
+          ]
+        }
+      ],
+      "pending_subcases": [],
+      "evidence_revision": "Mixed epochs; each subcase identifies pre-repair revision or repaired source/artifact manifests.",
+      "completion_note": "Closed within accepted M6 software scope using original per-subcase evidence, final menu/control receipts and scoped source equivalence. No hardware qualification or retrospective new execution claimed.",
+      "previous_pending_subcases": [
+        "Repeat required repaired-app checkbox name/state/keyboard/disabled-while-running and restored-after-Stop checks; reconcile current app identity.",
+        "Preserve software-peer/file-output scope; no real printer dispatch, calibration or physical image quality is established.",
+        "Final rebuilt-app identity, restored narrow/expanded layout, keyboard Space behavior and AE/control disabled-while-running/restored-after-Stop checks remain parent-owned and pending; no completed group is claimed."
+      ]
+    }
+  ],
+  "Toolbox_applicability": {
+    "status": "Not applicable to this packaged DICOMStudio target",
+    "reason": "DICOMToolbox is a separate library, not linked by DICOMStudio; no standalone Toolbox application target. Reconfirm final Package/project linkage; do not add a deferred app integration just to create a GUI gate.",
+    "required_final_non_GUI_checks": [
+      {
+        "items": [
+          "TB-FIX-04"
+        ],
+        "route": "CommandExecutor / ConsoleView model / history",
+        "checks": [
+          "Structured argv with literal shell metacharacters, one intended child, safe copied text.",
+          "Cancellation drains descendants; duplicate launch rejected; legacy string history cannot replay."
+        ]
+      },
+      {
+        "items": [
+          "TB-FIX-01",
+          "TB-FIX-02"
+        ],
+        "route": "Toolbox anonymization form/presets/history",
+        "checks": [
+          "Only current ps315/basic profile tokens; obsolete profile/flag refusal.",
+          "Default UID replacement and explicit retain-uids match real CLI output."
+        ]
+      },
+      {
+        "items": [
+          "TB-FIX-03"
+        ],
+        "route": "Toolbox script templates",
+        "checks": [
+          "All five template names passed positionally to real CLI; obsolete --output refused."
+        ]
+      }
+    ],
+    "reusable_context": [
+      "Documentation/2026a-milestones/M1/REPORT.md",
+      "Documentation/2026a-milestones/M5/REPORT.md"
+    ]
+  },
+  "backend_only_boundaries": [
+    "QIDO provider indexing/pagination/includefield and standard capabilities require final HTTP oracle checks; no new Workshop controls are authorized.",
+    "UPS generic attribute update has no Workshop route.",
+    "Server TLS refusal must be tested through actual CLI/config paths, including --tls with enableTLS=false config. No Workshop server tool is added.",
+    "Physical printer/CUPS output/calibration and unavailable platforms remain separate unqualified gates."
+  ],
+  "M3_supplements": [
+    "FINAL-08 UID-list and non-ASCII matching input is mandatory supplement from STATUS.md.",
+    "FINAL-07 executes a fresh request after tool reset; older M3 only observed cleared state."
+  ],
+  "evidence_template": {
+    "source_and_bundle_manifest": null,
+    "fixture_hashes": null,
+    "native_capture": null,
+    "effective_argv": null,
+    "CLI_replay": null,
+    "request_or_output_oracle": null,
+    "expected": null,
+    "actual": null,
+    "result": "Not run",
+    "limits": []
+  },
+  "identity_evidence": "../native-resume-identity.json",
+  "resumption": "26October native work resumed; current final menu app built/signed and launched by parent. Earlier locked/rebuild states are historical.",
+  "updated_utc": "2026-10-26T08:00:11.540708+00:00",
+  "final_source_revision_scope": "Historical base000fb888 plus current seven-modified/two-new source overlay identified by final-qualified-native manifests; not an unchanged base binary.",
+  "native_print_progress": {
+    "groups": 10,
+    "partial_groups": 0,
+    "completed_groups": 10,
+    "other_FINAL_groups_pending": 10,
+    "other_FINAL_groups_modified": true,
+    "pre_repair_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+    "modified_source_files": [
+      "Sources/DICOMPrintCommandSupport/SCUCommands.swift",
+      "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+      "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift",
+      "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+      "Tests/DICOMStudioTests/M6PrintSCUCatalogTests.swift",
+      "Tests/DICOMStudioTests/WorkshopDicomImageOutputScopeTests.swift",
+      "Tests/dicom-printTests/M6PrintSCUCommandTests.swift",
+      "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift",
+      "Tests/DICOMStudioTests/M7WorkshopFileAccessTests.swift"
+    ],
+    "repair_evidence": [
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-ui-repair-implementation.json",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-ui-source-review.json",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification-plan.json"
+    ],
+    "repair_status": "Final menu and shared-source receipts close original M6 software gates; historical failures/epochs preserved.",
+    "read_only_evidence_reports": [
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-cli-parity.json",
+        "passed_checks": 100,
+        "failed_checks": 0,
+        "pending": 0,
+        "note": "Latest exact saved native/CLI comparisons after graceful receiver flush; supersedes earlier pending buffered final film. Not a completed group count."
+      },
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+        "passed_checks": 128,
+        "failed_checks": 0,
+        "send_outcomes": 8,
+        "peers": 7,
+        "associations": 10,
+        "DIMSE_messages": 76
+      },
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification-post-repair.json",
+        "passed_checks": 64,
+        "failed_checks": 0,
+        "pending_CLI_controls": [],
+        "supersedes": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification.json",
+        "note": "Includes original40native checks plus24control assertions from nine actual rebuiltCLI controls; not additive with earlier report. Native captures are pre-repair and CLI is repaired; both identities retained.",
+        "post_repair_binary_sha256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624"
+      },
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-print-controls-verification.json",
+        "passed_checks": 33,
+        "failed_checks": 0,
+        "actual_CLI_control_invocations": 6,
+        "note": "Three SCU and three SCP bounded controls; overlapping check counts are not new native execution totals."
+      },
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/repaired-print-controls-review.json",
+        "passed_checks": 17,
+        "failed_checks": 0,
+        "products_invoked_by_reviewer": 0,
+        "note": "Read-only native tri-state/registry review; earlier ungranted configuration capture is explicitly not inheritance success."
+      }
+    ],
+    "counting_limit": "Reports overlap; their check counts are not additive tests, executions or completed acceptance criteria.",
+    "no_change_AX_not_proof": [
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-status-text.txt",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-text.txt"
+    ],
+    "same_registry_limit": "OS denied direct CLI access to app-container registry; independent isolated CLI registry control used; denial retained and no bypass attempted.",
+    "cleanup_evidence": [
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-peers-stop.json",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-leave-rebind.json",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-app-quit-rebind.json"
+    ],
+    "cleanup_limits": [
+      "Peer stop signal records alone are not drain proof; finalized wire capture and peer records support closed associations in separate audit.",
+      "Successful SCU flows release normally. Injected N-SET failure/rejected LUT delete session successfully then A-ABORT.",
+      "App quit/rebind and leave/rebind proofs apply to retained pre-repair native runs."
+    ],
+    "physical_printer_testing": "Not performed; no physical printer dispatch or paper/image-quality claim.",
+    "post_repair_identity": {
+      "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+      "working_tree": "six-file print repair; no new committed revision claimed",
+      "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+      "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+      "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json"
+    },
+    "repaired_native_registry_checks": {
+      "retained_default_profile_exact": true,
+      "remove_last_profile": true,
+      "repeated_missing_profile_error": true,
+      "empty_JSON": true,
+      "empty_text_diagnostics": true,
+      "native_scenarios": 1,
+      "separate_actual_CLI_empty_registry_scenarios": 3,
+      "new_native_checkbox_names": {
+        "print-option-verbose": {
+          "name": "Verbose",
+          "value": 1
+        },
+        "print-option-checkStatus": {
+          "name": "Check Printer Status",
+          "value": 1
+        },
+        "print-option-verify": {
+          "name": "Verify Connection",
+          "value": 1
+        },
+        "print-option-allFrames": {
+          "name": "All Frames",
+          "value": 0
+        },
+        "print-option-raw": {
+          "name": "Stored Pixel Values",
+          "value": 0
+        },
+        "print-option-recursive": {
+          "name": "Scan Directories Recursively",
+          "value": 1
+        },
+        "print-option-dryRun": {
+          "name": "Dry Run",
+          "value": 1
+        }
+      }
+    },
+    "other_FINAL_groups_partial": 0,
+    "other_FINAL_groups_not_run": 10,
+    "no_change_AX_not_proof_note": "Historical no-change AX captures remain unqualified; later complete status text is independently verified by final-print-controls-verification.json.",
+    "modified_source_files_scope": "Six-file first-repair snapshot only. Later layout and generic-path changes belong to the separately pending evidence epoch, not these historical source/artifact manifests.",
+    "current_source_provenance": {
+      "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+      "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+      "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+      "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+      "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+    },
+    "historical_first_repair_modified_source_files": [
+      "Sources/DICOMPrintCommandSupport/SCUCommands.swift",
+      "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+      "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift",
+      "Tests/dicom-printTests/M6PrintSCUCommandTests.swift",
+      "Tests/DICOMStudioTests/M6PrintSCUCatalogTests.swift",
+      "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift"
+    ]
+  },
+  "preserved_control_attempts": [
+    {
+      "id": "collision-health-control-v1",
+      "status": "Failed control setup; not product failure or incumbent-health proof",
+      "detail": "CLI status omitted required --aet and exited64. Original native collision error and control failure retained; v2 adds --aet M7CLI, returns0/NORMAL and independently confirms incumbent survives.",
+      "evidence": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/collision-incumbent.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/collision-incumbent.log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-port-collision-console.txt",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/collision-incumbent-status.json"
+      ],
+      "successful_retry_evidence": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/collision-incumbent-v2.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-port-collision-v2-console.txt",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/collision-incumbent-status-v2.json"
+      ]
+    },
+    {
+      "id": "initial-parity-oracles",
+      "status": "Retained earlier oracle limitation/failure; superseded by final bounded reports",
+      "detail": "Initial parity oracle recorded a dry-run complete-text comparison failure and one pending unflushed three-files receiver record. The final report explicitly compares Workshop merged diagnostic text to CLI stderr with only final line-terminator handling, and graceful receiver flush supplies final film linkage:100passing comparisons. Initial peer audit compared pynetdicom empty Action Information{} with absent wire datasetNone; narrowly normalized equivalent absence, final128checks pass. These original oracle artifacts are retained; no product failure is inferred from them.",
+      "evidence": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-cli-parity-initial-oracle-failure.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-native-cli-parity.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.initial-oracle.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-scu-peer-independent-review.json"
+      ]
+    },
+    {
+      "id": "SCP-post-repair-error-exit-oracle",
+      "status": "Initial control expectation corrected; original evidence preserved",
+      "detail": "Paper opt-in refusal is actual application/custom error exit1, not the initial guessed64 parser exit. Source-backed correction retains both planned/observed errors; final SCP report64checks/0fail, no remaining CLI-control gaps.",
+      "evidence": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-cli-replay-oracle-correction.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification-post-repair-initial-oracle-failure.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-native-verification-post-repair.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-post-repair-source-justification.json"
+      ]
+    }
+  ],
+  "evidence_epochs": {
+    "pre_repair": {
+      "revision": "000fb888237872d90891b20907f0562c3a59eef7",
+      "captures": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui",
+      "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-resume-identity.json",
+      "meaning": "Original native observations, unchanged attribution."
+    },
+    "repaired": {
+      "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+      "working_tree": "six-file print repair; no new committed revision claimed",
+      "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json",
+      "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json",
+      "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json",
+      "captures": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired",
+      "meaning": "New native observations from rebuilt app with six-file repair; HEAD still baseline, never represented as an unchanged000fb888 binary."
+    },
+    "layout_path_repair_pending": {
+      "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+      "working_tree": "Prior print repair plus follow-up checkbox layout and generic Workshop grant/typed-path repair; no new committed revision claimed",
+      "identity_status": "New package/source/artifact manifest and final native launch pending parent build",
+      "native_status": "No native observations attributed to this future rebuilt package yet",
+      "repair_records": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-checkbox-layout-repair.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/path-grant-repair/diagnosis-and-repair.json",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/path-grant-repair/independent-review.json"
+      ],
+      "superseded_by": "final_menu_path_repair; previous pending identity/launch state retained as history"
+    },
+    "final_menu_path_repair": {
+      "baseline_commit": "000fb888237872d90891b20907f0562c3a59eef7",
+      "source_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json",
+      "artifact_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+      "identity_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json",
+      "equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+      "meaning": "Current menu/path-repaired app. Reused interim/native observations retain their original hashes; no mass reattribution."
+    }
+  },
+  "native_FINAL_progress": {
+    "completed_groups": [
+      "FINAL-01",
+      "FINAL-02",
+      "FINAL-03",
+      "FINAL-04",
+      "FINAL-14",
+      "FINAL-16",
+      "FINAL-17",
+      "FINAL-18"
+    ],
+    "partial_groups": [],
+    "other_groups_not_run": 10,
+    "all18_groups_still_incomplete": false,
+    "catalogue_selections_observed": 35,
+    "catalogue_executions_claimed": 0,
+    "audited_tag_actions": 34,
+    "Info_actions_recorded_not_yet_audited": 0,
+    "viewer_SR_rows_exact_AX_and_screenshot": 16,
+    "viewer_native_copy_exact": true,
+    "viewer_fraction_visual_limit": "FullAX.123456;185pxsidebarshows.12…",
+    "counting_limit": "Group statuses and native action counts are separate; no overallM7completion.",
+    "audited_Info_actions": 4,
+    "audited_validation_actions": 20,
+    "audited_attribute_actions_total": 58,
+    "audited_script_executions": 5,
+    "audited_script_preflight_only": 1,
+    "audited_anonymization_executions": 2,
+    "audited_codec_executions": 6,
+    "audited_attribute_run_card_executions_total": 71,
+    "attribute_run_card_preflight_only_total": 1,
+    "audited_attribute_actions_total_scope": "FINAL02/03/04 only; all attribute/script/anon/codec run-card executions are recorded separately as71 plus1preflight."
+  },
+  "current_native_state": {
+    "mac_locked": false,
+    "app_state": "Parent built/signed/launched menu/path-repaired app; final print receipts captured.",
+    "next_gate": "Ten native network groups FINAL05-13/15, then final exact-head remote verification and document reconciliation.",
+    "source": "Trusted parent action status plus saved independent evidence; no UI/process interaction by this ledger edit."
+  },
+  "reconciled_report_sha256": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-print-controls-verification.json": "af5c9af48ae4e91e5f8facdd383f01c6e5e5c634ef997e7f6a15f359f0d2ccd0",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/viewer-native-verification.json": "42b0875cbf192ed96d108d75a11d03045a1ef307171f5d88b39dcc7d47855b42",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-catalogue-selection.json": "72ffeb5664cf5b1ecfb266a7cddf88252e76be0af0ac54125a54b103e319b4ba",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/repaired-print-controls-review.json": "3a118222db8060843e60e9c8d13a41921e4b4926a39599630d8f2c33ccbe0035",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json": "69cf81c116bdb25d41bd1cc0972b6286d3b27e082cc7fd9cab06853237f03ad9",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json": "4de84b55264946df509b49f0df78d8c172363be2eb87898f4ad7b011632db827",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json": "55891412e9d7fa5ff28a36c123f92ddbffb46188a603b0d22741941c0d6ba461",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json": "3431d7f05bdef48018ffa3a33ca651ca338bde3bda668a2efa9a74699a87337f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-02-verification.json": "53f00ab75d41de6b18b659314e117f535a4674aced4158b79d88b172c2de7033",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-03-verification.json": "8838f1bcb21077112f40c0ce603d9092728e3eef1e01e5b78254114d99d2a43e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-attribute-verification.json": "cfce777a5f0e345fcde4846030d9f9da8f346132676d62d147669dec0a7e15ec",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification.json": "a1306678fad91e63a6b9cdb6299cddd00465a3f9676132d66c665f83245228a8",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/m6-native-closure-review.json": "a8a74ede7776b7adca360984a2f3a61d3a6c468445c5231613e7f6cbdd17ebc0",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-final-controls/menu-final-scp-status.json": "dcf4a21238966cd6f7f2da5be772f1551d798946458038a5bc0722a620b5077c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/FINAL-04-info-native-actions.json": "acd0e768f401a9a106ee44ccb1bca4a0893486d82fd865a595840f499092e035",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-04-verification.json": "5416ca5500e71bffd2f537e988b36d555476aa1451e0a60d1afd77a2ccf953dd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-14-verification.json": "7fb6d585b03c556481554c528a892c2452e4281ef41c0d1756cf2073350cd32c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-16-verification.json": "ed7378835fa10a86a32b3ef02564b2f865868b73fc01f99c73bc6444679d9a33",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-FINAL-18-verification.json": "80999d77b928b3540cb06e983ee95e5d8a560dec98afeb27c8574a94433b5ebb",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-final-14-16-18-recheck.json": "9994cae208498df66330ba9e67dfa54f6302fe96dfc0a3286d804646a9baabd6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-catalogue-viewer-closure.json": "c70a0bae3449400f0c289af062119f5442c9279df779016989ca05e73fc00fcb"
+  },
+  "checkpoint_history_reconciliation": {
+    "recorded_utc": "2026-10-26T07:37:11.543948+00:00",
+    "root_authorized_M6_closed": true,
+    "M7_complete": false,
+    "preserve_historical_failures": true,
+    "source_equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name" : "scp-serve-quiet-stop",
+  "port" : 56236,
+  "preview" : "dicom-printscp serve --port 0 --ae-title M6VM --dpi 25 --max-pixels 1024 --output png --output pdf --output-dir \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/native-2026-10-26\/print-repair-verification\/workshop\/workshop\/received --config \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/native-2026-10-26\/print-repair-verification\/workshop\/workshop\/absent.json --duration 45 --format text --quiet",
+  "running" : true,
+  "status" : "RUNNING"
+}

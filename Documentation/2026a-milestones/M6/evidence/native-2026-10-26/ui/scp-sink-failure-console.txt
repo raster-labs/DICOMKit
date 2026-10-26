@@ -1,0 +1,89 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-failure --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --copies 1 --frame 1 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm
+
+Output failed (png): The operation couldn’t be completed. (DICOMPrintKit.PrintSinkError error 0.)
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "SIMULATE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993350109690.397765",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993350109645.796271",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993350109701.53010",
+  "receivedAt" : "2026-10-26T05:42:30Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+
+			5 scroll bar (settable, float) 1
+				6 value indicator (settable, float) 1
+				7 increment arrow button
+				8 decrement arrow button
+				9 increment page button
+				10 decrement page button
+		11 button Cancel
+		12 button Import
+13 menu bar
+	14 DICOMStudio
+	15 File
+	16 Edit
+	17 View
+	18 Image
+	19 Window
+	20 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-failure --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --copies 1 --frame 1 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm
+
+Output failed (png): The operation couldn’t be completed. (DICOMPrintKit.PrintSinkError error 0.)
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "SIMULATE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993350109690.397765",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993350109645.796271",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993350109701.53010",
+  "receivedAt" : "2026-10-26T05:42:30Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}

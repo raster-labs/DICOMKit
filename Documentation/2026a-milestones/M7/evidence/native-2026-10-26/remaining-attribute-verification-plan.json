@@ -1,0 +1,186 @@
+{
+  "prepared_utc": "2026-10-26T07:39:06.560278+00:00",
+  "status": "Prepared assertions only; none of these remaining native actions is claimed observed here.",
+  "qualification_epoch": "final-qualified-native app-menu-rerun (parent confirmed)",
+  "cases": [
+    {
+      "id": "script-template",
+      "group": "FINAL-14",
+      "native_expected": "SUCCESS",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/script-template.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/script-template.stderr",
+      "planned_native_output": null,
+      "CLI_output": null,
+      "independent_oracle": "Generated visible text matches existing workflow template file exactly apart from console wrapper; template has placeholders and is never live-executed."
+    },
+    {
+      "id": "template-validate",
+      "group": "FINAL-14",
+      "native_expected": "SUCCESS",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/template-validate.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/template-validate.stderr",
+      "planned_native_output": null,
+      "CLI_output": null,
+      "independent_oracle": "Validate current generated template via existing identical file; dry-run explicitly says no commands executed and creates no /path/to/output or operational output. If generated template differs, save its actual text as a new artifact and use that; do not substitute old template evidence."
+    },
+    {
+      "id": "template-dry-run",
+      "group": "FINAL-14",
+      "native_expected": "SUCCESS",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/template-dry-run.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/template-dry-run.stderr",
+      "planned_native_output": null,
+      "CLI_output": null,
+      "independent_oracle": "Validate current generated template via existing identical file; dry-run explicitly says no commands executed and creates no /path/to/output or operational output. If generated template differs, save its actual text as a new artifact and use that; do not substitute old template evidence."
+    },
+    {
+      "id": "script-live-disabled",
+      "group": "FINAL-14",
+      "native_expected": "PRE-RUN REFUSAL",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/script-live-disabled.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/script-live-disabled.stderr",
+      "planned_native_output": null,
+      "CLI_output": null,
+      "independent_oracle": "Run disabled and clear CLI-only guidance; no history entry or log/output. The CLI counterpart is actually supported and would execute; do not claim exit equivalence for intentional app-only refusal."
+    },
+    {
+      "id": "unknown-conditional",
+      "group": "FINAL-14",
+      "native_expected": "ERROR",
+      "CLI_exit": 1,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/unknown-conditional.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/unknown-conditional.stderr",
+      "planned_native_output": null,
+      "CLI_output": null,
+      "independent_oracle": "Line-numbered unknown nested command/unsupported conditional pipe error before any log creation; absent condition does not hide invalid nested syntax."
+    },
+    {
+      "id": "conditional-pipeline",
+      "group": "FINAL-14",
+      "native_expected": "ERROR",
+      "CLI_exit": 1,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/conditional-pipeline.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/conditional-pipeline.stderr",
+      "planned_native_output": null,
+      "CLI_output": null,
+      "independent_oracle": "Line-numbered unknown nested command/unsupported conditional pipe error before any log creation; absent condition does not hide invalid nested syntax."
+    },
+    {
+      "id": "phi-false",
+      "group": "FINAL-16",
+      "native_expected": "ERROR",
+      "CLI_exit": 1,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/phi-false.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/phi-false.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-false.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/phi-false.dcm",
+      "independent_oracle": "False: output absent. True: one flag only, output (0012,0062) CS=NO. In Beginner Advanced disclosure observe one control, set true, switch to Advanced and back, confirm retained singlebinding; saveAX in bothmodes. UID/date anonymization may be generated: compare defined semantic fields and pixel bytes, not entire file equality."
+    },
+    {
+      "id": "phi-true",
+      "group": "FINAL-16",
+      "native_expected": "SUCCESS",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/phi-true.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/phi-true.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/phi-true.dcm",
+      "independent_oracle": "False: output absent. True: one flag only, output (0012,0062) CS=NO. In Beginner Advanced disclosure observe one control, set true, switch to Advanced and back, confirm retained singlebinding; saveAX in bothmodes. UID/date anonymization may be generated: compare defined semantic fields and pixel bytes, not entire file equality."
+    },
+    {
+      "id": "extended-gray8",
+      "group": "FINAL-18",
+      "native_expected": "SUCCESS",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/extended-gray8.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/extended-gray8.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-gray8.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/extended-gray8.dcm",
+      "independent_oracle": "Output .51, actual JPEG SOF1 (FFC1) precision8,48x64mono; independent DCMTK decoded pixels agree with freshCLI decode (lossy original need not equal)."
+    },
+    {
+      "id": "extended-rgb8",
+      "group": "FINAL-18",
+      "native_expected": "ERROR",
+      "CLI_exit": 1,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/extended-rgb8.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/extended-rgb8.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-rgb8.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/extended-rgb8.dcm",
+      "independent_oracle": "Accurate monochrome/1sample diagnostic; no output."
+    },
+    {
+      "id": "part2-refusal",
+      "group": "FINAL-18",
+      "native_expected": "ERROR",
+      "CLI_exit": 1,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/part2-refusal.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/part2-refusal.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/part2-refusal.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/part2-refusal.dcm",
+      "independent_oracle": "Explicit unsupported Part2encoder diagnostic; no output; not codec success."
+    },
+    {
+      "id": "native16",
+      "group": "FINAL-18",
+      "native_expected": "SUCCESS",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/native16.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/native16.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native16.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/native16.dcm",
+      "independent_oracle": "Native PixelData OW, BitsAllocated16/BitsStored12, length6144,3072exactlittle-endian samples equal existing gray12fixture andCLI output; meta TS .1."
+    },
+    {
+      "id": "native-odd",
+      "group": "FINAL-18",
+      "native_expected": "SUCCESS",
+      "CLI_exit": 0,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/native-odd.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/native-odd.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/native-odd.dcm",
+      "independent_oracle": "PixelData OB, length10, rawhex00040803070b05090d00; exactly9samples and onefinalNUL; compare CLI metadata/pixels."
+    },
+    {
+      "id": "strict-precision-refusal",
+      "group": "FINAL-18",
+      "native_expected": "ERROR",
+      "CLI_exit": 1,
+      "CLI_record": "work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+      "CLI_stdout": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/strict-precision-refusal.stdout",
+      "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/strict-precision-refusal.stderr",
+      "planned_native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/strict-precision-refusal.dcm",
+      "CLI_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/strict-precision-refusal.dcm",
+      "independent_oracle": "Documented strict16precision/12stored JPEG refusal with header mismatch diagnostic, nooutput; independent DCMTK decode remains valid evidence, not peer-nonconformance claim."
+    }
+  ],
+  "comparison_policy": {
+    "FINAL-14": "Parse complete current command-associated AX/clipboard console. Workflow template must equal fresh CLI template bytes, validate/dry-run exact outcome, live-run disabled guidance and no effects remain a native-only assertion (CLI live succeeds). Unknown nested/conditional-pipeline exact errors and absent log/output; fixture hashes unchanged. Count5actualruns plus1preflight observation, not6executions.",
+    "FINAL-16": "Use actual false/true results, raw output PatientIdentityRemoved CS=NO and unchanged pixel bytes. Compare defined semantic metadata with CLI, never demand complete file bytes because randomized UID/date anonymization can differ. Inspect Beginner advanced disclosure +Advanced+return for exactlyoneAllowBurnedInPHI checkbox/value and one positiveflag in copiedargv.",
+    "FINAL-18": "Compare three native output files/codestreams with paired fresh CLI artifacts; inspect JPEG .51/SOF1precision8 via boundedmarkerwalker, OW16allocated/12stored6144bytes and3072samples, OBodd3x3raw10bytesendingoneNUL. Reuse existing external JPEG decoder proof only if native codestream identical; bounded lossy maxdecoder difference1, not exactsource. ExpectedRGB/Part2refusals require precise diagnostics+absentoutput; strictprecision isinteroplimit, nevercodecpass."
+  },
+  "execution_limits": [
+    "No product execution/build/UI for these prepared comparisons.",
+    "Do not label ordinary AX console extraction as clipboard capture.",
+    "Preserve AX truncation as a display limitation; use complete parent/copied text or saved reports.",
+    "Use current source hashes and retained final-qualified-native equivalence provenance; no implicit new epoch attribution."
+  ]
+}

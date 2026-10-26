@@ -1,0 +1,20 @@
+{
+  "recordedUTC": "2026-10-26T06:02:37.953071+00:00",
+  "plan": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-cli-replay-plan-post-repair.json",
+  "planSHA256": "103a61d104f7cbfe49ff26b9eb79e204b82736c968241d1c0e7dd821df97462f",
+  "case": "paper-import-refusal",
+  "originalExpectedExitCode": 64,
+  "correctExpectedExitCode": 1,
+  "reason": "SCPOutputOptions.apply throws PrintSCPCommandError, which conforms to Error/LocalizedError but is not ArgumentParser.ValidationError. ArgumentParser MessageInfo handles this custom user validation error as .other(exitCode:.failure), yielding1. Native Import shows this same custom error; CLI stdout is empty and stderr carries the exact refusal. Expected64 was an unverified oracle assumption, not a product regression.",
+  "sourceReferences": [
+    "Sources/DICOMPrintCommandSupport/SCPEmulatorOptions.swift:276",
+    "Sources/DICOMPrintCommandSupport/SCPCommand.swift:136",
+    "/Volumes/DICOMKit-M1-build/spm/checkouts/swift-argument-parser/Sources/ArgumentParser/Usage/MessageInfo.swift:124"
+  ],
+  "retained": [
+    "scp-cli-replay-plan-post-repair.json",
+    "scp-native-verification-post-repair-initial-oracle-failure.json",
+    "cli-results/scp-replay-post-repair-v1/paper-import-refusal.json"
+  ],
+  "scope": "Only expected exit code changes for this specific custom error. Assert exact argv, timeoutfalse, frozen binary, empty stdout, refusal diagnostic and unchanged protected native files; no rerun or product mutation."
+}

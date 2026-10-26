@@ -1,0 +1,29 @@
+{
+  "status": "Source-frozen; no builds, tests, products or UI performed by implementer.",
+  "observed_regression": "Saved expanded-print-layout.png has the send form wider than the620point viewport; previous pre-repair screenshot at same pane width fit. The native checkbox AXnames are now confirmed by parent; this patch addresses sizing only.",
+  "changes": [
+    "NSViewRepresentable.sizeThatFits respects finite proposal.width including zero-width minimum probes and calculates wrapped cell height.",
+    "Native checkbox title uses wrapping and low horizontal compression resistance; outer print-only row aligns to available width.",
+    "Hosted seven-checkbox form regression checks bounds within padded240/380/620point pane widths."
+  ],
+  "files_sha256": {
+    "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift": "a2db193b0081004e9949bee2017e8c3c50266a760e13b96872be29cea3c02a15",
+    "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift": "2031690951317d487a1471e39f0fc05296562bf1f57dd4ccdd0ddd647e9c3102"
+  },
+  "test_method": "M7PrintNativeCheckboxTests.testHostedPrintOptionsStayInsideNarrowDefaultAndExpandedPaneWidths",
+  "focused_command": "swift test --disable-automatic-resolution --scratch-path /Volumes/DICOMKit-M1-build/spm --cache-path /Volumes/DICOMKit-M1-build/cache -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --test-product DICOMStudioTests --filter M7PrintNativeCheckboxTests > /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/DICOMStudioTests-native-layout-rerun.log 2>&1",
+  "app_build_after_test": "bash /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/build-print-layout-app-prepared.sh",
+  "preserved_behavior": [
+    "Global split sizing remains240/380/620 and unchanged for every tool.",
+    "Nonprint controls unchanged.",
+    "Standard NSButton keyboard focus and disabled state unchanged; no forced accessibility role, focus or system preference."
+  ],
+  "keyboard_scope": "The SDK states NSApplication.isFullKeyboardAccessEnabled reports System Settings > Keyboard navigation, not necessarily Accessibility > Full Keyboard Access. A mouse click not becoming first responder alone does not establish a regression. Actual Tab/Space qualification remains a native gate.",
+  "identity": "post-repair identity manifests remain historical for the first repair. Refresh the new Studio test executable, whole signed app and source hashes after this layout delta. CLI and shared command code unchanged.",
+  "verification_pending": [
+    "Focused4testmethods",
+    "Actual native send form at narrow/default/expanded widths with every checkbox glyph/control visible and help wrapping",
+    "Actual native AX role/name/state/keyboard/disabled lifecycle",
+    "New app strict signature and identity snapshot"
+  ]
+}

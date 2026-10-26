@@ -1,0 +1,273 @@
+{
+  "recorded_utc": "2026-10-26T07:48:24.087935+00:00",
+  "qualification_epoch": "final-qualified-native app-menu-rerun",
+  "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+  "identity_sha256": "3431d7f05bdef48018ffa3a33ca651ca338bde3bda668a2efa9a74699a87337f",
+  "native_executions_observed": 5,
+  "preflight_only_observations": 1,
+  "checks": [
+    {
+      "case": "script-template",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "script-template",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "script-template",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "script-template",
+      "assertion": "generated native workflow template equals independently generated CLI text",
+      "passed": true
+    },
+    {
+      "case": "script-template",
+      "assertion": "template source subsequently validated is the same template",
+      "passed": true
+    },
+    {
+      "case": "template-validate",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "template-validate",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "template-validate",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "template-validate",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt"
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt"
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "explicit no-execution outcome and no placeholder output",
+      "passed": true
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript"
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "nested syntax refusal before any log directory creation",
+      "passed": true
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript"
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "nested syntax refusal before any log directory creation",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "Run visibly disabled with explicit CLI-only guidance",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "Dry Run off in live preflight",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "copied live command identifies exact read-only script without dry-run",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "configured live log absent before any execution",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "existing console success is previous dry-run, not a new execution",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "live script source remains unchanged",
+      "passed": true
+    }
+  ],
+  "passed": 30,
+  "failed": 0,
+  "observed": [
+    {
+      "id": "script-template",
+      "type": "execution",
+      "status": "SUCCESS",
+      "captured_argv": [
+        "dicom-script",
+        "template",
+        "workflow"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-template-before.txt": "f75bf6ee592b77fbe8f99b3f0e4c732be8913583ae45ea2aacdc1e9e23949ac6",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-template-after.txt": "6b97f0e00ccef6d336901c8ad5c93b3e075668c4b77e3c09889cdea35dfea317"
+      },
+      "full_console_compared": true
+    },
+    {
+      "id": "template-validate",
+      "type": "execution",
+      "status": "SUCCESS",
+      "captured_argv": [
+        "dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-validate-before.txt": "7f7e003fb52021e61682af4c723b5e63db6de11ba5a32f43f29a3b60a7c7067e",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-validate-after.txt": "541c744b83ce0b256d3d1dd9b6cd6516f570d45484304280c4bd68bb17179f2a"
+      },
+      "full_console_compared": true
+    },
+    {
+      "id": "template-dry-run",
+      "type": "execution",
+      "status": "SUCCESS",
+      "captured_argv": [
+        "dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt",
+        "--dry-run"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-dry-run-before.txt": "b97b7366da2e04ebf8303a32e11a8f2ad513dde865d817c38647143b1c0d73a7",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/template-dry-run-after.txt": "7edfa5303ce3f77d62035101522e9c011fe9e8a3cd8ba8ae7f3f632f58d64032"
+      },
+      "full_console_compared": true
+    },
+    {
+      "id": "unknown-conditional",
+      "type": "execution",
+      "status": "ERROR",
+      "captured_argv": [
+        "dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/unknown-conditional.log"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/unknown-conditional-before.txt": "317b51c6b8491325d62319306ea63ad7d2f913d48582bc9891bfbbd0f810f0b7",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/unknown-conditional-after.txt": "e6b511a1cef2f9c93afa6c9d22f8f81c487ecff2f6a2cf60f1d3d097dfb2900b"
+      },
+      "full_console_compared": true
+    },
+    {
+      "id": "conditional-pipeline",
+      "type": "execution",
+      "status": "ERROR",
+      "captured_argv": [
+        "dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/conditional-pipeline.log"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/conditional-pipeline-before.txt": "11d0fd568cde9ec72f7bf2112d61226b10bdd53653228cf406f816575bdd171a",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/conditional-pipeline-after.txt": "c9cc97a7fcc4af6fe25615a995355c4735ea8a86b10a6f67e43aec59b839f4ab"
+      },
+      "full_console_compared": true
+    },
+    {
+      "id": "script-live-disabled",
+      "type": "preflight_only",
+      "status": "Run disabled; no execution",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-live-disabled-before.txt": "407b2bb05c9ac5b0b79a1b8039abb3dd37d1fc79145b9a50810d33e11ec01512",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/script-live-disabled-copied-command.txt": "6907706e5c8edb49b74b91b207da3bbbe5287ed06eb0a85e9fe17e8ac8750cf2"
+      },
+      "copied_argv": [
+        "dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/live.log"
+      ],
+      "limit": "Old SUCCESS belongs to previous dry-run; not counted as live result. CLI counterpart intentionally supports live execution."
+    }
+  ],
+  "completion": "All scoped subcases substantiated; parent final acceptance remains separate.",
+  "execution_boundary": "Read-only saved artifacts, AX/clipboard captures, source and file hashes. No native UI, product run or build by this checker.",
+  "limits": [
+    "Only workflow template manually exercised; allfive template contracts remain covered by separate automated evidence.",
+    "Live refusal is a disabled preflight observation; prior SUCCESS belongs to dry-run. No live native execution asserted."
+  ]
+}

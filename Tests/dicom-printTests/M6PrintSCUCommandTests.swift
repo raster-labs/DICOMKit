@@ -143,6 +143,36 @@ final class M6PrintSCUCommandTests: XCTestCase {
         XCTAssertEqual(remaining.map(\.name), [first]); XCTAssertFalse(remaining[0].isDefault)
     }
 
+    func testEmptyPrinterJSONForAbsentEmptyAndLastRemovedRegistries() async throws {
+        for scenario in ["absent", "empty", "last-removed"] {
+            let root = try directory(), setup = context(root)
+            if scenario == "empty" {
+                try Data("[]\n".utf8).write(to: setup.printersURL)
+            } else if scenario == "last-removed" {
+                try await PrintSCUCommand.execute(arguments: ["add-printer", "--name", "last", "--host", "localhost",
+                    "--called-ae", "SYNTHETIC"], context: setup)
+                try await PrintSCUCommand.execute(arguments: ["remove-printer", "--name", "last"], context: setup)
+            }
+            let before = try? Data(contentsOf: setup.printersURL)
+            let jsonCapture = Capture()
+            try await PrintSCUCommand.execute(arguments: ["list-printers", "--format", "json"],
+                context: context(root, jsonCapture))
+            XCTAssertEqual(jsonCapture.output.count, 1, scenario)
+            let json = try XCTUnwrap(jsonCapture.output.first, scenario)
+            let entries = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [Any], scenario)
+            XCTAssertTrue(entries.isEmpty, scenario)
+            XCTAssertTrue(jsonCapture.diagnostics.isEmpty, scenario)
+
+            let textCapture = Capture()
+            try await PrintSCUCommand.execute(arguments: ["list-printers"], context: context(root, textCapture))
+            XCTAssertTrue(textCapture.output.isEmpty, scenario)
+            XCTAssertTrue(textCapture.diagnostics.contains("No printers configured."), scenario)
+            XCTAssertTrue(textCapture.diagnostics.contains("Add a printer with:"), scenario)
+            XCTAssertEqual(try? Data(contentsOf: setup.printersURL), before, "Listing is read-only: \(scenario)")
+            XCTAssertFalse(FileManager.default.fileExists(atPath: setup.defaultSCPConfigURL.path), scenario)
+        }
+    }
+
     func testMalformedRegistryIsNotOverwrittenAndOutputFailureIsReported() async throws {
         let root = try directory(), ctx = context(root)
         let corrupt = Data("not json".utf8)

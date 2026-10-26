@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/raster/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override/pdftoppm",
+    "-f",
+    "1",
+    "-singlefile",
+    "-r",
+    "36",
+    "-png",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.pdf",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification/native-rgb-received"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

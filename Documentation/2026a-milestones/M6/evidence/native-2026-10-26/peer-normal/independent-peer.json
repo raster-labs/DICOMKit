@@ -1,0 +1,459 @@
+{
+  "records": [
+    {
+      "operation": "N_GET",
+      "class": "1.2.840.10008.5.1.1.16",
+      "context": 1,
+      "dataset": null
+    },
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": {
+        "20000010": {
+          "Value": [
+            1
+          ],
+          "vr": "IS"
+        },
+        "20000020": {
+          "Value": [
+            "MED"
+          ],
+          "vr": "CS"
+        },
+        "20000030": {
+          "Value": [
+            "PAPER"
+          ],
+          "vr": "CS"
+        },
+        "20000040": {
+          "Value": [
+            "PROCESSOR"
+          ],
+          "vr": "CS"
+        }
+      }
+    },
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.23",
+      "context": 13,
+      "dataset": {
+        "20500020": {
+          "Value": [
+            "IDENTITY"
+          ],
+          "vr": "CS"
+        }
+      }
+    },
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.2",
+      "context": 1,
+      "dataset": {
+        "20100010": {
+          "Value": [
+            "STANDARD\\1,1"
+          ],
+          "vr": "ST"
+        },
+        "20100030": {
+          "Value": [
+            "M7"
+          ],
+          "vr": "CS"
+        },
+        "20100040": {
+          "Value": [
+            "PORTRAIT"
+          ],
+          "vr": "CS"
+        },
+        "20100050": {
+          "Value": [
+            "8INX10IN"
+          ],
+          "vr": "CS"
+        },
+        "20100060": {
+          "Value": [
+            "REPLICATE"
+          ],
+          "vr": "CS"
+        },
+        "20100100": {
+          "Value": [
+            "BLACK"
+          ],
+          "vr": "CS"
+        },
+        "20100110": {
+          "Value": [
+            "BLACK"
+          ],
+          "vr": "CS"
+        },
+        "20100500": {
+          "Value": [
+            {
+              "00081150": {
+                "Value": [
+                  "1.2.840.10008.5.1.1.1"
+                ],
+                "vr": "UI"
+              },
+              "00081155": {
+                "Value": [
+                  "1.2.826.0.1.3680043.10.543.20261024.6.1001"
+                ],
+                "vr": "UI"
+              }
+            }
+          ],
+          "vr": "SQ"
+        },
+        "20500500": {
+          "Value": [
+            {
+              "00081150": {
+                "Value": [
+                  "1.2.840.10008.5.1.1.23"
+                ],
+                "vr": "UI"
+              },
+              "00081155": {
+                "Value": [
+                  "1.2.826.0.1.3680043.10.543.20261024.6.1002"
+                ],
+                "vr": "UI"
+              }
+            }
+          ],
+          "vr": "SQ"
+        }
+      }
+    },
+    {
+      "operation": "N_SET",
+      "class": "1.2.840.10008.5.1.1.4",
+      "context": 1,
+      "dataset": {
+        "20200010": {
+          "Value": [
+            1
+          ],
+          "vr": "US"
+        },
+        "20200020": {
+          "Value": [
+            "NORMAL"
+          ],
+          "vr": "CS"
+        },
+        "20200110": {
+          "Value": [
+            {
+              "00280002": {
+                "Value": [
+                  1
+                ],
+                "vr": "US"
+              },
+              "00280004": {
+                "Value": [
+                  "MONOCHROME2"
+                ],
+                "vr": "CS"
+              },
+              "00280010": {
+                "Value": [
+                  16
+                ],
+                "vr": "US"
+              },
+              "00280011": {
+                "Value": [
+                  16
+                ],
+                "vr": "US"
+              },
+              "00280100": {
+                "Value": [
+                  16
+                ],
+                "vr": "US"
+              },
+              "00280101": {
+                "Value": [
+                  12
+                ],
+                "vr": "US"
+              },
+              "00280102": {
+                "Value": [
+                  11
+                ],
+                "vr": "US"
+              },
+              "00280103": {
+                "Value": [
+                  0
+                ],
+                "vr": "US"
+              },
+              "7FE00010": {
+                "InlineBinary": "AAAQACAAMABAAFAAYABwAIAAkQChALEAwQDRAOEA8QABAREBIQExAUEBUQFhAXEBgQGRAaIBsgHCAdIB4gHyAQICEgIiAjICQgJSAmICcgKCApICogKzAsMC0wLjAvMCAwMTAyMDMwNDA1MDYwNzA4MDkwOjA7MDxAPUA+QD9AMEBBQEJAQ0BEQEVARkBHQEhASUBKQEtATEBNUE5QT1BAUFFQUlBTUFRQVVBWUFdQWFBZUFpQW1BcUF1QXmBfYFBgYWBiYGNgZGBlYGZgZ2BoYGlgamBrYGxgbWBuYG9wYHBxcHJwc3B0cHVwdnB3cHhweXB6cHtwfHB9cH5wf3BwgIGAgoCDgISAhYCGgIeAiICJgIqAi4CMgI2AjoCPgICAkZCSkJOQlJCVkJaQl5CYkJmQmpCbkJyQnZCekJ+QkJChkKKgo6CkoKWgpqCnoKigqaCqoKugrKCtoK6gr6CgoLGgsqCzsLSwtbC2sLewuLC5sLqwu7C8sL2wvrC/sLCwwbDCsMOwxMDFwMbAx8DIwMnAysDLwMzAzcDOwM/AwMDRwNLA08DUwNXQ1tDX0NjQ2dDa0NvQ3NDd0N7Q39DQ0OHQ4tDj0OTQ5dDm4Ofg6ODp4Org6+Ds4O3g7uDv4ODg8eDy4PPg9OD14Pbg9/D48Pnw+vD78Pzw/fD+8P/w8=",
+                "vr": "OW"
+              }
+            }
+          ],
+          "vr": "SQ"
+        }
+      }
+    },
+    {
+      "operation": "N_SET",
+      "class": "1.2.840.10008.5.1.1.15",
+      "context": 15,
+      "dataset": {
+        "20300010": {
+          "Value": [
+            1
+          ],
+          "vr": "US"
+        },
+        "20300020": {
+          "Value": [
+            " first; literal note"
+          ],
+          "vr": "LO"
+        }
+      }
+    },
+    {
+      "operation": "N_SET",
+      "class": "1.2.840.10008.5.1.1.15",
+      "context": 15,
+      "dataset": {
+        "20300010": {
+          "Value": [
+            2
+          ],
+          "vr": "US"
+        },
+        "20300020": {
+          "Value": [
+            "second note"
+          ],
+          "vr": "LO"
+        }
+      }
+    },
+    {
+      "operation": "N_ACTION",
+      "class": "1.2.840.10008.5.1.1.2",
+      "context": 1,
+      "dataset": {}
+    },
+    {
+      "operation": "N_DELETE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": null
+    },
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": {
+        "20000010": {
+          "Value": [
+            1
+          ],
+          "vr": "IS"
+        },
+        "20000020": {
+          "Value": [
+            "MED"
+          ],
+          "vr": "CS"
+        },
+        "20000030": {
+          "Value": [
+            "PAPER"
+          ],
+          "vr": "CS"
+        },
+        "20000040": {
+          "Value": [
+            "PROCESSOR"
+          ],
+          "vr": "CS"
+        }
+      }
+    },
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.2",
+      "context": 1,
+      "dataset": {
+        "20100010": {
+          "Value": [
+            "STANDARD\\1,1"
+          ],
+          "vr": "ST"
+        },
+        "20100040": {
+          "Value": [
+            "PORTRAIT"
+          ],
+          "vr": "CS"
+        },
+        "20100050": {
+          "Value": [
+            "8INX10IN"
+          ],
+          "vr": "CS"
+        },
+        "20100060": {
+          "Value": [
+            "REPLICATE"
+          ],
+          "vr": "CS"
+        },
+        "20100100": {
+          "Value": [
+            "BLACK"
+          ],
+          "vr": "CS"
+        },
+        "20100110": {
+          "Value": [
+            "BLACK"
+          ],
+          "vr": "CS"
+        },
+        "20100500": {
+          "Value": [
+            {
+              "00081150": {
+                "Value": [
+                  "1.2.840.10008.5.1.1.1"
+                ],
+                "vr": "UI"
+              },
+              "00081155": {
+                "Value": [
+                  "1.2.826.0.1.3680043.10.543.20261024.6.1007"
+                ],
+                "vr": "UI"
+              }
+            }
+          ],
+          "vr": "SQ"
+        }
+      }
+    },
+    {
+      "operation": "N_SET",
+      "class": "1.2.840.10008.5.1.1.4.1",
+      "context": 1,
+      "dataset": {
+        "20200010": {
+          "Value": [
+            1
+          ],
+          "vr": "US"
+        },
+        "20200020": {
+          "Value": [
+            "NORMAL"
+          ],
+          "vr": "CS"
+        },
+        "20200111": {
+          "Value": [
+            {
+              "00280002": {
+                "Value": [
+                  3
+                ],
+                "vr": "US"
+              },
+              "00280004": {
+                "Value": [
+                  "RGB"
+                ],
+                "vr": "CS"
+              },
+              "00280006": {
+                "Value": [
+                  1
+                ],
+                "vr": "US"
+              },
+              "00280010": {
+                "Value": [
+                  16
+                ],
+                "vr": "US"
+              },
+              "00280011": {
+                "Value": [
+                  16
+                ],
+                "vr": "US"
+              },
+              "00280100": {
+                "Value": [
+                  8
+                ],
+                "vr": "US"
+              },
+              "00280101": {
+                "Value": [
+                  8
+                ],
+                "vr": "US"
+              },
+              "00280102": {
+                "Value": [
+                  7
+                ],
+                "vr": "US"
+              },
+              "00280103": {
+                "Value": [
+                  0
+                ],
+                "vr": "US"
+              },
+              "7FE00010": {
+                "InlineBinary": "ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wAAAAAAAAAAAAAAAAAAAAARERERERERERERERERERERIiIiIiIiIiIiIiIiIiIiIjMzMzMzMzMzMzMzMzMzMzNEREREREREREREREREREREVVVVVVVVVVVVVVVVVVVVVWZmZmZmZmZmZmZmZmZmZmZ3d3d3d3d3d3d3d3d3d3d3iIiIiIiIiIiIiIiIiIiIiJmZmZmZmZmZmZmZmZmZmZmqqqqqqqqqqqqqqqqqqqqqu7u7u7u7u7u7u7u7u7u7u8zMzMzMzMzMzMzMzMzMzMzd3d3d3d3d3d3d3d3d3d3d7u7u7u7u7u7u7u7u7u7u7v////////////////////8AESIzRFVmd4iZqrvM3e7/ESIzRFVmd4iZqrvM3e7/ACIzRFVmd4iZqrvM3e7/ABEzRFVmd4iZqrvM3e7/ABEiRFVmd4iZqrvM3e7/ABEiM1Vmd4iZqrvM3e7/ABEiM0Rmd4iZqrvM3e7/ABEiM0RVd4iZqrvM3e7/ABEiM0RVZoiZqrvM3e7/ABEiM0RVZneZqrvM3e7/ABEiM0RVZneIqrvM3e7/ABEiM0RVZneImbvM3e7/ABEiM0RVZneImarM3e7/ABEiM0RVZneImaq73e7/ABEiM0RVZneImaq7zO7/ABEiM0RVZneImaq7zN3/ABEiM0RVZneImaq7zN3u",
+                "vr": "OW"
+              }
+            }
+          ],
+          "vr": "SQ"
+        }
+      }
+    },
+    {
+      "operation": "N_ACTION",
+      "class": "1.2.840.10008.5.1.1.2",
+      "context": 1,
+      "dataset": {}
+    },
+    {
+      "operation": "N_DELETE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": null
+    }
+  ],
+  "event_acks": []
+}

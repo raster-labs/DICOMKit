@@ -1,0 +1,24 @@
+{
+  "files" : [
+    {
+      "errorCount" : 1,
+      "errors" : [
+        {
+          "message" : "Unexpected VR LO for tag (0028,0010) (expected: US)",
+          "tag" : "(0028,0010)"
+        }
+      ],
+      "filePath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m2\/cli\/fixtures\/wrong_VR.dcm",
+      "isValid" : false,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 1,
+  "totalErrors" : 1,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 0
+}

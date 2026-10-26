@@ -5,6 +5,13 @@ import DICOMPrintCommandSupport
 
 @MainActor
 final class M6PrintSCUCatalogTests: XCTestCase {
+    private final class Capture: @unchecked Sendable {
+        private let lock = NSLock()
+        private var lines: [String] = []
+        func append(_ line: String) { lock.lock(); defer { lock.unlock() }; lines.append(line) }
+        var captured: [String] { lock.lock(); defer { lock.unlock() }; return lines }
+    }
+
     func testEveryFrozenSCUDeclarationHasAnApplicableControl() throws {
         let all = CLIWorkshopPrintCatalog.parameters
         XCTAssertEqual(Set(all.map(\.id)).count, all.count)
@@ -80,5 +87,35 @@ final class M6PrintSCUCatalogTests: XCTestCase {
         let empty = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: registry)) as? [Any])
         XCTAssertTrue(empty.isEmpty)
         XCTAssertFalse(FileManager.default.fileExists(atPath: context.defaultSCPConfigURL.path))
+    }
+
+    func testWorkshopEmptyRegistryJSONPreservesSharedOutputContract() async throws {
+        for scenario in ["absent", "empty", "last-removed"] {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent("m7-empty-printer-\(UUID().uuidString)")
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: root) }
+            let registry = root.appendingPathComponent("printers.json")
+            let setup = PrintCommandContext(printersURL: registry, defaultSCPConfigURL: root.appendingPathComponent("unused.json"),
+                output: { _ in }, diagnostic: { _ in })
+            if scenario == "empty" {
+                try Data("[]\n".utf8).write(to: registry)
+            } else if scenario == "last-removed" {
+                try await CLIWorkshopPrintExecutor.execute(arguments: ["add-printer", "--name", "last", "--host", "localhost",
+                    "--called-ae", "SYNTHETIC"], context: setup)
+                try await CLIWorkshopPrintExecutor.execute(arguments: ["remove-printer", "--name", "last"], context: setup)
+            }
+            let before = try? Data(contentsOf: registry)
+            let output = Capture(), diagnostics = Capture()
+            let context = PrintCommandContext(printersURL: registry, defaultSCPConfigURL: setup.defaultSCPConfigURL,
+                output: { output.append($0) }, diagnostic: { diagnostics.append($0) })
+            try await CLIWorkshopPrintExecutor.execute(arguments: ["list-printers", "--format", "json"], context: context)
+            XCTAssertEqual(output.captured.count, 1, scenario)
+            let json = try XCTUnwrap(output.captured.first, scenario)
+            let entries = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [Any], scenario)
+            XCTAssertTrue(entries.isEmpty, scenario)
+            XCTAssertTrue(diagnostics.captured.isEmpty, scenario)
+            XCTAssertEqual(try? Data(contentsOf: registry), before, scenario)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: context.defaultSCPConfigURL.path), scenario)
+        }
     }
 }

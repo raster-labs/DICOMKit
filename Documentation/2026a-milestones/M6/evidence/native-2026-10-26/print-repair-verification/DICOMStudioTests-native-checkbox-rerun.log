@@ -1,0 +1,29 @@
+Building for debugging...
+[Computing dependencies]
+[Using on-disk description]
+[1 / 6] JXLSwift
+[1 / 22] CompressionFamily
+[1 / 76] DICOMKit
+[1 / 6] DICOMStudioTests-product
+[2 / 7] DICOMStudioTests-product
+[4 / 9] DICOMStudioTests-product
+[8 / 11] DICOMStudioTests-product
+[9 / 13] DICOMStudioTests-product
+[10 / 13] DICOMStudioTests-product
+[11 / 13] DICOMStudioTests-product
+Build complete! (22.44 sec)
+Test Suite 'Selected tests' started at 2026-10-26 11:32:20.383.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-26 11:32:20.388.
+Test Suite 'M7PrintNativeCheckboxTests' started at 2026-10-26 11:32:20.388.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' passed (0.058 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' passed (0.207 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' passed (0.000 seconds).
+Test Suite 'M7PrintNativeCheckboxTests' passed at 2026-10-26 11:32:20.654.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.266 (0.266) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-26 11:32:20.654.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.266 (0.266) seconds
+Test Suite 'Selected tests' passed at 2026-10-26 11:32:20.654.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.266 (0.271) seconds

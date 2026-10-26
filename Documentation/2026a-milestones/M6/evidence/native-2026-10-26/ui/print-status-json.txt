@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "DICOM Studio".
+The focused UI element is 88 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

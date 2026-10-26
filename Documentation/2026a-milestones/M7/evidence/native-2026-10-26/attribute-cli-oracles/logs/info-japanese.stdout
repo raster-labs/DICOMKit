@@ -1,0 +1,72 @@
+{
+  "dataSet" : [
+    {
+      "name" : "Specific Character Set",
+      "tag" : "(0008,0005)",
+      "value" : "\\ISO 2022 IR 87",
+      "vr" : "CS"
+    },
+    {
+      "name" : "SOP Class UID",
+      "tag" : "(0008,0016)",
+      "value" : "1.2.840.10008.5.1.4.1.1.7",
+      "vr" : "UI"
+    },
+    {
+      "name" : "SOP Instance UID",
+      "tag" : "(0008,0018)",
+      "value" : "2.25.123456789",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Study Description",
+      "tag" : "(0008,1030)",
+      "value" : "  Leading text",
+      "vr" : "LO"
+    },
+    {
+      "name" : "Patient's Name",
+      "tag" : "(0010,0010)",
+      "value" : "Yamada^Tarou=山田^太郎",
+      "vr" : "PN"
+    }
+  ],
+  "fileMetaInformation" : [
+    {
+      "name" : "File Meta Information Group Length",
+      "tag" : "(0002,0000)",
+      "value" : "120",
+      "vr" : "UL"
+    },
+    {
+      "name" : "File Meta Information Version",
+      "tag" : "(0002,0001)",
+      "value" : "00 01",
+      "vr" : "OB"
+    },
+    {
+      "name" : "Media Storage SOP Class UID",
+      "tag" : "(0002,0002)",
+      "value" : "1.2.840.10008.5.1.4.1.1.7",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Media Storage SOP Instance UID",
+      "tag" : "(0002,0003)",
+      "value" : "2.25.123456789",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Transfer Syntax UID",
+      "tag" : "(0002,0010)",
+      "value" : "1.2.840.10008.1.2.1",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Implementation Class UID",
+      "tag" : "(0002,0012)",
+      "value" : "2.25.987654321",
+      "vr" : "UI"
+    }
+  ]
+}

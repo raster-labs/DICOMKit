@@ -1,0 +1,21 @@
+{
+  "files" : [
+    {
+      "errorCount" : 0,
+      "errors" : [
+
+      ],
+      "filePath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/DICOMKit-milestones\/Documentation\/2026a-milestones\/M2\/gui-fixtures\/valid-partial-DT.dcm",
+      "isValid" : true,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 0,
+  "totalErrors" : 0,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 1
+}

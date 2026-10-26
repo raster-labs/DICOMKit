@@ -1,0 +1,10 @@
+{
+  "creationDate" : "2026-10-25T18:30:00Z",
+  "CreationDate" : "20261026",
+  "CreationTime" : "113249",
+  "ExecutionStatus" : "DONE",
+  "ExecutionStatusInfo" : "NORMAL",
+  "jobUID" : "1.2.826.0.1.3680043.10.511.4.1792994569380526.204391",
+  "status" : "DONE",
+  "statusInfo" : "NORMAL"
+}

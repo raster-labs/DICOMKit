@@ -1,0 +1,1599 @@
+{
+  "recordedUTC": "2026-10-26T05:34:21.033510+00:00",
+  "status": "Partial — recorded image checks pass; native acceptance remains open",
+  "completedChecklistGroups": 0,
+  "checks": [
+    {
+      "check": "literal successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-literal-console.txt",
+        "sha256": "57b17e867f606ec31d6e4c0247d1cd5ee4c1cf76021d865811692ac92c2691fa"
+      }
+    },
+    {
+      "check": "literal decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "2f1e0a4ad795b0ba75ecaf26b3d0a29ba5f43bdcff09e288c60994dde90a8311",
+        "fileSHA256": "ff1d92ba68120e9e63da7ced5c1f8e1cd2fb80b21d4abadb76bbaf9fab4f7a65"
+      }
+    },
+    {
+      "check": "literal receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050"
+      }
+    },
+    {
+      "check": "literal receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "raw12 successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-raw12-console.txt",
+        "sha256": "37aea2d0063e8724d6584c13b588a4325fa98d95d7afc308664aa89a6c7d3258"
+      }
+    },
+    {
+      "check": "raw12 decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      }
+    },
+    {
+      "check": "raw12 receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315"
+      }
+    },
+    {
+      "check": "raw12 receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "rgb8 successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-rgb8-console.txt",
+        "sha256": "fef55b37de5201fe14a324a3b339be6495432ab3e0ec5f94c87f2ef900894c47"
+      }
+    },
+    {
+      "check": "rgb8 decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png",
+        "size": [
+          288,
+          360
+        ],
+        "mode": "RGB",
+        "rgbaSHA256": "adc3c4600036cf3f7532be6d422102c2138a73e0bd19162b666a91daf3c75e22",
+        "fileSHA256": "47c209b2881e27f48976d33a688eb06881cc999f175381910ab83eda8a290ad8"
+      }
+    },
+    {
+      "check": "rgb8 receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531"
+      }
+    },
+    {
+      "check": "rgb8 receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "gray8 successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-gray8-console.txt",
+        "sha256": "686ac3f5e7a620fe64a13064d8effd959cb152396ef401f8a16f59fc784cd1ce"
+      }
+    },
+    {
+      "check": "gray8 decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      }
+    },
+    {
+      "check": "gray8 receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759"
+      }
+    },
+    {
+      "check": "gray8 receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "rle successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-rle-console.txt",
+        "sha256": "419ce94882ff1bbbda77699facc25b48bf92fc5a70ea1ddb4384fa7ec1968a00"
+      }
+    },
+    {
+      "check": "rle decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      }
+    },
+    {
+      "check": "rle receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666"
+      }
+    },
+    {
+      "check": "rle receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "jpeg successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-jpeg-console.txt",
+        "sha256": "da6d4aab5452dd56f13e636714ca026a562a18eaa9dc2df088fb085121fc4d9f"
+      }
+    },
+    {
+      "check": "jpeg decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      }
+    },
+    {
+      "check": "jpeg receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346"
+      }
+    },
+    {
+      "check": "jpeg receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "all-frames successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-all-frames-console.txt",
+        "sha256": "bccb706088817ebfbbc447ea9cf28b25a6c8c3cd3328c0d1cf9dfe5613c158f9"
+      }
+    },
+    {
+      "check": "all-frames decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+        "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53"
+      }
+    },
+    {
+      "check": "all-frames receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410"
+      }
+    },
+    {
+      "check": "all-frames receiver image count",
+      "status": "Passed",
+      "detail": 3
+    },
+    {
+      "check": "frame2 successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-frame2-console.txt",
+        "sha256": "d47ac4268770cbdd6c937e5d4e8a57d0894dd5dc7e090e31d8fbab1d32aa9a81"
+      }
+    },
+    {
+      "check": "frame2 decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+        "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1"
+      }
+    },
+    {
+      "check": "frame2 receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627"
+      }
+    },
+    {
+      "check": "frame2 receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "frame2-control successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-frame2-control-console.txt",
+        "sha256": "af7f3ed7744dc40739f7807699c30f4fc6fe187042c41378c955d87aa568ae5c"
+      }
+    },
+    {
+      "check": "frame2-control decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+        "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1"
+      }
+    },
+    {
+      "check": "frame2-control receiver job/file linkage",
+      "status": "Passed",
+      "detail": {
+        "written": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png"
+        ],
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800"
+      }
+    },
+    {
+      "check": "frame2-control receiver image count",
+      "status": "Passed",
+      "detail": 1
+    },
+    {
+      "check": "three-files successful native JSON",
+      "status": "Passed",
+      "detail": {
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-three-files-console.txt",
+        "sha256": "65206fc00ae164551fffadf924a0f392581132fbb8da7bbc2845bbe7a8f9dafb"
+      }
+    },
+    {
+      "check": "three-files decoded dimensions",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-010.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+        "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53"
+      }
+    },
+    {
+      "check": "gray8 equals rle",
+      "status": "Passed",
+      "detail": "Decoded RGBA dimensions and all pixels equal"
+    },
+    {
+      "check": "gray8 equals jpeg",
+      "status": "Passed",
+      "detail": "Decoded RGBA dimensions and all pixels equal"
+    },
+    {
+      "check": "all-frames equals three-files",
+      "status": "Passed",
+      "detail": "Decoded RGBA dimensions and all pixels equal"
+    },
+    {
+      "check": "frame2 equals frame2-control",
+      "status": "Passed",
+      "detail": "Decoded RGBA dimensions and all pixels equal"
+    },
+    {
+      "check": "frame2 differs from frame1",
+      "status": "Passed",
+      "detail": "Selected second frame is not silently replaced by the first frame"
+    },
+    {
+      "check": "raw12 fixture render equals raw8 fixture render",
+      "status": "Passed",
+      "detail": "Fixture-specific same-ramp output comparison, not proof of preserving 12-bit film pixels; PNG is8-bit"
+    },
+    {
+      "check": "gray8 matches final automated CLI baseline",
+      "status": "Passed",
+      "detail": {
+        "baseline": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-001.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+        },
+        "record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+        "scope": "Reused unchanged-source control; exact fresh native-argv CLI replay remains distinct"
+      }
+    },
+    {
+      "check": "rle matches final automated CLI baseline",
+      "status": "Passed",
+      "detail": {
+        "baseline": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-002.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+        },
+        "record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+        "scope": "Reused unchanged-source control; exact fresh native-argv CLI replay remains distinct"
+      }
+    },
+    {
+      "check": "jpeg matches final automated CLI baseline",
+      "status": "Passed",
+      "detail": {
+        "baseline": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-003.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+        },
+        "record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+        "scope": "Reused unchanged-source control; exact fresh native-argv CLI replay remains distinct"
+      }
+    },
+    {
+      "check": "all-frames matches final automated CLI baseline",
+      "status": "Passed",
+      "detail": {
+        "baseline": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-005.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+          "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53"
+        },
+        "record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+        "scope": "Reused unchanged-source control; exact fresh native-argv CLI replay remains distinct"
+      }
+    },
+    {
+      "check": "three-files matches final automated CLI baseline",
+      "status": "Passed",
+      "detail": {
+        "baseline": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-004.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+          "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53"
+        },
+        "record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+        "scope": "Reused unchanged-source control; exact fresh native-argv CLI replay remains distinct"
+      }
+    },
+    {
+      "check": "frame2 matches final automated CLI baseline",
+      "status": "Passed",
+      "detail": {
+        "baseline": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-007.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+          "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1"
+        },
+        "record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+        "scope": "Reused unchanged-source control; exact fresh native-argv CLI replay remains distinct"
+      }
+    },
+    {
+      "check": "frame2-control matches final automated CLI baseline",
+      "status": "Passed",
+      "detail": {
+        "baseline": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-006.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+          "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1"
+        },
+        "record": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+        "scope": "Reused unchanged-source control; exact fresh native-argv CLI replay remains distinct"
+      }
+    },
+    {
+      "check": "native dryrun complete with unreachable endpoint",
+      "status": "Passed",
+      "detail": "Captured success text; no network route needed"
+    },
+    {
+      "check": "post-native-dryrun snapshot has exactly10 films",
+      "status": "Passed",
+      "detail": {
+        "files": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-010.png"
+        ],
+        "scope": "Snapshot before replay controls; receiver is active. No per-action event timing claim beyond saved evidence."
+      }
+    },
+    {
+      "check": "13 original and native fixture copies unchanged",
+      "status": "Passed",
+      "detail": {
+        "manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixture-manifest.json",
+        "count": 13
+      }
+    }
+  ],
+  "failures": [],
+  "pending": [
+    "three-files: PNG and successful native result exist; receiver has not flushed a complete film JSON for UID linkage",
+    "Exact fresh CLI replay of the ten native send argv vectors and job query is prepared but unexecuted by this verifier.",
+    "No earlier RGB film exists with the same template/options; require the prepared exact CLI replay.",
+    "Registry persistence/remove, PrintSCP command actions and other native checklist requirements remain separately pending. No native checklist group is marked complete."
+  ],
+  "cases": [
+    {
+      "name": "literal",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 2 --film-size 14x17 --orientation portrait --priority MED --layout 'ROW\\1,3' --medium 'CLEAR FILM' --magnification replicate --film-destination bin-2 --check-status --verify --color grayscale --frame 1 --window-center=-600 --window-width 1200 --bit-depth 8 --presentation-lut IDENTITY --annotate ' first; literal note ' --annotate 'O'\\''Neil second' --annotation-format M7FMT --retries 0 -- pacs://127.0.0.1:21113 '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'\\''Neil; snow 雪.dcm'",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "2",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "MED",
+          "--layout",
+          "ROW\\1,3",
+          "--medium",
+          "CLEAR FILM",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "bin-2",
+          "--check-status",
+          "--verify",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--window-center=-600",
+          "--window-width",
+          "1200",
+          "--bit-depth",
+          "8",
+          "--presentation-lut",
+          "IDENTITY",
+          "--annotate",
+          " first; literal note ",
+          "--annotate",
+          "O'Neil second",
+          "--annotation-format",
+          "M7FMT",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-literal-console.txt",
+        "sha256": "57b17e867f606ec31d6e4c0247d1cd5ee4c1cf76021d865811692ac92c2691fa"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "2f1e0a4ad795b0ba75ecaf26b3d0a29ba5f43bdcff09e288c60994dde90a8311",
+        "fileSHA256": "ff1d92ba68120e9e63da7ced5c1f8e1cd2fb80b21d4abadb76bbaf9fab4f7a65"
+      },
+      "receiverFilm": {
+        "annotations": [
+          "1: first; literal note",
+          "2: O'Neil second"
+        ],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 3,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 4,
+        "imageDisplayFormat": "ROW\\1,3",
+        "magnificationType": "REPLICATE",
+        "mediumType": "CLEAR FILM",
+        "numberOfCopies": 2,
+        "presentationLUTShape": "IDENTITY",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+        "receivedAt": "2026-10-26T05:25:11Z",
+        "rows": 2,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "raw12",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray12.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray12.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992476278118.238793",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992476277784.764064",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-raw12-console.txt",
+        "sha256": "37aea2d0063e8724d6584c13b588a4325fa98d95d7afc308664aa89a6c7d3258"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992476278118.238793",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992476277784.764064",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 1,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992476278118.238793",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992476277784.764064",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 1,
+        "imageDisplayFormat": "STANDARD\\1,1",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+        "receivedAt": "2026-10-26T05:27:56Z",
+        "rows": 1,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "rgb8",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --template single --medium paper --magnification replicate --film-destination processor --color color --frame 1 --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rgb8.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--template",
+          "single",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "color",
+          "--frame",
+          "1",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rgb8.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992491458726.850057",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992491458026.779732",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-rgb8-console.txt",
+        "sha256": "fef55b37de5201fe14a324a3b339be6495432ab3e0ec5f94c87f2ef900894c47"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992491458726.850057",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992491458026.779732",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png",
+        "size": [
+          288,
+          360
+        ],
+        "mode": "RGB",
+        "rgbaSHA256": "adc3c4600036cf3f7532be6d422102c2138a73e0bd19162b666a91daf3c75e22",
+        "fileSHA256": "47c209b2881e27f48976d33a688eb06881cc999f175381910ab83eda8a290ad8"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 1,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992491458726.850057",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992491458026.779732",
+        "filmSize": "8INX10IN",
+        "imageBoxCount": 1,
+        "imageDisplayFormat": "STANDARD\\1,1",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+        "receivedAt": "2026-10-26T05:28:11Z",
+        "rows": 1,
+        "sheetHeightMillimeters": 254,
+        "sheetWidthMillimeters": 203.2,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "gray8",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992513351743.139346",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992513351202.224673",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-gray8-console.txt",
+        "sha256": "686ac3f5e7a620fe64a13064d8effd959cb152396ef401f8a16f59fc784cd1ce"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992513351743.139346",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992513351202.224673",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 1,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992513351743.139346",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992513351202.224673",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 1,
+        "imageDisplayFormat": "STANDARD\\1,1",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+        "receivedAt": "2026-10-26T05:28:33Z",
+        "rows": 1,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "rle",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rle.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rle.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992524594420.806663",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992524594032.513936",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-rle-console.txt",
+        "sha256": "419ce94882ff1bbbda77699facc25b48bf92fc5a70ea1ddb4384fa7ec1968a00"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992524594420.806663",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992524594032.513936",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 1,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992524594420.806663",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992524594032.513936",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 1,
+        "imageDisplayFormat": "STANDARD\\1,1",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+        "receivedAt": "2026-10-26T05:28:44Z",
+        "rows": 1,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "jpeg",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/jpeg.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/jpeg.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992536123654.961882",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992536123251.257329",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-jpeg-console.txt",
+        "sha256": "da6d4aab5452dd56f13e636714ca026a562a18eaa9dc2df088fb085121fc4d9f"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992536123654.961882",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992536123251.257329",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 1,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992536123654.961882",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992536123251.257329",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 1,
+        "imageDisplayFormat": "STANDARD\\1,1",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+        "receivedAt": "2026-10-26T05:28:56Z",
+        "rows": 1,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "all-frames",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --layout 'STANDARD\\2,2' --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --all-frames --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--layout",
+          "STANDARD\\2,2",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--all-frames",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992553278205.860443",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992553277800.862718",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-all-frames-console.txt",
+        "sha256": "bccb706088817ebfbbc447ea9cf28b25a6c8c3cd3328c0d1cf9dfe5613c158f9"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992553278205.860443",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992553277800.862718",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+        "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 2,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 3,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992553278205.860443",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992553277800.862718",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 4,
+        "imageDisplayFormat": "STANDARD\\2,2",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+        "receivedAt": "2026-10-26T05:29:13Z",
+        "rows": 2,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "frame2",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 2 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "2",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992564496647.899265",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992564495669.720014",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-frame2-console.txt",
+        "sha256": "d47ac4268770cbdd6c937e5d4e8a57d0894dd5dc7e090e31d8fbab1d32aa9a81"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992564496647.899265",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992564495669.720014",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+        "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 1,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992564496647.899265",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992564495669.720014",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 1,
+        "imageDisplayFormat": "STANDARD\\1,1",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+        "receivedAt": "2026-10-26T05:29:24Z",
+        "rows": 1,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "frame2-control",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-frame2-control-console.txt",
+        "sha256": "af7f3ed7744dc40739f7807699c30f4fc6fe187042c41378c955d87aa568ae5c"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+        "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1"
+      },
+      "receiverFilm": {
+        "annotations": [],
+        "borderDensity": "BLACK",
+        "callingAETitle": "M7NATIVE",
+        "columns": 1,
+        "densityMapping": "PAPER",
+        "dpi": 36,
+        "emptyImageDensity": "BLACK",
+        "filledImageBoxCount": 1,
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+        "filmOrientation": "PORTRAIT",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+        "filmSize": "14INX17IN",
+        "imageBoxCount": 1,
+        "imageDisplayFormat": "STANDARD\\1,1",
+        "magnificationType": "REPLICATE",
+        "mediumType": "PAPER",
+        "numberOfCopies": 1,
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+        "receivedAt": "2026-10-26T05:29:35Z",
+        "rows": 1,
+        "sheetHeightMillimeters": 431.79999999999995,
+        "sheetWidthMillimeters": 355.59999999999997,
+        "skippedImageBoxes": [],
+        "trim": "NO"
+      },
+      "receiverLinked": true
+    },
+    {
+      "name": "three-files",
+      "native": {
+        "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --layout 'STANDARD\\2,2' --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame1.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame3.dcm",
+        "argv": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "M7CLI",
+          "--timeout",
+          "5",
+          "--format",
+          "json",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--layout",
+          "STANDARD\\2,2",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:21113",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame1.dcm",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame3.dcm"
+        ],
+        "values": [
+          {
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992614658390.548696",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992614657927.998166",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992614660712.696102",
+            "success": true
+          }
+        ],
+        "duplicate_envelopes": 2,
+        "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-three-files-console.txt",
+        "sha256": "65206fc00ae164551fffadf924a0f392581132fbb8da7bbc2845bbe7a8f9dafb"
+      },
+      "result": {
+        "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992614658390.548696",
+        "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992614657927.998166",
+        "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992614660712.696102",
+        "success": true
+      },
+      "raster": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-010.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+        "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53"
+      },
+      "receiverFilm": null,
+      "receiverLinked": false
+    }
+  ],
+  "dryrun": {
+    "command": "dicom-print send --aet M7NATIVE --called-aet ANY-SCP --timeout 60 --format text --verbose --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --check-status --verify --color grayscale --frame 1 --bit-depth 8 --recursive --dry-run --retries 2 -- pacs://127.0.0.1:1 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+    "argv": [
+      "dicom-print",
+      "send",
+      "--aet",
+      "M7NATIVE",
+      "--called-aet",
+      "ANY-SCP",
+      "--timeout",
+      "60",
+      "--format",
+      "text",
+      "--verbose",
+      "--copies",
+      "1",
+      "--film-size",
+      "14x17",
+      "--orientation",
+      "portrait",
+      "--priority",
+      "medium",
+      "--medium",
+      "paper",
+      "--magnification",
+      "replicate",
+      "--film-destination",
+      "processor",
+      "--check-status",
+      "--verify",
+      "--color",
+      "grayscale",
+      "--frame",
+      "1",
+      "--bit-depth",
+      "8",
+      "--recursive",
+      "--dry-run",
+      "--retries",
+      "2",
+      "--",
+      "pacs://127.0.0.1:1",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+    ],
+    "values": [
+      [
+        1
+      ]
+    ],
+    "duplicate_envelopes": 2,
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-dry-run-console.txt",
+    "sha256": "fbac3710653f7b50e591b43e3e1f850de104a0adb4e89e0bd7cd6d81e1192872"
+  },
+  "receiverSnapshot": {
+    "sha256": "d852db180f606d04d1dfa7ec244f6067a23353abbe5974afc65f47e5417a1236",
+    "bytes": 20480,
+    "completeFilmRecords": 9
+  },
+  "scope": "Read-only independent decoded image verification; no product/UI/peer/build execution. Receiver may buffer final JSON until further writes or stop."
+}

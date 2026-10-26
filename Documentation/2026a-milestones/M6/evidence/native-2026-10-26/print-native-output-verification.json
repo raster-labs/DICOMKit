@@ -1,0 +1,1022 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-26T05:30:51.463923+00:00",
+  "status": "Partial — recorded comparisons pass; native matrix remains open",
+  "checks": [
+    {
+      "check": "populated registry screenshot identity",
+      "result": "Passed",
+      "detail": "Manual visual transcription applies only to the reviewed screenshot.",
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated.png"
+    },
+    {
+      "check": "populated registry schema/value parity",
+      "result": "Passed",
+      "detail": {
+        "basis": "Manual screenshot transcription vs complete independent-settings/live-peer CLI JSON",
+        "native": [
+          {
+            "calledAETitle": "M7CLI",
+            "callingAETitle": "M7NATIVE",
+            "colorMode": "color",
+            "host": "127.0.0.1",
+            "isDefault": true,
+            "name": "Native; O'Neil 雪",
+            "port": 21113
+          }
+        ],
+        "cli": [
+          {
+            "calledAETitle": "M7CLI",
+            "callingAETitle": "M7NATIVE",
+            "colorMode": "color",
+            "host": "127.0.0.1",
+            "isDefault": true,
+            "name": "Native; O'Neil 雪",
+            "port": 21113
+          }
+        ]
+      },
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-list-populated.png"
+    },
+    {
+      "check": "Printer status screenshot identity",
+      "result": "Passed",
+      "detail": "Manual visual transcription applies only to the reviewed screenshot.",
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-status-json.png"
+    },
+    {
+      "check": "Printer status schema/value parity",
+      "result": "Passed",
+      "detail": {
+        "basis": "Manual screenshot transcription vs complete independent-settings/live-peer CLI JSON",
+        "native": {
+          "isNormal": true,
+          "manufacturer": "DICOMKit",
+          "Manufacturer": "DICOMKit",
+          "ManufacturerModelName": "DICOM Print Emulator",
+          "model": "DICOM Print Emulator",
+          "name": "DICOMKIT-PRINTER",
+          "PrinterName": "DICOMKIT-PRINTER",
+          "PrinterStatus": "NORMAL",
+          "PrinterStatusInfo": "NORMAL",
+          "status": "NORMAL",
+          "statusInfo": "NORMAL"
+        },
+        "cli": {
+          "isNormal": true,
+          "manufacturer": "DICOMKit",
+          "Manufacturer": "DICOMKit",
+          "ManufacturerModelName": "DICOM Print Emulator",
+          "model": "DICOM Print Emulator",
+          "name": "DICOMKIT-PRINTER",
+          "PrinterName": "DICOMKIT-PRINTER",
+          "PrinterStatus": "NORMAL",
+          "PrinterStatusInfo": "NORMAL",
+          "status": "NORMAL",
+          "statusInfo": "NORMAL"
+        }
+      },
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-status-json.png"
+    },
+    {
+      "check": "same-registry permission boundary retained",
+      "result": "Passed",
+      "detail": "OS-denied app registry access is not treated as a registry pass; no access bypass. Alternative isolated CLI fixture comparison above."
+    },
+    {
+      "check": "all synthetic source and copy fixtures unchanged",
+      "result": "Passed",
+      "detail": {
+        "files": 13
+      }
+    },
+    {
+      "check": "native literal send successful JSON",
+      "result": "Passed",
+      "detail": "Complete copied console, with actual generated UIDs.",
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-literal-console.txt"
+    },
+    {
+      "check": "native literal argument preservation",
+      "result": "Passed",
+      "detail": {
+        "expected": {
+          "--layout": [
+            "ROW\\1,3"
+          ],
+          "--window-center": [
+            "-600"
+          ],
+          "--window-width": [
+            "1200"
+          ],
+          "--copies": [
+            "2"
+          ],
+          "--annotate": [
+            " first; literal note ",
+            "O'Neil second"
+          ],
+          "--presentation-lut": [
+            "IDENTITY"
+          ]
+        },
+        "parsed": {
+          "--aet": [
+            "M7NATIVE"
+          ],
+          "--called-aet": [
+            "M7CLI"
+          ],
+          "--timeout": [
+            "5"
+          ],
+          "--format": [
+            "json"
+          ],
+          "--copies": [
+            "2"
+          ],
+          "--film-size": [
+            "14x17"
+          ],
+          "--orientation": [
+            "portrait"
+          ],
+          "--priority": [
+            "MED"
+          ],
+          "--layout": [
+            "ROW\\1,3"
+          ],
+          "--medium": [
+            "CLEAR FILM"
+          ],
+          "--magnification": [
+            "replicate"
+          ],
+          "--film-destination": [
+            "bin-2"
+          ],
+          "--check-status": [
+            true
+          ],
+          "--verify": [
+            true
+          ],
+          "--color": [
+            "grayscale"
+          ],
+          "--frame": [
+            "1"
+          ],
+          "--window-center": [
+            "-600"
+          ],
+          "--window-width": [
+            "1200"
+          ],
+          "--bit-depth": [
+            "8"
+          ],
+          "--presentation-lut": [
+            "IDENTITY"
+          ],
+          "--annotate": [
+            " first; literal note ",
+            "O'Neil second"
+          ],
+          "--annotation-format": [
+            "M7FMT"
+          ],
+          "--retries": [
+            "0"
+          ],
+          "positionals": [
+            "pacs://127.0.0.1:21113",
+            "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm"
+          ]
+        }
+      }
+    },
+    {
+      "check": "receiver matches native send identifiers and film fields",
+      "result": "Passed",
+      "detail": {
+        "expected": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+          "filledImageBoxCount": 1,
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "ROW\\1,3",
+          "rows": 2,
+          "columns": 3,
+          "numberOfCopies": 2,
+          "mediumType": "CLEAR FILM",
+          "filmSize": "14INX17IN",
+          "presentationLUTShape": "IDENTITY",
+          "callingAETitle": "M7NATIVE"
+        },
+        "actual": {
+          "annotations": [
+            "1: first; literal note",
+            "2: O'Neil second"
+          ],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 3,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "ROW\\1,3",
+          "magnificationType": "REPLICATE",
+          "mediumType": "CLEAR FILM",
+          "numberOfCopies": 2,
+          "presentationLUTShape": "IDENTITY",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+          "receivedAt": "2026-10-26T05:25:11Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        }
+      }
+    },
+    {
+      "check": "native literal send saved PNG",
+      "result": "Passed",
+      "detail": [
+        {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png",
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "2f1e0a4ad795b0ba75ecaf26b3d0a29ba5f43bdcff09e288c60994dde90a8311",
+          "fileSHA256": "ff1d92ba68120e9e63da7ced5c1f8e1cd2fb80b21d4abadb76bbaf9fab4f7a65"
+        }
+      ]
+    },
+    {
+      "check": "native job query refers to actual native submission",
+      "result": "Passed",
+      "detail": {
+        "creationDate": "2026-10-25T18:30:00Z",
+        "CreationDate": "20261026",
+        "CreationTime": "105511",
+        "ExecutionStatus": "DONE",
+        "ExecutionStatusInfo": "NORMAL",
+        "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+        "status": "DONE",
+        "statusInfo": "NORMAL"
+      },
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-job-console.txt"
+    }
+  ],
+  "failures": [],
+  "pending": [
+    "populated registry: screenshot parity established; no full copied JSON text retained yet",
+    "Printer status: screenshot parity established; no full copied JSON text retained yet",
+    "Literal send PNG is decoded and linked to the actual native job; pixel equality with an equivalent new CLI send is not yet established unless its separate control/output is added.",
+    "Actual job status DONE is captured; no equivalent CLI job JSON file yet",
+    "Duplicate-add refusal is not established by print-add-duplicate.txt alone (no-change AX); retain screenshot or full console.",
+    "Text-mode list/status outputs are not established by their no-change AX files.",
+    "Registry relaunch persistence/removal and remaining print matrix actions require their own final native evidence."
+  ],
+  "fixture_results": [
+    {
+      "name": "gray8.dcm",
+      "unchanged": true,
+      "sha256": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f"
+    },
+    {
+      "name": "gray12.dcm",
+      "unchanged": true,
+      "sha256": "a91b61e304fc09edcb6529b6ba8bb7b7885427a0be83f3b746edc476d0042fd3"
+    },
+    {
+      "name": "rgb8.dcm",
+      "unchanged": true,
+      "sha256": "abdaaf9aba46fa06da16881d38dab3c0bc2d1bd21554fd78ba17317ee0c05b9a"
+    },
+    {
+      "name": "rle.dcm",
+      "unchanged": true,
+      "sha256": "89f8d8a562568385f4ae84dae5004945680f526d6bd891438b1d5bb28b362ee8"
+    },
+    {
+      "name": "jpeg.dcm",
+      "unchanged": true,
+      "sha256": "a9f4f6cd04590474cd1b9bc67ecebe12e36121c1046923e5380654c0c7d0802a"
+    },
+    {
+      "name": "multi.dcm",
+      "unchanged": true,
+      "sha256": "32b199a6e1411e3816df759ac802bb0344378953e11e6cb56172a5eb2fcbccb3"
+    },
+    {
+      "name": "frame1.dcm",
+      "unchanged": true,
+      "sha256": "8a7c08d070947cb0a47b5d1c5a2ed706fa744febe9e6834799af65d57c772ec6"
+    },
+    {
+      "name": "frame2.dcm",
+      "unchanged": true,
+      "sha256": "1939c993e69a94d745ac7213aabd1bfbe5f59205a1957f9c705bebf67bebd8ad"
+    },
+    {
+      "name": "frame3.dcm",
+      "unchanged": true,
+      "sha256": "653c07b7809a3f1ad8e84b2a1a0524b88615c6d83656e238707fc320840173a2"
+    },
+    {
+      "name": "literal O'Neil; snow 雪.dcm",
+      "unchanged": true,
+      "sha256": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f"
+    },
+    {
+      "name": "peer-gray8.dcm",
+      "unchanged": true,
+      "sha256": "a42b40df5448cf6e954ec179ebce9eb2821e0987015dd8ae86ae2b7868af0273"
+    },
+    {
+      "name": "peer-gray12.dcm",
+      "unchanged": true,
+      "sha256": "353629fb37895e6f85ae2dfe2081e861e3837cbaac17e91781175e793ca473bf"
+    },
+    {
+      "name": "peer-rgb8.dcm",
+      "unchanged": true,
+      "sha256": "59981e76fcc38f1433c4de579d59178510b417bef4c82fd80b56a8fba66071d6"
+    }
+  ],
+  "evidence": {
+    "print-job-console": {
+      "command": "dicom-print job --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --job-id 1.2.826.0.1.3680043.10.511.4.1792992311950314.969050 -- pacs://127.0.0.1:21113",
+      "argv": [
+        "dicom-print",
+        "job",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--job-id",
+        "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+        "--",
+        "pacs://127.0.0.1:21113"
+      ],
+      "values": [
+        {
+          "creationDate": "2026-10-25T18:30:00Z",
+          "CreationDate": "20261026",
+          "CreationTime": "105511",
+          "ExecutionStatus": "DONE",
+          "ExecutionStatusInfo": "NORMAL",
+          "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+          "status": "DONE",
+          "statusInfo": "NORMAL"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-job-console.txt",
+      "sha256": "2c5a7b3812f87b59bf81ff6ef26da02f811dab847ca602ea96496cfa0af24fc0"
+    },
+    "print-send-all-frames-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --layout 'STANDARD\\2,2' --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --all-frames --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--layout",
+        "STANDARD\\2,2",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--all-frames",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992553278205.860443",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992553277800.862718",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-all-frames-console.txt",
+      "sha256": "bccb706088817ebfbbc447ea9cf28b25a6c8c3cd3328c0d1cf9dfe5613c158f9"
+    },
+    "print-send-dry-run-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet ANY-SCP --timeout 60 --format text --verbose --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --check-status --verify --color grayscale --frame 1 --bit-depth 8 --recursive --dry-run --retries 2 -- pacs://127.0.0.1:1 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "ANY-SCP",
+        "--timeout",
+        "60",
+        "--format",
+        "text",
+        "--verbose",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--check-status",
+        "--verify",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--bit-depth",
+        "8",
+        "--recursive",
+        "--dry-run",
+        "--retries",
+        "2",
+        "--",
+        "pacs://127.0.0.1:1",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+      ],
+      "values": [
+        [
+          1
+        ]
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-dry-run-console.txt",
+      "sha256": "fbac3710653f7b50e591b43e3e1f850de104a0adb4e89e0bd7cd6d81e1192872"
+    },
+    "print-send-frame2-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 2 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "2",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992564496647.899265",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992564495669.720014",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-frame2-console.txt",
+      "sha256": "d47ac4268770cbdd6c937e5d4e8a57d0894dd5dc7e090e31d8fbab1d32aa9a81"
+    },
+    "print-send-frame2-control-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-frame2-control-console.txt",
+      "sha256": "af7f3ed7744dc40739f7807699c30f4fc6fe187042c41378c955d87aa568ae5c"
+    },
+    "print-send-gray8-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992513351743.139346",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992513351202.224673",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-gray8-console.txt",
+      "sha256": "686ac3f5e7a620fe64a13064d8effd959cb152396ef401f8a16f59fc784cd1ce"
+    },
+    "print-send-jpeg-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/jpeg.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/jpeg.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992536123654.961882",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992536123251.257329",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-jpeg-console.txt",
+      "sha256": "da6d4aab5452dd56f13e636714ca026a562a18eaa9dc2df088fb085121fc4d9f"
+    },
+    "print-send-literal-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 2 --film-size 14x17 --orientation portrait --priority MED --layout 'ROW\\1,3' --medium 'CLEAR FILM' --magnification replicate --film-destination bin-2 --check-status --verify --color grayscale --frame 1 --window-center=-600 --window-width 1200 --bit-depth 8 --presentation-lut IDENTITY --annotate ' first; literal note ' --annotate 'O'\\''Neil second' --annotation-format M7FMT --retries 0 -- pacs://127.0.0.1:21113 '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'\\''Neil; snow 雪.dcm'",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "2",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "MED",
+        "--layout",
+        "ROW\\1,3",
+        "--medium",
+        "CLEAR FILM",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "bin-2",
+        "--check-status",
+        "--verify",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--window-center=-600",
+        "--window-width",
+        "1200",
+        "--bit-depth",
+        "8",
+        "--presentation-lut",
+        "IDENTITY",
+        "--annotate",
+        " first; literal note ",
+        "--annotate",
+        "O'Neil second",
+        "--annotation-format",
+        "M7FMT",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-literal-console.txt",
+      "sha256": "57b17e867f606ec31d6e4c0247d1cd5ee4c1cf76021d865811692ac92c2691fa"
+    },
+    "print-send-raw12-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray12.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray12.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992476278118.238793",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992476277784.764064",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-raw12-console.txt",
+      "sha256": "37aea2d0063e8724d6584c13b588a4325fa98d95d7afc308664aa89a6c7d3258"
+    },
+    "print-send-rgb8-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --template single --medium paper --magnification replicate --film-destination processor --color color --frame 1 --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rgb8.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--template",
+        "single",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "color",
+        "--frame",
+        "1",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rgb8.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992491458726.850057",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992491458026.779732",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-rgb8-console.txt",
+      "sha256": "fef55b37de5201fe14a324a3b339be6495432ab3e0ec5f94c87f2ef900894c47"
+    },
+    "print-send-rle-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rle.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rle.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992524594420.806663",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992524594032.513936",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-rle-console.txt",
+      "sha256": "419ce94882ff1bbbda77699facc25b48bf92fc5a70ea1ddb4384fa7ec1968a00"
+    },
+    "print-send-three-files-console": {
+      "command": "dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --layout 'STANDARD\\2,2' --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame1.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame3.dcm",
+      "argv": [
+        "dicom-print",
+        "send",
+        "--aet",
+        "M7NATIVE",
+        "--called-aet",
+        "M7CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--copies",
+        "1",
+        "--film-size",
+        "14x17",
+        "--orientation",
+        "portrait",
+        "--priority",
+        "medium",
+        "--layout",
+        "STANDARD\\2,2",
+        "--medium",
+        "paper",
+        "--magnification",
+        "replicate",
+        "--film-destination",
+        "processor",
+        "--color",
+        "grayscale",
+        "--frame",
+        "1",
+        "--raw",
+        "--bit-depth",
+        "8",
+        "--retries",
+        "0",
+        "--",
+        "pacs://127.0.0.1:21113",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame1.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame3.dcm"
+      ],
+      "values": [
+        {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992614658390.548696",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992614657927.998166",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992614660712.696102",
+          "success": true
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/print-send-three-files-console.txt",
+      "sha256": "65206fc00ae164551fffadf924a0f392581132fbb8da7bbc2845bbe7a8f9dafb"
+    },
+    "receiver_log_snapshot": {
+      "sha256": "d852db180f606d04d1dfa7ec244f6067a23353abbe5974afc65f47e5417a1236",
+      "bytes": 20480,
+      "note": "Active receiver; complete JSON values parsed, incomplete trailing write ignored. No process interaction."
+    },
+    "native_send_rasters": [
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "2f1e0a4ad795b0ba75ecaf26b3d0a29ba5f43bdcff09e288c60994dde90a8311",
+        "fileSHA256": "ff1d92ba68120e9e63da7ced5c1f8e1cd2fb80b21d4abadb76bbaf9fab4f7a65"
+      }
+    ],
+    "annotation_scope": "Copied argv preserves both outer spaces. Receiver presentation strings trim them; this display is not exact wire-byte evidence. Use independent DIMSE capture for a wire-preservation claim.",
+    "no_change_AX_files": [
+      "print-add-duplicate.txt",
+      "print-list-populated.txt",
+      "print-list-text.txt",
+      "print-send-before-browse.txt",
+      "print-status-json.txt",
+      "print-status-text.txt"
+    ]
+  },
+  "limits": [
+    "Read-only saved-evidence verification; no product, peer, UI, build or protected-registry access.",
+    "Screenshot comparisons are explicitly manual transcriptions tied to image hashes.",
+    "No-change AX snapshots are not outcome evidence; overlapping evidence is not additive."
+  ]
+}

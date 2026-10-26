@@ -1,0 +1,38 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-print status --aet M7NATIVE --called-aet M7CLI --timeout 5 --format text -- pacs://127.0.0.1:21113
+
+Printer Status
+==============
+Printer Name: DICOMKIT-PRINTER
+Printer Status: NORMAL
+Printer Status Info: NORMAL
+Manufacturer: DICOMKit
+Manufacturer's Model Name: DICOM Print Emulator
+Is Normal: Yes
+
+			5 scroll bar (disabled, settable, float) 1
+		6 button Cancel
+		7 button Import
+8 menu bar
+	9 DICOMStudio
+	10 File
+	11 Edit
+	12 View
+	13 Image
+	14 Window
+	15 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-print status --aet M7NATIVE --called-aet M7CLI --timeout 5 --format text -- pacs://127.0.0.1:21113
+
+Printer Status
+==============
+Printer Name: DICOMKIT-PRINTER
+Printer Status: NORMAL
+Printer Status Info: NORMAL
+Manufacturer: DICOMKit
+Manufacturer's Model Name: DICOM Print Emulator
+Is Normal: Yes

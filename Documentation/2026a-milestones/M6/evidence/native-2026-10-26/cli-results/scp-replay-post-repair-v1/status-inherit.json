@@ -1,0 +1,18 @@
+{
+  "name": "status-inherit",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "status",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+    "--format",
+    "json"
+  ],
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.896833958,
+  "stdout": "{\n  \"isNormal\" : true,\n  \"manufacturer\" : \"DICOMKit\",\n  \"Manufacturer\" : \"DICOMKit\",\n  \"ManufacturerModelName\" : \"DICOM Print Emulator\",\n  \"model\" : \"DICOM Print Emulator\",\n  \"name\" : \"M7 Native Baseline\",\n  \"PrinterName\" : \"M7 Native Baseline\",\n  \"PrinterStatus\" : \"NORMAL\",\n  \"PrinterStatusInfo\" : \"NORMAL\",\n  \"status\" : \"NORMAL\",\n  \"statusInfo\" : \"NORMAL\"\n}\n",
+  "stderr": "",
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "recordedUTC": "2026-10-26T06:01:05.742555+00:00"
+}

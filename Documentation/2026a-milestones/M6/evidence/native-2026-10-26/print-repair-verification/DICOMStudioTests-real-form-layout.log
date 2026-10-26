@@ -1,0 +1,40 @@
+Building for debugging...
+[Computing dependencies]
+[1 / 2] J2KSwift_J2KMetal
+[1 / 9] JXLSwift
+[1 / 64] DICOMKit
+[1 / 12] DICOMWeb
+[2 / 12] DICOMStudio
+[4 / 14] DICOMStudio
+[8 / 16] DICOMStudio
+[9 / 16] DICOMStudio
+[10 / 15] DICOMStudioTests-product
+[12 / 17] DICOMStudioTests-product
+[17 / 20] DICOMStudioTests-product
+[18 / 22] DICOMStudioTests-product
+[19 / 22] DICOMStudioTests-product
+[20 / 22] DICOMStudioTests-product
+Build complete! (41.71 sec)
+Test Suite 'Selected tests' started at 2026-10-26 12:43:23.380.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-26 12:43:23.386.
+Test Suite 'M7PrintNativeCheckboxTests' started at 2026-10-26 12:43:23.386.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' passed (0.107 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testHostedPrintOptionsStayInsideNarrowDefaultAndExpandedPaneWidths]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testHostedPrintOptionsStayInsideNarrowDefaultAndExpandedPaneWidths]' passed (0.064 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' passed (0.250 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testRealPrintWorkshopFormFitsActualSplitPaneWidths]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:74: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testRealPrintWorkshopFormFitsActualSplitPaneWidths] : XCTAssertEqual failed: ("3") is not equal to ("2")
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:74: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testRealPrintWorkshopFormFitsActualSplitPaneWidths] : XCTAssertEqual failed: ("3") is not equal to ("2")
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testRealPrintWorkshopFormFitsActualSplitPaneWidths]' failed (7.524 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' passed (0.001 seconds).
+Test Suite 'M7PrintNativeCheckboxTests' failed at 2026-10-26 12:43:31.332.
+	 Executed 5 tests, with 2 failures (0 unexpected) in 7.946 (7.946) seconds
+Test Suite 'DICOMStudioTests.xctest' failed at 2026-10-26 12:43:31.332.
+	 Executed 5 tests, with 2 failures (0 unexpected) in 7.946 (7.946) seconds
+Test Suite 'Selected tests' failed at 2026-10-26 12:43:31.332.
+	 Executed 5 tests, with 2 failures (0 unexpected) in 7.946 (7.953) seconds
+Note: Some test targets reported failures:
+  - DICOMStudioTests (XCTest)

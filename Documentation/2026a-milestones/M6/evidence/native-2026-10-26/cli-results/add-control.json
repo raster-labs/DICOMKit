@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "add-printer",
+    "--name",
+    "Native; O'Neil \u96ea",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "21113",
+    "--called-ae",
+    "M7CLI",
+    "--calling-ae",
+    "M7NATIVE",
+    "--color",
+    "color",
+    "--default"
+  ],
+  "settings": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-settings",
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "\u2713 Printer 'Native; O'Neil \u96ea' added successfully\n  Set as default printer\n\nUse with:\n  dicom-print send pacs://127.0.0.1:21113 image.dcm --aet M7NATIVE\n"
+}

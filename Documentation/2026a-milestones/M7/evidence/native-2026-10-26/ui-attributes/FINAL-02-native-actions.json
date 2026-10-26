@@ -1,0 +1,78 @@
+[
+  {
+    "id": "leading-equals-token",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-0-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-0-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-1-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-1-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-2-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-2-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-3-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-3-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-4-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-4-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-5-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-5-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-6-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-6-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-7-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-7-write",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-8-dry",
+    "status": "ERROR"
+  },
+  {
+    "id": "invalid-8-write",
+    "status": "ERROR"
+  }
+]

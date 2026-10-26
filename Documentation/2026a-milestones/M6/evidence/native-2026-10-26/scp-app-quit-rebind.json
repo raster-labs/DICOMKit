@@ -1,0 +1,5 @@
+{
+  "bind_after_native_app_quit": "passed",
+  "port": 21114,
+  "exact_app_process_absent": true
+}

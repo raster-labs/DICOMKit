@@ -701,6 +701,7 @@ public struct CLIWorkshopView: View {
     }
 
     /// A boolean flag as a checkbox row: ☑ --flag  description.
+    @ViewBuilder
     private func booleanCheckboxRow(_ param: CLIParameterDefinition) -> some View {
         let isOn = Binding<Bool>(
             get: {
@@ -711,21 +712,25 @@ public struct CLIWorkshopView: View {
                 viewModel.updateParameterValue(parameterID: param.id, value: newValue ? "true" : "false")
             }
         )
-        return Toggle(isOn: isOn) {
-            HStack(spacing: 8) {
-                if !param.flag.isEmpty {
-                    Text(param.flag)
-                        .font(.body.monospaced().weight(.semibold))
+        if viewModel.isPrintToolSelected {
+            CLIWorkshopPrintOptionCheckbox(parameter: param, isOn: isOn)
+        } else {
+            Toggle(isOn: isOn) {
+                HStack(spacing: 8) {
+                    if !param.flag.isEmpty {
+                        Text(param.flag)
+                            .font(.body.monospaced().weight(.semibold))
+                    }
+                    Text(param.helpText.isEmpty ? param.displayName : param.helpText)
+                        .font(.body)
+                        .foregroundStyle(.primary)
                 }
-                Text(param.helpText.isEmpty ? param.displayName : param.helpText)
-                    .font(.body)
-                    .foregroundStyle(.primary)
             }
+            #if os(macOS)
+            .toggleStyle(.checkbox)
+            #endif
+            .accessibilityLabel(param.displayName)
         }
-        #if os(macOS)
-        .toggleStyle(.checkbox)
-        #endif
-        .accessibilityLabel(param.displayName)
     }
 
     /// A file/directory path field with a Browse button and file importer.
@@ -785,7 +790,13 @@ public struct CLIWorkshopView: View {
     @ViewBuilder
     private func enumPickerField(param: CLIParameterDefinition) -> some View {
         let values = param.allowedValues
-        let useSegmented = values.count >= 2 && values.count <= 6 && !values.contains("")
+        // The six Print client commands have long names (for example,
+        // "remove-printer"). NSSegmentedControl keeps their combined intrinsic
+        // width even when the split pane is narrow, widening the entire scroll
+        // document and clipping unrelated fields and checkboxes. Keep command
+        // selection in a native menu; short value choices retain their segments.
+        let printCommand = viewModel.isPrintToolSelected && param.parameterType == .subcommand
+        let useSegmented = !printCommand && values.count >= 2 && values.count <= 6 && !values.contains("")
         let picker = Picker("", selection: parameterBinding(for: param.id)) {
             ForEach(values, id: \.self) { value in
                 Text(value.isEmpty ? "Any" : value).tag(value)

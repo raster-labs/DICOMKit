@@ -1,0 +1,82 @@
+{
+  "createdUTC": "2026-10-26T06:00:42.337158+00:00",
+  "nativeEvidenceHEAD": "000fb888237872d90891b20907f0562c3a59eef7",
+  "originalPlan": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-cli-replay-plan.json",
+  "originalPlanSHA256": "b04ea814d1d2578f8e77909fddfb8ca3cd9e4a7a93c547c8be8fdd4a9deb13cb",
+  "originalBinarySHA256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+  "postRepairBinarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "productionChangesSinceHEAD": [
+    "Sources/DICOMPrintCommandSupport/SCUCommands.swift",
+    "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift",
+    "Sources/DICOMStudio/Views/CLIWorkshopView.swift"
+  ],
+  "sharedCommandDiff": "diff --git a/Sources/DICOMPrintCommandSupport/SCUCommands.swift b/Sources/DICOMPrintCommandSupport/SCUCommands.swift\nindex 42b5b6e9..8bdb7ff4 100644\n--- a/Sources/DICOMPrintCommandSupport/SCUCommands.swift\n+++ b/Sources/DICOMPrintCommandSupport/SCUCommands.swift\n@@ -836,7 +836,7 @@ struct SCUListPrintersCommand: PrintExecutableCommand {\n         let configManager = SCUPrinterConfigManager(fileURL: context.printersURL)\n         let printers = try configManager.loadPrinters()\n         \n-        if printers.isEmpty {\n+        if printers.isEmpty && format == .text {\n             fprintln(\"No printers configured.\")\n             fprintln(\"\")\n             fprintln(\"Add a printer with:\")\n",
+  "unchangedSCPSourceFiles": [
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPCommand.swift",
+      "sha256": "1f437f86b955a7bdc15ccc849844f372ac0e5a2dad57a50e967eecedaed58924",
+      "identicalToNativeEvidenceHEAD": true
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPSimulateCommand.swift",
+      "sha256": "facdd8467bd165d9f98d1e8cbed1af3d098184ad656bfcbc6f8e17a32da2352d",
+      "identicalToNativeEvidenceHEAD": true
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPInfoCommands.swift",
+      "sha256": "50ec3510072db7565b117cc0361f976542f2ba47b1ec8ed09c25c6060b6c832f",
+      "identicalToNativeEvidenceHEAD": true
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPServeCommand.swift",
+      "sha256": "15432e7c104d5ecf0fa6e80cbe434bea556b40f237e201a863f0b509da92c7c1",
+      "identicalToNativeEvidenceHEAD": true
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPSettingsChecks.swift",
+      "sha256": "1ec799afcf8e9d15bc41c6cf746cf31b040156d3b3e9aed7e8a34074766a67be",
+      "identicalToNativeEvidenceHEAD": true
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPEmulatorOptions.swift",
+      "sha256": "39e3b9d9b2999870c59053da3e9a64b744e1dc58955589749889a3baa13ee8de",
+      "identicalToNativeEvidenceHEAD": true
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/PrintCommandContext.swift",
+      "sha256": "f789345c2906bbc637d9e8faa6e46a8844754ccab758a4439018a2b163df49c7",
+      "identicalToNativeEvidenceHEAD": true
+    },
+    {
+      "path": "Sources/dicom-printscp/DICOMPrintSCPCommand.swift",
+      "sha256": "75e5a809b15d6b85c5799dd46700aca83d7bae2ee69c4e954fd9a9b4ad404532",
+      "identicalToNativeEvidenceHEAD": true
+    }
+  ],
+  "unchangedScope": [
+    "Sources/DICOMPrintCommandSupport/SCP*.swift",
+    "Sources/DICOMPrintCommandSupport/PrintCommandContext.swift",
+    "Sources/dicom-printscp",
+    "Sources/DICOMPrintKit",
+    "Sources/DICOMNetwork"
+  ],
+  "qualificationDecision": "Only shared command behavior change is SCU list empty-result JSON formatting. SCP executable/support/core source and callbacks are unchanged. Rebuilt binary has a new hash because its shared module includes the changed SCU source. These new isolated CLI controls may compare existing native SCP results, with both identities retained. They do not replace final rebuilt-app native UI acceptance.",
+  "buildEvidence": [
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/build-dicom-printscp.log",
+      "sha256": "cd3b5300b410c8e9b3af770efb8e95e9a3f67643be3a54f0505efea4a74c3cf9"
+    },
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/dicom-printscpTests.log",
+      "sha256": "ec7fbe50e0edc16d07a7cc9dcfc7a826655fff4d4a6add36b46e177a7c06a081"
+    },
+    {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/dicom-printTests.log",
+      "sha256": "7d4f8ade59a65563c57b748338acc99ac238486b58da60baff785a4831c6ba4d"
+    }
+  ],
+  "limits": [
+    "Detached-AppKit AX-role test failure under investigation by owning agent; not a CLI/SCP behavior failure.",
+    "No product, build, UI or peer invoked by this preparation."
+  ]
+}

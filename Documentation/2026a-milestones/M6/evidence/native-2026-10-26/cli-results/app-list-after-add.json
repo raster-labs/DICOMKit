@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "list-printers",
+    "--format",
+    "json",
+    "--verbose"
+  ],
+  "settings": "/Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification",
+  "returncode": 1,
+  "stdout": "",
+  "stderr": "Error: The file \u201cprinters.json\u201d couldn\u2019t be opened because you don\u2019t have permission to view it.\n"
+}

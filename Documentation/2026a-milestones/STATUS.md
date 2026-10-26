@@ -1,31 +1,24 @@
 # DICOM 2026a milestone status
 
-Updated 24 October 2026. **M0–M5 item criteria are complete; M6 and M7 remain in progress because final native GUI verification is blocked; the user retains merge authority.**
+Updated 26 October 2026. **M0–M6 item criteria are complete; M7 remains in progress for the remaining final native qualification. The user retains merge authority.**
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
 commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repaired query safety and filters; M4 repaired service reliability.
 
-## M6 implementation checkpoint — native verification pending
+## Completed M6 print Workshop coverage
 
-Both print tools now use the same command parser and execution layer in the CLI
-and Workshop. All six `dicom-print` and four `dicom-printscp` routes execute.
-The corrected source passed **932 focused tests** and **38 audit regressions**;
-two optional tests are explicitly skipped. Independent print checks passed 24
-cases; one DCMTK optional-capability refusal could not be demonstrated with that
-peer and is recorded separately, with the refusal tested using pynetdicom.
+WS-COV-07 and WS-COV-08 are complete: **eight criteria passed** for the finite macOS software scope. All six `dicom-print` and four `dicom-printscp` commands use shared parser/services and have actual packaged Workshop evidence. Visible values, literal argv, CLI output and pixel comparisons, inherited/explicit SCP settings, registry persistence, errors, listener lifecycle, independent peers and final readable 240px forms are recorded in [M6 report](M6/REPORT.md), [native closure](M6/native-closure.json) and [acceptance](M6/acceptance.json).
 
-The actual Workshop execution harness passed 25 actions and equivalent CLI
-comparisons, including independent RLE/JPEG inputs and multi-frame selection. The fresh packaged app builds and is signed with the project's
-sandbox entitlements, but the Mac is locked. Native GUI verification remains
-blocked; ViewModel tests do not substitute for it. M6 remains in progress.
-All seven remote checks passed for M6 commit `3ee9af8a`; see [remote verification](M6/remote-verification.json). Final M7 binaries also pass the bounded independent print and CLI/VM checks. Native acceptance is still not granted.
+The historical implementation checkpoint passed 932 focused tests and 38 audit regressions with 2 explicit skips; the M7 descendant recheck passed 933 with 1 ordinary opt-in skip. Independent print records 24 passes and 1 DCMTK peer limitation, and 25 CLI/actual-VM comparisons cover all 10 routes. Native layers are separate and overlapping; they are not added to those counts. The final PDF comparison proves exact CLI/native full-page raster and exact embedded film image/companion equality. Physical printer, real paper queue, calibration and diagnostic fidelity remain unqualified.
+
+The final menu-repaired app has strict signature, normal sandbox entitlements and recorded source/binary identity. Its SCU dry-run and SCP status were executed natively; the final SCP status matches all 11 CLI JSON fields. Unchanged shared-service evidence is reused only within the recorded source-equivalence boundary. Earlier lock, layout and oracle failures remain historical. The original M6 commit `3ee9af8a` had seven passing remote checks; this does not establish CI for the later repair overlay.
 
 ## M7 final-source checkpoint — native verification pending
 
 The frozen final source and signed application are built. All integrated M2–M6
-regression scripts pass. Full Studio reports a successful run of 5,380 Swift tests with one optional
+regression scripts pass. The original final-source Studio run reported 5,380 Swift tests with one optional
 SampleStudies skip, plus 83 XCTest passes and four opt-in harness skips tracked
-separately; the optional fixture test remains unexecuted. 75 Core and
+separately; the optional fixture test remains unexecuted in that run. Later repair verification reports 5,391 Swift Testing tests including one optional SampleStudies skip, with overall success, and 92 XCTest cases including 4 skips and 0 failures; a subsequent 5-test actual-form gate plus native captures covers the later print menu-only change. Counts overlap and are not additive. 75 Core and
 18 conversion-diagnostic tests pass. All 41 CLI binaries and 147 command routes
 pass help/invalid-invocation checks. The final independent campaigns record
 34 network passes, eight TLS cases, 24 print passes plus one peer limitation,
@@ -38,8 +31,7 @@ and eager implicit-VR Pixel Data reading. Exact changes, tests, source/artifact
 hashes, evidence, scope limits and the 28-group native checklist are in
 [M7 report](M7/REPORT.md), [verification](M7/verification.json) and
 [acceptance](M7/acceptance.json). QUAL-02's bounded external claims are complete;
-QUAL-01 and both M6 items still require actual final packaged-app actions.
-The Mac remains locked. No M7 completion or main merge is claimed.
+QUAL-01 remains in progress for the final native non-print matrix; both M6 items are complete. No M7 completion or main merge is claimed.
 
 ## Completed M5 items
 
@@ -58,8 +50,7 @@ see [remote verification](M5/remote-verification.json).
 See [M5 report](M5/REPORT.md), [acceptance](M5/acceptance.json),
 [verification](M5/verification.json) and [reproduction](M5/REPRODUCE.md).
 Toolbox remains a separate library; it is not linked into DICOMStudio and no
-packaged Toolbox UI qualification is claimed. M6 print integration proceeds
-under the user's authorization to complete remaining milestones, with no merge.
+packaged Toolbox UI qualification is claimed. M6 print integration is complete; remaining M7 qualification proceeds under the user's authorization, with no merge.
 
 ## Completed M4 items
 
@@ -174,13 +165,12 @@ These are audit-contract corrections; no product options or defaults changed.
 | M3 query safety and filters | 11 | Completed (35 item criteria) |
 | M4 service reliability | 5 | Completed (14 passed, 1 conditional not applicable) |
 | M5 remaining Studio contracts | 7 | Completed (22 passed, 2 conditional not applicable) |
-| M6 print and printscp Workshop coverage | 2 | In progress |
-| M7 final qualification | 2 | In progress (QUAL-02 complete; QUAL-01 native GUI blocked) |
+| M6 print and printscp Workshop coverage | 2 | Completed (8 passed) |
+| M7 final qualification | 2 | In progress (QUAL-02 complete; QUAL-01 remaining native groups) |
 | Other enhancements and dormant components | 22 | Deferred |
 
-Of the 68 original actions, **43 are completed, three active items remain pending,
-and 22 remain deferred**. All planned bug-fix milestones are complete; print
-integration and final qualification remain. The
+Of the 68 original actions, **45 are completed, one active item remains in progress,
+and 22 remain deferred**. All planned bug-fix milestones and the two print enhancements are complete; final qualification remains. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or

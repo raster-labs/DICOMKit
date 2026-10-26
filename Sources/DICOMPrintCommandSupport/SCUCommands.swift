@@ -836,7 +836,7 @@ struct SCUListPrintersCommand: PrintExecutableCommand {
         let configManager = SCUPrinterConfigManager(fileURL: context.printersURL)
         let printers = try configManager.loadPrinters()
         
-        if printers.isEmpty {
+        if printers.isEmpty && format == .text {
             fprintln("No printers configured.")
             fprintln("")
             fprintln("Add a printer with:")

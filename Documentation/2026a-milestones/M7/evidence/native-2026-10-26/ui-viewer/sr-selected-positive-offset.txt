@@ -1,0 +1,47 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 splitter (disabled, settable, float) -1
+		3 container
+			4 text Series, 1
+			5 image Description: Scan, ID: viewfinder
+			6 text READING AREA 1×1
+			7 image Description: No images on screen are marked for print, ID: printer
+			8 text No images on screen are marked for print
+			9 unknown Patient: Temporal Synthetic M5, M5SR001 · SR. M5 Temporal Precision. 2026-10-24 10:15:30
+			10 image Description: Plain Text Document, ID: doc.text
+			11 text M5 Temporal Precision Structured Report
+			12 scroll area
+				13 list Secondary Actions: AXScrollToTop, AXScrollToBottom
+					14 text Help: Click to show this series in the selected tile, Value: Series 1, M5 Temporal Precision, 1 report, Orientation Unavailable, current series
+			15 scroll area
+				16 text Completion COMPLETE Verification UNVERIFIED Content date 2026-10-24 Content items 16 TIME fraction: 10:15:30.123456 TIME next fraction: 10:15:30.123457 TIME trailing zeros: 10:15:30.120000 TIME hour: 10 TIME minute: 10:15 DATETIME positive offset: 2026-10-24 10:15:30.123456 +0530 DATETIME negative offset: 2026-10-24 10:15:30.123456 -0330 DATETIME year: 2026 DATETIME month: 2026-10 DATETIME date: 2026-10-24 DATETIME hour: 2026-10-24 10 DATETIME minute: 2026-10-24 10:15 DATETIME zeros UTC: 2026-10-24 10:15:30.120000 +0000 DATETIME partial offset: 2026 +0530 Malformed TIME retained: 101530.1234567 Malformed DATETIME retained: 20260230101530+0530
+			17 button Description: Mark image for print, Help: Mark this image for print (M)
+	18 toolbar
+		19 button Description: Show Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		20 button Description: Hide series list, Help: Series pane (S) — every series in the study; drag one onto a tile to load it, ID: sidebar.left, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		21 container Help: Choose how this image is displayed, Secondary Actions: Move previous, Move next, Remove from toolbar
+			22 menu button Default view, Help: Choose how this image is displayed, ID: slider.horizontal.below.rectangle
+			23 button Description: Default view, ID: bookmark.fill, Help: Save the current window, zoom and orientation as a named view, added to the study as a presentation state series
+		24 button Description: Download study, ID: arrow.down.circle, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar, Help: Download study — the study's images and saved presentation states as one ZIP. The ZIP's size is shown for confirmation before anything is saved.
+		25 button Description: Keyboard shortcuts, Help: Keyboard shortcuts (⌘/), ID: keyboard, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		26 search text field (settable) Search features
+			27 button Search
+	28 close button
+	29 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	30 minimize button
+	31 text DICOM Studio
+32 menu bar
+	33 DICOMStudio
+	34 File
+	35 Edit
+	36 View
+	37 Image
+	38 Window
+	39 Help
+
+Selected text: ```
+2026-10-24 10:15:30.123456 +0530
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

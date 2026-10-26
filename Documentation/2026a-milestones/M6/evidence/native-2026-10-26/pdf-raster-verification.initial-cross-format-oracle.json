@@ -1,0 +1,443 @@
+{
+  "recordedUTC": "2026-10-26T07:22:21.320602+00:00",
+  "purpose": "M6.2(2) finite software PDF raster comparison of existing synthetic print artifacts",
+  "methods": [
+    "pypdf independently decodes embedded film images",
+    "Bundled pdftoppm renders complete page at original36DPI; compare exact RGBA bytes with saved TIFF/PNG"
+  ],
+  "renderer": "/Users/raster/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override/pdftoppm",
+  "rendererSHA256": "de772e88ab9977ccde25def9b403bf42675d75f5dd82b19fbd7d8123ad183159",
+  "counts": {
+    "Passed": 29,
+    "Failed": 4
+  },
+  "artifacts": {
+    "native-simulation": {
+      "pdf": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.pdf",
+      "pdfSHA256": "59db0114d42983b10a38b5a16de043c5741802e89a0f3344bf0a94c91530361a",
+      "companion": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.tiff",
+      "companionSHA256": "d580a6498cf4553e0d380dd47a119df6afa5fd1910739ad5bc80f0e52cddb090",
+      "embeddedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+      },
+      "renderedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "13359446dcf3108efa791802fce37a77fadf155b36cb5394b1e11dc631444c31"
+      },
+      "renderedPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification/native-simulation.png"
+    },
+    "cli-simulation": {
+      "pdf": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair/native-001.pdf",
+      "pdfSHA256": "e871f987db972d0d4586015ba7ff075530cd2369ce88c31c5c4133c6608fa2c0",
+      "companion": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair/native-001.tiff",
+      "companionSHA256": "d580a6498cf4553e0d380dd47a119df6afa5fd1910739ad5bc80f0e52cddb090",
+      "embeddedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+      },
+      "renderedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "13359446dcf3108efa791802fce37a77fadf155b36cb5394b1e11dc631444c31"
+      },
+      "renderedPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification/cli-simulation.png"
+    },
+    "native-gray-received": {
+      "pdf": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.pdf",
+      "pdfSHA256": "4d00f56aa39bda955f6ad1e336bf9d1d7a0da98fb23e7985462e3bab37c51e62",
+      "companion": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.png",
+      "companionSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+      "embeddedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+      },
+      "renderedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "3f8bd9931db47fa97247cb313b9c790f8e70c529f70cc0c8976f7f906feeafac"
+      },
+      "renderedPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification/native-gray-received.png"
+    },
+    "native-rgb-received": {
+      "pdf": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.pdf",
+      "pdfSHA256": "e4e21a1ab54cc64ed107d3e6e0a6e68c27c1926bc2f8a8a74c8435b9a1962826",
+      "companion": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.png",
+      "companionSHA256": "999c3b60ef129aa6ed1b35e41286e0bc927eec6c6aecefcf56760c9ffeb23493",
+      "embeddedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "a4c942d50a685da9cec7b675255f34210219a6fa388c3877f2c9442cedd27653"
+      },
+      "renderedPixels": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "a619b5d739530985b40ea4ef5c17760d6436234ba117e197d4d21c48f778af1d"
+      },
+      "renderedPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/pdf-raster-verification/native-rgb-received.png"
+    }
+  },
+  "checks": [
+    {
+      "check": "native-simulation one unencrypted page",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-simulation physical film dimensions",
+      "status": "Passed",
+      "detail": {
+        "mediaBoxPoints": [
+          0.0,
+          0.0,
+          1008.0,
+          1224.0
+        ]
+      }
+    },
+    {
+      "check": "native-simulation one embedded film image",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-simulation independent embedded pixels equal companion raster",
+      "status": "Passed",
+      "detail": {
+        "PDFImage": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+        }
+      }
+    },
+    {
+      "check": "native-simulation renderer completed",
+      "status": "Passed",
+      "detail": ""
+    },
+    {
+      "check": "native-simulation rendered film size",
+      "status": "Passed",
+      "detail": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "13359446dcf3108efa791802fce37a77fadf155b36cb5394b1e11dc631444c31"
+      }
+    },
+    {
+      "check": "native-simulation rendered pixels equal companion raster",
+      "status": "Failed",
+      "detail": {
+        "rendered": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "13359446dcf3108efa791802fce37a77fadf155b36cb5394b1e11dc631444c31"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+        }
+      }
+    },
+    {
+      "check": "native-simulation source PDF unchanged",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "cli-simulation one unencrypted page",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "cli-simulation physical film dimensions",
+      "status": "Passed",
+      "detail": {
+        "mediaBoxPoints": [
+          0.0,
+          0.0,
+          1008.0,
+          1224.0
+        ]
+      }
+    },
+    {
+      "check": "cli-simulation one embedded film image",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "cli-simulation independent embedded pixels equal companion raster",
+      "status": "Passed",
+      "detail": {
+        "PDFImage": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+        }
+      }
+    },
+    {
+      "check": "cli-simulation renderer completed",
+      "status": "Passed",
+      "detail": ""
+    },
+    {
+      "check": "cli-simulation rendered film size",
+      "status": "Passed",
+      "detail": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "13359446dcf3108efa791802fce37a77fadf155b36cb5394b1e11dc631444c31"
+      }
+    },
+    {
+      "check": "cli-simulation rendered pixels equal companion raster",
+      "status": "Failed",
+      "detail": {
+        "rendered": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "13359446dcf3108efa791802fce37a77fadf155b36cb5394b1e11dc631444c31"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08"
+        }
+      }
+    },
+    {
+      "check": "cli-simulation source PDF unchanged",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-gray-received one unencrypted page",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-gray-received physical film dimensions",
+      "status": "Passed",
+      "detail": {
+        "mediaBoxPoints": [
+          0.0,
+          0.0,
+          1008.0,
+          1224.0
+        ]
+      }
+    },
+    {
+      "check": "native-gray-received one embedded film image",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-gray-received independent embedded pixels equal companion raster",
+      "status": "Passed",
+      "detail": {
+        "PDFImage": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+        }
+      }
+    },
+    {
+      "check": "native-gray-received renderer completed",
+      "status": "Passed",
+      "detail": ""
+    },
+    {
+      "check": "native-gray-received rendered film size",
+      "status": "Passed",
+      "detail": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "3f8bd9931db47fa97247cb313b9c790f8e70c529f70cc0c8976f7f906feeafac"
+      }
+    },
+    {
+      "check": "native-gray-received rendered pixels equal companion raster",
+      "status": "Failed",
+      "detail": {
+        "rendered": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "3f8bd9931db47fa97247cb313b9c790f8e70c529f70cc0c8976f7f906feeafac"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+        }
+      }
+    },
+    {
+      "check": "native-gray-received source PDF unchanged",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-rgb-received one unencrypted page",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-rgb-received physical film dimensions",
+      "status": "Passed",
+      "detail": {
+        "mediaBoxPoints": [
+          0.0,
+          0.0,
+          1008.0,
+          1224.0
+        ]
+      }
+    },
+    {
+      "check": "native-rgb-received one embedded film image",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "native-rgb-received independent embedded pixels equal companion raster",
+      "status": "Passed",
+      "detail": {
+        "PDFImage": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "a4c942d50a685da9cec7b675255f34210219a6fa388c3877f2c9442cedd27653"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "a4c942d50a685da9cec7b675255f34210219a6fa388c3877f2c9442cedd27653"
+        }
+      }
+    },
+    {
+      "check": "native-rgb-received renderer completed",
+      "status": "Passed",
+      "detail": ""
+    },
+    {
+      "check": "native-rgb-received rendered film size",
+      "status": "Passed",
+      "detail": {
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "a619b5d739530985b40ea4ef5c17760d6436234ba117e197d4d21c48f778af1d"
+      }
+    },
+    {
+      "check": "native-rgb-received rendered pixels equal companion raster",
+      "status": "Failed",
+      "detail": {
+        "rendered": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "a619b5d739530985b40ea4ef5c17760d6436234ba117e197d4d21c48f778af1d"
+        },
+        "companion": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "a4c942d50a685da9cec7b675255f34210219a6fa388c3877f2c9442cedd27653"
+        }
+      }
+    },
+    {
+      "check": "native-rgb-received source PDF unchanged",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "CLI/native simulation decoded PDF pixel parity",
+      "status": "Passed",
+      "detail": null
+    }
+  ],
+  "limits": [
+    "No DICOMKit product, UI, print job or peer was run; original PDFs/raster files are unchanged.",
+    "This finite pixel/page comparison does not establish physical printer, calibration, diagnostic display or printed-film quality."
+  ]
+}

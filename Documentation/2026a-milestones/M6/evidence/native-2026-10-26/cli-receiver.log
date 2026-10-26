@@ -1,0 +1,801 @@
+{"level":"info","message":"Listening on port 21113 as M7CLI","time":"2026-10-26T05:23:21Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56219)","time":"2026-10-26T05:23:37Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:23:37Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56227)","time":"2026-10-26T05:23:49Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:23:49Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56236)","time":"2026-10-26T05:24:04Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:24:04Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56256)","time":"2026-10-26T05:24:26Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:24:26Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56257)","time":"2026-10-26T05:24:26Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:24:26Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56302)","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56303)","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56304)","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992311934216.821698","time":"2026-10-26T05:25:11Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992311939586.277315 — 2×3, 4 image boxes","time":"2026-10-26T05:25:11Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:25:11Z"}
+{
+  "annotations" : [
+    "1: first; literal note",
+    "2: O'Neil second"
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 3,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "ROW\\1,3",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "CLEAR FILM",
+  "numberOfCopies" : 2,
+  "presentationLUTShape" : "IDENTITY",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+  "receivedAt" : "2026-10-26T05:25:11Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 2×3, 1/4 images","time":"2026-10-26T05:25:11Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992311934216.821698","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:25:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56386)","time":"2026-10-26T05:27:09Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:27:09Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56409)","time":"2026-10-26T05:27:56Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992476277784.764064","time":"2026-10-26T05:27:56Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992476278118.238793 — 1×1, 1 image box","time":"2026-10-26T05:27:56Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:27:56Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992476278118.238793",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992476277784.764064",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+  "receivedAt" : "2026-10-26T05:27:56Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png","time":"2026-10-26T05:27:56Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:27:56Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992476277784.764064","time":"2026-10-26T05:27:56Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:27:56Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56417)","time":"2026-10-26T05:28:11Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992491458026.779732","time":"2026-10-26T05:28:11Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992491458726.850057 — 1×1, 1 image box","time":"2026-10-26T05:28:11Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:28:11Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992491458726.850057",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992491458026.779732",
+  "filmSize" : "8INX10IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+  "receivedAt" : "2026-10-26T05:28:11Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 254,
+  "sheetWidthMillimeters" : 203.2,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png","time":"2026-10-26T05:28:11Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:28:11Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992491458026.779732","time":"2026-10-26T05:28:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:28:11Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56432)","time":"2026-10-26T05:28:33Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992513351202.224673","time":"2026-10-26T05:28:33Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992513351743.139346 — 1×1, 1 image box","time":"2026-10-26T05:28:33Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:28:33Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992513351743.139346",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992513351202.224673",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+  "receivedAt" : "2026-10-26T05:28:33Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png","time":"2026-10-26T05:28:33Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:28:33Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992513351202.224673","time":"2026-10-26T05:28:33Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:28:33Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56436)","time":"2026-10-26T05:28:44Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992524594032.513936","time":"2026-10-26T05:28:44Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992524594420.806663 — 1×1, 1 image box","time":"2026-10-26T05:28:44Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:28:44Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992524594420.806663",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992524594032.513936",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+  "receivedAt" : "2026-10-26T05:28:44Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png","time":"2026-10-26T05:28:44Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:28:44Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992524594032.513936","time":"2026-10-26T05:28:44Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:28:44Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56440)","time":"2026-10-26T05:28:56Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992536123251.257329","time":"2026-10-26T05:28:56Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992536123654.961882 — 1×1, 1 image box","time":"2026-10-26T05:28:56Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:28:56Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992536123654.961882",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992536123251.257329",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+  "receivedAt" : "2026-10-26T05:28:56Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png","time":"2026-10-26T05:28:56Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:28:56Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992536123251.257329","time":"2026-10-26T05:28:56Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:28:56Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56446)","time":"2026-10-26T05:29:13Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992553277800.862718","time":"2026-10-26T05:29:13Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992553278205.860443 — 2×2, 4 image boxes","time":"2026-10-26T05:29:13Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:29:13Z"}
+{"level":"info","message":"Image box 2 filled — 64×48 px","time":"2026-10-26T05:29:13Z"}
+{"level":"info","message":"Image box 3 filled — 64×48 px","time":"2026-10-26T05:29:13Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 2,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 3,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992553278205.860443",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992553277800.862718",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "STANDARD\\2,2",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+  "receivedAt" : "2026-10-26T05:29:13Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png","time":"2026-10-26T05:29:13Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 2×2, 3/4 images","time":"2026-10-26T05:29:13Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992553277800.862718","time":"2026-10-26T05:29:13Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:29:13Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56447)","time":"2026-10-26T05:29:24Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992564495669.720014","time":"2026-10-26T05:29:24Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992564496647.899265 — 1×1, 1 image box","time":"2026-10-26T05:29:24Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:29:24Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992564496647.899265",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992564495669.720014",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+  "receivedAt" : "2026-10-26T05:29:24Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png","time":"2026-10-26T05:29:24Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:29:24Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992564495669.720014","time":"2026-10-26T05:29:24Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:29:24Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56453)","time":"2026-10-26T05:29:35Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992575650053.818887","time":"2026-10-26T05:29:35Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992575650367.49653 — 1×1, 1 image box","time":"2026-10-26T05:29:35Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:29:35Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+  "receivedAt" : "2026-10-26T05:29:35Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png","time":"2026-10-26T05:29:35Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:29:35Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992575650053.818887","time":"2026-10-26T05:29:35Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:29:35Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56474)","time":"2026-10-26T05:30:14Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992614657927.998166","time":"2026-10-26T05:30:14Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992614658390.548696 — 2×2, 4 image boxes","time":"2026-10-26T05:30:14Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:30:14Z"}
+{"level":"info","message":"Image box 2 filled — 64×48 px","time":"2026-10-26T05:30:14Z"}
+{"level":"info","message":"Image box 3 filled — 64×48 px","time":"2026-10-26T05:30:14Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 2,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 3,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992614658390.548696",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992614657927.998166",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "STANDARD\\2,2",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992614660712.696102",
+  "receivedAt" : "2026-10-26T05:30:14Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-010.png","time":"2026-10-26T05:30:14Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 2×2, 3/4 images","time":"2026-10-26T05:30:14Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992614657927.998166","time":"2026-10-26T05:30:14Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:30:14Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56584)","time":"2026-10-26T05:33:21Z"}
+{"level":"warning","message":"N-GET-RQ failed (0x0112): Unknown Print Job 1.2.826.0.1.3680043.10.511.99999","time":"2026-10-26T05:33:21Z"}
+{"level":"error","message":"Printer error: Association aborted: source=Service User, reason=0","time":"2026-10-26T05:33:21Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56603)","time":"2026-10-26T05:33:40Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:33:40Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56668)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56669)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56670)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56671)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992922754271.700605","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992922754888.726419 — 2×3, 4 image boxes","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:22Z"}
+{
+  "annotations" : [
+    "1: first; literal note",
+    "2: O'Neil second"
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 3,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992922754888.726419",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992922754271.700605",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "ROW\\1,3",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "CLEAR FILM",
+  "numberOfCopies" : 2,
+  "presentationLUTShape" : "IDENTITY",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992922755965.155293",
+  "receivedAt" : "2026-10-26T05:35:22Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-011.png","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 2×3, 1/4 images","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992922754271.700605","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56672)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992922791737.937223","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992922792114.167418 — 1×1, 1 image box","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:22Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992922792114.167418",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992922791737.937223",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992922792604.654820",
+  "receivedAt" : "2026-10-26T05:35:22Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-012.png","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992922791737.937223","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56673)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992922832170.195054","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992922832449.188870 — 1×1, 1 image box","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:22Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992922832449.188870",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992922832170.195054",
+  "filmSize" : "8INX10IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992922836968.185126",
+  "receivedAt" : "2026-10-26T05:35:22Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 254,
+  "sheetWidthMillimeters" : 203.2,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-013.png","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992922832170.195054","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56675)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992922911530.891873","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992922911864.455956 — 1×1, 1 image box","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:22Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992922911864.455956",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992922911530.891873",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992922912389.158021",
+  "receivedAt" : "2026-10-26T05:35:22Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-014.png","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992922911530.891873","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56676)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992922953809.991267","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992922954105.503894 — 1×1, 1 image box","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:22Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992922954105.503894",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992922953809.991267",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992922954614.207899",
+  "receivedAt" : "2026-10-26T05:35:22Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-015.png","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992922953809.991267","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56677)","time":"2026-10-26T05:35:22Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992922995493.705891","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992922995833.296449 — 1×1, 1 image box","time":"2026-10-26T05:35:22Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:22Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992922995833.296449",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992922995493.705891",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992922996342.838559",
+  "receivedAt" : "2026-10-26T05:35:22Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-016.png","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992922995493.705891","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56678)","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992923034392.828050","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992923034687.234215 — 2×2, 4 image boxes","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 2 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 3 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 2,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 3,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992923034687.234215",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992923034392.828050",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "STANDARD\\2,2",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992923035680.889718",
+  "receivedAt" : "2026-10-26T05:35:23Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-017.png","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 2×2, 3/4 images","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992923034392.828050","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56679)","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992923075878.818734","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992923076263.329663 — 1×1, 1 image box","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992923076263.329663",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992923075878.818734",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992923076820.559000",
+  "receivedAt" : "2026-10-26T05:35:23Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-018.png","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992923075878.818734","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56680)","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992923114855.108642","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992923115268.571295 — 1×1, 1 image box","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992923115268.571295",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992923114855.108642",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992923115811.254279",
+  "receivedAt" : "2026-10-26T05:35:23Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-019.png","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992923114855.108642","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association from M7NATIVE (127.0.0.1:56681)","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792992923155810.763879","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792992923156135.598263 — 2×2, 4 image boxes","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 2 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Image box 3 filled — 64×48 px","time":"2026-10-26T05:35:23Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7NATIVE",
+  "columns" : 2,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 3,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992923156135.598263",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992923155810.763879",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "STANDARD\\2,2",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992923157192.418682",
+  "receivedAt" : "2026-10-26T05:35:23Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-020.png","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"filmReceived","message":"Film printed — 2×2, 3/4 images","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792992923155810.763879","time":"2026-10-26T05:35:23Z"}
+{"callingAE":"M7NATIVE","level":"connection","message":"Association released by M7NATIVE","time":"2026-10-26T05:35:23Z"}
+{"level":"info","message":"Stopped — 33 associations, 20 films, 2 errors (interrupted)","time":"2026-10-26T05:38:51Z"}

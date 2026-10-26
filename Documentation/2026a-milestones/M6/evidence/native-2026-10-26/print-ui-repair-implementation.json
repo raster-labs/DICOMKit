@@ -1,0 +1,48 @@
+{
+  "status": "Implementation ready for parent build and native verification; no tests or products executed by implementer.",
+  "files": {
+    "Sources/DICOMPrintCommandSupport/SCUCommands.swift": "03291db4d9a58c9a35352b16895e0eac62fc647e8b7651924ddd7610e2428888",
+    "Sources/DICOMStudio/Views/CLIWorkshopView.swift": "06a0b41320a71715713c8c079e39940ae2d6818cd19248d6f5c8309c736b2ff9",
+    "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift": "c86e45a4685f6ee916caf407e14c575e5a8bfe9ef8c392a0911c514c780a0ad3",
+    "Tests/dicom-printTests/M6PrintSCUCommandTests.swift": "d4785e6c07b9e163fa722421d9198b785ae3714f75fd72a2705b9d376523555d",
+    "Tests/DICOMStudioTests/M6PrintSCUCatalogTests.swift": "f6e9cb2d6ad5f1a872ad066890670e5ef369901a58c2a3ee31d1d605068f60d0",
+    "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift": "6232eaef35204f95d45f0ce837ef8768cb57731bf31e02a0ed470690d9fcaa23"
+  },
+  "changes": [
+    "Empty list guidance is text-only; JSON emits the existing array schema as [].",
+    "Only dicom-print/dicom-printscp checkbox rows use native NSButton checkbox semantics on macOS. The bridge sets label/help/identifier and inherits SwiftUI isEnabled. Binding refresh handles reused rows. Other platforms use a simple semantic SwiftUI Toggle.",
+    "Nonprint checkbox branch is unchanged; preview validity is unchanged."
+  ],
+  "new_test_methods": [
+    "M6PrintSCUCommandTests.testEmptyPrinterJSONForAbsentEmptyAndLastRemovedRegistries",
+    "M6PrintSCUCatalogTests.testWorkshopEmptyRegistryJSONPreservesSharedOutputContract",
+    "M7PrintNativeCheckboxTests.testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState",
+    "M7PrintNativeCheckboxTests.testReusedCheckboxUpdatesBindingAndHonorsDisabledState",
+    "M7PrintNativeCheckboxTests.testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview"
+  ],
+  "regression_filters": [
+    "M6PrintSCUCommandTests",
+    "M6PrintSCUCatalogTests",
+    "M7PrintNativeCheckboxTests",
+    "M6WorkshopExecutionTests"
+  ],
+  "example_command": "swift test --filter \"M6PrintSCUCommandTests|M6PrintSCUCatalogTests|M7PrintNativeCheckboxTests|M6WorkshopExecutionTests\" (parent must use the established external scratch/cache build settings)",
+  "completed_checks": [
+    "Read-only diff inspection",
+    "git diff --check"
+  ],
+  "pending": [
+    "Parent Swift compilation and focused tests",
+    "Actual CLI empty registry stdout/stderr and populated control",
+    "Packaged native empty-list JSON action",
+    "Actual AX names/state in print send and SCP forms; focus and Space toggling; scroll/beginner/advanced layouts; disabled checkbox while command runs and re-enable after stop",
+    "NonmacOS compilation is not established by source guards alone"
+  ],
+  "native_regression_steps": [
+    "Select Print Client send; confirm checkbox AX descriptions match Verbose, Check Printer Status, Verify Connection, All Frames, Stored Pixel Values, Scan Directories Recursively, Dry Run.",
+    "Focus a checkbox and press Space; confirm only its corresponding preview flag and value change; repeat to restore.",
+    "Start bounded printscp serve; confirm all form checkboxes disabled, Stop available, and restored after stopping.",
+    "List printers with JSON for a fresh isolated registry and after removing its last entry; confirm [] result and no explanatory guidance."
+  ],
+  "test_fixture_correction": "print-checkbox-role-test-correction.json"
+}

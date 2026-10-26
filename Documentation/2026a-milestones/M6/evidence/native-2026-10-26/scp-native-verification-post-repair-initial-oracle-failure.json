@@ -1,0 +1,2624 @@
+{
+  "recordedUTC": "2026-10-26T06:01:18.052767+00:00",
+  "status": "Failed",
+  "completedNativeChecklistGroups": 0,
+  "replayPlan": "work/m7/native-2026-10-26/scp-cli-replay-plan-post-repair.json",
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "sourceJustification": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-post-repair-source-justification.json",
+  "checks": [
+    {
+      "check": "status-inherit native status JSON",
+      "status": "Passed",
+      "detail": {
+        "payload": {
+          "isNormal": true,
+          "manufacturer": "DICOMKit",
+          "Manufacturer": "DICOMKit",
+          "ManufacturerModelName": "DICOM Print Emulator",
+          "model": "DICOM Print Emulator",
+          "name": "M7 Native Baseline",
+          "PrinterName": "M7 Native Baseline",
+          "PrinterStatus": "NORMAL",
+          "PrinterStatusInfo": "NORMAL",
+          "status": "NORMAL",
+          "statusInfo": "NORMAL"
+        },
+        "argv": [
+          "dicom-printscp",
+          "status",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+          "--format",
+          "json"
+        ]
+      }
+    },
+    {
+      "check": "status-enabled native status JSON",
+      "status": "Passed",
+      "detail": {
+        "payload": {
+          "isNormal": true,
+          "manufacturer": "DICOMKit",
+          "Manufacturer": "DICOMKit",
+          "ManufacturerModelName": "DICOM Print Emulator",
+          "model": "DICOM Print Emulator",
+          "name": "M7 Native Baseline",
+          "PrinterName": "M7 Native Baseline",
+          "PrinterStatus": "NORMAL",
+          "PrinterStatusInfo": "NORMAL",
+          "status": "NORMAL",
+          "statusInfo": "NORMAL"
+        },
+        "argv": [
+          "dicom-printscp",
+          "status",
+          "--accept-color",
+          "--annotation-box",
+          "--annotations",
+          "--trim-marks",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+          "--format",
+          "json"
+        ]
+      }
+    },
+    {
+      "check": "inherit flags omitted",
+      "status": "Passed",
+      "detail": "Native imported command retains omitted/inherit state"
+    },
+    {
+      "check": "enabled flags serialized",
+      "status": "Passed",
+      "detail": "Visible flags serialized as positive switches; status JSON does not expose these internal settings"
+    },
+    {
+      "check": "saved native configuration exact fields",
+      "status": "Passed",
+      "detail": {
+        "nativeSaved": {
+          "acceptAnnotationBox": false,
+          "acceptPresentationLUT": true,
+          "aeTitle": "DCMPRINT",
+          "allowedCallingAETitles": "",
+          "annotationBoxesPerFilm": 6,
+          "annotationEdge": "bottom",
+          "associationIdleTimeoutSeconds": 300,
+          "cellSpacingMillimeters": 2,
+          "deniedCallingAETitles": "",
+          "densityMapping": "PAPER",
+          "deviceSerialNumber": "1",
+          "dpi": 36,
+          "drawAnnotations": false,
+          "drawTrimMarks": false,
+          "fileNamePattern": "film-{timestamp}-{index}",
+          "imageFormat": "png",
+          "manufacturer": "DICOMKit",
+          "manufacturerModelName": "DICOM Print Emulator",
+          "marginMillimeters": 5,
+          "maxConcurrentAssociations": 10,
+          "maxImageBoxPixelDimension": 10000,
+          "maxImageBoxesPerFilm": 64,
+          "maxPDUSize": 65536,
+          "maximumPixelDimension": 1024,
+          "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "paperQueue": "",
+          "port": 11113,
+          "printerName": "Saved Native",
+          "printerStatus": "NORMAL",
+          "printerStatusInfo": "",
+          "pushPrintJobEvents": false,
+          "retainedFilmLimit": 20,
+          "retainedMemoryBudgetMB": 256,
+          "saveImage": false,
+          "savePDF": false,
+          "sendToPaperQueue": false,
+          "softwareVersion": "1.0",
+          "supportedFilmSizeTokens": [],
+          "supportedMediumTokens": [],
+          "supportsColor": false
+        },
+        "expected": {
+          "acceptAnnotationBox": false,
+          "acceptPresentationLUT": true,
+          "aeTitle": "DCMPRINT",
+          "allowedCallingAETitles": "",
+          "annotationBoxesPerFilm": 6,
+          "annotationEdge": "bottom",
+          "associationIdleTimeoutSeconds": 300,
+          "cellSpacingMillimeters": 2,
+          "deniedCallingAETitles": "",
+          "densityMapping": "PAPER",
+          "deviceSerialNumber": "1",
+          "dpi": 36,
+          "drawAnnotations": false,
+          "drawTrimMarks": false,
+          "fileNamePattern": "film-{timestamp}-{index}",
+          "imageFormat": "png",
+          "manufacturer": "DICOMKit",
+          "manufacturerModelName": "DICOM Print Emulator",
+          "marginMillimeters": 5,
+          "maxConcurrentAssociations": 10,
+          "maxImageBoxPixelDimension": 10000,
+          "maxImageBoxesPerFilm": 64,
+          "maxPDUSize": 65536,
+          "maximumPixelDimension": 1024,
+          "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "paperQueue": "",
+          "port": 11113,
+          "printerName": "Saved Native",
+          "printerStatus": "NORMAL",
+          "printerStatusInfo": "",
+          "pushPrintJobEvents": false,
+          "retainedFilmLimit": 20,
+          "retainedMemoryBudgetMB": 256,
+          "saveImage": false,
+          "savePDF": false,
+          "sendToPaperQueue": false,
+          "softwareVersion": "1.0",
+          "supportedFilmSizeTokens": [],
+          "supportedMediumTokens": [],
+          "supportsColor": false
+        }
+      }
+    },
+    {
+      "check": "reloaded native configuration exact fields",
+      "status": "Passed",
+      "detail": "Verbose reload returns all saved configuration fields exactly"
+    },
+    {
+      "check": "native save-before-gather",
+      "status": "Passed",
+      "detail": "Save-config returns successfully before attempting intentionally missing input; no false gathered/printed claim"
+    },
+    {
+      "check": "native queues schema",
+      "status": "Passed",
+      "detail": [
+        {
+          "count": 0,
+          "queues": []
+        }
+      ]
+    },
+    {
+      "check": "native paper-import refusal",
+      "status": "Passed",
+      "detail": "Actual Import parser refused before Run; no physical printer dispatch"
+    },
+    {
+      "check": "native simulation film fields",
+      "status": "Passed",
+      "detail": {
+        "expected": {
+          "rows": 2,
+          "columns": 3,
+          "imageBoxCount": 4,
+          "filledImageBoxCount": 1,
+          "numberOfCopies": 2,
+          "imageDisplayFormat": "ROW\\1,3",
+          "borderDensity": "150",
+          "emptyImageDensity": "WHITE",
+          "trim": "YES",
+          "presentationLUTShape": "IDENTITY",
+          "annotations": [
+            "1:  first; literal note ",
+            "2: O'Neil second"
+          ]
+        },
+        "actual": [
+          {
+            "annotations": [
+              "1:  first; literal note ",
+              "2: O'Neil second"
+            ],
+            "borderDensity": "150",
+            "callingAETitle": "SIMULATE",
+            "columns": 3,
+            "densityMapping": "PAPER",
+            "dpi": 36,
+            "emptyImageDensity": "WHITE",
+            "filledImageBoxCount": 1,
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280309.292432",
+            "filmOrientation": "PORTRAIT",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280182.128563",
+            "filmSize": "14INX17IN",
+            "imageBoxCount": 4,
+            "imageDisplayFormat": "ROW\\1,3",
+            "magnificationType": "REPLICATE",
+            "mediumType": "PAPER",
+            "numberOfCopies": 2,
+            "presentationLUTShape": "IDENTITY",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280352.941895",
+            "receivedAt": "2026-10-26T05:41:55Z",
+            "rows": 2,
+            "sheetHeightMillimeters": 431.79999999999995,
+            "sheetWidthMillimeters": 355.59999999999997,
+            "skippedImageBoxes": [],
+            "trim": "YES"
+          }
+        ]
+      }
+    },
+    {
+      "check": "native last image output option + PDF",
+      "status": "Passed",
+      "detail": {
+        "actual": [
+          "native-001.pdf",
+          "native-001.tiff"
+        ],
+        "contract": "Last image-format option TIFF wins; PDF selected independently"
+      }
+    },
+    {
+      "check": "native TIFF decode",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.tiff",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08",
+        "fileSHA256": "d580a6498cf4553e0d380dd47a119df6afa5fd1910739ad5bc80f0e52cddb090"
+      }
+    },
+    {
+      "check": "native simulation PDF complete container",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.pdf",
+        "bytes": 9539,
+        "sha256": "59db0114d42983b10a38b5a16de043c5741802e89a0f3344bf0a94c91530361a",
+        "completeContainer": true
+      }
+    },
+    {
+      "check": "native failed sink visible without saved-file claim",
+      "status": "Passed",
+      "detail": "Failed file output is explicit; film/protocol data survives; no file-success claim"
+    },
+    {
+      "check": "native Open targets successful file",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/open-output/opened-001.png",
+        "raster": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/open-output/opened-001.png",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "d3d45e3f0e2ed7c3de45667ae82bd4fc66060110e5e5cc3db730421c8b1ee6fc",
+          "fileSHA256": "251b4743ee029f4c4f745d513b6f418ac554d907b6930df818478b6f375689ac"
+        },
+        "capture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-open-preview.txt"
+      }
+    },
+    {
+      "check": "serve-stopped stopped counters",
+      "status": "Passed",
+      "detail": {
+        "expectedStop": "Stopped — 2 associations, 2 films, 0 errors (cancelled)",
+        "messages": [
+          "Listening on port 21114 as DCMKIT_M6",
+          "Association from M7CLI (127.0.0.1:57047)",
+          "Film session created 1.2.826.0.1.3680043.10.511.4.1792993668965193.829437",
+          "Film box 1.2.826.0.1.3680043.10.511.4.1792993668966840.91823 — 1×1, 1 image box",
+          "Image box 1 filled — 64×48 px",
+          "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.pdf",
+          "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.png",
+          "Film printed — 1×1, 1/1 images",
+          "Deleted 1.2.826.0.1.3680043.10.511.4.1792993668965193.829437",
+          "Association released by M7CLI",
+          "Association from M7CLI (127.0.0.1:57048)",
+          "Film session created 1.2.826.0.1.3680043.10.511.4.1792993669017142.265442",
+          "Film box 1.2.826.0.1.3680043.10.511.4.1792993669017525.768271 — 1×1, 1 image box",
+          "Image box 1 filled — 64×48 px",
+          "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.pdf",
+          "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.png",
+          "Film printed — 1×1, 1/1 images",
+          "Deleted 1.2.826.0.1.3680043.10.511.4.1792993669017142.265442",
+          "Association released by M7CLI",
+          "Stopped — 2 associations, 2 films, 0 errors (cancelled)"
+        ]
+      }
+    },
+    {
+      "check": "duration-complete stopped counters",
+      "status": "Passed",
+      "detail": {
+        "expectedStop": "Stopped — 0 associations, 0 films, 0 errors (reached --duration 2s)",
+        "messages": [
+          "Listening on port 21114 as DCMKIT_M6",
+          "Stopped — 0 associations, 0 films, 0 errors (reached --duration 2s)"
+        ]
+      }
+    },
+    {
+      "check": "one-film-complete stopped counters",
+      "status": "Passed",
+      "detail": {
+        "expectedStop": "Stopped — 1 association, 1 film, 0 errors (reached --max-films 1)",
+        "messages": [
+          "Listening on port 21114 as DCMKIT_M6",
+          "Association from M7CLI (127.0.0.1:57074)",
+          "Film session created 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+          "Film box 1.2.826.0.1.3680043.10.511.4.1792993748311974.87301 — 1×1, 1 image box",
+          "Image box 1 filled — 64×48 px",
+          "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/limited-001.png",
+          "Film printed — 1×1, 1/1 images",
+          "Deleted 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+          "Association released by M7CLI",
+          "Stopped — 1 association, 1 film, 0 errors (reached --max-films 1)"
+        ]
+      }
+    },
+    {
+      "check": "independent-color-stopped stopped counters",
+      "status": "Passed",
+      "detail": {
+        "expectedStop": "Stopped — 2 associations, 1 film, 1 error (cancelled)",
+        "messages": [
+          "Listening on port 21114 as DCMKIT_M6",
+          "Association from PYM6SCU (127.0.0.1:57095)",
+          "Film session created 1.2.826.0.1.3680043.10.543.20261024.6.3000",
+          "Film box 1.2.826.0.1.3680043.10.543.20261024.6.3001 — 1×1, 1 image box",
+          "Image box 1 filled — 16×16 px",
+          "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color/native-001.png",
+          "Film printed — 1×1, 1/1 images",
+          "Deleted 1.2.826.0.1.3680043.10.543.20261024.6.3001",
+          "Deleted 1.2.826.0.1.3680043.10.543.20261024.6.3000",
+          "Association released by PYM6SCU",
+          "Association from PYM6SCU (127.0.0.1:57097)",
+          "N-GET-RQ failed (0x0112): Unknown Print Job 1.2.826.0.1.3680043.10.511.4.1792993780545337.566118",
+          "Association released by PYM6SCU",
+          "Stopped — 2 associations, 1 film, 1 error (cancelled)"
+        ]
+      }
+    },
+    {
+      "check": "independent-gray-stopped stopped counters",
+      "status": "Passed",
+      "detail": {
+        "expectedStop": "Stopped — 1 association, 1 film, 0 errors (cancelled)",
+        "messages": [
+          "Listening on port 21114 as DCMKIT_M6",
+          "Association from M6DCMTK (127.0.0.1:57132)",
+          "Film session created 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317",
+          "Film box 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125 — 1×1, 1 image box",
+          "Image box 1 filled — 16×16 px",
+          "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray/native-001.png",
+          "Film printed — 1×1, 1/1 images",
+          "Deleted 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125",
+          "Deleted 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317",
+          "Deleted 1.2.826.0.1.3680043.10.511.4.1792993824163451.474661",
+          "Association released by M6DCMTK",
+          "Stopped — 1 association, 1 film, 0 errors (cancelled)"
+        ]
+      }
+    },
+    {
+      "check": "leave-cancelled stopped counters",
+      "status": "Passed",
+      "detail": {
+        "expectedStop": "Stopped — 0 associations, 0 films, 0 errors (cancelled)",
+        "messages": [
+          "Listening on port 21114 as DCMKIT_M6",
+          "Stopped — 0 associations, 0 films, 0 errors (cancelled)"
+        ]
+      }
+    },
+    {
+      "check": "gray8 CLI/native receiver identifiers",
+      "status": "Passed",
+      "detail": {
+        "CLI": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993668966840.91823",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993668965193.829437",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993668968592.743752",
+          "success": true
+        },
+        "film": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7CLI",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993668966840.91823",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993668965193.829437",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993668968592.743752",
+          "receivedAt": "2026-10-26T05:47:48Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        }
+      }
+    },
+    {
+      "check": "gray8 native received image",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      }
+    },
+    {
+      "check": "gray8 pixels match final raw gray CLI baseline",
+      "status": "Passed",
+      "detail": "Dimensions and decoded RGBA pixels equal"
+    },
+    {
+      "check": "gray8 received PDF complete container",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.pdf",
+        "bytes": 14513,
+        "sha256": "4d00f56aa39bda955f6ad1e336bf9d1d7a0da98fb23e7985462e3bab37c51e62",
+        "completeContainer": true
+      }
+    },
+    {
+      "check": "rgb8 CLI/native receiver identifiers",
+      "status": "Passed",
+      "detail": {
+        "CLI": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993669017525.768271",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993669017142.265442",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993669022410.793242",
+          "success": true
+        },
+        "film": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7CLI",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993669017525.768271",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993669017142.265442",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993669022410.793242",
+          "receivedAt": "2026-10-26T05:47:49Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        }
+      }
+    },
+    {
+      "check": "rgb8 native received image",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "RGB",
+        "rgbaSHA256": "a4c942d50a685da9cec7b675255f34210219a6fa388c3877f2c9442cedd27653",
+        "fileSHA256": "999c3b60ef129aa6ed1b35e41286e0bc927eec6c6aecefcf56760c9ffeb23493"
+      }
+    },
+    {
+      "check": "rgb8 received PDF complete container",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.pdf",
+        "bytes": 30021,
+        "sha256": "e4e21a1ab54cc64ed107d3e6e0a6e68c27c1926bc2f8a8a74c8435b9a1962826",
+        "completeContainer": true
+      }
+    },
+    {
+      "check": "one-film CLI/native receiver identifiers",
+      "status": "Passed",
+      "detail": {
+        "CLI": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993748311974.87301",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993748313833.153537",
+          "success": true
+        },
+        "film": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7CLI",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993748311974.87301",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993748313833.153537",
+          "receivedAt": "2026-10-26T05:49:08Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        }
+      }
+    },
+    {
+      "check": "one-film native received image",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/limited-001.png",
+        "size": [
+          504,
+          612
+        ],
+        "mode": "L",
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2"
+      }
+    },
+    {
+      "check": "one-film pixels match final raw gray CLI baseline",
+      "status": "Passed",
+      "detail": "Dimensions and decoded RGBA pixels equal"
+    },
+    {
+      "check": "independent gray actual native role evidence",
+      "status": "Passed",
+      "detail": {
+        "result": {
+          "passed": true,
+          "native_listener_launched_by_wrapper": false,
+          "observations": {
+            "native_configuration_required": [
+              "--no-accept-color",
+              "--presentation-lut",
+              "--annotation-box"
+            ],
+            "films": [
+              {
+                "file": "native-001.png",
+                "sha256": "4baad8beabef34ddd1e3ca3edc658309d4b27f3d7498db2e129a94b7c56a13e3"
+              }
+            ],
+            "dimse_messages": 20,
+            "accepted_contexts": [
+              {
+                "1": {
+                  "abstract": "1.2.840.10008.5.1.1.9",
+                  "offered": [
+                    "1.2.840.10008.1.2.1",
+                    "1.2.840.10008.1.2.2",
+                    "1.2.840.10008.1.2"
+                  ],
+                  "result": 0,
+                  "transfer": "1.2.840.10008.1.2.1"
+                },
+                "3": {
+                  "abstract": "1.2.840.10008.5.1.1.23",
+                  "offered": [
+                    "1.2.840.10008.1.2.1",
+                    "1.2.840.10008.1.2.2",
+                    "1.2.840.10008.1.2"
+                  ],
+                  "result": 0,
+                  "transfer": "1.2.840.10008.1.2.1"
+                },
+                "5": {
+                  "abstract": "1.2.840.10008.5.1.1.15",
+                  "offered": [
+                    "1.2.840.10008.1.2.1",
+                    "1.2.840.10008.1.2.2",
+                    "1.2.840.10008.1.2"
+                  ],
+                  "result": 0,
+                  "transfer": "1.2.840.10008.1.2.1"
+                }
+              }
+            ],
+            "received_bits": 12,
+            "received_size": [
+              16,
+              16
+            ]
+          }
+        },
+        "raster": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray/native-001.png",
+          "size": [
+            288,
+            360
+          ],
+          "mode": "L",
+          "rgbaSHA256": "6bbd5454b97f68db710ec189a9d5e3808c15fb089c22300f6d13cd7312740e73",
+          "fileSHA256": "4baad8beabef34ddd1e3ca3edc658309d4b27f3d7498db2e129a94b7c56a13e3"
+        }
+      }
+    },
+    {
+      "check": "independent gray DIMSE statuses",
+      "status": "Passed",
+      "detail": {
+        "statuses": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "scope": "Color deliberately probes deleted PrintJob with N-GET: expected0112 and error counter1; all other responses successful"
+      }
+    },
+    {
+      "check": "independent color actual native role evidence",
+      "status": "Passed",
+      "detail": {
+        "result": {
+          "passed": true,
+          "native_listener_launched_by_wrapper": false,
+          "observations": {
+            "native_configuration_required": [
+              "--accept-color",
+              "--push-job-events"
+            ],
+            "films": [
+              {
+                "file": "native-001.png",
+                "sha256": "dcca6e7d2a49858a8f2092b102cdbd3ffe771ebf874603ab56a58cbd183f6e67"
+              }
+            ],
+            "dimse_messages": 16,
+            "accepted_contexts": [
+              {
+                "1": {
+                  "abstract": "1.2.840.10008.5.1.1.18",
+                  "offered": [
+                    "1.2.840.10008.1.2.1"
+                  ],
+                  "result": 0,
+                  "transfer": "1.2.840.10008.1.2.1"
+                },
+                "3": {
+                  "abstract": "1.2.840.10008.5.1.1.14",
+                  "offered": [
+                    "1.2.840.10008.1.2"
+                  ],
+                  "result": 0,
+                  "transfer": "1.2.840.10008.1.2"
+                }
+              },
+              {
+                "1": {
+                  "abstract": "1.2.840.10008.5.1.1.18",
+                  "offered": [
+                    "1.2.840.10008.1.2.1"
+                  ],
+                  "result": 0,
+                  "transfer": "1.2.840.10008.1.2.1"
+                },
+                "3": {
+                  "abstract": "1.2.840.10008.5.1.1.14",
+                  "offered": [
+                    "1.2.840.10008.1.2"
+                  ],
+                  "result": 0,
+                  "transfer": "1.2.840.10008.1.2"
+                }
+              }
+            ],
+            "job_uid": "1.2.826.0.1.3680043.10.511.4.1792993780545337.566118"
+          }
+        },
+        "raster": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color/native-001.png",
+          "size": [
+            288,
+            360
+          ],
+          "mode": "RGB",
+          "rgbaSHA256": "7e1b3948005bf9cf1d6bc013e14c80b6e22d979ca8c2ee901f766caa1f599c18",
+          "fileSHA256": "dcca6e7d2a49858a8f2092b102cdbd3ffe771ebf874603ab56a58cbd183f6e67"
+        }
+      }
+    },
+    {
+      "check": "independent color DIMSE statuses",
+      "status": "Passed",
+      "detail": {
+        "statuses": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          274
+        ],
+        "scope": "Color deliberately probes deleted PrintJob with N-GET: expected0112 and error counter1; all other responses successful"
+      }
+    },
+    {
+      "check": "native color terminal event and ACK",
+      "status": "Passed",
+      "detail": {
+        "events": [
+          {
+            "class": "1.2.840.10008.5.1.1.14",
+            "instance": "1.2.826.0.1.3680043.10.511.4.1792993780545337.566118",
+            "event_type": 3,
+            "context": 3,
+            "transfer": "1.2.840.10008.1.2",
+            "dataset": {
+              "21000030": {
+                "Value": [
+                  "NORMAL"
+                ],
+                "vr": "CS"
+              },
+              "21100030": {
+                "Value": [
+                  "DICOMKIT-PRINTER"
+                ],
+                "vr": "LO"
+              }
+            }
+          }
+        ],
+        "scope": "Independent peer captured terminal DONE event on negotiated Implicit VR context and successful event response"
+      }
+    },
+    {
+      "check": "leave-Workshop port released",
+      "status": "Passed",
+      "detail": {
+        "port": 21114,
+        "bind_after_leaving_workshop": "passed",
+        "listener_launched": false
+      }
+    },
+    {
+      "check": "native config remains unchanged baseline-scp.json",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+        "sha256": "1eae2cc833c631c1ab68727a62c96259b1d7a6349a2b6925022fa698f1f34df6"
+      }
+    },
+    {
+      "check": "native config remains unchanged saved-scp.json",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json",
+        "sha256": "3be44cdff206e82561880bab643eebe36ba36b09a3a489ff90ce41ee777adbb5"
+      }
+    },
+    {
+      "check": "native config remains unchanged simulation-save.json",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/simulation-save.json",
+        "sha256": "f0dae31c97fd6bb4e2550dcc45a14142c6c876140a75473cb619bf8efe047ff0"
+      }
+    },
+    {
+      "check": "status-inherit CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "status",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+          "--format",
+          "json"
+        ]
+      }
+    },
+    {
+      "check": "status-inherit CLI/native complete JSON parity",
+      "status": "Passed",
+      "detail": {
+        "CLI": [
+          {
+            "isNormal": true,
+            "manufacturer": "DICOMKit",
+            "Manufacturer": "DICOMKit",
+            "ManufacturerModelName": "DICOM Print Emulator",
+            "model": "DICOM Print Emulator",
+            "name": "M7 Native Baseline",
+            "PrinterName": "M7 Native Baseline",
+            "PrinterStatus": "NORMAL",
+            "PrinterStatusInfo": "NORMAL",
+            "status": "NORMAL",
+            "statusInfo": "NORMAL"
+          }
+        ],
+        "native": [
+          {
+            "isNormal": true,
+            "manufacturer": "DICOMKit",
+            "Manufacturer": "DICOMKit",
+            "ManufacturerModelName": "DICOM Print Emulator",
+            "model": "DICOM Print Emulator",
+            "name": "M7 Native Baseline",
+            "PrinterName": "M7 Native Baseline",
+            "PrinterStatus": "NORMAL",
+            "PrinterStatusInfo": "NORMAL",
+            "status": "NORMAL",
+            "statusInfo": "NORMAL"
+          }
+        ]
+      }
+    },
+    {
+      "check": "status-enabled CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "status",
+          "--accept-color",
+          "--annotation-box",
+          "--annotations",
+          "--trim-marks",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+          "--format",
+          "json"
+        ]
+      }
+    },
+    {
+      "check": "status-enabled CLI/native complete JSON parity",
+      "status": "Passed",
+      "detail": {
+        "CLI": [
+          {
+            "isNormal": true,
+            "manufacturer": "DICOMKit",
+            "Manufacturer": "DICOMKit",
+            "ManufacturerModelName": "DICOM Print Emulator",
+            "model": "DICOM Print Emulator",
+            "name": "M7 Native Baseline",
+            "PrinterName": "M7 Native Baseline",
+            "PrinterStatus": "NORMAL",
+            "PrinterStatusInfo": "NORMAL",
+            "status": "NORMAL",
+            "statusInfo": "NORMAL"
+          }
+        ],
+        "native": [
+          {
+            "isNormal": true,
+            "manufacturer": "DICOMKit",
+            "Manufacturer": "DICOMKit",
+            "ManufacturerModelName": "DICOM Print Emulator",
+            "model": "DICOM Print Emulator",
+            "name": "M7 Native Baseline",
+            "PrinterName": "M7 Native Baseline",
+            "PrinterStatus": "NORMAL",
+            "PrinterStatusInfo": "NORMAL",
+            "status": "NORMAL",
+            "statusInfo": "NORMAL"
+          }
+        ]
+      }
+    },
+    {
+      "check": "save-config CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "status",
+          "--no-accept-color",
+          "--printer-name",
+          "Saved Native",
+          "--no-annotations",
+          "--output",
+          "none",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json",
+          "--save-config",
+          "--format",
+          "json"
+        ]
+      }
+    },
+    {
+      "check": "save-config saved settings complete parity",
+      "status": "Passed",
+      "detail": {
+        "CLI": {
+          "acceptAnnotationBox": false,
+          "acceptPresentationLUT": true,
+          "aeTitle": "DCMPRINT",
+          "allowedCallingAETitles": "",
+          "annotationBoxesPerFilm": 6,
+          "annotationEdge": "bottom",
+          "associationIdleTimeoutSeconds": 300,
+          "cellSpacingMillimeters": 2,
+          "deniedCallingAETitles": "",
+          "densityMapping": "PAPER",
+          "deviceSerialNumber": "1",
+          "dpi": 36,
+          "drawAnnotations": false,
+          "drawTrimMarks": false,
+          "fileNamePattern": "film-{timestamp}-{index}",
+          "imageFormat": "png",
+          "manufacturer": "DICOMKit",
+          "manufacturerModelName": "DICOM Print Emulator",
+          "marginMillimeters": 5,
+          "maxConcurrentAssociations": 10,
+          "maxImageBoxPixelDimension": 10000,
+          "maxImageBoxesPerFilm": 64,
+          "maxPDUSize": 65536,
+          "maximumPixelDimension": 1024,
+          "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "paperQueue": "",
+          "port": 11113,
+          "printerName": "Saved Native",
+          "printerStatus": "NORMAL",
+          "printerStatusInfo": "",
+          "pushPrintJobEvents": false,
+          "retainedFilmLimit": 20,
+          "retainedMemoryBudgetMB": 256,
+          "saveImage": false,
+          "savePDF": false,
+          "sendToPaperQueue": false,
+          "softwareVersion": "1.0",
+          "supportedFilmSizeTokens": [],
+          "supportedMediumTokens": [],
+          "supportsColor": false
+        },
+        "native": {
+          "acceptAnnotationBox": false,
+          "acceptPresentationLUT": true,
+          "aeTitle": "DCMPRINT",
+          "allowedCallingAETitles": "",
+          "annotationBoxesPerFilm": 6,
+          "annotationEdge": "bottom",
+          "associationIdleTimeoutSeconds": 300,
+          "cellSpacingMillimeters": 2,
+          "deniedCallingAETitles": "",
+          "densityMapping": "PAPER",
+          "deviceSerialNumber": "1",
+          "dpi": 36,
+          "drawAnnotations": false,
+          "drawTrimMarks": false,
+          "fileNamePattern": "film-{timestamp}-{index}",
+          "imageFormat": "png",
+          "manufacturer": "DICOMKit",
+          "manufacturerModelName": "DICOM Print Emulator",
+          "marginMillimeters": 5,
+          "maxConcurrentAssociations": 10,
+          "maxImageBoxPixelDimension": 10000,
+          "maxImageBoxesPerFilm": 64,
+          "maxPDUSize": 65536,
+          "maximumPixelDimension": 1024,
+          "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "paperQueue": "",
+          "port": 11113,
+          "printerName": "Saved Native",
+          "printerStatus": "NORMAL",
+          "printerStatusInfo": "",
+          "pushPrintJobEvents": false,
+          "retainedFilmLimit": 20,
+          "retainedMemoryBudgetMB": 256,
+          "saveImage": false,
+          "savePDF": false,
+          "sendToPaperQueue": false,
+          "softwareVersion": "1.0",
+          "supportedFilmSizeTokens": [],
+          "supportedMediumTokens": [],
+          "supportsColor": false
+        }
+      }
+    },
+    {
+      "check": "save-config saved-file diagnostic parity",
+      "status": "Passed",
+      "detail": {
+        "stdout": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json\n",
+        "stderr": "",
+        "explicitPathMapping": [
+          {
+            "index": 9,
+            "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json",
+            "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json"
+          }
+        ]
+      }
+    },
+    {
+      "check": "status-reloaded CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "status",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json",
+          "--format",
+          "json",
+          "--verbose"
+        ]
+      }
+    },
+    {
+      "check": "status-reloaded CLI/native complete JSON parity",
+      "status": "Passed",
+      "detail": {
+        "CLI": [
+          {
+            "acceptAnnotationBox": false,
+            "acceptPresentationLUT": true,
+            "aeTitle": "DCMPRINT",
+            "allowedCallingAETitles": "",
+            "annotationBoxesPerFilm": 6,
+            "annotationEdge": "bottom",
+            "associationIdleTimeoutSeconds": 300,
+            "cellSpacingMillimeters": 2,
+            "deniedCallingAETitles": "",
+            "densityMapping": "PAPER",
+            "deviceSerialNumber": "1",
+            "dpi": 36,
+            "drawAnnotations": false,
+            "drawTrimMarks": false,
+            "fileNamePattern": "film-{timestamp}-{index}",
+            "imageFormat": "png",
+            "manufacturer": "DICOMKit",
+            "manufacturerModelName": "DICOM Print Emulator",
+            "marginMillimeters": 5,
+            "maxConcurrentAssociations": 10,
+            "maxImageBoxPixelDimension": 10000,
+            "maxImageBoxesPerFilm": 64,
+            "maxPDUSize": 65536,
+            "maximumPixelDimension": 1024,
+            "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+            "paperQueue": "",
+            "port": 11113,
+            "printerName": "Saved Native",
+            "printerStatus": "NORMAL",
+            "printerStatusInfo": "",
+            "pushPrintJobEvents": false,
+            "retainedFilmLimit": 20,
+            "retainedMemoryBudgetMB": 256,
+            "saveImage": false,
+            "savePDF": false,
+            "sendToPaperQueue": false,
+            "softwareVersion": "1.0",
+            "supportedFilmSizeTokens": [],
+            "supportedMediumTokens": [],
+            "supportsColor": false
+          }
+        ],
+        "native": [
+          {
+            "acceptAnnotationBox": false,
+            "acceptPresentationLUT": true,
+            "aeTitle": "DCMPRINT",
+            "allowedCallingAETitles": "",
+            "annotationBoxesPerFilm": 6,
+            "annotationEdge": "bottom",
+            "associationIdleTimeoutSeconds": 300,
+            "cellSpacingMillimeters": 2,
+            "deniedCallingAETitles": "",
+            "densityMapping": "PAPER",
+            "deviceSerialNumber": "1",
+            "dpi": 36,
+            "drawAnnotations": false,
+            "drawTrimMarks": false,
+            "fileNamePattern": "film-{timestamp}-{index}",
+            "imageFormat": "png",
+            "manufacturer": "DICOMKit",
+            "manufacturerModelName": "DICOM Print Emulator",
+            "marginMillimeters": 5,
+            "maxConcurrentAssociations": 10,
+            "maxImageBoxPixelDimension": 10000,
+            "maxImageBoxesPerFilm": 64,
+            "maxPDUSize": 65536,
+            "maximumPixelDimension": 1024,
+            "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+            "paperQueue": "",
+            "port": 11113,
+            "printerName": "Saved Native",
+            "printerStatus": "NORMAL",
+            "printerStatusInfo": "",
+            "pushPrintJobEvents": false,
+            "retainedFilmLimit": 20,
+            "retainedMemoryBudgetMB": 256,
+            "saveImage": false,
+            "savePDF": false,
+            "sendToPaperQueue": false,
+            "softwareVersion": "1.0",
+            "supportedFilmSizeTokens": [],
+            "supportedMediumTokens": [],
+            "supportsColor": false
+          }
+        ]
+      }
+    },
+    {
+      "check": "queues CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "queues",
+          "--format",
+          "json"
+        ]
+      }
+    },
+    {
+      "check": "queues CLI/native complete JSON parity",
+      "status": "Passed",
+      "detail": {
+        "CLI": [
+          {
+            "count": 0,
+            "queues": []
+          }
+        ],
+        "native": [
+          {
+            "count": 0,
+            "queues": []
+          }
+        ]
+      }
+    },
+    {
+      "check": "save-before-gather CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "simulate",
+          "--dpi",
+          "36",
+          "--output",
+          "none",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json",
+          "--save-config",
+          "--copies",
+          "1",
+          "--frame",
+          "1",
+          "--bit-depth",
+          "8",
+          "--calling-ae",
+          "SIMULATE",
+          "--format",
+          "json",
+          "--",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/deliberately-missing.dcm"
+        ]
+      }
+    },
+    {
+      "check": "save-before-gather saved settings complete parity",
+      "status": "Passed",
+      "detail": {
+        "CLI": {
+          "acceptAnnotationBox": false,
+          "acceptPresentationLUT": true,
+          "aeTitle": "DCMPRINT",
+          "allowedCallingAETitles": "",
+          "annotationBoxesPerFilm": 6,
+          "annotationEdge": "bottom",
+          "associationIdleTimeoutSeconds": 300,
+          "cellSpacingMillimeters": 2,
+          "deniedCallingAETitles": "",
+          "densityMapping": "PAPER",
+          "deviceSerialNumber": "1",
+          "dpi": 36,
+          "drawAnnotations": false,
+          "drawTrimMarks": false,
+          "fileNamePattern": "film-{timestamp}-{index}",
+          "imageFormat": "png",
+          "manufacturer": "DICOMKit",
+          "manufacturerModelName": "DICOM Print Emulator",
+          "marginMillimeters": 5,
+          "maxConcurrentAssociations": 10,
+          "maxImageBoxPixelDimension": 10000,
+          "maxImageBoxesPerFilm": 64,
+          "maxPDUSize": 65536,
+          "maximumPixelDimension": 1024,
+          "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "paperQueue": "",
+          "port": 11113,
+          "printerName": "M7 Native Baseline",
+          "printerStatus": "NORMAL",
+          "printerStatusInfo": "",
+          "pushPrintJobEvents": false,
+          "retainedFilmLimit": 20,
+          "retainedMemoryBudgetMB": 256,
+          "saveImage": false,
+          "savePDF": false,
+          "sendToPaperQueue": false,
+          "softwareVersion": "1.0",
+          "supportedFilmSizeTokens": [],
+          "supportedMediumTokens": [],
+          "supportsColor": false
+        },
+        "native": {
+          "acceptAnnotationBox": false,
+          "acceptPresentationLUT": true,
+          "aeTitle": "DCMPRINT",
+          "allowedCallingAETitles": "",
+          "annotationBoxesPerFilm": 6,
+          "annotationEdge": "bottom",
+          "associationIdleTimeoutSeconds": 300,
+          "cellSpacingMillimeters": 2,
+          "deniedCallingAETitles": "",
+          "densityMapping": "PAPER",
+          "deviceSerialNumber": "1",
+          "dpi": 36,
+          "drawAnnotations": false,
+          "drawTrimMarks": false,
+          "fileNamePattern": "film-{timestamp}-{index}",
+          "imageFormat": "png",
+          "manufacturer": "DICOMKit",
+          "manufacturerModelName": "DICOM Print Emulator",
+          "marginMillimeters": 5,
+          "maxConcurrentAssociations": 10,
+          "maxImageBoxPixelDimension": 10000,
+          "maxImageBoxesPerFilm": 64,
+          "maxPDUSize": 65536,
+          "maximumPixelDimension": 1024,
+          "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "paperQueue": "",
+          "port": 11113,
+          "printerName": "M7 Native Baseline",
+          "printerStatus": "NORMAL",
+          "printerStatusInfo": "",
+          "pushPrintJobEvents": false,
+          "retainedFilmLimit": 20,
+          "retainedMemoryBudgetMB": 256,
+          "saveImage": false,
+          "savePDF": false,
+          "sendToPaperQueue": false,
+          "softwareVersion": "1.0",
+          "supportedFilmSizeTokens": [],
+          "supportedMediumTokens": [],
+          "supportsColor": false
+        }
+      }
+    },
+    {
+      "check": "save-before-gather saved-file diagnostic parity",
+      "status": "Passed",
+      "detail": {
+        "stdout": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json\n",
+        "stderr": "",
+        "explicitPathMapping": [
+          {
+            "index": 7,
+            "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/simulation-save.json",
+            "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json"
+          }
+        ]
+      }
+    },
+    {
+      "check": "simulate CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "simulate",
+          "--dpi",
+          "36",
+          "--max-pixels",
+          "1024",
+          "--output",
+          "png",
+          "--output",
+          "tiff",
+          "--output",
+          "pdf",
+          "--output-dir",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair",
+          "--name-pattern",
+          "native-{index}",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/absent.json",
+          "--layout",
+          "ROW\\1,3",
+          "--copies",
+          "2",
+          "--presentation-lut",
+          "IDENTITY",
+          "--trim",
+          "--border-density",
+          "150",
+          "--empty-density",
+          "WHITE",
+          "--annotate",
+          " first; literal note ",
+          "--annotate",
+          "O'Neil second",
+          "--annotation-format",
+          "M7FMT",
+          "--frame",
+          "1",
+          "--window-center=-600",
+          "--window-width",
+          "1200",
+          "--bit-depth",
+          "8",
+          "--calling-ae",
+          "SIMULATE",
+          "--format",
+          "json",
+          "--",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+        ]
+      }
+    },
+    {
+      "check": "simulate CLI/native all film fields",
+      "status": "Passed",
+      "detail": {
+        "CLI": [
+          {
+            "annotations": [
+              "1:  first; literal note ",
+              "2: O'Neil second"
+            ],
+            "borderDensity": "150",
+            "callingAETitle": "SIMULATE",
+            "columns": 3,
+            "densityMapping": "PAPER",
+            "dpi": 36,
+            "emptyImageDensity": "WHITE",
+            "filledImageBoxCount": 1,
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.3.1792994466175526.294039",
+            "filmOrientation": "PORTRAIT",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.3.1792994466175401.85010",
+            "filmSize": "14INX17IN",
+            "imageBoxCount": 4,
+            "imageDisplayFormat": "ROW\\1,3",
+            "magnificationType": "REPLICATE",
+            "mediumType": "PAPER",
+            "numberOfCopies": 2,
+            "presentationLUTShape": "IDENTITY",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.3.1792994466175556.687809",
+            "receivedAt": "2026-10-26T06:01:06Z",
+            "rows": 2,
+            "sheetHeightMillimeters": 431.79999999999995,
+            "sheetWidthMillimeters": 355.59999999999997,
+            "skippedImageBoxes": [],
+            "trim": "YES"
+          }
+        ],
+        "native": [
+          {
+            "annotations": [
+              "1:  first; literal note ",
+              "2: O'Neil second"
+            ],
+            "borderDensity": "150",
+            "callingAETitle": "SIMULATE",
+            "columns": 3,
+            "densityMapping": "PAPER",
+            "dpi": 36,
+            "emptyImageDensity": "WHITE",
+            "filledImageBoxCount": 1,
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280309.292432",
+            "filmOrientation": "PORTRAIT",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280182.128563",
+            "filmSize": "14INX17IN",
+            "imageBoxCount": 4,
+            "imageDisplayFormat": "ROW\\1,3",
+            "magnificationType": "REPLICATE",
+            "mediumType": "PAPER",
+            "numberOfCopies": 2,
+            "presentationLUTShape": "IDENTITY",
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280352.941895",
+            "receivedAt": "2026-10-26T05:41:55Z",
+            "rows": 2,
+            "sheetHeightMillimeters": 431.79999999999995,
+            "sheetWidthMillimeters": 355.59999999999997,
+            "skippedImageBoxes": [],
+            "trim": "YES"
+          }
+        ],
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "simulate CLI output selection",
+      "status": "Passed",
+      "detail": "TIFF + PDF only"
+    },
+    {
+      "check": "simulate native/CLI decoded TIFF pixels",
+      "status": "Passed",
+      "detail": {
+        "CLI": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair/native-001.tiff",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08",
+          "fileSHA256": "d580a6498cf4553e0d380dd47a119df6afa5fd1910739ad5bc80f0e52cddb090"
+        },
+        "native": {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.tiff",
+          "size": [
+            504,
+            612
+          ],
+          "mode": "L",
+          "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08",
+          "fileSHA256": "d580a6498cf4553e0d380dd47a119df6afa5fd1910739ad5bc80f0e52cddb090"
+        }
+      }
+    },
+    {
+      "check": "simulate CLI PDF complete container",
+      "status": "Passed",
+      "detail": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair/native-001.pdf",
+        "bytes": 9539,
+        "sha256": "e871f987db972d0d4586015ba7ff075530cd2369ce88c31c5c4133c6608fa2c0",
+        "completeContainer": true
+      }
+    },
+    {
+      "check": "sink-failure CLI exact planned argv/result",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "expected": 0,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "simulate",
+          "--dpi",
+          "36",
+          "--max-pixels",
+          "1024",
+          "--output",
+          "png",
+          "--output-dir",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-sink-failure-post-repair",
+          "--name-pattern",
+          "native-{index}",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/absent.json",
+          "--copies",
+          "1",
+          "--frame",
+          "1",
+          "--bit-depth",
+          "8",
+          "--calling-ae",
+          "SIMULATE",
+          "--format",
+          "json",
+          "--",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+        ]
+      }
+    },
+    {
+      "check": "sink-failure CLI/native all film fields",
+      "status": "Passed",
+      "detail": {
+        "CLI": [
+          {
+            "annotations": [],
+            "borderDensity": "BLACK",
+            "callingAETitle": "SIMULATE",
+            "columns": 1,
+            "densityMapping": "PAPER",
+            "dpi": 36,
+            "emptyImageDensity": "BLACK",
+            "filledImageBoxCount": 1,
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.3.1792994466252557.242281",
+            "filmOrientation": "PORTRAIT",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.3.1792994466252502.172916",
+            "filmSize": "14INX17IN",
+            "imageBoxCount": 1,
+            "imageDisplayFormat": "STANDARD\\1,1",
+            "magnificationType": "REPLICATE",
+            "mediumType": "PAPER",
+            "numberOfCopies": 1,
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.3.1792994466252580.109414",
+            "receivedAt": "2026-10-26T06:01:06Z",
+            "rows": 1,
+            "sheetHeightMillimeters": 431.79999999999995,
+            "sheetWidthMillimeters": 355.59999999999997,
+            "skippedImageBoxes": [],
+            "trim": "NO"
+          }
+        ],
+        "native": [
+          {
+            "annotations": [],
+            "borderDensity": "BLACK",
+            "callingAETitle": "SIMULATE",
+            "columns": 1,
+            "densityMapping": "PAPER",
+            "dpi": 36,
+            "emptyImageDensity": "BLACK",
+            "filledImageBoxCount": 1,
+            "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.3.1792993350109690.397765",
+            "filmOrientation": "PORTRAIT",
+            "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.3.1792993350109645.796271",
+            "filmSize": "14INX17IN",
+            "imageBoxCount": 1,
+            "imageDisplayFormat": "STANDARD\\1,1",
+            "magnificationType": "REPLICATE",
+            "mediumType": "PAPER",
+            "numberOfCopies": 1,
+            "printJobUID": "1.2.826.0.1.3680043.10.511.4.3.1792993350109701.53010",
+            "receivedAt": "2026-10-26T05:42:30Z",
+            "rows": 1,
+            "sheetHeightMillimeters": 431.79999999999995,
+            "sheetWidthMillimeters": 355.59999999999997,
+            "skippedImageBoxes": [],
+            "trim": "NO"
+          }
+        ],
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "sink CLI explicit failure without saved claim",
+      "status": "Passed",
+      "detail": {
+        "stdout": "{\n  \"annotations\" : [\n\n  ],\n  \"borderDensity\" : \"BLACK\",\n  \"callingAETitle\" : \"SIMULATE\",\n  \"columns\" : 1,\n  \"densityMapping\" : \"PAPER\",\n  \"dpi\" : 36,\n  \"emptyImageDensity\" : \"BLACK\",\n  \"filledImageBoxCount\" : 1,\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792994466252557.242281\",\n  \"filmOrientation\" : \"PORTRAIT\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792994466252502.172916\",\n  \"filmSize\" : \"14INX17IN\",\n  \"imageBoxCount\" : 1,\n  \"imageDisplayFormat\" : \"STANDARD\\\\1,1\",\n  \"magnificationType\" : \"REPLICATE\",\n  \"mediumType\" : \"PAPER\",\n  \"numberOfCopies\" : 1,\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792994466252580.109414\",\n  \"receivedAt\" : \"2026-10-26T06:01:06Z\",\n  \"rows\" : 1,\n  \"sheetHeightMillimeters\" : 431.79999999999995,\n  \"sheetWidthMillimeters\" : 355.59999999999997,\n  \"skippedImageBoxes\" : [\n\n  ],\n  \"trim\" : \"NO\"\n}\n",
+        "stderr": "Output failed (png): The operation couldn’t be completed. (DICOMPrintKit.PrintSinkError error 0.)\n"
+      }
+    },
+    {
+      "check": "paper-import-refusal CLI exact planned argv/result",
+      "status": "Failed",
+      "detail": {
+        "exit": 1,
+        "expected": 64,
+        "argv": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+          "status",
+          "--config",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+          "--paper-queue",
+          "SYNTHETIC-NONEXISTENT",
+          "--format",
+          "json"
+        ]
+      }
+    },
+    {
+      "check": "paper CLI/native same explicit refusal",
+      "status": "Passed",
+      "detail": {
+        "stderr": "Error: --paper-queue needs --allow-paper; refusing to spool to a real printer by accident\n",
+        "nativeSource": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-paper-gate-import.txt"
+      }
+    }
+  ],
+  "failures": [
+    "paper-import-refusal CLI exact planned argv/result"
+  ],
+  "pending": [
+    "Native registry relaunch/remove and final collision/quit/rebuilt-app checks remain separate parent-owned criteria.",
+    "Native enabled flag preview is captured; nonverbose status JSON omits effective boolean settings. Shared-parser/VM automated evidence supplies underlying setting resolution; this capture alone is not a boolean-state dump.",
+    "PDF checks establish complete containers only; no physical print or rendered-PDF visual qualification claimed."
+  ],
+  "consoles": {
+    "status-inherit": {
+      "command": "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json",
+      "argv": [
+        "dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+        "--format",
+        "json"
+      ],
+      "values": [
+        {
+          "isNormal": true,
+          "manufacturer": "DICOMKit",
+          "Manufacturer": "DICOMKit",
+          "ManufacturerModelName": "DICOM Print Emulator",
+          "model": "DICOM Print Emulator",
+          "name": "M7 Native Baseline",
+          "PrinterName": "M7 Native Baseline",
+          "PrinterStatus": "NORMAL",
+          "PrinterStatusInfo": "NORMAL",
+          "status": "NORMAL",
+          "statusInfo": "NORMAL"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-inherit-console.txt",
+      "sha256": "08cea896b68e19e245c63b278f375d1a79f5412bdd5ef0b871f1d22c75ba22c0"
+    },
+    "status-enabled": {
+      "command": "dicom-printscp status --accept-color --annotation-box --annotations --trim-marks --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json",
+      "argv": [
+        "dicom-printscp",
+        "status",
+        "--accept-color",
+        "--annotation-box",
+        "--annotations",
+        "--trim-marks",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+        "--format",
+        "json"
+      ],
+      "values": [
+        {
+          "isNormal": true,
+          "manufacturer": "DICOMKit",
+          "Manufacturer": "DICOMKit",
+          "ManufacturerModelName": "DICOM Print Emulator",
+          "model": "DICOM Print Emulator",
+          "name": "M7 Native Baseline",
+          "PrinterName": "M7 Native Baseline",
+          "PrinterStatus": "NORMAL",
+          "PrinterStatusInfo": "NORMAL",
+          "status": "NORMAL",
+          "statusInfo": "NORMAL"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-enabled-console.txt",
+      "sha256": "4120aadfa71ef7fac8811e7271242428bf5a2cd9f87c936a7952d57d1337835b"
+    },
+    "status-reloaded": {
+      "command": "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json --format json --verbose",
+      "argv": [
+        "dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json",
+        "--format",
+        "json",
+        "--verbose"
+      ],
+      "values": [
+        {
+          "acceptAnnotationBox": false,
+          "acceptPresentationLUT": true,
+          "aeTitle": "DCMPRINT",
+          "allowedCallingAETitles": "",
+          "annotationBoxesPerFilm": 6,
+          "annotationEdge": "bottom",
+          "associationIdleTimeoutSeconds": 300,
+          "cellSpacingMillimeters": 2,
+          "deniedCallingAETitles": "",
+          "densityMapping": "PAPER",
+          "deviceSerialNumber": "1",
+          "dpi": 36,
+          "drawAnnotations": false,
+          "drawTrimMarks": false,
+          "fileNamePattern": "film-{timestamp}-{index}",
+          "imageFormat": "png",
+          "manufacturer": "DICOMKit",
+          "manufacturerModelName": "DICOM Print Emulator",
+          "marginMillimeters": 5,
+          "maxConcurrentAssociations": 10,
+          "maxImageBoxPixelDimension": 10000,
+          "maxImageBoxesPerFilm": 64,
+          "maxPDUSize": 65536,
+          "maximumPixelDimension": 1024,
+          "outputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "paperQueue": "",
+          "port": 11113,
+          "printerName": "Saved Native",
+          "printerStatus": "NORMAL",
+          "printerStatusInfo": "",
+          "pushPrintJobEvents": false,
+          "retainedFilmLimit": 20,
+          "retainedMemoryBudgetMB": 256,
+          "saveImage": false,
+          "savePDF": false,
+          "sendToPaperQueue": false,
+          "softwareVersion": "1.0",
+          "supportedFilmSizeTokens": [],
+          "supportedMediumTokens": [],
+          "supportsColor": false
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-reloaded-console.txt",
+      "sha256": "7800003c01c54129d046070f750747e509a9e10b213e9fc7f5311e11368f23fa"
+    },
+    "queues": {
+      "command": "dicom-printscp queues --format json",
+      "argv": [
+        "dicom-printscp",
+        "queues",
+        "--format",
+        "json"
+      ],
+      "values": [
+        {
+          "count": 0,
+          "queues": []
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-queues-console.txt",
+      "sha256": "9219094b7ba2c6d5b0573c671913c5f79b5f0505e57fa5e91e657b4a81b8c862"
+    },
+    "simulate": {
+      "command": "dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output tiff --output pdf --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --layout 'ROW\\1,3' --copies 2 --presentation-lut IDENTITY --trim --border-density 150 --empty-density WHITE --annotate ' first; literal note ' --annotate 'O'\\''Neil second' --annotation-format M7FMT --frame 1 --window-center=-600 --window-width 1200 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+      "argv": [
+        "dicom-printscp",
+        "simulate",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output",
+        "tiff",
+        "--output",
+        "pdf",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+        "--name-pattern",
+        "native-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--layout",
+        "ROW\\1,3",
+        "--copies",
+        "2",
+        "--presentation-lut",
+        "IDENTITY",
+        "--trim",
+        "--border-density",
+        "150",
+        "--empty-density",
+        "WHITE",
+        "--annotate",
+        " first; literal note ",
+        "--annotate",
+        "O'Neil second",
+        "--annotation-format",
+        "M7FMT",
+        "--frame",
+        "1",
+        "--window-center=-600",
+        "--window-width",
+        "1200",
+        "--bit-depth",
+        "8",
+        "--calling-ae",
+        "SIMULATE",
+        "--format",
+        "json",
+        "--",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+      ],
+      "values": [
+        {
+          "annotations": [
+            "1:  first; literal note ",
+            "2: O'Neil second"
+          ],
+          "borderDensity": "150",
+          "callingAETitle": "SIMULATE",
+          "columns": 3,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "WHITE",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280309.292432",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280182.128563",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "ROW\\1,3",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 2,
+          "presentationLUTShape": "IDENTITY",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.3.1792993315280352.941895",
+          "receivedAt": "2026-10-26T05:41:55Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "YES"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-simulate-console.txt",
+      "sha256": "5bc1c3e7de339a2888ae477641dcccf20c283eb85ae5e239fb7e10e3ffc193eb"
+    },
+    "sink-failure": {
+      "command": "dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-failure --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --copies 1 --frame 1 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+      "argv": [
+        "dicom-printscp",
+        "simulate",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-failure",
+        "--name-pattern",
+        "native-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--copies",
+        "1",
+        "--frame",
+        "1",
+        "--bit-depth",
+        "8",
+        "--calling-ae",
+        "SIMULATE",
+        "--format",
+        "json",
+        "--",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+      ],
+      "values": [
+        {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "SIMULATE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.3.1792993350109690.397765",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.3.1792993350109645.796271",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.3.1792993350109701.53010",
+          "receivedAt": "2026-10-26T05:42:30Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-sink-failure-console.txt",
+      "sha256": "bf501a55bbe5b0b50d410a4c2f1d7bceb39eefb8454700a0123db6e877014e28"
+    },
+    "serve-stopped": {
+      "command": "dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --dpi 36 --max-pixels 1024 --output png --output pdf --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json --verbose",
+      "argv": [
+        "dicom-printscp",
+        "serve",
+        "--port",
+        "21114",
+        "--ae-title",
+        "DCMKIT_M6",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output",
+        "pdf",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received",
+        "--name-pattern",
+        "native-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--duration",
+        "300",
+        "--format",
+        "json",
+        "--verbose"
+      ],
+      "values": [
+        {
+          "level": "info",
+          "message": "Listening on port 21114 as DCMKIT_M6",
+          "time": "2026-10-26T05:47:33Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "connection",
+          "message": "Association from M7CLI (127.0.0.1:57047)",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "info",
+          "message": "Film session created 1.2.826.0.1.3680043.10.511.4.1792993668965193.829437",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "level": "info",
+          "message": "Film box 1.2.826.0.1.3680043.10.511.4.1792993668966840.91823 — 1×1, 1 image box",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "level": "info",
+          "message": "Image box 1 filled — 64×48 px",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7CLI",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993668966840.91823",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993668965193.829437",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993668968592.743752",
+          "receivedAt": "2026-10-26T05:47:48Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        {
+          "level": "info",
+          "message": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.pdf",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "level": "info",
+          "message": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-001.png",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "filmReceived",
+          "message": "Film printed — 1×1, 1/1 images",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.511.4.1792993668965193.829437",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "connection",
+          "message": "Association released by M7CLI",
+          "time": "2026-10-26T05:47:48Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "connection",
+          "message": "Association from M7CLI (127.0.0.1:57048)",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "info",
+          "message": "Film session created 1.2.826.0.1.3680043.10.511.4.1792993669017142.265442",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "level": "info",
+          "message": "Film box 1.2.826.0.1.3680043.10.511.4.1792993669017525.768271 — 1×1, 1 image box",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "level": "info",
+          "message": "Image box 1 filled — 64×48 px",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7CLI",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993669017525.768271",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993669017142.265442",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993669022410.793242",
+          "receivedAt": "2026-10-26T05:47:49Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        {
+          "level": "info",
+          "message": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.pdf",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "level": "info",
+          "message": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/native-002.png",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "filmReceived",
+          "message": "Film printed — 1×1, 1/1 images",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.511.4.1792993669017142.265442",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "connection",
+          "message": "Association released by M7CLI",
+          "time": "2026-10-26T05:47:49Z"
+        },
+        {
+          "level": "info",
+          "message": "Stopped — 2 associations, 2 films, 0 errors (cancelled)",
+          "time": "2026-10-26T05:47:54Z"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-serve-stopped-console.txt",
+      "sha256": "98404105c72dcbb8f22900f86f4f1136d0c1111a80792f97960cf5e059a3abbe"
+    },
+    "duration-complete": {
+      "command": "dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --output none --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 2 --format json",
+      "argv": [
+        "dicom-printscp",
+        "serve",
+        "--port",
+        "21114",
+        "--ae-title",
+        "DCMKIT_M6",
+        "--output",
+        "none",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--duration",
+        "2",
+        "--format",
+        "json"
+      ],
+      "values": [
+        {
+          "level": "info",
+          "message": "Listening on port 21114 as DCMKIT_M6",
+          "time": "2026-10-26T05:48:25Z"
+        },
+        {
+          "level": "info",
+          "message": "Stopped — 0 associations, 0 films, 0 errors (reached --duration 2s)",
+          "time": "2026-10-26T05:48:27Z"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-duration-complete-console.txt",
+      "sha256": "3caeab6959ee5835f853a49da8644b610f7062817e2bcbeefa4aa3e2353823dc"
+    },
+    "one-film-complete": {
+      "command": "dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --name-pattern 'limited-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --max-films 1 --duration 60 --format json",
+      "argv": [
+        "dicom-printscp",
+        "serve",
+        "--port",
+        "21114",
+        "--ae-title",
+        "DCMKIT_M6",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received",
+        "--name-pattern",
+        "limited-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--max-films",
+        "1",
+        "--duration",
+        "60",
+        "--format",
+        "json"
+      ],
+      "values": [
+        {
+          "level": "info",
+          "message": "Listening on port 21114 as DCMKIT_M6",
+          "time": "2026-10-26T05:48:58Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "connection",
+          "message": "Association from M7CLI (127.0.0.1:57074)",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "info",
+          "message": "Film session created 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "level": "info",
+          "message": "Film box 1.2.826.0.1.3680043.10.511.4.1792993748311974.87301 — 1×1, 1 image box",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "level": "info",
+          "message": "Image box 1 filled — 64×48 px",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7CLI",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993748311974.87301",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993748313833.153537",
+          "receivedAt": "2026-10-26T05:49:08Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        {
+          "level": "info",
+          "message": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/limited-001.png",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "filmReceived",
+          "message": "Film printed — 1×1, 1/1 images",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "callingAE": "M7CLI",
+          "level": "connection",
+          "message": "Association released by M7CLI",
+          "time": "2026-10-26T05:49:08Z"
+        },
+        {
+          "level": "info",
+          "message": "Stopped — 1 association, 1 film, 0 errors (reached --max-films 1)",
+          "time": "2026-10-26T05:49:08Z"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-one-film-complete-console.txt",
+      "sha256": "d7ee237c28a24c6ccc8fc21826f8f94a4e056b30589c26fb21b8ba8da8222890"
+    },
+    "independent-color-stopped": {
+      "command": "dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --accept-color --push-job-events --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json --verbose",
+      "argv": [
+        "dicom-printscp",
+        "serve",
+        "--port",
+        "21114",
+        "--ae-title",
+        "DCMKIT_M6",
+        "--accept-color",
+        "--push-job-events",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color",
+        "--name-pattern",
+        "native-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--duration",
+        "300",
+        "--format",
+        "json",
+        "--verbose"
+      ],
+      "values": [
+        {
+          "level": "info",
+          "message": "Listening on port 21114 as DCMKIT_M6",
+          "time": "2026-10-26T05:49:28Z"
+        },
+        {
+          "callingAE": "PYM6SCU",
+          "level": "connection",
+          "message": "Association from PYM6SCU (127.0.0.1:57095)",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "callingAE": "PYM6SCU",
+          "level": "info",
+          "message": "Film session created 1.2.826.0.1.3680043.10.543.20261024.6.3000",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "level": "info",
+          "message": "Film box 1.2.826.0.1.3680043.10.543.20261024.6.3001 — 1×1, 1 image box",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "level": "info",
+          "message": "Image box 1 filled — 16×16 px",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "PYM6SCU",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.543.20261024.6.3001",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.543.20261024.6.3000",
+          "filmSize": "8INX10IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993780545337.566118",
+          "receivedAt": "2026-10-26T05:49:40Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 254,
+          "sheetWidthMillimeters": 203.2,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        {
+          "level": "info",
+          "message": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color/native-001.png",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "callingAE": "PYM6SCU",
+          "level": "filmReceived",
+          "message": "Film printed — 1×1, 1/1 images",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.543.20261024.6.3001",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.543.20261024.6.3000",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "callingAE": "PYM6SCU",
+          "level": "connection",
+          "message": "Association released by PYM6SCU",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "callingAE": "PYM6SCU",
+          "level": "connection",
+          "message": "Association from PYM6SCU (127.0.0.1:57097)",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "level": "warning",
+          "message": "N-GET-RQ failed (0x0112): Unknown Print Job 1.2.826.0.1.3680043.10.511.4.1792993780545337.566118",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "callingAE": "PYM6SCU",
+          "level": "connection",
+          "message": "Association released by PYM6SCU",
+          "time": "2026-10-26T05:49:40Z"
+        },
+        {
+          "level": "info",
+          "message": "Stopped — 2 associations, 1 film, 1 error (cancelled)",
+          "time": "2026-10-26T05:50:00Z"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-independent-color-stopped-console.txt",
+      "sha256": "f038ed8146921d436e0536e5203cf8b088eb09f0affe454912cc3cefbb37fb3a"
+    },
+    "independent-gray-stopped": {
+      "command": "dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --no-accept-color --presentation-lut --annotation-box --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json --verbose",
+      "argv": [
+        "dicom-printscp",
+        "serve",
+        "--port",
+        "21114",
+        "--ae-title",
+        "DCMKIT_M6",
+        "--no-accept-color",
+        "--presentation-lut",
+        "--annotation-box",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray",
+        "--name-pattern",
+        "native-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--duration",
+        "300",
+        "--format",
+        "json",
+        "--verbose"
+      ],
+      "values": [
+        {
+          "level": "info",
+          "message": "Listening on port 21114 as DCMKIT_M6",
+          "time": "2026-10-26T05:50:13Z"
+        },
+        {
+          "callingAE": "M6DCMTK",
+          "level": "connection",
+          "message": "Association from M6DCMTK (127.0.0.1:57132)",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "callingAE": "M6DCMTK",
+          "level": "info",
+          "message": "Film session created 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "level": "info",
+          "message": "Film box 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125 — 1×1, 1 image box",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "level": "info",
+          "message": "Image box 1 filled — 16×16 px",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "annotations": [
+            "1: M6 SYNTHETIC"
+          ],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M6DCMTK",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792993824166733.361125",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792993824164934.539317",
+          "filmSize": "8INX10IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "presentationLUTShape": "IDENTITY",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792993824176457.748595",
+          "receivedAt": "2026-10-26T05:50:24Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 254,
+          "sheetWidthMillimeters": 203.2,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        {
+          "level": "info",
+          "message": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray/native-001.png",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "callingAE": "M6DCMTK",
+          "level": "filmReceived",
+          "message": "Film printed — 1×1, 1/1 images",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "level": "info",
+          "message": "Deleted 1.2.826.0.1.3680043.10.511.4.1792993824163451.474661",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "callingAE": "M6DCMTK",
+          "level": "connection",
+          "message": "Association released by M6DCMTK",
+          "time": "2026-10-26T05:50:24Z"
+        },
+        {
+          "level": "info",
+          "message": "Stopped — 1 association, 1 film, 0 errors (cancelled)",
+          "time": "2026-10-26T05:51:05Z"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-independent-gray-stopped-console.txt",
+      "sha256": "1e911929f64dd0da075c9539db964545c83d7b0ef03f4cc6a9bd0a32421a2df0"
+    },
+    "leave-cancelled": {
+      "command": "dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --output none --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json",
+      "argv": [
+        "dicom-printscp",
+        "serve",
+        "--port",
+        "21114",
+        "--ae-title",
+        "DCMKIT_M6",
+        "--output",
+        "none",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+        "--duration",
+        "300",
+        "--format",
+        "json"
+      ],
+      "values": [
+        {
+          "level": "info",
+          "message": "Listening on port 21114 as DCMKIT_M6",
+          "time": "2026-10-26T05:51:18Z"
+        },
+        {
+          "level": "info",
+          "message": "Stopped — 0 associations, 0 films, 0 errors (cancelled)",
+          "time": "2026-10-26T05:51:19Z"
+        }
+      ],
+      "duplicate_envelopes": 2,
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-leave-cancelled-console.txt",
+      "sha256": "7008a58d78410a63c2a0c5e20d0caabe98212558f2a2931e2216ad12fe477949"
+    }
+  },
+  "scope": "Read-only saved evidence. No product, listener, peer, UI, build, protected registry or physical printer action."
+}

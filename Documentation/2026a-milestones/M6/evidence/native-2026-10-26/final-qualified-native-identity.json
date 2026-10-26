@@ -1,0 +1,343 @@
+{
+  "recorded_utc": "2026-10-26T07:21:32.051894+00:00",
+  "verdict": "Passed identity and scoped source-equivalence checks; native acceptance remains separate.",
+  "qualification_epoch": "Print menu/layout and generic path repair app: identity captured after build and strict signing; native gates remain separate",
+  "head": "000fb888237872d90891b20907f0562c3a59eef7",
+  "branch": "codex/dicom-2026a-milestones",
+  "git_status": " M Sources/DICOMPrintCommandSupport/SCUCommands.swift\n M Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift\n M Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift\n M Sources/DICOMStudio/Views/CLIWorkshopView.swift\n M Tests/DICOMStudioTests/M6PrintSCUCatalogTests.swift\n M Tests/DICOMStudioTests/WorkshopDicomImageOutputScopeTests.swift\n M Tests/dicom-printTests/M6PrintSCUCommandTests.swift\n?? Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift\n?? Tests/DICOMStudioTests/M7WorkshopFileAccessTests.swift\n",
+  "checks": {
+    "expected_seven_modified": true,
+    "expected_two_new": true,
+    "no_removed_source": true,
+    "source_stable_during_capture": true,
+    "git_status_stable_during_capture": true,
+    "artifacts_stable_during_capture": true,
+    "strict_signature_verified": true,
+    "embedded_entitlements_equal_normal_project": true,
+    "lockfiles_unchanged": true,
+    "Package_swift_unchanged": true,
+    "scheme_copy_matches_checked_in": true,
+    "ephemeral_scheme_removed": true,
+    "DEBUG_test_settings_preserved": true,
+    "shared_print_unchanged_since_first_repair": true,
+    "viewer_unchanged_since_000fb888": true,
+    "print_dispatch_prefix_unchanged": true,
+    "generic_grant_lifetime_after_print_return": true,
+    "grant_reconciliation_excludes_print": true
+  },
+  "source_counts": {
+    "baseline": 2058,
+    "first_repair": 2059,
+    "current": 2060,
+    "modified": 7,
+    "added": 2,
+    "removed": 0
+  },
+  "source_diff_from_000fb888": {
+    "matched": 2051,
+    "changed": [
+      {
+        "path": "Sources/DICOMPrintCommandSupport/SCUCommands.swift",
+        "before": "a192a0e47cf3ebd7fcc197ff398167df75dd90fdd63c04dc687ea406d5a4fc51",
+        "after": "03291db4d9a58c9a35352b16895e0eac62fc647e8b7651924ddd7610e2428888"
+      },
+      {
+        "path": "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+        "before": "db9c0791b539b3491b6e7268d37c3777a22cb57173169eaaefd4e1ad5cfe4603",
+        "after": "af4d3ce0c11bc29d17c9199546a1305a0a46b937282c58fdc50e8e3fef18d63f"
+      },
+      {
+        "path": "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift",
+        "before": "fbedf6d7721473673f3fa2c3837a1eebc8c6cbcd2a272848e52a9adfc997dd23",
+        "after": "a2db193b0081004e9949bee2017e8c3c50266a760e13b96872be29cea3c02a15"
+      },
+      {
+        "path": "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+        "before": "348a1b7d91e256618bd2199fa21ae26423cf4d8fa25b29bb506730be25aa566f",
+        "after": "2e9aa18bed16b11bfa7350c9a2a5cc6671aba2878c0f2f65e2ab9bfae3eb0e63"
+      },
+      {
+        "path": "Tests/DICOMStudioTests/M6PrintSCUCatalogTests.swift",
+        "before": "b17ca55ccd32d9ee8112f102805802170dbc74df8407a654fff5f237f3db9c60",
+        "after": "f6e9cb2d6ad5f1a872ad066890670e5ef369901a58c2a3ee31d1d605068f60d0"
+      },
+      {
+        "path": "Tests/DICOMStudioTests/WorkshopDicomImageOutputScopeTests.swift",
+        "before": "88e676c3eacd6d4d32e740daf1296e614a95e1842091e48463157e5b2e13c632",
+        "after": "3c4f882c266b3f4f7a339d8b930eec844688e2224ce2a06fb7debec2bbec94fa"
+      },
+      {
+        "path": "Tests/dicom-printTests/M6PrintSCUCommandTests.swift",
+        "before": "5d1e666aa6a413baa9ab57b9652e1cd8502896f789abda2f4a94ba2f52f051a3",
+        "after": "d4785e6c07b9e163fa722421d9198b785ae3714f75fd72a2705b9d376523555d"
+      }
+    ],
+    "added": [
+      "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift",
+      "Tests/DICOMStudioTests/M7WorkshopFileAccessTests.swift"
+    ],
+    "removed": []
+  },
+  "source_diff_from_first_repair": {
+    "matched": 2054,
+    "changed": [
+      {
+        "path": "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+        "before": "db9c0791b539b3491b6e7268d37c3777a22cb57173169eaaefd4e1ad5cfe4603",
+        "after": "af4d3ce0c11bc29d17c9199546a1305a0a46b937282c58fdc50e8e3fef18d63f"
+      },
+      {
+        "path": "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift",
+        "before": "c86e45a4685f6ee916caf407e14c575e5a8bfe9ef8c392a0911c514c780a0ad3",
+        "after": "a2db193b0081004e9949bee2017e8c3c50266a760e13b96872be29cea3c02a15"
+      },
+      {
+        "path": "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+        "before": "06a0b41320a71715713c8c079e39940ae2d6818cd19248d6f5c8309c736b2ff9",
+        "after": "2e9aa18bed16b11bfa7350c9a2a5cc6671aba2878c0f2f65e2ab9bfae3eb0e63"
+      },
+      {
+        "path": "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift",
+        "before": "6232eaef35204f95d45f0ce837ef8768cb57731bf31e02a0ed470690d9fcaa23",
+        "after": "e956fc4f44d26cf35ead9dbb433bd27c96e6cb882c3955125ca5e7561ec38488"
+      },
+      {
+        "path": "Tests/DICOMStudioTests/WorkshopDicomImageOutputScopeTests.swift",
+        "before": "88e676c3eacd6d4d32e740daf1296e614a95e1842091e48463157e5b2e13c632",
+        "after": "3c4f882c266b3f4f7a339d8b930eec844688e2224ce2a06fb7debec2bbec94fa"
+      }
+    ],
+    "added": [
+      "Tests/DICOMStudioTests/M7WorkshopFileAccessTests.swift"
+    ],
+    "removed": []
+  },
+  "artifact_counts": {
+    "CLI": 41,
+    "test_executables": 16,
+    "application": 14,
+    "total": 71
+  },
+  "artifact_diff_from_000fb888": {
+    "CLI": {
+      "matched": 39,
+      "changed": [
+        {
+          "path": "dicom-print",
+          "before": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+          "after": "ad3ceb058361e2f800a9c3c76480d86fb3872d142ea17596ded3bfbaa106d7d3"
+        },
+        {
+          "path": "dicom-printscp",
+          "before": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+          "after": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624"
+        }
+      ],
+      "added": [],
+      "removed": []
+    },
+    "test_executables": {
+      "matched": 13,
+      "changed": [
+        {
+          "path": "DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests",
+          "before": "d952c1a13d27d1678fc8cce06526b8e27357572f04261425b948943ea0be7018",
+          "after": "a9373939096802f72940df6dad50143e542f29f3f911e46acd4a71094577885a"
+        },
+        {
+          "path": "dicom-printTests.xctest/Contents/MacOS/dicom-printTests",
+          "before": "f409b6d1f8a6cefc2b5f3a3246ef084c6084ed0ffd145f3a1827fe22d32f7dfe",
+          "after": "d9ab2127042e9ac019c4b6b2b37055564a4c9e2f18b78a5782ed0db765b2ea02"
+        },
+        {
+          "path": "dicom-printscpTests.xctest/Contents/MacOS/dicom-printscpTests",
+          "before": "051d6933c117dd76d6b2eb61f392b178e4c9b0870d8ec668ddf95cdb5991cb2d",
+          "after": "23444f9ff30aef901e7e8271bba9db6cc4608e2d693b23e0fdf36ace66b308d1"
+        }
+      ],
+      "added": [],
+      "removed": []
+    },
+    "application": {
+      "matched": 11,
+      "changed": [
+        {
+          "path": "Contents/MacOS/DICOMStudio",
+          "before": "4bc56649183c20c72743614785355b0f917b1d4d2c0b0a4703f5f9af0d842c91",
+          "after": "f69f9a34bca03daa325143ecac4540555761a8bbaa19f93cd438b874e055a493"
+        },
+        {
+          "path": "Contents/MacOS/DICOMStudio.debug.dylib",
+          "before": "3274c8cd56cc8ca5410192730916600dcfc11d64d2c8429c54265daad68109ac",
+          "after": "968b7486061dc8131a55e852d71a0d9888cf0b51b2f0638debc72696264c844a"
+        },
+        {
+          "path": "Contents/_CodeSignature/CodeResources",
+          "before": "c3dd0469cfdd6fe5eab17f30d5f32a0add27910b895febe6c2d0fd757a0f1db5",
+          "after": "dfb667d5e39a56ad9a907ea5af1d2f3d32ffc51ed9531bf80635787719cec9ec"
+        }
+      ],
+      "added": [],
+      "removed": []
+    }
+  },
+  "artifact_diff_from_first_repair": {
+    "CLI": {
+      "matched": 41,
+      "changed": [],
+      "added": [],
+      "removed": []
+    },
+    "test_executables": {
+      "matched": 15,
+      "changed": [
+        {
+          "path": "DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests",
+          "before": "a3918c48827e2b48488111dfca23afd2bdddbe7dd6b63ddb454f562e834e5c37",
+          "after": "a9373939096802f72940df6dad50143e542f29f3f911e46acd4a71094577885a"
+        }
+      ],
+      "added": [],
+      "removed": []
+    },
+    "application": {
+      "matched": 11,
+      "changed": [
+        {
+          "path": "Contents/MacOS/DICOMStudio",
+          "before": "26ac80f601bc2b6c34899afbda235ae9fdf66a0f3beb7fb2e32c9e7251b94fed",
+          "after": "f69f9a34bca03daa325143ecac4540555761a8bbaa19f93cd438b874e055a493"
+        },
+        {
+          "path": "Contents/MacOS/DICOMStudio.debug.dylib",
+          "before": "e2c4cffb23d1413ccdf50b063bb782f969e7e81b42a331ef88dfc21dac6a9603",
+          "after": "968b7486061dc8131a55e852d71a0d9888cf0b51b2f0638debc72696264c844a"
+        },
+        {
+          "path": "Contents/_CodeSignature/CodeResources",
+          "before": "dbee12d7206be3c62758f6d1a2e7512ea349cd473b174553020de6ae233ea317",
+          "after": "dfb667d5e39a56ad9a907ea5af1d2f3d32ffc51ed9531bf80635787719cec9ec"
+        }
+      ],
+      "added": [],
+      "removed": []
+    }
+  },
+  "lockfiles": {
+    "Package.resolved": {
+      "before": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+      "after": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+      "matched": true
+    },
+    "DICOMStudio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved": {
+      "before": "90bc08d35fc6e18cc68517bf7d82eafc8772cfd4bd7780b7e98c6fe336cff011",
+      "after": "90bc08d35fc6e18cc68517bf7d82eafc8772cfd4bd7780b7e98c6fe336cff011",
+      "matched": true
+    }
+  },
+  "normal_entitlements": {
+    "com.apple.security.app-sandbox": true,
+    "com.apple.security.files.bookmarks.app-scope": true,
+    "com.apple.security.files.downloads.read-write": true,
+    "com.apple.security.files.user-selected.read-write": true,
+    "com.apple.security.network.client": true,
+    "com.apple.security.network.server": true
+  },
+  "DEBUG_LSEnvironment": {
+    "DICOMKIT_PRINT_TEST_SETTINGS_DIRECTORY": "/Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification"
+  },
+  "scheme": {
+    "checked_in": "DICOMStudio.xcodeproj/xcshareddata/xcschemes/DICOMStudio.xcscheme",
+    "sha256": "2658b184870edf4451a87d4d669eec1d2de83e750eb2020ed7751e7a842e69da",
+    "built_copy": "work/m7/native-2026-10-26/print-repair-verification/app-menu-rerun/DICOMStudio-M7App.xcscheme"
+  },
+  "build_evidence": {
+    "work/m7/native-2026-10-26/print-repair-verification/app-menu-rerun/build.log": "45b535bfee03585963bbc131f1cf4dab35447a55b276906ef7b83da8aedf9222",
+    "work/m7/native-2026-10-26/print-repair-verification/app-menu-rerun/signing.log": "8d9b45e47ccc8ff87b17f8e16148038091cd9f026bcccd723f03f2032306cd41",
+    "work/m7/native-2026-10-26/print-repair-verification/app-menu-rerun/DICOMStudio-M7App.xcscheme": "2658b184870edf4451a87d4d669eec1d2de83e750eb2020ed7751e7a842e69da"
+  },
+  "baseline_manifest_hashes": {
+    "Documentation/2026a-milestones/M7/source-hashes.json": "efe679933566c788a5708f979bca061786a3bd8e28c68a602058ff00d9d8b50b",
+    "Documentation/2026a-milestones/M7/artifact-hashes.json": "989f761b27574c13bc0d13eb0a67cbdb2b8ab789154e94076242de499a947b7c"
+  },
+  "historical_evidence_sha256": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-source-hashes.json": "4cb156337f2e46bd447ff2b17f357518921111ad059658ee349bd66878a1348f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-artifact-hashes.json": "03bb75ca3be26d86b5a8aab00a24fc1a31e0b37cd397c5e48ad9c762c705f243",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/post-repair-identity.json": "820ac2512b42721804b1aeebb868c3e4b19a2ab72c61b9019978b3e535a4c3d9",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/viewer-native-verification.json": "42b0875cbf192ed96d108d75a11d03045a1ef307171f5d88b39dcc7d47855b42"
+  },
+  "equivalence": {
+    "shared_print_sources_since_first_repair": {
+      "Sources/DICOMPrintCommandSupport/PrintCommandContext.swift": true,
+      "Sources/DICOMPrintCommandSupport/SCPCommand.swift": true,
+      "Sources/DICOMPrintCommandSupport/SCPEmulatorOptions.swift": true,
+      "Sources/DICOMPrintCommandSupport/SCPInfoCommands.swift": true,
+      "Sources/DICOMPrintCommandSupport/SCPServeCommand.swift": true,
+      "Sources/DICOMPrintCommandSupport/SCPSettingsChecks.swift": true,
+      "Sources/DICOMPrintCommandSupport/SCPSimulateCommand.swift": true,
+      "Sources/DICOMPrintCommandSupport/SCUCommands.swift": true,
+      "Sources/DICOMPrintKit/PresentationState/AnnotationSidecar.swift": true,
+      "Sources/DICOMPrintKit/PresentationState/PresentationStateStore.swift": true,
+      "Sources/DICOMPrintKit/PresentationState/PrintOverlayAnnotationGSPS.swift": true,
+      "Sources/DICOMPrintKit/PresentationState/ViewerPresentationStateBridge.swift": true,
+      "Sources/DICOMPrintKit/PrintCellPlacement.swift": true,
+      "Sources/DICOMPrintKit/PrintConsoleFormatter.swift": true,
+      "Sources/DICOMPrintKit/PrintImagePreparer.swift": true,
+      "Sources/DICOMPrintKit/PrintJobRequest.swift": true,
+      "Sources/DICOMPrintKit/PrintOptionCatalog.swift": true,
+      "Sources/DICOMPrintKit/PrintPresentationTransform.swift": true,
+      "Sources/DICOMPrintKit/PrintWorkflow.swift": true,
+      "Sources/DICOMPrintKit/Printing/ComposedFilm.swift": true,
+      "Sources/DICOMPrintKit/Printing/FilmComposer.swift": true,
+      "Sources/DICOMPrintKit/Printing/FilmComposingPrintHandler.swift": true,
+      "Sources/DICOMPrintKit/Printing/FilmGeometry.swift": true,
+      "Sources/DICOMPrintKit/Printing/FilmIdentification.swift": true,
+      "Sources/DICOMPrintKit/Printing/GrayscaleStandardDisplayFunction.swift": true,
+      "Sources/DICOMPrintKit/Printing/ImageAnnotationBurner.swift": true,
+      "Sources/DICOMPrintKit/Printing/PresentationLUTTransform.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintAnnotationLayout.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintArrowGeometry.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintCellPadding.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintCornerAnnotation.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintOutputSink.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintOverlayAnnotation.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintOverlayOrientation.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintSCPConsole.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintSCPService.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintSCPSettings.swift": true,
+      "Sources/DICOMPrintKit/Printing/PrintSCPSimulator.swift": true,
+      "Sources/DICOMPrintKit/ViewerPresentation.swift": true,
+      "Sources/DICOMStudio/Components/CLIWorkshopPrintCatalog.swift": true,
+      "Sources/DICOMStudio/Components/CLIWorkshopPrintCommandCodec.swift": true,
+      "Sources/DICOMStudio/Components/CLIWorkshopPrintSCPCatalog.swift": true,
+      "Sources/DICOMStudio/Services/CLIWorkshopPrintExecutor.swift": true,
+      "Sources/DICOMStudio/Services/CLIWorkshopPrintSCPExecutor.swift": true,
+      "Sources/DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift": true
+    },
+    "viewer_sources_since_000fb888": {
+      "Sources/DICOMStudio/Components/DICOMValueParser.swift": true,
+      "Sources/DICOMStudio/Views/ViewerNonImageContentView.swift": true,
+      "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+PatientOverlay.swift": true,
+      "Sources/DICOMStudio/Views/ViewerSeriesPaneView.swift": true
+    },
+    "print_dispatch": {
+      "source": "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+      "line": 5383,
+      "prefix_sha256": "2a4053e81d179a474594de8cc3c6219b8ba4dc8e10011830819a8e8160588f3f",
+      "unchanged_prefix": true,
+      "generic_grant_boundary_is_after_print_return": true,
+      "grant_reconciliation_print_guard_line": 1005
+    },
+    "prior_print_captures": "Historical print protocol/output/catalog captures retain their original first-repair or baseline hashes. Unchanged shared command, catalog and dedicated print execution paths support scoped source-equivalence reuse; this is not a new artifact campaign execution.",
+    "prior_viewer_captures": "viewer-native-verification.json remains attributed to the first-repair packaged app. Unchanged viewer/formatter sources support reuse for that bounded behavior, preserving the .12… visual truncation limit. No reattribution to the new app.",
+    "new_native_gates": "New print checkbox layout/focus/disabled behavior and generic typed-path/grant/output behavior require actual rebuilt packaged-app checks. Neither earlier print captures nor source equivalence passes these gates.",
+    "general_Workshop": "The generic path fix modifies input/output access for nonprint tools. Do not claim whole ViewModel equality or automatically requalify prior nonprint path-sensitive native captures; retain exact scenarios and run the targeted new path tests/native checks.",
+    "not_waived": [
+      "Actual final native UI gates",
+      "External/platform scope limitations",
+      "Full TLS profiles",
+      "Physical printer/CUPS/hardware/calibration/clinical output quality"
+    ]
+  },
+  "execution_boundary": "Filesystem hashing, git read operations and read-only codesign inspection only. No builds/tests/product execution/peers/UI/signing mutation; historical snapshots and canonical repository manifests untouched."
+}

@@ -67,8 +67,8 @@ struct WorkshopDicomImageOutputScopeTests {
         #expect(ds.string(for: .photometricInterpretation) == "RGB")
     }
 
-    @Test("browsed output folder alone still writes a file inside it, not onto the folder URL")
-    func browsedFolderOnly() async throws {
+    @Test("browsed output folder normalizes to the CLI filename regardless of selection order", arguments: [false, true])
+    func browsedFolderOnly(folderFirst: Bool) async throws {
         let root = try makeTempDir()
         defer { try? FileManager.default.removeItem(at: root) }
         let input = root.appendingPathComponent("shot.png")
@@ -78,8 +78,17 @@ struct WorkshopDicomImageOutputScopeTests {
 
         let vm = CLIWorkshopViewModel()
         vm.selectTool(id: "dicom-image")
-        vm.updateParameterValue(parameterID: "input", value: input.path)
-        vm.setSecurityScopedURL(browsed, forParameterID: "output")
+        if folderFirst {
+            vm.setSecurityScopedURL(browsed, forParameterID: "output")
+            vm.updateParameterValue(parameterID: "input", value: input.path)
+        } else {
+            vm.updateParameterValue(parameterID: "input", value: input.path)
+            vm.setSecurityScopedURL(browsed, forParameterID: "output")
+        }
+        let expected = browsed.appendingPathComponent("shot.dcm")
+        #expect(vm.parameterValues.first { $0.parameterID == "output" }?.stringValue == expected.path)
+        #expect(vm.commandPreview.contains(expected.path))
+        #expect(vm.securityScopedURLs["output"] == browsed, "Original folder capability must be retained")
         vm.updateParameterValue(parameterID: "patient-name", value: "TEST")
         vm.updateParameterValue(parameterID: "patient-id", value: "123456")
         await vm.executeCommand()
@@ -89,6 +98,27 @@ struct WorkshopDicomImageOutputScopeTests {
         #expect(FileManager.default.fileExists(atPath: browsed.path, isDirectory: &isDir) && isDir.boolValue,
                 "the browsed folder must survive as a folder")
         let written = (try? FileManager.default.contentsOfDirectory(atPath: browsed.path)) ?? []
-        #expect(written.contains { $0.hasSuffix(".dcm") || $0 == "output.dat" }, "wrote: \(written); console: \(vm.consoleOutput)")
+        #expect(written == ["shot.dcm"], "wrote: \(written); console: \(vm.consoleOutput)")
+        #expect(vm.consoleOutput.contains(expected.path))
+        let ds = try DICOMFile.read(from: Data(contentsOf: expected)).dataSet
+        #expect(ds.string(for: .photometricInterpretation) == "RGB")
+        #expect(!vm.consoleOutput.contains("Redirected to:"))
     }
+    @Test("Image directory inputs keep the selected output directory for batch processing")
+    func directoryInputKeepsOutputDirectory() throws {
+        let root = try makeTempDir()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let input = root.appendingPathComponent("Images", isDirectory: true)
+        let output = root.appendingPathComponent("DICOM", isDirectory: true)
+        for url in [input, output] { try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true) }
+        let vm = CLIWorkshopViewModel(service: CLIWorkshopService())
+        vm.selectTool(id: "dicom-image")
+        vm.updateParameterValue(parameterID: "input", value: input.path)
+        vm.updateParameterValue(parameterID: "recursive", value: "true")
+        vm.setSecurityScopedURL(output, forParameterID: "output")
+        #expect(vm.parameterValues.first { $0.parameterID == "output" }?.stringValue == output.path)
+        #expect(vm.securityScopedURLs["output"] == output)
+        #expect(!vm.commandPreview.contains("Images.dcm"))
+    }
+
 }
