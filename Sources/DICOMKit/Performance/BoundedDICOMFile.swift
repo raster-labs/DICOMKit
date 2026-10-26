@@ -121,7 +121,7 @@ public struct BoundedDICOMElement: ~Copyable, @unchecked Sendable {
     private var record: BoundedParseCapture.Element { index.elements[identifier] }
     /// Element tag.
     public var tag: Tag { record.tag }
-    /// Explicit or dictionary-resolved value representation.
+    /// Explicit or resolved implicit value representation, including pixel padding signedness.
     public var vr: VR { record.vr }
     /// Declared length, including the undefined-length sentinel.
     public var length: UInt32 { record.length }
@@ -328,6 +328,7 @@ struct BoundedParseState: ~Copyable {
     var fragments: DICOMStorageVector<BoundedParseCapture.Fragment>
     var membership: DICOMStorageVector<BoundedParseCapture.Membership>
     var membershipCount = 0, currentScope = 0, currentSequence = -1
+    var hasPixelPadding = false
     var sealed = false
     static func make(source: borrowing VerifiedFileByteSource, budget: borrowing DICOMAllocationBudget)
         -> DICOMParserOutcome<Self> {
@@ -392,9 +393,15 @@ struct BoundedParseStorage: ~Copyable {
 
 /// Internal borrowed builder view pinned by the owning source/index.
 struct BoundedParseCapture {
-    struct Scope { var firstElement = -1, lastElement = -1, elementCount = 0, nextItem = -1 }
+    enum PixelRepresentation { case absent, unsigned, signed, invalid }
+    struct Scope {
+        var firstElement = -1, lastElement = -1, elementCount = 0, nextItem = -1
+        var parent = -1
+        var pixelRepresentation: PixelRepresentation = .absent
+    }
     struct Element {
-        let tag: Tag, vr: VR, length: UInt32, byteOrder: ByteOrder
+        let tag: Tag, length: UInt32, byteOrder: ByteOrder
+        var vr: VR
         var range: Range<Int>
         var nextSibling = -1, firstItem = -1, lastItem = -1, itemCount = 0
         var firstFragment = -1, fragmentCount = 0
@@ -422,23 +429,73 @@ struct BoundedParseCapture {
         state.pointee.membership.releaseStorage(); state.pointee.sealed = true
         return .success(())
     }
+    func setPixelRepresentation(_ value: UInt16?) {
+        precondition(!state.pointee.sealed)
+        let representation: PixelRepresentation
+        switch value {
+        case 0: representation = .unsigned
+        case 1: representation = .signed
+        default: representation = .invalid
+        }
+        state.pointee.scopes[currentScope].pixelRepresentation = representation
+    }
+    private static func isPixelPadding(_ tag: Tag) -> Bool {
+        tag.group == 0x0028 && (tag.element == 0x0120 || tag.element == 0x0121)
+    }
+    /// Resolve only the implicit padding VRs (PS3.3 C.7.5.1 and C.7.6.3).
+    /// The nearest enclosing dataset supplies context when no local value exists.
+    /// Parents are indexed before children, but may contain metadata after a SQ;
+    /// resolving after parsing avoids ordering assumptions and sibling leakage.
+    func resolveImplicitPixelPaddingVR() -> DICOMParserOutcome<Void> {
+        precondition(!state.pointee.sealed)
+        guard state.pointee.hasPixelPadding else { return .success(()) }
+        for identifier in 1..<scopes.count {
+            if let failure = cancellation.failure { return .failure(.managed(failure)) }
+            var scope = scopes[identifier]
+            if scope.pixelRepresentation == .absent && scope.parent >= 1 {
+                scope.pixelRepresentation = scopes[scope.parent].pixelRepresentation
+                state.pointee.scopes[identifier] = scope
+            }
+            var node = scope.firstElement
+            while node >= 0 {
+                if let failure = cancellation.failure { return .failure(.managed(failure)) }
+                let element = elements[node]
+                if Self.isPixelPadding(element.tag) {
+                    guard element.length == 2 else {
+                        return .failure(.malformed(offset: element.range.lowerBound, reason: .pixelPaddingLength))
+                    }
+                    let vr: VR
+                    switch scope.pixelRepresentation {
+                    case .unsigned: vr = .US
+                    case .signed: vr = .SS
+                    case .absent, .invalid:
+                        return .failure(.malformed(offset: element.range.lowerBound, reason: .pixelPaddingRepresentation))
+                    }
+                    state.pointee.elements[node].vr = vr
+                }
+                node = element.nextSibling
+            }
+        }
+        return .success(())
+    }
     func append(tag: Tag, vr: VR, length: UInt32, byteOrder: ByteOrder, range: Range<Int>) -> DICOMParserOutcome<Int> {
         precondition(!state.pointee.sealed)
         let identifier = elements.count
         if case .failure(let failure) = state.pointee.elements.appendOutcome(
-            Element(tag: tag, vr: vr, length: length, byteOrder: byteOrder, range: range)) {
+            Element(tag: tag, length: length, byteOrder: byteOrder, vr: vr, range: range)) {
             return .failure(.managed(DICOMManagedFailure(allocation: failure)))
         }
         var scope = scopes[currentScope]
         if scope.lastElement >= 0 { state.pointee.elements[scope.lastElement].nextSibling = identifier }
         else { scope.firstElement = identifier }
         scope.lastElement = identifier; scope.elementCount += 1; state.pointee.scopes[currentScope] = scope
+        if Self.isPixelPadding(tag) { state.pointee.hasPixelPadding = true }
         return .success(identifier)
     }
     func beginItem() -> DICOMParserOutcome<Int> {
         precondition(!state.pointee.sealed && currentSequence >= 0)
         let previous = currentScope, identifier = scopes.count
-        if case .failure(let failure) = state.pointee.scopes.appendOutcome(Scope()) {
+        if case .failure(let failure) = state.pointee.scopes.appendOutcome(Scope(parent: previous)) {
             return .failure(.managed(DICOMManagedFailure(allocation: failure)))
         }
         var sequence = elements[currentSequence]
