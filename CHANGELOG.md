@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.1] - 2026-10-26
+
+### Fixed — bounded implicit pixel padding
+
+- Resolve implicit Pixel Padding Value `(0028,0120)` and Pixel Padding Range Limit `(0028,0121)` as `SS` for signed pixels and `US` for unsigned pixels, using the applicable Pixel Representation `(0028,0103)`.
+- Resolve nested dataset context after parsing, preserving local overrides, late parent metadata and sibling isolation. Reject missing or malformed signedness and invalid padding lengths; preserve explicit encoded VR for strict consumer mismatch checks.
+- Reuse the canonical verified parser and admitted index storage, including cancellation and allocation-failure cleanup. This repair is limited to the bounded reader; the materialized compatibility reader is unchanged.
+- Include nine focused bounded-input regressions in default CI while retaining successful-CI reuse for identical release inputs. Preserve all v2.9.0 MPPS fixes and existing dependency versions.
+
 ## [2.9.0] - 2026-10-23
 
 ### Fixed — dicom-mpps N-CREATE worklist linking and N-SET update compatibility

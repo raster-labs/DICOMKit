@@ -199,6 +199,8 @@ public struct DICOMFile: Sendable {
         if case .failure(let failure) = parser.parseDataSetCore(transferSyntax: transferSyntax) {
             return .failure(failure)
         }
+        if !transferSyntax.isExplicitVR,
+           case .failure(let failure) = capture.resolveImplicitPixelPaddingVR() { return .failure(failure) }
         if case .failure(let failure) = capture.seal() { return .failure(failure) }
         return .success(BoundedDICOMFile(storage: storage, transferSyntax: transferSyntax))
     }
