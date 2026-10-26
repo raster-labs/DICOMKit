@@ -1,0 +1,1039 @@
+[
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Connection": "keep-alive",
+        "Accept": "application/dicom+json",
+        "User-Agent": "DICOMKit/1.0",
+        "Authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Connection": "keep-alive",
+        "Accept": "application/dicom+json",
+        "User-Agent": "DICOMKit/1.0",
+        "Authorization": "Bearer m7-native-token",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/series?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/+2W22rCQBCG32WvYzKzOWhyFw9QobbW2N6IBQ8BhbQVjS1FfLPe9cWaxOawySYmtVIvigRh+fiZmd392NGOAEADgAIxduRh4mxtYowIBaoBokrGAnldE4O0TbIXvlmZZRFQBYjIYS8mVZY0W62aGYHWVQxqLNgaRlTLSlCYpgTSG3BRPQgMlvs34TKC3EklJOq5vo041Nl6Fq67MiQJaV0E74eGBlRBab6cvTzV3uyptHG386W9kVCkYoNqPiPKmleHIosIour9yYDSxl4fp0SMSrofHEpC8L9kSTtiOqvFZGq7y5kH9j4/HMdeP1rvz+4iWNuHGWH7fkZql/uYad6n0vur1/11zJwFn1XiOYfjp94ytNmIwobjdruJhE6FBJGfwY6MWEPO6Qs49lzFYd2oJaSgsTeEDzUYSOZD+pEkxeMUpdyFDFiVYUGXgXMhfbLOkLvDKqQKsvoWZ1CKv9/soAb9FLcXCiKbJSNZLjrH1l2Yf3m+ypHQr/uqN7hEX8UH+N9X5RKSIzvdVzkqOpevsnrM95VWxleIp/sqca2K7ZICK+iFUsh0c7JeslI85TnEo8qZxXsJxaWc3Sy0lFnoT15Czc7QrKoVmun8D7TCV0IVrdDSz6DsqeNoJUcGrFZy3kqsVnLcU/QM2o+/AEdcBrybDAAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "513",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "3"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/82SQU+DMBiG/0vPrP2+UrrR29yWuETihOll2UEdiUs0msH0QPjvVhcKLYgYDxoOBPLw5CV9NgUBgAmABKIKcnP7eEyJ2pDZmmw98nogiswSUnqfFIK/cKjR1HAXl4bD0LY95PmLYgz5mIK+UEngAtluf//8NHpL71iWH3f7NGNIOZ1w+cFQX+pZwqcINNA3H5Bl6eF7iqKZdB2fJnG9CubWpH5HbVg2DIsfGGi3A9F2GGiZVBByCC2ItyChOSFsCLjU9sCw82mDDSwWQl9PMeQ6qsmxRRant+AMSlZJ49yT8+pz1P9ngfHK4UqvR3k2UGlzpXm4qvwdPUfxkJ6j+D/2XJ//X/bMOx1Oz+1UO3puR/91z3JIz4i/77kRSH99Dmjnt30H9FQt6VAFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "311",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/+2Y227aQBCG32WviT0zPoB95xCkRiotxbQ3USoRYgkkSiNwWlWIN+tdX6xrpz6sd4F1nUJS+SKKtHz+tczOfgzcbBkA9ADQZf6WfZouHyPm3zA0yOjZYGDyquEYaNj8j6+y2w77tmY++3jNdp3s4Z78MLkGf9ywXP66bfEgw+H/LEhSUJlCIKQQkAuITs5eBQVriSwCOgA5ORkWpCOSQb9/EeRg+KYAXRHsT3KqH5YorFIdNhwrUS8NTJdH77JlBGtQSSjt5+37nENP3M88jh9800Tq8rryyvoukI3m/WL29cvF9+jO3MSP94toYx6uvrmJ1scpA83FahNPVzMNtHyc46f9J22Dwv63LFg+zKd3UbyYcXD46+dyGa0/hz9W8Txd22UZWa2SjEpLjFCqVEJVm8HrJusoNU7C2sWhZGdFfBmuanSw1L1pwqBGguIGkFQyFk4UrZpyYhMWYdelt4TWUQgJxGtPaki83pYa8o4l9apv0EHKq/AHsjln23oeSFlHYMGzQOGBhOwK5PZpFSq7DkehouR20jliycejCrfrHIi81IwUufxGhB+y/JObWp3SmvqVmrp0nK2ptRLOYOo9Em5N/Z+a2n4GU9OrmKn36PfZTT0cv0RTk76pqZ2p65tanlUamPrEElZ8MDSTsKsjYcTmEi5d1MPKrIDNnNl8uqVav0MQgVTQxs6UP2yaTLcqSk+XfLAttvLPdUlauiT9wbZykrq6vBxMgrquJKlMZ3Cl2nN1XKmaFtSulFtU4UqV4aSpVuv3hz2QeK33WLfxVHsmCel/xW4l9LIl9BffrlsJnVRCWlPdeSV0+xvoXWnokxkAAA==",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "640",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "5"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/+2VQU/CMBTHv0vPo32v6wrshkAiiYu4oRfCAWGJJIqGDT0QvruduLpuC5RgDFEPy7L213/e3vpbxxsCAC0AlMTfkLvp4zom/pgg5bQlgGI2Sz2KVKhLjZKJQ15XxCe3A7J18sWt6mIuqVpOXanmhauCqKduLmQpWJsiwUjpjjTVjXIKwe2XqEZHc1fXmsO2mfaQpi8+Y8ibqixVmC+BC2Tzxez5qfEW37MkXc8XccL2F8+SeHWYosgWyySdLmcWaLEb4a5+rl4Bekf0tNLPj4T+EQk13yTLQDQzNDSICpB7EEIObQPiVSjbSMZH85Drmj4hoTghzCTgUtXp6cBep8B6BgttV9WryVHwRTYNcrMbhVLV0TAqbLfoMl+uNDEbFQ5L3NbZE3lhGWlyW/1wk+f/uMn1KX/V5EI3foXJNZL+m3x2JotvMJnbnclBaGNyEJ6jydzeZH4mZ3L171pjspWkNbqfJqm0kRTxdEkLW26/UiXQdGryDi1WpSLpCgAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "393",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "3"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/9WSOQ/CMAyF/4vn4tjpQckMQ1cQLIihlEpU4hJtYUD8d1yOiqoV14I6RJHi5y/Oy5uegIh8IvbAnGASrvIYzBQYNfoOIRdVdJHRkSWnMLPgsAcD4wDO1qPZrzdrD6UdbU/qji0gdGWzqaBwA4W5RxXKMst2RinWXQEJynikHVaLJNquO8d4rtIsXyRxql5fp9J4/16FrJJNmoWb6APp8/zD2/xankD9L1yoOXAlDL4gNLhYMNiuMkpRMLqLig+rWO2yLkkiOlt/CUUTpU2h0O0Jhf4hFLMLB6tLoysEAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "233",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/series?00080020=20260115&00400244=20260115&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/5XT3WrCMBQH8HfJdU3PSdJqe9dVYcLcOuN2Ixv4UVDoNtG6MYpvtru92Jq6fqQG3RARDz/+nHOSTDMCAD0ABsTPyOMs2cfEnxIGzAVEhzxZ5H1LfNIPyMH6tVy3COgAVHIyqqWjyyAMO0EF5XUNXR2Gk0qFsqGwrSwyGhupVwQW5ei2LCPwQSuh0c/NXeXQ0/tZpenGt21kXQr5B30XmEB7uV68vXQ+4rm9S/fLdbyzkTLaY64ylLt5H4JTBOrkPxzQ3sXby4pi1dLD+NgSgvo2W8pIkGxWs3mcrhc5HH1/JUm8fZafr+mqqB3KjHJ8ldE65QhPhleqfb5eV9Xx5C4oK+o9l+tneRn6esTZgetxh42EwT8SqDlDXxmRE8PtK5x+r+qwYTUSMnD1F2JGPQ1xM/IuJIncCfG3B1lYR7PgcTA8SCW7msyOVWg1JCNpWJRQ560vahy13ME6E3n1x0jdVfdY3qs/P7F4YK6xBAAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "378",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "1"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?00400244=20260115&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "W3siMDAwODAwNjAiOnsiVmFsdWUiOlsiQ1QiXSwidnIiOiJDUyJ9LCIwMDA4MTAzRSI6eyJWYWx1ZSI6WyJDVC1BIl0sInZyIjoiTE8ifSwiMDAwODExOTAiOnsiVmFsdWUiOlsiaHR0cDovLzEyNy4wLjAuMTo2MDI0MS9kaWNvbS13ZWIvc3R1ZGllcy8xLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEvc2VyaWVzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xIl0sInZyIjoiVVIifSwiMDAyMDAwMEQiOnsiVmFsdWUiOlsiMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxIl0sInZyIjoiVUkifSwiMDAyMDAwMEUiOnsiVmFsdWUiOlsiMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxLjEiXSwidnIiOiJVSSJ9LCIwMDIwMDAxMSI6eyJWYWx1ZSI6WyIxIl0sInZyIjoiSVMifSwiMDAyMDEyMDkiOnsiVmFsdWUiOlsiMiJdLCJ2ciI6IklTIn0sIjAwNDAwMjQ0Ijp7IlZhbHVlIjpbIjIwMjYwMTE1Il0sInZyIjoiREEifSwiMDA0MDAyNDUiOnsiVmFsdWUiOlsiMDkzMDAwIl0sInZyIjoiVE0ifSwiMDA0MDAyNzUiOnsiVmFsdWUiOlt7IjAwNDAwMDA5Ijp7IlZhbHVlIjpbIlNQUy1BIl0sInZyIjoiU0gifSwiMDA0MDEwMDEiOnsiVmFsdWUiOlsiUlAtQSJdLCJ2ciI6IlNIIn19LHsiMDA0MDAwMDkiOnsiVmFsdWUiOlsiU1BTLUIiXSwidnIiOiJTSCJ9LCIwMDQwMTAwMSI6eyJWYWx1ZSI6WyJSUC1CIl0sInZyIjoiU0gifX1dLCJ2ciI6IlNRIn19XQ==",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "721",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "X-Total-Count": "1"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/9WSOQ/CMAyF/4vn4tjpQckMQ1cQLIihlEpU4hJtYUD8d1yOiqoV14I6RJHi5y/Oy5uegIh8IvbAnGASrvIYzBQYNfoOIRdVdJHRkSWnMLPgsAcD4wDO1qPZrzdrD6UdbU/qji0gdGWzqaBwA4W5RxXKMst2RinWXQEJynikHVaLJNquO8d4rtIsXyRxql5fp9J4/16FrJJNmoWb6APp8/zD2/xankD9L1yoOXAlDL4gNLhYMNiuMkpRMLqLig+rWO2yLkkiOlt/CUUTpU2h0O0Jhf4hFLMLB6tLoysEAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "233",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/series?00080060=CT&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WU22rCQBCG32WvYzKzOWhyF6NQobapSXsjFjwEFNJWNLaU4Jv1ri/WJDaHTTYalVLCEhg+fv6Znf3HIQGADgAFYoTkaervPGKMCQWqAaJKJgJ53xCD9EyyF35ZmWURUAXISHeYkypLmpbVMjPQuclBjQUtN6Msp0BhmRLIcMRF9UQwKdt3aRlB7pcUCn5u7zMOddbPMgjWhiQhbYsQfWhoQBWUFqv520vrw5tJ22C3WHlbCUUqdqgWM6KsRT4UWUQQ1egnA0pbb3OaEjGz9Dg6WEKIT9FSSEx/vZzOvGA1j8Dh95fve5tn5/M1WCa1faqRth9rlG7ZxkrzMVW+X70d17GyCzGr5HNOx0+jMvRYiaMN5+0OCgr9MxREvgY7MuK4nO1LOHavcrFB1hJS0NgXwoc6DCTzIf2EkhJxitLsQSasyrCgy8B5kDHZZsjwUIWSIcd2OINS4vtmBzWyS9xeOCLZbSjJctkeOw+pfl1eUQqV8VydV1XX1+QVj2ocVbmVP48q2iiq6CVR1e275rk5RSud/0NO5SYuzSnaOKeqW8fJqZp0YXOqJszYnKoJs2M5tZ/8AJhncIo8CAAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "456",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?00080061=CT&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?0020000D=1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?00100010=M%C3%BCller*&0020000D=1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "W3siMDAwODAwMjAiOnsiVmFsdWUiOlsiMjAyNjAxMTUiXSwidnIiOiJEQSJ9LCIwMDA4MDAzMCI6eyJWYWx1ZSI6WyIxMDE1MDAiXSwidnIiOiJUTSJ9LCIwMDA4MDA1MCI6eyJWYWx1ZSI6WyJBQ0MtQSJdLCJ2ciI6IlNIIn0sIjAwMDgwMDU2Ijp7IlZhbHVlIjpbIk9OTElORSJdLCJ2ciI6IkNTIn0sIjAwMDgwMDYxIjp7IlZhbHVlIjpbIkNUIiwiTVIiXSwidnIiOiJDUyJ9LCIwMDA4MDA5MCI6eyJ2ciI6IlBOIn0sIjAwMDgxMTkwIjp7IlZhbHVlIjpbImh0dHA6Ly8xMjcuMC4wLjE6NjAyNDEvZGljb20td2ViL3N0dWRpZXMvMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxIl0sInZyIjoiVVIifSwiMDAxMDAwMTAiOnsiVmFsdWUiOlt7IkFscGhhYmV0aWMiOiJNw7xsbGVyXlN5bnRoZXRpYyJ9XSwidnIiOiJQTiJ9LCIwMDEwMDAyMCI6eyJWYWx1ZSI6WyJQMSJdLCJ2ciI6IkxPIn0sIjAwMTAwMDMwIjp7IlZhbHVlIjpbIjE5NzAwMTAxIl0sInZyIjoiREEifSwiMDAxMDAwNDAiOnsidnIiOiJDUyJ9LCIwMDIwMDAwRCI6eyJWYWx1ZSI6WyIxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEiXSwidnIiOiJVSSJ9LCIwMDIwMDAxMCI6eyJWYWx1ZSI6WyJTVC1BIl0sInZyIjoiU0gifSwiMDAyMDEyMDYiOnsiVmFsdWUiOlsiMiJdLCJ2ciI6IklTIn0sIjAwMjAxMjA4Ijp7IlZhbHVlIjpbIjMiXSwidnIiOiJJUyJ9fV0=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "698",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "X-Total-Count": "1"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances/1.2.826.0.1.3680043.10.543.301.1.1",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Connection": "keep-alive",
+        "Accept": "multipart/related; type=\"application/dicom\"; transfer-syntax=1.2.840.10008.1.2.1",
+        "User-Agent": "DICOMKit/1.0",
+        "Authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "LS0tLS0tRElDT01Cb3VuZGFyeUVDNDNDREIwNTU2MTRBN0U5Q0FGMDI5RDBCNEY5RURBDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL2RpY29tDQpDb250ZW50LUxvY2F0aW9uOiBodHRwOi8vMTI3LjAuMC4xOjYwMjQxL2RpY29tLXdlYi9zdHVkaWVzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS9zZXJpZXMvMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxLjEvaW5zdGFuY2VzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjENCg0KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABESUNNAgAAAFVMBACYAAAAAgABAE9CAAACAAAAAAECAAIAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjIAAgADAFVJIgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEuMS4xAgAQAFVJFAAxLjIuODQwLjEwMDA4LjEuMi4xAAIAEgBVSRoAMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMIAAUAQ1MKAElTT19JUiAxOTIIABYAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjIACAAYAFVJIgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEuMS4xCAAgAERBCAAyMDI2MDExNQgAMABUTQYAMTAxNTAwCABQAFNIBgBBQ0MtQSAIAGAAQ1MCAENUCAAwEExPEABDaGVzdCBzeW50aGV0aWMgCAA+EExPBABDVC1BEAAQAFBOEgBNw7xsbGVyXlN5bnRoZXRpYyAQACAATE8CAFAxEAAwAERBCAAxOTcwMDEwMRAAEBBBUwQAMDUwWSAADQBVSR4AMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxIAAOAFVJIAAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEuMSAAEABTSAQAU1QtQSAAEQBJUwIAMSAgABMASVMCADEgKAAQAFVTAgAAAkAARAJEQQgAMjAyNjAxMTVAAEUCVE0GADA5MzAwMEAAdQJTUQAAVgAAAP7/AOAsAAAAMgAzEExPCgBTRVJWSUNFLUEgQAAJAFNIBgBTUFMtQSBAAAEQU0gEAFJQLUH+/wDgGgAAAEAACQBTSAYAU1BTLUIgQAABEFNIBABSUC1CDQotLS0tLS1ESUNPTUJvdW5kYXJ5RUM0M0NEQjA1NTYxNEE3RTlDQUYwMjlEMEI0RjlFREEtLQ0K",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "1113",
+        "Content-Type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundaryEC43CDB055614A7E9CAF029D0B4F9EDA\"",
+        "Server": "DICOMKit/1.0"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/dicom-web/studies",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Content-Type": "multipart/related; boundary=----DICOMKitBoundarywEwMLLDPhH7jgXNkd6LwxbWW; type=\"application/dicom\"",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept": "application/dicom+json",
+        "User-Agent": "DICOMKit/1.0",
+        "Authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+        "Accept-Encoding": "gzip, deflate",
+        "Content-Length": "927"
+      },
+      "bodyBase64": "LS0tLS0tRElDT01LaXRCb3VuZGFyeXdFd01MTERQaEg3amdYTmtkNkx3eGJXVw0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9kaWNvbQ0KDQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAERJQ00CAAAAVUwEAJgAAAACAAEAT0IAAAIAAAAAAQIAAgBVSRoAMS4yLjg0MC4xMDAwOC41LjEuNC4xLjEuMgACAAMAVUkiADEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjECABAAVUkUADEuMi44NDAuMTAwMDguMS4yLjEAAgASAFVJGgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0MwgABQBDUwoASVNPX0lSIDE5MggAFgBVSRoAMS4yLjg0MC4xMDAwOC41LjEuNC4xLjEuMgAIABgAVUkiADEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjEIACAAREEIADIwMjYwMTE1CAAwAFRNBgAxMDE1MDAIAFAAU0gGAEFDQy1BIAgAYABDUwIAQ1QIADAQTE8QAENoZXN0IHN5bnRoZXRpYyAIAD4QTE8EAENULUEQABAAUE4SAE3DvGxsZXJeU3ludGhldGljIBAAIABMTwIAUDEQADAAREEIADE5NzAwMTAxEAAQEEFTBAAwNTBZIAANAFVJHgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEgAA4AVUkgADEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xIAAQAFNIBABTVC1BIAARAElTAgAxICAAEwBJUwIAMSAoABAAVVMCAAACQABEAkRBCAAyMDI2MDExNUAARQJUTQYAMDkzMDAwQAB1AlNRAABWAAAA/v8A4CwAAAAyADMQTE8KAFNFUlZJQ0UtQSBAAAkAU0gGAFNQUy1BIEAAARBTSAQAUlAtQf7/AOAaAAAAQAAJAFNIBgBTUFMtQiBAAAEQU0gEAFJQLUINCi0tLS0tLURJQ09NS2l0Qm91bmRhcnl3RXdNTExEUGhIN2pnWE5rZDZMd3hiV1ctLQ0K"
+    },
+    "response": {
+      "bodyBase64": "eyIwMDA4MTE5OSI6eyJWYWx1ZSI6W3siMDAwODExNTAiOnsiVmFsdWUiOlsiMS4yLjg0MC4xMDAwOC41LjEuNC4xLjEuMiJdLCJ2ciI6IlVJIn0sIjAwMDgxMTU1Ijp7IlZhbHVlIjpbIjEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjEiXSwidnIiOiJVSSJ9LCIwMDA4MTE5MCI6eyJWYWx1ZSI6WyJodHRwOi8vMTI3LjAuMC4xOjYwMjQxL2RpY29tLXdlYi9zdHVkaWVzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS9zZXJpZXMvMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxLjEvaW5zdGFuY2VzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjEiXSwidnIiOiJVUiJ9fV0sInZyIjoiU1EifX0=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "359",
+        "Content-Type": "application/dicom+json",
+        "Location": "http://127.0.0.1:60241/dicom-web/studies/1.2.826.0.1.3680043.10.543.301",
+        "Server": "DICOMKit/1.0",
+        "Warning": "299 http://127.0.0.1:60241/dicom-web: Some instances were not stored as sent; see the Failed SOP Sequence"
+      },
+      "status": 202
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Connection": "keep-alive",
+        "Accept": "application/dicom+json",
+        "User-Agent": "DICOMKit/1.0",
+        "Authorization": "Bearer m7-native-token",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/series?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/+2W22rCQBCG32WvYzKzOWhyFw9QobbW2N6IBQ8BhbQVjS1FfLPe9cWaxOawySYmtVIvigRh+fiZmd392NGOAEADgAIxduRh4mxtYowIBaoBokrGAnldE4O0TbIXvlmZZRFQBYjIYS8mVZY0W62aGYHWVQxqLNgaRlTLSlCYpgTSG3BRPQgMlvs34TKC3EklJOq5vo041Nl6Fq67MiQJaV0E74eGBlRBab6cvTzV3uyptHG386W9kVCkYoNqPiPKmleHIosIour9yYDSxl4fp0SMSrofHEpC8L9kSTtiOqvFZGq7y5kH9j4/HMdeP1rvz+4iWNuHGWH7fkZql/uYad6n0vur1/11zJwFn1XiOYfjp94ytNmIwobjdruJhE6FBJGfwY6MWEPO6Qs49lzFYd2oJaSgsTeEDzUYSOZD+pEkxeMUpdyFDFiVYUGXgXMhfbLOkLvDKqQKsvoWZ1CKv9/soAb9FLcXCiKbJSNZLjrH1l2Yf3m+ypHQr/uqN7hEX8UH+N9X5RKSIzvdVzkqOpevsnrM95VWxleIp/sqca2K7ZICK+iFUsh0c7JeslI85TnEo8qZxXsJxaWc3Sy0lFnoT15Czc7QrKoVmun8D7TCV0IVrdDSz6DsqeNoJUcGrFZy3kqsVnLcU/QM2o+/AEdcBrybDAAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "513",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "3"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/82SQU+DMBiG/0vPrP2+UrrR29yWuETihOll2UEdiUs0msH0QPjvVhcKLYgYDxoOBPLw5CV9NgUBgAmABKIKcnP7eEyJ2pDZmmw98nogiswSUnqfFIK/cKjR1HAXl4bD0LY95PmLYgz5mIK+UEngAtluf//8NHpL71iWH3f7NGNIOZ1w+cFQX+pZwqcINNA3H5Bl6eF7iqKZdB2fJnG9CubWpH5HbVg2DIsfGGi3A9F2GGiZVBByCC2ItyChOSFsCLjU9sCw82mDDSwWQl9PMeQ6qsmxRRant+AMSlZJ49yT8+pz1P9ngfHK4UqvR3k2UGlzpXm4qvwdPUfxkJ6j+D/2XJ//X/bMOx1Oz+1UO3puR/91z3JIz4i/77kRSH99Dmjnt30H9FQt6VAFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "311",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/+2Y227aQBCG32WviT0zPoB95xCkRiotxbQ3USoRYgkkSiNwWlWIN+tdX6xrpz6sd4F1nUJS+SKKtHz+tczOfgzcbBkA9ADQZf6WfZouHyPm3zA0yOjZYGDyquEYaNj8j6+y2w77tmY++3jNdp3s4Z78MLkGf9ywXP66bfEgw+H/LEhSUJlCIKQQkAuITs5eBQVriSwCOgA5ORkWpCOSQb9/EeRg+KYAXRHsT3KqH5YorFIdNhwrUS8NTJdH77JlBGtQSSjt5+37nENP3M88jh9800Tq8rryyvoukI3m/WL29cvF9+jO3MSP94toYx6uvrmJ1scpA83FahNPVzMNtHyc46f9J22Dwv63LFg+zKd3UbyYcXD46+dyGa0/hz9W8Txd22UZWa2SjEpLjFCqVEJVm8HrJusoNU7C2sWhZGdFfBmuanSw1L1pwqBGguIGkFQyFk4UrZpyYhMWYdelt4TWUQgJxGtPaki83pYa8o4l9apv0EHKq/AHsjln23oeSFlHYMGzQOGBhOwK5PZpFSq7DkehouR20jliycejCrfrHIi81IwUufxGhB+y/JObWp3SmvqVmrp0nK2ptRLOYOo9Em5N/Z+a2n4GU9OrmKn36PfZTT0cv0RTk76pqZ2p65tanlUamPrEElZ8MDSTsKsjYcTmEi5d1MPKrIDNnNl8uqVav0MQgVTQxs6UP2yaTLcqSk+XfLAttvLPdUlauiT9wbZykrq6vBxMgrquJKlMZ3Cl2nN1XKmaFtSulFtU4UqV4aSpVuv3hz2QeK33WLfxVHsmCel/xW4l9LIl9BffrlsJnVRCWlPdeSV0+xvoXWnokxkAAA==",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "640",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "5"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/+2VQU/CMBTHv0vPo32v6wrshkAiiYu4oRfCAWGJJIqGDT0QvruduLpuC5RgDFEPy7L213/e3vpbxxsCAC0AlMTfkLvp4zom/pgg5bQlgGI2Sz2KVKhLjZKJQ15XxCe3A7J18sWt6mIuqVpOXanmhauCqKduLmQpWJsiwUjpjjTVjXIKwe2XqEZHc1fXmsO2mfaQpi8+Y8ibqixVmC+BC2Tzxez5qfEW37MkXc8XccL2F8+SeHWYosgWyySdLmcWaLEb4a5+rl4Bekf0tNLPj4T+EQk13yTLQDQzNDSICpB7EEIObQPiVSjbSMZH85Drmj4hoTghzCTgUtXp6cBep8B6BgttV9WryVHwRTYNcrMbhVLV0TAqbLfoMl+uNDEbFQ5L3NbZE3lhGWlyW/1wk+f/uMn1KX/V5EI3foXJNZL+m3x2JotvMJnbnclBaGNyEJ6jydzeZH4mZ3L171pjspWkNbqfJqm0kRTxdEkLW26/UiXQdGryDi1WpSLpCgAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "393",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "3"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/9WSOQ/CMAyF/4vn4tjpQckMQ1cQLIihlEpU4hJtYUD8d1yOiqoV14I6RJHi5y/Oy5uegIh8IvbAnGASrvIYzBQYNfoOIRdVdJHRkSWnMLPgsAcD4wDO1qPZrzdrD6UdbU/qji0gdGWzqaBwA4W5RxXKMst2RinWXQEJynikHVaLJNquO8d4rtIsXyRxql5fp9J4/16FrJJNmoWb6APp8/zD2/xankD9L1yoOXAlDL4gNLhYMNiuMkpRMLqLig+rWO2yLkkiOlt/CUUTpU2h0O0Jhf4hFLMLB6tLoysEAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "233",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/series?00080020=20260115&00400244=20260115&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/5XT3WrCMBQH8HfJdU3PSdJqe9dVYcLcOuN2Ixv4UVDoNtG6MYpvtru92Jq6fqQG3RARDz/+nHOSTDMCAD0ABsTPyOMs2cfEnxIGzAVEhzxZ5H1LfNIPyMH6tVy3COgAVHIyqqWjyyAMO0EF5XUNXR2Gk0qFsqGwrSwyGhupVwQW5ei2LCPwQSuh0c/NXeXQ0/tZpenGt21kXQr5B30XmEB7uV68vXQ+4rm9S/fLdbyzkTLaY64ylLt5H4JTBOrkPxzQ3sXby4pi1dLD+NgSgvo2W8pIkGxWs3mcrhc5HH1/JUm8fZafr+mqqB3KjHJ8ldE65QhPhleqfb5eV9Xx5C4oK+o9l+tneRn6esTZgetxh42EwT8SqDlDXxmRE8PtK5x+r+qwYTUSMnD1F2JGPQ1xM/IuJIncCfG3B1lYR7PgcTA8SCW7msyOVWg1JCNpWJRQ560vahy13ME6E3n1x0jdVfdY3qs/P7F4YK6xBAAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "378",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "1"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series?00400244=20260115&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "W3siMDAwODAwNjAiOnsiVmFsdWUiOlsiQ1QiXSwidnIiOiJDUyJ9LCIwMDA4MTAzRSI6eyJWYWx1ZSI6WyJDVC1BIl0sInZyIjoiTE8ifSwiMDAwODExOTAiOnsiVmFsdWUiOlsiaHR0cDovLzEyNy4wLjAuMTo2MDI0MS9kaWNvbS13ZWIvc3R1ZGllcy8xLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEvc2VyaWVzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xIl0sInZyIjoiVVIifSwiMDAyMDAwMEQiOnsiVmFsdWUiOlsiMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxIl0sInZyIjoiVUkifSwiMDAyMDAwMEUiOnsiVmFsdWUiOlsiMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxLjEiXSwidnIiOiJVSSJ9LCIwMDIwMDAxMSI6eyJWYWx1ZSI6WyIxIl0sInZyIjoiSVMifSwiMDAyMDEyMDkiOnsiVmFsdWUiOlsiMiJdLCJ2ciI6IklTIn0sIjAwNDAwMjQ0Ijp7IlZhbHVlIjpbIjIwMjYwMTE1Il0sInZyIjoiREEifSwiMDA0MDAyNDUiOnsiVmFsdWUiOlsiMDkzMDAwIl0sInZyIjoiVE0ifSwiMDA0MDAyNzUiOnsiVmFsdWUiOlt7IjAwNDAwMDA5Ijp7IlZhbHVlIjpbIlNQUy1BIl0sInZyIjoiU0gifSwiMDA0MDEwMDEiOnsiVmFsdWUiOlsiUlAtQSJdLCJ2ciI6IlNIIn19LHsiMDA0MDAwMDkiOnsiVmFsdWUiOlsiU1BTLUIiXSwidnIiOiJTSCJ9LCIwMDQwMTAwMSI6eyJWYWx1ZSI6WyJSUC1CIl0sInZyIjoiU0gifX1dLCJ2ciI6IlNRIn19XQ==",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "721",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "X-Total-Count": "1"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/9WSOQ/CMAyF/4vn4tjpQckMQ1cQLIihlEpU4hJtYUD8d1yOiqoV14I6RJHi5y/Oy5uegIh8IvbAnGASrvIYzBQYNfoOIRdVdJHRkSWnMLPgsAcD4wDO1qPZrzdrD6UdbU/qji0gdGWzqaBwA4W5RxXKMst2RinWXQEJynikHVaLJNquO8d4rtIsXyRxql5fp9J4/16FrJJNmoWb6APp8/zD2/xankD9L1yoOXAlDL4gNLhYMNiuMkpRMLqLig+rWO2yLkkiOlt/CUUTpU2h0O0Jhf4hFLMLB6tLoysEAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "233",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/series?00080060=CT&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WU22rCQBCG32WvYzKzOWhyF6NQobapSXsjFjwEFNJWNLaU4Jv1ri/WJDaHTTYalVLCEhg+fv6Znf3HIQGADgAFYoTkaervPGKMCQWqAaJKJgJ53xCD9EyyF35ZmWURUAXISHeYkypLmpbVMjPQuclBjQUtN6Msp0BhmRLIcMRF9UQwKdt3aRlB7pcUCn5u7zMOddbPMgjWhiQhbYsQfWhoQBWUFqv520vrw5tJ22C3WHlbCUUqdqgWM6KsRT4UWUQQ1egnA0pbb3OaEjGz9Dg6WEKIT9FSSEx/vZzOvGA1j8Dh95fve5tn5/M1WCa1faqRth9rlG7ZxkrzMVW+X70d17GyCzGr5HNOx0+jMvRYiaMN5+0OCgr9MxREvgY7MuK4nO1LOHavcrFB1hJS0NgXwoc6DCTzIf2EkhJxitLsQSasyrCgy8B5kDHZZsjwUIWSIcd2OINS4vtmBzWyS9xeOCLZbSjJctkeOw+pfl1eUQqV8VydV1XX1+QVj2ocVbmVP48q2iiq6CVR1e275rk5RSud/0NO5SYuzSnaOKeqW8fJqZp0YXOqJszYnKoJs2M5tZ/8AJhncIo8CAAA",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "456",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?00080061=CT&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?0020000D=1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?00100010=M%C3%BCller*&0020000D=1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302&limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "W3siMDAwODAwMjAiOnsiVmFsdWUiOlsiMjAyNjAxMTUiXSwidnIiOiJEQSJ9LCIwMDA4MDAzMCI6eyJWYWx1ZSI6WyIxMDE1MDAiXSwidnIiOiJUTSJ9LCIwMDA4MDA1MCI6eyJWYWx1ZSI6WyJBQ0MtQSJdLCJ2ciI6IlNIIn0sIjAwMDgwMDU2Ijp7IlZhbHVlIjpbIk9OTElORSJdLCJ2ciI6IkNTIn0sIjAwMDgwMDYxIjp7IlZhbHVlIjpbIkNUIiwiTVIiXSwidnIiOiJDUyJ9LCIwMDA4MDA5MCI6eyJ2ciI6IlBOIn0sIjAwMDgxMTkwIjp7IlZhbHVlIjpbImh0dHA6Ly8xMjcuMC4wLjE6NjAyNDEvZGljb20td2ViL3N0dWRpZXMvMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxIl0sInZyIjoiVVIifSwiMDAxMDAwMTAiOnsiVmFsdWUiOlt7IkFscGhhYmV0aWMiOiJNw7xsbGVyXlN5bnRoZXRpYyJ9XSwidnIiOiJQTiJ9LCIwMDEwMDAyMCI6eyJWYWx1ZSI6WyJQMSJdLCJ2ciI6IkxPIn0sIjAwMTAwMDMwIjp7IlZhbHVlIjpbIjE5NzAwMTAxIl0sInZyIjoiREEifSwiMDAxMDAwNDAiOnsidnIiOiJDUyJ9LCIwMDIwMDAwRCI6eyJWYWx1ZSI6WyIxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEiXSwidnIiOiJVSSJ9LCIwMDIwMDAxMCI6eyJWYWx1ZSI6WyJTVC1BIl0sInZyIjoiU0gifSwiMDAyMDEyMDYiOnsiVmFsdWUiOlsiMiJdLCJ2ciI6IklTIn0sIjAwMjAxMjA4Ijp7IlZhbHVlIjpbIjMiXSwidnIiOiJJUyJ9fV0=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "698",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "X-Total-Count": "1"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies?limit=100&offset=0",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "application/dicom+json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "H4sIAAAAAAAA/8WSX2uCYBTGv8u5Nj3nmKbemQUTsiLdbqJBf4QCt0XZxgi/2e72xaZt+vpWRGODkBfh4cf59zzjPSCihcgIzh4epskuBmcMjGwikQETBV434EDHhUz5YXWZJSQDsSKjQJCGTLqe13ArMLyrgaYEDvo9v9+tSC8UpEkS6UWgQDA6i9qH7gd52C9lIlseapmma0fTiFsq5h85JnKTtMVq/vLUeItn2jbdLVbxViOVVYvNglF1M6/f1FVC1ch/OlI1wf3ouxVh8eqt9uAm6+V0FqereQ4Gnx9JEm8ew/fndHnQsrJGOW5R48iZoejUGwjq2BO7Veh04l/BNsVdynNxLmNHLnHlur6oIK8LYXTGbUZilN3mCvLDGmRJkC5BmXIpuMx4svifg9v+9+DeOrPi7ldntt2N3N8GVrS5YWBru14M7KnLZwIrprwQWDnV2eQL4b4rI2sFAAA=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Encoding": "gzip",
+        "Content-Length": "353",
+        "Content-Type": "application/dicom+json",
+        "Server": "DICOMKit/1.0",
+        "Vary": "Accept-Encoding",
+        "X-Total-Count": "2"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances/1.2.826.0.1.3680043.10.543.301.1.1",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Accept": "multipart/related; type=\"application/dicom\"; transfer-syntax=1.2.840.10008.1.2.1",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "DICOMKit/1.0"
+      },
+      "bodyBase64": null
+    },
+    "response": {
+      "bodyBase64": "LS0tLS0tRElDT01Cb3VuZGFyeTdERjA1NTE1RDFDODQ5MTNBODE4MkM3NkYwQ0I5NTg0DQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL2RpY29tDQpDb250ZW50LUxvY2F0aW9uOiBodHRwOi8vMTI3LjAuMC4xOjYwMjQxL2RpY29tLXdlYi9zdHVkaWVzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS9zZXJpZXMvMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxLjEvaW5zdGFuY2VzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjENCg0KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABESUNNAgAAAFVMBACYAAAAAgABAE9CAAACAAAAAAECAAIAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjIAAgADAFVJIgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEuMS4xAgAQAFVJFAAxLjIuODQwLjEwMDA4LjEuMi4xAAIAEgBVSRoAMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMIAAUAQ1MKAElTT19JUiAxOTIIABYAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjIACAAYAFVJIgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEuMS4xCAAgAERBCAAyMDI2MDExNQgAMABUTQYAMTAxNTAwCABQAFNIBgBBQ0MtQSAIAGAAQ1MCAENUCAAwEExPEABDaGVzdCBzeW50aGV0aWMgCAA+EExPBABDVC1BEAAQAFBOEgBNw7xsbGVyXlN5bnRoZXRpYyAQACAATE8CAFAxEAAwAERBCAAxOTcwMDEwMRAAEBBBUwQAMDUwWSAADQBVSR4AMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxIAAOAFVJIAAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEuMSAAEABTSAQAU1QtQSAAEQBJUwIAMSAgABMASVMCADEgKAAQAFVTAgAAAkAARAJEQQgAMjAyNjAxMTVAAEUCVE0GADA5MzAwMEAAdQJTUQAAVgAAAP7/AOAsAAAAMgAzEExPCgBTRVJWSUNFLUEgQAAJAFNIBgBTUFMtQSBAAAEQU0gEAFJQLUH+/wDgGgAAAEAACQBTSAYAU1BTLUIgQAABEFNIBABSUC1CDQotLS0tLS1ESUNPTUJvdW5kYXJ5N0RGMDU1MTVEMUM4NDkxM0E4MTgyQzc2RjBDQjk1ODQtLQ0K",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "1113",
+        "Content-Type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundary7DF05515D1C84913A8182C76F0CB9584\"",
+        "Server": "DICOMKit/1.0"
+      },
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/dicom-web/studies",
+      "headers": {
+        "Host": "127.0.0.1:60241",
+        "Content-Type": "multipart/related; boundary=----DICOMKitBoundaryUICzYoxQQ1nnknBWh3cBjitd; type=\"application/dicom\"",
+        "Connection": "keep-alive",
+        "Accept": "application/dicom+json",
+        "User-Agent": "DICOMKit/1.0",
+        "Content-Length": "927",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "en-US,en;q=0.9"
+      },
+      "bodyBase64": "LS0tLS0tRElDT01LaXRCb3VuZGFyeVVJQ3pZb3hRUTFubmtuQldoM2NCaml0ZA0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9kaWNvbQ0KDQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAERJQ00CAAAAVUwEAJgAAAACAAEAT0IAAAIAAAAAAQIAAgBVSRoAMS4yLjg0MC4xMDAwOC41LjEuNC4xLjEuMgACAAMAVUkiADEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjECABAAVUkUADEuMi44NDAuMTAwMDguMS4yLjEAAgASAFVJGgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0MwgABQBDUwoASVNPX0lSIDE5MggAFgBVSRoAMS4yLjg0MC4xMDAwOC41LjEuNC4xLjEuMgAIABgAVUkiADEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjEIACAAREEIADIwMjYwMTE1CAAwAFRNBgAxMDE1MDAIAFAAU0gGAEFDQy1BIAgAYABDUwIAQ1QIADAQTE8QAENoZXN0IHN5bnRoZXRpYyAIAD4QTE8EAENULUEQABAAUE4SAE3DvGxsZXJeU3ludGhldGljIBAAIABMTwIAUDEQADAAREEIADE5NzAwMTAxEAAQEEFTBAAwNTBZIAANAFVJHgAxLjIuODI2LjAuMS4zNjgwMDQzLjEwLjU0My4zMDEgAA4AVUkgADEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xIAAQAFNIBABTVC1BIAARAElTAgAxICAAEwBJUwIAMSAoABAAVVMCAAACQABEAkRBCAAyMDI2MDExNUAARQJUTQYAMDkzMDAwQAB1AlNRAABWAAAA/v8A4CwAAAAyADMQTE8KAFNFUlZJQ0UtQSBAAAkAU0gGAFNQUy1BIEAAARBTSAQAUlAtQf7/AOAaAAAAQAAJAFNIBgBTUFMtQiBAAAEQU0gEAFJQLUINCi0tLS0tLURJQ09NS2l0Qm91bmRhcnlVSUN6WW94UVExbm5rbkJXaDNjQmppdGQtLQ0K"
+    },
+    "response": {
+      "bodyBase64": "eyIwMDA4MTE5OSI6eyJWYWx1ZSI6W3siMDAwODExNTAiOnsiVmFsdWUiOlsiMS4yLjg0MC4xMDAwOC41LjEuNC4xLjEuMiJdLCJ2ciI6IlVJIn0sIjAwMDgxMTU1Ijp7IlZhbHVlIjpbIjEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjEiXSwidnIiOiJVSSJ9LCIwMDA4MTE5MCI6eyJWYWx1ZSI6WyJodHRwOi8vMTI3LjAuMC4xOjYwMjQxL2RpY29tLXdlYi9zdHVkaWVzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS9zZXJpZXMvMS4yLjgyNi4wLjEuMzY4MDA0My4xMC41NDMuMzAxLjEvaW5zdGFuY2VzLzEuMi44MjYuMC4xLjM2ODAwNDMuMTAuNTQzLjMwMS4xLjEiXSwidnIiOiJVUiJ9fV0sInZyIjoiU1EifX0=",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Total-Count",
+        "Content-Length": "359",
+        "Content-Type": "application/dicom+json",
+        "Location": "http://127.0.0.1:60241/dicom-web/studies/1.2.826.0.1.3680043.10.543.301",
+        "Server": "DICOMKit/1.0",
+        "Warning": "299 http://127.0.0.1:60241/dicom-web: Some instances were not stored as sent; see the Failed SOP Sequence"
+      },
+      "status": 202
+    }
+  }
+]

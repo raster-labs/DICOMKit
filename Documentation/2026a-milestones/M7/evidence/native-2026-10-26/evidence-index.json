@@ -1,5 +1,5 @@
 {
-  "recorded_utc": "2026-10-26T08:00:11.540708+00:00",
+  "recorded_utc": "2026-10-26T09:32:30.720333+00:00",
   "original_root": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26",
   "packaged_root": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26",
   "original_bytes_preserved": true,
@@ -952,6 +952,10 @@
       "sha256": "9f3653cb5be88564ac0cf0602c6bfe1cd0b7e27c2417b15028c4fb28aee9e9ee",
       "bytes": 427
     },
+    "harness-native-evidence-write-limitation.json": {
+      "sha256": "5cb044b3317ec564de6f913460592269c37e8ecaef220ef6bdf919ab950e4f79",
+      "bytes": 1710
+    },
     "identity-capture-parser-failure-receipt.json": {
       "sha256": "bc8ba25b932b5265b26e2dfa2f2b90136f44bd6918241d0f7f0ac05e53d5235e",
       "bytes": 1854
@@ -959,6 +963,10 @@
     "independent-final-14-16-18-recheck.json": {
       "sha256": "9994cae208498df66330ba9e67dfa54f6302fe96dfc0a3286d804646a9baabd6",
       "bytes": 2405
+    },
+    "independent-final-native-scope-review.json": {
+      "sha256": "e4ed6b33c946d55dea311724ab5c5b8f6f9a9c2c33c4609f9b73abd889c6abaf",
+      "bytes": 12332
     },
     "interim-native-artifact-hashes.json": {
       "sha256": "e656a28636b22df7a57dde19158629106c83da356ec06fb7930cbba3cbd28a87",
@@ -1029,8 +1037,12 @@
       "bytes": 2548
     },
     "native-results.json": {
-      "sha256": "3ddf9469681a4c63165d9471de7091b585871b9d99a95abc58efed8e4eb148f8",
-      "bytes": 182937
+      "sha256": "028d3d7c66c13143596f0207d43e84d7f5c3e0e05749a7b141082b565bdd6c30",
+      "bytes": 187746
+    },
+    "network-evidence-collection.json": {
+      "sha256": "811973df300c0930e64a0c88a716f4c0ac598a5b91abcd25086a366cc91d6f6c",
+      "bytes": 27750
     },
     "print-repair-verification/DICOMStudioTests-path-repair-focused-v2.log": {
       "sha256": "4a2d559ffcca88b9d301db7b472c22f985854042e9ab05db1a0f26b6d807c6ec",
@@ -1716,6 +1728,262 @@
       "sha256": "5b10d66afd21dab231805ec8292fd78682356672b3ea472c10933c8474a0b660",
       "bytes": 7012
     },
+    "ui-network/FINAL04-info-supplementary-copied-preview.txt": {
+      "sha256": "def03bb3fcbb7060dd13f25f9fbd41eb78c0311dbbdcf491073d4305f8953b4b",
+      "bytes": 260
+    },
+    "ui-network/FINAL04-validate-supplementary-copied-preview.txt": {
+      "sha256": "960b78e51b769566e38772de4fcc6a19b01bc23a422fe5025332e00916744c44",
+      "bytes": 445
+    },
+    "ui-network/find-cancel-partial.txt": {
+      "sha256": "97f7e342e835a01310d826db67164ab5aba85528c8de4a81bf2f114a818ec267",
+      "bytes": 3109
+    },
+    "ui-network/find-cancel-zero.txt": {
+      "sha256": "6f8744aca498cb05c1d92e5b11f3eacf8162ff7b39de1e9b58d7652799d88bf5",
+      "bytes": 2674
+    },
+    "ui-network/find-image-modality-refusal.txt": {
+      "sha256": "4d8b51c33fc85fe41134485753ef812d027d83354e8eafe67088852168307c01",
+      "bytes": 2980
+    },
+    "ui-network/find-image.txt": {
+      "sha256": "14acca673c776de6067d5fae03e9ecd8b7016b4304d57bcc802eb704990d6911",
+      "bytes": 2999
+    },
+    "ui-network/find-patient-date-refusal.txt": {
+      "sha256": "7fd66550e6046c96e70503a5deeed0f4e35c1018aa896f0f42ee717933670db4",
+      "bytes": 2890
+    },
+    "ui-network/find-patient-description-refusal.txt": {
+      "sha256": "706ac6adef1134b8dbded6b73d6ee79dc20356eb6fe9bbade29035f920fa5927",
+      "bytes": 2885
+    },
+    "ui-network/find-patient-uid-refusal.txt": {
+      "sha256": "a9df53e2ad710d10da409d9336c17b24981e7ce48a528e9c06d4ab2c50dc00c7",
+      "bytes": 2878
+    },
+    "ui-network/find-series-ct.txt": {
+      "sha256": "d8c2f140d2356c212d08b4fd101ab64dc604f464705474085a4d0bbec86f47fe",
+      "bytes": 2856
+    },
+    "ui-network/find-study-copied-command.txt": {
+      "sha256": "24213fc76649f18566ed4d36f71fe4446fb2031e2fce57bed905daca30c4a654",
+      "bytes": 289
+    },
+    "ui-network/find-study-ct.txt": {
+      "sha256": "2fcb2ee62bfd2e993fb04333596ae2be84435e599fbbef83d9b06a3e4c32a4d6",
+      "bytes": 3098
+    },
+    "ui-network/mpps-copied-command.txt": {
+      "sha256": "286acf9132cfa00eb3be51c79c0eb87805649f1cae7973ff0d897a6849f2f17e",
+      "bytes": 343
+    },
+    "ui-network/mpps-ct.txt": {
+      "sha256": "493f02cb43ace3f08cddfe85f8e0e641ef0af01cd2146cdb6c440d86f6c90bc0",
+      "bytes": 2937
+    },
+    "ui-network/mpps-missing-class.txt": {
+      "sha256": "f4312c3a4650965cdf0df1b4da7bc6795ede5876d6b9eda46d4e49849399a400",
+      "bytes": 2896
+    },
+    "ui-network/mpps-mr.txt": {
+      "sha256": "594ade4202382255fefbaade10a0badc0295f389b435305b51d4d5cb5e5fa019",
+      "bytes": 2937
+    },
+    "ui-network/mpps-sc.txt": {
+      "sha256": "032821c229aef4b5e7e54d193b503dfe0d0f999a3d7927f6516b6590fcceb63a",
+      "bytes": 2937
+    },
+    "ui-network/mwl-bounded-range.txt": {
+      "sha256": "43d99d6fdcbed91dff6dc39501f3e52ef7c4b14d6438f8f58db911bb8582beef",
+      "bytes": 3178
+    },
+    "ui-network/mwl-invalid-date.txt": {
+      "sha256": "b678b5079b273e068348cfdd13b58b79aa77b3b810bc8862823e96dd9d22fe18",
+      "bytes": 2367
+    },
+    "ui-network/mwl-invalid-time.txt": {
+      "sha256": "2c3d30738ce467224c16e84653bc8436551cb551e83d3674f7e7393ad39901a8",
+      "bytes": 2340
+    },
+    "ui-network/mwl-open-range-copied-command.txt": {
+      "sha256": "827eb88974d26db12b3f90c6be114356831b62179bde88e6e2631e744d80b0e4",
+      "bytes": 219
+    },
+    "ui-network/mwl-open-range.txt": {
+      "sha256": "ebb66afe867f9141b8db276315edbca3d3ff518c12aa810879aa7aac8eb4b027",
+      "bytes": 3150
+    },
+    "ui-network/mwl-scalar.txt": {
+      "sha256": "e3fbc1352ae85e75001a906cc76cd43413dd6275f211e090dfb620c7e8bb4ee3",
+      "bytes": 3146
+    },
+    "ui-network/qido-after-tool-reset.txt": {
+      "sha256": "85bdac95209b3483f8b510c58159046fad6fde14f65e80e3c62c925abe31668d",
+      "bytes": 3163
+    },
+    "ui-network/qido-all-instances.txt": {
+      "sha256": "d85ee54fbe5d75f0c33987025f650695c16f852d9b465823c3f18feab0e4d07b",
+      "bytes": 3379
+    },
+    "ui-network/qido-all-series.txt": {
+      "sha256": "f6a6207e1f8843b7bb47aa74831e41b3b8c3b15fd08f7d50fac6511cd6d99a40",
+      "bytes": 2848
+    },
+    "ui-network/qido-basic-after.txt": {
+      "sha256": "affc6220b5074c3405c2f097128208f65353beecdde86e3f8daab617295b7b3d",
+      "bytes": 9530
+    },
+    "ui-network/qido-basic-before.txt": {
+      "sha256": "d9e20dfe0aed87d025439feef75fb672aa6994a00254eca91f9884dd4adc9bd6",
+      "bytes": 7912
+    },
+    "ui-network/qido-basic-copied-command.txt": {
+      "sha256": "54d3bbceee2e9b024084ab0d9fdc7956ad091fe0175d18628cc45007a478995c",
+      "bytes": 390
+    },
+    "ui-network/qido-basic-multiline-copied-command.txt": {
+      "sha256": "54d3bbceee2e9b024084ab0d9fdc7956ad091fe0175d18628cc45007a478995c",
+      "bytes": 390
+    },
+    "ui-network/qido-basic-multiline-patient-preview-only.txt": {
+      "sha256": "50d21eb607c26a034d3d12c54c0f6462fb3b264a951d9b47557144b80006f19e",
+      "bytes": 371
+    },
+    "ui-network/qido-bearer.txt": {
+      "sha256": "a77f5933b001c41031b0598258f94c8d7a58080f8ffb33a90256a7978cdf7576",
+      "bytes": 2845
+    },
+    "ui-network/qido-changed-tool-reset.txt": {
+      "sha256": "10284aadcc000249639c726284a5a73d039d87b0acc5fe3e4ce666cadee86655",
+      "bytes": 2131
+    },
+    "ui-network/qido-filter-returned.txt": {
+      "sha256": "61052fef753534ebf89d5c8e5af2cfb98998818ca50188d17c98b94cd8e85403",
+      "bytes": 3698
+    },
+    "ui-network/qido-instance-hidden-series.txt": {
+      "sha256": "6a13a5a657267fa53df01808f167b27701764b8597aa55bac7e84bdfc1959a5d",
+      "bytes": 2671
+    },
+    "ui-network/qido-none.txt": {
+      "sha256": "392669e6421ab33fb14d48c3a2bc5d43b40cbd94fa8e1bd220bbd9df0e06bdd2",
+      "bytes": 2713
+    },
+    "ui-network/qido-scoped-series.txt": {
+      "sha256": "8ffd93f55b3fc95643dd2e2444bbf6344106da91c047961bac0b01ff2bc65d3b",
+      "bytes": 2481
+    },
+    "ui-network/qido-series-ct.txt": {
+      "sha256": "f7259eb4541697b614fb8a9d3bbc27ab58f7f14df9e2322fadaa7c1358dc3d65",
+      "bytes": 3584
+    },
+    "ui-network/qido-series-hidden-parent.txt": {
+      "sha256": "eb639ab75c9b6f4791dd9b4b5721f445b7cb38e48973e99244f27e2bf8e24a85",
+      "bytes": 3102
+    },
+    "ui-network/qido-series-instances.txt": {
+      "sha256": "2067f8eba92f7655206591fe100e9c77bf8632deb8912e9391c758be85ec9338",
+      "bytes": 2467
+    },
+    "ui-network/qido-series-pps-parent.txt": {
+      "sha256": "a3aec6f5bb0f15d1c34aa6d89fbb1e2a97a27b2063236e51d5476c99ef7be007",
+      "bytes": 3401
+    },
+    "ui-network/qido-study-ct.txt": {
+      "sha256": "23a6ca2216bbe2d486e5850f0f7219e1ea4b1a6bc93da55865dcfa95ed9ad970",
+      "bytes": 3176
+    },
+    "ui-network/qido-study-instances.txt": {
+      "sha256": "ef8f31fb2c8ec37590b2bdfc3fc85c2ed9c84ab16c917dbb6c624ffa8a560279",
+      "bytes": 2698
+    },
+    "ui-network/qido-uid-list.txt": {
+      "sha256": "f460e384a1266e0f57f85736fc2bcbe72a673dce1b9808a71fa96a90a693ee55",
+      "bytes": 3303
+    },
+    "ui-network/qido-uid-unicode.txt": {
+      "sha256": "1cfd6bf2bdf6ec40ea7c431102cdab48f25f928ed82021f9c8d1a039f4563611",
+      "bytes": 2940
+    },
+    "ui-network/qr-auto-copied-command.txt": {
+      "sha256": "dbb85dc61dd557ff3d8088cabb43c605b5b5af2165630faba1a1948231a70398",
+      "bytes": 366
+    },
+    "ui-network/qr-auto.txt": {
+      "sha256": "bba6868b0ccb9409b07bfc4cceb63ced9227a14c8690dceec6fbe8dd1550738c",
+      "bytes": 4158
+    },
+    "ui-network/qr-review.txt": {
+      "sha256": "ac6d86e5880cd66bcd8fa63ed2e331e8cafb56b9396be7ac77299a19262defa8",
+      "bytes": 4031
+    },
+    "ui-network/retrieve-cancel-copied-command.txt": {
+      "sha256": "d4fd7d800c833f08ad5c8eff5ab673b80041847a949af318ad0a52c0c8f11b5d",
+      "bytes": 404
+    },
+    "ui-network/retrieve-get-cancel.txt": {
+      "sha256": "61a890d247e59ff4a132bdcb95361eda55d5afd62a243be9049e90356e1945eb",
+      "bytes": 4025
+    },
+    "ui-network/retrieve-move-cancel.txt": {
+      "sha256": "9212cef975424e29368d79728596e1ac669540b8e8176323b350d9fe5817aa42",
+      "bytes": 4265
+    },
+    "ui-network/retrieve-restarted-get.txt": {
+      "sha256": "9c336e206160305eb77e7e0b1782133d74412658c88a7f3ddf70e04f3a65b2ef",
+      "bytes": 3381
+    },
+    "ui-network/stow-basic-copied-command.txt": {
+      "sha256": "58af23a28880a5a1986d42a835ed3f49a1e772421cd86167e9c4ab82ebd9e90b",
+      "bytes": 389
+    },
+    "ui-network/stow-basic.txt": {
+      "sha256": "ba3a99a81457e3ba2d7e177dcc6442b452daec77da36d7d72d36a015509fcb48",
+      "bytes": 1911
+    },
+    "ui-network/ups-basic-copied-command.txt": {
+      "sha256": "9634e39ae00bcab34a53c6257f9ee104bd1d3686ac5e5cc5633c21906e5ac318",
+      "bytes": 382
+    },
+    "ui-network/ups-basic-create.txt": {
+      "sha256": "16b8ea0b16fc9268b3e6a30897fba412103d9edbe8bbe23f9a62c0be37fef8fa",
+      "bytes": 1542
+    },
+    "ui-network/ups-basic-get.txt": {
+      "sha256": "c122588b8aadd4ee0cee7626df86a077b06592584d0abdced603e33c0fc2891b",
+      "bytes": 1657
+    },
+    "ui-network/ups-bearer-preview.txt": {
+      "sha256": "f6c4ca4936d13cb0c2b1e9a3eed9e03bd8f5c04e8b6818a1c2f2973479edfeb3",
+      "bytes": 225
+    },
+    "ui-network/ups-identity-create.txt": {
+      "sha256": "1362173db0fc0cf86a77dfdb48ff6e2fa1d9fbf12f0b78703a03ab8b0c62a777",
+      "bytes": 1580
+    },
+    "ui-network/ups-identity-get.txt": {
+      "sha256": "36a80f6b415694d128f58164ccc15216a8294ee422d1b9c4df9379be50dc63d9",
+      "bytes": 1631
+    },
+    "ui-network/ups-identity-invalid.txt": {
+      "sha256": "a9bec8cc1da8fcc8ff6ba0cbdcd351dc3f66bcac685211dcbb9516c19416c9ef",
+      "bytes": 1550
+    },
+    "ui-network/ups-none-preview.txt": {
+      "sha256": "c0c81e90d6719b849630d1fddcf5a3d0dca3b1f3837e332f35ca815cf1bcc5ea",
+      "bytes": 201
+    },
+    "ui-network/wado-basic-copied-command.txt": {
+      "sha256": "dd9eee876e2a4c2eca312e651c9b3493ae6b813f301550f2dc2ae9fc1ef32f3f",
+      "bytes": 534
+    },
+    "ui-network/wado-basic-instance.txt": {
+      "sha256": "f73b97f3e2a343c0a30f114ee7e5c5a311609a3bce9f77c01644986ec4d14b62",
+      "bytes": 2663
+    },
     "ui-viewer/fractional-study-time.png": {
       "sha256": "bbcde4c4747931a72d372f56853c99abffc2c314125eb56f42242e28f42079ae",
       "bytes": 134486
@@ -1821,8 +2089,8 @@
     "repository_root": "Documentation/2026a-milestones/M7/evidence/integrated-final",
     "rule": "Existing canonical historical synthetic fixtures; match recorded SHA256 before reuse."
   },
-  "copied_files": 435,
-  "copied_bytes": 3962557,
+  "copied_files": 502,
+  "copied_bytes": 4167059,
   "reused_files": 17,
   "additional_original_location_map": {
     "checkers/check_native_remaining_attributes.py": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/check_native_remaining_attributes.py"
@@ -1832,5 +2100,6 @@
     "original_root": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified",
     "repository_root": "Documentation/2026a-milestones/M7/evidence/codecs-qualified",
     "rule": "Existing historical synthetic codecs/independent decoder proof; verify recorded content hashes before reuse."
-  }
+  },
+  "checkpoint_portable_index": "../checkpoint-portable-index.json"
 }

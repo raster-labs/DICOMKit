@@ -5285,7 +5285,7 @@
       "milestone": "M7",
       "dependency_item_ids": [],
       "scope_decision": "Preparation begins in M0 and per-milestone evidence is collected throughout; final closure belongs only to M7.",
-      "status": "In progress",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Package.swift"
@@ -5309,15 +5309,15 @@
           "applicability": "Required when the stated condition applies",
           "reason": "",
           "result": "Passed",
-          "verification_detail": "Frozen source, lockfile/build inputs, all41 CLI binaries, test executables and final signed app identities are recorded."
+          "verification_detail": "Frozen 2,062 source inputs, 41 CLI/16 test/14 app artifacts and fresh exact-path app relaunch recorded. Prior epochs retained under scoped source/method equivalence."
         },
         {
           "id": "QUAL-01-AC03",
           "assertion": "Meaningful option combinations and all claimed subcommands have results; skips and unavailable backends remain explicit.",
           "applicability": "Required when the stated condition applies",
           "reason": "",
-          "result": "Partially verified",
-          "verification_detail": "Bounded CLI/automated/independent evidence and all ten final native print groups are qualified; remaining final native non-print groups continue. M6 completion does not close QUAL-01."
+          "result": "Passed",
+          "verification_detail": "All 28 native groups accepted, including three repaired UPS native actions against strict independent peer; meaningful positive/negative CLI/automated paths pass and conditional skips remain explicit."
         }
       ],
       "baseline_evidence_status": "Not executed in the initial review",
@@ -5373,7 +5373,7 @@
     }
   ],
   "current_summary": {
-    "completed": 45,
+    "completed": 46,
     "not_started": 0,
     "deferred": 22,
     "M0": "Completed",
@@ -5381,10 +5381,10 @@
     "M2": "Completed",
     "M3": "Completed",
     "M4": "Completed",
-    "in_progress": 1,
+    "in_progress": 0,
     "M5": "Completed",
     "M6": "Completed",
-    "M7": "In progress — remaining final native qualification"
+    "M7": "Completed local item criteria; remote creation-time snapshot recorded separately"
   },
   "baseline_caveats": [
     {
@@ -5409,5 +5409,20 @@
       "handling": "Keep the literal static-audit finding visible. Runtime parity compares explicit effective arguments; no product change or new enhancement is inferred.",
       "not_a_claim": "Identical defaults for all CLI and Workshop controls"
     }
-  ]
+  ],
+  "publication_qualification": {
+    "local_item_acceptance": "Complete",
+    "remote_CI": {
+      "state_at_document_creation": "Pending exact next pushed head",
+      "recorded_utc": "2026-10-26T09:34:23.083422+00:00",
+      "executed_on_next_head": false,
+      "historical_passed_head": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "historical_evidence": "evidence/remote-verification-c9001dd.json",
+      "required_workflows": 8,
+      "current_status_url": "https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones",
+      "interpretation": "Immutable creation-time snapshot. Post-push exact-head receipt and final report are output-only; consult branch Actions for live status."
+    },
+    "overall_goal_closure": "Pending at document creation; post-push receipt and live branch Actions determine later remote closure.",
+    "not_an_added_item": "No original item assertion requires remote CI; post-push verification is a separate publication/goal condition."
+  }
 }

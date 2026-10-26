@@ -1,0 +1,287 @@
+{
+  "case": "FINAL-09 positive queries and filter refusals",
+  "native_actions": 7,
+  "CLI_actions": 7,
+  "assertions": 55,
+  "checks": [
+    {
+      "name": "native positives only create three associations and requests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native and CLI positives only create six associations and requests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "peer finished expected six requests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request1 expected query level",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request1 matches one expected row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request1 STUDY exact modality/date/wildcards",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request1 raw response exact expected UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 expected query level",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 matches one expected row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 SERIES exact modality/scoping",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 raw response exact expected UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 expected query level",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 matches one expected row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 IMAGE exact hierarchy without modality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 raw response exact expected UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 expected query level",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 matches one expected row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 STUDY exact modality/date/wildcards",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 raw response exact expected UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request5 expected query level",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request5 matches one expected row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request5 SERIES exact modality/scoping",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request5 raw response exact expected UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 expected query level",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 matches one expected row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 IMAGE exact hierarchy without modality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 raw response exact expected UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-study-ct expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-study-ct actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-study-ct byte-exact native/CLI Identifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-study-ct complete native/CLI JSON results equal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-series-ct expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-series-ct actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-series-ct byte-exact native/CLI Identifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-series-ct complete native/CLI JSON results equal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image byte-exact native/CLI Identifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image complete native/CLI JSON results equal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image-modality-refusal expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image-modality-refusal actual native ERROR",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image-modality-refusal same native/CLI refusal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-image-modality-refusal CLI no association or request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-date-refusal expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-date-refusal actual native ERROR",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-date-refusal same native/CLI refusal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-date-refusal CLI no association or request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-description-refusal expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-description-refusal actual native ERROR",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-description-refusal same native/CLI refusal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-description-refusal CLI no association or request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-uid-refusal expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-uid-refusal actual native ERROR",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-uid-refusal same native/CLI refusal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-patient-uid-refusal CLI no association or request",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": true,
+  "limits": [
+    "Cancellation results are verified separately. Independent synthetic DIMSE peer; not a general PACS."
+  ]
+}

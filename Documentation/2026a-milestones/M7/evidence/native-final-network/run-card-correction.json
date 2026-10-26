@@ -1,0 +1,28 @@
+{
+  "observed_utc": "2026-10-26T07:56:53.551633+00:00",
+  "kind": "Prepared run-card oracle correction before execution; no product defect",
+  "source": "work/DICOMKit-milestones/Scripts/m4_client_outcome_peer.py",
+  "source_sha256": "f5af9e44db1a4a7c41baf024513744d104c30c2d710ee69c5c26c8b2b390e9b0",
+  "actual_peer_counts": {
+    "C-MOVE": {
+      "command_field": "0021",
+      "remaining": 2,
+      "completed": 1,
+      "failed": 1,
+      "warning": 1
+    },
+    "C-GET": {
+      "command_field": "0010",
+      "remaining": 2,
+      "completed": 0,
+      "failed": 1,
+      "warning": 0
+    }
+  },
+  "incorrect_prepared_inputs": [
+    "work/m7/native-2026-10-26/network-native-run-card.json",
+    "work/m7/native-2026-10-26/network-native-run-order.json",
+    "work/m7/native-network-setup.json"
+  ],
+  "verification_rule": "Decode terminal CommandSet raw bytes and map by CommandField, never adopt reversed prepared values. The peer reports synthetic counters; it does not perform C-STORE."
+}

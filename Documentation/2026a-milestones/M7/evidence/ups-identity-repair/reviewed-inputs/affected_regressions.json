@@ -1,0 +1,64 @@
+{
+  "recorded_utc": "2026-10-26T09:09:40.475658+00:00",
+  "completed": true,
+  "scope": "Automated repair checks and builds only; native acceptance and new-head remote CI remain pending.",
+  "logs": {
+    "dicomweb-all-repaired-v2.log": {
+      "sha256": "3a118739ad39f1b3fad3497fbc5af606cdbbae4984722f2df8bb7a1615dcf3f5",
+      "required_markers": [
+        "Test run with 649 tests in 63 suites passed",
+        "Executed 504 tests, with 2 tests skipped and 0 failures"
+      ]
+    },
+    "studio-affected-workflows-confirmed.log": {
+      "sha256": "46481cf6f9ac5e4af7858206f1c307d437720ab4f75216e5e91d276dcf4d6e65",
+      "required_markers": [
+        "Test run with 60 tests in 3 suites passed"
+      ]
+    },
+    "all-products-repaired.log": {
+      "sha256": "9dba12e3f4a92c76d0dfcef8d7495545495499df167cc66afaadc2eab9704c5f",
+      "required_markers": [
+        "Build complete!"
+      ]
+    },
+    "app-build/build.log": {
+      "sha256": "3bc3c8719b4cdec7759739bd6a1a88511b238d34e7b4111fb7bec8226cdd0d8b",
+      "required_markers": [
+        "** BUILD SUCCEEDED **"
+      ]
+    }
+  },
+  "dicomweb": {
+    "observed_command_exit": 0,
+    "swift_testing_tests": 649,
+    "swift_testing_suites": 63,
+    "xctest_reported": 504,
+    "xctest_skipped": 2,
+    "xctest_executed": 502,
+    "failures": 0
+  },
+  "studio_affected_workflows": {
+    "observed_command_exit": 0,
+    "swift_testing_tests": 60,
+    "suites": 3,
+    "failures": 0
+  },
+  "builds": {
+    "all_products_success_marker": true,
+    "app_build_sign_verify_command_exit": 0
+  },
+  "runner_correction": {
+    "original": "verify-linked-products.sh completed the product tests but its final grep expected XCTest suite names; the three suites use Swift Testing.",
+    "original_runner_exit": 1,
+    "preserved_successful_log": "studio-affected-workflows.log",
+    "confirmation": "A no-build repeat confirmed the same60 tests and returned0; do not add repeated tests to unique counts."
+  },
+  "preserved_failed_runs": [
+    "identity-focused-v1.log",
+    "identity-focused-v2.log",
+    "dicomweb-all.log",
+    "dicomweb-all-repaired-v1.log"
+  ],
+  "native_status": "Unexecuted for repaired app: Mac locked; prior27 native groups retain scoped source-equivalence evidence."
+}

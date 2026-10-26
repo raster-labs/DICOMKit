@@ -1,0 +1,40 @@
+{
+  "case": "find-image",
+  "peer": "find",
+  "native_capture": 3,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-image.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+    "127.0.0.1:60702",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "ANY-SCP",
+    "--level",
+    "image",
+    "--study-uid",
+    "2.25.301",
+    "--series-uid",
+    "2.25.301.1",
+    "--timeout",
+    "60",
+    "--format",
+    "json"
+  ],
+  "expected_exit": 0,
+  "started_utc": "2026-10-26T08:15:03.673820+00:00",
+  "finished_utc": "2026-10-26T08:15:03.690124+00:00",
+  "binary_sha256": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+  "exit": 0,
+  "state_before": {
+    "associations": 5,
+    "errors": [],
+    "requests": 5
+  },
+  "state_after": {
+    "associations": 6,
+    "errors": [],
+    "requests": 6
+  },
+  "expected_exit_passed": true
+}

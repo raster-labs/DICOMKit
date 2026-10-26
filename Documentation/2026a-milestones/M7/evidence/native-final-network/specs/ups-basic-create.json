@@ -1,0 +1,18 @@
+{
+  "case": "ups-basic-create",
+  "peer": "ups-auth",
+  "native_capture": 1,
+  "cli_capture": 3,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-basic-create.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+    "ups",
+    "http://127.0.0.1:61086/dicom-web",
+    "--create",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/ups-capture-fixtures/cli-workitem.json"
+  ],
+  "expected_exit": 0,
+  "limits": [
+    "Basic native requests compared to unauthenticated CLI because Basic is app-only; no credential-enforcement claim."
+  ]
+}

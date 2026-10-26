@@ -1,0 +1,19 @@
+[
+  {
+    "Modality" : "CT",
+    "NumberOfSeriesRelatedInstances" : 2,
+    "PerformedProcedureStepStartDate" : "20260115",
+    "SeriesDescription" : "CT-A",
+    "SeriesInstanceUID" : "1.2.826.0.1.3680043.10.543.301.1",
+    "SeriesNumber" : 1,
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.301"
+  },
+  {
+    "Modality" : "CT",
+    "NumberOfSeriesRelatedInstances" : 2,
+    "SeriesDescription" : "CT-B",
+    "SeriesInstanceUID" : "1.2.826.0.1.3680043.10.543.302.1",
+    "SeriesNumber" : 3,
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.302"
+  }
+]

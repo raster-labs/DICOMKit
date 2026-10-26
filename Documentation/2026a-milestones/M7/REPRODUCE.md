@@ -1,54 +1,15 @@
-# Reproduce M7 qualification
+# M7 checkpoint reproduction and portability
 
-Use the exact checkpoint/branch and Package.resolved, macOS arm64, Swift 6.4 and Xcode 27.0. The recorded host is macOS 27.0.1. Source and artifact hashes are in this directory. Each campaign needs a fresh output directory; a successful rerun does not establish a native GUI result.
+The 24 October recipes and c900 source checkpoint remain historical under [the archive](evidence/historical-checkpoint-c9001dd/Documentation/2026a-milestones/M7/REPRODUCE.md). Current source/artifact identities and the verified full-product selection and execution results are in [checkpoint input](evidence/checkpoint-update-input.json). All paths in preserved raw logs remain byte-exact; [portable mappings](evidence/checkpoint-portable-index.json) map original workspace locations to repository evidence.
 
-## Integrated tests and CLI inventory
+Run the complete DICOMWeb product through the current Scripts/verify_m7.sh gate; a focused UPS-only run does not replace it. Validate the supplied source manifest against actual files, the real CLI/app/test hashes against their recorded build locations, and the signing/entitlement evidence. The source-equivalence receipt limits reuse of earlier native observations. The failed complete runs remain visible.
 
-From the repository root:
+The strict UPS peer and replay/oracle scripts are in evidence/ups-identity-repair. They use isolated synthetic fixtures and explicit loopback ports; inspect the preserved run card and original workspace mappings before execution. The bundled scripts retain original execution locations and are not falsely claimed drop-in runnable from the export directory.
 
-```sh
-export DICOMKIT_VERIFY_SCRATCH=/path/to/build-scratch
-export DICOMKIT_VERIFY_CACHE=/path/to/package-cache
-bash Scripts/verify_m7.sh /path/to/new-results/integrated
-```
+The new native network receipts are in evidence/native-final-network; sanitized UI observations are in evidence/native-2026-10-26/ui-network. The three supplementary previews are not executed requests. Original UPS parity success is explicitly superseded as a standard-identity claim; the repaired CLI and fresh actual native UPS routes are now qualified within the strict peer scope. The app relaunch/14-file identity,54-assertion review and closed-port cleanup are exported separately.
 
-The script builds all products, checks 41 tools/147 routes, runs the M2–M6 scripts, focused M7 Core/diagnostic tests and the complete Studio product. Binary overrides are passed to tests rather than assuming a developer checkout. Optional harness skips remain visible.
+M6 native PDF proof compares full-page raster and embedded film image/companion bytes. The older VM campaign validated PDF container semantics only; those are distinct epochs. Raw external logs and AX captures intentionally retain their whitespace.
 
-## Static audit tools
+Before publication, verify every evidence hash, all 68 item IDs (46 completed/0 in progress/22 deferred), 28 native Passed, and the separate exact pushed-head CI result. Remote verification is pending until the next code/document commit is pushed. Preserve exclusions and optional/conditional unexecuted cases. No main merge is authorized.
 
-Run `python3 -B -m unittest discover -s Scripts -p 'test_*audit_m*.py' -v` for all 48 regression tests. Run `Scripts/diff_cli.py`, `Scripts/diff_kit.py` and `Scripts/diff_studio.py` against the frozen official 2026a DocBook files using `--nema /path/to/standards`. The retained CLI/Kit results exit 0. Studio intentionally exits 1 for three visible finding checks: the absent anonymization-profile control (two checks) and script dry-run default difference. All 178 Studio callbacks execute with zero audit errors. Do not suppress these findings or equate static checks with runtime conformance.
-
-## Independent software peers and codecs
-
-Install the pinned `Scripts/m7-peer-requirements.txt` in a Python 3.12 environment with OpenSSL TLS 1.3. The recorded environment uses DCMTK 3.7.0, OpenJPEG, OpenJPH and libjxl; exact tool versions and hashes are in each provenance record. `dcmprscu`, `dcmprscp`, `dcmpsprt`, the DCMTK image codecs, `opj_compress/decompress`, `ojph_compress/expand`, `cjxl`, `djxl` and `jxlinfo` must be on PATH for their cases.
-
-```sh
-m7_python=/path/to/m7-python312-environment/bin/python
-m6_python=/path/to/m6-print-environment/bin/python
-bin_dir="$(swift build --disable-automatic-resolution --scratch-path "$DICOMKIT_VERIFY_SCRATCH" --show-bin-path)"
-"$m7_python" Scripts/verify_m7_network_interop.py --bin-dir "$bin_dir" --output-dir /path/to/new-results/network
-"$m7_python" Scripts/verify_m7_tls_interop.py --test-bundle "$bin_dir/DICOMNetworkTests.xctest" --output-dir /path/to/new-results/tls
-"$m7_python" Scripts/verify_m7_codecs.py --bin-dir "$bin_dir" --output-dir /path/to/new-results/codecs
-"$m6_python" Scripts/verify_m6_print_interop.py --bin-dir "$bin_dir" --output-dir /path/to/new-results/print
-```
-
-The print qualification used the separately preserved M6 environment (pydicom 2.4.4, pynetdicom 2.0.2, Pillow 11.3.0). Network/TLS/codec qualification used the pinned modern M7 environment. Do not silently exchange peer versions when comparing evidence. Bind synthetic peers only to loopback. TLS creates temporary certificates, uses custom per-test trust and does not change Keychain/system trust; exclude all generated private keys from shared evidence.
-
-The codec runner's exit 0 means no unexpected failure. Read `totals.json`: refusals and interoperability limits are never codec passes. Full invocation executes 90 cases; unknown/empty case selection is refused. The retained DCMTK print peer limitation is similarly explicit.
-
-## Actual Workshop execution harness
-
-After building the Studio test product, use the final independently generated codec fixtures:
-
-```sh
-"$m6_python" Scripts/verify_m6_workshop.py --bin-dir "$bin_dir" --test-bundle "$bin_dir/DICOMStudioTests.xctest" --fixtures /path/to/new-results/codecs/fixtures --output-dir /path/to/new-results/workshop
-"$m6_python" Scripts/verify_m6_workshop_images.py --bin-dir "$bin_dir" --test-bundle "$bin_dir/DICOMStudioTests.xctest" --codec-campaign /path/to/new-results/codecs --output-dir /path/to/new-results/workshop-images
-```
-
-Use the M6 peer environment for these scripts. They activate 18 plus seven ViewModel actions, isolated configuration directories and same-library loopback receivers. These are process/VM parity gates, not independent peers or native GUI. PNG/TIFF checks compare decoded pixels; PDF checks establish complete containers only.
-
-## Final app and native acceptance
-
-The retained `evidence/build_final_app.sh`, temporary scheme, build/signature logs and entitlement record show the exact local app build procedure. Its absolute paths are historical and must be adapted for another checkout. The script preserves normal project entitlements and isolates DEBUG print configuration through LSEnvironment; it does not weaken the sandbox. Do not change HOME or use the user's real printer registry or patient files.
-
-Unlock the Mac and execute `evidence/native-final-checklist.json` against the exact signed app. Record actual UI inputs, visible outcomes, independent request/file/output checks, binary identity, and failures/skips per action. Exercise native file selection, preview/copy/import, Run/Stop, cross-direction CLI/app print and persistence after relaunch. A successful build, CLI replay or ViewModel invocation cannot replace this gate. Update M6/M7 acceptance and the global register only after the required native checks pass; then verify the exact pushed head. Do not merge main.
+Remote state above is the immutable snapshot recorded at 2026-10-26T09:34:23.083422+00:00. Consult [the milestone branch Actions](https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones) for current status; the final user report and remote receipt bind the actual pushed revision after verification.

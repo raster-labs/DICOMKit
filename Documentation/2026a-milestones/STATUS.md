@@ -1,6 +1,6 @@
 # DICOM 2026a milestone status
 
-Updated 26 October 2026. **M0–M6 item criteria are complete; M7 remains in progress for the remaining final native qualification. The user retains merge authority.**
+Updated 26 October 2026. **M0–M7 local item criteria are complete: 46 completed, 22 deferred. All 28 native groups pass within their recorded scope. At document creation, exact next pushed-head CI was pending; the user retains merge authority.**
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
 commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repaired query safety and filters; M4 repaired service reliability.
@@ -13,25 +13,13 @@ The historical implementation checkpoint passed 932 focused tests and 38 audit r
 
 The final menu-repaired app has strict signature, normal sandbox entitlements and recorded source/binary identity. Its SCU dry-run and SCP status were executed natively; the final SCP status matches all 11 CLI JSON fields. Unchanged shared-service evidence is reused only within the recorded source-equivalence boundary. Earlier lock, layout and oracle failures remain historical. The original M6 commit `3ee9af8a` had seven passing remote checks; this does not establish CI for the later repair overlay.
 
-## M7 final-source checkpoint — native verification pending
+## M7 local acceptance complete — remote CI pending
 
-The frozen final source and signed application are built. All integrated M2–M6
-regression scripts pass. The original final-source Studio run reported 5,380 Swift tests with one optional
-SampleStudies skip, plus 83 XCTest passes and four opt-in harness skips tracked
-separately; the optional fixture test remains unexecuted in that run. Later repair verification reports 5,391 Swift Testing tests including one optional SampleStudies skip, with overall success, and 92 XCTest cases including 4 skips and 0 failures; a subsequent 5-test actual-form gate plus native captures covers the later print menu-only change. Counts overlap and are not additive. 75 Core and
-18 conversion-diagnostic tests pass. All 41 CLI binaries and 147 command routes
-pass help/invalid-invocation checks. The final independent campaigns record
-34 network passes, eight TLS cases, 24 print passes plus one peer limitation,
-and 78 codec passes plus ten refusals and two precision interoperability limits.
-All 25 final print Workshop/CLI comparisons pass. The final audit suite passes 48 regressions; CLI/Kit literal audits pass and Studio retains three genuine finding checks with zero execution errors. Counts overlap and are not additive.
+All 46 active item criteria and all 28 native groups have bounded accepted evidence. The rebuilt UPS app was relaunched by its exact signed path; all 14 file hashes match. Create/Get succeeds against the strict peer and malformed identity refuses locally, producing only two HTTP requests. The repair phase records three native/five CLI actions and 54 assertions, including the earlier 38 CLI assertions. Combined with 457 accepted non-UPS assertions, the accepted network total is 511; original 24 UPS parity assertions remain excluded.
 
-Qualification repaired JPEG Extended SOF1, refusal of unimplemented server TLS
-including flag/config precedence, native Pixel Data OW/byte order/final padding,
-and eager implicit-VR Pixel Data reading. Exact changes, tests, source/artifact
-hashes, evidence, scope limits and the 28-group native checklist are in
-[M7 report](M7/REPORT.md), [verification](M7/verification.json) and
-[acceptance](M7/acceptance.json). QUAL-02's bounded external claims are complete;
-QUAL-01 remains in progress for the final native non-print matrix; both M6 items are complete. No M7 completion or main merge is claimed.
+The complete DICOMWeb product passes 649 Swift Testing tests in 63 suites and 504 reported XCTest cases including two skips: 502 executed passes. Sixty unique affected Studio tests in three suites pass. Failed complete runs, the genuine M2 JSON charset regression, invalid fixture/stale expectations and runner-summary correction remain visible in [M7 report](M7/REPORT.md).
+
+The original item assertions now pass locally. The separate machine-readable remote_CI state_at_document_creation is Pending exact next pushed head. Eight old c9001dd workflows passed, but they do not establish a new-head result. Overall publication/goal closure stays provisional until the next code/document commit passes all eight exact-head workflows/jobs/steps. The post-push receipt and final report are output-only; no main merge or additional enhancement is authorized.
 
 ## Completed M5 items
 
@@ -166,11 +154,10 @@ These are audit-contract corrections; no product options or defaults changed.
 | M4 service reliability | 5 | Completed (14 passed, 1 conditional not applicable) |
 | M5 remaining Studio contracts | 7 | Completed (22 passed, 2 conditional not applicable) |
 | M6 print and printscp Workshop coverage | 2 | Completed (8 passed) |
-| M7 final qualification | 2 | In progress (QUAL-02 complete; QUAL-01 remaining native groups) |
+| M7 final qualification | 2 | Completed local item criteria; CI creation-time snapshot recorded separately |
 | Other enhancements and dormant components | 22 | Deferred |
 
-Of the 68 original actions, **45 are completed, one active item remains in progress,
-and 22 remain deferred**. All planned bug-fix milestones and the two print enhancements are complete; final qualification remains. The
+Of the 68 original actions, **46 are completed and 22 remain deferred**. All planned bug-fix milestones and the two print enhancements are complete; remote publication verification remains. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or
@@ -183,3 +170,5 @@ The user authorized completion of M5–M7 on 24 October 2026, after M4 was pushe
 Continue sequentially, update documents after each milestone and push the same
 branch. Do not merge main; the user will merge. Deferred enhancements remain
 outside scope. Unavailable qualification evidence must stay explicit.
+
+Remote state above is the immutable snapshot recorded at 2026-10-26T09:34:23.083422+00:00. Consult [the milestone branch Actions](https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones) for current status; the final user report and remote receipt bind the actual pushed revision after verification.

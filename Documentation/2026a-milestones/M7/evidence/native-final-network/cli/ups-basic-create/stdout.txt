@@ -1,0 +1,3 @@
+Created worklist item:
+  UID: 2.25.20261024002
+  Retrieve URL: http://127.0.0.1:61086/dicom-web/workitems/2.25.20261024002

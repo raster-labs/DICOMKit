@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "created_utc": "2026-10-24T15:08:56.108909+00:00",
-  "status": "M7 in progress:18 groups passed; ten native network groups pending. Historical observations retain source epochs and explicit limits.",
+  "status": "All 28 native groups passed within recorded scope; local M7 acceptance complete, remote creation-time snapshot separate",
   "plan": "Documentation/2026a-milestones/PLAN.md M7, cross-cutting acceptance and M6.3",
   "source_review_base": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
-  "final_source_revision": "000fb888237872d90891b20907f0562c3a59eef7",
+  "final_source_revision": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
   "current_native_blocker": null,
   "counting_policy": "Each entry is a planned case group with subcases, not an executed count. Record individual outcomes and any unavailable subcase separately. Historical M0–M5 evidence is setup/oracle context only for final GUI; unchanged automated evidence may be reused with source equivalence.",
   "cases": [
@@ -230,7 +230,7 @@
         "WS-FIX-02",
         "WS-FIX-01"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Enter open-ended leading-hyphen DA and TM ranges, bounded/scalar controls and malformed forms. Preview must bind option values without interpreting a new flag.",
         "Execute valid query against prepared peer and inspect actual SPS sequence DA/TM bytes; malformed forms reject before network. A no-peer timeout proves argument passage only, not successful MWL interoperability."
@@ -240,7 +240,13 @@
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged",
         "Independent MWL request capture/association count"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-mwl-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution."
     },
     {
       "id": "FINAL-06",
@@ -248,7 +254,7 @@
       "item_ids": [
         "WS-FIX-05"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "For all four stable IDs select Basic auth: preview clearly app-only and every physical line remains a comment, including multiline synthetic input.",
         "Switch Basic/Bearer/none and confirm stable capability detection and no stale credentials. Use only synthetic credentials.",
@@ -259,7 +265,13 @@
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged",
         "Sanitized synthetic HTTP capture"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-http-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution. UPS authentication-header evidence is separate from the pending corrected Create identity."
     },
     {
       "id": "FINAL-07",
@@ -269,7 +281,7 @@
         "NET-03-B",
         "WS-FIX-03"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Execute all studies, all series, study series, all instances, study instances, and series instances. Correct modality matching tag and allowed resource keys.",
         "Set PPS/series fields, switch study/series/instance scope repeatedly: hidden values absent from preview/request, restored when allowed. Study instances permits series filters.",
@@ -281,7 +293,13 @@
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged",
         "HTTP query-item equality and exact expected UID sets"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-http-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution."
     },
     {
       "id": "FINAL-08",
@@ -292,7 +310,7 @@
         "WS-FIX-03",
         "QUAL-01"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Use a valid supported resource with comma-separated UID alternatives and an actual non-ASCII matching input such as Müller*, not merely a non-ASCII result.",
         "Verify percent encoding, exact list values, expected union within UID key and intersection with other keys, expected results and final CLI request equality.",
@@ -304,7 +322,13 @@
         "Independent request/file/response check where applicable; input hashes unchanged",
         "UID-list/non-ASCII raw URL + decoded query items"
       ],
-      "supplement": true
+      "supplement": true,
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-http-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution."
     },
     {
       "id": "FINAL-09",
@@ -313,7 +337,7 @@
         "NET-04-A",
         "NET-05-A"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Study and series positive queries retain range/wildcard/modality filters; valid image query succeeds.",
         "Image modality and patient study-level filters refuse before association and verbose query header.",
@@ -324,7 +348,14 @@
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged",
         "DIMSE Identifier capture and association counts"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-find-verification.json",
+        "../native-final-network/native-cancel-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution."
     },
     {
       "id": "FINAL-10",
@@ -333,7 +364,7 @@
         "NET-05-B",
         "NET-10-A"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Exercise both method routes with cancelled FE00 response, including partial counters/output.",
         "Successful retrieve from restarted filesystem-backed server returns expected dataset bytes; compare final CLI. Backend durability/restart is independently verified and not implied by the form."
@@ -344,7 +375,13 @@
         "Independent request/file/response check where applicable; input hashes unchanged",
         "Counter/status capture",
         "Retrieved dataset hash"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-cancel-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution."
     },
     {
       "id": "FINAL-11",
@@ -353,7 +390,7 @@
         "NET-09-A",
         "NET-09-B"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Use existing instance/metadata retrieval route against production handler HTTP bridge and compare bytes/fields with CLI.",
         "Capability negotiation remains backend HTTP evidence; do not invent a Workshop capability control. Unsupported server retrieval must surface failure if exercised, not success."
@@ -362,7 +399,13 @@
         "Native screenshot/AX visible effective values and result status",
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-http-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution."
     },
     {
       "id": "FINAL-12",
@@ -370,7 +413,7 @@
       "item_ids": [
         "NET-07-A"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Referenced image without explicit SOP Class rejects before association.",
         "CT, MR and Secondary Capture successful updates send the exact class/instance pairs; compare CLI excluding generated timestamps only. Intermediate MPPS update enhancement remains deferred."
@@ -380,7 +423,13 @@
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged",
         "N-SET dataset inspection"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-mpps-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution."
     },
     {
       "id": "FINAL-13",
@@ -389,7 +438,7 @@
         "NET-06-A",
         "NET-06-B"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Create with compact scheduled DICOM DT preserving fraction/offset and retrieve against production handler or controlled capture peer; compare CLI request bytes and server result semantics.",
         "The existing table does not expose DT; keep scheduling proof in wire/output inspection. Generic UPS attribute update has no Workshop route and remains backend-only acceptance."
@@ -399,6 +448,16 @@
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged",
         "DT lexical/instant inspection"
+      ],
+      "completion_note": "Fresh signed-app Create/Get succeed against the strict peer; malformed UID refuses locally with no third request. Compact DT/body identity and CLI parity are independently verified. The old UID-less collection POST stays failed conformance history.",
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../ups-identity-repair/strict-ups-final-verification.json",
+        "../ups-identity-repair/native-app-relaunch-verification.json",
+        "../ups-identity-repair/independent-final-native-acceptance.json"
+      ],
+      "previous_pending_subcases": [
+        "Launch exact rebuilt app and execute/independently verify corrected existing UPS create-json/retrieve route."
       ]
     },
     {
@@ -540,7 +599,7 @@
       "item_ids": [
         "WS-FIX-06"
       ],
-      "status": "Not run on final packaged app",
+      "status": "Passed",
       "checks": [
         "Visible options Review and Auto; no misleading Interactive selector.",
         "Review shows matches but produces no retrieved files. Auto retrieves exact synthetic match set; compare dataset bytes with CLI.",
@@ -550,7 +609,16 @@
         "Native screenshot/AX visible effective values and result status",
         "Copied command captured as literal argv; equivalent final CLI invocation",
         "Independent request/file/response check where applicable; input hashes unchanged"
-      ]
+      ],
+      "previous_pending_subcases": [],
+      "pending_subcases": [],
+      "closure_evidence": [
+        "../native-final-network/native-server-verification.json"
+      ],
+      "completion_note": "Accepted within independent original-scope review; prior native app epoch retained through reviewed reuse, not a fresh execution.",
+      "conditional_unexecuted": {
+        "persisted_Interactive": "No supported native import route; existing model refusal proof remains separately attributed."
+      }
     },
     {
       "id": "FINAL-16",
@@ -2238,8 +2306,8 @@
   },
   "identity_evidence": "../native-resume-identity.json",
   "resumption": "26October native work resumed; current final menu app built/signed and launched by parent. Earlier locked/rebuild states are historical.",
-  "updated_utc": "2026-10-26T08:00:11.540708+00:00",
-  "final_source_revision_scope": "Historical base000fb888 plus current seven-modified/two-new source overlay identified by final-qualified-native manifests; not an unchanged base binary.",
+  "updated_utc": "2026-10-26T09:32:30.720333+00:00",
+  "final_source_revision_scope": "Historical native source plus reviewed post-c900 source overlay; see current manifests",
   "native_print_progress": {
     "groups": 10,
     "partial_groups": 0,
@@ -2472,13 +2540,23 @@
       "FINAL-02",
       "FINAL-03",
       "FINAL-04",
+      "FINAL-05",
+      "FINAL-06",
+      "FINAL-07",
+      "FINAL-08",
+      "FINAL-09",
+      "FINAL-10",
+      "FINAL-11",
+      "FINAL-12",
+      "FINAL-13",
       "FINAL-14",
+      "FINAL-15",
       "FINAL-16",
       "FINAL-17",
       "FINAL-18"
     ],
     "partial_groups": [],
-    "other_groups_not_run": 10,
+    "other_groups_not_run": 0,
     "all18_groups_still_incomplete": false,
     "catalogue_selections_observed": 35,
     "catalogue_executions_claimed": 0,
@@ -2487,7 +2565,7 @@
     "viewer_SR_rows_exact_AX_and_screenshot": 16,
     "viewer_native_copy_exact": true,
     "viewer_fraction_visual_limit": "FullAX.123456;185pxsidebarshows.12…",
-    "counting_limit": "Group statuses and native action counts are separate; no overallM7completion.",
+    "counting_limit": "All28 group closures are bounded; phase counts and actions are separate. Remote CI remains pending.",
     "audited_Info_actions": 4,
     "audited_validation_actions": 20,
     "audited_attribute_actions_total": 58,
@@ -2497,13 +2575,16 @@
     "audited_codec_executions": 6,
     "audited_attribute_run_card_executions_total": 71,
     "attribute_run_card_preflight_only_total": 1,
-    "audited_attribute_actions_total_scope": "FINAL02/03/04 only; all attribute/script/anon/codec run-card executions are recorded separately as71 plus1preflight."
+    "audited_attribute_actions_total_scope": "FINAL02/03/04 only; all attribute/script/anon/codec run-card executions are recorded separately as71 plus1preflight.",
+    "initial_network_executions": 43,
+    "initial_network_CLI_counterparts": 43,
+    "new_repaired_UPS_native_executions": 3,
+    "repaired_UPS_CLI_executions": 5
   },
   "current_native_state": {
-    "mac_locked": false,
-    "app_state": "Parent built/signed/launched menu/path-repaired app; final print receipts captured.",
-    "next_gate": "Ten native network groups FINAL05-13/15, then final exact-head remote verification and document reconciliation.",
-    "source": "Trusted parent action status plus saved independent evidence; no UI/process interaction by this ledger edit."
+    "app_state": "Fresh exact-path app relaunch and all14 file hashes verified; repaired native UPS three actions accepted",
+    "next_gate": "Commit/push same branch and verify eight exact-head remote workflows; user retains merge authority",
+    "source": "evidence/ups-identity-repair/native-app-relaunch-verification.json"
   },
   "reconciled_report_sha256": {
     "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-print-controls-verification.json": "af5c9af48ae4e91e5f8facdd383f01c6e5e5c634ef997e7f6a15f359f0d2ccd0",
@@ -2534,5 +2615,17 @@
     "M7_complete": false,
     "preserve_historical_failures": true,
     "source_equivalence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json"
+  },
+  "current_reuse_receipt": "evidence/ups-identity-repair/reviewed-inputs/equivalence_receipt.json",
+  "local_final_acceptance": "../local-final-acceptance.json",
+  "remote_CI": {
+    "state_at_document_creation": "Pending exact next pushed head",
+    "recorded_utc": "2026-10-26T09:34:23.083422+00:00",
+    "executed_on_next_head": false,
+    "historical_passed_head": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+    "historical_evidence": "evidence/remote-verification-c9001dd.json",
+    "required_workflows": 8,
+    "current_status_url": "https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones",
+    "interpretation": "Immutable creation-time snapshot. Post-push exact-head receipt and final report are output-only; consult branch Actions for live status."
   }
 }

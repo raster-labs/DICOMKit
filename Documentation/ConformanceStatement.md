@@ -1,10 +1,10 @@
 # DICOMKit capability and conformance disclosure
 
-**Revision: 24 October 2026. Standard basis: DICOM 2026a. Qualification status: M7 in progress; native M6 print Workshop acceptance pending.**
+**Revision: 26 October 2026. Standard basis: DICOM 2026a. M0–M7 local item criteria accepted; remote verification pending at document creation.**
 
 This document describes the repository's library, CLI and DICOMStudio capabilities and their observed limits. It replaces the April 2026 statement's unconditional support marks. It is an engineering disclosure, not a complete PS3.2 conformance statement for every application built with these libraries. A deployed application must identify its actual AEs, configuration, negotiated SOP Classes/transfer syntaxes, security policy and interoperability results.
 
-The source reference is the `codex/dicom-2026a-milestones` branch following M6 checkpoint `3ee9af8a945b76aee72f0062ffb09139bb04d8a9`, with M7 repairs and qualification in progress. This is not a new release/version declaration. [Milestone status](2026a-milestones/STATUS.md), [acceptance criteria](2026a-milestones/items.json) and their source/binary manifests govern the exact tested revisions.
+The source reference is branch `codex/dicom-2026a-milestones` at c9001dd with the separately hashed UPS/JSON repair overlay. Current source/artifact manifests and reuse boundaries are in [M7 verification](2026a-milestones/M7/verification.json). This is not a release/version declaration.
 
 ## Meaning of the capability states
 
@@ -88,7 +88,7 @@ Implemented SCU/SCP paths include Basic Grayscale and Basic Color Print Manageme
 
 [M6 evidence](2026a-milestones/M6/REPORT.md) records **24 passing independent software-peer cases and one DCMTK peer limitation**, plus **25 CLI/ViewModel comparisons across all 10 print commands**. The independent peers have complementary capabilities; DCMTK's disabled-LUT probe accepted the context and is unqualified as a refusal test. The separate pynetdicom case verifies actual refused-context behavior. Terminal Print Job acknowledgment/lifetime and accepted B604 warnings are covered by specific cases.
 
-Native packaged DICOMStudio CLI Workshop print acceptance is **blocked by the locked Mac**, not passed by ViewModel tests or an app build. M6 remains in progress. Existing SCP tolerance for color Planar Configuration 0 is compatibility behavior; strict outbound color uses 1 and the negative test uses invalid value 2. There is no physical printer, real OS paper queue, film-density, calibration or diagnostic-quality qualification.
+Native packaged DICOMStudio CLI Workshop print acceptance is complete for all ten commands within the recorded finite software scope. All 28 native groups are accepted within the recorded scope; exact next pushed-head CI was pending at document creation. Existing SCP tolerance for color Planar Configuration 0 is compatibility behavior; strict outbound color uses 1 and the negative test uses invalid value 2. There is no physical printer, real OS paper queue, film-density, calibration or diagnostic-quality qualification.
 
 ## Security and transport disclosure
 
@@ -115,4 +115,12 @@ Private dictionaries, SR/RT/segmentation parsing, image viewing, anonymization a
 
 The milestone records use frozen official DICOM **2026a** source hashes rather than an unversioned “current” standard. Relevant parts are [PS3.2](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part02/PS3.2.html) for application conformance statements, [PS3.3](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part03/PS3.3.html) for IODs, [PS3.4](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part04/PS3.4.html) for service classes, [PS3.5](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part05/PS3.5.html) for encoding, [PS3.6](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part06/PS3.6.html) for registered identifiers, PS3.7/PS3.8 for DIMSE/transport, PS3.10 for files, [PS3.15](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part15/PS3.15.html) for security profiles and [PS3.18](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part18/PS3.18.html) for web services.
 
-The [M6 source/evidence record](2026a-milestones/M6/verification.json) and [final M7 qualification record](2026a-milestones/M7/verification.json) distinguish automated tests, independent software peers and the unexecuted native gate. Final M7 binaries passed 34 independent network cases and 24 print cases; DC-F07 remains a peer limitation, with the actual optional-context refusal covered independently by PY-F08. M7 completion, exact-head remote CI, merge, release and deployment approval are not asserted by this revision.
+The [M6 source/evidence record](2026a-milestones/M6/verification.json) and [final M7 qualification record](2026a-milestones/M7/verification.json) distinguish automated tests, independent software peers and all 28 bounded native groups including fresh repaired UPS acceptance. The historical M7 campaign binaries passed 34 independent network cases and 24 print cases; DC-F07 remains a peer limitation, with the actual optional-context refusal covered independently by PY-F08. Local M7 item acceptance is recorded; exact next pushed-head remote CI, merge, release and deployment approval are not asserted by this revision.
+
+## Qualification-discovered UPS and JSON repairs
+
+Client UPS creation now preserves valid collection-body identity, supports validated explicit query identity, rejects conflicts locally and generates a client UID when absent. Strict CLI/public-client tests and the rebuilt native UPS Create/Get/refusal pass against the independent strict peer. Actual app identity/relaunch and 54 assertions are recorded; no full UPS IOD/server claim follows. Existing server UID-less fallback remains permissive and unqualified. No full UPS server or lifecycle claim is added.
+
+The JSON decoder now binds its actual UTF-8 text context; the complete DICOMWeb product passes after the real M2 integration regression, invalid encoder fixture and stale capability expectations were corrected. Original failures remain in the M7 evidence, with exact classification. Earlier focused runs are not described as baseline full-product passes.
+
+Remote state above is the immutable snapshot recorded at 2026-10-26T09:34:23.083422+00:00. Consult [the milestone branch Actions](https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones) for current status; the final user report and remote receipt bind the actual pushed revision after verification.

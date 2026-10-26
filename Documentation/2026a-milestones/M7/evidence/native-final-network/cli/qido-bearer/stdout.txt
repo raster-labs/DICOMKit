@@ -1,0 +1,33 @@
+[
+  {
+    "AccessionNumber" : "ACC-A",
+    "ModalitiesInStudy" : [
+      "CT",
+      "MR"
+    ],
+    "NumberOfStudyRelatedInstances" : 3,
+    "NumberOfStudyRelatedSeries" : 2,
+    "PatientBirthDate" : "19700101",
+    "PatientID" : "P1",
+    "PatientName" : "Müller^Synthetic",
+    "StudyDate" : "20260115",
+    "StudyID" : "ST-A",
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.301",
+    "StudyTime" : "101500"
+  },
+  {
+    "AccessionNumber" : "ACC-B",
+    "ModalitiesInStudy" : [
+      "CT"
+    ],
+    "NumberOfStudyRelatedInstances" : 2,
+    "NumberOfStudyRelatedSeries" : 1,
+    "PatientBirthDate" : "19700101",
+    "PatientID" : "P2",
+    "PatientName" : "BETA^Synthetic",
+    "StudyDate" : "20260220",
+    "StudyID" : "ST-B",
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.302",
+    "StudyTime" : "101500"
+  }
+]

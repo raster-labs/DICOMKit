@@ -1,0 +1,253 @@
+{
+  "cases": [
+    "FINAL-09 cancellation",
+    "FINAL-10 cancellation"
+  ],
+  "native_actions": 4,
+  "CLI_actions": 4,
+  "assertions": 43,
+  "checks": [
+    {
+      "name": "exactly four native requests with normal release",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "exactly eight total requests without automatic retries",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "peer clean stop",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request1 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request1 exact partial count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 exact partial count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 partial synthetic row preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 independently decoded exact counters",
+      "passed": true,
+      "detail": [
+        2,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "request3 failed SOP UID list",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 MoveDestination only in C-MOVE command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 independently decoded exact counters",
+      "passed": true,
+      "detail": [
+        2,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "name": "request4 failed SOP UID list",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 MoveDestination only in C-MOVE command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request5 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request5 exact partial count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 exact partial count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 partial synthetic row preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request7 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request7 independently decoded exact counters",
+      "passed": true,
+      "detail": [
+        2,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "request7 failed SOP UID list",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request7 MoveDestination only in C-MOVE command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request8 raw operation and FE00 terminal status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request8 independently decoded exact counters",
+      "passed": true,
+      "detail": [
+        2,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "name": "request8 failed SOP UID list",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request8 MoveDestination only in C-MOVE command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-cancel-zero native ERROR and CLI nonzero exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-cancel-zero exact native/CLI request Identifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-cancel-zero full native/CLI partial result and error match",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-cancel-partial native ERROR and CLI nonzero exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-cancel-partial exact native/CLI request Identifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "find-cancel-partial full native/CLI partial result and error match",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-move-cancel native ERROR and CLI nonzero exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-move-cancel exact native/CLI request Identifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-move-cancel full native/CLI final outcome text matches",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-move-cancel no stored files on either surface",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-get-cancel native ERROR and CLI nonzero exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-get-cancel exact native/CLI request Identifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-get-cancel full native/CLI final outcome text matches",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-get-cancel no stored files on either surface",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": true,
+  "limits": [
+    "Controlled peer-generated FE00 response tests client reporting, not a native cancellation-button origin or server C-CANCEL handling.",
+    "Peer performs no C-STORE; reported counters are controlled synthetic values.",
+    "C-GET retained Move Destination in the native preview; both wire commands correctly omit MoveDestination. CLI prints the unused option in its introductory header while Workshop omits it; terminal outcome comparison begins at Executing C-GET.",
+    "Prepared run card had reversed GET/MOVE counter expectations; the correction is retained in run-card-correction.json and the oracle uses raw terminal CommandSet bytes."
+  ]
+}

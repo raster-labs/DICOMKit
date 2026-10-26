@@ -1,0 +1,87 @@
+{
+  "fixtures": {
+    "invalid-workitem.json": {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/invalid-workitem.json",
+      "sha256": "118355ac474e95ee065ba10b2fdb643a87752a0131a94b7dd6a55b93cd71286d"
+    },
+    "valid-workitem.json": {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/valid-workitem.json",
+      "sha256": "596f4b4a2dbbd9a12811283dd9441fdc56cdf8e245177c2fe40ddd4de55c59dd"
+    },
+    "generated-workitem.json": {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/generated-workitem.json",
+      "sha256": "9ea9c6e8d412ee8bb26c4e78d53f95cef29acbb8696402df87ba26ad45a25ae1"
+    }
+  },
+  "native": [
+    {
+      "name": "ups-identity-create",
+      "mode": "create-json",
+      "json": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/valid-workitem.json",
+      "timeout": 60,
+      "expected": "SUCCESS",
+      "uid": "2.25.20261024001"
+    },
+    {
+      "name": "ups-identity-get",
+      "mode": "get",
+      "uid": "2.25.20261024001",
+      "format": "json",
+      "timeout": 60,
+      "expected": "SUCCESS",
+      "dt": "20261024103000.123456+0530"
+    },
+    {
+      "name": "ups-identity-invalid",
+      "mode": "create-json",
+      "json": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/invalid-workitem.json",
+      "timeout": 60,
+      "expected": "ERROR, no HTTP request"
+    }
+  ],
+  "native_auth": {
+    "mode": "Basic",
+    "username": "m7-native",
+    "password": "only-test:pass",
+    "synthetic": true,
+    "enforcement_tested": false
+  },
+  "cli": [
+    "supplied-create",
+    "supplied-get",
+    "malformed-refusal",
+    "generated-json-create",
+    "default-options-create"
+  ],
+  "planned_native_actions": 3,
+  "planned_cli_actions": 5,
+  "planned_native_http_requests": 2,
+  "planned_cli_http_requests": 4,
+  "expected_isolation": "native and cli stores contain the identical supplied UID independently; generated/default each isolated",
+  "limits": [
+    "CLI intentionally unauthenticated because native Basic mode is app-only; no authentication enforcement claim.",
+    "Create identity, preservation and compact DT only; no full UPS server/IOD conformance."
+  ],
+  "native_requalification": {
+    "status": "PENDING: Mac locked; former peer stopped/closed; fresh native-only peer required.",
+    "old_peer": "peer",
+    "old_port": 62053,
+    "old_port_closed": true,
+    "next_peer_directory": "peer-native-resume-01",
+    "restart_argv": [
+      "work/m7/peer-venv/bin/python",
+      "work/m7/native-2026-10-26/ups-identity-repair/strict-ups-peer.py",
+      "work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01"
+    ],
+    "native_URL": "Read new peer-native-resume-01/ready.json baseURLs.native after starting; do not reuse62053.",
+    "cli_replay_required": false,
+    "CLI_evidence": "Preserve peer requests1-4 and cli-executions.json unchanged; new peer's empty native store avoids duplicate collision.",
+    "final_audit_argv": [
+      "work/m7/peer-venv/bin/python",
+      "work/m7/native-2026-10-26/ups-identity-repair/audit-strict-ups.py",
+      "--native",
+      "--native-peer",
+      "peer-native-resume-01"
+    ]
+  }
+}

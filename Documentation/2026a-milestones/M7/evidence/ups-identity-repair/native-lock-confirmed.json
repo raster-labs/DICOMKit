@@ -1,0 +1,9 @@
+{
+  "recorded_utc": "2026-10-26T09:02:48.787912+00:00",
+  "tool": "cua.getApp",
+  "app": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app",
+  "result": "The Mac is locked and automatic unlock could not unlock it.",
+  "native_repair_actions_executed": 0,
+  "status": "pending user unlock and fresh application relaunch",
+  "previous_capture_failure": "native-capture-blocker.json"
+}

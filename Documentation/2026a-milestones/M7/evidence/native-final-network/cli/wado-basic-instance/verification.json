@@ -1,0 +1,110 @@
+{
+  "case": "wado-basic-instance",
+  "started_utc": "2026-10-26T08:06:19.295195+00:00",
+  "native_capture": 17,
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+    "retrieve",
+    "http://127.0.0.1:60241/dicom-web",
+    "--study",
+    "1.2.826.0.1.3680043.10.543.301",
+    "--series",
+    "1.2.826.0.1.3680043.10.543.301.1",
+    "--instance",
+    "1.2.826.0.1.3680043.10.543.301.1.1",
+    "-o",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-cli",
+    "--format",
+    "json",
+    "--timeout",
+    "60"
+  ],
+  "checks": [
+    {
+      "name": "native response HTTP status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native authorization",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "CLI exit",
+      "passed": true,
+      "detail": 0
+    },
+    {
+      "name": "exactly one CLI request",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "name": "same method, resource and decoded query",
+      "passed": true,
+      "detail": {
+        "native": [
+          "GET",
+          "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances/1.2.826.0.1.3680043.10.543.301.1.1",
+          []
+        ],
+        "cli": [
+          "GET",
+          "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances/1.2.826.0.1.3680043.10.543.301.1.1",
+          []
+        ]
+      }
+    },
+    {
+      "name": "CLI response HTTP status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "CLI authorization",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native response exact Part10 fixture",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "CLI response exact Part10 fixture",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native exactly one output equal fixture",
+      "passed": true,
+      "detail": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-gui/1.2.826.0.1.3680043.10.543.301.1.1.dcm": "1c4101db4797d64c462064e963f74a52c61e8c734f2d828652be2f220a91344b"
+      }
+    },
+    {
+      "name": "cli exactly one output equal fixture",
+      "passed": true,
+      "detail": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-cli/instance_1.2.826.0.1.3680043.10.543.301.1.1.dcm": "1c4101db4797d64c462064e963f74a52c61e8c734f2d828652be2f220a91344b"
+      }
+    }
+  ],
+  "limitations": [
+    "Native Basic header tested; CLI equivalent deliberately omits auth because Basic is not CLI representable. Peers do not enforce authentication."
+  ],
+  "exit": 0,
+  "binary_sha256": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+  "cli_capture_indices": [
+    35
+  ],
+  "native_files": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-gui/1.2.826.0.1.3680043.10.543.301.1.1.dcm": "1c4101db4797d64c462064e963f74a52c61e8c734f2d828652be2f220a91344b"
+  },
+  "cli_files": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-cli/instance_1.2.826.0.1.3680043.10.543.301.1.1.dcm": "1c4101db4797d64c462064e963f74a52c61e8c734f2d828652be2f220a91344b"
+  },
+  "passed": true,
+  "assertions": 11
+}

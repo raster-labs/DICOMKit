@@ -1,0 +1,582 @@
+{
+  "verified_utc": "2026-10-26T08:26:30.277Z",
+  "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+  "branch": "codex/dicom-2026a-milestones",
+  "main_observed_sha": "f14aeb3359e4791e344920347f5e09e564aa084b",
+  "main_commit_message": "Merge pull request #231 from raster-labs/codex/implicit-padding-vr\n\nFix bounded implicit pixel padding and prepare v2.9.1",
+  "main_merge_performed_by_this_task": false,
+  "source": "Authenticated GitHub connector GET provider records",
+  "required_workflows": 8,
+  "workflows": [
+    {
+      "id": 40289707527,
+      "name": "Audit tooling",
+      "path": ".github/workflows/audit-tooling.yml",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289707527",
+      "created_at": "2026-10-26T08:03:53Z",
+      "updated_at": "2026-10-26T08:04:27Z",
+      "jobs": [
+        {
+          "id": 121461629633,
+          "name": "Audit regression tests",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289707527,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Check audit repairs and negative controls",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40289533121,
+      "name": "Final qualification contracts",
+      "path": ".github/workflows/final-qualification.yml",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289533121",
+      "created_at": "2026-10-26T08:02:18Z",
+      "updated_at": "2026-10-26T08:18:25Z",
+      "jobs": [
+        {
+          "id": 121461060038,
+          "name": "Integrated command inventory and M7 regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289533121,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Build all CLI tools and check every command route",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Verify corrected JPEG process, diagnostics and TLS refusal",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Verify full Studio test product with actual CLI binaries",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40289533044,
+      "name": "Print Workshop",
+      "path": ".github/workflows/print-workshop.yml",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289533044",
+      "created_at": "2026-10-26T08:02:18Z",
+      "updated_at": "2026-10-26T08:21:03Z",
+      "jobs": [
+        {
+          "id": 121461059691,
+          "name": "M6 print CLI and Workshop contracts",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289533044,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Verify print contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40289532989,
+      "name": "Studio contracts",
+      "path": ".github/workflows/studio-contracts.yml",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289532989",
+      "created_at": "2026-10-26T08:02:17Z",
+      "updated_at": "2026-10-26T08:16:12Z",
+      "jobs": [
+        {
+          "id": 121461059692,
+          "name": "M5 Studio, Toolbox and script contracts",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289532989,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Verify Studio contracts against checked out sources",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40289532923,
+      "name": "Command safety",
+      "path": ".github/workflows/command-safety.yml",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289532923",
+      "created_at": "2026-10-26T08:02:17Z",
+      "updated_at": "2026-10-26T08:08:11Z",
+      "jobs": [
+        {
+          "id": 121461059057,
+          "name": "Workshop and Toolbox command safety",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289532923,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Workshop shell, real parser, authentication and option regression tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Toolbox argument, process and history regression tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40289532955,
+      "name": "Attribute and workflow integrity",
+      "path": ".github/workflows/attribute-integrity.yml",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289532955",
+      "created_at": "2026-10-26T08:02:17Z",
+      "updated_at": "2026-10-26T08:18:30Z",
+      "jobs": [
+        {
+          "id": 121461059688,
+          "name": "M2 CLI, dataset and Workshop regression gates",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289532955,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Verify M2 against the checked out sources",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40289532944,
+      "name": "Service reliability",
+      "path": ".github/workflows/service-reliability.yml",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289532944",
+      "created_at": "2026-10-26T08:02:17Z",
+      "updated_at": "2026-10-26T08:18:56Z",
+      "jobs": [
+        {
+          "id": 121461059322,
+          "name": "M4 cancellation, capabilities and restart gates",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289532944,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Verify services against the checked out sources",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40289532934,
+      "name": "Query safety and filters",
+      "path": ".github/workflows/query-integrity.yml",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+      "head_branch": "codex/dicom-2026a-milestones",
+      "run_attempt": 1,
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40289532934",
+      "created_at": "2026-10-26T08:02:17Z",
+      "updated_at": "2026-10-26T08:24:10Z",
+      "jobs": [
+        {
+          "id": 121461059730,
+          "name": "M3 query, CLI and Workshop regression gates",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 40289532934,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Verify queries against the checked out sources",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "status": "Passed",
+  "acceptance_checks": {
+    "eight_required_workflows_present": true,
+    "every_head_matches": true,
+    "every_workflow_completed_success": true,
+    "every_job_completed_success": true,
+    "all_recorded_steps_success": true
+  }
+}

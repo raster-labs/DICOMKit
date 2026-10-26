@@ -1,0 +1,28 @@
+{
+  "case": "retrieve-restarted-get",
+  "peer": "server",
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/retrieve-restarted-get.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+    "127.0.0.1:60927",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "M7NATIVE",
+    "--method",
+    "c-get",
+    "--study-uid",
+    "2.25.505",
+    "--output",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/retrieve-restarted-get-cli",
+    "--parallel",
+    "1",
+    "--priority",
+    "medium",
+    "--timeout",
+    "10"
+  ],
+  "native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/restarted-get-gui",
+  "cli_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/retrieve-restarted-get-cli",
+  "expected_exit": 0
+}

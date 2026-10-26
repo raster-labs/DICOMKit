@@ -45,6 +45,11 @@ jobs:
           grep -F "Test Suite 'ConversionDiagnosticsTests' passed" m7-ci/diagnostics.log
           swift test "${common[@]}" --test-product dicom-serverTests --filter M7ServerTLSRefusalTests > m7-ci/server.log 2>&1
           grep -F "Test Suite 'M7ServerTLSRefusalTests' passed" m7-ci/server.log
+      - name: Verify DICOMWeb regressions and UPS creation identity
+        run: |
+          swift test --disable-automatic-resolution -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --test-product DICOMWebTests > m7-ci/dicomweb.log 2>&1
+          grep -E 'Suite "UPS Create identity.*passed' m7-ci/dicomweb.log
+          grep -E 'Test run with [1-9][0-9]* tests .*passed' m7-ci/dicomweb.log
       - name: Verify full Studio test product with actual CLI binaries
         run: |
           swift test --disable-automatic-resolution -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --test-product DICOMStudioTests > m7-ci/studio.log 2>&1

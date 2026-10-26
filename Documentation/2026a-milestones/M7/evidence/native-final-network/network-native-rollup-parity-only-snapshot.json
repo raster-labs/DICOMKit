@@ -1,0 +1,81 @@
+{
+  "verified_utc": "2026-10-26T08:30:00.891701+00:00",
+  "groups": [
+    {
+      "group": "http",
+      "native_actions": 18,
+      "CLI_actions": 18,
+      "assertion_records": 254,
+      "passed": true,
+      "receipt": "native-http-verification.json",
+      "receipt_sha256": "b6366c4cba4c9ed34a4b7560aac20fb6d62bbaf58616b01ecd2962a5527c4eea"
+    },
+    {
+      "group": "mwl",
+      "native_actions": 5,
+      "CLI_actions": 5,
+      "assertion_records": 42,
+      "passed": true,
+      "receipt": "native-mwl-verification.json",
+      "receipt_sha256": "a97677dc24dd593f0d49b4cb444f0b6f1e87d86463c8f1c869b3e74c21cc6891"
+    },
+    {
+      "group": "find",
+      "native_actions": 7,
+      "CLI_actions": 7,
+      "assertion_records": 55,
+      "passed": true,
+      "receipt": "native-find-verification.json",
+      "receipt_sha256": "0d323d8adb6029a380086e099a15395e3a86a6974e97bf3d918be4578c7dfda3"
+    },
+    {
+      "group": "cancel",
+      "native_actions": 4,
+      "CLI_actions": 4,
+      "assertion_records": 43,
+      "passed": true,
+      "receipt": "native-cancel-verification.json",
+      "receipt_sha256": "e8f3669e46f21d22ace3163c2d06b72902b16b1513037ff7c888a12529a40cd0"
+    },
+    {
+      "group": "server",
+      "native_actions": 3,
+      "CLI_actions": 3,
+      "assertion_records": 28,
+      "passed": true,
+      "receipt": "native-server-verification.json",
+      "receipt_sha256": "9d2e2e51b94ab669165b84940ebf928332f82ce93698ef125c284598e1dce58e"
+    },
+    {
+      "group": "mpps",
+      "native_actions": 4,
+      "CLI_actions": 4,
+      "assertion_records": 35,
+      "passed": true,
+      "receipt": "native-mpps-verification.json",
+      "receipt_sha256": "c014c9bc2983938ca72b7126736e1551721c292673365c48c94183281557e0f4"
+    },
+    {
+      "group": "ups",
+      "native_actions": 2,
+      "CLI_actions": 2,
+      "assertion_records": 24,
+      "passed": true,
+      "receipt": "native-ups-verification.json",
+      "receipt_sha256": "d6b38cd232753935901ff34a3cf7505f8a654c66fd7e96061d31e94f7e94830e"
+    }
+  ],
+  "native_actions": 43,
+  "CLI_actions": 43,
+  "assertion_records": 481,
+  "passed": true,
+  "counting": "Seven current group receipts counted once. HTTP includes181 checks from18 paired receipts plus73 additional checks; its paired receipts are not counted a second time. These are assertion records, not additional product executions. Preview-only/copy/mode observations and prior accepted campaigns are excluded from43 native actions.",
+  "cleanup_receipt": "owned-peer-cleanup.json",
+  "expected_refusals": "MWL2, FIND4, controlled FE004, MPPS1 are expected non-success outcomes per surface;43 executed actions comprise32 successes and11 expected refusals/cancellations.",
+  "harness_corrections": [
+    "Prepared cancellation counter card reversed GET/MOVE; raw wire oracle correction retained.",
+    "Initial server helper incorrectly expected exit0 after SIGTERM; exact−15 first stop retained and same-storage restart completed.",
+    "Initial UPS audit expected input00080018 in POST; actual optional-uid API semantics justify excluding exactly that identity attribute, with full input rest checked."
+  ],
+  "remaining_product_runs": 0
+}

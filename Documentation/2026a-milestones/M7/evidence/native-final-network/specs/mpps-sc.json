@@ -1,0 +1,32 @@
+{
+  "case": "mpps-sc",
+  "peer": "mpps",
+  "native_capture": 3,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mpps-sc.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+    "update",
+    "127.0.0.1:56245",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "ANY-SCP",
+    "--study-uid",
+    "2.25.100",
+    "--mpps-uid",
+    "2.25.101",
+    "--status",
+    "COMPLETED",
+    "--series-uid",
+    "2.25.102",
+    "--image-uid",
+    "2.25.103",
+    "--sop-class-uid",
+    "1.2.840.10008.5.1.4.1.1.7",
+    "--protocol-name",
+    "M7TEST",
+    "--timeout",
+    "60"
+  ],
+  "expected_exit": 0
+}

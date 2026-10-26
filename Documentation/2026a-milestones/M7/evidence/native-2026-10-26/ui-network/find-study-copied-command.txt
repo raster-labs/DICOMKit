@@ -1,0 +1,2 @@
+
+						67 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001, Value: dicom-query 127.0.0.1:60702 --aet M7NATIVE --called-aet ANY-SCP --level study --patient-name 'AUDIT*' --study-date 20260101-20261231 --modality CT --study-description 'M3*' --timeout 60 --format json

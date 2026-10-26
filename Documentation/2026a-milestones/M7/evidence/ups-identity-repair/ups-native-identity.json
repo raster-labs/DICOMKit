@@ -1,0 +1,213 @@
+{
+  "recorded_utc": "2026-10-26T09:10:01.184200+00:00",
+  "baseline_commit": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+  "branch": "codex/dicom-2026a-milestones",
+  "verdict": "Passed identity and scoped source-equivalence; new UPS qualification remains separate.",
+  "checks": {
+    "expected_three_production_and_five_verification_files_modified": true,
+    "expected_identity_helper_and_test_added": true,
+    "no_removed_source": true,
+    "unaffected_production_sources_exact": true,
+    "modified_production_is_scoped_to_reviewed_method_sections": true,
+    "new_helper_referenced_only_by_two_create_clients": true,
+    "source_stable_during_capture": true,
+    "head_stable_during_capture": true,
+    "artifacts_stable_during_capture": true,
+    "strict_signature_verified": true,
+    "normal_entitlements_exact": true,
+    "package_locks_entitlements_unchanged": true,
+    "app_scheme_matches_checked_in": true,
+    "temporary_app_scheme_removed": true,
+    "isolated_DEBUG_print_settings_preserved": true
+  },
+  "source_delta": {
+    "matched": 2052,
+    "changed": [
+      {
+        "path": ".github/workflows/final-qualification.yml",
+        "before": "176910d954342c083d2bf6969a452f42234a58c858d809ce19646a4495fc1c20",
+        "after": "4d6b811398549aceaa1b598b850a721e7435a52f1cac17c3c93a0faae90a7807"
+      },
+      {
+        "path": "Scripts/verify_m7.sh",
+        "before": "9323df1124d8b7e46ce20b78e900c647c8f46e9d11f175b2e4534d47b375a408",
+        "after": "8fd8b466c41ed0ad0d14fd021f7150a93cae27c960514713770aa9cb6af516fd"
+      },
+      {
+        "path": "Sources/DICOMWeb/DICOMJSONDecoder.swift",
+        "before": "8fd60c225c50ed4209d33ec522c56030ca2d1a58137c706e82b8ea97de1ffd87",
+        "after": "599bc6949a372e973267c05fe3dc7f775cfe4116df0a38130f63c5420d5cf938"
+      },
+      {
+        "path": "Sources/DICOMWeb/DICOMwebClient.swift",
+        "before": "a29a8770f5fda2c9fc637d8eae2a5e41a154d1ed942975956840d49824faa1cc",
+        "after": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8"
+      },
+      {
+        "path": "Sources/DICOMWeb/UPS/UPSClient.swift",
+        "before": "c2ab8a03c475ed7f24d4e8070fa81b4fb437f8946e30ee1154da9de843e799d3",
+        "after": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1"
+      },
+      {
+        "path": "Tests/DICOMWebTests/DICOMJSONDecoderTests.swift",
+        "before": "faddbb6eec0ca19765138977fb1a6c8cd43887813e4def4dca702ab5bb4f8859",
+        "after": "fa5f74f50e6358602860f87cf6c8d3226e182a906b29d6783367b44e99cf7004"
+      },
+      {
+        "path": "Tests/DICOMWebTests/DICOMJSONModelConformanceTests.swift",
+        "before": "a70571edbd922c5e80b88bcb55821dbd0892aeda5b8b6dce9d88ce3d88841601",
+        "after": "bb2ce08577fbe9dd1528791ad98a1ac3ae5404bebd7e6525b7e8392cd2b944ba"
+      },
+      {
+        "path": "Tests/DICOMWebTests/IntegrationValidationTests.swift",
+        "before": "cca6dbf02aaceaf0304fc48d68edd776cca34a1083b1492708b2edabd79c3f83",
+        "after": "c7bf5f59f57855324f6ac46cf81357922ed99ac63049ca8de6bf042309950f13"
+      }
+    ],
+    "added": [
+      "Sources/DICOMWeb/UPS/UPSCreateIdentity.swift",
+      "Tests/DICOMWebTests/UPSCreateIdentityTests.swift"
+    ],
+    "removed": []
+  },
+  "reviewed_nonproduction_delta": [
+    ".github/workflows/final-qualification.yml",
+    "Scripts/verify_m7.sh",
+    "Tests/DICOMWebTests/DICOMJSONDecoderTests.swift",
+    "Tests/DICOMWebTests/DICOMJSONModelConformanceTests.swift",
+    "Tests/DICOMWebTests/IntegrationValidationTests.swift"
+  ],
+  "source_counts": {
+    "previous": 2060,
+    "current": 2062
+  },
+  "artifact_counts": {
+    "CLI": 41,
+    "test_executables": 16,
+    "application": 14
+  },
+  "artifact_delta": {
+    "CLI": {
+      "matched": 37,
+      "changed": [
+        {
+          "path": "dicom-json",
+          "before": "43a625dd7fcbcd8868bdbf4ccf44a979c33779ba6763df8fe7a1d84ab72ca9c5",
+          "after": "0af44b1a4232024411c99986cb3426fd0270d2d8edbd1224b403159894d38fde"
+        },
+        {
+          "path": "dicom-query",
+          "before": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+          "after": "682b17457a004a752fb8a598e1f391a732b95729246055f5333f8f9b58605414"
+        },
+        {
+          "path": "dicom-wado",
+          "before": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+          "after": "225d63b4bc1717875e661a6a572394e4f750f29e57a7cc984073677ff793b2a0"
+        },
+        {
+          "path": "dicom-xml",
+          "before": "f2763b8f473e08968195ecc677e962eafbe8ededcb161976c4d187db26de9f2f",
+          "after": "90adf46e447c5b678abebaaeb0d9c25e90871e726cc2c0c62c9cd4661b4764bf"
+        }
+      ],
+      "added": [],
+      "removed": []
+    },
+    "test_executables": {
+      "matched": 14,
+      "changed": [
+        {
+          "path": "DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests",
+          "before": "a9373939096802f72940df6dad50143e542f29f3f911e46acd4a71094577885a",
+          "after": "d5160b88f221f78e64bce6344e5fbd9c57dfe66dde55e9024cc616bf064c78dc"
+        },
+        {
+          "path": "DICOMWebTests.xctest/Contents/MacOS/DICOMWebTests",
+          "before": "5e58e418dac892fe2363092255e546245ccd6f5355c2573f8e71bac9e28b88f0",
+          "after": "359d16a67dc3187f098cfbd21d8896211576692bddc794ba789d972885acd74a"
+        }
+      ],
+      "added": [],
+      "removed": []
+    },
+    "application": {
+      "matched": 11,
+      "changed": [
+        {
+          "path": "Contents/MacOS/DICOMStudio",
+          "before": "f69f9a34bca03daa325143ecac4540555761a8bbaa19f93cd438b874e055a493",
+          "after": "e0837eab8fa146b4b0aab26ba22b6d7842ec38106b4c4fde6b1e7de884b8a45b"
+        },
+        {
+          "path": "Contents/MacOS/DICOMStudio.debug.dylib",
+          "before": "968b7486061dc8131a55e852d71a0d9888cf0b51b2f0638debc72696264c844a",
+          "after": "8a9f6c761170c3230a60f7794fc242c13924047461d6ed5ed2c35f21dd4f41cd"
+        },
+        {
+          "path": "Contents/_CodeSignature/CodeResources",
+          "before": "dfb667d5e39a56ad9a907ea5af1d2f3d32ffc51ed9531bf80635787719cec9ec",
+          "after": "a563cda702b2a040bac57115c6472d9c8ed7c5a706cbd3265cfde4b26932ef3f"
+        }
+      ],
+      "added": [],
+      "removed": []
+    }
+  },
+  "unchanged_production_files_excluding_three_reviewed_files": 1076,
+  "modified_file_method_equivalence": {
+    "Sources/DICOMWeb/DICOMJSONDecoder.swift": {
+      "baseline_blob_matches_previous_native_source": true,
+      "all_code_outside_reviewed_method_sections_unchanged": true,
+      "outside_reviewed_sections_sha256": "d46e9244003f984de23df6b5cd863775ae9420d6e1cbb7d1312cc7f4b7b0ba8f"
+    },
+    "Sources/DICOMWeb/DICOMwebClient.swift": {
+      "baseline_blob_matches_previous_native_source": true,
+      "all_code_outside_reviewed_method_sections_unchanged": true,
+      "outside_reviewed_sections_sha256": "14fa50cb624514527e1d25c7966d59bb1302be7112988a771a60e9390f540a2c"
+    },
+    "Sources/DICOMWeb/UPS/UPSClient.swift": {
+      "baseline_blob_matches_previous_native_source": true,
+      "all_code_outside_reviewed_method_sections_unchanged": true,
+      "outside_reviewed_sections_sha256": "9c1749111f3b862a496c05e93303e5425ca6489c8055dda9142251003664f791"
+    }
+  },
+  "identity_helper_reference_files": [
+    "Sources/DICOMWeb/DICOMwebClient.swift",
+    "Sources/DICOMWeb/UPS/UPSClient.swift",
+    "Sources/DICOMWeb/UPS/UPSCreateIdentity.swift"
+  ],
+  "normal_entitlements": {
+    "com.apple.security.app-sandbox": true,
+    "com.apple.security.files.bookmarks.app-scope": true,
+    "com.apple.security.files.downloads.read-write": true,
+    "com.apple.security.files.user-selected.read-write": true,
+    "com.apple.security.network.client": true,
+    "com.apple.security.network.server": true
+  },
+  "DEBUG_LSEnvironment": {
+    "DICOMKIT_PRINT_TEST_SETTINGS_DIRECTORY": "/Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification"
+  },
+  "previous_identity_receipts": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json": "4de84b55264946df509b49f0df78d8c172363be2eb87898f4ad7b011632db827",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json": "55891412e9d7fa5ff28a36c123f92ddbffb46188a603b0d22741941c0d6ba461",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-identity.json": "69cf81c116bdb25d41bd1cc0972b6286d3b27e082cc7fd9cab06853237f03ad9",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json": "3431d7f05bdef48018ffa3a33ca651ca338bde3bda668a2efa9a74699a87337f"
+  },
+  "build_and_verification_evidence": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/build.log": "3bc3c8719b4cdec7759739bd6a1a88511b238d34e7b4111fb7bec8226cdd0d8b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/signing.log": "8d9b45e47ccc8ff87b17f8e16148038091cd9f026bcccd723f03f2032306cd41",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/DICOMStudio-M7App.xcscheme": "2658b184870edf4451a87d4d669eec1d2de83e750eb2020ed7751e7a842e69da",
+    "work/m7/native-2026-10-26/ups-identity-repair/root-final-repair-verification.json": "081aa76726ff1714a60fd9b226e5409c3c9c9c75e80b8cb2a491fb10bb946d8d",
+    "work/m7/native-2026-10-26/ups-identity-repair/independent-ups-json-repair-review.json": "48db733795d1866c06bbf3e1ad944e847c18de36ab618dcb8472652a5ea372bb"
+  },
+  "reuse": {
+    "basis": "Source and method equivalence, not binary identity: shared DICOMWeb changes may relink CLI/app/test artifacts.",
+    "unaffected_native_groups": "Retain original epoch, artifact hashes, outcomes and limits for attribute, script, anonymization, codec, viewer, catalog, print, QIDO/WADO/STOW/MWL/FIND/cancellation/restarted-server/MPPS/QR evidence. All production sources outside two create methods, JSON PN/string decode methods and the new identity helper remain exact; unchanged portions of all three modified production files are compared explicitly. Completed native WADO used binary retrieval, not metadata XML; QIDO and UPS use raw dictionaries or typed workitem models, not DICOMJSONDecoder. The original 28 native groups have no dicom-json reverse action.",
+    "affected_UPS_routes": "Create JSON, typed create and optional-UID API behavior need targeted tests and new actual CLI/native UPS create/retrieve proof. Old UID-less POST remains failed conformance evidence and is not promoted by parity.",
+    "affected_JSON_routes": "JSON reverse through DataExchangeWorkflow and WADO XML metadata through retrieve*MetadataAsElements require targeted automated charset/workflow evidence. No prior JSON reverse or XML metadata action is represented as re-executed; retained native campaigns do not traverse these methods.",
+    "authentication": "Shared HTTP/authentication source and unchanged client methods are identical; prior Basic/Bearer/none evidence retains original attribution. New UPS request includes independent Basic/header and identity checks.",
+    "not_claimed": "No prior action is represented as re-executed on this app. No test, runtime or standards acceptance follows solely from hashes. Existing physical-device, TLS-profile, external-peer, UI-width and server-strict-validation limits remain explicit."
+  },
+  "execution_boundary": "Read-only hashing, Git reads and codesign inspection only. No product/UI/test/build/peer/signing mutation. Historical identity files untouched."
+}

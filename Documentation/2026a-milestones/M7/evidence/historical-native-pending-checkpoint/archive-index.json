@@ -1,0 +1,15 @@
+{
+  "recorded_utc": "2026-10-26T09:32:30.720333+00:00",
+  "scope": "Uncommitted local checkpoint before repaired native UPS; not a Git revision",
+  "sha256": {
+    "Documentation/2026a-milestones/PLAN.md": "e9f5d831be05cd275b2d6550ba8d2b7f99eb4cf6c13ecc1dc35f6591c007cd92",
+    "Documentation/2026a-milestones/STATUS.md": "38993c110866016fb53ee108c6f7909dc8a44780c981dc8bc3d6aa3cb7cda231",
+    "Documentation/2026a-milestones/items.json": "d0e0cdb73e15e74ad4e3586a4b7ccd08dc6a6ada71b2c2c5d3243b42846b5254",
+    "Documentation/2026a-milestones/M7/REPORT.md": "e4e41545f17c430c9f4a672a1b80d6147624db739a710f1bebca3e5c595f93c2",
+    "Documentation/2026a-milestones/M7/REPRODUCE.md": "de7e1cdf931e52788d252ba91cc5aa0d9eb2646f8b16f3b3d95e479c4fe3c13e",
+    "Documentation/2026a-milestones/M7/acceptance.json": "e945330e4c41dc4bdc08eebef8ba7eb51259b0cfaa315af88cbb02f36eb02235",
+    "Documentation/2026a-milestones/M7/verification.json": "a726cd7aa08fb2d507725ba4ea869b98208d500b65b2bd8e243e9d88053ece9a",
+    "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/native-results.json": "61c4031b5e9a20ea59689af60d45475dcb0fa86f396233b98e259e112805af46",
+    "Documentation/ConformanceStatement.md": "6e172328d8a075295da9650067abd45f4d85c0b6cf1fd676085d611647032e3d"
+  }
+}

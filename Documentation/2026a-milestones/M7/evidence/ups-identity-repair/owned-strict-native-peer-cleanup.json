@@ -1,0 +1,20 @@
+{
+  "verified_utc": "2026-10-26T09:25:23.225243+00:00",
+  "owned_port": 62708,
+  "owned_pid": 72442,
+  "session": 37111,
+  "session_exit": 0,
+  "port_connect_result": 61,
+  "port_closed": true,
+  "finished": {
+    "requests": 2,
+    "counts": {
+      "native": 2,
+      "cli": 0,
+      "cli-generated": 0,
+      "cli-default": 0
+    }
+  },
+  "preexisting_SCP11112": "Untouched",
+  "passed": true
+}

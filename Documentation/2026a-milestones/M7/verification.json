@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "milestone": "M7",
-  "status": "In progress — native qualification resumed; M6 closed, remaining M7 packaged-app checks pending",
-  "recorded_utc": "2026-10-26T07:44:13.493231+00:00",
+  "status": "Local M7 acceptance complete; remote state at document creation is recorded separately",
+  "recorded_utc": "2026-10-26T09:32:30.720333+00:00",
   "branch": "codex/dicom-2026a-milestones",
-  "source_manifest": "../M6/evidence/native-2026-10-26/final-qualified-native-source-hashes.json",
-  "artifact_manifest": "../M6/evidence/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+  "source_manifest": "source-hashes.json",
+  "artifact_manifest": "artifact-hashes.json",
   "integrated_regressions": {
     "exit_code": 0,
     "script": "Scripts/verify_m7.sh",
@@ -304,27 +304,46 @@
   "app_build": {
     "status": "Passed",
     "signed_with_project_sandbox_entitlements": true,
-    "native_runtime": "Resumed; audited partial M7 progress, all ten M6 print routes closed",
+    "native_runtime": "Passed bounded native matrix; fresh repaired UPS app verified by exact-path relaunch and14filehashes",
     "planned_native_groups": 28,
     "checklist": "evidence/native-final-checklist.json",
-    "current_identity": "../M6/evidence/native-2026-10-26/final-qualified-native-identity.json",
-    "current_source_equivalence": "../M6/evidence/native-2026-10-26/final-qualified-native-equivalence.json",
-    "build_log": "../M6/evidence/native-2026-10-26/print-repair-verification/app-menu-rerun/build.log",
-    "signing_log": "../M6/evidence/native-2026-10-26/print-repair-verification/app-menu-rerun/signing.log"
+    "current_identity": "evidence/ups-identity-repair/reviewed-inputs/identity_receipt.json",
+    "current_source_equivalence": "evidence/ups-identity-repair/reviewed-inputs/equivalence_receipt.json",
+    "build_log": "evidence/ups-identity-repair/app-build/build.log",
+    "signing_log": "evidence/ups-identity-repair/app-build/signing.log"
   },
-  "remote_CI": "Check the exact pushed head; local results are not remote CI.",
+  "remote_CI": {
+    "state_at_document_creation": "Pending exact next pushed head",
+    "recorded_utc": "2026-10-26T09:34:23.083422+00:00",
+    "executed_on_next_head": false,
+    "historical_passed_head": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+    "historical_evidence": "evidence/remote-verification-c9001dd.json",
+    "required_workflows": 8,
+    "current_status_url": "https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones",
+    "interpretation": "Immutable creation-time snapshot. Post-push exact-head receipt and final report are output-only; consult branch Actions for live status."
+  },
   "scope_limits": [
     "macOS arm64 synthetic qualification, not every supported platform or clinical/physical device qualification.",
     "10 codec refusals and two strict precision interoperability limits are not codec passes.",
     "Complete TLS profiles, mutual TLS, revocation and complete cipher matrices remain unqualified.",
     "Physical printer/film, real CUPS dispatch, calibration and diagnostic image quality remain unqualified.",
-    "No main merge, release or deployment."
+    "No main merge, release or deployment.",
+    "Controlled peer-origin FE00 checks client reporting; no native Cancel-button origin, server C-CANCEL or C-STORE claim.",
+    "The restarted process exits -15 after SIGTERM; the earlier exit-zero oracle was wrong. No graceful-shutdown or power-loss guarantee.",
+    "Persisted Interactive native import has no supported route and remains unexecuted; existing model refusal evidence is separate.",
+    "MPPS terminal N-SET captures are not persisted IN PROGRESS-to-terminal lifecycle qualification; only generated PPS End Date/Time were normalized.",
+    "UPS compact DICOM DT uses existing create-json; Scheduled Start expects ISO8601. Generic UPS attribute update remains backend-only.",
+    "Native Basic headers were captured by a non-enforcing synthetic peer. CLI counterparts omit Basic because there is no CLI Basic flag. Preview-only Bearer/none/multiline observations are not executions.",
+    "Generic 240px forms retain clipping. Operative controls/effective values were observed; a general layout enhancement is outside the original scope.",
+    "SR values/copy retain full precision; the 185px ordinary-image sidebar visibly ellipsizes while AX retains all six fractional digits.",
+    "Other runtimes, clinical/physical devices, real CUPS, calibration, diagnostic fidelity, full IOD/standard and full TLS/mTLS/revocation/cipher qualification remain unexecuted.",
+    "Existing UPS server UID-less fallback remains permissive and unqualified; the repair qualifies client request identity only."
   ],
   "historical_qualification": {
     "recorded_utc": "2026-10-24T15:45:23.572156+00:00",
     "status": "In progress — native packaged GUI blocked",
-    "source_manifest": "source-hashes.json",
-    "artifact_manifest": "artifact-hashes.json",
+    "source_manifest": "evidence/historical-checkpoint-c9001dd/Documentation/2026a-milestones/M7/source-hashes.json",
+    "artifact_manifest": "evidence/historical-checkpoint-c9001dd/Documentation/2026a-milestones/M7/artifact-hashes.json",
     "app_build": {
       "status": "Passed",
       "signed_with_project_sandbox_entitlements": true,
@@ -335,13 +354,13 @@
     "meaning": "24 October automated/independent snapshot; retained unchanged. Its native lock/zero-action status is historical only."
   },
   "native_checkpoint_2026_10_26": {
-    "status": "In progress; no M7 completion",
+    "status": "Local acceptance complete; CI snapshot recorded at document creation",
     "register_counts": {
-      "completed": 45,
-      "in_progress": 1,
+      "completed": 46,
+      "in_progress": 0,
       "deferred": 22
     },
-    "source_revision_note": "HEAD000fb888 plus explicitly hashed repair overlay; not an unchanged000fb888 binary.",
+    "source_revision_note": "Historical native epochs retained under the current reviewed source-equivalence receipt",
     "ledger": "evidence/native-2026-10-26/native-results.json",
     "audited_native_tags": {
       "FINAL-02_actions": 20,
@@ -368,18 +387,7 @@
       "visual_limit": "185px sidebar ellipsis; not evidence of precision loss or simultaneous full-fraction visual readability.",
       "FINAL-17_status": "Passed with retained narrow-sidebar visual bound"
     },
-    "pending_groups": [
-      "FINAL-05",
-      "FINAL-06",
-      "FINAL-07",
-      "FINAL-08",
-      "FINAL-09",
-      "FINAL-10",
-      "FINAL-11",
-      "FINAL-12",
-      "FINAL-13",
-      "FINAL-15"
-    ],
+    "pending_groups": [],
     "partial_reconciliation_groups": [],
     "export_status": "Compact receipts/manifests/logs and necessary synthetic rawUI/output evidence copied into repository; byte-identical shared print/identity proof reused from M6 export.",
     "audited_native_Info_validation": {
@@ -440,9 +448,9 @@
     "independent_recheck": "evidence/native-2026-10-26/independent-final-14-16-18-recheck.json",
     "catalogue_viewer_closure": "evidence/native-2026-10-26/native-catalogue-viewer-closure.json",
     "group_counts": {
-      "Passed": 18,
+      "Passed": 28,
       "Partial": 0,
-      "Not_run": 10
+      "Not_run": 0
     }
   },
   "repair_regressions_2026_10_26": {
@@ -536,5 +544,47 @@
     "../M6/evidence/native-2026-10-26/final-print-controls-verification.json": "af5c9af48ae4e91e5f8facdd383f01c6e5e5c634ef997e7f6a15f359f0d2ccd0"
   },
   "native_evidence_index": "evidence/native-2026-10-26/evidence-index.json",
-  "native_privacy_review": "evidence/native-2026-10-26/privacy-review.json"
+  "native_privacy_review": "evidence/native-2026-10-26/privacy-review.json",
+  "current_repair_qualification": {
+    "input": "evidence/checkpoint-update-input.json",
+    "full_DICOMWeb": {
+      "log": "evidence/ups-identity-repair/reviewed-inputs/full_dicomweb_log.log",
+      "exit_code": 0,
+      "SwiftTesting_framework_reported_tests": 649,
+      "SwiftTesting_suites": 63,
+      "XCTest_reported": 504,
+      "XCTest_skipped": 2,
+      "XCTest_executed_passes": 502,
+      "XCTest_failures": 0
+    },
+    "review": "evidence/ups-identity-repair/reviewed-inputs/repair_review.json",
+    "affected_regressions": "evidence/ups-identity-repair/reviewed-inputs/affected_regressions.json",
+    "strict_UPS_CLI": "evidence/ups-identity-repair/strict-ups-cli-verification.json",
+    "source_equivalence": "evidence/ups-identity-repair/reviewed-inputs/equivalence_receipt.json",
+    "native_UPS_executions": 3,
+    "failed_runs_retained": [
+      "evidence/ups-identity-repair/dicomweb-all.log",
+      "evidence/ups-identity-repair/dicomweb-all-repaired-v1.log"
+    ],
+    "classification": "evidence/ups-identity-repair/independent-dicomweb-failure-classification.json",
+    "strict_UPS_final": "evidence/ups-identity-repair/strict-ups-final-verification.json",
+    "native_relaunch": "evidence/ups-identity-repair/native-app-relaunch-verification.json",
+    "independent_final_review": "evidence/ups-identity-repair/independent-final-native-acceptance.json"
+  },
+  "current_network_native": {
+    "native_executions": 43,
+    "CLI_counterparts": 43,
+    "accepted_non_UPS_assertions": 457,
+    "historical_UPS_parity_only_assertions": 24,
+    "rollup": "evidence/native-final-network/network-native-rollup.json",
+    "complete_standard_UPS_acceptance": false,
+    "accepted_repaired_UPS_assertions": 54,
+    "accepted_network_assertions": 511,
+    "bounded_UPS_client_identity_acceptance": true,
+    "old_UPS_parity_superseded_for_identity": true,
+    "repaired_native_actions": 3,
+    "repaired_CLI_actions": 5
+  },
+  "historical_integrated_regression_note": "Original integrated_regressions and repair_regressions_2026_10_26 retain their execution epochs; complete DICOMWeb was newly run and is separate.",
+  "local_final_acceptance": "evidence/local-final-acceptance.json"
 }

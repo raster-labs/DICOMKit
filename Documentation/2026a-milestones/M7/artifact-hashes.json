@@ -1,4 +1,6 @@
 {
+  "recorded_utc": "2026-10-26T09:10:01.184200+00:00",
+  "qualification_epoch": "UPS create identity and JSON charset repair",
   "CLI": {
     "dicom-3d": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
     "dicom-ai": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
@@ -16,17 +18,17 @@
     "dicom-info": "feec778109d2d5c531d2e4752a082051c982adff102b1dd6930d6bb0b2dac163",
     "dicom-j2k": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
     "dicom-jpip": "83ba8541c699c73f0af6323b9aed8f0194e1625053c3bc7621da2d123c383fe5",
-    "dicom-json": "43a625dd7fcbcd8868bdbf4ccf44a979c33779ba6763df8fe7a1d84ab72ca9c5",
+    "dicom-json": "0af44b1a4232024411c99986cb3426fd0270d2d8edbd1224b403159894d38fde",
     "dicom-measure": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
     "dicom-merge": "5f163834f5dfe1e5900ec48746f246772b2bb2d7a28bda11b46c11b963e6f139",
     "dicom-mpps": "24058234700742e9635dfdf19a91ea01911be1eff61260d238dd58ba7ae7dae8",
     "dicom-mwl": "7c478c8ac3186071233bcf2c8a907b42912ce278c7868db5ba9bb47f023bd002",
     "dicom-pdf": "a9e0c7d95ff2c344d62bc196fbb30cd5226b700af6f6a737d9d74c06604d7001",
     "dicom-pixedit": "1efee8f9042f2eb11639c18c5594a4088473521f9c662a6e3e86a94ac256a1e8",
-    "dicom-print": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
-    "dicom-printscp": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+    "dicom-print": "ad3ceb058361e2f800a9c3c76480d86fb3872d142ea17596ded3bfbaa106d7d3",
+    "dicom-printscp": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
     "dicom-qr": "2884bbe66af11baf0b5d35cf6dd05b783ed7ecdcc8bf137c011b28ba6a34cb9b",
-    "dicom-query": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+    "dicom-query": "682b17457a004a752fb8a598e1f391a732b95729246055f5333f8f9b58605414",
     "dicom-report": "431d099ef120c9e18cc144b14a2f17e8eddb6e3eecfa7e793bc683d273ec0e1a",
     "dicom-retrieve": "cd24a6f9a690b83914efbe37184baf1296bfb4e544108decbf92e6cc041e76ea",
     "dicom-script": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a",
@@ -39,8 +41,8 @@
     "dicom-validate": "b4dcfee556c23f4c56dc748bacb416312b14bda4edb7b7bf3d0df78ca052a798",
     "dicom-video": "62fc91ab753f322b1f3706ceb6351d205739b4a39fcd788580f4828a1a8ead1b",
     "dicom-viewer": "a42ef3e0193d285df5d9f13995ad6becdcab9974a8f140bfd71de5263110d0ad",
-    "dicom-wado": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
-    "dicom-xml": "f2763b8f473e08968195ecc677e962eafbe8ededcb161976c4d187db26de9f2f"
+    "dicom-wado": "225d63b4bc1717875e661a6a572394e4f750f29e57a7cc984073677ff793b2a0",
+    "dicom-xml": "90adf46e447c5b678abebaaeb0d9c25e90871e726cc2c0c62c9cd4661b4764bf"
   },
   "test_executables": {
     "DICOMCoreTests.xctest/Contents/MacOS/DICOMCoreTests": "28fc4ebff8eda8c05df225590d0e0ce50c7c38bc95f824894fdc4ee21c7f602a",
@@ -48,11 +50,11 @@
     "DICOMNetworkTests.xctest/Contents/MacOS/DICOMNetworkTests": "a03e673354a5cceb367ec7146dbfe7d3c610cefc6439e164539f1573e26d868d",
     "DICOMPrintKitTests.xctest/Contents/MacOS/DICOMPrintKitTests": "0b53be02d29f1ffe1eab17c97320867b5843f378a3e766b20727fb838156368a",
     "DICOMRoundTripTests.xctest/Contents/MacOS/DICOMRoundTripTests": "547c466419a7e268554e7d4e43ea5eaeba471cd3d54deb8f626a05bcc96453a9",
-    "DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests": "d952c1a13d27d1678fc8cce06526b8e27357572f04261425b948943ea0be7018",
+    "DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests": "d5160b88f221f78e64bce6344e5fbd9c57dfe66dde55e9024cc616bf064c78dc",
     "DICOMToolboxTests.xctest/Contents/MacOS/DICOMToolboxTests": "4ec9e9251f938a6a6f84db3da382c8a20f28d54e9237d7eff51ca50e89dfa94c",
-    "DICOMWebTests.xctest/Contents/MacOS/DICOMWebTests": "5e58e418dac892fe2363092255e546245ccd6f5355c2573f8e71bac9e28b88f0",
-    "dicom-printTests.xctest/Contents/MacOS/dicom-printTests": "f409b6d1f8a6cefc2b5f3a3246ef084c6084ed0ffd145f3a1827fe22d32f7dfe",
-    "dicom-printscpTests.xctest/Contents/MacOS/dicom-printscpTests": "051d6933c117dd76d6b2eb61f392b178e4c9b0870d8ec668ddf95cdb5991cb2d",
+    "DICOMWebTests.xctest/Contents/MacOS/DICOMWebTests": "359d16a67dc3187f098cfbd21d8896211576692bddc794ba789d972885acd74a",
+    "dicom-printTests.xctest/Contents/MacOS/dicom-printTests": "d9ab2127042e9ac019c4b6b2b37055564a4c9e2f18b78a5782ed0db765b2ea02",
+    "dicom-printscpTests.xctest/Contents/MacOS/dicom-printscpTests": "23444f9ff30aef901e7e8271bba9db6cc4608e2d693b23e0fdf36ace66b308d1",
     "dicom-queryTests.xctest/Contents/MacOS/dicom-queryTests": "22e2e2380a59f576c08e707c09ec20bcc38b57325d30721de0906ba704c7e060",
     "dicom-retrieveTests.xctest/Contents/MacOS/dicom-retrieveTests": "4410f001c76013f8c7df751c58f05ca7e447688eba996bb2dc7cea2a4c551c9a",
     "dicom-serverTests.xctest/Contents/MacOS/dicom-serverTests": "e4c0f2068e95e92534ebaa60d2e61d8b80a7d543c8e50f509d52ec8a462cd4e8",
@@ -63,8 +65,8 @@
   "application_path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app",
   "application": {
     "Contents/Info.plist": "a1d5241af265d42049bf0d55efaea8719065eb589c99a7827b0ce13f6eb87bc2",
-    "Contents/MacOS/DICOMStudio": "4bc56649183c20c72743614785355b0f917b1d4d2c0b0a4703f5f9af0d842c91",
-    "Contents/MacOS/DICOMStudio.debug.dylib": "3274c8cd56cc8ca5410192730916600dcfc11d64d2c8429c54265daad68109ac",
+    "Contents/MacOS/DICOMStudio": "e0837eab8fa146b4b0aab26ba22b6d7842ec38106b4c4fde6b1e7de884b8a45b",
+    "Contents/MacOS/DICOMStudio.debug.dylib": "8a9f6c761170c3230a60f7794fc242c13924047461d6ed5ed2c35f21dd4f41cd",
     "Contents/MacOS/__preview.dylib": "acbd386c191ea35fc59c0967373e464b014093ad3a12ef677ccd61d42ca7d0e1",
     "Contents/PkgInfo": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
     "Contents/Resources/AppIcon.icns": "d8c931b086cb5682398d1953f8f019090d77dd904975450f12e65d935e941468",
@@ -75,6 +77,9 @@
     "Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Resources/FrameRender.metal.txt": "1ca5889c9ca61321bb27e323d1c80f8532a4c1d3802c19b10f87748de092afa7",
     "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Info.plist": "b005991c19f79fc04dd7f4d913ced59b182de485bf0c644bc6419c500a0f1543",
     "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Resources/default.metallib": "659aa6f38c5ef771eba04b683dd950daa81cdfb94f6104d0b3aaa9ca3cca288b",
-    "Contents/_CodeSignature/CodeResources": "c3dd0469cfdd6fe5eab17f30d5f32a0add27910b895febe6c2d0fd757a0f1db5"
-  }
+    "Contents/_CodeSignature/CodeResources": "a563cda702b2a040bac57115c6472d9c8ed7c5a706cbd3265cfde4b26932ef3f"
+  },
+  "checkpoint_base_commit": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+  "input_manifest": "evidence/ups-identity-repair/reviewed-inputs/artifact_manifest.json",
+  "qualification_note": "Fresh rebuilt app identity confirmed at actual native relaunch; repaired UPS native Create/Get/refusal accepted. Intermediate CLI and older native artifacts retain their historical attribution."
 }

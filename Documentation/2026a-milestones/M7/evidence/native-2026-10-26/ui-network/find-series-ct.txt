@@ -1,0 +1,46 @@
+						53 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						55 text field (settable) Description: Port, Value: 60702, Placeholder: 11112
+						57 text field (settable) Description: AE Title, Value: M7NATIVE, Placeholder: DICOMSTUDIO
+						59 text field (settable) Description: Called AE Title, Value: ANY-SCP
+							62 radio button Description: patient, Value: 0
+							63 radio button Description: study, Value: 0
+							64 radio button Description: series, Value: 1
+							65 radio button Description: image, Value: 0
+						67 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						69 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						71 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						73 pop up button Description: Modality, Value: CT
+						75 text field (settable) Description: Study Instance UID, Value: 2.25.301, Placeholder: e.g. 1.2.840.113619...
+						77 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...
+						79 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						81 pop up button Description: Timeout (s), Value: 60
+							84 radio button Description: table, Value: 0
+							85 radio button Description: json, Value: 1
+							86 radio button Description: csv, Value: 0
+							87 radio button Description: compact, Value: 0
+							88 radio button Description: dicom-json, Value: 0
+						90 checkbox Description: Include Parent Keys, Value: 0
+						91 checkbox Description: Verbose, Value: 0
+						93 text field (settable) Description: Study Description, Help: Shows additional flags for this tool, Placeholder: e.g. CHEST* or *ABDOMEN*
+						95 text field (settable) Description: Referring Physician, Help: Shows additional flags for this tool, Placeholder: e.g. SMITH^JANE
+						97 checkbox Description: Strict Modality, Help: Shows additional flags for this tool, Value: 0
+						98 disclosure triangle Description: Advanced options (3), Help: Shows additional flags for this tool, Value: on
+					105 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					106 button Description: Run command, Help: Runs the selected Workshop action
+					109 text Command Preview Valid $ Select a tool to build a command
+					111 text Console SUCCESS
+		124 search text field (settable) Search features
+Complete console:
+$ dicom-query 127.0.0.1:60702 --aet M7NATIVE --called-aet ANY-SCP --level series --modality CT --study-uid 2.25.301 --timeout 60 --format json
+
+[
+  {
+    "(0008,0052)" : "SERIES",
+    "(0008,0060)" : "CT",
+    "(0008,103E)" : "M3 CT SERIES",
+    "(0020,000D)" : "2.25.301",
+    "(0020,000E)" : "2.25.301.1",
+    "(0020,0011)" : "1",
+    "(0020,1209)" : "1"
+  }
+]
