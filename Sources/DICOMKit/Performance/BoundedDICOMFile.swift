@@ -121,7 +121,8 @@ public struct BoundedDICOMElement: ~Copyable, @unchecked Sendable {
     private var record: BoundedParseCapture.Element { index.elements[identifier] }
     /// Element tag.
     public var tag: Tag { record.tag }
-    /// Explicit or resolved implicit value representation, including pixel padding signedness.
+    /// Explicit or resolved implicit value representation. Implicit LUT Data uses
+    /// OW; Modality LUT descriptors and pixel padding use contextual signedness.
     public var vr: VR { record.vr }
     /// Declared length, including the undefined-length sentinel.
     public var length: UInt32 { record.length }
@@ -328,7 +329,7 @@ struct BoundedParseState: ~Copyable {
     var fragments: DICOMStorageVector<BoundedParseCapture.Fragment>
     var membership: DICOMStorageVector<BoundedParseCapture.Membership>
     var membershipCount = 0, currentScope = 0, currentSequence = -1
-    var hasPixelPadding = false
+    var hasContextualVR = false
     var sealed = false
     static func make(source: borrowing VerifiedFileByteSource, budget: borrowing DICOMAllocationBudget)
         -> DICOMParserOutcome<Self> {
@@ -396,7 +397,7 @@ struct BoundedParseCapture {
     enum PixelRepresentation { case absent, unsigned, signed, invalid }
     struct Scope {
         var firstElement = -1, lastElement = -1, elementCount = 0, nextItem = -1
-        var parent = -1
+        var parent = -1, sequenceElement = -1
         var pixelRepresentation: PixelRepresentation = .absent
     }
     struct Element {
@@ -442,13 +443,13 @@ struct BoundedParseCapture {
     private static func isPixelPadding(_ tag: Tag) -> Bool {
         tag.group == 0x0028 && (tag.element == 0x0120 || tag.element == 0x0121)
     }
-    /// Resolve only the implicit padding VRs (PS3.3 C.7.5.1 and C.7.6.3).
+    /// Resolve the supported implicit contextual VRs before publication.
     /// The nearest enclosing dataset supplies context when no local value exists.
     /// Parents are indexed before children, but may contain metadata after a SQ;
     /// resolving after parsing avoids ordering assumptions and sibling leakage.
-    func resolveImplicitPixelPaddingVR() -> DICOMParserOutcome<Void> {
+    func resolveImplicitContextualVR() -> DICOMParserOutcome<Void> {
         precondition(!state.pointee.sealed)
-        guard state.pointee.hasPixelPadding else { return .success(()) }
+        guard state.pointee.hasContextualVR else { return .success(()) }
         for identifier in 1..<scopes.count {
             if let failure = cancellation.failure { return .failure(.managed(failure)) }
             var scope = scopes[identifier]
@@ -456,22 +457,34 @@ struct BoundedParseCapture {
                 scope.pixelRepresentation = scopes[scope.parent].pixelRepresentation
                 state.pointee.scopes[identifier] = scope
             }
+            let isModalityLUTItem = scope.sequenceElement >= 0
+                && elements[scope.sequenceElement].tag == Tag(group: 0x0028, element: 0x3000)
             var node = scope.firstElement
             while node >= 0 {
                 if let failure = cancellation.failure { return .failure(.managed(failure)) }
                 let element = elements[node]
-                if Self.isPixelPadding(element.tag) {
-                    guard element.length == 2 else {
-                        return .failure(.malformed(offset: element.range.lowerBound, reason: .pixelPaddingLength))
+                let isPadding = Self.isPixelPadding(element.tag)
+                let isModalityDescriptor = isModalityLUTItem
+                    && element.tag == Tag(group: 0x0028, element: 0x3002)
+                if isPadding || isModalityDescriptor {
+                    guard element.length == (isPadding ? 2 : 6) else {
+                        return .failure(.malformed(offset: element.range.lowerBound,
+                            reason: isPadding ? .pixelPaddingLength : .modalityLUTDescriptorLength))
                     }
                     let vr: VR
                     switch scope.pixelRepresentation {
                     case .unsigned: vr = .US
                     case .signed: vr = .SS
                     case .absent, .invalid:
-                        return .failure(.malformed(offset: element.range.lowerBound, reason: .pixelPaddingRepresentation))
+                        return .failure(.malformed(offset: element.range.lowerBound,
+                            reason: isPadding ? .pixelPaddingRepresentation : .modalityLUTDescriptorRepresentation))
                     }
                     state.pointee.elements[node].vr = vr
+                } else if element.tag == Tag(group: 0x0028, element: 0x3006) {
+                    // PS3.5 A.1 permits US or OW. Choose OW for implicit data so
+                    // packed 8-bit values are not mistaken for scalar US words.
+                    // The raw value, including any padding, remains untouched.
+                    state.pointee.elements[node].vr = .OW
                 }
                 node = element.nextSibling
             }
@@ -489,13 +502,17 @@ struct BoundedParseCapture {
         if scope.lastElement >= 0 { state.pointee.elements[scope.lastElement].nextSibling = identifier }
         else { scope.firstElement = identifier }
         scope.lastElement = identifier; scope.elementCount += 1; state.pointee.scopes[currentScope] = scope
-        if Self.isPixelPadding(tag) { state.pointee.hasPixelPadding = true }
+        if Self.isPixelPadding(tag) || tag == Tag(group: 0x0028, element: 0x3002)
+            || tag == Tag(group: 0x0028, element: 0x3006) {
+            state.pointee.hasContextualVR = true
+        }
         return .success(identifier)
     }
     func beginItem() -> DICOMParserOutcome<Int> {
         precondition(!state.pointee.sealed && currentSequence >= 0)
         let previous = currentScope, identifier = scopes.count
-        if case .failure(let failure) = state.pointee.scopes.appendOutcome(Scope(parent: previous)) {
+        if case .failure(let failure) = state.pointee.scopes.appendOutcome(
+            Scope(parent: previous, sequenceElement: currentSequence)) {
             return .failure(.managed(DICOMManagedFailure(allocation: failure)))
         }
         var sequence = elements[currentSequence]
