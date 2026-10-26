@@ -1,7 +1,7 @@
 // NEMA-verified: 2026a, checked 2026-09-29 — the four supported Transfer Syntax UIDs and their names match PS3.6 2026a Table A-1; dicomStandardEdition is the package target
 /// DICOMKit - A pure Swift DICOM toolkit for Apple platforms
 ///
-/// Version 2.9.0
+/// Version 2.9.1
 ///
 /// DICOMKit provides a modern, Swift-native interface for reading, writing, and parsing
 /// DICOM (Digital Imaging and Communications in Medicine) files on iOS, macOS, and visionOS.
@@ -42,7 +42,7 @@
 @_exported import DICOMDictionary
 
 /// DICOMKit version
-public let version = "2.9.0"
+public let version = "2.9.1"
 
 /// Supported DICOM Standard edition
 public let dicomStandardEdition = "2026a"
