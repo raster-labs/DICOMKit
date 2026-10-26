@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-10-23
+
+### Fixed — dicom-mpps N-CREATE worklist linking and N-SET update compatibility
+
+- **`DICOMMPPSService.create` automatic MWL linking**: when an `IN PROGRESS` MPPS instance is created with an Accession Number `(0008,0050)` and Modality `(0008,0060)` but without `scheduledProcedureStepID` `(0040,0009)` or `requestedProcedureID` `(0040,1001)`, `DICOMMPPSService.create` performs a best-effort Modality Worklist `C-FIND` against the same SCP to populate missing `Scheduled Step Attributes Sequence` `(0040,0270)` linking fields and patient demographics so strict RIS/MWL SCPs transition the scheduled procedure step.
+- **`DICOMMPPSService.update` automatic legacy `(0040,0270)` fallback on `N-SET` failure**: `DICOMMPPSService.update` sends a PS3.4 Table F.7.2-1 conformant `N-SET` (without `Scheduled Step Attributes Sequence` `(0040,0270)`) first, and automatically retries with `(0040,0270)` included when the first attempt fails with an unexpected connection close or non-success DIMSE status and a `Study Instance UID` (or cached `N-CREATE` step) is available.
+- **`DICOMMPPSService.buildNSetAttributes` Scheduled Step Attributes preservation**: when building `(0040,0270)` for `N-SET`, `Study Instance UID` `(0020,000D)` falls back to `referencedSOPs.first?.studyUID` (or the in-process `N-CREATE` step cache) when `studyInstanceUID` is not explicitly set, and preserves `accessionNumber`, `requestedProcedureID`, `scheduledProcedureStepID`, `requestedProcedureDescription`, and `scheduledProcedureStepDescription`.
+- **`dicom-mpps update` & `DICOMStudio` CLI Workshop parity (D5)**: `dicom-mpps update` now forwards `--study-uid` to `DICOMMPPSService.update` (matching `CLIWorkshopViewModel.executeDicomMpps`) and constructs a `Performed Series Sequence` `(0040,0340)` item when `--series-uid` is provided with or without `--image-uid`. `CLIWorkshopViewModel.executeDicomMpps` also emits a non-blocking worklist pre-flight diagnostic when `--accession` attributes on `create` differ from the SCP's worklist entry.
+
 ## [2.8.0] - 2026-10-22
 
 ### Fixed — strict time parsing

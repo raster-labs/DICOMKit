@@ -462,6 +462,19 @@ extension DICOMMPPSCommand {
                     referencedSOPs.append((study, series, imageUID))
                 }
             }
+            var performedSeries: [MPPSPerformedSeries] = []
+            if referencedSOPs.isEmpty, let series = seriesUid, !series.isEmpty {
+                performedSeries = [
+                    MPPSPerformedSeries(
+                        seriesInstanceUID: series,
+                        protocolName: protocolName ?? "UNSPECIFIED",
+                        seriesDescription: seriesDescription,
+                        performingPhysicianName: performingPhysician,
+                        operatorsName: operatorName,
+                        referencedImages: []
+                    )
+                ]
+            }
 
             print(NetworkConsole.mppsProgress(isCreate: false), terminator: "")
 
@@ -474,9 +487,11 @@ extension DICOMMPPSCommand {
                 mppsInstanceUID: mppsUid,
                 status: mppsStatus,
                 referencedSOPs: referencedSOPs,
+                studyInstanceUID: studyUid,
                 timeout: TimeInterval(timeout),
                 referencedSOPClassUID: sopClassUid,
                 protocolName: protocolName,
+                performedSeries: performedSeries,
                 seriesDescription: seriesDescription,
                 operatorsName: operatorName,
                 performingPhysicianName: performingPhysician,

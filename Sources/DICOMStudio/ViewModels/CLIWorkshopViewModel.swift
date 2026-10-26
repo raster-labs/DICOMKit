@@ -10021,6 +10021,11 @@ case "dicom-study":
 
         do {
             if isCreate {
+                await checkMPPSAgainstWorklist(
+                    host: host, port: port, callingAET: callingAET, calledAET: calledAET,
+                    accessionNumber: accessionNumber, studyUID: studyUID, patientID: patientID,
+                    spsID: spsID, requestedProcedureID: requestedProcedureID, modality: modality,
+                    timeout: timeout)
                 appendConsoleOutput(NetworkConsole.mppsProgress(isCreate: true))
                 // createDetailed (not create) so the SCP's warning status and any
                 // reassigned SOP Instance UID reach the console, exactly as the CLI
@@ -10072,6 +10077,9 @@ case "dicom-study":
                 service.setConsoleStatus(.success)
                 addToHistory(toolName: "dicom-mpps", command: commandPreview, exitCode: 0,
                              output: "Created MPPS: \(createdUID)")
+                // Pre-fill the update form's MPPS Instance UID so switching Operation
+                // from 'create' to 'update' is immediately ready for the N-SET.
+                updateParameterValue(parameterID: "mpps-uid", value: createdUID)
             } else {
                 // Build referenced SOPs for the update — gated on BOTH study and
                 // series UIDs, mirroring the CLI (DICOMMPPSCommand update builds the
@@ -10083,14 +10091,20 @@ case "dicom-study":
                         referencedSOPs.append((studyUID: studyUID, seriesUID: seriesUID, sopInstanceUID: uid))
                     }
                 }
+                var performedSeries: [MPPSPerformedSeries] = []
+                if referencedSOPs.isEmpty && !seriesUID.isEmpty {
+                    performedSeries = [
+                        MPPSPerformedSeries(
+                            seriesInstanceUID: seriesUID,
+                            protocolName: optional(protocolName) ?? "UNSPECIFIED",
+                            seriesDescription: optional(seriesDescription),
+                            performingPhysicianName: optional(updatePerformingPhysician),
+                            operatorsName: optional(operatorName),
+                            referencedImages: []
+                        )
+                    ]
+                }
                 appendConsoleOutput(NetworkConsole.mppsProgress(isCreate: false))
-                // NOTE: accessionNumber is deliberately NOT forwarded here — the CLI's
-                // update subcommand has no --accession-number option, and the field is
-                // hidden in update mode (a stale value would silently leak into the N-SET).
-                // studyInstanceUID is deliberately NOT forwarded: the CLI's update
-                // (DICOMMPPSCommand) never sets it — the study/series UIDs flow only
-                // into the Referenced SOP Sequence — so forwarding it here would emit
-                // an N-SET dataset the pasted CLI command could never produce.
                 let result = try await DICOMMPPSService.update(
                     host: host,
                     port: port,
@@ -10099,9 +10113,11 @@ case "dicom-study":
                     mppsInstanceUID: mppsUID,
                     status: mppsStatus,
                     referencedSOPs: referencedSOPs,
+                    studyInstanceUID: optional(studyUID),
                     timeout: timeout,
                     referencedSOPClassUID: optional(sopClassUID),
                     protocolName: optional(protocolName),
+                    performedSeries: performedSeries,
                     seriesDescription: optional(seriesDescription),
                     operatorsName: optional(operatorName),
                     performingPhysicianName: optional(updatePerformingPhysician),
@@ -10128,6 +10144,66 @@ case "dicom-study":
             // by DIMSEServiceStatusText; ArgumentParser prints them as `Error: <description>`.
             refuse((error as? DICOMNetworkError)?.description ?? error.localizedDescription, exitCode: 1)
         }
+    }
+
+    /// Looks up the MWL item this MPPS is meant to start (by Accession Number, on the same
+    /// AE) and warns about every linking attribute that differs. The SCP only moves the SPS
+    /// out of SCHEDULED when Study UID / SPS ID / Requested Procedure ID match the item, and
+    /// it still accepts a non-matching N-CREATE — so without this check a typo "succeeds"
+    /// while the worklist status never changes. Advisory only: unscheduled MPPS is legal.
+    private func checkMPPSAgainstWorklist(
+        host: String, port: UInt16, callingAET: String, calledAET: String,
+        accessionNumber: String, studyUID: String, patientID: String,
+        spsID: String, requestedProcedureID: String, modality: String,
+        timeout: TimeInterval
+    ) async {
+        let acc = accessionNumber.trimmingCharacters(in: .whitespaces)
+        guard !acc.isEmpty else { return }
+        let items: [WorklistItem]
+        do {
+            items = try await DICOMModalityWorklistService.find(
+                host: host, port: port, callingAE: callingAET, calledAE: calledAET,
+                matching: WorklistQueryKeys.default().accessionNumber(acc),
+                timeout: min(timeout, 5))
+        } catch {
+            return // MWL not offered on this AE — nothing to compare against.
+        }
+        let matchingItems = items.filter {
+            $0.accessionNumber?.trimmingCharacters(in: .whitespaces) == acc
+        }
+        guard !matchingItems.isEmpty else {
+            appendConsoleOutput("⚠️  No worklist item with Accession \(acc) on \(calledAET) — this MPPS will not change any SPS status.\n\n")
+            return
+        }
+        let item = matchingItems.first(where: {
+            $0.scheduledProcedureStepID?.trimmingCharacters(in: .whitespaces) == spsID.trimmingCharacters(in: .whitespaces)
+        }) ?? matchingItems[0]
+        let fields: [(label: String, sent: String, expected: String?)] = [
+            ("Study UID", studyUID, item.studyInstanceUID),
+            ("Patient ID", patientID, item.patientID),
+            ("SPS ID", spsID, item.scheduledProcedureStepID),
+            ("Requested Proc ID", requestedProcedureID, item.requestedProcedureID),
+            ("Modality", modality, item.modality),
+        ]
+        let mismatches = fields.filter { field in
+            guard let expected = field.expected?.trimmingCharacters(in: .whitespaces),
+                  !expected.isEmpty else { return false }
+            let sent = field.sent.trimmingCharacters(in: .whitespaces)
+            // Missing SPS ID or Requested Proc ID is auto-filled by DICOMMPPSService.createDetailed
+            // when Accession Number matches, so only warn when a non-empty value disagrees or Study UID mismatches.
+            if (field.label == "SPS ID" || field.label == "Requested Proc ID") && sent.isEmpty {
+                return false
+            }
+            return sent != expected
+        }
+        guard !mismatches.isEmpty else { return }
+        appendConsoleOutput("⚠️  Worklist item (Accession \(acc)) has different linking attributes — the server will accept the MPPS, but the SPS status will stay SCHEDULED until they match:\n")
+        for m in mismatches {
+            let sentDisplay = m.sent.isEmpty ? "(empty)" : m.sent
+            let expectedDisplay = m.expected?.trimmingCharacters(in: .whitespaces) ?? ""
+            appendConsoleOutput("    \(m.label.padding(toLength: 18, withPad: " ", startingAt: 0)) sent: \(sentDisplay)   worklist: \(expectedDisplay)\n")
+        }
+        appendConsoleOutput("\n")
     }
 
     /// Formats a single generic query result for console display.
