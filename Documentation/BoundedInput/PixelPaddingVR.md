@@ -30,3 +30,6 @@ publication. It creates no additional source scan or backing allocation.
 The legacy materialized reader's dictionary-first VR behavior is outside this
 bounded-reader repair. This change does not update application dependencies or
 qualify display, padding exclusion, or codec behavior.
+
+The same finalization pass now also handles the bounded
+[implicit Modality LUT contract](ImplicitLUTVR.md).

@@ -4,6 +4,13 @@ Bounded source parsing and managed JPEG/JPEG-LS decoding are available through e
 allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
 for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
 
+### v2.9.2 bounded implicit Modality LUTs
+
+The bounded reader resolves signed Modality LUT descriptors and exposes implicit
+LUT Data as `OW`, preserving original packed eight-bit and sixteen-bit payloads.
+Explicit VRs stay unchanged, and semantic LUT validation remains with the
+consumer. See [the implicit LUT contract](Documentation/BoundedInput/ImplicitLUTVR.md).
+
 ### v2.9.1 bounded implicit pixel padding
 
 The bounded reader now resolves signed and unsigned pixel-padding VRs from Pixel

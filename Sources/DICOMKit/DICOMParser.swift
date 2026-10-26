@@ -1255,7 +1255,8 @@ struct DICOMParser: ~Copyable {
         if case .failure(let failure) = reserveValueBytes(Int(header.valueLength)) { return .failure(failure) }
         if isImplicitVR, let capture, header.tag == .pixelRepresentation {
             // Use the canonical verified cursor before it advances past the value.
-            // Explicit headers are preserved; only implicit padding uses this state.
+            // Explicit headers are preserved; implicit padding and Modality LUT
+            // descriptors use this state during bounded finalization.
             var value: UInt16?
             if header.vr == .US && header.valueLength == 2 {
                 switch readUInt16(at: offset, byteOrder: byteOrder) {

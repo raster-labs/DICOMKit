@@ -124,9 +124,9 @@ DICOMKit uses GitHub Actions for automated testing and validation:
   - The default macOS test job uses Swift 6.4 and builds only the `DICOMCoreTests`
     and `DICOMKitTests` Debug test products. It runs 81 Core tests covering strict
     TM parsing, compatibility, data elements, regressions and external allocation
-    ownership, followed by nine bounded-input tests for pixel padding, cancellation
-    and allocation-failure cleanup, and the six `ImageConverterOutputRulesTests`
-    XCTest cases (96 tests total).
+    ownership, followed by fifteen bounded-input tests for pixel padding, Modality
+    LUT VRs, cancellation and allocation-failure cleanup, and the six `ImageConverterOutputRulesTests`
+    XCTest cases (102 tests total).
   - Both selections explicitly disable parallel testing and fail if the expected
     completion counts are absent. This is focused coverage, not a full-suite pass.
   - The strict tag audit and existing code-quality, iOS/macOS platform-build,

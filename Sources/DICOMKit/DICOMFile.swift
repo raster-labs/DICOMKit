@@ -200,7 +200,7 @@ public struct DICOMFile: Sendable {
             return .failure(failure)
         }
         if !transferSyntax.isExplicitVR,
-           case .failure(let failure) = capture.resolveImplicitPixelPaddingVR() { return .failure(failure) }
+           case .failure(let failure) = capture.resolveImplicitContextualVR() { return .failure(failure) }
         if case .failure(let failure) = capture.seal() { return .failure(failure) }
         return .success(BoundedDICOMFile(storage: storage, transferSyntax: transferSyntax))
     }

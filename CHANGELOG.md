@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.2] - 2026-10-26
+
+### Fixed — bounded implicit Modality LUTs
+
+- Resolve implicit Modality LUT Descriptor `(0028,3002)` signedness within direct Modality LUT Sequence items using Pixel Representation. Preserve unsigned entry-count and depth words, late parent metadata, local overrides and sibling isolation; reject unresolved context and invalid descriptor lengths.
+- Expose implicit LUT Data `(0028,3006)` through the permitted canonical `OW` representation, preserving original payload bytes and lengths, including packed eight-bit entries. Preserve explicit VRs and leave descriptor contexts with different signedness rules, such as VOI LUTs, unchanged.
+- Reuse the bounded finalizer and admitted index; retain cancellation and allocation rollback. Include six focused LUT regression functions in default CI (102 total tests), with completed-CI reuse for identical release inputs. Semantic LUT admission and application integration remain separate.
+
 ## [2.9.1] - 2026-10-26
 
 ### Fixed — bounded implicit pixel padding
