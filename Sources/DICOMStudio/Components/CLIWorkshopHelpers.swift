@@ -1244,15 +1244,21 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "status-update", flag: "--status", displayName: "Status",
                     parameterType: .enumPicker, placeholder: "COMPLETED",
-                    helpText: "Final Performed Procedure Step Status (0040,0252) for the N-SET update — COMPLETED or DISCONTINUED",
+                    helpText: "IN PROGRESS updates a running step without an end time. Leave unset to omit the status attribute and keep the step running. COMPLETED and DISCONTINUED are final; no later updates are allowed",
                     defaultValue: "COMPLETED",
-                    allowedValues: ["COMPLETED", "DISCONTINUED"],
+                    allowedValues: ["", "IN PROGRESS", "COMPLETED", "DISCONTINUED"],
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
+                ),
+                CLIParameterDefinition(
+                    id: "update-procedure-step-description", flag: "--procedure-step-description", displayName: "Performed Procedure Step Description",
+                    parameterType: .textField, placeholder: "e.g. Acquisition continuing",
+                    helpText: "Update the existing Performed Procedure Step Description (0040,0254). Intermediate updates must supply a description or another supported attribute change",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
                 CLIParameterDefinition(
                     id: "series-uid", flag: "--series-uid", displayName: "Series Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Series Instance UID of the acquired images — used in N-SET for Performed Series Sequence (0008,1115)",
+                    helpText: "Series Instance UID of the acquired images — used in N-SET for Performed Series Sequence (0040,0340). Supply the complete replacement sequence, including previously reported images",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
                 CLIParameterDefinition(
@@ -1318,7 +1324,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "specific-character-set", flag: "--specific-character-set", displayName: "Specific Character Set",
                     parameterType: .textField, placeholder: "e.g. ISO_IR 100 or ISO_IR 192",
-                    helpText: "Force the Specific Character Set (0008,0005). By default the narrowest set that represents every text value is chosen",
+                    helpText: "Specific Character Set (0008,0005). N-CREATE selects a suitable encoding; N-SET must use the original declaration. For an instance created elsewhere, supply that declaration explicitly when it was non-default",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(

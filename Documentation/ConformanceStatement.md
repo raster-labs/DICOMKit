@@ -1,10 +1,10 @@
 # DICOMKit capability and conformance disclosure
 
-**Revision: 26 October 2026. Standard basis: DICOM 2026a. M0–M7 local item criteria accepted; remote verification pending at document creation.**
+**Revision: 26 October 2026. Standard basis: DICOM 2026a. M0–M7 and E1 local item criteria accepted; E1 remote verification is recorded after push.**
 
 This document describes the repository's library, CLI and DICOMStudio capabilities and their observed limits. It replaces the April 2026 statement's unconditional support marks. It is an engineering disclosure, not a complete PS3.2 conformance statement for every application built with these libraries. A deployed application must identify its actual AEs, configuration, negotiated SOP Classes/transfer syntaxes, security policy and interoperability results.
 
-The source reference is branch `codex/dicom-2026a-milestones` at c9001dd with the separately hashed UPS/JSON repair overlay. Current source/artifact manifests and reuse boundaries are in [M7 verification](2026a-milestones/M7/verification.json). This is not a release/version declaration.
+The source reference is branch `codex/dicom-2026a-milestones`. E1 follows commit `4e5ca590275a8ff77a29e5bb4e0804c84f692642`; its [source manifest and verification](2026a-milestones/E1/verification.json) bind the qualified implementation. M7 manifests remain historical. This is not a release/version declaration.
 
 ## Meaning of the capability states
 
@@ -81,6 +81,12 @@ The server is request-handling logic integrated through an HTTP bridge; it is no
 | DELETE study/series/instance | Extension-specific | Repository extension, not a standard PS3.18 storage transaction. |
 
 The [M4 report](2026a-milestones/M4/REPORT.md) and [capability evidence](2026a-milestones/M4/evidence/capabilities/results.json) delimit tested resource/method/media behavior. HTTPS, access control and persistence must be supplied and qualified by the deployment.
+
+## MPPS intermediate updates and metadata integrity (E1)
+
+MPPS SCU N-SET supports intermediate updates with omitted status or explicit IN PROGRESS, without end timestamps. The CLI and Workshop expose a typed Performed Procedure Step Description update; existing typed Performed Series inputs are complete replacement snapshots. Other attributes are not silently cleared during scalar intermediate updates. Original N-CREATE character sets must be preserved. The shared service retains confirmed peer/AE/UID context in-process; external instances require the caller's original nondefault charset. Failed unconfirmed intermediate attempts can be corrected. Both terminal states require a Performed Series item; no-instance acquisitions may use a series without references. Terminal requests are not automatically retried, and locally known terminal instances reject further N-SET. The explicit legacy scheduled-step N-SET option remains a compatibility extension. See [E1 report](2026a-milestones/E1/REPORT.md) for bounded peer/native evidence and process-lifetime limits.
+
+The retained legacy metadata component correctly renders supported scalar numeric VRs with byte order and multiplicity and separates display formatting from copying. It has no current production constructor. The active Workshop metadata output has regression evidence; no new metadata screen or full binary-copy facility is claimed.
 
 ## Print Management and Workshop
 

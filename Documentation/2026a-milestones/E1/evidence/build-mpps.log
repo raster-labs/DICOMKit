@@ -1,0 +1,14 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[2 / 45] J2KSwift_J2KMetal
+[2 / 44]
+[4 / 10] DICOMNetwork
+[6 / 12] DICOMNetwork
+[11 / 15] dicom-mpps-product
+[13 / 17] dicom-mpps-product
+[14 / 17] dicom-mpps-product
+[16 / 17] dicom-mpps-product
+[17 / 17] dicom-mpps-product
+Build complete! (3.29 sec)

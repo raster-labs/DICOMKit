@@ -1,0 +1,7 @@
+{
+  "python": "3.12.14 (main, Aug 12 2026, 13:57:54) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "pydicom": "3.0.1",
+  "pynetdicom": "3.0.4",
+  "script_sha256": "50c2b1c7c60f7c578b5d920b8284863a98a3b1369edc49949c413d01dcc23378"
+}

@@ -136,10 +136,10 @@ final class MPPSReferenceIntegrityTests: XCTestCase {
             try await scp.start()
             do {
                 let port = await scp.port
-                for group in classes.map({ [$0] }) + [classes] {
+                for (index, group) in (classes.map({ [$0] }) + [classes]).enumerated() {
                     let expected = references(group)
                     try await DICOMMPPSService.update(host: "127.0.0.1", port: port,
-                        callingAE: "M2", calledAE: "M2", mppsInstanceUID: "2.25.1", status: .completed,
+                        callingAE: "M2", calledAE: "M2", mppsInstanceUID: "2.25.820.\(explicit ? 1 : 2).\(index + 1)", status: .completed,
                         performedSeries: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2", protocolName: "M2", referencedImages: expected)])
                     let captured = await scp.receivedDataSets
                     XCTAssertEqual(try decodedReferences(XCTUnwrap(captured.last), explicit: explicit), expected)

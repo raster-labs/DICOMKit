@@ -1,9 +1,16 @@
 # DICOM 2026a milestone status
 
-Updated 26 October 2026. **M0–M7 local item criteria are complete: 46 completed, 22 deferred. All 28 native groups pass within their recorded scope. At document creation, exact next pushed-head CI was pending; the user retains merge authority.**
+Updated 26 October 2026. **E1 is locally complete for NET-08-A, WS-DORM-01 and WS-DORM-02: 49 completed, 0 in progress, 19 deferred. Exact pushed-head CI is recorded separately after publication.** M0–M7 completed at the preceding source checkpoint; their 28 native groups are historical qualification, not a blanket E1 claim. See [E1 report](E1/REPORT.md). The user retains merge authority.
+
 All milestone work uses `codex/dicom-2026a-milestones`. The reviewed product
 baseline is `4b68d7e22829418c88e48dd53d98b25fee50d90d`; remote main matched that
 commit at the start of M0. M0 repaired audit infrastructure; M1 repaired command and execution safety; M2 repaired attribute integrity and workflow datasets; M3 repaired query safety and filters; M4 repaired service reliability.
+
+## E1 completed — 26 October 2026
+
+All ten criteria pass. MPPS regression: 92 executed passes and one manual-only skip. Studio: 131 Swift Testing passes and 11 XCTest passes. Audit tooling: 48 passes. Independent CLI: 17 actions/56 assertions; Workshop: 19 actions/54 assertions, including correction after a failed external-instance charset guess. Six actual native actions produced four N-SETs and two local refusals; 45 independent wire assertions passed. These overlapping evidence layers are not additive. The retained metadata component has no production constructor; endian/numeric/copy tests and unchanged active dicom-info behavior are verified. See [E1 acceptance](E1/acceptance.json) and [verification](E1/verification.json).
+
+The following M0–M7 sections preserve historical implementation and publication snapshots; their old pending language is not the current E1 state.
 
 ## Completed M6 print Workshop coverage
 
@@ -155,9 +162,10 @@ These are audit-contract corrections; no product options or defaults changed.
 | M5 remaining Studio contracts | 7 | Completed (22 passed, 2 conditional not applicable) |
 | M6 print and printscp Workshop coverage | 2 | Completed (8 passed) |
 | M7 final qualification | 2 | Completed local item criteria; CI creation-time snapshot recorded separately |
-| Other enhancements and dormant components | 22 | Deferred |
+| E1 intermediate MPPS and retained metadata | 3 | Completed (10 criteria passed) |
+| Other enhancements and dormant components | 19 | Deferred |
 
-Of the 68 original actions, **46 are completed and 22 remain deferred**. All planned bug-fix milestones and the two print enhancements are complete; remote publication verification remains. The
+Of the 68 original actions, **49 are completed and 19 remain deferred**. All planned bug-fix milestones and the two print enhancements are complete; remote publication verification remains. The
 literal-audit successes do not close runtime, query, encoding or GUI defects.
 
 No fresh Swift build, actual packaged-app check, external interoperability or
@@ -168,7 +176,7 @@ later verification are in [M0/REPRODUCE.md](M0/REPRODUCE.md).
 
 The user authorized completion of M5–M7 on 24 October 2026, after M4 was pushed.
 Continue sequentially, update documents after each milestone and push the same
-branch. Do not merge main; the user will merge. Deferred enhancements remain
+branch. Do not merge main; the user will merge. The user additionally authorized NET-08-A, WS-DORM-01 and WS-DORM-02 on 26 October 2026. The other 19 deferred enhancements remain
 outside scope. Unavailable qualification evidence must stay explicit.
 
 Remote state above is the immutable snapshot recorded at 2026-10-26T09:34:23.083422+00:00. Consult [the milestone branch Actions](https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones) for current status; the final user report and remote receipt bind the actual pushed revision after verification.

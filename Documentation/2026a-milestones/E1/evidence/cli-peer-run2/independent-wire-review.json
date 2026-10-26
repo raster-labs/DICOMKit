@@ -1,0 +1,34 @@
+{
+  "result": "Passed",
+  "review": "Independent post-run inspection beyond built-in count assertions",
+  "raw_request_hashes_verified": 14,
+  "exact_scalar_tag_sets_verified": [
+    3,
+    5
+  ],
+  "refused_requests_preserve_entire_state": [
+    8,
+    11,
+    14
+  ],
+  "status_sequence_verified": [
+    "0000",
+    "0000",
+    "0000",
+    "0000",
+    "0000",
+    "0000",
+    "0000",
+    "0110",
+    "0000",
+    "0000",
+    "0106",
+    "0000",
+    "0000",
+    "0110"
+  ],
+  "limitations": [
+    "Synthetic subset only; no full IOD validation.",
+    "Post-terminal refusal by authoritative peer is separate from same-process sender guard verification."
+  ]
+}

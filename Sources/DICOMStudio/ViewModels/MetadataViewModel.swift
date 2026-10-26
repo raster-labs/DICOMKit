@@ -17,6 +17,8 @@ import DICOMDictionary
 
 /// ViewModel for the DICOM metadata viewer, managing tag display,
 /// search, and sequence expansion.
+/// Retained as a reusable component. The production CLI Workshop uses
+/// MetadataPresenter instead; this view model does not define dicom-info output.
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
 @Observable
 public final class MetadataViewModel {
@@ -108,7 +110,7 @@ public final class MetadataViewModel {
 
     // MARK: - Private Tree Building
 
-    private func buildTree(from dicomFile: DICOMFile) -> [MetadataTreeNode] {
+    func buildTree(from dicomFile: DICOMFile) -> [MetadataTreeNode] {
         var allNodes: [MetadataTreeNode] = []
 
         // Include File Meta Information
@@ -136,14 +138,21 @@ public final class MetadataViewModel {
 
         // Format value
         let displayValue: String
+        let copyValue: String
         if element.vr == .SQ {
             let itemCount = element.sequenceItems?.count ?? 0
             displayValue = "\(itemCount) item\(itemCount == 1 ? "" : "s")"
+            copyValue = displayValue
         } else if let stringVal = element.stringValue {
             displayValue = DICOMValueParser.format(value: stringVal, vr: vrString)
+            copyValue = stringVal
+        } else if let numericValues = DICOMValueParser.numericValues(for: element) {
+            displayValue = numericValues.isEmpty ? "(empty)" : numericValues.joined(separator: " \\ ")
+            copyValue = numericValues.joined(separator: "\\")
         } else {
             let byteCount = element.valueData.count
             displayValue = "[\(byteCount) bytes]"
+            copyValue = displayValue
         }
 
         // Build children for sequences
@@ -180,7 +189,8 @@ public final class MetadataViewModel {
             length: element.length,
             isPrivate: isPrivate,
             privateCreator: privateCreator,
-            children: children
+            children: children,
+            copyValue: copyValue
         )
     }
 }

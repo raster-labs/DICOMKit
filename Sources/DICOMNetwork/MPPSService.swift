@@ -226,6 +226,9 @@ public struct MPPSProcedureStep: Sendable {
     
     /// Performed Procedure Step Status
     public let status: MPPSStatus
+
+    /// Whether N-SET includes (0040,0252). False is only valid for an intermediate update.
+    public let includeStatus: Bool
     
     /// Study Instance UID
     public let studyInstanceUID: String?
@@ -367,8 +370,10 @@ public struct MPPSProcedureStep: Sendable {
         scheduledProtocolCodes: [MPPSCodedEntry] = [],
         referencedStudySOPInstanceUID: String? = nil,
         discontinuationReason: MPPSCodedEntry? = nil,
-        specificCharacterSet: String? = nil
+        specificCharacterSet: String? = nil,
+        includeStatus: Bool = true
     ) {
+        self.includeStatus = includeStatus
         self.sopInstanceUID = sopInstanceUID
         self.status = status
         self.studyInstanceUID = studyInstanceUID
@@ -498,26 +503,88 @@ public struct MPPSProcedureStep: Sendable {
 /// ```
 public enum DICOMMPPSService {
 
-    /// Thread-safe in-memory cache of recently created MPPS procedure steps,
-    /// keyed by SOP Instance UID so a subsequent `update` (N-SET) in the same
-    /// process can preserve Scheduled Step Attributes Sequence (0040,0270)
-    /// linking fields when talking to legacy SCPs that require (0040,0270) in N-SET.
+    /// Per-process SCU context. Remote identity is part of the key: a UID on one
+    /// peer must not supply lifecycle/character-set assumptions for another.
+    private struct ContextKey: Hashable {
+        let host: String
+        let port: UInt16
+        let callingAE: String
+        let calledAE: String
+        let uid: String
+    }
+    private struct Context {
+        var createdStep: MPPSProcedureStep?
+        var characterSet: String
+        var terminalSent = false
+        var updateInFlight = false
+        var confirmed = false
+    }
     private static let createdStepsLock = NSLock()
-    nonisolated(unsafe) private static var createdSteps: [String: MPPSProcedureStep] = [:]
+    nonisolated(unsafe) private static var contexts: [ContextKey: Context] = [:]
 
-    private static func cacheCreatedStep(_ step: MPPSProcedureStep, effectiveUID: String) {
-        createdStepsLock.lock()
-        defer { createdStepsLock.unlock() }
-        createdSteps[step.sopInstanceUID] = step
-        createdSteps[effectiveUID] = step
+    private static func contextKey(host: String, port: UInt16, configuration: MPPSConfiguration,
+                                   uid: String) -> ContextKey {
+        ContextKey(host: host.lowercased(), port: port,
+                   callingAE: configuration.callingAETitle.value,
+                   calledAE: configuration.calledAETitle.value, uid: uid)
     }
 
-    private static func cachedCreatedStep(for uid: String) -> MPPSProcedureStep? {
+    private static func context(for key: ContextKey) -> Context? {
         createdStepsLock.lock()
         defer { createdStepsLock.unlock() }
-        return createdSteps[uid]
+        return contexts[key]
     }
-    
+
+    private static func cacheCreatedStep(_ step: MPPSProcedureStep, effectiveUID: String,
+                                         host: String, port: UInt16, configuration: MPPSConfiguration) {
+        let key = contextKey(host: host, port: port, configuration: configuration, uid: effectiveUID)
+        let charset = chooseCharacterSet(for: step, override: configuration.specificCharacterSet)
+        createdStepsLock.lock()
+        defer { createdStepsLock.unlock() }
+        contexts[key] = Context(createdStep: step, characterSet: charset.specificCharacterSet ?? "", confirmed: true)
+    }
+
+    private static func beginUpdate(_ key: ContextKey, characterSet: String) throws {
+        createdStepsLock.lock()
+        defer { createdStepsLock.unlock() }
+        var value = contexts[key] ?? Context(characterSet: characterSet)
+        guard !value.terminalSent else {
+            throw DICOMNetworkError.invalidState("MPPS instance may no longer be updated after a terminal N-SET was sent (PS3.4 F.7.2.2.2)")
+        }
+        guard !value.updateInFlight else {
+            throw DICOMNetworkError.invalidState("An MPPS update for this instance is already in progress")
+        }
+        // Recheck under the same lock as reservation: a concurrent first update
+        // may have confirmed the repertoire since update() read its context.
+        guard value.characterSet == characterSet else {
+            throw DICOMNetworkError.invalidState("MPPS N-SET character set must match the instance's confirmed character set (PS3.4 F.7.2.2.1)")
+        }
+        value.updateInFlight = true
+        contexts[key] = value
+    }
+
+    private static func finishUpdate(_ key: ContextKey, succeeded: Bool) {
+        createdStepsLock.lock()
+        defer { createdStepsLock.unlock() }
+        guard var value = contexts[key] else { return }
+        value.updateInFlight = false
+        if succeeded { value.confirmed = true }
+        // A rejected/unconnected first intermediate attempt does not establish
+        // the remote instance's repertoire. Allow correction and retry. Retain
+        // every terminal-sent tombstone even when the response was a failure.
+        if !value.confirmed && !value.terminalSent {
+            contexts.removeValue(forKey: key)
+        } else {
+            contexts[key] = value
+        }
+    }
+
+    private static func markTerminalSent(_ key: ContextKey) {
+        createdStepsLock.lock()
+        defer { createdStepsLock.unlock() }
+        contexts[key]?.terminalSent = true
+    }
+
     /// Creates a new MPPS instance (N-CREATE)
     ///
     /// - Parameters:
@@ -733,7 +800,8 @@ public enum DICOMMPPSService {
             configuration: config,
             procedureStep: procedureStep
         )
-        cacheCreatedStep(procedureStep, effectiveUID: result.sopInstanceUID)
+        cacheCreatedStep(procedureStep, effectiveUID: result.sopInstanceUID,
+                         host: host, port: port, configuration: config)
         return result
     }
     
@@ -745,7 +813,7 @@ public enum DICOMMPPSService {
     ///   - callingAE: The local AE title
     ///   - calledAE: The remote AE title
     ///   - mppsInstanceUID: The MPPS SOP Instance UID to update
-    ///   - status: The new status (.completed or .discontinued)
+    ///   - status: IN PROGRESS for an intermediate update, or a terminal status
     ///   - referencedSOPs: Referenced image SOPs (for completed procedures)
     ///   - studyInstanceUID: Study Instance UID for the Scheduled Step Attributes Sequence
     ///   - accessionNumber: Accession Number for the Scheduled Step Attributes Sequence
@@ -757,7 +825,8 @@ public enum DICOMMPPSService {
     ///     `referencedSOPs` entry — the images' real class. Required when that
     ///     list is used; `performedSeries` carries a separate class per instance.
     ///   - protocolName: Protocol Name (0018,1030), Type 1 in every Performed Series item
-    ///   - performedSeries: fully described Performed Series items (preferred over `referencedSOPs`)
+    ///   - performedSeries: complete replacement of Performed Series, including all earlier items/references
+    ///     (PS3.4 F.7.2.2.2). Omitted during intermediate updates when empty.
     ///   - seriesDescription / operatorsName / performingPhysicianName: Type 2 series attributes
     ///   - legacyNSetScheduledStepAttributes: also send Scheduled Step Attributes
     ///     Sequence (0040,0270) in the N-SET, which PS3.4 forbids; only for an SCP
@@ -765,12 +834,17 @@ public enum DICOMMPPSService {
     ///   - discontinuationReason: Performed Procedure Step Discontinuation Reason
     ///     Code Sequence (0040,0281) item, sent when `status` is `.discontinued`
     ///     (CID 9300, scheme DCM)
-    ///   - specificCharacterSet: forces (0008,0005); nil chooses automatically
+    ///   - specificCharacterSet: must match N-CREATE (PS3.4 F.7.2.2.1). When nil,
+    ///     reuse this process's N-CREATE context, or assume the default repertoire
+    ///     for an externally created instance. Supply the original declaration for
+    ///     a non-default instance created by another process.
+    ///   - procedureStepDescription: optional replacement of (0040,0254), including an empty value
+    ///   - includeStatus: false omits status during an intermediate update
     /// - Returns: the response status (success or warning) — a warning means the
     ///   SCP applied the N-SET but coerced or dropped attributes
-    /// - Throws: `DICOMNetworkError.invalidState` when `status` is IN PROGRESS
-    ///   (PS3.4 F.7.2.1.3) or COMPLETED without any Performed Series item
-    ///   (Table F.7.2-1); `DICOMNetworkError` for connection or protocol errors
+    /// - Throws: `DICOMNetworkError.invalidState` for an invalid payload or a
+    ///   locally known terminal instance; `DICOMNetworkError` for remote failures.
+    ///   The caller must not reuse terminal instances across process restarts.
     @discardableResult
     public static func update(
         host: String,
@@ -796,7 +870,9 @@ public enum DICOMMPPSService {
         attributes: [Tag: Data] = [:],
         legacyNSetScheduledStepAttributes: Bool = false,
         discontinuationReason: MPPSCodedEntry? = nil,
-        specificCharacterSet: String? = nil
+        specificCharacterSet: String? = nil,
+        procedureStepDescription: String? = nil,
+        includeStatus: Bool = true
     ) async throws -> MPPSOperationResult {
         let callingAETitle = try AETitle(callingAE)
         let calledAETitle = try AETitle(calledAE)
@@ -837,7 +913,15 @@ public enum DICOMMPPSService {
             }
         }
         
-        let cached = cachedCreatedStep(for: mppsInstanceUID)
+        let key = contextKey(host: host, port: port, configuration: config, uid: mppsInstanceUID)
+        let known = context(for: key)
+        let cached = known?.createdStep
+        let originalCharacterSet = known?.characterSet ?? specificCharacterSet ?? ""
+        if let specificCharacterSet, let known,
+           DIMSECharacterSet(specificCharacterSet: specificCharacterSet).specificCharacterSet
+            != DIMSECharacterSet(specificCharacterSet: known.characterSet).specificCharacterSet {
+            throw DICOMNetworkError.invalidState("MPPS N-SET character set must match N-CREATE (PS3.4 F.7.2.2.1)")
+        }
         let effectiveStudyUID = studyInstanceUID
             ?? referencedSOPs.first?.studyUID
             ?? cached?.studyInstanceUID
@@ -846,23 +930,26 @@ public enum DICOMMPPSService {
             sopInstanceUID: mppsInstanceUID,
             status: status,
             studyInstanceUID: effectiveStudyUID,
-            endDateTime: Date(),
+            endDateTime: status == .inProgress ? nil : Date(),
             referencedSOPs: referencedSOPs,
             referencedSOPClassUID: referencedSOPClassUID,
             protocolName: protocolName,
             performedSeries: series,
             attributes: attributes,
             procedureStepID: procedureStepID ?? cached?.procedureStepID,
+            procedureStepDescription: procedureStepDescription,
             performingPhysicianName: performingPhysicianName ?? cached?.performingPhysicianName,
             accessionNumber: accessionNumber ?? cached?.accessionNumber,
             scheduledProcedureStepID: scheduledProcedureStepID ?? cached?.scheduledProcedureStepID,
-            performedProtocolCodes: performedProtocolCodes.isEmpty ? (cached?.performedProtocolCodes ?? []) : performedProtocolCodes,
+            performedProtocolCodes: performedProtocolCodes.isEmpty && status != .inProgress ? (cached?.performedProtocolCodes ?? []) : performedProtocolCodes,
             requestedProcedureID: requestedProcedureID ?? procedureStepID ?? cached?.requestedProcedureID,
             requestedProcedureDescription: cached?.requestedProcedureDescription,
             scheduledProcedureStepDescription: cached?.scheduledProcedureStepDescription,
             scheduledProtocolCodes: cached?.scheduledProtocolCodes ?? [],
             referencedStudySOPInstanceUID: cached?.referencedStudySOPInstanceUID,
-            discontinuationReason: discontinuationReason
+            discontinuationReason: discontinuationReason,
+            specificCharacterSet: originalCharacterSet,
+            includeStatus: includeStatus
         )
         
         return try await performNSet(
@@ -873,7 +960,7 @@ public enum DICOMMPPSService {
         )
     }
 
-    // MARK: - State validation (PS3.4 F.7.2.1.2 / F.7.2.1.3)
+    // MARK: - State validation (PS3.4 F.7.2.1.2 / F.7.2.2.1 / F.7.2.2.2)
 
     /// The DIMSE-N operation a procedure step is validated for.
     public enum Operation: Sendable {
@@ -885,10 +972,10 @@ public enum DICOMMPPSService {
     ///
     /// - N-CREATE (PS3.4 F.7.2.1.2): the status must be IN PROGRESS, and no
     ///   End Date/Time may be carried — a step is created running, never finished.
-    /// - N-SET (PS3.4 F.7.2.1.3): the status may only become COMPLETED or
-    ///   DISCONTINUED, and End Date/Time (0040,0250/0251) are then Type 1.
-    /// - COMPLETED requires at least one Performed Series Sequence (0040,0340)
-    ///   item (Table F.7.2-1, Type 1 in the final state); DISCONTINUED may have none.
+    /// - N-SET may update an IN PROGRESS instance without finishing it. A terminal
+    ///   update requires End Date/Time and a nonempty Performed Series Sequence
+    ///   for both COMPLETED and DISCONTINUED (Table F.7.2-1, Note 2). A series may
+    ///   contain no references when no instances were acquired.
     /// - N-CREATE requires a non-empty Modality (0008,0060), Type 1 (1/1) in
     ///   Table F.7.2-1 (since 2026-10-01, D87).
     ///
@@ -905,6 +992,9 @@ public enum DICOMMPPSService {
         for series in step.effectivePerformedSeries {
             guard DICOMValueRules.isValidUID(series.seriesInstanceUID) else {
                 throw DICOMNetworkError.invalidState("Series Instance UID (0020,000E) must be a valid DICOM UID")
+            }
+            guard !series.protocolName.trimmingCharacters(in: .whitespaces).isEmpty else {
+                throw DICOMNetworkError.invalidState("Protocol Name (0018,1030) must not be empty in a Performed Series item")
             }
             for reference in series.referencedImages + series.referencedNonImageInstances {
                 guard DICOMValueRules.isValidUID(reference.sopClassUID),
@@ -933,20 +1023,37 @@ public enum DICOMMPPSService {
                     "MPPS N-CREATE requires Modality (0008,0060), Type 1 in PS3.4 Table F.7.2-1")
             }
         case .nSet:
-            guard step.status != .inProgress else {
-                throw DICOMNetworkError.invalidState(
-                    "MPPS N-SET may only set Performed Procedure Step Status to COMPLETED or DISCONTINUED, " +
-                    "not IN PROGRESS (PS3.4 F.7.2.1.3)")
+            if let description = step.procedureStepDescription {
+                guard !description.contains("\\") else {
+                    throw DICOMNetworkError.invalidState("Performed Procedure Step Description (0040,0254) requires one LO value, not a backslash-delimited list (PS3.6)")
+                }
+                if let problem = DICOMValueRules.valueProblem(description, vr: .LO) {
+                    throw DICOMNetworkError.invalidState("Performed Procedure Step Description (0040,0254): \(problem)")
+                }
             }
-            guard step.endDateTime != nil else {
-                throw DICOMNetworkError.invalidState(
-                    "MPPS N-SET to \(step.status.rawValue) requires Performed Procedure Step End Date/Time " +
-                    "(0040,0250)/(0040,0251) (PS3.4 F.7.2.1.3, Table F.7.2-1 Type 1 in the final state)")
-            }
-            if step.status == .completed, step.effectivePerformedSeries.isEmpty {
-                throw DICOMNetworkError.invalidState(
-                    "MPPS N-SET to COMPLETED requires at least one Performed Series Sequence (0040,0340) item " +
-                    "(PS3.4 Table F.7.2-1, Type 1 in the final state); use DISCONTINUED when nothing was acquired")
+            if step.status == .inProgress {
+                guard step.endDateTime == nil, step.discontinuationReason == nil else {
+                    throw DICOMNetworkError.invalidState("Intermediate MPPS N-SET must not finish the procedure or provide a discontinuation reason")
+                }
+                guard step.attributes.isEmpty else {
+                    throw DICOMNetworkError.invalidState("Intermediate MPPS N-SET supports typed update attributes only; raw attributes cannot bypass N-SET rules")
+                }
+                guard step.includeStatus || step.procedureStepDescription != nil
+                    || step.performedProcedureTypeDescription != nil
+                    || !step.performedProtocolCodes.isEmpty || !step.effectivePerformedSeries.isEmpty else {
+                    throw DICOMNetworkError.invalidState("Intermediate MPPS N-SET requires at least one attribute to update")
+                }
+            } else {
+                guard step.includeStatus, step.endDateTime != nil else {
+                    throw DICOMNetworkError.invalidState(
+                        "MPPS N-SET to \(step.status.rawValue) requires status and Performed Procedure Step End Date/Time " +
+                        "(0040,0250)/(0040,0251) (PS3.4 F.7.2.2.2, Table F.7.2-1 final state)")
+                }
+                guard !step.effectivePerformedSeries.isEmpty else {
+                    throw DICOMNetworkError.invalidState(
+                        "MPPS N-SET to \(step.status.rawValue) requires at least one Performed Series Sequence (0040,0340) item " +
+                        "(PS3.4 Table F.7.2-1 Note 2); use a series with no references if no instances were acquired")
+                }
             }
         }
     }
@@ -985,6 +1092,8 @@ public enum DICOMMPPSService {
     ) async throws -> MPPSOperationResult {
         // Reject a step that cannot legally be created before opening a connection.
         try validate(procedureStep, for: .nCreate)
+        try validateCharacterSet(procedureStep, characterSet: chooseCharacterSet(
+            for: procedureStep, override: configuration.specificCharacterSet))
 
         // Create association configuration
         let associationConfig = AssociationConfiguration(
@@ -1052,41 +1161,27 @@ public enum DICOMMPPSService {
     /// By default (`configuration.includeScheduledStepAttributesInNSet == false`),
     /// the N-SET omits Scheduled Step Attributes Sequence (0040,0270) per PS3.4
     /// Table F.7.2-1. If the SCP closes/aborts the connection or returns a
-    /// processing/missing-attribute failure after receiving the N-SET (as legacy
-    /// SCPs such as dcm4che-2.0 / RASTERRIS and older Orthanc builds do when
-    /// dereferencing (0040,0270) in their N-SET handler), this method automatically
-    /// retries once on a new association with (0040,0270) included.
+    /// failure after receiving N-SET, no automatic retry is made. A failed or
+    /// interrupted terminal send may already have changed the remote state.
     private static func performNSet(
         host: String,
         port: UInt16,
         configuration: MPPSConfiguration,
         procedureStep: MPPSProcedureStep
     ) async throws -> MPPSOperationResult {
-        // Reject an illegal transition before opening a connection.
         try validate(procedureStep, for: .nSet)
-
+        let charset = chooseCharacterSet(for: procedureStep, override: configuration.specificCharacterSet)
+        try validateCharacterSet(procedureStep, characterSet: charset)
+        let key = contextKey(host: host, port: port, configuration: configuration, uid: procedureStep.sopInstanceUID)
+        try beginUpdate(key, characterSet: charset.specificCharacterSet ?? "")
+        var succeeded = false
+        defer { finishUpdate(key, succeeded: succeeded) }
         do {
-            return try await performSingleNSet(
-                host: host,
-                port: port,
-                configuration: configuration,
-                procedureStep: procedureStep,
-                includeScheduledStepAttributes: configuration.includeScheduledStepAttributesInNSet
-            )
-        } catch let error as NSetSendFailure where !configuration.includeScheduledStepAttributesInNSet
-            && shouldRetryNSetWithScheduledStepAttributes(after: error.underlying)
-        {
-            do {
-                return try await performSingleNSet(
-                    host: host,
-                    port: port,
-                    configuration: configuration,
-                    procedureStep: procedureStep,
-                    includeScheduledStepAttributes: true
-                )
-            } catch let retryError as NSetSendFailure {
-                throw retryError.underlying
-            }
+            let result = try await performSingleNSet(
+                host: host, port: port, configuration: configuration, procedureStep: procedureStep,
+                includeScheduledStepAttributes: configuration.includeScheduledStepAttributesInNSet)
+            succeeded = true
+            return result
         } catch let error as NSetSendFailure {
             throw error.underlying
         }
@@ -1094,18 +1189,6 @@ public enum DICOMMPPSService {
 
     private struct NSetSendFailure: Error {
         let underlying: Error
-    }
-
-    private static func shouldRetryNSetWithScheduledStepAttributes(after error: Error) -> Bool {
-        guard let networkError = error as? DICOMNetworkError else { return false }
-        switch networkError {
-        case .connectionClosed, .associationAborted, .connectionFailed:
-            return true
-        case .mppsOperationFailed(_, let status, _, _):
-            return status.rawValue == 0x0110 || status.rawValue == 0x0120 || status.rawValue == 0x0121
-        default:
-            return false
-        }
     }
 
     private static func performSingleNSet(
@@ -1158,6 +1241,12 @@ public enum DICOMMPPSService {
             // Perform the N-SET operation
             let result: MPPSOperationResult
             do {
+                if procedureStep.status != .inProgress {
+                    // Mark before the first write: a partial/ambiguous send must never
+                    // be retried as another terminal N-SET (PS3.4 F.7.2.2.2).
+                    markTerminalSent(contextKey(host: host, port: port, configuration: configuration,
+                                                uid: procedureStep.sopInstanceUID))
+                }
                 result = try await sendNSet(
                     association: association,
                     presentationContextID: 1,
@@ -1417,14 +1506,18 @@ public enum DICOMMPPSService {
         }
 
         // PPS End Date/Time (0040,0250/0251) — Type 1 once COMPLETED/DISCONTINUED
-        let (endDate, endTime) = dateTimeStrings(procedureStep.endDateTime ?? Date())
-        add(0x0040, 0x0250, .DA, endDate)
-        add(0x0040, 0x0251, .TM, endTime)
-        add(0x0040, 0x0252, .CS, procedureStep.status.rawValue)                   // PPS Status
-        if let desc = procedureStep.procedureStepDescription, !desc.isEmpty {
+        if let endDateTime = procedureStep.endDateTime {
+            let (endDate, endTime) = dateTimeStrings(endDateTime)
+            add(0x0040, 0x0250, .DA, endDate)
+            add(0x0040, 0x0251, .TM, endTime)
+        }
+        if procedureStep.includeStatus {
+            add(0x0040, 0x0252, .CS, procedureStep.status.rawValue)
+        }
+        if let desc = procedureStep.procedureStepDescription {
             add(0x0040, 0x0254, .LO, desc)                                        // PPS Description 3/2
         }
-        if let typeDesc = procedureStep.performedProcedureTypeDescription, !typeDesc.isEmpty {
+        if let typeDesc = procedureStep.performedProcedureTypeDescription {
             add(0x0040, 0x0255, .LO, typeDesc)                                    // Performed Procedure Type Description 3/2
         }
         if !procedureStep.performedProtocolCodes.isEmpty {
@@ -1443,8 +1536,10 @@ public enum DICOMMPPSService {
                 tag: Tag(group: 0x0040, element: 0x0281),
                 codes: [reason], explicit: explicit, charset: charset)))
         }
-        elements.append((Tag(group: 0x0040, element: 0x0340),
-                         buildPerformedSeriesSequence(procedureStep: procedureStep, explicit: explicit, charset: charset)))
+        if procedureStep.status != .inProgress || !procedureStep.effectivePerformedSeries.isEmpty {
+            elements.append((Tag(group: 0x0040, element: 0x0340),
+                             buildPerformedSeriesSequence(procedureStep: procedureStep, explicit: explicit, charset: charset)))
+        }
 
         let modelled = Set(elements.map { $0.0 })
         for (tag, value) in procedureStep.attributes where !modelled.contains(tag) {
@@ -1474,7 +1569,26 @@ public enum DICOMMPPSService {
     /// step's own `specificCharacterSet`, else the narrowest set that represents
     /// every text value (root and nested).
     internal static func chooseCharacterSet(for step: MPPSProcedureStep, override: String?) -> DIMSECharacterSet {
-        DIMSECharacterSet.choose(for: step.textValues, override: override ?? step.specificCharacterSet)
+        if let declared = override ?? step.specificCharacterSet {
+            return DIMSECharacterSet(specificCharacterSet: declared)
+        }
+        return DIMSECharacterSet.choose(for: step.textValues)
+    }
+
+    /// A forced/original repertoire must encode the values exactly. Never fall
+    /// back to undeclared UTF-8 or lossy replacement bytes in an MPPS request.
+    internal static func validateCharacterSet(_ step: MPPSProcedureStep, characterSet: DIMSECharacterSet) throws {
+        let declaration = characterSet.specificCharacterSet ?? ""
+        guard CharacterSetHandler.isSupported(specificCharacterSet: declaration) else {
+            throw DICOMNetworkError.invalidState("Unsupported MPPS Specific Character Set: \(declaration)")
+        }
+        let handler = characterSet.handler
+        for value in step.textValues where !value.isEmpty {
+            let bytes = handler.encode(value)
+            guard !bytes.isEmpty, handler.decode(bytes) == value else {
+                throw DICOMNetworkError.invalidState("MPPS text is not representable in the original Specific Character Set; N-SET must use the N-CREATE character set (PS3.4 F.7.2.2.1)")
+            }
+        }
     }
 
     // MARK: - Sequence builders

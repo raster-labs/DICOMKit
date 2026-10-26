@@ -1,10 +1,10 @@
 # DICOMKit DICOM 2026a Milestone Implementation Plan
 
-This plan addresses all 68 review items: **46 active items and 22 explicitly deferred items**. Enhancement work is limited to `dicom-print` and `dicom-printscp`. All bug fixes, the script capability correction, audit maintenance and qualification requirements remain in scope.
+This plan addresses all 68 review items: **49 active items and 19 explicitly deferred items**. The original print-only enhancement scope was extended on 26 October 2026 to NET-08-A, WS-DORM-01 and WS-DORM-02 (E1). All bug fixes, the script capability correction, audit maintenance and qualification requirements remain in scope.
 
 Baseline: `4b68d7e22829418c88e48dd53d98b25fee50d90d` in `repository root`. The checkout was unchanged and clean when this plan was prepared.
 
-**Implementation status:** All 46 active items meet their local criteria; 22 items remain deferred and all 28 native groups have bounded acceptance. At document creation, exact next pushed-head remote CI was pending, so overall publication/goal closure stays provisional. Only dicom-print/dicom-printscp enhancements were implemented. Do not merge main; the user will merge. See [STATUS.md](STATUS.md), [M7 report](M7/REPORT.md) and the item ledger for exact execution epochs, exclusions and evidence.
+**Implementation status:** M0–M7 completed 46 items at the prior source checkpoint. E1 implements the three newly authorized items; its current results are in [STATUS.md](STATUS.md) and [E1 report](E1/REPORT.md). Earlier native and CI results apply only to their recorded source. Do not merge main; the user will merge.
 
 The [item ledger](items.json) preserves every finding and acceptance assertion. This plan adds sequencing, dependencies, scoped alternatives and separate CLI/app gates.
 
@@ -16,12 +16,12 @@ The [item ledger](items.json) preserves every finding and acceptance assertion. 
 | Capability resolution | 1 | 0 |
 | Audit maintenance | 3 | 0 |
 | Qualification requirement | 2 | 0 |
-| Enhancement | 2 | 20 |
-| Dormant-component enhancement | 0 | 2 |
+| Enhancement | 3 | 19 |
+| Dormant-component enhancement | 2 | 0 |
 
 The 38 bug-fix actions include related repairs that can share implementation and tests. They are not 38 independent standard violations. CLI syntax and GUI controls are product contracts; the DICOM requirements apply to data and protocol behavior.
 
-Only the two print coverage items move from optional enhancement to planned implementation. Intermediate MPPS updates, QR resume/verbosity/selection, bounded summaries, typed/sequence editing, legacy dictionary expansion, other tool coverage and dormant metadata components remain deferred.
+The original plan included the two print coverage enhancements. E1 additionally covers intermediate MPPS updates and repairs the retained dormant metadata component. QR resume/verbosity/selection, bounded summaries, typed/sequence editing, legacy dictionary expansion and other tool coverage remain deferred.
 
 ## Milestone sequence
 
@@ -368,7 +368,7 @@ Every ID appears once below. Dependencies reference item completion or the speci
 | NET-06-A | P1 | M2 | Serialize UPS start time using DICOM DT syntax | A-05 |
 | NET-06-B | P1 | M2 | Parse valid UPS DICOM DT without losing scheduling information | A-05, NET-06-A |
 | NET-07-A | P1 | M2 | Stop guessing Secondary Capture for MPPS image references | A-02, A-06 |
-| NET-08-A | P2 | Deferred | Support intermediate MPPS N-SET updates | — |
+| NET-08-A | P2 | E1 | Support intermediate MPPS N-SET updates | — |
 | NET-09-A | P2 | M4 | Implement the DICOMweb Retrieve Capabilities transaction | — |
 | NET-09-B | P2 | M4 | Make capability flags reflect implemented retrieval handlers | NET-09-A |
 | NET-10-A | P2 | M4 | Make the advertised SQLite index durable or explicitly volatile | — |
@@ -384,8 +384,8 @@ Every ID appears once below. Dependencies reference item completion or the speci
 | WS-ENH-02 | P3 | Deferred | Add QR resume with state and resume-specific options | — |
 | WS-ENH-03 | P3 | Deferred | Expose QR verbose mode | — |
 | WS-ENH-04 | P3 | Deferred | Implement actual interactive QR result selection | — |
-| WS-DORM-01 | P3 | Deferred | Resolve legacy metadata numeric rendering before reuse | — |
-| WS-DORM-02 | P3 | Deferred | Preserve exact values and VM in legacy metadata copy | — |
+| WS-DORM-01 | P3 | E1 | Resolve legacy metadata numeric rendering before reuse | — |
+| WS-DORM-02 | P3 | E1 | Preserve exact values and VM in legacy metadata copy | — |
 | TB-FIX-01 | P2 | M5 | Remove unsupported Toolbox anonymization profiles | AUD-01 |
 | TB-FIX-02 | P2 | M5 | Remove or migrate removed Toolbox anonymization flags | AUD-01 |
 | TB-FIX-03 | P2 | M5 | Correct Toolbox script template arguments | AUD-01, TB-FIX-04 |
@@ -525,3 +525,7 @@ Exit gate: separate status for contract/adapter, packaged UI, same-library loopb
 The extractor deliberately strips help prose before identifying inversion metadata: an existing general audit extractor mistakes the word “inversion” in raw help for a declaration of `--no-raw`. Both current raw flags are positive only. Optional inverted SCP flags are nil when absent and inherit defaults/configuration; they are not false. Dynamic token lists in help are retained as source expressions and point to the shared option catalog rather than inventing extra accepted values.
 
 Remote state above is the immutable snapshot recorded at 2026-10-26T09:34:23.083422+00:00. Consult [the milestone branch Actions](https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones) for current status; the final user report and remote receipt bind the actual pushed revision after verification.
+
+## E1 authorized extension — 26 October 2026
+
+Depends on completed M2 attribute/workflow repairs and M5 Workshop safety. NET-08-A adds intermediate MPPS N-SET to the shared SCU, CLI and Workshop, preserves terminal validation, and qualifies actual requests against an independent peer. WS-DORM-01/02 retain and repair the unused metadata component, including endian-aware numeric values and separate exact-copy values; no new app route is introduced. The ten original item criteria remain in items.json. Verify affected suites, CLI and Workshop requests, the packaged MPPS form, and unchanged active dicom-info behavior. Preserve prior receipts; publish E1 evidence separately. Only the existing milestone branch may be pushed; no main merge.

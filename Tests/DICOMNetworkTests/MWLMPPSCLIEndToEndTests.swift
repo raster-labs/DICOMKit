@@ -171,23 +171,29 @@ final class MWLMPPSCLIEndToEndTests: XCTestCase {
 
     // MARK: - dicom-mpps update
 
-    /// PS3.4 F.7.2.1.3 / F.7.2.2.2: N-SET reaches COMPLETED or DISCONTINUED only.
-    func testMPPS_updateRejectsInProgress() throws {
+    /// F.7.2.2.2 permits intermediate N-SET; invalid combinations still refuse locally.
+    func testMPPS_intermediateRejectsDiscontinuationReason() throws {
         let result = try run("dicom-mpps", [
-            "update", "localhost", "--aet", "T", "--mpps-uid", "1.2.3", "--status", "IN PROGRESS"])
+            "update", "localhost", "--aet", "T", "--mpps-uid", "1.2.3", "--status", "IN PROGRESS",
+            "--discontinuation-reason", "110513|DCM|Discontinued for unspecified reason"])
         XCTAssertNotEqual(result.exitCode, 0)
-        XCTAssertTrue(result.stderr.contains("COMPLETED or DISCONTINUED"), "stderr: \(result.stderr)")
+        XCTAssertTrue(result.stderr.contains("only valid with --status DISCONTINUED"), "stderr: \(result.stderr)")
     }
 
-    /// The status words are the Table C.4-14 Enumerated Values; the space in
-    /// IN PROGRESS may be written as `_` or omitted, case-insensitively.
     func testMPPS_updateAcceptsStatusWordSpellings() throws {
         for word in ["in_progress", "INPROGRESS", "In Progress"] {
             let result = try run("dicom-mpps", [
-                "update", "localhost", "--aet", "T", "--mpps-uid", "1.2.3", "--status", word])
-            XCTAssertTrue(result.stderr.contains("Update status must be COMPLETED or DISCONTINUED"),
+                "update", "localhost", "--aet", "T", "--mpps-uid", "1.2.3", "--status", word,
+                "--discontinuation-reason", "110513|DCM|Discontinued for unspecified reason"])
+            XCTAssertTrue(result.stderr.contains("only valid with --status DISCONTINUED"),
                           "\(word) was not parsed as IN PROGRESS: \(result.stderr)")
         }
+    }
+
+    func testMPPS_omittedStatusRequiresAnAttributeChange() throws {
+        let result = try run("dicom-mpps", ["update", "localhost", "--aet", "T", "--mpps-uid", "1.2.3"])
+        XCTAssertNotEqual(result.exitCode, 0)
+        XCTAssertTrue(result.stderr.contains("needs --procedure-step-description"), result.stderr)
     }
 
     /// Referenced Image Sequence items live in a Performed Series item (Table F.7.2-1).

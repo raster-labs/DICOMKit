@@ -1,0 +1,93 @@
+Building for debugging...
+[Computing dependencies]
+[1 / 43] DICOMNetworkTests-product
+[2 / 13] DICOMNetworkTests-product
+[11 / 22] DICOMNetworkTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/M6PrintJobEventTests.swift:247:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+245 |         self.jobSyntax = jobSyntax
+246 |         association = Association(configuration: AssociationConfiguration(
+247 |             callingAETitle: try AETitle("M6EVENTSCU"), calledAETitle: try AETitle(calledAE),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+248 |             host: "127.0.0.1", port: port,
+249 |             implementationClassUID: PrintSCPConfiguration.defaultImplementationClassUID,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:192:64: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 190 | final class PrintSCPParserTests: XCTestCase {
+ 191 | 
+ 192 |     private let configuration = PrintSCPConfiguration(aeTitle: try! AETitle("DCMPRINT"), port: 0)
+     |                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 193 | 
+ 194 |     private func parse(_ elements: [DataElement], explicitVR: Bool = true) throws -> PrintAttributeSet {
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[18 / 22] DICOMNetworkTests-product
+[20 / 22] DICOMNetworkTests-product
+Build complete! (5.72 sec)
+Test Suite 'Selected tests' started at 2026-10-26 17:15:42.849.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-26 17:15:42.854.
+Test Suite 'DIMSENStatusText2026aTests' started at 2026-10-26 17:15:42.854.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testMPPSFailureIsNotWordedAsAStore]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testMPPSFailureIsNotWordedAsAStore]' passed (0.001 seconds).
+Test Suite 'DIMSENStatusText2026aTests' passed at 2026-10-26 17:15:42.855.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'MPPSDataSetConformanceTests' started at 2026-10-26 17:15:42.855.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_create_withCompletedThrowsBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_create_withCompletedThrowsBeforeConnecting]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_explicitPerformedSeriesTakesPrecedence]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_explicitPerformedSeriesTakesPrecedence]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_carriesEveryType1And2AttributeOfF72_1]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_carriesEveryType1And2AttributeOfF72_1]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_doesNotCarryAttributesTheTableDoesNotAllowAtRoot]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_doesNotCarryAttributesTheTableDoesNotAllowAtRoot]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_extraAttributesAreWritten]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_extraAttributesAreWritten]' passed (0.044 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_latin1PatientNameDeclaresISO_IR_100AndKeepsEveryByte]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_latin1PatientNameDeclaresISO_IR_100AndKeepsEveryByte]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nestedTextValuesDriveTheCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nestedTextValuesDriveTheCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nonLatin1ValueChoosesUTF8]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_nonLatin1ValueChoosesUTF8]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_overrideForcesTheDeclaredCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_overrideForcesTheDeclaredCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_pureASCIIDoesNotForceASpecificCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_pureASCIIDoesNotForceASpecificCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_requestedProcedureIDIsNotThePerformedStepID]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nCreate_requestedProcedureIDIsNotThePerformedStepID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuationReasonAbsentUnlessDiscontinued]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuationReasonAbsentUnlessDiscontinued]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuedCarriesDiscontinuationReasonCodeSequence]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_discontinuedCarriesDiscontinuationReasonCodeSequence]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_latin1OperatorsNameDeclaresCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_latin1OperatorsNameDeclaresCharacterSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_omitsScheduledStepAttributesByDefault]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_omitsScheduledStepAttributesByDefault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_scheduledStepAttributesFallsBackToReferencedSOPStudyUID]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_nSet_scheduledStepAttributesFallsBackToReferencedSOPStudyUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_operationResult_reportsReassignedSOPInstanceUID]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_operationResult_reportsReassignedSOPInstanceUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_carriesRealSOPClassAndType1ProtocolName]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_carriesRealSOPClassAndType1ProtocolName]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_legacyTupleWithoutClassIsRejected]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_performedSeries_legacyTupleWithoutClassIsRejected]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_completedWithoutSeriesThrowsBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_completedWithoutSeriesThrowsBeforeConnecting]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_doesNotRetryAfterTerminalNSetWasSent]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_doesNotRetryAfterTerminalNSetWasSent]' passed (0.006 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_missingFinalSeriesThrowsBeforeConnecting]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_missingFinalSeriesThrowsBeforeConnecting]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_completedRequiresAPerformedSeriesItem]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_completedRequiresAPerformedSeriesItem]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_intermediateNSetRejectsEndDateTime]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_intermediateNSetRejectsEndDateTime]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsAnyStatusButInProgress]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsAnyStatusButInProgress]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsEndDateTimeWhileInProgress]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nCreateRejectsEndDateTimeWhileInProgress]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nSetRequiresEndDateTime]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_validate_nSetRequiresEndDateTime]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_warningStatusesCountAsSuccessWithWarning]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_warningStatusesCountAsSuccessWithWarning]' passed (0.000 seconds).
+Test Suite 'MPPSDataSetConformanceTests' passed at 2026-10-26 17:15:42.911.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.056 (0.057) seconds
+Test Suite 'MPPSIntermediateUpdateTests' started at 2026-10-26 17:15:42.911.
+Test Case '-[DICOMNetworkTes

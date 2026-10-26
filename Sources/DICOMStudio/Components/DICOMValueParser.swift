@@ -170,7 +170,7 @@ public enum DICOMValueParser: Sendable {
 
     /// Formats a DICOM Decimal String (DS) value.
     public static func formatDecimalString(_ value: String) -> String {
-        let parts = value.split(separator: "\\")
+        let parts = value.split(separator: "\\", omittingEmptySubsequences: false)
         let formatted = parts.map { part in
             let trimmed = part.trimmingCharacters(in: .whitespaces)
             if let double = Double(trimmed) {
@@ -186,7 +186,7 @@ public enum DICOMValueParser: Sendable {
 
     /// Formats a DICOM Integer String (IS) value.
     public static func formatIntegerString(_ value: String) -> String {
-        let parts = value.split(separator: "\\")
+        let parts = value.split(separator: "\\", omittingEmptySubsequences: false)
         let formatted = parts.map { part in
             let trimmed = part.trimmingCharacters(in: .whitespaces)
             if let int = Int(trimmed) {
@@ -195,6 +195,36 @@ public enum DICOMValueParser: Sendable {
             return trimmed
         }
         return formatted.joined(separator: " \\ ")
+    }
+
+    /// Decodes scalar numeric VRs and AT using the element's byte order. Each
+    /// returned string represents one value; an empty Value Field returns `[]`.
+    /// Reject incomplete values rather than silently dropping a trailing byte.
+    /// Floating-point text uses Swift's round-trip representation, including
+    /// signed zero, infinities and NaN; NaN payload bits are not represented.
+    /// Other-byte/word streams remain opaque rather than being treated as VM > 1.
+    static func numericValues(for element: DataElement) -> [String]? {
+        let width: Int
+        switch element.vr {
+        case .US, .SS: width = 2
+        case .UL, .SL, .FL, .AT: width = 4
+        case .FD, .SV, .UV: width = 8
+        default: return nil
+        }
+        guard element.valueData.count % width == 0 else { return nil }
+        if element.valueData.isEmpty { return [] }
+        switch element.vr {
+        case .US: return element.uint16Values?.map { String($0) }
+        case .SS: return element.int16Values?.map { String($0) }
+        case .UL: return element.uint32Values?.map { String($0) }
+        case .SL: return element.int32Values?.map { String($0) }
+        case .FL: return element.float32Values?.map { String($0) }
+        case .FD: return element.float64Values?.map { String($0) }
+        case .SV: return element.int64Values?.map { String($0) }
+        case .UV: return element.uint64Values?.map { String($0) }
+        case .AT: return element.attributeTagValues?.map { String(format: "(%04X,%04X)", $0.group, $0.element) }
+        default: return nil
+        }
     }
 
     /// Formats a DICOM UID value with truncation for display.

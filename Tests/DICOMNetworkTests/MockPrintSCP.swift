@@ -179,7 +179,6 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
     }
 
     func run() async {
-        connection.start(queue: .global(qos: .userInitiated))
         let resumed = LockedFlag()
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             connection.stateUpdateHandler = { state in
@@ -191,6 +190,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
                     break
                 }
             }
+            connection.start(queue: .global(qos: .userInitiated))
         }
         connection.stateUpdateHandler = nil
         guard connection.state == .ready else { return }

@@ -1,0 +1,1 @@
+Error: Invalid protocol state: MPPS text is not representable in the original Specific Character Set; N-SET must use the N-CREATE character set (PS3.4 F.7.2.2.1)

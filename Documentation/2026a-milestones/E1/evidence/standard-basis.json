@@ -1,0 +1,18 @@
+{
+  "edition": "2026a",
+  "source_sha256": "b336161947b45ad6be292164c101a013ac66134fe92179877501c4441bc36791",
+  "source_url": "https://dicom.nema.org/medical/dicom/2026a/source/docbook/part04/part04.xml",
+  "section_sha256": {
+    "table_F.7.2-1": "8a0cdd7f4a9a91bb8c2a0d07b3d53acf4b31781226b23ab78d3b55a3da05459b",
+    "sect_F.7.2.2.1": "cea23bbab9e6f142183fc98c2bdec1787a26734ae028bfec65a8b45536766010",
+    "sect_F.7.2.2.2": "7cdd0c4157ca1ef6c3a9dab1f3842d02853befb37b3dded68949c4e3fd5150cb",
+    "sect_F.7.2.2.3": "1bc6abacac2ce31c1debb0e3a339c8a2617487d6f5dc8abadd5c1c31f5b15151"
+  },
+  "rules": [
+    "N-SET uses the character set from N-CREATE.",
+    "Update only attributes created earlier; sequence updates replace all items.",
+    "Intermediate requests can omit status and end timestamps.",
+    "Both terminal states require a nonempty Performed Series Sequence; absent acquired instances permit empty reference sequences.",
+    "After transmitting a terminal N-SET, send no further updates for that instance."
+  ]
+}

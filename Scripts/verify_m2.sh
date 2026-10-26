@@ -19,8 +19,10 @@ run_tests DICOMWebTests 'UPSScheduledDateTimeTests|UPSTests|UPSEventSystemTests'
 for product in dicom-tags dicom-validate dicom-mpps dicom-mwl dicom-wado; do
   swift build "${common[@]}" --product "$product" > "$log_dir/build-$product.log" 2>&1 || { tail -100 "$log_dir/build-$product.log"; exit 1; }
 done
-run_tests DICOMNetworkTests 'MPPSReferenceIntegrityTests|MPPSDataSetConformanceTests|MWLToMPPSWorkflowConformanceTests|MWLMPPSCLIEndToEndTests' "Test Suite 'MPPSReferenceIntegrityTests' passed"
-run_tests DICOMStudioTests 'M2WorkshopAttributeTests|M2WorkshopMPPSReferenceTests|WorkshopShellArgumentSafetyTests|CLIWorkshopBasicAuthPreviewTests|NetworkToolWorkshopCLIParityTests' 'Suite "M2 Workshop attribute execution" passed'
+# E1 extends the same MPPS/metadata contracts. Independent peers and the native
+# app are qualified separately; ordinary CI keeps their opt-in harness explicit.
+run_tests DICOMNetworkTests 'MPPSReferenceIntegrityTests|MPPSDataSetConformanceTests|MPPSIntermediateUpdateTests|MWLToMPPSWorkflowConformanceTests|MWLMPPSCLIEndToEndTests' "Test Suite 'MPPSReferenceIntegrityTests' passed"
+run_tests DICOMStudioTests 'M2WorkshopAttributeTests|M2WorkshopMPPSReferenceTests|WorkshopShellArgumentSafetyTests|CLIWorkshopBasicAuthPreviewTests|NetworkToolWorkshopCLIParityTests|MetadataValueIntegrityTests|MetadataViewModelTests|MetadataTreeNodeTests|DICOMValueParserTests|ClipboardHelperTests|E1WorkshopMPPSTests' 'Suite "M2 Workshop attribute execution" passed'
 bin_dir="$(swift build "${common[@]}" --show-bin-path)"
 python3 Scripts/verify_m2_attributes.py --bin-dir "$bin_dir" --output-dir "$log_dir/cli" > "$log_dir/cli-tests.log" 2>&1 || { cat "$log_dir/cli-tests.log"; exit 1; }
 cat "$log_dir/cli-tests.log"

@@ -318,9 +318,9 @@ final class MPPSDataSetConformanceTests: XCTestCase {
         assertInvalidState({ try DICOMMPPSService.validate(step, for: .nCreate) }, containing: "End Date/Time")
     }
 
-    func test_validate_nSetRejectsInProgress() {
+    func test_validate_intermediateNSetRejectsEndDateTime() {
         let step = MPPSProcedureStep(sopInstanceUID: "1", status: .inProgress, endDateTime: Date())
-        assertInvalidState({ try DICOMMPPSService.validate(step, for: .nSet) }, containing: "F.7.2.1.3")
+        assertInvalidState({ try DICOMMPPSService.validate(step, for: .nSet) }, containing: "must not finish")
     }
 
     func test_validate_nSetRequiresEndDateTime() {
@@ -333,7 +333,7 @@ final class MPPSDataSetConformanceTests: XCTestCase {
         assertInvalidState({ try DICOMMPPSService.validate(empty, for: .nSet) }, containing: "(0040,0340)")
 
         let discontinued = MPPSProcedureStep(sopInstanceUID: "1", status: .discontinued, endDateTime: Date())
-        XCTAssertNoThrow(try DICOMMPPSService.validate(discontinued, for: .nSet), "DISCONTINUED may have no series")
+        XCTAssertThrowsError(try DICOMMPPSService.validate(discontinued, for: .nSet), "Both final states require a Performed Series item (Table F.7.2-1 Note 2)")
 
         let withSeries = MPPSProcedureStep(
             sopInstanceUID: "1", status: .completed, endDateTime: Date(),
@@ -354,14 +354,14 @@ final class MPPSDataSetConformanceTests: XCTestCase {
         }
     }
 
-    func test_update_withInProgressThrowsBeforeConnecting() async {
+    func test_update_missingFinalSeriesThrowsBeforeConnecting() async {
         do {
             try await DICOMMPPSService.update(
                 host: "127.0.0.1", port: 1, callingAE: "SCU", calledAE: "SCP",
-                mppsInstanceUID: "1.2.3.4", status: .inProgress, timeout: 1)
+                mppsInstanceUID: "1.2.3.4", status: .completed, timeout: 1)
             XCTFail("expected invalidState")
         } catch DICOMNetworkError.invalidState(let message) {
-            XCTAssertTrue(message.contains("F.7.2.1.3"))
+            XCTAssertTrue(message.contains("(0040,0340)"))
         } catch {
             XCTFail("expected invalidState, got \(error)")
         }
@@ -424,7 +424,7 @@ final class MPPSDataSetConformanceTests: XCTestCase {
     }
 
     #if canImport(Network)
-    func test_update_retriesWithScheduledStepAttributesWhenFirstNSetFails() async throws {
+    func test_update_doesNotRetryAfterTerminalNSetWasSent() async throws {
         var behavior = MockPrintSCPBehavior()
         behavior.failOn = .nSetRequest
         behavior.failStatus = DIMSEStatus.from(0x0110)
@@ -433,7 +433,8 @@ final class MPPSDataSetConformanceTests: XCTestCase {
         defer { Task { await scp.stop() } }
         let port = await scp.port
 
-        let result = try await DICOMMPPSService.update(
+        do {
+            _ = try await DICOMMPPSService.update(
             host: "127.0.0.1",
             port: port,
             callingAE: "SCU",
@@ -446,9 +447,19 @@ final class MPPSDataSetConformanceTests: XCTestCase {
             referencedSOPClassUID: "1.2.840.10008.5.1.4.1.1.2",
             protocolName: "Chest CT"
         )
-        XCTAssertEqual(result.status, .success)
+            XCTFail("Expected the peer's N-SET failure")
+        } catch let error as DICOMNetworkError {
+            guard case .mppsOperationFailed = error else { return XCTFail("Unexpected error: \(error)") }
+        }
+        do {
+            _ = try await DICOMMPPSService.update(host: "127.0.0.1", port: port,
+                callingAE: "SCU", calledAE: "SCP", mppsInstanceUID: "1.2.3.4.5", status: .inProgress)
+            XCTFail("A terminal send must block later updates even after failure")
+        } catch let error as DICOMNetworkError {
+            guard case .invalidState = error else { return XCTFail("Unexpected error: \(error)") }
+        }
         let assocCount = await scp.associationCount
-        XCTAssertEqual(assocCount, 2, "expected initial standard N-SET attempt followed by legacy (0040,0270) retry")
+        XCTAssertEqual(assocCount, 1, "No automatic retry or later update may follow a terminal N-SET send")
     }
     #endif
 }

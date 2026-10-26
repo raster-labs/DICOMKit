@@ -62,7 +62,7 @@ public enum ClipboardHelper: Sendable {
             tagString: node.tagString,
             vr: node.vr,
             name: node.name,
-            value: node.value,
+            value: node.copyValue,
             length: node.lengthString
         )
     }
@@ -73,14 +73,13 @@ public enum ClipboardHelper: Sendable {
     /// - Returns: A newline-separated formatted string with header row.
     public static func formatNodesForClipboard(_ nodes: [MetadataTreeNode]) -> String {
         var lines: [String] = ["Tag\tVR\tName\tValue\tLength"]
-        for node in nodes {
-            lines.append(formatNodeForClipboard(node))
-            if node.hasChildren {
-                for child in node.children {
-                    lines.append("  " + formatNodeForClipboard(child))
-                }
+        func append(_ nodes: [MetadataTreeNode], indent: String) {
+            for node in nodes {
+                lines.append(indent + formatNodeForClipboard(node))
+                append(node.children, indent: indent + "  ")
             }
         }
+        append(nodes, indent: "")
         return lines.joined(separator: "\n")
     }
 }

@@ -1,0 +1,1 @@
+Error: Invalid protocol state: MPPS N-SET to DISCONTINUED requires at least one Performed Series Sequence (0040,0340) item (PS3.4 Table F.7.2-1 Note 2); use a series with no references if no instances were acquired

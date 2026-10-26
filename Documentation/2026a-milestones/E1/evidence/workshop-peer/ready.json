@@ -1,0 +1,14 @@
+{
+  "host": "127.0.0.1",
+  "port": 65011,
+  "called_aet": "E1MPPS",
+  "stop_file": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/E1/evidence/workshop-peer/stop",
+  "references": [
+    "PS3.4 2026a Table F.7.2-1 and Notes 1-2",
+    "PS3.4 2026a F.7.2.1.2 (create before set)",
+    "PS3.4 2026a F.7.2.2.1 (same character set as N-CREATE)",
+    "PS3.4 2026a F.7.2.2.2 (partial attributes, full sequence replacement, terminal state)",
+    "PS3.4 2026a F.7.2.2.3 and Table F.7.2-2 (SCP terminal refusal)"
+  ],
+  "scope": "Synthetic selected MPPS attributes; not a complete IOD/SCP certification"
+}

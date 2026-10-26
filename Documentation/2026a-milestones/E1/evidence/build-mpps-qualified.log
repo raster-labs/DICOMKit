@@ -1,0 +1,8 @@
+Building for debugging...
+[Computing dependencies]
+[2 / 44]
+[4 / 10] DICOMNetwork
+[6 / 12] DICOMNetwork
+[11 / 12] DICOMNetwork
+[12 / 13] dicom-mpps-product
+Build complete! (2.73 sec)

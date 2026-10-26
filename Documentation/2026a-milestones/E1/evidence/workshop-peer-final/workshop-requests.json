@@ -1,0 +1,280 @@
+[
+  {
+    "name": "create-ascii",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "create",
+      "study-uid": "2.25.8202601",
+      "modality": "CT",
+      "patient-id": "E1-SYNTHETIC",
+      "patient-name": "E1^PATIENT",
+      "procedure-step-description": "BASELINE"
+    },
+    "saveUID": "ascii"
+  },
+  {
+    "name": "intermediate-explicit",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": "IN PROGRESS",
+      "update-procedure-step-description": "FIRST"
+    }
+  },
+  {
+    "name": "intermediate-omitted",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": "",
+      "update-procedure-step-description": "SECOND"
+    }
+  },
+  {
+    "name": "intermediate-sequence",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": "IN PROGRESS",
+      "study-uid": "2.25.8202601",
+      "series-uid": "2.25.8202601.1",
+      "protocol-name": "E1-CT",
+      "sop-class-uid": "1.2.840.10008.5.1.4.1.1.2",
+      "image-uid": "2.25.8202601.1.1; 2.25.8202601.1.2"
+    }
+  },
+  {
+    "name": "scalar-preserves-sequence",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": "",
+      "update-procedure-step-description": "THIRD"
+    }
+  },
+  {
+    "name": "sequence-replacement",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": "",
+      "study-uid": "2.25.8202601",
+      "series-uid": "2.25.8202601.1",
+      "protocol-name": "E1-CT",
+      "sop-class-uid": "1.2.840.10008.5.1.4.1.1.2",
+      "image-uid": "2.25.8202601.1.1; 2.25.8202601.1.2; 2.25.8202601.1.3"
+    }
+  },
+  {
+    "name": "empty-intermediate-refused",
+    "expectedExit": 64,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": ""
+    }
+  },
+  {
+    "name": "complete",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": "COMPLETED",
+      "study-uid": "2.25.8202601",
+      "series-uid": "2.25.8202601.1",
+      "protocol-name": "E1-CT",
+      "sop-class-uid": "1.2.840.10008.5.1.4.1.1.2",
+      "image-uid": "2.25.8202601.1.1; 2.25.8202601.1.2; 2.25.8202601.1.3"
+    }
+  },
+  {
+    "name": "after-complete-refused",
+    "expectedExit": 1,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$ascii",
+      "status-update": "",
+      "update-procedure-step-description": "TOO LATE"
+    }
+  },
+  {
+    "name": "create-utf8",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "create",
+      "study-uid": "2.25.8202601",
+      "modality": "CT",
+      "patient-id": "E1-SYNTHETIC",
+      "patient-name": "E1^PATIENT",
+      "procedure-step-description": "BASELINE",
+      "specific-character-set": "ISO_IR 192"
+    },
+    "saveUID": "utf8"
+  },
+  {
+    "name": "same-charset",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$utf8",
+      "status-update": "",
+      "update-procedure-step-description": "M\u00dcLLER follow-up",
+      "specific-character-set": "ISO_IR 192"
+    }
+  },
+  {
+    "name": "mismatched-charset-refused",
+    "expectedExit": 1,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$utf8",
+      "status-update": "",
+      "update-procedure-step-description": "M\u00dcLLER wrong charset",
+      "specific-character-set": "ISO_IR 100"
+    }
+  },
+  {
+    "name": "create-for-discontinuation",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "create",
+      "study-uid": "2.25.8202601",
+      "modality": "CT",
+      "patient-id": "E1-SYNTHETIC",
+      "patient-name": "E1^PATIENT",
+      "procedure-step-description": "BASELINE"
+    },
+    "saveUID": "discontinued"
+  },
+  {
+    "name": "nonascii-without-original-charset-refused",
+    "expectedExit": 1,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$discontinued",
+      "status-update": "",
+      "update-procedure-step-description": "M\u00dcLLER"
+    }
+  },
+  {
+    "name": "discontinue-without-series-refused",
+    "expectedExit": 1,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$discontinued",
+      "status-update": "DISCONTINUED"
+    }
+  },
+  {
+    "name": "discontinue-no-images",
+    "expectedExit": 0,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$discontinued",
+      "status-update": "DISCONTINUED",
+      "series-uid": "2.25.8202601.1.2",
+      "protocol-name": "NO-IMAGES"
+    }
+  },
+  {
+    "name": "after-discontinue-refused",
+    "expectedExit": 1,
+    "values": {
+      "host": "127.0.0.1",
+      "port": "65186",
+      "aet": "E1WORKSHOP",
+      "called-aet": "E1MPPS",
+      "timeout": "5",
+      "operation": "update",
+      "mpps-uid": "$discontinued",
+      "status-update": "IN PROGRESS",
+      "update-procedure-step-description": "TOO LATE"
+    }
+  }
+]

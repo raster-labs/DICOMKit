@@ -2,12 +2,12 @@
   "schema_version": 1,
   "source_review_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
   "branch": "codex/dicom-2026a-milestones",
-  "authorized_current_milestone": "M7",
+  "authorized_current_milestone": "E1",
   "stop_before": "Merge into main (user retains merge authority)",
   "counts": {
     "all": 68,
-    "active": 46,
-    "deferred": 22
+    "active": 49,
+    "deferred": 19
   },
   "status_vocabulary": [
     "Passed",
@@ -2659,11 +2659,11 @@
       "title": "Support intermediate MPPS N-SET updates",
       "category": "Enhancement",
       "original_priority": "P2",
-      "disposition": "Deferred by user scope",
-      "milestone": null,
+      "disposition": "Implemented and verified in E1",
+      "milestone": "E1",
       "dependency_item_ids": [],
-      "scope_decision": "Only dicom-print and dicom-printscp enhancements are included. This item is neither fixed nor waived.",
-      "status": "Deferred",
+      "scope_decision": "Explicitly authorized on 26 October 2026; all other deferred enhancements remain outside scope.",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMNetwork/MPPSService.swift",
@@ -2685,30 +2685,54 @@
         {
           "id": "NET-08-A-AC01",
           "assertion": "N-CREATE IN PROGRESS, then intermediate N-SET changing an existing supported attribute without end time: accepted and status remains IN PROGRESS.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/cli-peer-qualified/results.json",
+            "E1/evidence/workshop-peer-retained/workshop-verification.json",
+            "E1/evidence/native-peer/native-wire-review.json"
+          ]
         },
         {
           "id": "NET-08-A-AC02",
           "assertion": "Final COMPLETED/DISCONTINUED updates still enforce their required values and references; a later update is refused.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/cli-peer-qualified/results.json",
+            "E1/evidence/workshop-peer-retained/workshop-verification.json",
+            "E1/evidence/native-peer/native-wire-review.json"
+          ]
         },
         {
           "id": "NET-08-A-AC03",
           "assertion": "Cover status omitted versus explicitly IN PROGRESS, sequence updates and same-character-set rules; use independent standard-derived expected datasets.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/cli-peer-qualified/results.json",
+            "E1/evidence/workshop-peer-retained/workshop-verification.json",
+            "E1/evidence/native-peer/native-wire-review.json"
+          ]
         },
         {
           "id": "NET-08-A-AC04",
           "assertion": "CLI and Workshop expose the intermediate action clearly; existing terminal-only workflows remain compatible.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/cli-peer-qualified/results.json",
+            "E1/evidence/workshop-peer-retained/workshop-verification.json",
+            "E1/evidence/native-peer/native-wire-review.json"
+          ]
         }
       ],
       "baseline_evidence_status": "Source-confirmed; acceptance tests proposed and unexecuted",
@@ -3820,11 +3844,11 @@
       "title": "Resolve legacy metadata numeric rendering before reuse",
       "category": "Dormant-component enhancement",
       "original_priority": "P3",
-      "disposition": "Deferred by user scope",
-      "milestone": null,
+      "disposition": "Implemented and verified in E1",
+      "milestone": "E1",
       "dependency_item_ids": [],
-      "scope_decision": "Only dicom-print and dicom-printscp enhancements are included. This item is neither fixed nor waived.",
-      "status": "Deferred",
+      "scope_decision": "Explicitly authorized on 26 October 2026; all other deferred enhancements remain outside scope.",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMStudio/ViewModels/MetadataViewModel.swift",
@@ -3846,23 +3870,38 @@
         {
           "id": "WS-DORM-01-AC01",
           "assertion": "Reachability/retirement decision recorded without claiming a current GUI defect.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/studio-tests-qualified.log",
+            "E1/REPORT.md"
+          ]
         },
         {
           "id": "WS-DORM-01-AC02",
           "assertion": "If retained, US/SS/UL/SL/FL/FD and supported additional numeric VRs decode with correct byte order and VM.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/studio-tests-qualified.log",
+            "E1/REPORT.md"
+          ]
         },
         {
           "id": "WS-DORM-01-AC03",
           "assertion": "Workshop dicom-info numeric behavior remains unchanged.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/studio-tests-qualified.log",
+            "E1/REPORT.md"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -3875,11 +3914,11 @@
       "title": "Preserve exact values and VM in legacy metadata copy",
       "category": "Dormant-component enhancement",
       "original_priority": "P3",
-      "disposition": "Deferred by user scope",
-      "milestone": null,
+      "disposition": "Implemented and verified in E1",
+      "milestone": "E1",
       "dependency_item_ids": [],
-      "scope_decision": "Only dicom-print and dicom-printscp enhancements are included. This item is neither fixed nor waived.",
-      "status": "Deferred",
+      "scope_decision": "Explicitly authorized on 26 October 2026; all other deferred enhancements remain outside scope.",
+      "status": "Completed",
       "source_locations": [
         {
           "path": "Sources/DICOMStudio/Components/DICOMValueParser.swift",
@@ -3901,23 +3940,38 @@
         {
           "id": "WS-DORM-02-AC01",
           "assertion": "Raw copy returns 1.23456789 unchanged and preserves the empty component in 1\\\\3.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/studio-tests-qualified.log",
+            "E1/REPORT.md"
+          ]
         },
         {
           "id": "WS-DORM-02-AC02",
           "assertion": "Binary numeric copy returns a correct documented numeric representation, not [n bytes].",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/studio-tests-qualified.log",
+            "E1/REPORT.md"
+          ]
         },
         {
           "id": "WS-DORM-02-AC03",
           "assertion": "Presentation formatting remains distinguishable from exact-value copy.",
-          "applicability": "Deferred with item",
+          "applicability": "Required for E1",
           "reason": "",
-          "result": "Not run"
+          "result": "Passed",
+          "evidence": [
+            "E1/verification.json",
+            "E1/evidence/studio-tests-qualified.log",
+            "E1/REPORT.md"
+          ]
         }
       ],
       "baseline_evidence_status": "Confirmed in original source review; follow-up did not rerun",
@@ -5373,9 +5427,9 @@
     }
   ],
   "current_summary": {
-    "completed": 46,
+    "completed": 49,
     "not_started": 0,
-    "deferred": 22,
+    "deferred": 19,
     "M0": "Completed",
     "M1": "Completed",
     "M2": "Completed",
@@ -5384,7 +5438,8 @@
     "in_progress": 0,
     "M5": "Completed",
     "M6": "Completed",
-    "M7": "Completed local item criteria; remote creation-time snapshot recorded separately"
+    "M7": "Completed local item criteria; remote creation-time snapshot recorded separately",
+    "E1": "Completed local item criteria; post-push CI recorded separately"
   },
   "baseline_caveats": [
     {
@@ -5398,9 +5453,7 @@
       ]
     }
   ],
-  "authorized_remaining_milestones": [
-    "M7"
-  ],
+  "authorized_remaining_milestones": [],
   "qualification_caveats": [
     {
       "id": "M7-COV-01",
@@ -5410,7 +5463,16 @@
       "not_a_claim": "Identical defaults for all CLI and Workshop controls"
     }
   ],
-  "publication_qualification": {
+  "scope_amendment": {
+    "date": "2026-10-26",
+    "items": [
+      "NET-08-A",
+      "WS-DORM-01",
+      "WS-DORM-02"
+    ],
+    "authorization": "Implement and verify these three items, update documents, push same branch; no main merge."
+  },
+  "prior_M7_publication_qualification": {
     "local_item_acceptance": "Complete",
     "remote_CI": {
       "state_at_document_creation": "Pending exact next pushed head",
@@ -5424,5 +5486,14 @@
     },
     "overall_goal_closure": "Pending at document creation; post-push receipt and live branch Actions determine later remote closure.",
     "not_an_added_item": "No original item assertion requires remote CI; post-push verification is a separate publication/goal condition."
+  },
+  "publication_qualification": {
+    "local_item_acceptance": "Complete for E1 and previously accepted items within recorded scope",
+    "remote_CI": {
+      "state_at_document_creation": "Pending next pushed E1 commit",
+      "receipt_location": "Task outputs after push; no extra documentation-only commit required"
+    },
+    "overall_goal_closure": "User-authorized E1 local work complete; push and exact-head CI verification pending at document creation.",
+    "merge_authorized": false
   }
 }

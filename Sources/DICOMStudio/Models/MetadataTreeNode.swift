@@ -31,6 +31,13 @@ public struct MetadataTreeNode: Identifiable, Sendable {
     /// Formatted display value.
     public let value: String
 
+    /// Value to copy without presentation formatting. Parsed character values
+    /// retain their original spelling, whitespace and empty components, excluding
+    /// DICOM Value Field padding. Binary numeric values use decimal text separated
+    /// by backslashes (AT uses `(GGGG,EEEE)`); this is not a raw-byte export.
+    /// Container and unsupported binary nodes retain their descriptive summary.
+    public let copyValue: String
+
     /// Raw byte length of the element.
     public let length: UInt32
 
@@ -76,7 +83,8 @@ public struct MetadataTreeNode: Identifiable, Sendable {
         length: UInt32 = 0,
         isPrivate: Bool = false,
         privateCreator: String? = nil,
-        children: [MetadataTreeNode] = []
+        children: [MetadataTreeNode] = [],
+        copyValue: String? = nil
     ) {
         self.id = id
         self.group = group
@@ -84,6 +92,7 @@ public struct MetadataTreeNode: Identifiable, Sendable {
         self.vr = vr
         self.name = name
         self.value = value
+        self.copyValue = copyValue ?? value
         self.length = length
         self.isPrivate = isPrivate
         self.privateCreator = privateCreator
@@ -124,7 +133,8 @@ public enum MetadataTreeBuilder: Sendable {
                     length: node.length,
                     isPrivate: node.isPrivate,
                     privateCreator: node.privateCreator,
-                    children: filteredChildren
+                    children: filteredChildren,
+                    copyValue: node.copyValue
                 )
             }
             return nil
@@ -136,6 +146,7 @@ public enum MetadataTreeBuilder: Sendable {
         node.tagString.lowercased().contains(query) ||
         node.name.lowercased().contains(query) ||
         node.value.lowercased().contains(query) ||
+        node.copyValue.lowercased().contains(query) ||
         node.vr.lowercased().contains(query) ||
         (node.privateCreator?.lowercased().contains(query) ?? false)
     }

@@ -797,9 +797,11 @@ public struct CLIWorkshopView: View {
         // selection in a native menu; short value choices retain their segments.
         let printCommand = viewModel.isPrintToolSelected && param.parameterType == .subcommand
         let useSegmented = !printCommand && values.count >= 2 && values.count <= 6 && !values.contains("")
+        let emptyLabel = viewModel.selectedToolID == "dicom-mpps" && param.id == "status-update"
+            ? "Unchanged (IN PROGRESS)" : "Any"
         let picker = Picker("", selection: parameterBinding(for: param.id)) {
             ForEach(values, id: \.self) { value in
-                Text(value.isEmpty ? "Any" : value).tag(value)
+                Text(value.isEmpty ? emptyLabel : value).tag(value)
             }
         }
         .labelsHidden()

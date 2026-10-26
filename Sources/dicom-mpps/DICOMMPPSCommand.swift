@@ -50,12 +50,18 @@ struct DICOMMPPSCommand: AsyncParsableCommand {
               dicom-mpps update server --port 11112 \\
                 --aet MODALITY \\
                 --mpps-uid 1.2.840.113619.2.xxx \\
-                --status DISCONTINUED \\
+                --status DISCONTINUED --series-uid 1.2.3.4.5.6.7.8.9.1 \\
                 --discontinuation-reason "110513|DCM|Discontinued for unspecified reason"
 
             Status words (PS3.3 Table C.4-14 Enumerated Values, PS3.4 F.7.2.1.2 / F.7.2.2.2):
               create  --status "IN PROGRESS"            (the only value N-CREATE may carry)
+              update  --status "IN PROGRESS"           (intermediate; no end date/time)
+              update  --procedure-step-description "Acquiring images" (status omitted)
               update  --status COMPLETED | DISCONTINUED (final; no further N-SET afterwards)
+
+            Sequence updates replace the entire sequence: include all previous items and references.
+            Across CLI invocations, supply the original --specific-character-set if not the default.
+            Do not reuse an instance after sending a terminal update, even if its response was lost.
 
             Reference: PS3.4 Annex F - Modality Performed Procedure Step SOP Class
             """,
@@ -329,8 +335,8 @@ extension DICOMMPPSCommand {
             // different from the app's UI instruction.
             print(NetworkConsole.mppsCreateResult(uid: mppsInstanceUID), terminator: "")
             print("")
-            print("Use this UID to update the MPPS when the procedure completes")
-            print("(COMPLETED needs at least one Performed Series item, PS3.4 Table F.7.2-1 final state):")
+            print("Use this UID for intermediate updates or to finish the procedure")
+            print("(both terminal statuses need a Performed Series item, PS3.4 Table F.7.2-1 Note 2):")
             print("  dicom-mpps update \(serverInfo.host) --port \(serverInfo.port) \\")
             print("    --aet \(aet) --mpps-uid \(mppsInstanceUID) --status COMPLETED \\")
             print("    --study-uid \(studyUid) --series-uid <SeriesInstanceUID> \\")
@@ -367,13 +373,16 @@ extension DICOMMPPSCommand {
         @Option(name: .long, help: "MPPS SOP Instance UID to update")
         var mppsUid: String
         
-        @Option(name: .long, help: "New Performed Procedure Step Status (0040,0252): COMPLETED or DISCONTINUED (PS3.3 Table C.4-14; PS3.4 F.7.2.2.2 — final, no later N-SET). COMPLETED requires at least one Performed Series item (--series-uid with --image-uid), PS3.4 Table F.7.2-1 final state")
-        var status: String
+        @Option(name: .long, help: "Performed Procedure Step Status (0040,0252): IN PROGRESS for an intermediate update, or COMPLETED/DISCONTINUED to finish. Omit to update attributes without sending status. Both final states require --series-uid; include every acquired reference (PS3.4 F.7.2.2.2, Table F.7.2-1 Note 2)")
+        var status: String?
+
+        @Option(name: .long, help: "Replacement Performed Procedure Step Description (0040,0254); may be empty. Supports intermediate N-SET without finishing the procedure")
+        var procedureStepDescription: String?
         
         @Option(name: .long, help: "Study Instance UID for referenced images")
         var studyUid: String?
         
-        @Option(name: .long, help: "Series Instance UID for referenced images")
+        @Option(name: .long, help: "Series Instance UID for the full replacement Performed Series item. Include every previously acquired image with --image-uid; an item without images is allowed when none were acquired")
         var seriesUid: String?
         
         @Option(name: .long, help: "SOP Instance UID (0008,1155) of a referenced image, repeatable; needs --study-uid and --series-uid to form the Performed Series item")
@@ -400,7 +409,7 @@ extension DICOMMPPSCommand {
         @Option(name: .long, help: "Performed Procedure Step Discontinuation Reason Code Sequence (0040,0281) as CODE|SCHEME|MEANING, only with --status DISCONTINUED. Codes normally come from PS3.16 CID 9300 'Procedure Discontinuation Reason' (which includes CID 9301) with scheme DCM, e.g. \"110513|DCM|Discontinued for unspecified reason\", \"110500|DCM|Doctor canceled procedure\", \"110501|DCM|Equipment failure\", \"110507|DCM|Patient did not arrive\"")
         var discontinuationReason: String?
 
-        @Option(name: .long, help: "Force the Specific Character Set (0008,0005), e.g. ISO_IR 100 or ISO_IR 192. By default the narrowest set that represents every text value is chosen")
+        @Option(name: .long, help: "Original N-CREATE Specific Character Set (0008,0005), e.g. ISO_IR 100 or ISO_IR 192; N-SET must use the same repertoire. When omitted for a separately created instance, the default ASCII repertoire is assumed")
         var specificCharacterSet: String?
         
         @Option(name: .long, help: "Connection timeout in seconds (default: 60)")
@@ -414,11 +423,9 @@ extension DICOMMPPSCommand {
             let serverInfo = DICOMMPPSCommand.resolveHostPort(host: host, port: port)
             
             // Parse status
-            let mppsStatus = try DICOMMPPSCommand.parseStatus(status)
-            
-            // Validate status
-            guard mppsStatus == .completed || mppsStatus == .discontinued else {
-                throw ValidationError("Update status must be COMPLETED or DISCONTINUED")
+            let mppsStatus = try status.map(DICOMMPPSCommand.parseStatus) ?? .inProgress
+            if status == nil, procedureStepDescription == nil, seriesUid == nil, imageUid.isEmpty {
+                throw ValidationError("An intermediate update without --status needs --procedure-step-description or a full --series-uid snapshot")
             }
 
             var reason: MPPSCodedEntry?
@@ -491,7 +498,9 @@ extension DICOMMPPSCommand {
                 performingPhysicianName: performingPhysician,
                 legacyNSetScheduledStepAttributes: legacyNsetScheduledAttributes,
                 discontinuationReason: reason,
-                specificCharacterSet: specificCharacterSet
+                specificCharacterSet: specificCharacterSet,
+                procedureStepDescription: procedureStepDescription,
+                includeStatus: status != nil
                 )
             DICOMMPPSCommand.reportWarning(result, operation: "N-SET")
 

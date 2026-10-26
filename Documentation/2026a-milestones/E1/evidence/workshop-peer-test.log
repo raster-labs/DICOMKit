@@ -1,0 +1,11 @@
+Test Suite 'Selected tests' started at 2026-10-26 17:13:56.434.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-26 17:13:56.439.
+Test Suite 'E1WorkshopMPPSTests' started at 2026-10-26 17:13:56.439.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIndependentPeerActions]' started.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIndependentPeerActions]' passed (0.347 seconds).
+Test Suite 'E1WorkshopMPPSTests' passed at 2026-10-26 17:13:56.787.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.347 (0.348) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-26 17:13:56.787.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.347 (0.348) seconds
+Test Suite 'Selected tests' passed at 2026-10-26 17:13:56.787.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.347 (0.353) seconds

@@ -9943,7 +9943,7 @@ case "dicom-study":
         let studyUID = paramValue("study-uid")
         let mppsUID = paramValue("mpps-uid")
         // Status is split per operation: create offers only IN PROGRESS ("status"),
-        // update offers COMPLETED / DISCONTINUED ("status-update").
+        // update also supports intermediate IN PROGRESS or an omitted status.
         let statusStr = (operation != "update") ? paramValue("status") : paramValue("status-update")
         // N-CREATE attributes
         let patientName = paramValue("patient-name")
@@ -9973,6 +9973,7 @@ case "dicom-study":
         let operatorName = paramValue("operator-name")
         let updatePerformingPhysician = paramValue("update-performing-physician")
         let discontinuationReasonRaw = paramValue("discontinuation-reason")
+        let updateProcedureStepDescription = paramValue("update-procedure-step-description")
         let legacyNSetScheduledAttributes = paramValue("legacy-nset-scheduled-attributes") == "true"
         // Shared
         let specificCharacterSet = paramValue("specific-character-set")
@@ -10047,20 +10048,21 @@ case "dicom-study":
             refuse("Missing expected argument '--mpps-uid <mpps-uid>'", exitCode: 64)
             return
         }
+        if !isCreate, statusStr.isEmpty, updateProcedureStepDescription.isEmpty,
+           seriesUID.isEmpty, imageUIDsRaw.isEmpty {
+            refuse("An intermediate update without --status needs --procedure-step-description or a full --series-uid snapshot", exitCode: 64)
+            return
+        }
 
         // Performed Procedure Step Status (0040,0252), PS3.3 Table C.4-14; the N-CREATE
-        // starts the step IN PROGRESS (PS3.4 F.7.2.1.2), the N-SET ends it COMPLETED or
-        // DISCONTINUED (F.7.2.2.2) — dicom-mpps' parseStatus and status guards (exit 64).
-        guard let mppsStatus = DICOMMPPSService.parseStatus(statusStr.isEmpty ? (isCreate ? "IN PROGRESS" : "") : statusStr) else {
+        // starts the step IN PROGRESS; N-SET may update it while running or finish
+        // it (PS3.4 F.7.2.2). Omitted update status leaves the stored status unchanged.
+        guard let mppsStatus = DICOMMPPSService.parseStatus(statusStr.isEmpty ? "IN PROGRESS" : statusStr) else {
             refuse(DICOMMPPSService.invalidStatusMessage, exitCode: 64)
             return
         }
         if isCreate, mppsStatus != .inProgress {
             refuse("Create status must be IN PROGRESS — use 'dicom-mpps update --status COMPLETED|DISCONTINUED' to transition the step", exitCode: 64)
-            return
-        }
-        if !isCreate, mppsStatus != .completed, mppsStatus != .discontinued {
-            refuse("Update status must be COMPLETED or DISCONTINUED", exitCode: 64)
             return
         }
 
@@ -10224,7 +10226,9 @@ case "dicom-study":
                     performingPhysicianName: optional(updatePerformingPhysician),
                     legacyNSetScheduledStepAttributes: legacyNSetScheduledAttributes,
                     discontinuationReason: discontinuationReason,
-                    specificCharacterSet: optional(specificCharacterSet)
+                    specificCharacterSet: optional(specificCharacterSet),
+                    procedureStepDescription: optional(updateProcedureStepDescription),
+                    includeStatus: !statusStr.isEmpty
                 )
                 if let warning = result.warning {
                     appendConsoleOutput(DICOMMPPSService.warningLine(warning, operation: "N-SET"))
