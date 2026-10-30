@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.2] - 2026-10-26
+
+### Fixed — bounded implicit Modality LUTs
+
+- Resolve implicit Modality LUT Descriptor `(0028,3002)` signedness within direct Modality LUT Sequence items using Pixel Representation. Preserve unsigned entry-count and depth words, late parent metadata, local overrides and sibling isolation; reject unresolved context and invalid descriptor lengths.
+- Expose implicit LUT Data `(0028,3006)` through the permitted canonical `OW` representation, preserving original payload bytes and lengths, including packed eight-bit entries. Preserve explicit VRs and leave descriptor contexts with different signedness rules, such as VOI LUTs, unchanged.
+- Reuse the bounded finalizer and admitted index; retain cancellation and allocation rollback. Include six focused LUT regression functions in default CI (102 total tests), with completed-CI reuse for identical release inputs. Semantic LUT admission and application integration remain separate.
+
+## [2.9.1] - 2026-10-26
+
+### Fixed — bounded implicit pixel padding
+
+- Resolve implicit Pixel Padding Value `(0028,0120)` and Pixel Padding Range Limit `(0028,0121)` as `SS` for signed pixels and `US` for unsigned pixels, using the applicable Pixel Representation `(0028,0103)`.
+- Resolve nested dataset context after parsing, preserving local overrides, late parent metadata and sibling isolation. Reject missing or malformed signedness and invalid padding lengths; preserve explicit encoded VR for strict consumer mismatch checks.
+- Reuse the canonical verified parser and admitted index storage, including cancellation and allocation-failure cleanup. This repair is limited to the bounded reader; the materialized compatibility reader is unchanged.
+- Include nine focused bounded-input regressions in default CI while retaining successful-CI reuse for identical release inputs. Preserve all v2.9.0 MPPS fixes and existing dependency versions.
+
 ## [2.9.0] - 2026-10-23
 
 ### Fixed — dicom-mpps N-CREATE worklist linking and N-SET update compatibility

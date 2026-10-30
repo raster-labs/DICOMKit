@@ -12,6 +12,12 @@ struct BoundedInputTests {
     private let pixel = DICOMCore.Tag(group: 0x7FE0, element: 0x0010)
     private let trailer = DICOMCore.Tag(group: 0x7FE1, element: 0x0010)
     private let sequence = DICOMCore.Tag(group: 0x0008, element: 0x1115)
+    private let padding = DICOMCore.Tag(group: 0x0028, element: 0x0120)
+    private let paddingLimit = DICOMCore.Tag(group: 0x0028, element: 0x0121)
+    private let modalityLUT = DICOMCore.Tag(group: 0x0028, element: 0x3000)
+    private let lutDescriptor = DICOMCore.Tag(group: 0x0028, element: 0x3002)
+    private let lutData = DICOMCore.Tag(group: 0x0028, element: 0x3006)
+    private let voiLUT = DICOMCore.Tag(group: 0x0028, element: 0x3010)
     private let explicitUID = "1.2.840.10008.1.2.1"
     private let implicitUID = "1.2.840.10008.1.2"
 
@@ -143,6 +149,456 @@ struct BoundedInputTests {
                 catch { throw .managed(error) }
             }
             #expect(items == 1)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    @Test("Pixel padding VR follows signed Pixel Representation", arguments: [false, true])
+    func signedPaddingVR(implicit: Bool) throws {
+        let representation = DICOMCore.Tag(group: 0x0028, element: 0x0103)
+        let padding = DICOMCore.Tag(group: 0x0028, element: 0x0120)
+        let limit = DICOMCore.Tag(group: 0x0028, element: 0x0121)
+        let payload = file(element(representation, "US", u16(1), implicit: implicit)
+            + element(padding, "SS", u16(0xF800), implicit: implicit)
+            + element(limit, "SS", u16(0xF801), implicit: implicit),
+            syntax: implicit ? implicitUID : explicitUID)
+        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        do {
+            let source = try VerifiedFileByteSource(url: url, budget: budget)
+            let parsed = try DICOMFile.readBoundedOutcome(from: source, options: BoundedParsingOptions(.strict)).get()
+            #expect(try value(parsed, padding).vr == .SS)
+            #expect(try value(parsed, limit).vr == .SS)
+            #expect(try bytes(value(parsed, padding).readValue()) == u16(0xF800))
+            #expect(try bytes(value(parsed, limit).readValue()) == u16(0xF801))
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    private func paddingPair(implicit: Bool = true, vr: String = "US") -> Data {
+        element(padding, vr, u16(0xF800), implicit: implicit)
+            + element(paddingLimit, vr, u16(0xF801), implicit: implicit)
+    }
+
+    @Test("Implicit padding uses local or late parent context without sibling leakage",
+          arguments: [false, true], [false, true])
+    func paddingVRNestedContext(signed: Bool, undefined: Bool) throws {
+        let rootVR: VR = signed ? .SS : .US
+        let localVR: VR = signed ? .US : .SS
+        let local = sq(item(paddingPair(), undefined: undefined), undefined: undefined, implicit: true)
+            + element(.pixelRepresentation, "US", u16(signed ? 0 : 1), implicit: true) + paddingPair()
+        let items = item(local, undefined: undefined) + item(paddingPair(), undefined: undefined)
+        // SQ precedes Pixel Representation even in standard tag order.
+        let payload = file(sq(items, undefined: undefined, implicit: true)
+            + element(.pixelRepresentation, "US", u16(signed ? 1 : 0), implicit: true) + paddingPair(),
+            syntax: implicitUID)
+        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        do {
+            let parsed = try open(url, budget: budget)
+            #expect(try value(parsed, padding).vr == rootVR)
+            #expect(try value(parsed, paddingLimit).vr == rootVR)
+            let outer = try value(parsed, sequence)
+            var actual: [VR] = []
+            try outer.forEachItem { dataSet throws(DICOMParserFailure) in
+                for tag in [padding, paddingLimit] {
+                    if let element = try dataSet.element(for: tag) { actual.append(element.vr) }
+                    else { Issue.record("Missing padding") }
+                }
+                if let inner = try dataSet.element(for: sequence) {
+                    try inner.forEachItem { nested throws(DICOMParserFailure) in
+                        for tag in [padding, paddingLimit] {
+                            if let element = try nested.element(for: tag) { actual.append(element.vr) }
+                            else { Issue.record("Missing nested padding") }
+                        }
+                    }
+                }
+            }
+            #expect(actual == [localVR, localVR, localVR, localVR, rootVR, rootVR])
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    @Test("Implicit padding refuses absent or malformed signedness", arguments: [0, 1, 2, 3, 4])
+    func paddingVRRejectsContext(kind: Int) throws {
+        let invalid = kind == 1 ? Data() : kind == 2 ? u16(2) : u16(0) + u16(1)
+        let context = kind == 0 ? Data() : element(.pixelRepresentation, "US", invalid, implicit: true)
+        let dataset: Data
+        if kind == 4 {
+            // A malformed local value cannot silently fall back to a valid parent.
+            dataset = sq(item(context + paddingPair()), implicit: true)
+                + element(.pixelRepresentation, "US", u16(1), implicit: true)
+        } else { dataset = context + paddingPair() }
+        let url = try temporary(file(dataset, syntax: implicitUID))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        do { _ = try open(url, budget: budget); Issue.record("Accepted unresolved padding VR") }
+        catch let error as DICOMParserFailure {
+            guard case .malformed(_, .pixelPaddingRepresentation) = error else {
+                Issue.record("Unexpected error: \(error)"); return
+            }
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    @Test("A local signedness override works without usable ancestor context", arguments: [false, true])
+    func paddingVRLocalOverride(invalidParent: Bool) throws {
+        let local = element(.pixelRepresentation, "US", u16(1), implicit: true) + paddingPair()
+        let parent = invalidParent ? element(.pixelRepresentation, "US", u16(2), implicit: true) : Data()
+        let url = try temporary(file(sq(item(local), implicit: true) + parent, syntax: implicitUID))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget()
+        let parsed = try open(url, budget: budget)
+        let outer = try value(parsed, sequence)
+        var count = 0
+        try outer.forEachItem { dataSet throws(DICOMParserFailure) in
+            for tag in [padding, paddingLimit] {
+                if let element = try dataSet.element(for: tag) { #expect(element.vr == .SS); count += 1 }
+            }
+        }
+        #expect(count == 2)
+    }
+
+    @Test("Explicit padding VR mismatches remain visible to strict consumers", arguments: [false, true])
+    func paddingVRPreservesExplicitMismatch(signed: Bool) throws {
+        let expected: VR = signed ? .SS : .US
+        let encoded = signed ? "US" : "SS"
+        let url = try temporary(file(element(.pixelRepresentation, "US", u16(signed ? 1 : 0))
+            + paddingPair(implicit: false, vr: encoded)))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget()
+        let parsed = try open(url, budget: budget)
+        #expect(try value(parsed, padding).vr != expected)
+        #expect(try value(parsed, paddingLimit).vr != expected)
+        #expect(try bytes(value(parsed, padding).readValue()) == u16(0xF800))
+    }
+
+    @Test("Implicit padding requires exactly one 16-bit value", arguments: [0, 4])
+    func paddingVRRejectsLength(count: Int) throws {
+        for tag in [padding, paddingLimit] {
+            let dataset = element(.pixelRepresentation, "US", u16(1), implicit: true)
+                + element(tag, "US", Data(repeating: 0, count: count), implicit: true)
+            let url = try temporary(file(dataset, syntax: implicitUID))
+            defer { try? FileManager.default.removeItem(at: url) }
+            let budget = try DICOMAllocationBudget()
+            do { _ = try open(url, budget: budget); Issue.record("Accepted invalid padding length") }
+            catch let error as DICOMParserFailure {
+                guard case .malformed(_, .pixelPaddingLength) = error else {
+                    Issue.record("Unexpected error: \(error)"); return
+                }
+            }
+        }
+    }
+
+    @Test("Unrelated implicit datasets do not require valid Pixel Representation")
+    func paddingVRAbsentIsUnchanged() throws {
+        let url = try temporary(file(element(.pixelRepresentation, "US", u16(2), implicit: true), syntax: implicitUID))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget()
+        let parsed = try open(url, budget: budget)
+        #expect(try bytes(value(parsed, .pixelRepresentation).readValue()) == u16(2))
+    }
+
+    @Test("Cancellation during padding resolution leaves unpublished storage balanced")
+    func paddingVRFinalizationCancellation() throws {
+        let url = try temporary(file(element(.pixelRepresentation, "US", u16(1), implicit: true)
+            + paddingPair(), syntax: implicitUID))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        do {
+            let source = try VerifiedFileByteSource(url: url, budget: budget)
+            let storage = try BoundedParseStorage.make(source: source).get()
+            let capture = storage.capture
+            var parser = DICOMParser(source: source.view, options: try BoundedParsingOptions(.strict), capture: capture)
+            _ = try parser.parseFileMetaInformationCore(startOffset: 132).get()
+            _ = try parser.parseDataSetCore(transferSyntax: .implicitLittleEndian).get()
+            let before = budget.receipt
+            var polls = 0
+            withUnsafeMutablePointer(to: &polls) { pointer in
+                let cancellation = DICOMCancellation(check: { context in
+                    guard let context else { return true }
+                    let count = context.assumingMemoryBound(to: Int.self)
+                    count.pointee += 1
+                    return count.pointee >= 4
+                }, context: pointer)
+                switch capture.withCancellation(cancellation).resolveImplicitContextualVR() {
+                case .success: Issue.record("Expected cancellation during resolution")
+                case .failure(let failure): #expect(failure == .managed(DICOMManagedFailure(.cancelled)))
+                }
+            }
+            let firstPadding = capture.elements[capture.scopes[1].firstElement].nextSibling
+            #expect(capture.elements[firstPadding].tag == padding)
+            #expect(capture.elements[firstPadding].vr == .SS)
+            let sealed = capture.state.pointee.sealed
+            #expect(!sealed)
+            #expect(budget.receipt == before)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    private func lutSequence(_ tag: DICOMCore.Tag, _ items: Data,
+                             implicit: Bool = true, undefined: Bool = false) -> Data {
+        element(tag, "SQ", items, implicit: implicit, length: undefined ? 0xFFFFFFFF : UInt32(items.count))
+            + (undefined ? marker(.sequenceDelimitationItem) : Data())
+    }
+
+    private func lutPair(_ descriptor: Data, _ data: Data, implicit: Bool = true,
+                         descriptorVR: String = "US", dataVR: String = "US") -> Data {
+        element(lutDescriptor, descriptorVR, descriptor, implicit: implicit)
+            + element(lutData, dataVR, data, implicit: implicit)
+    }
+
+    @discardableResult
+    private func checkLUT(_ dataSet: borrowing BoundedDICOMDataSet, descriptor: Data,
+                          vr: VR, data: Data, dataVR: VR = .OW) throws(DICOMParserFailure) -> Data {
+        guard let descriptorElement = try dataSet.element(for: lutDescriptor),
+              let dataElement = try dataSet.element(for: lutData) else {
+            Issue.record("Missing LUT descriptor or data"); return Data()
+        }
+        #expect(descriptorElement.vr == vr)
+        #expect(descriptorElement.length == UInt32(descriptor.count))
+        #expect(descriptorElement.valueByteCount == descriptor.count)
+        #expect(dataElement.vr == dataVR)
+        #expect(dataElement.length == UInt32(data.count))
+        #expect(dataElement.valueByteCount == data.count)
+        do throws(DICOMManagedFailure) {
+            let rawDescriptor = try bytes(descriptorElement.readValue())
+            #expect(rawDescriptor == descriptor)
+            #expect(try bytes(dataElement.readValue()) == data)
+            return rawDescriptor
+        } catch { throw .managed(error) }
+    }
+
+    @Test("Implicit Modality LUT values preserve packed bytes and unsigned descriptor fields",
+          arguments: [false, true], [0, 1, 2])
+    func modalityLUTImplicitValues(signed: Bool, kind: Int) throws {
+        let countField: UInt16 = kind == 0 ? 3 : kind == 1 ? 0 : 0x8001
+        let count = countField == 0 ? 65536 : Int(countField)
+        let depth: UInt16 = kind == 0 ? 8 : 16
+        let descriptor = u16(countField) + u16(0xF800) + u16(depth)
+        var data = Data()
+        if depth == 8 {
+            data = Data([0x01, 0x80, 0xFF, 0x00]) // Three packed values, then the even-length pad.
+        } else {
+            for index in 0..<count { data += u16(UInt16(truncatingIfNeeded: index * 257)) }
+        }
+        let undefined = kind != 1
+        // Pixel Representation deliberately follows the sequence and its items.
+        let payload = file(lutSequence(modalityLUT, item(lutPair(descriptor, data), undefined: undefined),
+                                      undefined: undefined)
+            + element(.pixelRepresentation, "US", u16(signed ? 1 : 0), implicit: true), syntax: implicitUID)
+        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        do {
+            let parsed = try open(url, budget: budget)
+            #expect(parsed.sourceByteCount == payload.count)
+            #expect(parsed.contentIdentity.hexadecimal == SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined())
+            let sequenceValue = try value(parsed, modalityLUT)
+            #expect(sequenceValue.itemCount == 1)
+            var visited = 0
+            try sequenceValue.forEachItem { dataSet throws(DICOMParserFailure) in
+                visited += 1
+                let raw = try checkLUT(dataSet, descriptor: descriptor, vr: signed ? .SS : .US, data: data)
+                guard raw.count == 6 else { return }
+                // Only the second field uses contextual signedness. Count zero means 65536.
+                let first = UInt16(raw[0]) | UInt16(raw[1]) << 8
+                let second = UInt16(raw[2]) | UInt16(raw[3]) << 8
+                let third = UInt16(raw[4]) | UInt16(raw[5]) << 8
+                #expect(first == countField)
+                #expect((first == 0 ? 65536 : Int(first)) == count)
+                #expect((signed ? Int(Int16(bitPattern: second)) : Int(second)) == (signed ? -2048 : 63488))
+                #expect(third == depth)
+            }
+            #expect(visited == 1)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    @Test("Modality LUT descriptors use nearest late context without sibling leakage",
+          arguments: [false, true], [false, true])
+    func modalityLUTNestedContext(signed: Bool, undefined: Bool) throws {
+        let descriptor = u16(2) + u16(0xF800) + u16(16), data = u16(0xFFFF) + u16(0x8000)
+        let pair = lutPair(descriptor, data)
+        let localVR: VR = signed ? .US : .SS, rootVR: VR = signed ? .SS : .US
+        let localRepresentation = element(.pixelRepresentation, "US", u16(signed ? 0 : 1), implicit: true)
+        let nested = lutSequence(modalityLUT, item(pair, undefined: undefined), undefined: undefined)
+        let generic = sq(item(nested + localRepresentation, undefined: undefined)
+                         + item(nested, undefined: undefined), undefined: undefined, implicit: true)
+        let direct = lutSequence(modalityLUT,
+            item(pair + localRepresentation, undefined: undefined) + item(pair, undefined: undefined), undefined: undefined)
+        let payload = file(generic + direct
+            + element(.pixelRepresentation, "US", u16(signed ? 1 : 0), implicit: true), syntax: implicitUID)
+        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        do {
+            let parsed = try open(url, budget: budget)
+            var outerIndex = 0, visited = 0
+            let outer = try value(parsed, sequence)
+            try outer.forEachItem { dataSet throws(DICOMParserFailure) in
+                let expected = outerIndex == 0 ? localVR : rootVR
+                outerIndex += 1
+                guard let inner = try dataSet.element(for: modalityLUT) else { Issue.record("Missing nested LUT"); return }
+                try inner.forEachItem { child throws(DICOMParserFailure) in
+                    try checkLUT(child, descriptor: descriptor, vr: expected, data: data); visited += 1
+                }
+            }
+            let directValue = try value(parsed, modalityLUT)
+            var directIndex = 0
+            try directValue.forEachItem { child throws(DICOMParserFailure) in
+                try checkLUT(child, descriptor: descriptor, vr: directIndex == 0 ? localVR : rootVR, data: data)
+                directIndex += 1; visited += 1
+            }
+            #expect(outerIndex == 2 && directIndex == 2 && visited == 4)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+        // A valid local value is sufficient even when the parent has no usable context.
+        for invalidParent in [false, true] {
+            let parent = invalidParent ? element(.pixelRepresentation, "US", u16(2), implicit: true) : Data()
+            let localURL = try temporary(file(lutSequence(modalityLUT,
+                item(pair + localRepresentation, undefined: undefined), undefined: undefined) + parent, syntax: implicitUID))
+            defer { try? FileManager.default.removeItem(at: localURL) }
+            do {
+                let parsed = try open(localURL, budget: budget)
+                let outer = try value(parsed, modalityLUT)
+                var visited = 0
+                try outer.forEachItem { child throws(DICOMParserFailure) in
+                    try checkLUT(child, descriptor: descriptor, vr: localVR, data: data); visited += 1
+                }
+                #expect(visited == 1)
+            }
+            #expect(budget.receipt.currentTotal == baseline)
+        }
+    }
+
+    @Test("Modality LUT descriptors reject unresolved context and non-six-byte lengths",
+          arguments: [0, 1, 2, 3, 4, 5, 6, 7, 8])
+    func modalityLUTRejectsMalformed(kind: Int) throws {
+        let valid = u16(1) + u16(0xF800) + u16(16)
+        let descriptor = kind >= 5 ? Data(repeating: 0, count: [0, 2, 4, 8][kind - 5]) : valid
+        let representation = kind == 1 ? Data() : kind == 2 ? u16(2) : kind == 3 || kind == 4 ? u16(0) + u16(1) : u16(1)
+        let context = element(.pixelRepresentation, "US", representation, implicit: true)
+        let local = kind == 4 ? context : Data()
+        let parent = kind == 0 ? Data() : kind == 4 ? element(.pixelRepresentation, "US", u16(1), implicit: true) : context
+        let url = try temporary(file(lutSequence(modalityLUT, item(lutPair(descriptor, u16(42)) + local))
+            + parent, syntax: implicitUID))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        do { _ = try open(url, budget: budget); Issue.record("Accepted unresolved or malformed Modality LUT descriptor") }
+        catch let failure as DICOMParserFailure {
+            switch failure {
+            case .malformed(_, .modalityLUTDescriptorRepresentation): #expect(kind < 5)
+            case .malformed(_, .modalityLUTDescriptorLength): #expect(kind >= 5)
+            default: Issue.record("Unexpected error: \(failure)")
+            }
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    @Test("Explicit Modality LUT descriptor and data VRs remain encoded", arguments: [false, true])
+    func modalityLUTPreservesExplicit(signed: Bool) throws {
+        let descriptor = u16(3) + u16(0xF800) + u16(8), data = Data([0x01, 0x80, 0xFF, 0])
+        let encoded: VR = signed ? .US : .SS
+        for dataVR in [VR.US, VR.OW] {
+            let pair = lutPair(descriptor, data, implicit: false,
+                               descriptorVR: signed ? "US" : "SS", dataVR: dataVR == .US ? "US" : "OW")
+            let url = try temporary(file(lutSequence(modalityLUT, item(pair), implicit: false)
+                + element(.pixelRepresentation, "US", u16(signed ? 1 : 0))))
+            defer { try? FileManager.default.removeItem(at: url) }
+            let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+            do {
+                let parsed = try open(url, budget: budget)
+                let outer = try value(parsed, modalityLUT)
+                var visited = 0
+                try outer.forEachItem { child throws(DICOMParserFailure) in
+                    try checkLUT(child, descriptor: descriptor, vr: encoded, data: data, dataVR: dataVR); visited += 1
+                }
+                #expect(visited == 1)
+            }
+            #expect(budget.receipt.currentTotal == baseline)
+        }
+    }
+
+    @Test("Implicit LUT Data uses OW outside Modality LUT while other descriptors stay unchanged",
+          arguments: [0, 1, 2])
+    func modalityLUTScopeExclusions(kind: Int) throws {
+        // Deliberately four bytes: contextual descriptor length checks must not escape their scope.
+        let descriptor = u16(0x8001) + u16(0xF800), data = Data([1, 0x80, 0xFF, 0])
+        let pair = lutPair(descriptor, data)
+        let generic = sq(item(pair), implicit: true)
+        let voi = lutSequence(voiLUT, item(pair))
+        let indirect = lutSequence(modalityLUT, item(generic + voi))
+        let context = kind == 0 ? Data() : element(.pixelRepresentation, "US", u16(kind == 1 ? 1 : 2), implicit: true)
+        let url = try temporary(file(pair + generic + voi + indirect + context, syntax: implicitUID))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        do {
+            let parsed = try open(url, budget: budget)
+            let root = try parsed.dataSet()
+            try checkLUT(root, descriptor: descriptor, vr: .US, data: data)
+            var visited = 1
+            for tag in [sequence, voiLUT] {
+                let outer = try value(parsed, tag)
+                try outer.forEachItem { child throws(DICOMParserFailure) in
+                    try checkLUT(child, descriptor: descriptor, vr: .US, data: data); visited += 1
+                }
+            }
+            let outer = try value(parsed, modalityLUT)
+            try outer.forEachItem { child throws(DICOMParserFailure) in
+                for tag in [sequence, voiLUT] {
+                    guard let nested = try child.element(for: tag) else { Issue.record("Missing excluded nested sequence"); continue }
+                    try nested.forEachItem { grandchild throws(DICOMParserFailure) in
+                        try checkLUT(grandchild, descriptor: descriptor, vr: .US, data: data); visited += 1
+                    }
+                }
+            }
+            #expect(visited == 5)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
+    @Test("Cancellation after Modality LUT descriptor resolution preserves unpublished storage")
+    func modalityLUTFinalizationCancellation() throws {
+        let descriptor = u16(3) + u16(0xF800) + u16(8), data = Data([1, 0x80, 0xFF, 0])
+        let url = try temporary(file(element(.pixelRepresentation, "US", u16(1), implicit: true)
+            + lutSequence(modalityLUT, item(lutPair(descriptor, data))), syntax: implicitUID))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        do {
+            let source = try VerifiedFileByteSource(url: url, budget: budget)
+            let storage = try BoundedParseStorage.make(source: source).get()
+            let capture = storage.capture
+            var parser = DICOMParser(source: source.view, options: try BoundedParsingOptions(.strict), capture: capture)
+            _ = try parser.parseFileMetaInformationCore(startOffset: 132).get()
+            _ = try parser.parseDataSetCore(transferSyntax: .implicitLittleEndian).get()
+            let before = budget.receipt
+            var polls = 0
+            withUnsafeMutablePointer(to: &polls) { pointer in
+                let cancellation = DICOMCancellation(check: { context in
+                    guard let context else { return true }
+                    let count = context.assumingMemoryBound(to: Int.self)
+                    count.pointee += 1
+                    return count.pointee >= 6
+                }, context: pointer)
+                switch capture.withCancellation(cancellation).resolveImplicitContextualVR() {
+                case .success: Issue.record("Expected cancellation after descriptor resolution")
+                case .failure(let failure): #expect(failure == .managed(DICOMManagedFailure(.cancelled)))
+                }
+            }
+            let descriptorIndex = capture.scopes[2].firstElement
+            let dataIndex = capture.elements[descriptorIndex].nextSibling
+            #expect(capture.elements[descriptorIndex].tag == lutDescriptor)
+            #expect(capture.elements[descriptorIndex].vr == .SS)
+            let sealed = capture.state.pointee.sealed
+            #expect(!sealed)
+            #expect(budget.receipt == before)
+            try capture.resolveImplicitContextualVR().get()
+            #expect(capture.elements[dataIndex].tag == lutData)
+            #expect(capture.elements[dataIndex].vr == .OW)
+            #expect(budget.receipt == before)
         }
         #expect(budget.receipt.currentTotal == baseline)
     }
@@ -425,9 +881,15 @@ struct BoundedInputTests {
         #expect(parsed.sourceByteCount == source.count)
     }
 
-    @Test("Every source/parser backing allocation failure rolls back to the ledger baseline")
-    func allocationFailureSweep() throws {
-        let payload = file(sq(item(image())) + image())
+    @Test("Every source/parser backing allocation failure rolls back to the ledger baseline", arguments: [false, true])
+    func allocationFailureSweep(implicitPadding: Bool) throws {
+        let descriptor = u16(3) + u16(0xF800) + u16(8), data = Data([1, 0x80, 0xFF, 0])
+        let implicit = sq(item(paddingPair()), implicit: true)
+            + lutSequence(modalityLUT, item(lutPair(descriptor, data)))
+            + element(rows, "US", u16(2), implicit: true)
+            + element(.pixelRepresentation, "US", u16(1), implicit: true) + paddingPair()
+            + element(pixel, "OW", u16(42), implicit: true)
+        let payload = implicitPadding ? file(implicit, syntax: implicitUID) : file(sq(item(image())) + image())
         let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
         var reachedSuccess = false, failures = 0
         for failAfter in 0..<80 {
@@ -437,6 +899,15 @@ struct BoundedInputTests {
                 let parsed = try open(url, budget: budget)
                 let frame = try value(parsed, pixel).readValueRange(0..<2)
                 #expect(bytes(frame) == u16(42))
+                if implicitPadding {
+                    #expect(try value(parsed, padding).vr == .SS)
+                    let outer = try value(parsed, modalityLUT)
+                    var visited = 0
+                    try outer.forEachItem { child throws(DICOMParserFailure) in
+                        try checkLUT(child, descriptor: descriptor, vr: .SS, data: data); visited += 1
+                    }
+                    #expect(visited == 1)
+                }
                 reachedSuccess = true
             } catch let failure as DICOMManagedFailure {
                 #expect(failure.allocation == .allocationFailed); failures += 1

@@ -40,7 +40,7 @@ def main():
         "workflowBlob": git("rev-parse", validation + ":.github/workflows/release.yml"),
         "validationOnlyChanges": changed,
         "productionInputsUnchanged": True,
-        "testScope": "focused: 81 core and allocation tests; 6 CLI output-rule tests",
+        "testScope": "focused: 81 core and allocation tests; 15 bounded-input tests; 6 CLI output-rule tests",
         "limits": "Focused regression coverage; full-suite results are separate evidence.",
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -1078,7 +1078,7 @@ struct DICOMParser: ~Copyable {
             return parseSequenceElement(tag: header.tag, vr: header.vr, valueLength: header.valueLength,
                 isExplicitVR: false, byteOrder: byteOrder)
         }
-        return parseLeafValue(header, byteOrder: byteOrder)
+        return parseLeafValue(header, byteOrder: byteOrder, isImplicitVR: true)
     }
 
     private mutating func parseExplicitVRElement(byteOrder: ByteOrder) -> DICOMDataElementOutcome {
@@ -1091,10 +1091,11 @@ struct DICOMParser: ~Copyable {
             return parseSequenceElement(tag: header.tag, vr: header.vr, valueLength: header.valueLength,
                 isExplicitVR: true, byteOrder: byteOrder)
         }
-        return parseLeafValue(header, byteOrder: byteOrder)
+        return parseLeafValue(header, byteOrder: byteOrder, isImplicitVR: false)
     }
 
     /// Implicit VR header, including the native Pixel Data OW requirement.
+    /// Bounded padding and Modality LUT VRs are resolved after dataset capture.
     private mutating func parseImplicitVRHeader(byteOrder: ByteOrder) -> DICOMParserOutcome<ElementHeader> {
         var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
         if case .failure(let failure) = reserveElement() { return .failure(failure) }
@@ -1243,7 +1244,7 @@ struct DICOMParser: ~Copyable {
         return .success(ElementHeader(tag: tag, vr: vr, valueLength: valueLength))
     }
 
-    private mutating func parseLeafValue(_ header: ElementHeader, byteOrder: ByteOrder)
+    private mutating func parseLeafValue(_ header: ElementHeader, byteOrder: ByteOrder, isImplicitVR: Bool)
         -> DICOMDataElementOutcome {
         var parsingFailure: DICOMParserFailure = .unexpectedEndOfData
         if case .failure(let failure) = countElement() { return .failure(failure) }
@@ -1256,6 +1257,19 @@ struct DICOMParser: ~Copyable {
         let endOffset = parsedValue1
         guard endOffset <= data.count else { return .failure(DICOMParserFailure.unexpectedEndOfData)}
         if case .failure(let failure) = reserveValueBytes(Int(header.valueLength)) { return .failure(failure) }
+        if isImplicitVR, let capture, header.tag == .pixelRepresentation {
+            // Use the canonical verified cursor before it advances past the value.
+            // Explicit headers are preserved; implicit padding and Modality LUT
+            // descriptors use this state during bounded finalization.
+            var value: UInt16?
+            if header.vr == .US && header.valueLength == 2 {
+                switch readUInt16(at: offset, byteOrder: byteOrder) {
+                case .success(let scalar): value = scalar
+                case .failure(let failure): return .failure(failure)
+                }
+            }
+            capture.setPixelRepresentation(value)
+        }
         let valueData: Data
         if let capture {
             guard let parsedValue2 = capture.append(tag: header.tag, vr: header.vr, length: header.valueLength,

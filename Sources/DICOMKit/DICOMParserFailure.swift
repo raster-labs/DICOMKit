@@ -35,6 +35,10 @@ public enum DICOMParserFailure: Error, Sendable, Equatable {
         case sequenceBoundary
         case fileMetaInItem
         case itemBoundary
+        case pixelPaddingLength
+        case pixelPaddingRepresentation
+        case modalityLUTDescriptorLength
+        case modalityLUTDescriptorRepresentation
     }
     public enum ParsingReason: UInt8, Sendable {
         case encapsulatedSyntax
@@ -82,6 +86,10 @@ public enum DICOMParserFailure: Error, Sendable, Equatable {
             case .sequenceBoundary: message = "Sequence boundary mismatch"
             case .fileMetaInItem: message = "File-meta element within sequence item"
             case .itemBoundary: message = "Item boundary mismatch"
+            case .pixelPaddingLength: message = "Implicit pixel padding must contain one 16-bit value"
+            case .pixelPaddingRepresentation: message = "Implicit pixel padding requires valid Pixel Representation context"
+            case .modalityLUTDescriptorLength: message = "Implicit Modality LUT Descriptor must contain three 16-bit values"
+            case .modalityLUTDescriptorRepresentation: message = "Implicit Modality LUT Descriptor requires valid Pixel Representation context"
             }
             return StrictParsingError.malformedStructure(offset: offset, reason: message)
         case .parsing(let reason):
