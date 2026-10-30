@@ -23,7 +23,7 @@
     ".github/workflows/command-safety.yml": "6db0a9e63055ab7a022d0244c9260b799c4f351c371a1aec4dcf5819d2a91a56",
     ".github/workflows/dicom-studio-ci.yml": "336c4644de067126828fd192d746d462c80c8760efb3eac8f34386d711d1d1e3",
     ".github/workflows/dicom-studio-release.yml": "043b10bec50fb33941d478b5512b23b830349ffaa047aa7e7df9ab7e5f07b26c",
-    ".github/workflows/docs.yml": "b4286840e1753e6991b12e4d16c1228782aec56bb638fb7618396a6a1e2fc469",
+    ".github/workflows/docs.yml": "392fb882bc741ad9a179cfd119d2ba44539d23d8a92bf223dfd4941172cc7d74",
     ".github/workflows/final-qualification.yml": "4d6b811398549aceaa1b598b850a721e7435a52f1cac17c3c93a0faae90a7807",
     ".github/workflows/phi-guard.yml": "8aadaa173f6608807e7e35a7fce4e2274ca522c256dd77a2921c6e513d32f0d4",
     ".github/workflows/print-workshop.yml": "6b244b2902f7d21d9bb1d09b0d50ebadc095a445c9f98d77d0408a34445082dc",

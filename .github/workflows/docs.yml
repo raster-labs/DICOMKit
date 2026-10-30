@@ -82,11 +82,16 @@ jobs:
         fi
         python3 Scripts/build_docc_docs.py "${args[@]}"
 
+    # DocC symbol routes contain colons, which upload-artifact rejects as raw
+    # filenames. Preserve the generated site verbatim inside a portable archive.
+    - name: Package validated documentation for review
+      run: tar -czf documentation-preview.tar.gz -C docs .
+
     - name: Upload validated documentation for review
       uses: actions/upload-artifact@v4
       with:
         name: documentation-${{ github.sha }}
-        path: docs
+        path: documentation-preview.tar.gz
         if-no-files-found: error
 
     - name: Upload main Pages artifact

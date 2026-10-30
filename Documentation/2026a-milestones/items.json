@@ -5440,7 +5440,7 @@
     "M6": "Completed",
     "M7": "Completed local item criteria; remote creation-time snapshot recorded separately",
     "E1": "Completed local item criteria; post-push CI recorded separately",
-    "R1": "Local integration and CI repairs verified; pushed-commit CI and Pages configuration pending"
+    "R1": "Local integration and CI repairs verified; remote CI pending; Pages deployment deferred by user"
   },
   "baseline_caveats": [
     {
@@ -5495,7 +5495,7 @@
       "receipt_location": "Task outputs after push"
     },
     "main_merge_authorized": false,
-    "pages_configuration": "Disabled; repository administrator required"
+    "pages_configuration": "Deployment deferred by user on 2026-10-30; administrator configuration required for future deployment"
   },
   "reconciliation_authorization": {
     "date": "2026-10-30",

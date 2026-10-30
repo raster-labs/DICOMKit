@@ -60,16 +60,23 @@
         "evidence/docc-output-build-verification.json",
         "evidence/docc-archive-qualified.json"
       ]
+    },
+    {
+      "name": "DocC review archive preserves generated filenames and bytes",
+      "result": "Passed",
+      "evidence": "evidence/docc-packaging-qualified.json"
     }
   ],
   "remote_CI": {
     "state_at_document_creation": "Pending push of R1 repairs",
-    "receipt_location": "Task outputs after push; original E1/M7 receipts remain historical"
+    "receipt_location": "Task outputs after push; original E1/M7 receipts remain historical",
+    "unchanged_test_input_commit": "0b5c49204428705da54aa27f724843dd50d80f1d"
   },
   "pages": {
-    "state": "Disabled; administrator configuration required",
+    "state": "Deployment deferred by user on 2026-10-30; Pages disabled",
     "setting": "Settings > Pages > Source: GitHub Actions",
-    "publication_verified": false
+    "publication_verified": false,
+    "deployment_authorized": false
   },
   "scope": {
     "completed_items": 49,
@@ -81,7 +88,8 @@
     "Initial parser suite: 27 UID mismatch issues; retained",
     "Test fixture required explicit [Data] annotation; failed compile retained",
     "Initial strict tag audit falsely treated CLI token as attribute name; retained",
-    "Doc validator strengthened after review; all built archives revalidated with final helper"
+    "Doc validator strengthened after review; all built archives revalidated with final helper",
+    "Hosted DocC generation passed but raw artifact upload rejected colon filenames; preserved and repaired by archive packaging"
   ],
   "counting_note": "Test declarations, parameter cases and rendered pages measure different layers and are not additive."
 }

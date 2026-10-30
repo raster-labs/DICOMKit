@@ -1,0 +1,6 @@
+{
+  "tested_commit": "0b5c49204428705da54aa27f724843dd50d80f1d",
+  "unchanged_inputs": 2064,
+  "only_changed_input": ".github/workflows/docs.yml",
+  "note": "Compared every source manifest entry. Documentation workflow must be reverified; production/test/package/script/other workflow inputs match the tested commit."
+}
