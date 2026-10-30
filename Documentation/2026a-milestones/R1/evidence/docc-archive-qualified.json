@@ -1,0 +1,13 @@
+{
+  "result": "Passed",
+  "recorded_utc": "2026-10-30T11:47:43.342191+00:00",
+  "helper_sha256": "0fa747c8bb52c843ce327b2b8ccd652dc6a38d8f806eb17c9e863b9f8ac7d838",
+  "rendered_index_symbols": {
+    "DICOMCore": 244,
+    "DICOMDictionary": 6,
+    "DICOMKit": 799,
+    "DICOMNetwork": 478,
+    "DICOMWeb": 410
+  },
+  "note": "Fresh validation of all generated archives with strengthened API symbol checks; no compiler inputs changed after their build."
+}

@@ -185,20 +185,23 @@ public struct BoundedDICOMElement: ~Copyable, @unchecked Sendable {
         return withUnsafeMutableBytes(of: &token) { output in
             while position < range.upperBound {
                 if let failure = cancellation.failure { return .failure(.managed(failure)) }
-                let scalarStart = position
-                let scalar: Unicode.Scalar
-                switch cursor.scalar(at: &position, end: range.upperBound) {
+                let byte: UInt8
+                switch cursor.byte(at: position) {
                 case .failure(let failure): return .failure(failure)
-                case .success(let value):
-                    guard let value else { return .failure(.strict(.missingTransferSyntax)) }
-                    scalar = value
+                case .success(let value): byte = value
                 }
-                if scalarStart == range.lowerBound && scalar.value == 0xFEFF { continue }
-                if Self.isLegacyPadding(scalar.value) {
-                    if used > 0 { trailingPadding = true }; continue
+                position += 1
+                // UI uses the default ASCII repertoire and trailing NUL padding
+                // (PS3.5 2026a Table 6.2-1 / 9.1). Match DataElement.stringValue:
+                // never trim leading bytes, whitespace, a UTF-8 BOM or text controls.
+                // Repeated trailing NULs retain the materialized accessor's padding
+                // compatibility; this lookup does not replace full VR validation.
+                if byte == 0 { trailingPadding = true; continue }
+                if trailingPadding || !((48...57).contains(byte) || byte == 46) || used >= output.count {
+                    invalidToken = true
+                } else {
+                    output[used] = byte; used += 1
                 }
-                if trailingPadding || scalar.value > 127 || used >= output.count { invalidToken = true }
-                else { output[used] = UInt8(scalar.value); used += 1 }
             }
             guard used > 0 || invalidToken else { return .failure(.strict(.missingTransferSyntax)) }
             guard !invalidToken, let syntax = BoundedTransferSyntax.fromToken(
@@ -208,14 +211,6 @@ public struct BoundedDICOMElement: ~Copyable, @unchecked Sendable {
             return .success(syntax)
         }
     }
-    // Installed Foundation's maintained Unicode/NUL padding policy; every scalar is differentially tested.
-    static func isLegacyPadding(_ value: UInt32) -> Bool {
-        switch value {
-        case 0, 0x09...0x0D, 0x20, 0x85, 0xA0, 0x1680, 0x2000...0x200B, 0x2028, 0x2029, 0x202F, 0x205F, 0x3000: true
-        default: false
-        }
-    }
-
     /// Acquire one frame using the canonical offset walker, validating all groups before allocation.
     public func readFrameOutcome(at frame: Int, numberOfFrames: Int, maximumBytes: Int = 64 * 1024 * 1024,
                                  cancellation: DICOMCancellation = .never) -> DICOMParserOutcome<DICOMByteBuffer> {

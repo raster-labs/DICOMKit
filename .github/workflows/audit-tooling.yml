@@ -30,3 +30,5 @@ jobs:
           python-version: '3.12'
       - name: Check audit repairs and negative controls
         run: python3 -m unittest discover -s Scripts -p 'test_*audit_m*.py' -v
+      - name: Audit current source tags against the dictionary
+        run: python3 Scripts/audit_tags.py . --strict

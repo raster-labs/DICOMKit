@@ -1,171 +1,111 @@
-name: Deploy Documentation
+name: Documentation
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, codex/dicom-2026a-milestones ]
     paths:
       - 'Sources/**'
       - 'Documentation/**'
       - '**.md'
+      - 'Package.swift'
+      - 'Package.resolved'
+      - 'Scripts/build_docc_docs.py'
+      - 'Scripts/test_build_docc_docs.py'
+      - '.github/workflows/docs.yml'
+      - '.github/scripts/select-swift-toolchain.sh'
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "pages"
+  group: documentation-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   build-docs:
     name: Build Documentation
     runs-on: xcode-27
-    
+    permissions:
+      contents: read
+      pages: read
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Select Xcode
       run: bash .github/scripts/select-swift-toolchain.sh
-      
+
+    - name: Verify main Pages configuration
+      if: github.ref == 'refs/heads/main'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if ! gh api "repos/${GITHUB_REPOSITORY}/pages" > pages-config.json; then
+          echo "::error::GitHub Pages is not accessible. A repository administrator must enable Settings > Pages > Source: GitHub Actions before main can deploy. This workflow does not enable or change repository Pages settings."
+          exit 1
+        fi
+        python3 - <<'PY'
+        import json
+        config = json.load(open("pages-config.json"))
+        if config.get("build_type") != "workflow":
+            raise SystemExit("GitHub Pages must use Source: GitHub Actions (build_type=workflow).")
+        PY
+
+    - name: Read main Pages hosting configuration
+      id: pages
+      if: github.ref == 'refs/heads/main'
+      uses: actions/configure-pages@v5
+      with:
+        enablement: false
+
     - name: Cache Swift Package Manager
       uses: actions/cache@v4
       with:
         path: .build
-        key: ${{ runner.os }}-spm-docs-${{ hashFiles('**/Package.resolved') }}
+        key: ${{ runner.os }}-spm-docs-${{ hashFiles('**/Package.resolved', 'Scripts/build_docc_docs.py') }}
         restore-keys: |
           ${{ runner.os }}-spm-docs-
-    
-    - name: Build DocC documentation for all modules
+
+    - name: Verify documentation failure controls
+      run: python3 -m unittest discover -s Scripts -p test_build_docc_docs.py -v
+
+    - name: Build and validate all DocC modules
+      env:
+        PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
       run: |
-        mkdir -p docs
-        
-        # Build documentation for each module
-        for TARGET in DICOMKit DICOMCore DICOMNetwork DICOMWeb DICOMDictionary; do
-          echo "Building documentation for $TARGET..."
-          swift package --allow-writing-to-directory ./docs/$TARGET \
-            generate-documentation --target $TARGET \
-            --disable-indexing \
-            --transform-for-static-hosting \
-            --hosting-base-path DICOMKit/$TARGET \
-            --output-path ./docs/$TARGET || echo "Failed to build docs for $TARGET"
-        done
-        
-    - name: Create index page
-      run: |
-        cat > docs/index.html << 'EOF'
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>DICOMKit Documentation</title>
-            <style>
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-                    max-width: 800px;
-                    margin: 50px auto;
-                    padding: 20px;
-                    line-height: 1.6;
-                }
-                h1 {
-                    color: #333;
-                    border-bottom: 2px solid #007AFF;
-                    padding-bottom: 10px;
-                }
-                .module {
-                    background: #f6f8fa;
-                    border: 1px solid #e1e4e8;
-                    border-radius: 6px;
-                    padding: 20px;
-                    margin: 20px 0;
-                }
-                .module h2 {
-                    margin-top: 0;
-                    color: #007AFF;
-                }
-                a {
-                    color: #007AFF;
-                    text-decoration: none;
-                }
-                a:hover {
-                    text-decoration: underline;
-                }
-                .badge {
-                    display: inline-block;
-                    padding: 3px 8px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    border-radius: 3px;
-                    margin-left: 10px;
-                }
-                .badge-primary { background: #007AFF; color: white; }
-                .badge-secondary { background: #6c757d; color: white; }
-            </style>
-        </head>
-        <body>
-            <h1>📚 DICOMKit Documentation</h1>
-            <p>Welcome to the DICOMKit API documentation. DICOMKit is a pure Swift DICOM toolkit for Apple platforms.</p>
-            
-            <div class="module">
-                <h2>DICOMKit <span class="badge badge-primary">Main Module</span></h2>
-                <p>High-level API for working with DICOM files, images, and data.</p>
-                <a href="DICOMKit/documentation/dicomkit/">View Documentation →</a>
-            </div>
-            
-            <div class="module">
-                <h2>DICOMCore <span class="badge badge-secondary">Core</span></h2>
-                <p>Core DICOM parsing, data structures, and transfer syntax support.</p>
-                <a href="DICOMCore/documentation/dicomcore/">View Documentation →</a>
-            </div>
-            
-            <div class="module">
-                <h2>DICOMNetwork <span class="badge badge-secondary">Networking</span></h2>
-                <p>DIMSE services for PACS connectivity (C-ECHO, C-FIND, C-MOVE, C-GET, C-STORE).</p>
-                <a href="DICOMNetwork/documentation/dicomnetwork/">View Documentation →</a>
-            </div>
-            
-            <div class="module">
-                <h2>DICOMWeb <span class="badge badge-secondary">Web Services</span></h2>
-                <p>RESTful DICOM services (QIDO-RS, WADO-RS, STOW-RS, UPS-RS).</p>
-                <a href="DICOMWeb/documentation/dicomweb/">View Documentation →</a>
-            </div>
-            
-            <div class="module">
-                <h2>DICOMDictionary <span class="badge badge-secondary">Reference</span></h2>
-                <p>DICOM tag and UID dictionaries for metadata lookup.</p>
-                <a href="DICOMDictionary/documentation/dicomdictionary/">View Documentation →</a>
-            </div>
-            
-            <hr style="margin: 40px 0;">
-            
-            <p style="text-align: center; color: #666;">
-                <a href="https://github.com/Raster-Lab/DICOMKit">View on GitHub</a> |
-                <a href="https://github.com/Raster-Lab/DICOMKit/blob/main/README.md">README</a> |
-                <a href="https://github.com/Raster-Lab/DICOMKit/blob/main/CONTRIBUTING.md">Contributing</a>
-            </p>
-        </body>
-        </html>
-        EOF
-        
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-      
-    - name: Upload artifact
+        args=(--output-path docs)
+        if [[ "$GITHUB_REF" == refs/heads/main ]]; then
+          args+=(--hosting-base-path "$PAGES_BASE_PATH")
+        fi
+        python3 Scripts/build_docc_docs.py "${args[@]}"
+
+    - name: Upload validated documentation for review
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-${{ github.sha }}
+        path: docs
+        if-no-files-found: error
+
+    - name: Upload main Pages artifact
+      if: github.ref == 'refs/heads/main'
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./docs
-        
+        path: docs
+
   deploy:
     name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: build-docs
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
     steps:
     - name: Deploy to GitHub Pages
       id: deployment

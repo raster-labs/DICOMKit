@@ -159,16 +159,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-docs-
     
-    - name: Build DocC documentation
-      run: |
-        # Build documentation for all modules
-        swift package --allow-writing-to-directory ./docs \
-          generate-documentation --target DICOMKit \
-          --disable-indexing \
-          --transform-for-static-hosting \
-          --hosting-base-path DICOMKit \
-          --output-path ./docs
-      continue-on-error: true
+    - name: Verify documentation failure controls
+      run: python3 -m unittest discover -s Scripts -p test_build_docc_docs.py -v
+
+    - name: Build and validate all DocC modules
+      run: python3 Scripts/build_docc_docs.py --output-path docs
       
   code-quality:
     name: Code Quality Checks

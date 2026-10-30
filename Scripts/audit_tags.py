@@ -97,6 +97,10 @@ def is_private_or_special(tag):
 RE_LIT = re.compile(r"group:\s*0x([0-9A-Fa-f]{4})\s*,\s*element:\s*0x([0-9A-Fa-f]{4})")
 RE_STR = re.compile(r'"([0-9A-Fa-f]{8})"')
 RE_MAP = re.compile(r'"([0-9A-Fa-f]{8})"\s*:\s*"([^"]+)"')
+# A diagnostic map may associate different query-level tags with the same CLI
+# flag. Option tokens name an interface parameter, not a PS3.6 attribute. Match
+# that role explicitly; do not strip arbitrary leading punctuation from names.
+RE_CLI_OPTION = re.compile(r"(?:--[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*|-[A-Za-z])\Z")
 RE_PAREN = re.compile(r"\(([0-9A-Fa-f]{4}),\s*([0-9A-Fa-f]{4})\)")
 RE_IDENT = re.compile(r"\b(?:static\s+let|let|var|case|func)\s+([a-zA-Z_][a-zA-Z0-9_]*)")
 RE_CONST = re.compile(r"static\s+let\s+([a-zA-Z0-9_]+)\s*=\s*Tag\(")
@@ -164,6 +168,8 @@ for dirpath, _, files in os.walk(SRC):
 
             # --- "GGGGEEEE": "Name" map entries
             for s, name in RE_MAP.findall(line):
+                if RE_CLI_OPTION.fullmatch(name):
+                    continue  # Other tag, comment, identifier and VR checks remain active.
                 t = (int(s[:4], 16), int(s[4:], 16))
                 r = resolve(name)
                 if r and canonical(r) != canonical(t):

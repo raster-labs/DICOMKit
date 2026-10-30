@@ -19,8 +19,7 @@ and 19 remain deferred. M0–M7 receipts remain historical evidence for their so
 - [Existing print command contracts for the later M6 milestone](print-cli-contract.json)
 
 Use **one branch**, `codex/dicom-2026a-milestones`, for the milestone series.
-The current authorization is **E1 only**, following completed M0–M7. Update STATUS.md,
-items.json and the [E1 report](E1/REPORT.md) with executed evidence before pushing.
+The current authorization is **R1: reconcile latest main and repair CI**, following completed M0–M7 and E1. Update STATUS.md, items.json and the [R1 report](R1/REPORT.md) with executed evidence before pushing.
 Do not merge into main; the user retains merge authority.
 
 The older standard-implementation reports are dated historical evidence. Their

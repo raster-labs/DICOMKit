@@ -1,0 +1,87 @@
+{
+  "recorded_utc": "2026-10-30T11:48:14.611150+00:00",
+  "baseline": {
+    "branch": "codex/dicom-2026a-milestones",
+    "milestone_head": "82ed0d07eb22f1f7fb8c713eee6d78f4c8334665",
+    "main_head": "4950a53f96f23d0f13c6670aa3473dee7608505d",
+    "remote_milestone_head": "82ed0d07eb22f1f7fb8c713eee6d78f4c8334665",
+    "status": "",
+    "recorded_utc": "2026-10-30T11:32:10.616588+00:00",
+    "authorization": "Integrate main into milestone branch, repair and verify CI, update documents, push same branch. No merge into main."
+  },
+  "integration_commit": "cf538dc66218f51fe4433da5ce8340670cd99d7a",
+  "local_result": "Passed",
+  "checks": [
+    {
+      "name": "Merged parser/UID/CLI integration",
+      "result": "Passed",
+      "swift_testing": 33,
+      "xctest": 24,
+      "evidence": "evidence/parser-integration-qualified.log.gz"
+    },
+    {
+      "name": "Core and native pixel integration",
+      "result": "Passed",
+      "swift_testing": 87,
+      "evidence": "evidence/core-integration.log.gz"
+    },
+    {
+      "name": "Audit regression controls",
+      "result": "Passed",
+      "tests": 56,
+      "evidence": "evidence/audit-regressions.log.gz"
+    },
+    {
+      "name": "Strict current-source tag audit",
+      "result": "Passed",
+      "blockers": 0,
+      "major": 0,
+      "warnings": 0,
+      "evidence": "evidence/tag-audit-qualified.log.gz"
+    },
+    {
+      "name": "Scheduled report negative controls",
+      "result": "Passed",
+      "tests": 8,
+      "evidence": "evidence/report-helper-tests.log.gz"
+    },
+    {
+      "name": "Documentation negative controls",
+      "result": "Passed",
+      "tests": 11,
+      "evidence": "evidence/docs-helper-qualified.log.gz"
+    },
+    {
+      "name": "Actual documentation build and API validation",
+      "result": "Passed",
+      "modules": 5,
+      "indexed_symbol_pages": 1937,
+      "evidence": [
+        "evidence/docc-output-build-verification.json",
+        "evidence/docc-archive-qualified.json"
+      ]
+    }
+  ],
+  "remote_CI": {
+    "state_at_document_creation": "Pending push of R1 repairs",
+    "receipt_location": "Task outputs after push; original E1/M7 receipts remain historical"
+  },
+  "pages": {
+    "state": "Disabled; administrator configuration required",
+    "setting": "Settings > Pages > Source: GitHub Actions",
+    "publication_verified": false
+  },
+  "scope": {
+    "completed_items": 49,
+    "deferred_items": 19,
+    "main_merge_authorized": false,
+    "new_native_verification": false
+  },
+  "earlier_attempts": [
+    "Initial parser suite: 27 UID mismatch issues; retained",
+    "Test fixture required explicit [Data] annotation; failed compile retained",
+    "Initial strict tag audit falsely treated CLI token as attribute name; retained",
+    "Doc validator strengthened after review; all built archives revalidated with final helper"
+  ],
+  "counting_note": "Test declarations, parameter cases and rendered pages measure different layers and are not additive."
+}

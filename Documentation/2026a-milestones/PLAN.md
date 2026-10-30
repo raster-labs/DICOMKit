@@ -8,6 +8,10 @@ Baseline: `4b68d7e22829418c88e48dd53d98b25fee50d90d` in `repository root`. The c
 
 The [item ledger](items.json) preserves every finding and acceptance assertion. This plan adds sequencing, dependencies, scoped alternatives and separate CLI/app gates.
 
+## R1 — integration and CI repair (30 October 2026)
+
+Reconcile latest main into the existing milestone branch; verify the combined parser behavior; repair scheduled execution, reporting, tag audit and documentation generation; retain original failures and evidence; push and inspect CI on the resulting commit. Pages configuration needs a repository administrator. No deferred enhancement is activated. See [R1 report](R1/REPORT.md).
+
 ## Scope and disposition
 
 | Work type | Active | Deferred |
