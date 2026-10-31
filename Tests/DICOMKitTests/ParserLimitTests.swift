@@ -27,11 +27,11 @@ final class ParserLimitTests: XCTestCase {
         var data = Data()
         data.append(Data(count: 128))
         data.append(contentsOf: [0x44, 0x49, 0x43, 0x4D])
-        // (0002,0010) UI, "1.2.840.10008.1.2.1 " (20)
+        // (0002,0010) UI; NULL padding per PS3.5 Table 6.2-1.
         data.append(contentsOf: [0x02, 0x00, 0x10, 0x00])
         data.append(contentsOf: [0x55, 0x49])
         data.append(contentsOf: [0x14, 0x00])
-        data.append(contentsOf: Array("1.2.840.10008.1.2.1 ".utf8))
+        data.append(contentsOf: Array("1.2.840.10008.1.2.1\0".utf8))
         return data
     }
 

@@ -58,6 +58,10 @@ jobs:
         if: always()
         with:
           name: final-qualification-contracts-${{ github.sha }}
-          path: m7-ci/
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m7-ci/**/*.log
+            m7-ci/**/*.json
+            m7-ci/**/*.txt
 # Independent peers, physical output and native packaged GUI have their own
 # evidence. A green test-only workflow does not claim those gates passed.

@@ -1446,11 +1446,6 @@ let package = Package(
                 "DICOMPrintCommandSupport",
                 "DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork", "dicom-mwl", "dicom-wado",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
-            ],
-            resources: [
-                // Small synthetic DICOM the print tests render (see
-                // StudioTestFixtures). PHI-free — generated, not patient data.
-                .copy("Fixtures")
             ]
         ),
         // dicom-convert: --transfer-syntax Table A-1 keywords, --window-width per PS3.3 C.11.2.1.2.1.

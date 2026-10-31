@@ -46,4 +46,8 @@ jobs:
         if: always()
         with:
           name: service-reliability-${{ github.sha }}
-          path: m4-verification/
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m4-verification/**/*.log
+            m4-verification/**/*.json
+            m4-verification/**/*.txt

@@ -100,8 +100,9 @@ final class IODRequirementValidatorTests: XCTestCase {
         refSeries.setSequence([image], for: .referencedImageSequence)
         ds.setSequence([SequenceItem(elements: refSeries.tags.compactMap { refSeries[$0] })], for: .referencedSeriesSequence)
         var area = DataSet()
-        area.setStrings(["1", "1"], for: .displayedAreaTopLeftHandCorner, vr: .SL)
-        area.setStrings(["512", "512"], for: .displayedAreaBottomRightHandCorner, vr: .SL)
+        // SL values are binary signed longs, not backslash-delimited text.
+        area[.displayedAreaTopLeftHandCorner] = .int32s(tag: .displayedAreaTopLeftHandCorner, values: [1, 1])
+        area[.displayedAreaBottomRightHandCorner] = .int32s(tag: .displayedAreaBottomRightHandCorner, values: [512, 512])
         area.setString("SCALE TO FIT", for: .presentationSizeMode, vr: .CS)
         ds.setSequence([SequenceItem(elements: area.tags.compactMap { area[$0] })], for: .displayedAreaSelectionSequence)
         ds.setString("IDENTITY", for: .presentationLUTShape, vr: .CS)

@@ -40,4 +40,8 @@ jobs:
         if: always()
         with:
           name: attribute-integrity-${{ github.sha }}
-          path: m2-verification/
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m2-verification/**/*.log
+            m2-verification/**/*.json
+            m2-verification/**/*.txt

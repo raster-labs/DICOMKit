@@ -1,5 +1,11 @@
 # DICOM 2026a milestone status
 
+Updated 31 October 2026. **R2 repairs the five full-suite failures and removes
+committed DICOM/wire/database payloads; final verification is in progress.**
+See [R2 report](R2/REPORT.md) for causes, cleanup scope and the Git-history
+boundary. PR #233 remains unmerged; Pages deployment remains deferred.
+The following R1/E1/M0–M7 sections preserve their creation-time status.
+
 Updated 30 October 2026. **R1 local repairs are verified; CI remains in progress and Pages deployment is explicitly deferred by the user.** Main `4950a53f` is integrated into the milestone branch; the item ledger remains 49 completed and 19 deferred. See [R1 report](R1/REPORT.md). The following E1/M0–M7 statements retain their original source and verification dates.
 
 Updated 26 October 2026. **E1 is locally complete for NET-08-A, WS-DORM-01 and WS-DORM-02: 49 completed, 0 in progress, 19 deferred. Exact pushed-head CI is recorded separately after publication.** M0–M7 completed at the preceding source checkpoint; their 28 native groups are historical qualification, not a blanket E1 claim. See [E1 report](E1/REPORT.md). The user retains merge authority.

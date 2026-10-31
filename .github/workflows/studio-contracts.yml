@@ -48,4 +48,8 @@ jobs:
         if: always()
         with:
           name: studio-contracts-${{ github.sha }}
-          path: m5-verification/
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m5-verification/**/*.log
+            m5-verification/**/*.json
+            m5-verification/**/*.txt

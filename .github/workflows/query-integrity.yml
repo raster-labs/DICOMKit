@@ -39,4 +39,8 @@ jobs:
         if: always()
         with:
           name: query-integrity-${{ github.sha }}
-          path: m3-verification/
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m3-verification/**/*.log
+            m3-verification/**/*.json
+            m3-verification/**/*.txt

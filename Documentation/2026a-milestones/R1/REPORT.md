@@ -1,5 +1,10 @@
 # R1 — main reconciliation and CI repairs
 
+31 October follow-up: the final comprehensive run failed with five tests;
+nine other required workflow results passed across the explicitly recorded
+test-input/documentation commits. [R2](../R2/REPORT.md) records the diagnosis,
+repairs and new verification. The pending language below is historical.
+
 Authorized 30 October 2026: reconcile the milestone branch with latest main, repair CI, verify, update documents and push `codex/dicom-2026a-milestones`. Main merge remains reserved for the user. This work does not expand the 68-item ledger: 49 items remain completed and 19 deferred.
 
 ## Integrated source

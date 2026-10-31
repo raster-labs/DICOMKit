@@ -586,6 +586,10 @@ public enum CharacterSetEncoding: Sendable, Hashable {
     /// - Parameter data: The data to decode
     /// - Returns: The decoded string, or nil if decoding fails
     public func decode(_ data: Data) -> String? {
+        // Foundation's ASCII decoder accepts high-bit bytes on some Apple
+        // runtimes. ISO-IR 6 is seven-bit (PS3.5 2026a 6.1.2.1); accepting
+        // Latin-1 here also defeats an empty Item charset override.
+        if self == .isoIR6, data.contains(where: { $0 >= 0x80 }) { return nil }
         return String(data: data, encoding: stringEncoding)
     }
     

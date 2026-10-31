@@ -64,6 +64,17 @@ struct CharacterSetHandlerTests {
         #expect(decoded == text)
     }
     
+    @Test("ISO-IR 6 rejects every high-bit byte independently of Foundation")
+    func testASCIIRejectsHighBitBytes() {
+        for byte in UInt8(0x80)...UInt8(0xFF) {
+            let data = Data([0x41, byte, 0x20])
+            #expect(CharacterSetEncoding.isoIR6.decode(data) == nil)
+            #expect(CharacterSetHandler.decodeStrict(data, specificCharacterSet: "") == nil)
+        }
+        #expect(CharacterSetHandler.decodeStrict(Data([0x4D, 0xFC]), specificCharacterSet: "ISO_IR 100") == "Mü")
+        #expect(CharacterSetHandler.decodeStrict(Data("山田".utf8), specificCharacterSet: "ISO_IR 192") == "山田")
+    }
+
     @Test("Encoding decode UTF-8 text")
     func testEncodingDecodeUTF8() {
         let text = "Hello, 世界! 🌍"

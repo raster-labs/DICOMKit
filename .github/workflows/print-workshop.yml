@@ -42,4 +42,8 @@ jobs:
         if: always()
         with:
           name: print-workshop-${{ github.sha }}
-          path: m6-verification/
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m6-verification/**/*.log
+            m6-verification/**/*.json
+            m6-verification/**/*.txt
