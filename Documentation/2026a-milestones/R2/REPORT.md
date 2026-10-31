@@ -45,8 +45,9 @@ identified 11 `BurnedInAnnotation=YES` files among the synthetic negative-test
 evidence. This tag alone is not proof of real patient identity, nor does its
 absence prove anonymization. All DICOM and opaque capture payloads were removed
 regardless. No real-patient-free claim is made for historical objects or arbitrary
-images. The Studio print tests now generate their 8×8 synthetic ramp in a unique
-temporary directory instead of bundling a DICOM file.
+images. Studio, Print SCP and DCMTK interoperability tests now share a source generator
+for an 8×8 synthetic ramp, written only into temporary test directories. No
+DICOM fixture is bundled. Explicit external interoperability inputs remain local.
 
 The strengthened PHI Guard checks tracked filenames, Part 10 signatures,
 plausible preamble-free explicit/implicit datasets in either byte order, archive
@@ -76,7 +77,12 @@ All **170 focused tests passed, with no skips**, including the five original
 failing cases and the generated Studio print fixture. The strict tag audit has
 zero findings; all 56 audit regressions and eight repository guard tests pass.
 The initial fixture-helper build failure (missing inner `try` in Testing macros)
-was corrected and its log retained. Complete-suite verification is in progress.
+was corrected and its log retained. The first complete Debug execution reported 15,825 tests and 55 XCTest skips.
+All original five failures passed; one Print SCP test exposed an additional
+direct path to the removed fixture. A second DCMTK test had the same path and
+could silently skip. Both now use the shared source generator. In the repeat run, the previously
+failing Print SCP case passes and the independent-peer XCTest product passes;
+the remaining complete suite is still running. The failed full-run log is retained.
 The initial
 post-removal scan of 7,497 previously tracked, remaining files reported zero
 prohibited/uninspected payloads; the final scan must also include new files.
@@ -90,4 +96,6 @@ GitHub Actions artifacts have not been purged.
 The prior PR general-CI macOS job lost runner communication during toolchain setup before tests;
 it is distinct from the five comprehensive failures. Other prior PR milestone
 and documentation workflows passed. Fresh branch CI will determine the repaired
-head's status.
+head's status. Queued comprehensive run `41181621127` was canceled before
+execution because the shared-fixture follow-up superseded its source. It is
+not recorded as a test pass or a test failure.

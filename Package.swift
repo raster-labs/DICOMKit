@@ -549,10 +549,16 @@ let package = Package(
             ],
             path: "Tests/dicom-printTests"
         ),
+        // Test-only source generator; no bundled DICOM binary resources.
+        .target(
+            name: "DICOMPrintTestSupport",
+            dependencies: ["DICOMCore", "DICOMKit"],
+            path: "Tests/Support/DICOMPrintTestSupport"
+        ),
         .testTarget(
             name: "dicom-printscpTests",
             dependencies: [
-                "DICOMPrintCommandSupport",
+                "DICOMPrintCommandSupport", "DICOMPrintTestSupport",
                 "dicom-printscp", "DICOMNetwork", "DICOMPrintKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
@@ -896,7 +902,7 @@ let package = Package(
             // DICOMDictionary: published presentation states are checked
             // element-by-element against the standard data dictionary.
             dependencies: ["DICOMPrintKit", "DICOMNetwork", "DICOMCore",
-                           "DICOMKit", "DICOMDictionary"]
+                           "DICOMKit", "DICOMDictionary", "DICOMPrintTestSupport"]
         ),
         .testTarget(
             name: "DICOMToolboxTests",
@@ -1443,7 +1449,7 @@ let package = Package(
             // DICOMPrintKit: the viewer-presentation geometry and film-pixel
             // transform the print path bakes into marks.
             dependencies: [
-                "DICOMPrintCommandSupport",
+                "DICOMPrintCommandSupport", "DICOMPrintTestSupport",
                 "DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork", "dicom-mwl", "dicom-wado",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]

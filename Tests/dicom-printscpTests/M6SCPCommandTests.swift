@@ -3,6 +3,7 @@ import XCTest
 import ArgumentParser
 import DICOMNetwork
 import DICOMPrintKit
+import DICOMPrintTestSupport
 @testable import DICOMPrintCommandSupport
 
 private final class SCPTestOutput: @unchecked Sendable {
@@ -168,9 +169,7 @@ final class M6SCPCommandTests: XCTestCase {
 
     func testSimulateProducesFilesAndNativeOpenCallbacksAfterWrites() async throws {
         let root = try directory(), output = SCPTestOutput(), context = output.context(root)
-        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("DICOMStudioTests/Fixtures/syn-ct.dcm")
-        let original = try Data(contentsOf: fixture)
+        let original = try SyntheticPrintFixture.data()
         let copied = root.appendingPathComponent("input ; space.dcm")
         try original.write(to: copied)
         let films = root.appendingPathComponent("films")

@@ -18,6 +18,7 @@
 
 import XCTest
 import DICOMCore
+import DICOMPrintTestSupport
 import DICOMNetwork
 @testable import DICOMPrintKit
 
@@ -34,9 +35,8 @@ final class DCMTKInteropTests: XCTestCase {
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
     }
 
-    /// Use an explicitly supplied synthetic fixture or the repository's
-    /// synthetic CT. Never inspect a developer's Desktop or patient files.
-    private static func sampleImage() throws -> URL? {
+    /// Use an explicitly supplied synthetic fixture or generate one locally. Never inspect a developer's Desktop or patient files.
+    private func sampleImage() throws -> URL? {
         if let explicit = ProcessInfo.processInfo.environment["DICOMKIT_PRINT_INTEROP_IMAGE"], !explicit.isEmpty {
             guard FileManager.default.fileExists(atPath: explicit) else {
                 throw NSError(domain: "DCMTKInteropFixture", code: 1,
@@ -44,9 +44,9 @@ final class DCMTKInteropTests: XCTestCase {
             }
             return URL(fileURLWithPath: explicit)
         }
-        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-            .deletingLastPathComponent().appendingPathComponent("DICOMStudioTests/Fixtures/syn-ct.dcm")
-        return FileManager.default.fileExists(atPath: fixture.path) ? fixture : nil
+        let fixture = workspace.appendingPathComponent("synthetic-print.dcm")
+        try SyntheticPrintFixture.data().write(to: fixture, options: .atomic)
+        return fixture
     }
 
     private struct ProcessResult {
@@ -158,7 +158,7 @@ final class DCMTKInteropTests: XCTestCase {
         guard let dcmpsprt = Self.tool("dcmpsprt"), let dcmprscu = Self.tool("dcmprscu") else {
             throw XCTSkip("DCMTK not installed (brew install dcmtk)")
         }
-        guard let image = try Self.sampleImage() else {
+        guard let image = try sampleImage() else {
             throw XCTSkip("No sample DICOM image available for the DCMTK tools")
         }
 
