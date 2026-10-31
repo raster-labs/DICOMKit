@@ -1,0 +1,13 @@
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "Bounded verified strict input" started.
+◇ Test "Source envelope around 128/256 MiB avoids file-sized storage" started.
+◇ Test case passing 1 argument size → 134217726 to "Source envelope around 128/256 MiB avoids file-sized storage" started.
+◇ Test case passing 1 argument size → 268435456 to "Source envelope around 128/256 MiB avoids file-sized storage" started.
+◇ Test case passing 1 argument size → 134217730 to "Source envelope around 128/256 MiB avoids file-sized storage" started.
+◇ Test case passing 1 argument size → 268435454 to "Source envelope around 128/256 MiB avoids file-sized storage" started.
+◇ Test case passing 1 argument size → 134217728 to "Source envelope around 128/256 MiB avoids file-sized storage" started.
+✔ Test "Source envelope around 128/256 MiB avoids file-sized storage" with 5 test cases passed after 1.355 seconds.
+✔ Suite "Bounded verified strict input" passed after 1.355 seconds.
+✔ Test run with 1 test in 1 suite passed after 1.355 seconds.

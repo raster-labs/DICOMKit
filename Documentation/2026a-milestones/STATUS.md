@@ -1,10 +1,11 @@
 # DICOM 2026a milestone status
 
-Updated 31 October 2026 (R3). **All 11 PR workflows passed at `f66264ef`;
-the separate comprehensive run passed its test assertions but failed coverage
-export.** The missing-coverage failure is reproduced and repaired by explicitly
-building instrumented tests. Twelve report controls pass. Local full-suite
-reverification and the repaired remote run remain pending. See
+Updated 31 October 2026 (R3). **The remaining coverage-export failure is repaired
+and locally verified at `31d7609b`: 15,825 reported Debug tests, zero failures,
+54 XCTest skips, all five optimized cases and fresh coverage export passed.**
+Twelve reporting controls pass. All 11 PR workflows passed at the preceding
+`f66264ef`; the new comprehensive run and remaining repair-head PR workflows
+are pending, with PHI Guard, Audit tooling and push documentation already passed. See
 [R3 report](R3/REPORT.md). Main remains unmerged, Pages remains deferred, and
 the ledger remains 49 completed / 19 deferred. The R2 section below preserves
 its creation-time status.

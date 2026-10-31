@@ -1,0 +1,36 @@
+{
+  "tested_commit": "31d7609bb2f735b7e85c1acc64c587d203059fe7",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+  "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+  "xcode": "Xcode 27.0\nBuild version 27A266a",
+  "architecture": "arm64",
+  "cli_bin_dir": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/.build/out/Products/Release",
+  "release_cli_reuse": "Same production-source bytes as 7c40a3f9; the R2 shared-fixture follow-up changed test sources only. Optimized test product is from accepted R2 source 3be6b6ef.",
+  "raw_logs": "Task outputs/DICOMKit_R3, outside repository",
+  "log_receipts": {
+    "debug-test-build.log": {
+      "bytes": 476133,
+      "sha256": "6ad2643c44290300e4fbd9ba8f6d0c8c4ffca57a724a5b631d0629c4a64c28fa"
+    },
+    "debug-test-discovery.log": {
+      "bytes": 1146483,
+      "sha256": "f5024cb9bab99412e0758b284d69bc05936ce00b0a79458ce646d79d6c4cb911"
+    },
+    "release-source-envelope.log": {
+      "bytes": 1119,
+      "sha256": "20ca75224f0a08ca2f0ae3ff0bb9d84ec221086e659f2633dbf4c377d80ca798"
+    },
+    "debug-suite.log": {
+      "bytes": 3215692,
+      "sha256": "f549e41edc7734f08ee7f5d8961f791149ff46e0b4f531b4e64aab0eb21d5bff"
+    },
+    "report-controls.log": {
+      "bytes": 1296,
+      "sha256": "19b694e6df1a8520d4b06be65abfa6ed247913ae92cffd8a1bb2eca82e86ba4b"
+    },
+    "test-report.log": {
+      "bytes": 503,
+      "sha256": "9e7d86618077713f5459748cbe9d278381b527fe7a66307fe95327816450b71d"
+    }
+  }
+}

@@ -5442,7 +5442,7 @@
     "E1": "Completed local item criteria; post-push CI recorded separately",
     "R1": "Local integration and CI repairs verified; remote CI pending; Pages deployment deferred by user",
     "R2": "Local full suite passed; five failures repaired and 2,043 payloads removed. Later comprehensive assertions passed but coverage export failed; see R3.",
-    "R3": "Coverage preparation repair reproduced and 12 controls passed; local full-suite and repaired remote verification pending."
+    "R3": "Coverage preparation repaired and locally verified: 15,825 reported Debug tests, 54 XCTest skips, five optimized cases, fresh coverage export and 12 report controls passed. Remote run 41191992135 and remaining PR checks pending."
   },
   "baseline_caveats": [
     {
@@ -5491,12 +5491,15 @@
     "not_an_added_item": "No original item assertion requires remote CI; post-push verification is a separate publication/goal condition."
   },
   "publication_qualification": {
-    "local_result": "R3 verification in progress; coverage reproduction and 12 report controls passed",
+    "local_result": "Passed on 31d7609b; see R3/verification.json",
     "remote_CI": {
       "starting_head": "f66264efd8529b5ca6ac05109affaddf80e664f2",
       "starting_head_PR_workflows": "11 passed",
       "preceding_comprehensive": "41183009976: assertions passed, coverage export failed",
-      "state_at_document_creation": "Pending push and execution of R3 repair"
+      "state_at_document_creation": "Comprehensive in progress; PHI Guard, Audit tooling and push documentation passed; remaining PR workflows pending",
+      "repaired_source": "31d7609bb2f735b7e85c1acc64c587d203059fe7",
+      "comprehensive_run": 41191992135,
+      "snapshot": "R3/evidence/remote-runs-local-completion.json"
     },
     "main_merge_authorized": false,
     "pages_configuration": "Deployment deferred by user on 2026-10-30"
