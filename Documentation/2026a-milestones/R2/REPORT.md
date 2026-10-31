@@ -1,5 +1,8 @@
 # R2 — PR #233 full-suite repairs and repository DICOM cleanup
 
+Later CI outcome and coverage repair are recorded in [R3](../R3/REPORT.md).
+The publication section below is the original R2 creation-time snapshot.
+
 Authorized 31 October 2026: repair the five comprehensive-suite failures,
 verify the full suite, update documents and push the same milestone branch.
 The user also requires no DICOM files in the repository. Main merge remains

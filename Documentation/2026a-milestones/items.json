@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source_review_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
   "branch": "codex/dicom-2026a-milestones",
-  "authorized_current_milestone": "R1",
+  "authorized_current_milestone": "R3",
   "stop_before": "Merge into main (user retains merge authority)",
   "counts": {
     "all": 68,
@@ -5440,7 +5440,9 @@
     "M6": "Completed",
     "M7": "Completed local item criteria; remote creation-time snapshot recorded separately",
     "E1": "Completed local item criteria; post-push CI recorded separately",
-    "R1": "Local integration and CI repairs verified; remote CI pending; Pages deployment deferred by user"
+    "R1": "Local integration and CI repairs verified; remote CI pending; Pages deployment deferred by user",
+    "R2": "Local full suite passed; five failures repaired and 2,043 payloads removed. Later comprehensive assertions passed but coverage export failed; see R3.",
+    "R3": "Coverage preparation repair reproduced and 12 controls passed; local full-suite and repaired remote verification pending."
   },
   "baseline_caveats": [
     {
@@ -5489,13 +5491,15 @@
     "not_an_added_item": "No original item assertion requires remote CI; post-push verification is a separate publication/goal condition."
   },
   "publication_qualification": {
-    "local_result": "Passed; see R1/verification.json",
+    "local_result": "R3 verification in progress; coverage reproduction and 12 report controls passed",
     "remote_CI": {
-      "state_at_document_creation": "Pending push of R1 repairs",
-      "receipt_location": "Task outputs after push"
+      "starting_head": "f66264efd8529b5ca6ac05109affaddf80e664f2",
+      "starting_head_PR_workflows": "11 passed",
+      "preceding_comprehensive": "41183009976: assertions passed, coverage export failed",
+      "state_at_document_creation": "Pending push and execution of R3 repair"
     },
     "main_merge_authorized": false,
-    "pages_configuration": "Deployment deferred by user on 2026-10-30; administrator configuration required for future deployment"
+    "pages_configuration": "Deployment deferred by user on 2026-10-30"
   },
   "reconciliation_authorization": {
     "date": "2026-10-30",
@@ -5510,5 +5514,19 @@
     },
     "overall_goal_closure": "User-authorized E1 local work complete; push and exact-head CI verification pending at document creation.",
     "merge_authorized": false
+  },
+  "prior_R1_publication_qualification": {
+    "local_result": "Passed; see R1/verification.json",
+    "remote_CI": {
+      "state_at_document_creation": "Pending push of R1 repairs",
+      "receipt_location": "Task outputs after push"
+    },
+    "main_merge_authorized": false,
+    "pages_configuration": "Deployment deferred by user on 2026-10-30; administrator configuration required for future deployment"
+  },
+  "R3_authorization": {
+    "date": "2026-10-31",
+    "scope": "Inspect latest PR #233 CI, fix remaining failures, verify, update documents and push same branch",
+    "main_merge_authorized": false
   }
 }

@@ -1,0 +1,108 @@
+{
+  "starting_head": "f66264efd8529b5ca6ac05109affaddf80e664f2",
+  "pr_and_push_workflows": [
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839849",
+      "id": 41183839849,
+      "name": "PHI Guard",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839832",
+      "id": 41183839832,
+      "name": "Audit tooling",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839835",
+      "id": 41183839835,
+      "name": "Final qualification contracts",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839800",
+      "id": 41183839800,
+      "name": "Attribute and workflow integrity",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839940",
+      "id": 41183839940,
+      "name": "Studio contracts",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839891",
+      "id": 41183839891,
+      "name": "Service reliability",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839858",
+      "id": 41183839858,
+      "name": "Documentation",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839844",
+      "id": 41183839844,
+      "name": "Command safety",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839794",
+      "id": 41183839794,
+      "name": "Query safety and filters",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839797",
+      "id": 41183839797,
+      "name": "Print Workshop",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183839852",
+      "id": 41183839852,
+      "name": "CI",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183833852",
+      "id": 41183833852,
+      "name": "Documentation",
+      "status": "completed"
+    }
+  ],
+  "comprehensive": {
+    "conclusion": "failure",
+    "head_sha": "3be6b6ef5de2210016fbb45aef2e96bcabf74ba2",
+    "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/41183009976",
+    "id": 41183009976,
+    "status": "completed"
+  }
+}

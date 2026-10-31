@@ -26,6 +26,42 @@ class ReportTests(unittest.TestCase):
         path.write_text(text)
         return REPORT.read_result(path, outcome, expected)
 
+    def coverage(self, *, hits=1, filename=None):
+        directory = self.root / "codecov"
+        directory.mkdir(exist_ok=True)
+        (directory / "default.profdata").write_bytes(b"synthetic profile control")
+        (directory / "Package.json").write_text(json.dumps({
+            "type": "llvm.coverage.json.export", "data": [{"files": [{
+                "filename": str(filename or self.root / "Sources" / "Example.swift"),
+                "summary": {"functions": {"count": 2, "covered": hits}}
+            }]}]}))
+        return directory
+
+    def test_valid_production_coverage_records_hashes_and_counts(self):
+        result = REPORT.read_coverage(self.coverage(), self.root / "Sources")
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["covered_source_files"], 1)
+        self.assertEqual(result["covered_functions"], 1)
+        self.assertEqual(len(result["files"]), 2)
+        self.assertTrue(all(len(f["sha256"]) == 64 for f in result["files"]))
+
+    def test_absent_empty_and_malformed_coverage_fails(self):
+        self.assertTrue(REPORT.read_coverage(self.root / "absent", self.root / "Sources")["errors"])
+        directory = self.coverage()
+        (directory / "default.profdata").write_bytes(b"")
+        self.assertTrue(REPORT.read_coverage(directory, self.root / "Sources")["errors"])
+        directory = self.coverage()
+        for raw in ["", "{}", "[]", '{"type":"wrong","data":[]}',
+                    '{"type":"llvm.coverage.json.export","data":[null]}']:
+            (directory / "Package.json").write_text(raw)
+            self.assertTrue(REPORT.read_coverage(directory, self.root / "Sources")["errors"])
+
+    def test_unexecuted_or_foreign_coverage_cannot_pass(self):
+        for hits in [0, -1, 3, True]:
+            self.assertTrue(REPORT.read_coverage(self.coverage(hits=hits), self.root / "Sources")["errors"])
+        for filename in [self.root / "Tests" / "Test.swift", self.root / "dependency" / "Sources" / "Library.swift"]:
+            self.assertTrue(REPORT.read_coverage(self.coverage(filename=filename), self.root / "Sources")["errors"])
+
     def test_counts_each_product_once_not_nested_suites_or_last_trailer(self):
         result = self.read("""Test Suite 'Inner' passed at now.
 Executed 3 tests, with 0 failures (0 unexpected)
@@ -80,11 +116,23 @@ Executed 2 tests, with 1 failure (1 unexpected)
         (self.root / "debug-suite.log").write_text("✔ Test run with 7 tests passed after 0.1 seconds.")
         for outcome, expected in [("failure", 1), ("success", 0)]:
             run = subprocess.run([sys.executable, str(SCRIPT), str(self.root),
-                                  "--release-outcome", "success", "--debug-outcome", outcome],
+                                  "--release-outcome", "success", "--debug-outcome", outcome,
+                                  "--coverage-dir", str(self.coverage()), "--source-root", str(self.root / "Sources")],
                                  capture_output=True, text=True)
             self.assertEqual(run.returncode, expected, run.stderr)
             report = json.loads((self.root / "test-report.json").read_text())
             self.assertEqual(report["checks"]["debug_coverage"]["execution_outcome"], outcome)
+
+    def test_cli_green_tests_without_coverage_fail(self):
+        (self.root / "release-source-envelope.log").write_text("✔ Test run with 1 test passed after 0.1 seconds.")
+        (self.root / "debug-suite.log").write_text("✔ Test run with 7 tests passed after 0.1 seconds.")
+        run = subprocess.run([sys.executable, str(SCRIPT), str(self.root),
+                              "--release-outcome", "success", "--debug-outcome", "success",
+                              "--coverage-dir", str(self.root / "absent")], capture_output=True, text=True)
+        self.assertEqual(run.returncode, 1)
+        report = json.loads((self.root / "test-report.json").read_text())
+        self.assertEqual(report["result"], "failed")
+        self.assertTrue(report["coverage"]["errors"])
 
 
 if __name__ == "__main__":

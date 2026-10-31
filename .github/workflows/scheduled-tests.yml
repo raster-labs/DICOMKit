@@ -47,7 +47,8 @@ jobs:
         xcodebuild -version
         
     - name: Cache Swift Package Manager
-      uses: actions/cache@v4
+      id: spm_cache
+      uses: actions/cache/restore@v4
       with:
         path: .build
         key: ${{ steps.apple_toolchain.outputs.cache-prefix }}-scheduled-coverage-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ steps.apple_toolchain.outputs.source-sha }}
@@ -89,10 +90,23 @@ jobs:
           2>&1 | tee scheduled-test-logs/release-source-envelope.log
 
     - name: Build and discover Debug tests with coverage
+      id: debug_build
       run: |
         set -o pipefail
+        # Discovery-only preparation left coverage unavailable in Swift 6.4.
+        # Build instrumented tests explicitly before discovery.
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays \
+          --build-tests --enable-code-coverage 2>&1 | tee scheduled-test-logs/debug-test-build.log
         swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays \
-          --enable-code-coverage list 2>&1 | tee scheduled-test-logs/debug-test-discovery.log
+          list --skip-build 2>&1 | tee scheduled-test-logs/debug-test-discovery.log
+        debug_bin_dir="$(swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --show-bin-path)"
+        case "$debug_bin_dir" in
+          "$GITHUB_WORKSPACE"/.build/*) ;;
+          *) echo '::error::Unexpected coverage output path'; exit 1 ;;
+        esac
+        # Cached profiles must never stand in for this execution's evidence.
+        rm -rf -- "$debug_bin_dir/codecov"
+        echo "DICOMKIT_COVERAGE_DIR=$debug_bin_dir/codecov" >> "$GITHUB_ENV"
 
     # The source-envelope test is executed above in Release, as in ci.yml.
     # Keep the full remaining Debug suite. Vision/network XCTest fixtures share
@@ -106,13 +120,23 @@ jobs:
           --enable-code-coverage --skip-build --no-parallel --skip largeSparseSource \
           2>&1 | tee scheduled-test-logs/debug-suite.log
 
-    - name: Generate test report and reject empty selections
+    - name: Generate report and require executed tests and coverage
       if: always()
       run: |
         python3 .github/scripts/report-scheduled-tests.py scheduled-test-logs \
           --release-outcome '${{ steps.release_tests.outcome }}' \
           --debug-outcome '${{ steps.debug_tests.outcome }}' \
+          --coverage-dir "${DICOMKIT_COVERAGE_DIR:-.build/unavailable-codecov}" \
           --summary "$GITHUB_STEP_SUMMARY"
+
+    # Preserve a successfully prepared build even if execution/reporting fails.
+    # A restored build is rebuilt at the checked-out source; profiles are reset.
+    - name: Save prepared Swift build cache
+      if: ${{ always() && !cancelled() && steps.debug_build.outcome == 'success' && steps.spm_cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: .build
+        key: ${{ steps.spm_cache.outputs.cache-primary-key }}
 
     - name: Preserve test logs and coverage
       if: always()
