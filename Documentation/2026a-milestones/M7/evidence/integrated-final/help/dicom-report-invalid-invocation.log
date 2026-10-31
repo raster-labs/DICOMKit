@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to the DICOM SR file
+Usage: dicom-report [<options>] <file-path> --output <output>
+  See 'dicom-report --help' for more information.

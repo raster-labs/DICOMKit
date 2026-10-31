@@ -1,0 +1,10 @@
+OVERVIEW: Get detailed information about a model
+
+USAGE: dicom-ai registry info --name <name> [--verbose]
+
+OPTIONS:
+  -n, --name <name>       Model name
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

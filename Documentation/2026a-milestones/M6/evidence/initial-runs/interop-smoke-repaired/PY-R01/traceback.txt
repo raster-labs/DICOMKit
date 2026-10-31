@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 898, in main
+    function(case);record['status']='passed'
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 827, in <lambda>
+    ('PY-R01','pynetdicom SCU to DICOMKit: color, mixed-VR Job Done ACK and retained Job',lambda c:py_reverse(c)),
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 776, in py_reverse
+    require(status.Status==0 and response.ExecutionStatus=='DONE','job not retained across associations')
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 51, in require
+    raise AssertionError(message)
+AssertionError: job not retained across associations

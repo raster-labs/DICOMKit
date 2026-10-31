@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-path>'
+Help:  <input-path>  Path to DICOM file or directory
+Usage: dicom-convert [<options>] <input-path> --output <output>
+  See 'dicom-convert --help' for more information.

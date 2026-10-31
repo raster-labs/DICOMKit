@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-paths> ...'
+Help:  <input-paths>  Input DICOM files or a single directory containing the series
+Usage: dicom-3d encode-volume <input-paths> ... --output <output> [--mode <mode>] [--psnr <psnr>] [--verbose]
+  See 'dicom-3d encode-volume --help' for more information.

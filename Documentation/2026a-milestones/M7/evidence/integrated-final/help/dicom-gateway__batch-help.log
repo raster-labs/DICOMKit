@@ -1,0 +1,17 @@
+OVERVIEW: Batch convert multiple files
+
+Convert multiple DICOM files to HL7/FHIR or vice versa in batch mode.
+
+USAGE: dicom-gateway batch <conversion-type> <input-pattern> --output <output> [--type <type>] [--verbose]
+
+ARGUMENTS:
+  <conversion-type>       Conversion type: dicom-to-hl7, dicom-to-fhir
+  <input-pattern>         Input file pattern (e.g., studies/*.dcm)
+
+OPTIONS:
+  -o, --output <output>   Output directory
+  --type <type>           Message/resource type (default: ADT)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

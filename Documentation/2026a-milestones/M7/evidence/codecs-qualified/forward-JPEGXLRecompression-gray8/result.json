@@ -1,0 +1,92 @@
+{
+  "name": "forward-JPEGXLRecompression-gray8",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/dcmcjpeg",
+        "+eb",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/original-jpeg.dcm"
+      ],
+      "exit": 0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/original-jpeg.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/recompressed.dcm",
+        "--transfer-syntax",
+        "JPEGXLRecompression"
+      ],
+      "exit": 0,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/djxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/stream.jxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/restored.jpg"
+      ],
+      "exit": 0,
+      "stdout": "2.stdout",
+      "stderr": "2.stderr"
+    },
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/recompressed.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/decoded.dcm",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "exit": 0,
+      "stdout": "3.stdout",
+      "stderr": "3.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/dcmdjpeg",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/original-jpeg.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGXLRecompression-gray8/foreign-decoded.dcm"
+      ],
+      "exit": 0,
+      "stdout": "4.stdout",
+      "stderr": "4.stderr"
+    }
+  ],
+  "encoded_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 1,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "MONOCHROME2",
+    "planarConfiguration": null,
+    "transferSyntax": "1.2.840.10008.1.2.4.111"
+  },
+  "reconstructionComparison": "Exact JPEG bytes with at most one trailing DICOM even-length NUL pad excluded",
+  "originalFragmentBytes": 810,
+  "restoredJPEGBytes": 810,
+  "decoded_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 1,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "MONOCHROME2",
+    "planarConfiguration": null,
+    "transferSyntax": "1.2.840.10008.1.2.1"
+  },
+  "jpeg_sha256": "fdd9dce52b4c3317a5858bf21bebbe7ef7be3c6f084dd87579da27a2b6086972",
+  "status": "passed",
+  "elapsed_seconds": 0.17288995895069093
+}

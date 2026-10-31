@@ -1,0 +1,1685 @@
+{
+  "recordedUTC": "2026-10-26T05:39:05.261571+00:00",
+  "status": "Passed — exact saved native/CLI comparisons only",
+  "completedNativeChecklistGroups": 0,
+  "checks": [
+    {
+      "check": "dry-run exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "dry-run exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "dry-run film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 10,
+        "after": 10
+      }
+    },
+    {
+      "check": "dry-run frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "dry-run complete diagnostic text parity",
+      "status": "Passed",
+      "detail": {
+        "stdout": "",
+        "stderr": "DICOM Print Tool v1.4.5\n=======================\nServer: 127.0.0.1:1\nCalling AE Title: M7NATIVE\nCalled AE Title: ANY-SCP\nNumber of Copies: 1\nFilm Size ID: 14INX17IN\nFilm Orientation: PORTRAIT\nPrint Priority: MED\nMedium Type: PAPER\nFilm Destination: PROCESSOR\nMagnification Type: REPLICATE\nColor Mode: GRAYSCALE\nRetries: 2\nMode: DRY RUN (no files will be printed)\n\nFound 1 file(s) to print\n  [1] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm\n\nDry run complete. Use without --dry-run to print files.\n",
+        "basis": "Shared SCUCommands.execute assigns fprintln=context.diagnostic and sends the entire dryrun text through it. Process context writes diagnostic lines to stderr; Workshop routes both diagnostic and output lines into its one console. Only the final CLI line-terminator LF is removed for copied-console comparison. No text or behavioral field is normalized.",
+        "sourceReferences": [
+          "Sources/DICOMPrintCommandSupport/SCUCommands.swift:386",
+          "Sources/DICOMPrintCommandSupport/SCUCommands.swift:445",
+          "Sources/DICOMPrintCommandSupport/SCUCommands.swift:458",
+          "Sources/DICOMPrintCommandSupport/SCUCommands.swift:468",
+          "Sources/DICOMPrintCommandSupport/PrintCommandContext.swift:47",
+          "Sources/DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift:100"
+        ]
+      }
+    },
+    {
+      "check": "job exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "job exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "job film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 10,
+        "after": 10
+      }
+    },
+    {
+      "check": "job frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "job complete schema/value parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "creationDate": "2026-10-25T18:30:00Z",
+          "CreationDate": "20261026",
+          "CreationTime": "105511",
+          "ExecutionStatus": "DONE",
+          "ExecutionStatusInfo": "NORMAL",
+          "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+          "status": "DONE",
+          "statusInfo": "NORMAL"
+        },
+        "cli": {
+          "creationDate": "2026-10-25T18:30:00Z",
+          "CreationDate": "20261026",
+          "CreationTime": "105511",
+          "ExecutionStatus": "DONE",
+          "ExecutionStatusInfo": "NORMAL",
+          "jobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+          "status": "DONE",
+          "statusInfo": "NORMAL"
+        }
+      }
+    },
+    {
+      "check": "literal exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "literal exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "literal film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 10,
+        "after": 11
+      }
+    },
+    {
+      "check": "literal frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "literal result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922754888.726419",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922754271.700605",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922755965.155293",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "literal generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "literal complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [
+            "1: first; literal note",
+            "2: O'Neil second"
+          ],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 3,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992311939586.277315",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992311934216.821698",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "ROW\\1,3",
+          "magnificationType": "REPLICATE",
+          "mediumType": "CLEAR FILM",
+          "numberOfCopies": 2,
+          "presentationLUTShape": "IDENTITY",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+          "receivedAt": "2026-10-26T05:25:11Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [
+            "1: first; literal note",
+            "2: O'Neil second"
+          ],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 3,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922754888.726419",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922754271.700605",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "ROW\\1,3",
+          "magnificationType": "REPLICATE",
+          "mediumType": "CLEAR FILM",
+          "numberOfCopies": 2,
+          "presentationLUTShape": "IDENTITY",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922755965.155293",
+          "receivedAt": "2026-10-26T05:35:22Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "literal actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-011.png"
+        ]
+      }
+    },
+    {
+      "check": "literal decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "2f1e0a4ad795b0ba75ecaf26b3d0a29ba5f43bdcff09e288c60994dde90a8311",
+          "fileSHA256": "ff1d92ba68120e9e63da7ced5c1f8e1cd2fb80b21d4abadb76bbaf9fab4f7a65",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "2f1e0a4ad795b0ba75ecaf26b3d0a29ba5f43bdcff09e288c60994dde90a8311",
+          "fileSHA256": "ff1d92ba68120e9e63da7ced5c1f8e1cd2fb80b21d4abadb76bbaf9fab4f7a65",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-011.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "raw12 exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "raw12 exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "raw12 film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 11,
+        "after": 12
+      }
+    },
+    {
+      "check": "raw12 frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "raw12 result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992476278118.238793",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992476277784.764064",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922792114.167418",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922791737.937223",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922792604.654820",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "raw12 generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "raw12 complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992476278118.238793",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992476277784.764064",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+          "receivedAt": "2026-10-26T05:27:56Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922792114.167418",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922791737.937223",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922792604.654820",
+          "receivedAt": "2026-10-26T05:35:22Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "raw12 actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-012.png"
+        ]
+      }
+    },
+    {
+      "check": "raw12 decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-012.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "rgb8 exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "rgb8 exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "rgb8 film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 12,
+        "after": 13
+      }
+    },
+    {
+      "check": "rgb8 frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "rgb8 result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992491458726.850057",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992491458026.779732",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922832449.188870",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922832170.195054",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922836968.185126",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "rgb8 generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "rgb8 complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992491458726.850057",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992491458026.779732",
+          "filmSize": "8INX10IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+          "receivedAt": "2026-10-26T05:28:11Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 254,
+          "sheetWidthMillimeters": 203.2,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922832449.188870",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922832170.195054",
+          "filmSize": "8INX10IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922836968.185126",
+          "receivedAt": "2026-10-26T05:35:22Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 254,
+          "sheetWidthMillimeters": 203.2,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "rgb8 actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-013.png"
+        ]
+      }
+    },
+    {
+      "check": "rgb8 decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            288,
+            360
+          ],
+          "rgbaSHA256": "adc3c4600036cf3f7532be6d422102c2138a73e0bd19162b666a91daf3c75e22",
+          "fileSHA256": "47c209b2881e27f48976d33a688eb06881cc999f175381910ab83eda8a290ad8",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png"
+        },
+        "cli": {
+          "size": [
+            288,
+            360
+          ],
+          "rgbaSHA256": "adc3c4600036cf3f7532be6d422102c2138a73e0bd19162b666a91daf3c75e22",
+          "fileSHA256": "47c209b2881e27f48976d33a688eb06881cc999f175381910ab83eda8a290ad8",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-013.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "gray8 exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "gray8 exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "gray8 film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 13,
+        "after": 14
+      }
+    },
+    {
+      "check": "gray8 frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "gray8 result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992513351743.139346",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992513351202.224673",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922911864.455956",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922911530.891873",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922912389.158021",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "gray8 generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "gray8 complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992513351743.139346",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992513351202.224673",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+          "receivedAt": "2026-10-26T05:28:33Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922911864.455956",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922911530.891873",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922912389.158021",
+          "receivedAt": "2026-10-26T05:35:22Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "gray8 actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-014.png"
+        ]
+      }
+    },
+    {
+      "check": "gray8 decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-014.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "rle exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "rle exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "rle film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 14,
+        "after": 15
+      }
+    },
+    {
+      "check": "rle frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "rle result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992524594420.806663",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992524594032.513936",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922954105.503894",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922953809.991267",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922954614.207899",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "rle generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "rle complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992524594420.806663",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992524594032.513936",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+          "receivedAt": "2026-10-26T05:28:44Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922954105.503894",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922953809.991267",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922954614.207899",
+          "receivedAt": "2026-10-26T05:35:22Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "rle actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-015.png"
+        ]
+      }
+    },
+    {
+      "check": "rle decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-015.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "jpeg exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "jpeg exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "jpeg film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 15,
+        "after": 16
+      }
+    },
+    {
+      "check": "jpeg frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "jpeg result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992536123654.961882",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992536123251.257329",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922995833.296449",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922995493.705891",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922996342.838559",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "jpeg generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "jpeg complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992536123654.961882",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992536123251.257329",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+          "receivedAt": "2026-10-26T05:28:56Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992922995833.296449",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992922995493.705891",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922996342.838559",
+          "receivedAt": "2026-10-26T05:35:22Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "jpeg actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-016.png"
+        ]
+      }
+    },
+    {
+      "check": "jpeg decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+          "fileSHA256": "637031fff8fba690041eea62bc654f4230f470aa439b4cd9766e289f802a35f2",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-016.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "all-frames exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "all-frames exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "all-frames film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 16,
+        "after": 17
+      }
+    },
+    {
+      "check": "all-frames frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "all-frames result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992553278205.860443",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992553277800.862718",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923034687.234215",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923034392.828050",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923035680.889718",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "all-frames generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "all-frames complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 2,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 3,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992553278205.860443",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992553277800.862718",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "STANDARD\\2,2",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+          "receivedAt": "2026-10-26T05:29:13Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 2,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 3,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923034687.234215",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923034392.828050",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "STANDARD\\2,2",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923035680.889718",
+          "receivedAt": "2026-10-26T05:35:23Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "all-frames actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-017.png"
+        ]
+      }
+    },
+    {
+      "check": "all-frames decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+          "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+          "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-017.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "frame2 exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "frame2 exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "frame2 film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 17,
+        "after": 18
+      }
+    },
+    {
+      "check": "frame2 frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "frame2 result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992564496647.899265",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992564495669.720014",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923076263.329663",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923075878.818734",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923076820.559000",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "frame2 generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "frame2 complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992564496647.899265",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992564495669.720014",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+          "receivedAt": "2026-10-26T05:29:24Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923076263.329663",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923075878.818734",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923076820.559000",
+          "receivedAt": "2026-10-26T05:35:23Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "frame2 actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-018.png"
+        ]
+      }
+    },
+    {
+      "check": "frame2 decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+          "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+          "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-018.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "frame2-control exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "frame2-control exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "frame2-control film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 18,
+        "after": 19
+      }
+    },
+    {
+      "check": "frame2-control frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "frame2-control result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923115268.571295",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923114855.108642",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923115811.254279",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "frame2-control generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "frame2-control complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+          "receivedAt": "2026-10-26T05:29:35Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 1,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 1,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923115268.571295",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923114855.108642",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 1,
+          "imageDisplayFormat": "STANDARD\\1,1",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923115811.254279",
+          "receivedAt": "2026-10-26T05:35:23Z",
+          "rows": 1,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "frame2-control actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-019.png"
+        ]
+      }
+    },
+    {
+      "check": "frame2-control decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+          "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c",
+          "fileSHA256": "e89fa8e49f65ef26d0205668f77fad3b218e557e5daceb1782a3ff2d750efcc1",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-019.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    },
+    {
+      "check": "three-files exact argv",
+      "status": "Passed",
+      "detail": "Only executable resolved to frozen final binary; remaining literal tokens identical"
+    },
+    {
+      "check": "three-files exit and bounded completion",
+      "status": "Passed",
+      "detail": {
+        "exit": 0,
+        "timedOut": false
+      }
+    },
+    {
+      "check": "three-files film counter delta",
+      "status": "Passed",
+      "detail": {
+        "before": 19,
+        "after": 20
+      }
+    },
+    {
+      "check": "three-files frozen binary",
+      "status": "Passed",
+      "detail": "SHA256 preserved in parent-operated result"
+    },
+    {
+      "check": "three-files result schema and nonvolatile values",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992614658390.548696",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992614657927.998166",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992614660712.696102",
+          "success": true
+        },
+        "cli": {
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923156135.598263",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923155810.763879",
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923157192.418682",
+          "success": true
+        }
+      }
+    },
+    {
+      "check": "three-files generated identifiers differ",
+      "status": "Passed",
+      "detail": "Independent submissions must generate fresh identifiers"
+    },
+    {
+      "check": "three-files complete receiver film parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 2,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 3,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992614658390.548696",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992614657927.998166",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "STANDARD\\2,2",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992614660712.696102",
+          "receivedAt": "2026-10-26T05:30:14Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "cli": {
+          "annotations": [],
+          "borderDensity": "BLACK",
+          "callingAETitle": "M7NATIVE",
+          "columns": 2,
+          "densityMapping": "PAPER",
+          "dpi": 36,
+          "emptyImageDensity": "BLACK",
+          "filledImageBoxCount": 3,
+          "filmBoxUID": "1.2.826.0.1.3680043.10.511.4.1792992923156135.598263",
+          "filmOrientation": "PORTRAIT",
+          "filmSessionUID": "1.2.826.0.1.3680043.10.511.4.1792992923155810.763879",
+          "filmSize": "14INX17IN",
+          "imageBoxCount": 4,
+          "imageDisplayFormat": "STANDARD\\2,2",
+          "magnificationType": "REPLICATE",
+          "mediumType": "PAPER",
+          "numberOfCopies": 1,
+          "printJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923157192.418682",
+          "receivedAt": "2026-10-26T05:35:23Z",
+          "rows": 2,
+          "sheetHeightMillimeters": 431.79999999999995,
+          "sheetWidthMillimeters": 355.59999999999997,
+          "skippedImageBoxes": [],
+          "trim": "NO"
+        },
+        "excluded": [
+          "filmBoxUID",
+          "filmSessionUID",
+          "printJobUID",
+          "receivedAt"
+        ]
+      }
+    },
+    {
+      "check": "three-files actual job-to-file linkage",
+      "status": "Passed",
+      "detail": {
+        "native": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-010.png"
+        ],
+        "cli": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-020.png"
+        ]
+      }
+    },
+    {
+      "check": "three-files decoded pixel parity",
+      "status": "Passed",
+      "detail": {
+        "native": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+          "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-010.png"
+        },
+        "cli": {
+          "size": [
+            504,
+            612
+          ],
+          "rgbaSHA256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b",
+          "fileSHA256": "119cf79ca717d45069e4f75bfd11623cb66516930611aacda2c542e88e322d53",
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-020.png"
+        },
+        "scope": "PNG decode and dimension equality; actualUID/linkage checked separately"
+      }
+    }
+  ],
+  "failures": [],
+  "pending": [],
+  "records": [
+    {
+      "name": "literal",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922755965.155293",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-001.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-011.png"
+    },
+    {
+      "name": "raw12",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992476279152.3315",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922792604.654820",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-002.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-012.png"
+    },
+    {
+      "name": "rgb8",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992491464896.430531",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922836968.185126",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-003.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-013.png"
+    },
+    {
+      "name": "gray8",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992513352733.579759",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922912389.158021",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-004.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-014.png"
+    },
+    {
+      "name": "rle",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992524595191.882666",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922954614.207899",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-005.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-015.png"
+    },
+    {
+      "name": "jpeg",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992536124270.899346",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992922996342.838559",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-006.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-016.png"
+    },
+    {
+      "name": "all-frames",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992553279682.875410",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923035680.889718",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-007.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-017.png"
+    },
+    {
+      "name": "frame2",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992564497247.22627",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923076820.559000",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-008.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-018.png"
+    },
+    {
+      "name": "frame2-control",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923115811.254279",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-009.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-019.png"
+    },
+    {
+      "name": "three-files",
+      "nativeJobUID": "1.2.826.0.1.3680043.10.511.4.1792992614660712.696102",
+      "cliJobUID": "1.2.826.0.1.3680043.10.511.4.1792992923157192.418682",
+      "nativePNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-010.png",
+      "cliPNG": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received/native-020.png"
+    }
+  ],
+  "scope": "Read-only saved comparisons. Broader native print acceptance remains with parent checklist; no product/UI/peer/build launched by verifier."
+}

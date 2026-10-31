@@ -456,8 +456,8 @@ extension DICOMConverter {
                     signed: .unsignedOnly, minFrames: 1, maxRLESegments: nil)
             case TransferSyntax.jpegExtended.uid:
                 return PixelRule(
-                    requirement: "unsigned data of up to 12 bits with 1 or 3 samples",
-                    bitsAllocated: [8, 16], bitsStored: 1...12, samples: [1, 3],
+                    requirement: "unsigned monochrome data of up to 12 bits (1 sample per pixel)",
+                    bitsAllocated: [8, 16], bitsStored: 1...12, samples: [1],
                     signed: .unsignedOnly, minFrames: 1, maxRLESegments: nil)
             case TransferSyntax.jpegLossless.uid, TransferSyntax.jpegLosslessSV1.uid:
                 return PixelRule(

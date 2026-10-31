@@ -1,0 +1,203 @@
+{
+  "result": "Passed",
+  "assertions": 45,
+  "checks": [
+    {
+      "assertion": "one CLI seed plus exactly four native N-SET requests",
+      "result": "Passed"
+    },
+    {
+      "assertion": "operation ordering",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 1 raw hash",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 1 independently decoded JSON",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 1 strict peer accepted",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 1 original Unicode patient retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 1 original charset retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 2 raw hash",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 2 independently decoded JSON",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 2 strict peer accepted",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 2 original Unicode patient retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 2 original charset retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 3 raw hash",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 3 independently decoded JSON",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 3 strict peer accepted",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 3 original Unicode patient retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 3 original charset retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 4 raw hash",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 4 independently decoded JSON",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 4 strict peer accepted",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 4 original Unicode patient retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 4 original charset retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 5 raw hash",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 5 independently decoded JSON",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 5 strict peer accepted",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 5 original Unicode patient retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "request 5 original charset retained",
+      "result": "Passed"
+    },
+    {
+      "assertion": "intermediate request2 has no end fields",
+      "result": "Passed"
+    },
+    {
+      "assertion": "intermediate request2 remains IN PROGRESS",
+      "result": "Passed"
+    },
+    {
+      "assertion": "intermediate request3 has no end fields",
+      "result": "Passed"
+    },
+    {
+      "assertion": "intermediate request3 remains IN PROGRESS",
+      "result": "Passed"
+    },
+    {
+      "assertion": "intermediate request4 has no end fields",
+      "result": "Passed"
+    },
+    {
+      "assertion": "intermediate request4 remains IN PROGRESS",
+      "result": "Passed"
+    },
+    {
+      "assertion": "explicit intermediate status and exact description",
+      "result": "Passed"
+    },
+    {
+      "assertion": "omitted status absent and exact description",
+      "result": "Passed"
+    },
+    {
+      "assertion": "omitted scalar does not reset series",
+      "result": "Passed"
+    },
+    {
+      "assertion": "extra action correctly classified intermediate sequence update",
+      "result": "Passed"
+    },
+    {
+      "assertion": "extra intermediate carries real no-image series",
+      "result": "Passed"
+    },
+    {
+      "assertion": "no invented image or nonimage references",
+      "result": "Passed"
+    },
+    {
+      "assertion": "final correctly settled status is COMPLETED",
+      "result": "Passed"
+    },
+    {
+      "assertion": "final supplies required end date and time",
+      "result": "Passed"
+    },
+    {
+      "assertion": "final retains full series",
+      "result": "Passed"
+    },
+    {
+      "assertion": "no invalid long description reached peer",
+      "result": "Passed"
+    },
+    {
+      "assertion": "exactly five associations",
+      "result": "Passed"
+    },
+    {
+      "assertion": "no peer exceptions",
+      "result": "Passed"
+    }
+  ],
+  "native_actions": 6,
+  "native_wire_requests": 4,
+  "cli_seed_requests": 1,
+  "local_refusals": 2,
+  "extra_intermediate_action": {
+    "native_action": 4,
+    "wire_request": 4,
+    "description": "Native completed",
+    "actual_status": "IN PROGRESS",
+    "reason": "Menu selection and Run were initially batched; previous omitted-status selection executed. Preserved as intermediate sequence evidence, not terminal evidence."
+  },
+  "terminal_action": 5,
+  "terminal_wire_request": 5,
+  "limits": [
+    "Native control interaction and local refusal text rely on root UI observations; this receipt independently verifies every received dataset and exact request count.",
+    "No full GUI console byte parity, full IOD conformance, or external PACS qualification."
+  ]
+}

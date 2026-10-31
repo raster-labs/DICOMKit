@@ -1,0 +1,3 @@
+Error: Unknown option '--regenerate-uids'
+Usage: dicom-anon [<options>] <input-path>
+  See 'dicom-anon --help' for more information.

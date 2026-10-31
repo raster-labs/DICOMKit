@@ -1,0 +1,34 @@
+name: Audit tooling
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Scripts/**'
+      - '.github/workflows/audit-tooling.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Scripts/**'
+      - '.github/workflows/audit-tooling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    name: Audit regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check audit repairs and negative controls
+        run: python3 -m unittest discover -s Scripts -p 'test_*audit_m*.py' -v
+      - name: Audit current source tags against the dictionary
+        run: python3 Scripts/audit_tags.py . --strict

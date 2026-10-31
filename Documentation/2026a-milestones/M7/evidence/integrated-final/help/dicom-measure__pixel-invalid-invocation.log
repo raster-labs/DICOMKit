@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to the DICOM file
+Usage: dicom-measure pixel <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] --point <point> [--frame-number <frame-number>] [--frame <frame>]
+  See 'dicom-measure pixel --help' for more information.

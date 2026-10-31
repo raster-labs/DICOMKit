@@ -1,0 +1,25 @@
+{
+  "case": "ups-identity-get",
+  "surface": "cli",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+    "ups",
+    "http://127.0.0.1:62053/cli/dicom-web",
+    "--get",
+    "2.25.20261024001",
+    "--format",
+    "json"
+  ],
+  "started_utc": "2026-10-26T08:56:05.979592+00:00",
+  "finished_utc": "2026-10-26T08:56:06.007854+00:00",
+  "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+  "exit": 0,
+  "expected_exit": 0,
+  "request_count_before": 1,
+  "request_count_after": 2,
+  "request_indices": [
+    2
+  ],
+  "expected_requests": 1,
+  "passed": true
+}

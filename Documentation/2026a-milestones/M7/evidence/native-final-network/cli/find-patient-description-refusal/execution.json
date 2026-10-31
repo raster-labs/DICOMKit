@@ -1,0 +1,38 @@
+{
+  "case": "find-patient-description-refusal",
+  "peer": "find",
+  "native_capture": null,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-patient-description-refusal.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+    "127.0.0.1:60702",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "ANY-SCP",
+    "--level",
+    "patient",
+    "--study-description",
+    "M3*",
+    "--timeout",
+    "60",
+    "--format",
+    "json"
+  ],
+  "expected_exit": 64,
+  "started_utc": "2026-10-26T08:15:03.815985+00:00",
+  "finished_utc": "2026-10-26T08:15:03.834220+00:00",
+  "binary_sha256": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+  "exit": 64,
+  "state_before": {
+    "associations": 6,
+    "errors": [],
+    "requests": 6
+  },
+  "state_after": {
+    "associations": 6,
+    "errors": [],
+    "requests": 6
+  },
+  "expected_exit_passed": true
+}

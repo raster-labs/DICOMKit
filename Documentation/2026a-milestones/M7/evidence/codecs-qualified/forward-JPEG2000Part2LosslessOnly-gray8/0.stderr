@@ -1,0 +1,3 @@
+❌ Conversion failed
+Cannot convert Explicit VR Little Endian [1.2.840.10008.1.2.1] to JPEG 2000 Part 2 Multi-component Image Compression (Lossless Only) [1.2.840.10008.1.2.4.92].
+Reason: JPEG 2000 Part 2 Multi-component Image Compression (Lossless Only) (1.2.840.10008.1.2.4.92) encoding is not supported: the JPEG 2000 Part-2 multi-component transform cannot be inverted by the current decoder, so the resulting codestream would not decode correctly. Use JPEG 2000 Part 1 (lossless .90 / general .91) or HTJ2K (.201 / .202 / .203) instead.

@@ -1,0 +1,4 @@
+Error: Missing expected argument '<script-path>'
+Help:  <script-path>  Script file path
+Usage: dicom-script run <script-path> [--variables <variables> ...] [--parallel] [--verbose] [--dry-run] [--log <log>]
+  See 'dicom-script run --help' for more information.

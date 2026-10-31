@@ -1,0 +1,100 @@
+import DICOMPrintCommandSupport
+
+/// Workshop controls for the existing dicom-print surface. The shared command
+/// parser remains authoritative for aliases, ranges and combinations.
+public enum CLIWorkshopPrintCatalog {
+    public static let definition = CLIToolDefinition(
+        id: "dicom-print", name: "dicom-print", displayName: "Print Client",
+        category: .networkOperations, sfSymbol: "printer",
+        briefDescription: "Print images, query printer and job status, and manage the Workshop printer list",
+        dicomStandardRef: "PS3.4 Annex H; PS3.3 C.13", hasSubcommands: true,
+        requiresNetwork: true, networkToolGroup: .dimse)
+
+    public static let parameters: [CLIParameterDefinition] = {
+        let network = ["status", "send", "job"]
+        let formatting = network + ["list-printers"]
+        func field(_ id: String, _ flag: String, _ label: String, _ type: CLIParameterType = .textField,
+                   commands: [String], required: Bool = false, value: String = "", help: String = "",
+                   allowed: [String] = [], repeated: Bool = false) -> CLIParameterDefinition {
+            CLIParameterDefinition(id: id, flag: flag, displayName: label, parameterType: type,
+                helpText: help, isRequired: required, isRepeatable: repeated, defaultValue: value,
+                allowedValues: allowed, visibleWhen: .init(parameterId: "operation", values: commands))
+        }
+        return [
+            CLIParameterDefinition(id: "operation", flag: "", displayName: "Operation", parameterType: .subcommand,
+                helpText: "The printer list belongs to this Workshop environment and is separate from Print Center. Send uses its explicit URL and AE fields.",
+                isRequired: true, defaultValue: "send",
+                allowedValues: ["status", "send", "job", "list-printers", "add-printer", "remove-printer"]),
+            field("url", "", "Printer URL", commands: network, required: true,
+                  help: "pacs://hostname:port (default port 11112)"),
+            field("paths", "", "DICOM Files or Directories", .arrayField, commands: ["send"], required: true,
+                  help: "Ordered file or directory paths, one entry per row. Use Browse to grant file access.", repeated: true),
+            field("aet", "--aet", "Calling AE Title", commands: network, required: true),
+            field("calledAet", "--called-aet", "Called AE Title", commands: network, value: "ANY-SCP"),
+            field("queryTimeout", "--timeout", "Connection Timeout (seconds)", .integerField,
+                  commands: ["status", "job"], value: "30"),
+            field("sendTimeout", "--timeout", "Connection Timeout (seconds)", .integerField,
+                  commands: ["send"], value: "60"),
+            field("format", "--format", "Output Format", .enumPicker, commands: formatting,
+                  value: "text", help: "JSON is result output; diagnostics remain separate in the CLI.", allowed: ["text", "json"]),
+            field("verbose", "--verbose", "Verbose", .booleanToggle, commands: formatting, value: "false"),
+            field("copies", "--copies", "Number of Copies", .integerField, commands: ["send"], value: "1",
+                  help: "Number of Copies (2000,0010), at least 1."),
+            field("filmSize", "--film-size", "Film Size ID", commands: ["send"], value: "14x17",
+                  help: PrintSCUOptionVocabulary.filmSizes),
+            field("orientation", "--orientation", "Film Orientation", commands: ["send"], value: "portrait",
+                  help: PrintSCUOptionVocabulary.orientations),
+            field("priority", "--priority", "Print Priority", commands: ["send"], value: "medium",
+                  help: PrintSCUOptionVocabulary.priorities),
+            field("layout", "--layout", "Image Display Format", commands: ["send"],
+                  help: "Grid RxC, STANDARD\\C,R, ROW\\R1,R2,..., COL\\C1,C2,..., SLIDE, SUPERSLIDE or CUSTOM\\i. Empty selects automatic layout. Conflicts with Template."),
+            field("template", "--template", "Layout Template", .enumPicker, commands: ["send"],
+                  help: "Sets layout, film size and orientation. Leave empty for automatic layout or explicit Layout.",
+                  allowed: ["", "single", "comparison", "grid", "multi-phase"]),
+            field("medium", "--medium", "Medium Type", commands: ["send"], value: "paper",
+                  help: PrintSCUOptionVocabulary.media),
+            field("magnification", "--magnification", "Magnification Type", commands: ["send"], value: "replicate",
+                  help: PrintSCUOptionVocabulary.magnifications),
+            field("filmDestination", "--film-destination", "Film Destination", commands: ["send"], value: "processor",
+                  help: "processor / PROCESSOR, magazine / MAGAZINE, or bin-N / BIN_N for N >= 1 with no leading zeros."),
+            field("checkStatus", "--check-status", "Check Printer Status", .booleanToggle, commands: ["send"], value: "false",
+                  help: "N-GET before printing: refuse FAILURE and report WARNING."),
+            field("verify", "--verify", "Verify Connection", .booleanToggle, commands: ["send"], value: "false",
+                  help: "Perform C-ECHO before printing."),
+            field("color", "--color", "Color Mode", .enumPicker, commands: ["send", "add-printer"], value: "grayscale",
+                  help: "Basic Grayscale or Basic Color Print Management Meta SOP Class.", allowed: ["grayscale", "color"]),
+            field("frame", "--frame", "Frame (1-based)", .integerField, commands: ["send"], value: "1"),
+            field("allFrames", "--all-frames", "All Frames", .booleanToggle, commands: ["send"], value: "false",
+                  help: "Print every frame. Conflicts with a Frame other than 1."),
+            field("raw", "--raw", "Stored Pixel Values", .booleanToggle, commands: ["send"], value: "false",
+                  help: "Skip rescale, windowing and inversion. Compressed sources are still decoded. Off means preprocessing; no --no-raw option exists."),
+            field("windowCenter", "--window-center", "Window Center", commands: ["send"],
+                  help: "Decimal value; requires Window Width. Negative values are preserved."),
+            field("windowWidth", "--window-width", "Window Width", commands: ["send"],
+                  help: "Decimal width; requires Window Center."),
+            field("bitDepth", "--bit-depth", "Grayscale Bit Depth", .integerField, commands: ["send"], value: "8",
+                  help: "Bits Stored: 8 or 12. Existing CLI clamps higher values; 12 uses 12-in-16 P-Values."),
+            field("presentationLut", "--presentation-lut", "Presentation LUT", commands: ["send"],
+                  help: PrintSCUOptionVocabulary.presentationLUTs + "; empty creates no Presentation LUT."),
+            field("palette", "--palette", "Pixel Palette", commands: ["send"], help: PrintSCUOptionVocabulary.palettes),
+            field("annotate", "--annotate", "Annotations", .arrayField, commands: ["send"],
+                  help: "One annotation per row; position starts at 1. Text, spaces, semicolons and backslashes are preserved. Requires Annotation Format.", repeated: true),
+            field("annotationFormat", "--annotation-format", "Annotation Display Format ID", commands: ["send"],
+                  help: "Use the format identifier supported by the printer's Conformance Statement."),
+            field("recursive", "--recursive", "Scan Directories Recursively", .booleanToggle, commands: ["send"], value: "false"),
+            field("dryRun", "--dry-run", "Dry Run", .booleanToggle, commands: ["send"], value: "false",
+                  help: "Validate options and discover files without connecting or printing; does not qualify image decoding or printer support."),
+            field("retries", "--retries", "Connection Retries", .integerField, commands: ["send"], value: "0",
+                  help: "Retry connection/setup failures with exponential backoff."),
+            field("jobId", "--job-id", "Print Job SOP Instance UID", commands: ["job"], required: true),
+            field("name", "--name", "Printer Name", commands: ["add-printer", "remove-printer"], required: true,
+                  help: "Exact case-sensitive name in this Workshop printer list."),
+            field("host", "--host", "Printer Host", commands: ["add-printer"], required: true),
+            field("port", "--port", "Printer Port", .integerField, commands: ["add-printer"], value: "11112"),
+            field("calledAe", "--called-ae", "Saved Called AE Title", commands: ["add-printer"], required: true),
+            field("callingAe", "--calling-ae", "Saved Calling AE Title", commands: ["add-printer"]),
+            field("default", "--default", "Mark as Default", .booleanToggle, commands: ["add-printer"], value: "false",
+                  help: "Clears other default marks in this list. Send still uses its explicit connection fields.")
+        ]
+    }()
+}

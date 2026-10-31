@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "milestone": "M6",
+  "state": "In progress",
+  "counts": {
+    "total": 8,
+    "Passed": 4,
+    "Partially verified": 2,
+    "Blocked": 2
+  },
+  "criteria": [
+    {
+      "id": "WS-COV-07-AC01",
+      "assertion": "A capability decision is recorded: implemented/qualified or explicitly excluded.",
+      "result": "Passed",
+      "evidence": [
+        "REPORT.md",
+        "../PLAN.md"
+      ],
+      "scope_note": "Implementation decision recorded; exclusion alternative is superseded. This does not mean the whole enhancement is qualified."
+    },
+    {
+      "id": "WS-COV-07-AC02",
+      "assertion": "If implemented, every exposed subcommand/flag has a real execution route and no unsupported operation is presented as successful.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/qualified-v2/dicom-printTests.log",
+        "evidence/qualified-v2/dicom-printscpTests.log",
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "evidence/print-cli-audit.log",
+        "evidence/print-studio-parity-audit.log",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/catalog-regression-tests.log"
+      ],
+      "scope_note": "Catalog, shared real parser/execution routes, validation and error/lifecycle tests passed. The external baseline exercised all 10 command routes through 18 actual VM actions and 18 matching CLI comparisons. This is finite automated route evidence; native presentation acceptance remains AC03/04."
+    },
+    {
+      "id": "WS-COV-07-AC03",
+      "assertion": "Compare visible form values, generated command/argv and actual request/output on synthetic inputs.",
+      "result": "Partially verified",
+      "evidence": [
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "interop-qualification.json",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/workshop-campaign-v4/artifacts.json",
+        "evidence/workshop-image-extension/results.json"
+      ],
+      "scope_note": "25 actual test-host VM actions and 25 matching CLI comparisons passed, including frame/codec image controls. Automated argv/output evidence is complete for this finite corpus; visible packaged form/runtime comparison remains pending. No native GUI claim."
+    },
+    {
+      "id": "WS-COV-07-AC04",
+      "assertion": "Qualify an actual packaged-app action before claiming GUI runtime parity.",
+      "result": "Blocked",
+      "evidence": [
+        "evidence/native-gui-blocker.json"
+      ],
+      "scope_note": "Actual packaged-app Workshop actions have not been performed for M6; Mac locked. No GUI parity claim."
+    },
+    {
+      "id": "WS-COV-08-AC01",
+      "assertion": "A capability decision is recorded: implemented/qualified or explicitly excluded.",
+      "result": "Passed",
+      "evidence": [
+        "REPORT.md",
+        "../PLAN.md"
+      ],
+      "scope_note": "Implementation decision recorded; exclusion alternative is superseded. This does not mean the whole enhancement is qualified."
+    },
+    {
+      "id": "WS-COV-08-AC02",
+      "assertion": "If implemented, every exposed subcommand/flag has a real execution route and no unsupported operation is presented as successful.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/qualified-v2/dicom-printTests.log",
+        "evidence/qualified-v2/dicom-printscpTests.log",
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "evidence/print-cli-audit.log",
+        "evidence/print-studio-parity-audit.log",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/catalog-regression-tests.log"
+      ],
+      "scope_note": "Catalog, shared real parser/execution routes, validation and error/lifecycle tests passed. The external baseline exercised all 10 command routes through 18 actual VM actions and 18 matching CLI comparisons. This is finite automated route evidence; native presentation acceptance remains AC03/04."
+    },
+    {
+      "id": "WS-COV-08-AC03",
+      "assertion": "Compare visible form values, generated command/argv and actual request/output on synthetic inputs.",
+      "result": "Partially verified",
+      "evidence": [
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "interop-qualification.json",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/workshop-campaign-v4/artifacts.json",
+        "evidence/workshop-image-extension/results.json"
+      ],
+      "scope_note": "25 actual test-host VM actions and 25 matching CLI comparisons passed, including frame/codec image controls. Automated argv/output evidence is complete for this finite corpus; visible packaged form/runtime comparison remains pending. No native GUI claim."
+    },
+    {
+      "id": "WS-COV-08-AC04",
+      "assertion": "Qualify an actual packaged-app action before claiming GUI runtime parity.",
+      "result": "Blocked",
+      "evidence": [
+        "evidence/native-gui-blocker.json"
+      ],
+      "scope_note": "Actual packaged-app Workshop actions have not been performed for M6; Mac locked. No GUI parity claim."
+    }
+  ],
+  "completion_rule": "Both AC03 and AC04 sets must be completed with packaged native Workshop evidence before M6 is complete."
+}

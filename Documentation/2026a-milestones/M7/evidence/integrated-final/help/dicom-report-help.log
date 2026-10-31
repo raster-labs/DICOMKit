@@ -1,0 +1,53 @@
+OVERVIEW: Generate clinical reports from DICOM Structured Report objects
+
+Parse DICOM SR documents and generate professional clinical reports in various
+formats.
+Supports Basic Text SR, Enhanced SR, Comprehensive SR, and specialized report
+types.
+
+Examples:
+  dicom-report sr.dcm --output report.txt --format text
+  dicom-report sr.dcm --output report.html --format html
+  dicom-report sr.dcm --output data.json --format json
+  dicom-report sr.dcm --output report.html --format html --style radiology
+
+--style picks a presentation preset (default, cardiology, radiology,
+oncology); an unknown value is refused. The SR template (a PS3.16
+TID) is read from the document's Content Template Sequence and
+shown in the header. --template is a deprecated alias of --style.
+
+Note: PDF format and image embedding are planned for future releases.
+
+USAGE: dicom-report [<options>] <file-path> --output <output>
+
+ARGUMENTS:
+  <file-path>             Path to the DICOM SR file
+
+OPTIONS:
+  -o, --output <output>   Output file path
+  -f, --format <format>   Output format: text, html, pdf, json, markdown
+                          (default: plain text (default))
+  --embed-images          Embed images from referenced instances (HTML/PDF only)
+  --image-dir <image-dir> Directory containing referenced image files
+  --style <style>         Styling preset: default, cardiology, radiology,
+                          oncology (section order and colours; not a PS3.16 SR
+                          template)
+  --template <style>      Deprecated: alias of --style (a styling preset, not a
+                          PS3.16 TID)
+  --title <title>         Custom report title (overrides SR title)
+  --logo <logo>           Path to hospital logo image for branding (PDF/HTML)
+  --footer <footer>       Custom footer text for report
+  --include-measurements/--no-include-measurements
+                          Include measurement tables in output (default:
+                          --include-measurements)
+  --include-summary/--no-include-summary
+                          Include the summary sections (Impressions,
+                          Recommendations) in text, HTML and Markdown; the
+                          content tree is always rendered (default:
+                          --include-summary)
+  --language <language>   Report language: en, es, fr, de (default: en)
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output for debugging
+  --version               Show the version.
+  -h, --help              Show help information.
+

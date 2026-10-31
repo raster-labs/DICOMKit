@@ -1,0 +1,63 @@
+using ${NEMA_DIR}/part03_2026a.xml: DICOM PS3.3 2026a - Information Object Definitions
+using ${NEMA_DIR}/part04_2026a.xml: DICOM PS3.4 2026a - Service Class Specifications
+using ${NEMA_DIR}/part05_2026a.xml: DICOM PS3.5 2026a - Data Structures and Encoding
+using ${NEMA_DIR}/part06_2026a.xml: DICOM PS3.6 2026a - Data Dictionary
+using ${NEMA_DIR}/part07_2026a.xml: DICOM PS3.7 2026a - Message Exchange
+using ${NEMA_DIR}/part10_2026a.xml: DICOM PS3.10 2026a - Media Storage and File Format for Media Interchange
+using ${NEMA_DIR}/part15_2026a.xml: DICOM PS3.15 2026a - Security and System Management Profiles
+using ${NEMA_DIR}/part16_2026a.xml: DICOM PS3.16 2026a - Content Mapping Resource
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 205, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 136, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 109, wrong 0, missing 0, extra 7
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: VR of every element written with an explicit vr:: matched 680, wrong 0, missing 0, extra 37
+ok   PS3.6 Table 6-1: typed reads (uint16/uint32/decimalString/...) match the element VR: matched 149, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 165, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 1551, wrong 0, missing 0, extra 0
+ok   PS3.3 Tables A.35.x-2: SR IOD value-type sets (DICOMCore, relied on by the DICOMKit builders): matched 19, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8-24 "Conversion Type" : ConversionType (SecondaryCapture/SecondaryCaptureImage.swift): matched 8, wrong 0, missing 0, extra 0
+ok   ShutterShape vs "Shutter Shape": no term list found in the 2026a text (check by hand): matched 0, wrong 0, missing 0, extra 1
+ok   PS3.3 C.10-5 "Graphic Type" : PresentationGraphicType (PresentationState/GraphicAnnotation.swift): matched 5, wrong 0, missing 0, extra 0
+ok   AnnotationUnits vs "Graphic Annotation Units": no term list found in the 2026a text (check by hand): matched 0, wrong 0, missing 0, extra 1
+ok   PS3.3 C.10-4 "Presentation Size Mode" : PresentationSizeMode (PresentationState/SpatialTransformation.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5 "Compound Graphic Type" : CompoundGraphicType (PresentationState/GraphicStyle.swift): matched 10, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5 "Compound Graphic Units" : CompoundGraphicUnits (PresentationState/GraphicStyle.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5 "Tick Alignment" : TickAlignment (PresentationState/GraphicStyle.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5 "Tick Label Alignment" : TickLabelAlignment (PresentationState/GraphicStyle.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5a "Horizontal Alignment" : TextHorizontalAlignment (PresentationState/GraphicStyle.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5a "Vertical Alignment" : TextVerticalAlignment (PresentationState/GraphicStyle.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5a "Shadow Style" : GraphicShadowStyle (PresentationState/GraphicStyle.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5b "Line Dashing Style" : LineDashingStyle (PresentationState/GraphicStyle.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-5c "Fill Mode" : GraphicFillMode (PresentationState/GraphicStyle.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 sect_C.11.15.1.2 "sect_C.11.15.1.2" : func:extractColorSpace (PresentationState/ColorManagement.swift): matched 4, wrong 0, missing 0, extra 7
+ok   PS3.3 C.8.20-2 "Segmentation Type" : SegmentationType (Segmentation/Segmentation.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 sect_C.8.20.2.3 "sect_C.8.20.2.3" : SegmentationFractionalType (Segmentation/Segmentation.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8.20-4 "Segment Algorithm Type" : SegmentAlgorithmType (Segmentation/Segmentation.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8-42 "Contour Geometric Type" : ContourGeometricType (RadiationTherapy/RTStructureSet.swift): matched 5, wrong 0, missing 0, extra 0
+ok   PS3.3 C.8-44 "RT ROI Interpreted Type" : RTROIInterpretedType (RadiationTherapy/RTStructureSet.swift): matched 25, wrong 0, missing 0, extra 0
+ok   PS3.3 C.10-9 "Waveform Originality" : WaveformOriginality (Waveform/Waveform.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "Image Box Layout Type" : ImageBoxLayoutType (HangingProtocol/DisplaySet.swift): matched 5, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "Image Box Scroll Direction" : ScrollDirection (HangingProtocol/DisplaySet.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "Reformatting Operation Type" : ReformattingType (HangingProtocol/DisplaySet.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "3D Rendering Type" : ThreeDRenderingType (HangingProtocol/DisplaySet.swift): matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "Sort-by Category" : SortByCategory (HangingProtocol/ImageSetDefinition.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "Sorting Direction" : SortDirection (HangingProtocol/ImageSetDefinition.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.3-1 "Filter-by Operator" : FilterOperator (HangingProtocol/ImageSetDefinition.swift): matched 8, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.1-1 "Image Set Selector Category" : ImageSetSelectorCategory (HangingProtocol/ImageSetDefinition.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.1-1 "Relative Time Units" : RelativeTimeUnits (HangingProtocol/ImageSetDefinition.swift): matched 7, wrong 0, missing 0, extra 0
+ok   PS3.3 C.23.1-1 "Hanging Protocol Level" : HangingProtocolLevel (HangingProtocol/HangingProtocol.swift): matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 C.17-2 "Completion Flag" : CompletionFlag (StructuredReporting/SRDocument.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.17-2 "Verification Flag" : VerificationFlag (StructuredReporting/SRDocument.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 C.17-2 "Preliminary Flag" : PreliminaryFlag (StructuredReporting/SRDocument.swift): matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 CID 42 "CID 42" CID: MeasurementQualifier (StructuredReporting/MeasurementExtractor.swift): matched 12, wrong 0, missing 0, extra 0
+ok   PS3.3 CID 7010 "CID 7010" CID: func:concept (StructuredReporting/KeyObjectSelectionBuilder.swift): matched 9, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 56, wrong 0, missing 0, extra 4
+ok   PS3.15 Table E.1-1: every row (Basic Profile action and option columns) and the pattern rows: matched 655, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1: video transfer syntax profile, level and BD flag in VideoConformanceValidator: matched 9, wrong 0, missing 0, extra 0
+ok   PS3.5 Tables 8-1, 8-2, 8-3: MPEG2 frame rates and Main Level maximum Rows / Columns in VideoConformanceValidator: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.5 8.2.12 (and Table 8.2.12-1) / 8.2.5 audio: VideoAudioRules per-format bit rate, sampling frequency, channels, container and CBR limits: matched 26, wrong 0, missing 0, extra 0
+ok   PS3.3 Table C.10-10: WaveformSampleInterpretation terms and signedness: matched 10, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 87, wrong 0, missing 0, extra 0
+ok   PS3.4 Tables B.5-1 / GG.3-1 + PS3.3 IOD modules: nonImageSOPClasses is every SOP Class without a pixel module (113 of 179): matched 113, wrong 0, missing 0, extra 0
+
+0 check(s) with wrong or missing values, 0 pending owner approval

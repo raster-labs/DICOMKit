@@ -1,0 +1,11 @@
+{
+  "recorded_utc": "2026-10-26T08:15:59.840192+00:00",
+  "tool_session_id": 57669,
+  "owned_processes": [
+    "66162 /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python -B work/DICOMKit-milestones/Scripts/m4_client_outcome_peer.py work/m7/native-final-network/cancel --seconds 3600"
+  ],
+  "host": "127.0.0.1",
+  "port": 60872,
+  "script_sha256": "f5af9e44db1a4a7c41baf024513744d104c30c2d710ee69c5c26c8b2b390e9b0",
+  "scope": "Controlled peer-generated FE00 terminal statuses; no stores and no native user-issued C-CANCEL claim."
+}

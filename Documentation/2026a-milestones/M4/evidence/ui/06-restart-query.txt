@@ -1,0 +1,43 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 125-126
+~					44 text Console SUCCESS
++					128 button Description: Copy console output, Help: Copies the console output to the clipboard
+~					47 button Clear console output
++					129 scroll area
++						130 text $ dicom-query 127.0.0.1:53289 --aet M4CLIENT --called-aet M4SCP --level study --study-uid 1.2.826.0.1.3680043.10.543.301 --timeout 60 --format json
+
+[
+  {
+    "(0008,0020)" : "20260115",
+    "(0008,0030)" : "101500",
+    "(0008,0050)" : "ACC-A",
+    "(0008,0052)" : "STUDY",
+    "(0008,0054)" : "M4SCP",
+    "(0008,0061)" : "CT",
+    "(0008,1030)" : "Chest synthetic",
+    "(0010,0010)" : "Müller^Synthetic",
+    "(0010,0020)" : "P1",
+    "(0010,0030)" : "19700101",
+    "(0020,000D)" : "1.2.826.0.1.3680043.10.543.301",
+    "(0020,0010)" : "ST-A"
+  }
+]
+
++							131 text $ dicom-query 127.0.0.1:53289 --aet M4CLIENT --called-aet M4SCP --level study --study-uid 1.2.826.0.1.3680043.10.543.301 --timeout 60 --format json
+
+[
+  {
+    "(0008,0020)" : "20260115",
+    "(0008,0030)" : "101500",
+    "(0008,0050)" : "ACC-A",
+    "(0008,0052)" : "STUDY",
+    "(0008,0054)" : "M4SCP",
+    "(0008,0061)" : "CT",
+    "(0008,1030)" : "Chest synthetic",
+    "(0010,0010)" : "Müller^Synthetic",
+    "(0010,0020)" : "P1",
+    "(0010,0030)" : "19700101",
+    "(0020,000D)" : "1.2.826.0.1.3680043.10.5
++					132 text History
+~						54 text dicom-query dicom-query dicom-retrieve dicom-retrieve dicom-wado dicom-query
+The focused UI element is 102 text field (settable) Description: Study Instance UID, Value: 1.2.826.0.1.3680043.10.543.301, Placeholder: e.g. 1.2.840.113619...

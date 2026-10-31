@@ -1,0 +1,16 @@
+OVERVIEW: List available hardware acceleration backends
+
+Displays the hardware acceleration backends available on this platform
+and shows which backend will be used automatically.
+
+Examples:
+  dicom-compress backends
+  dicom-compress backends --json
+
+USAGE: dicom-compress backends [--json]
+
+OPTIONS:
+  --json                  Output as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+

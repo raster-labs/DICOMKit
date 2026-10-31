@@ -18,6 +18,7 @@
 
 import XCTest
 import DICOMCore
+import DICOMPrintTestSupport
 import DICOMNetwork
 @testable import DICOMPrintKit
 
@@ -34,14 +35,18 @@ final class DCMTKInteropTests: XCTestCase {
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
     }
 
-    /// A DICOM image to print. The DCMTK tools need a real file; this looks in
-    /// the developer's standard input folder rather than committing a fixture.
-    private static func sampleImage() -> URL? {
-        let candidates = [
-            FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent("Desktop/DICOM_Input/CT.dcm")
-        ]
-        return candidates.first { FileManager.default.fileExists(atPath: $0.path) }
+    /// Use an explicitly supplied synthetic fixture or generate one locally. Never inspect a developer's Desktop or patient files.
+    private func sampleImage() throws -> URL? {
+        if let explicit = ProcessInfo.processInfo.environment["DICOMKIT_PRINT_INTEROP_IMAGE"], !explicit.isEmpty {
+            guard FileManager.default.fileExists(atPath: explicit) else {
+                throw NSError(domain: "DCMTKInteropFixture", code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "DICOMKIT_PRINT_INTEROP_IMAGE does not name an existing fixture: \(explicit)"])
+            }
+            return URL(fileURLWithPath: explicit)
+        }
+        let fixture = workspace.appendingPathComponent("synthetic-print.dcm")
+        try SyntheticPrintFixture.data().write(to: fixture, options: .atomic)
+        return fixture
     }
 
     private struct ProcessResult {
@@ -153,7 +158,7 @@ final class DCMTKInteropTests: XCTestCase {
         guard let dcmpsprt = Self.tool("dcmpsprt"), let dcmprscu = Self.tool("dcmprscu") else {
             throw XCTSkip("DCMTK not installed (brew install dcmtk)")
         }
-        guard let image = Self.sampleImage() else {
+        guard let image = try sampleImage() else {
             throw XCTSkip("No sample DICOM image available for the DCMTK tools")
         }
 

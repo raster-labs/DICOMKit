@@ -1,0 +1,29 @@
+{
+  "case": "retrieve-move-cancel",
+  "peer": "cancel",
+  "native_capture": 3,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/retrieve-move-cancel.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+    "127.0.0.1:60872",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "M4PEER",
+    "--method",
+    "c-move",
+    "--move-dest",
+    "M4DEST",
+    "--study-uid",
+    "2.25.404",
+    "--output",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/retrieve-move-cancel-cli",
+    "--parallel",
+    "1",
+    "--priority",
+    "medium",
+    "--timeout",
+    "10"
+  ],
+  "expected_exit": 1
+}

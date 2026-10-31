@@ -1,0 +1,24 @@
+OVERVIEW: Check study completeness: series and instance counts, and gaps in
+Instance Number (0020,0013)
+
+A gap in Instance Number (0020,0013) within a series is reported as missing.
+This is a heuristic: PS3.3 Table C.7-9 defines Instance Number as "A number
+that identifies this image" (Type 2) and does not require consecutive numbering.
+
+USAGE: dicom-study check <path> [--expected-series <expected-series>] [--expected-instances <expected-instances>] [--report <report>] [--verbose]
+
+ARGUMENTS:
+  <path>                  Study directory
+
+OPTIONS:
+  --expected-series <expected-series>
+                          Expected number of series in the study (Number of
+                          Study Related Series)
+  --expected-instances <expected-instances>
+                          Expected number of instances in each series (Number
+                          of Series Related Instances)
+  --report <report>       Output report file path
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,225 @@
+{
+  "case": "FINAL-05",
+  "native_actions": 5,
+  "CLI_actions": 5,
+  "valid_pairs": 3,
+  "refusal_pairs": 2,
+  "assertions": 42,
+  "checks": [
+    {
+      "name": "native three valid requests and no requests for two invalid inputs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "final six associations and six requests only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "MWL peer clean stop",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request1 equals independently decoded peer JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request1 literal DA/TM values and VRs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request1 selects one synthetic work item",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request2 equals independently decoded peer JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request2 literal DA/TM values and VRs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request2 selects one synthetic work item",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request3 equals independently decoded peer JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request3 literal DA/TM values and VRs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request3 selects one synthetic work item",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request4 equals independently decoded peer JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request4 literal DA/TM values and VRs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request4 selects one synthetic work item",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request5 equals independently decoded peer JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request5 literal DA/TM values and VRs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request5 selects one synthetic work item",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request6 equals independently decoded peer JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw request6 literal DA/TM values and VRs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "request6 selects one synthetic work item",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-open-range expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-open-range native actual SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-open-range native and CLI decoded Identifier equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-open-range native complete result JSON equals CLI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-bounded-range expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-bounded-range native actual SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-bounded-range native and CLI decoded Identifier equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-bounded-range native complete result JSON equals CLI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-scalar expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-scalar native actual SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-scalar native and CLI decoded Identifier equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-scalar native complete result JSON equals CLI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-date expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-date native actual ERROR",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-date native refusal matches CLI error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-date CLI causes no new association or request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-time expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-time native actual ERROR",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-time native refusal matches CLI error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mwl-invalid-time CLI causes no new association or request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual copied leading-hyphen ranges are bound option values",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": true,
+  "limits": [
+    "Independent synthetic pynetdicom peer supports bounded query matching; not a full MWL SCP qualification."
+  ],
+  "verified_utc": "2026-10-26T08:10:32.431371+00:00"
+}

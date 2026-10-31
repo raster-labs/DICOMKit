@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "milestone": "M4",
+  "verified_at_utc": "2026-10-24T13:18:50.194863+00:00",
+  "baseline_commit": "b85c281e938ac6a0505bbfae1afc1f6619e59080",
+  "branch": "codex/dicom-2026a-milestones",
+  "local_result": "Passed within recorded scope",
+  "criteria": {
+    "criteria": 15,
+    "Passed": 14,
+    "missing_criteria": 0,
+    "Not applicable": 1
+  },
+  "environment": {
+    "system": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.0\nBuild version 27A266a"
+  },
+  "focused_unique_passed": 512,
+  "suite_passes": {
+    "DICOMWebTests": 111,
+    "dicom-serverTests": 101,
+    "DICOMNetworkTests": 108,
+    "dicom-queryTests": 14,
+    "dicom-retrieveTests": 9,
+    "dicom-wadoTests": 27,
+    "DICOMStudioTests": 142
+  },
+  "audit_regressions_passed": 30,
+  "separately_activated_harness_methods_passed": 3,
+  "skip_accounting": {
+    "initial_default_xctest_passed": 279,
+    "initial_default_xctest_skipped": 5,
+    "initial_default_xctest_failed": 0,
+    "later_CLI_rerun_resolved_skips": 2,
+    "separately_activated_harness_resolved_skips": 3,
+    "remaining_unexecuted_methods": [],
+    "note": "Initial counts concern XCTest only. Swift Testing contributes 89 Web and 142 Studio passes. The later 8-method CLI rerun adds 2 unique passes and repeats 6; three opt-in XCTest harness methods execute separately. All five initial skips now have explicit passing runs. Regular unique focused total is 512; opt-in 3 and Python audit 30 are additional, distinct counts."
+  },
+  "campaigns": {
+    "cancellation_clients": "evidence/clients/results.json",
+    "durability": "evidence/durability/results.json",
+    "capabilities": "evidence/capabilities/results.json",
+    "packaged_app": "evidence/ui/ui-verification.json"
+  },
+  "source_hash_manifest": "source-hashes.json",
+  "artifacts": {
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server": {
+      "sha256": "22dd4369252d563629692d2f8a12f1218e230e6aebcfb823b3fe209c468c64a0",
+      "bytes": 58983728
+    },
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send": {
+      "sha256": "22c90ceadfce67e67c36a5375d9dff2718ed0b36cfec996be4b0c0a092a21f5d",
+      "bytes": 40594192
+    },
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query": {
+      "sha256": "d5fb3e1b6bdcc7c5e6566056df2e4e622f72e84bb14a937456a5f32645aa9cf1",
+      "bytes": 64153488
+    },
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve": {
+      "sha256": "18ee1b4767aab515468b3a3c3a5dd659a67c5caaeb103ce6d9b57dd5ddbc4a77",
+      "bytes": 40709824
+    },
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado": {
+      "sha256": "1cf4d024ae7139f86d5219c0d821878670af4411e1e3335a68307d24217d1fad",
+      "bytes": 56592528
+    },
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr": {
+      "sha256": "bbbbbdb98d13d617549845c8a051bca796d790399387495ee3134a8b9874939c",
+      "bytes": 58116816
+    },
+    "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio": {
+      "sha256": "363913fcf2c48e8f6993a5064acacd696557b3068bedad2fd37dfa739b218624",
+      "bytes": 40216
+    },
+    "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/__preview.dylib": {
+      "sha256": "0936b7cbfe55d70534b884ea295d74a6857be67f78db4f88e410d6c95a0d4c3d",
+      "bytes": 16760
+    },
+    "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio.debug.dylib": {
+      "sha256": "86ba61581e5b0619184f4d2af2eef335bb74e3d62b793bb78a43a928aa32cf0c",
+      "bytes": 138558984
+    }
+  },
+  "packaged_app_build": "evidence/app-build-qualified.log",
+  "standard_basis": "M0 frozen 2026a source hashes; M4/REPORT.md links normative sections",
+  "remote_ci": "Must be checked on pushed commit; final snapshot accompanies user completion deliverable.",
+  "remaining_work": {
+    "M5": 7,
+    "M6": 2,
+    "M7": 2,
+    "deferred": 22,
+    "M0-COV-01": "Existing anonymization-profile Workshop coverage gap remains visible."
+  },
+  "limits": [
+    "Synthetic local loopback fixtures only; external PACS interoperability is not established.",
+    "Controlled CLI/Workshop FE00 campaigns validate outcome presentation; real server cancellation is established by separate ServerCancellationTests.",
+    "DICOMStudio ViewModel runtime evidence is distinct from the seven packaged-app GUI actions and seven final CLI replays. Saved screenshots/AX, request identifiers and retrieved file hashes were independently reviewed. No user cancel button was added; controlled FE00 responses exercise client presentation.",
+    "Capabilities HTTP transport is a test adapter calling the real Swift request handler; no production HTTP listener was added.",
+    "No bulk-data implementation or successful bulk payload acceptance is claimed; NET-09-B-AC03 remains a future mandatory condition.",
+    "Durability covers completed stores and process SIGTERM/SIGKILL restart, not power-loss or every storage/filesystem fault.",
+    "Native GUI console text can be truncated; full GUI console byte equality is not claimed.",
+    "M3 supplemental packaged UID-list/non-ASCII matching-input check remains unexecuted; M3 external DIMSE qualification limits remain."
+  ],
+  "evidence_copy_omitted_symlinks": [
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/symbolic-link/linked.dcm"
+  ],
+  "evidence_copy_note": "Negative symlink probes retain their logs/results; no live absolute symlinks are published. Serve-only UI capability results are excluded; ui-verification.json records executed GUI outcomes.",
+  "static_checks": {
+    "python_ast": "Passed for M4 Python support",
+    "bash_syntax": "Passed for verify_m4.sh",
+    "diff_whitespace": "Passed for authored code/docs; verbatim runtime logs, GUI text and upstream W3C schemas retain their original whitespace."
+  }
+}

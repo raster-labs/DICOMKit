@@ -1,0 +1,24 @@
+{
+  "files" : [
+    {
+      "errorCount" : 1,
+      "errors" : [
+        {
+          "message" : "Invalid date format for Patient's Birth Date (expected YYYYMMDD)",
+          "tag" : "(0010,0030)"
+        }
+      ],
+      "filePath" : "\/private\/tmp\/dicomkit-m2-ui\/invalid_calendar_date.dcm",
+      "isValid" : false,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 1,
+  "totalErrors" : 1,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 0
+}

@@ -1,0 +1,4 @@
+Error: Missing expected argument '<script-path>'
+Help:  <script-path>  Script file path
+Usage: dicom-script validate <script-path> [--verbose]
+  See 'dicom-script validate --help' for more information.

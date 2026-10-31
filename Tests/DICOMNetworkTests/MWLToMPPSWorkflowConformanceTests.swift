@@ -480,7 +480,7 @@ final class MWLToMPPSWorkflowConformanceTests: XCTestCase {
     }
 
     func test_nSetDiscontinued_carriesTerminalStatusAndType1EndDateTime() {
-        let data = nSetData(terminalStep(.discontinued, series: [], reason: discontinuationReason()))
+        let data = nSetData(terminalStep(.discontinued, series: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2026", protocolName: "Unperformed")], reason: discontinuationReason()))
 
         XCTAssertEqual(value(data, 0x0040, 0x0252), "DISCONTINUED", "PPS Status (0040,0252)")
         XCTAssertEqual(value(data, 0x0040, 0x0250), expectedDA(stepEnd), "PPS End Date (0040,0250) Type 1")
@@ -488,7 +488,7 @@ final class MWLToMPPSWorkflowConformanceTests: XCTestCase {
     }
 
     func test_nSetDiscontinued_carriesTheReasonCodeSequenceWithACompleteCodeItem() {
-        let data = nSetData(terminalStep(.discontinued, series: [], reason: discontinuationReason()))
+        let data = nSetData(terminalStep(.discontinued, series: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2026", protocolName: "Unperformed")], reason: discontinuationReason()))
 
         XCTAssertTrue(contains(data, 0x0040, 0x0281),
                       "PPS Discontinuation Reason Code Sequence (0040,0281)")
@@ -500,15 +500,15 @@ final class MWLToMPPSWorkflowConformanceTests: XCTestCase {
     }
 
     func test_nSetDiscontinued_isAllowedWithNothingAcquired() {
-        // A step aborted before any image was produced is the reason
-        // DISCONTINUED exists: no Performed Series item is required.
+        // Table F.7.2-1 Note 2 requires an item for either terminal state,
+        // even when no image or non-image instance was acquired.
         XCTAssertNoThrow(try DICOMMPPSService.validate(
-            terminalStep(.discontinued, series: [], reason: discontinuationReason()), for: .nSet))
+            terminalStep(.discontinued, series: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2026", protocolName: "Unperformed")], reason: discontinuationReason()), for: .nSet))
 
-        // The sequence is still sent, as a zero-item sequence.
-        XCTAssertTrue(contains(nSetData(terminalStep(.discontinued, series: [],
+        // The sequence includes the empty-acquisition series item.
+        XCTAssertTrue(contains(nSetData(terminalStep(.discontinued, series: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2026", protocolName: "Unperformed")],
                                                      reason: discontinuationReason())), 0x0040, 0x0340),
-                      "Performed Series Sequence (0040,0340) present, empty")
+                      "Performed Series Sequence (0040,0340) present with an item")
     }
 
     func test_nSetDiscontinued_afterPartialAcquisitionKeepsTheSeriesAlreadyStored() {
@@ -524,7 +524,7 @@ final class MWLToMPPSWorkflowConformanceTests: XCTestCase {
     }
 
     func test_nSetDiscontinued_omitsAttributesTheNSetColumnDoesNotAllow() {
-        let data = nSetData(terminalStep(.discontinued, series: [], reason: discontinuationReason()))
+        let data = nSetData(terminalStep(.discontinued, series: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2026", protocolName: "Unperformed")], reason: discontinuationReason()))
         XCTAssertFalse(contains(data, 0x0040, 0x0270),
                        "Scheduled Step Attributes Sequence (0040,0270) is Not allowed in N-SET")
         XCTAssertFalse(contains(data, 0x0008, 0x0060), "Modality is Not allowed in N-SET")
@@ -533,16 +533,16 @@ final class MWLToMPPSWorkflowConformanceTests: XCTestCase {
 
     // MARK: - State machine across the whole workflow (PS3.4 F.7.2.1.2 / F.7.2.1.3)
 
-    func test_workflow_onlyTheTwoTerminalTransitionsAreAccepted() {
+    func test_workflow_intermediateAndBothTerminalUpdatesAreAccepted() {
         let completed = terminalStep(.completed, series: [acquiredSeries()])
-        let discontinued = terminalStep(.discontinued, series: [], reason: discontinuationReason())
+        let discontinued = terminalStep(.discontinued, series: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2026", protocolName: "Unperformed")], reason: discontinuationReason())
 
-        // IN PROGRESS → COMPLETED and IN PROGRESS → DISCONTINUED are the only
-        // transitions; N-SET may never return a step to IN PROGRESS.
+        // Intermediate N-SET may retain IN PROGRESS; only terminal updates
+        // finish the instance, after which later N-SET must be refused.
         XCTAssertNoThrow(try DICOMMPPSService.validate(completed, for: .nSet))
         XCTAssertNoThrow(try DICOMMPPSService.validate(discontinued, for: .nSet))
-        XCTAssertThrowsError(try DICOMMPPSService.validate(inProgressStep(), for: .nSet),
-                             "N-SET to IN PROGRESS violates F.7.2.1.3")
+        XCTAssertNoThrow(try DICOMMPPSService.validate(inProgressStep(), for: .nSet),
+                         "Intermediate N-SET may retain IN PROGRESS (F.7.2.2.2)")
     }
 
     func test_workflow_terminalStateWithoutAnEndDateTimeIsRejected() {
@@ -601,7 +601,7 @@ final class MWLToMPPSWorkflowConformanceTests: XCTestCase {
         // the N-SET names it in the command set rather than the data set.
         let created = inProgressStep()
         for terminal in [terminalStep(.completed, series: [acquiredSeries()]),
-                         terminalStep(.discontinued, series: [], reason: discontinuationReason())] {
+                         terminalStep(.discontinued, series: [MPPSPerformedSeries(seriesInstanceUID: "2.25.2026", protocolName: "Unperformed")], reason: discontinuationReason())] {
             XCTAssertEqual(terminal.sopInstanceUID, created.sopInstanceUID,
                            "the terminal N-SET must target the created MPPS instance")
             XCTAssertEqual(terminal.studyInstanceUID, created.studyInstanceUID,

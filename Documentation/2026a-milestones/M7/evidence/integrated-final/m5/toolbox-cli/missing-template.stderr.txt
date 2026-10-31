@@ -1,0 +1,4 @@
+Error: Missing expected argument '<template-name>'
+Help:  <template-name>  Template name: 'workflow', 'pipeline', 'query', 'archive', 'anonymize'
+Usage: dicom-script template <template-name>
+  See 'dicom-script template --help' for more information.

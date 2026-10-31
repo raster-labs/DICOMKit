@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "status",
+    "pacs://127.0.0.1:21114",
+    "--aet",
+    "M7CLI",
+    "--called-aet",
+    "COLLISION",
+    "--timeout",
+    "5",
+    "--format",
+    "json"
+  ],
+  "returncode": 0,
+  "stdout": "{\n  \"isNormal\" : true,\n  \"manufacturer\" : \"DICOMKit\",\n  \"Manufacturer\" : \"DICOMKit\",\n  \"ManufacturerModelName\" : \"DICOM Print Emulator\",\n  \"model\" : \"DICOM Print Emulator\",\n  \"name\" : \"DICOMKIT-PRINTER\",\n  \"PrinterName\" : \"DICOMKIT-PRINTER\",\n  \"PrinterStatus\" : \"NORMAL\",\n  \"PrinterStatusInfo\" : \"NORMAL\",\n  \"status\" : \"NORMAL\",\n  \"statusInfo\" : \"NORMAL\"\n}\n",
+  "stderr": ""
+}

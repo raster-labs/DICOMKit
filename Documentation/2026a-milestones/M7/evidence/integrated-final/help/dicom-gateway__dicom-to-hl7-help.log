@@ -1,0 +1,20 @@
+OVERVIEW: Convert DICOM files to HL7 v2 messages
+
+Extract demographics, study info, and other data from DICOM files
+and generate HL7 v2 messages (ADT, ORM, ORU).
+
+USAGE: dicom-gateway dicom-to-hl7 <input> [--output <output>] [--message-type <message-type>] [--event-type <event-type>] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output HL7 file path
+  -t, --message-type <message-type>
+                          HL7 message type: ADT, ORM, ORU (default: ADT)
+  --event-type <event-type>
+                          ADT event type (e.g., A01, A02, A03) (default: A01)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-paths> ...'
+Help:  <input-paths>  Input DICOM files (multi-slice series)
+Usage: dicom-3d surface <input-paths> ... --output <output> --threshold <threshold> [--format <format>] [--verbose]
+  See 'dicom-3d surface --help' for more information.

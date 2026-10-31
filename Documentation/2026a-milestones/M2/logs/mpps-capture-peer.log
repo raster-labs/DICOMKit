@@ -1,0 +1,16 @@
+Building for debugging...
+[Computing dependencies]
+[Using on-disk description]
+[2 / 46] J2KSwift_J2KMetal
+Build complete! (0.78 sec)
+Test Suite 'Selected tests' started at 2026-10-24 16:27:48.718.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-24 16:27:48.724.
+Test Suite 'MPPSReferenceIntegrityTests' started at 2026-10-24 16:27:48.724.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testManualMPPSCapturePeer]' started.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testManualMPPSCapturePeer]' passed (132.996 seconds).
+Test Suite 'MPPSReferenceIntegrityTests' passed at 2026-10-24 16:30:01.720.
+	 Executed 1 test, with 0 failures (0 unexpected) in 132.996 (132.996) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-10-24 16:30:01.720.
+	 Executed 1 test, with 0 failures (0 unexpected) in 132.996 (132.996) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 16:30:01.720.
+	 Executed 1 test, with 0 failures (0 unexpected) in 132.996 (133.002) seconds

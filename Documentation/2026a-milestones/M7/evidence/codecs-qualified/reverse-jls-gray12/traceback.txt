@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 194, in case
+    try:body(d,run,record);record['status']='passed'
+        ^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 268, in <lambda>
+    case('reverse-'+family+'-'+inp,lambda d,run,rec,f=family,i=inp:reverse(d,run,rec,f,i))
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 262, in reverse
+    out=d/'decoded.dcm';run([binary,foreign,'--output',out,'--transfer-syntax','ExplicitVRLittleEndian']);decoded=pydicom.dcmread(out)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 193, in run
+    if proc.returncode!=0:raise CommandFailure(command,err.read_text(errors='replace'))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+CommandFailure: Process failed: ['/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert', '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/foreign.dcm', '--output', '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/decoded.dcm', '--transfer-syntax', 'ExplicitVRLittleEndian']; ❌ Conversion failed
+Cannot convert JPEG-LS Lossless Image Compression [1.2.840.10008.1.2.4.80] to Explicit VR Little Endian [1.2.840.10008.1.2.1].
+Reason: The DICOM data could not be parsed.
+Details: Parsing failed: JPEG-LS precision mismatch is outside the selected recovery policy
+

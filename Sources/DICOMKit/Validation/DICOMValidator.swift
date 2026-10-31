@@ -1,5 +1,7 @@
 // NEMA-verified: 2026a, checked 2026-10-01 — PS3.10 2026a Table 7.1-1 Type 1 File Meta elements; PS3.5 Table 6.2-1 maximum lengths and character repertoires of the 16 character-string VRs (AE AS CS DA DS DT IS LO LT PN SH ST TM UC UI UT) and the DA, TM, UI, AS, DS, IS forms, PS3.5 6.2.1 PN component groups, PS3.6 Table 6-1 VM column (level 2, errors); ISO_IR 192; per-IOD Type 1/2 tables from PS3.3 Tables A.2-1, A.3-1, A.4-1, A.6-1, A.8-1, A.33.1-1, A.33.3-1, A.35.1-1..A.35.4-1 and the module tables C.7-1, C.7-3, C.7-5a, C.7-6, C.7-8, C.7-9, C.7-10, C.7-11b/c, C.8-1, C.8-3, C.8-4, C.8-18, C.8-24, C.10-4, C.11.9-1 (PR), C.11.10-1, 10-12 (Content Creator's Name Type 3 via Table 10.9.3-1), C.11.11-1b, C.11.6-1, C.11.15-1, C.12-1, C.17-1 (SR), C.17-2, C.17-5 (root Concept Name Code Sequence 1C), C.18.8-1, C.17.6-1 (KO), C.17.6-2; IOD message prefixes are PS3.6 Table A-1 SOP Class names; Type semantics PS3.5 7.4.1-7.4.4
 // NEMA-verified: 2026a, checked 2026-10-06 — iodNameBySOPClassUID (lifted from dicom-validate IODOption, D248): the 7 UIDs and their comments are PS3.6 2026a Table A-1 rows (dumped by script), the IODs they name are the PS3.3 2026a A.2, A.3, A.4, A.6, A.8, A.33.1, A.33.3 titles that PS3.4 2026a Table B.5-1 assigns to them; iodName(forIODOption:) accepts Table A-1 keywords and UIDs
+// M2 2026-10-24: PS3.10 Table 7.1-1 value/identity/encoded length checks;
+// PS3.5 7.5 recursive item validation and shared stored-value grammar.
 import Foundation
 import DICOMCore
 import DICOMDictionary
@@ -26,6 +28,15 @@ public struct DICOMValidator {
         do {
             dicomFile = try DICOMFile.read(from: data, force: force)
         } catch {
+            // A malformed/empty Transfer Syntax UID can prevent dataset parsing.
+            // Still report the independently readable Type 1 meta diagnostics.
+            if data.count >= 132, data.dropFirst(128).prefix(4).elementsEqual([68, 73, 67, 77]) {
+                var parser = DICOMParser(data: data)
+                if let meta = try? parser.parseFileMetaInformation(startOffset: 132) {
+                    validateFileMetaInformation(dicomFile: DICOMFile(fileMetaInformation: meta, dataSet: DataSet()),
+                        encodedFile: data, errors: &errors, warnings: &warnings)
+                }
+            }
             errors.append(ValidationIssue(
                 level: .error,
                 message: "Failed to parse DICOM file: \(error.localizedDescription)",
@@ -48,7 +59,7 @@ public struct DICOMValidator {
         }
         
         // Validate file meta information
-        validateFileMetaInformation(dicomFile: dicomFile, errors: &errors, warnings: &warnings)
+        validateFileMetaInformation(dicomFile: dicomFile, encodedFile: data, errors: &errors, warnings: &warnings)
         
         if level >= 2 {
             // Level 2: Tag presence and VR/VM validation
@@ -85,41 +96,90 @@ public struct DICOMValidator {
         return ValidationResult(filePath: filePath, isValid: isValid, errors: errors, warnings: warnings)
     }
     
-    private func validateFileMetaInformation(dicomFile: DICOMFile, errors: inout [ValidationIssue], warnings: inout [ValidationIssue]) {
-        let dataSet = dicomFile.fileMetaInformation
-        
-        // The Type 1 File Meta Information elements of PS3.10 Table 7.1-1
-        let requiredMetaTags: [(Tag, String)] = [
-            (.fileMetaInformationGroupLength, "File Meta Information Group Length"),
-            (.fileMetaInformationVersion, "File Meta Information Version"),
-            (.mediaStorageSOPClassUID, "Media Storage SOP Class UID"),
-            (.mediaStorageSOPInstanceUID, "Media Storage SOP Instance UID"),
-            (.transferSyntaxUID, "Transfer Syntax UID"),
-            (.implementationClassUID, "Implementation Class UID")
+    private func validateFileMetaInformation(dicomFile: DICOMFile, encodedFile: Data,
+                                             errors: inout [ValidationIssue], warnings: inout [ValidationIssue]) {
+        let meta = dicomFile.fileMetaInformation
+        // PS3.10 Table 7.1-1: Type 1 requires a valid, nonempty value, not just a tag.
+        let required: [(Tag, VR, String)] = [
+            (.fileMetaInformationGroupLength, .UL, "File Meta Information Group Length"),
+            (.fileMetaInformationVersion, .OB, "File Meta Information Version"),
+            (.mediaStorageSOPClassUID, .UI, "Media Storage SOP Class UID"),
+            (.mediaStorageSOPInstanceUID, .UI, "Media Storage SOP Instance UID"),
+            (.transferSyntaxUID, .UI, "Transfer Syntax UID"),
+            (.implementationClassUID, .UI, "Implementation Class UID")
         ]
-        
-        for (tag, name) in requiredMetaTags {
-            if dataSet[tag] == nil {
-                errors.append(ValidationIssue(
-                    level: .error,
-                    message: "Missing required File Meta Information element: \(name)",
-                    tag: tag
-                ))
+        for element in meta.allElements where !element.hasUndefinedLength && element.length % 2 != 0 {
+            errors.append(ValidationIssue(level: .error,
+                message: "File Meta VR \(element.vr) has odd Value Length \(element.length); encoded Value Fields must have even length (PS3.5 7.1.1)", tag: element.tag))
+        }
+        for (tag, expectedVR, name) in required {
+            guard let element = meta[tag] else {
+                errors.append(ValidationIssue(level: .error,
+                    message: "Missing required File Meta Information element: \(name)", tag: tag))
+                continue
+            }
+            if element.vr != expectedVR {
+                errors.append(ValidationIssue(level: .error,
+                    message: "File Meta \(name) has VR \(element.vr); expected \(expectedVR)", tag: tag))
+            }
+            if element.valueData.isEmpty {
+                errors.append(ValidationIssue(level: .error,
+                    message: "Type 1 File Meta Information element \(name) is empty", tag: tag))
+            } else if expectedVR == .UI {
+                let values = DICOMValueRules.values(of: element)
+                if values.count != 1 || !isValidUID(values.first ?? "") {
+                    errors.append(ValidationIssue(level: .error,
+                        message: "Invalid UID format or VM for File Meta \(name)", tag: tag))
+                }
+            } else if tag == .fileMetaInformationVersion {
+                // Readers must test only bit 0 of the second byte; future version bits are legal.
+                if element.valueData.count != 2 || element.valueData[element.valueData.startIndex + 1] & 1 == 0 {
+                    errors.append(ValidationIssue(level: .error,
+                        message: "File Meta Information Version must contain two bytes with bit 0 of the second byte set", tag: tag))
+                }
+            } else if tag == .fileMetaInformationGroupLength, element.valueData.count != 4 {
+                errors.append(ValidationIssue(level: .error,
+                    message: "File Meta Information Group Length must contain one UL (4 bytes)", tag: tag))
             }
         }
-        
-        // Validate Transfer Syntax UID format
-        if let tsUID = dataSet.string(for: .transferSyntaxUID) {
-            if !isValidUID(tsUID) {
-                errors.append(ValidationIssue(
-                    level: .error,
-                    message: "Invalid Transfer Syntax UID format",
-                    tag: .transferSyntaxUID
-                ))
+        if let declared = meta[.fileMetaInformationGroupLength]?.uint32Value,
+           let encodedLength = encodedMetaGroupLength(in: encodedFile), Int(declared) != encodedLength {
+            errors.append(ValidationIssue(level: .error,
+                message: "File Meta Information Group Length is \(declared); encoded group contains \(encodedLength) bytes after (0002,0000)",
+                tag: .fileMetaInformationGroupLength))
+        }
+        for (metaTag, dataTag) in [(Tag.mediaStorageSOPClassUID, Tag.sopClassUID),
+                                  (.mediaStorageSOPInstanceUID, .sopInstanceUID)] {
+            if let metaUID = meta.string(for: metaTag), let dataUID = dicomFile.dataSet.string(for: dataTag),
+               metaUID != dataUID {
+                errors.append(ValidationIssue(level: .error,
+                    message: "File Meta \(metaTag) UID '\(metaUID)' does not match dataset \(dataTag) UID '\(dataUID)'", tag: metaTag))
             }
         }
     }
-    
+
+    /// Count the actual Explicit VR Little Endian group-0002 bytes, not a re-encoding
+    /// (which could normalize malformed padding/lengths or discard duplicate elements).
+    private func encodedMetaGroupLength(in data: Data) -> Int? {
+        let bytes = [UInt8](data.prefix(132))
+        var offset = bytes.count == 132 && Array(bytes[128..<132]) == [68, 73, 67, 77] ? 132 : 0
+        var afterGroupLength: Int?
+        func u16(_ at: Int) -> Int { Int(data[data.startIndex + at]) | Int(data[data.startIndex + at + 1]) << 8 }
+        while offset + 8 <= data.count, u16(offset) == 2 {
+            let tagElement = u16(offset + 2)
+            let vrBytes = data[(data.startIndex + offset + 4)..<(data.startIndex + offset + 6)]
+            guard let rawVR = String(data: vrBytes, encoding: .ascii), let vr = VR(rawValue: rawVR) else { return nil }
+            let longVR: Set<VR> = [.OB, .OD, .OF, .OL, .OV, .OW, .SQ, .SV, .UC, .UN, .UR, .UT, .UV]
+            let header = longVR.contains(vr) ? 12 : 8
+            guard offset + header <= data.count else { return nil }
+            let length = header == 8 ? u16(offset + 6) : u16(offset + 8) | u16(offset + 10) << 16
+            guard length <= data.count - offset - header else { return nil }
+            offset += header + length
+            if tagElement == 0 { afterGroupLength = offset }
+        }
+        return afterGroupLength.map { offset - $0 }
+    }
+
     private func validateTagsAndVR(dataSet: DataSet, errors: inout [ValidationIssue], warnings: inout [ValidationIssue]) {
         // Validate required Type 1 elements
         let requiredTags: [(Tag, String)] = [
@@ -129,7 +189,8 @@ public struct DICOMValidator {
         
         for (tag, name) in requiredTags {
             if let element = dataSet[tag] {
-                if element.length == 0 {
+                if element.length == 0 || (element.vr.characterRepertoire != nil
+                    && element.decodedStringValue != nil && DICOMValueRules.values(of: element).allSatisfy(\.isEmpty)) {
                     errors.append(ValidationIssue(
                         level: .error,
                         message: "Type 1 element \(name) is empty",
@@ -145,32 +206,57 @@ public struct DICOMValidator {
             }
         }
         
-        // Validate VR for known tags
-        for tag in dataSet.tags {
-            if let element = dataSet[tag],
-               let entry = DataElementDictionary.lookup(tag: tag) {
-                
-                // Check if VR matches dictionary
+        validateElements(dataSet: dataSet, path: "", errors: &errors, warnings: &warnings)
+    }
+
+    private func validateElements(dataSet: DataSet, path: String,
+                                  errors: inout [ValidationIssue], warnings: inout [ValidationIssue]) {
+        for element in dataSet.allElements {
+            var leafErrors: [ValidationIssue] = []
+            var leafWarnings: [ValidationIssue] = []
+            if !element.hasUndefinedLength, element.length % 2 != 0 {
+                leafErrors.append(ValidationIssue(level: .error,
+                    message: "VR \(element.vr) has odd Value Length \(element.length); encoded Value Fields must have even length (PS3.5 7.1.1)", tag: element.tag))
+            }
+            if let entry = DataElementDictionary.lookup(tag: element.tag) {
+                // Tolerant parsing is useful, but a registered VR mismatch is a conformance error.
+                // UN is allowed when the explicit sender cannot represent the actual VR/length.
                 if !entry.vr.contains(element.vr) && element.vr != .UN {
-                    warnings.append(ValidationIssue(
-                        level: .warning,
-                        message: "Unexpected VR \(element.vr) for tag \(tag) (expected: \(entry.vr.map { $0.rawValue }.joined(separator: " or ")))",
-                        tag: tag
-                    ))
+                    leafErrors.append(ValidationIssue(level: .error,
+                        message: "Unexpected VR \(element.vr) for tag \(element.tag) (expected: \(entry.vr.map { $0.rawValue }.joined(separator: " or ")))",
+                        tag: element.tag))
                 }
-                
-                // Validate value format based on VR
-                validateValueFormat(element: element, entry: entry, errors: &errors, warnings: &warnings)
+                validateValueFormat(element: element, entry: entry, errors: &leafErrors, warnings: &leafWarnings)
+            }
+            if element.vr.characterRepertoire != nil, !element.valueData.isEmpty,
+               element.decodedStringValue == nil {
+                leafErrors.append(ValidationIssue(level: .error,
+                    message: "Cannot decode VR \(element.vr) using its declared character repertoire", tag: element.tag))
+            } else if leafErrors.isEmpty {
+                // Use the same complete stored-value grammar as the editor; the
+                // checks above retain the established detailed validation messages.
+                for value in DICOMValueRules.values(of: element) {
+                    if let problem = DICOMValueRules.valueProblem(value, vr: element.vr) {
+                        leafErrors.append(ValidationIssue(level: .error, message: problem, tag: element.tag))
+                    }
+                }
+            }
+            if let problem = DICOMValueRules.binaryLengthProblem(of: element) {
+                leafErrors.append(ValidationIssue(level: .error, message: problem, tag: element.tag))
+            }
+            func located(_ issue: ValidationIssue) -> ValidationIssue {
+                ValidationIssue(level: issue.level, message: path.isEmpty ? issue.message : "\(path): \(issue.message)", tag: issue.tag)
+            }
+            errors.append(contentsOf: leafErrors.map(located))
+            warnings.append(contentsOf: leafWarnings.map(located))
+            for (index, item) in (element.sequenceItems ?? []).enumerated() {
+                let itemPath = "\(path.isEmpty ? "" : path + "/")\(element.tag)[\(index + 1)]"
+                validateElements(dataSet: DataSet(elements: item.allElements), path: itemPath,
+                                 errors: &errors, warnings: &warnings)
             }
         }
-        
-        // Validate UIDs
-        validateUIDs(dataSet: dataSet, errors: &errors, warnings: &warnings)
-        
-        // Validate dates and times
-        validateDatesAndTimes(dataSet: dataSet, errors: &errors, warnings: &warnings)
     }
-    
+
     private func validateValueFormat(element: DataElement, entry: DataElementEntry, errors: inout [ValidationIssue], warnings: inout [ValidationIssue]) {
         // A zero-length value is legal for any Type 2 attribute: PS3.5 5 defines
         // it as "present with zero length" when the value is unknown. Only a
@@ -178,7 +264,7 @@ public struct DICOMValidator {
         // Every check runs per Value (PS3.5 6.4: backslash-delimited), so a multi-valued
         // DA / TM / UI is judged value by value.
         let name = entry.name
-        let values = VRValueRules.values(of: element)
+        let values = DICOMValueRules.values(of: element)
 
         switch element.vr {
         case .UI:
@@ -196,6 +282,11 @@ public struct DICOMValidator {
                     message: "Invalid date format for \(name) (expected YYYYMMDD)",
                     tag: element.tag
                 ))
+            }
+        case .DT:
+            for value in values where !value.isEmpty && !DICOMValueRules.isValidDateTime(value) {
+                errors.append(ValidationIssue(level: .error,
+                    message: "Invalid date/time format for \(name) (expected compact DICOM DT with valid calendar components)", tag: element.tag))
             }
         case .TM:
             for value in values where !value.isEmpty && !isValidTime(value) {
@@ -217,7 +308,7 @@ public struct DICOMValidator {
                         tag: element.tag
                     ))
                 }
-                for group in groups {
+                for (index, group) in groups.enumerated() {
                     if group.filter({ $0 == "^" }).count > 4 {
                         errors.append(ValidationIssue(
                             level: .error,
@@ -225,10 +316,11 @@ public struct DICOMValidator {
                             tag: element.tag
                         ))
                     }
-                    if group.count > 64 {
+                    let groupLength = group.unicodeScalars.count + (index < groups.count - 1 ? 1 : 0)
+                    if groupLength > 64 {
                         errors.append(ValidationIssue(
                             level: .error,
-                            message: "\(name) (PN) has a component group of \(group.count) chars; at most 64 chars per component group [PS3.5 Table 6.2-1]",
+                            message: "\(name) (PN) has a component group of \(groupLength) chars including its delimiter; at most 64 chars per component group [PS3.5 Table 6.2-1]",
                             tag: element.tag
                         ))
                     }
@@ -239,9 +331,9 @@ public struct DICOMValidator {
         }
 
         // PS3.5 Table 6.2-1 maximum length and character repertoire.
-        if let rule = VRValueRules.rule(for: element.vr) {
+        if let rule = DICOMValueRules.rule(for: element.vr) {
             for (index, value) in values.enumerated() where !value.isEmpty {
-                let length = rule.countsBytes ? value.utf8.count : value.count
+                let length = rule.countsBytes ? value.utf8.count : value.unicodeScalars.count
                 let position = values.count > 1 ? "Value \(index + 1) of " : ""
                 if let fixed = rule.fixedLength, length != fixed {
                     errors.append(ValidationIssue(
@@ -302,8 +394,8 @@ public struct DICOMValidator {
         }
 
         // PS3.6 Table 6-1 VM, when the element is encoded with a VR the dictionary gives.
-        if entry.vr.contains(element.vr), let vm = VRValueRules.ValueMultiplicity(entry.vm),
-           let count = VRValueRules.valueCount(of: element), count > 0, !vm.allows(count) {
+        if entry.vr.contains(element.vr), let vm = DICOMValueRules.ValueMultiplicity(entry.vm),
+           let count = DICOMValueRules.valueCount(of: element), count > 0, !vm.allows(count) {
             errors.append(ValidationIssue(
                 level: .error,
                 message: "\(name) has \(count) value\(count == 1 ? "" : "s"); PS3.6 Table 6-1 gives VM \(entry.vm) [PS3.5 6.4]",
@@ -481,83 +573,10 @@ public struct DICOMValidator {
         return Self.iodName(forSOPClassUID: sopClassUID)
     }
     
-    private func isValidUID(_ uid: String) -> Bool {
-        // UID format: numeric components separated by dots
-        // Each component is 1 or more digits
-        // Max length 64 characters
-        guard uid.count <= 64 else { return false }
-        
-        let components = uid.components(separatedBy: ".")
-        guard !components.isEmpty else { return false }
-        
-        for component in components {
-            guard !component.isEmpty else { return false }
-            guard component.allSatisfy({ $0.isNumber }) else { return false }
-            // Leading zeros not allowed except for "0"
-            if component.count > 1 && component.first == "0" {
-                return false
-            }
-        }
-        
-        return true
-    }
-    
-    private func isValidDate(_ date: String) -> Bool {
-        // DICOM Date format: YYYYMMDD
-        guard date.count == 8 else { return false }
-        guard date.allSatisfy({ $0.isNumber }) else { return false }
-        
-        guard let year = Int(date.prefix(4)),
-              let month = Int(date.dropFirst(4).prefix(2)),
-              let day = Int(date.suffix(2)) else {
-            return false
-        }
-        
-        // PS3.5 Table 6.2-1 DA: YYYYMMDD; the year is not otherwise bounded
-        guard year >= 0 && year <= 9999 else { return false }
-        guard month >= 1 && month <= 12 else { return false }
-        guard day >= 1 && day <= 31 else { return false }
-        
-        // Ensure the date is a valid Gregorian calendar date
-        var components = DateComponents()
-        components.year = year
-        components.month = month
-        components.day = day
-        
-        let calendar = Calendar(identifier: .gregorian)
-        guard calendar.date(from: components) != nil else { return false }
-        
-        return true
-    }
-    
-    private func isValidTime(_ time: String) -> Bool {
-        // PS3.5 Table 6.2-1 TM: HHMMSS.FFFFFF, where MM, SS and FFFFFF are each optional
-        // after the preceding component; 60 seconds is allowed for a leap second
-        let components = time.components(separatedBy: ".")
-        guard components.count <= 2 else { return false }
+    private func isValidUID(_ uid: String) -> Bool { DICOMValueRules.isValidUID(uid) }
+    private func isValidDate(_ date: String) -> Bool { DICOMValueRules.isValidDate(date) }
+    private func isValidTime(_ time: String) -> Bool { DICOMValueRules.isValidTime(time) }
 
-        let hhmmss = components[0]
-        guard [2, 4, 6].contains(hhmmss.count) else { return false }
-        guard hhmmss.allSatisfy({ $0.isNumber }) else { return false }
-
-        guard let hh = Int(hhmmss.prefix(2)), hh >= 0 && hh <= 23 else { return false }
-        if hhmmss.count >= 4 {
-            guard let mm = Int(hhmmss.dropFirst(2).prefix(2)), mm >= 0 && mm <= 59 else { return false }
-        }
-        if hhmmss.count == 6 {
-            guard let ss = Int(hhmmss.suffix(2)), ss >= 0 && ss <= 60 else { return false }
-        }
-
-        if components.count == 2 {
-            guard hhmmss.count == 6 else { return false }
-            let fraction = components[1]
-            guard (1...6).contains(fraction.count) else { return false }
-            guard fraction.allSatisfy({ $0.isNumber }) else { return false }
-        }
-
-        return true
-    }
-    
     // MARK: - JPEG 2000 Codestream Validation (Level 5)
     
     /// JPEG 2000 / HTJ2K membership per the shared `TransferSyntax` source of truth
@@ -655,163 +674,6 @@ public struct DICOMValidator {
             if idx == 0 && fragments.count > 1 {
                 break
             }
-        }
-    }
-}
-
-/// PS3.5 2026a Table 6.2-1 length and character-repertoire rules of the character-string VRs,
-/// and the PS3.6 Table 6-1 VM column, used by level-2 validation.
-enum VRValueRules {
-
-    struct Rule {
-        /// Maximum length of one Value; `nil` when only bounded by the 32-bit length.
-        let maxLength: Int?
-        /// Fixed length of one Value (AS: 4, DA: 8).
-        let fixedLength: Int?
-        /// `true` for "bytes", `false` for "chars" in Table 6.2-1.
-        let countsBytes: Bool
-        /// The repertoire, as Table 6.2-1 words it, for messages.
-        let repertoire: String
-        let allows: (Unicode.Scalar) -> Bool
-    }
-
-    private static func isControl(_ c: Unicode.Scalar) -> Bool { c.value < 0x20 || c.value == 0x7F }
-    private static func digit(_ c: Unicode.Scalar) -> Bool { c.value >= 0x30 && c.value <= 0x39 }
-
-    /// LO, SH, PN, UC: no BACKSLASH (it delimits Values) and no Control Characters except ESC.
-    private static func stringRepertoire(_ c: Unicode.Scalar) -> Bool {
-        c.value == 0x1B || !isControl(c)
-    }
-    /// LT, ST, UT: no Control Characters except TAB, LF, FF, CR and ESC.
-    private static func textRepertoire(_ c: Unicode.Scalar) -> Bool {
-        [0x09, 0x0A, 0x0C, 0x0D, 0x1B].contains(c.value) || !isControl(c)
-    }
-
-    /// The Table 6.2-1 rule of `vr`; `nil` for VRs not checked here (binary VRs, UR).
-    static func rule(for vr: VR) -> Rule? {
-        switch vr {
-        case .AE: return Rule(maxLength: 16, fixedLength: nil, countsBytes: true,
-                              repertoire: "Default Character Repertoire excluding BACKSLASH and control characters",
-                              allows: { $0.value >= 0x20 && $0.value <= 0x7E && $0 != "\\" })
-        case .AS: return Rule(maxLength: nil, fixedLength: 4, countsBytes: true,
-                              repertoire: "\"0\"-\"9\", \"D\", \"W\", \"M\", \"Y\"",
-                              allows: { digit($0) || "DWMY".unicodeScalars.contains($0) })
-        case .CS: return Rule(maxLength: 16, fixedLength: nil, countsBytes: true,
-                              repertoire: "uppercase characters, \"0\"-\"9\", SPACE and \"_\"",
-                              allows: { ($0.value >= 0x41 && $0.value <= 0x5A) || digit($0) || $0 == " " || $0 == "_" })
-        case .DA: return Rule(maxLength: nil, fixedLength: 8, countsBytes: true,
-                              repertoire: "\"0\"-\"9\"", allows: digit)
-        case .DS: return Rule(maxLength: 16, fixedLength: nil, countsBytes: true,
-                              repertoire: "\"0\"-\"9\", \"+\", \"-\", \"E\", \"e\", \".\" and SPACE",
-                              allows: { digit($0) || "+-Ee. ".unicodeScalars.contains($0) })
-        case .DT: return Rule(maxLength: 26, fixedLength: nil, countsBytes: true,
-                              repertoire: "\"0\"-\"9\", \"+\", \"-\", \".\" and SPACE",
-                              allows: { digit($0) || "+-. ".unicodeScalars.contains($0) })
-        case .IS: return Rule(maxLength: 12, fixedLength: nil, countsBytes: true,
-                              repertoire: "\"0\"-\"9\", \"+\", \"-\" and SPACE",
-                              allows: { digit($0) || "+- ".unicodeScalars.contains($0) })
-        case .LO: return Rule(maxLength: 64, fixedLength: nil, countsBytes: false,
-                              repertoire: "no control characters except ESC", allows: stringRepertoire)
-        case .LT: return Rule(maxLength: 10240, fixedLength: nil, countsBytes: false,
-                              repertoire: "no control characters except TAB, LF, FF, CR, ESC", allows: textRepertoire)
-        case .PN: return Rule(maxLength: nil, fixedLength: nil, countsBytes: false,
-                              repertoire: "no control characters except ESC", allows: stringRepertoire)
-        case .SH: return Rule(maxLength: 16, fixedLength: nil, countsBytes: false,
-                              repertoire: "no control characters except ESC", allows: stringRepertoire)
-        case .ST: return Rule(maxLength: 1024, fixedLength: nil, countsBytes: false,
-                              repertoire: "no control characters except TAB, LF, FF, CR, ESC", allows: textRepertoire)
-        case .TM: return Rule(maxLength: 14, fixedLength: nil, countsBytes: true,
-                              repertoire: "\"0\"-\"9\", \".\" and SPACE",
-                              allows: { digit($0) || $0 == "." || $0 == " " })
-        case .UC: return Rule(maxLength: nil, fixedLength: nil, countsBytes: false,
-                              repertoire: "no control characters except ESC", allows: stringRepertoire)
-        case .UI: return Rule(maxLength: 64, fixedLength: nil, countsBytes: true,
-                              repertoire: "\"0\"-\"9\" and \".\"", allows: { digit($0) || $0 == "." })
-        case .UT: return Rule(maxLength: nil, fixedLength: nil, countsBytes: false,
-                              repertoire: "no control characters except TAB, LF, FF, CR, ESC", allows: textRepertoire)
-        default: return nil
-        }
-    }
-
-    /// VRs whose Value Field holds one Value even when it contains a BACKSLASH (Table 6.2-1:
-    /// "shall not be multi-valued").
-    static let singleValued: Set<VR> = [.LT, .ST, .UT, .UR]
-
-    /// The Values of a character-string element: the Value Field without its trailing padding
-    /// (SPACE, or NULL for UI; PS3.5 6.2), split at BACKSLASH (PS3.5 6.4). DA / TM / DT / UI
-    /// Values lose their trailing SPACE too ("may be padded with trailing spaces").
-    static func values(of element: DataElement) -> [String] {
-        guard element.vr.characterRepertoire != nil, element.sequenceItems == nil else { return [] }
-        let data = element.valueData
-        guard !data.isEmpty else { return [] }
-        let raw = String(data: data, encoding: .utf8) ?? String(decoding: data, as: UTF8.self)
-        var trimmed = Substring(raw)
-        while let last = trimmed.last, last == " " || last == "\0" { trimmed = trimmed.dropLast() }
-        guard !trimmed.isEmpty else { return [] }
-        let parts = singleValued.contains(element.vr) ? [String(trimmed)]
-            : trimmed.components(separatedBy: "\\")
-        switch element.vr {
-        case .DA, .TM, .DT, .UI, .AE, .CS, .PN, .UC:
-            // Trailing (and for AE / CS leading) spaces are not significant.
-            return parts.map { $0.trimmingCharacters(in: CharacterSet(charactersIn: " \0")) }
-        default:
-            return parts
-        }
-    }
-
-    /// The number of Values (PS3.5 6.4): backslash-delimited Values of a character string, or
-    /// Value Length / element size of a fixed-size binary VR; `nil` for VRs whose VM is 1 by
-    /// definition (OB, OW, SQ, …) or when the length is not a whole number of elements.
-    static func valueCount(of element: DataElement) -> Int? {
-        let size: Int
-        switch element.vr {
-        case .US, .SS: size = 2
-        case .UL, .SL, .FL, .AT: size = 4
-        case .FD, .SV, .UV: size = 8
-        default:
-            if element.vr.characterRepertoire != nil && element.sequenceItems == nil {
-                return values(of: element).count
-            }
-            return nil
-        }
-        let length = element.valueData.count
-        guard length % size == 0 else { return nil }
-        return length / size
-    }
-
-    /// A PS3.6 Table 6-1 VM: "1", "1-3", "1-n", "2-2n", "3-3n", "1-n or 1".
-    struct ValueMultiplicity {
-        let minimum: Int
-        let maximum: Int?      // nil = n
-        let step: Int          // "2-2n": multiples of 2
-
-        init?(_ text: String) {
-            let vm = text.components(separatedBy: " or ").first?.trimmingCharacters(in: .whitespaces) ?? ""
-            guard !vm.isEmpty else { return nil }
-            let parts = vm.split(separator: "-").map(String.init)
-            guard let lo = Int(parts[0]) else { return nil }
-            if parts.count == 1 {
-                minimum = lo; maximum = lo; step = 1
-            } else if parts.count == 2 {
-                let hi = parts[1]
-                if let n = Int(hi) {
-                    minimum = lo; maximum = n; step = 1
-                } else if hi == "n" {
-                    minimum = lo; maximum = nil; step = 1
-                } else if hi.hasSuffix("n"), let k = Int(hi.dropLast()) {
-                    minimum = lo; maximum = nil; step = k
-                } else {
-                    return nil
-                }
-            } else {
-                return nil
-            }
-        }
-
-        func allows(_ count: Int) -> Bool {
-            if count < minimum { return false }
-            if let maximum, count > maximum { return false }
-            return count % step == 0
         }
     }
 }

@@ -539,10 +539,10 @@ struct QueryCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)")
     var studyDate: String?
     
-    @Option(name: .long, help: "Study Instance UID")
+    @Option(name: .long, help: "Study Instance UID: a single UID scopes series/instance paths; a comma-separated list remains a matching filter")
     var study: String?
     
-    @Option(name: .long, help: "Series Instance UID")
+    @Option(name: .long, help: "Series Instance UID: a single UID with --study scopes instance paths; a comma-separated list remains a matching filter")
     var series: String?
     
     @Option(name: .long, help: "Accession number")
@@ -557,16 +557,16 @@ struct QueryCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Study description")
     var studyDescription: String?
 
-    @Option(name: .long, help: "Series level: Performed Procedure Step Start Date (0040,0244), YYYYMMDD or a YYYYMMDD-YYYYMMDD range")
+    @Option(name: .long, help: "Series attribute (series or relational instance searches): Performed Procedure Step Start Date (0040,0244), YYYYMMDD or a YYYYMMDD-YYYYMMDD range")
     var ppsStartDate: String?
 
-    @Option(name: .long, help: "Series level: Performed Procedure Step Start Time (0040,0245), HHMMSS or an HHMMSS-HHMMSS range")
+    @Option(name: .long, help: "Series attribute (series or relational instance searches): Performed Procedure Step Start Time (0040,0245), HHMMSS or an HHMMSS-HHMMSS range")
     var ppsStartTime: String?
 
-    @Option(name: .long, help: "Series level: Scheduled Procedure Step ID inside Request Attributes Sequence (0040,0275.0040,0009)")
+    @Option(name: .long, help: "Series attribute (series or relational instance searches): Scheduled Procedure Step ID inside Request Attributes Sequence (0040,0275.0040,0009)")
     var spsId: String?
 
-    @Option(name: .long, help: "Series level: Requested Procedure ID inside Request Attributes Sequence (0040,0275.0040,1001)")
+    @Option(name: .long, help: "Series attribute (series or relational instance searches): Requested Procedure ID inside Request Attributes Sequence (0040,0275.0040,1001)")
     var requestedProcedureId: String?
 
     @Option(name: .long, help: "Maximum number of results (default: 100)")
@@ -591,86 +591,35 @@ struct QueryCommand: AsyncParsableCommand {
         try cliRefusal { try DICOMwebOptionRules.validatePaging(limit: limit, offset: offset) }
     }
 
-    /// The QIDO-RS query the options describe (PS3.18 10.6.1; query parameters of Table 8.3.4-1).
-    func buildQuery() throws -> QIDOQuery {
-        var query = QIDOQuery()
-        query = query.limit(limit)
-        query = query.offset(offset)
-        if fuzzyMatching {
-            query = query.fuzzyMatching(true)
+    /// One resource-aware plan shared with Workshop (PS3.18 10.6.1.2.1).
+    func buildRequest() throws -> QIDORequest {
+        var query = QIDOQuery().limit(limit).offset(offset)
+        if fuzzyMatching { query = query.fuzzyMatching(true) }
+        if let patientName { query = query.patientName(patientName) }
+        if let patientId { query = query.patientID(patientId) }
+        if let studyDate { query = query.studyDate(studyDate) }
+        if let accessionNumber { query = query.accessionNumber(accessionNumber) }
+        if let studyDescription { query = query.studyDescription(studyDescription) }
+        if let ppsStartDate { query = query.performedProcedureStepStartDate(ppsStartDate) }
+        if let ppsStartTime { query = query.performedProcedureStepStartTime(ppsStartTime) }
+        if let spsId { query = query.scheduledProcedureStepID(spsId) }
+        if let requestedProcedureId { query = query.requestedProcedureID(requestedProcedureId) }
+        let resolvedModality = try ModalityOptionValidator.resolve(
+            modality, strict: strictModality, verbose: verbose)
+        return try cliRefusal {
+            try QIDORequest(level: level.rawValue, studyUID: study, seriesUID: series,
+                            query: query, modality: resolvedModality)
         }
-        
-        if let patientName = patientName {
-            query = query.patientName(patientName)
-        }
-        if let patientId = patientId {
-            query = query.patientID(patientId)
-        }
-        if let studyDate = studyDate {
-            query = query.studyDate(studyDate)
-        }
-        if let studyUID = study {
-            query = query.studyInstanceUID(studyUID)
-        }
-        if let seriesUID = series {
-            query = query.seriesInstanceUID(seriesUID)
-        }
-        if let accessionNumber = accessionNumber {
-            query = query.accessionNumber(accessionNumber)
-        }
-        // Validated here rather than at parse time: this builder is the one
-        // place the value is consumed, and resolve() normalizes aliases.
-        if let modality = try ModalityOptionValidator.resolve(
-            modality, strict: strictModality, verbose: verbose) {
-            // Use the correct DICOM matching key per query level (PS3.18 §10.6),
-            // mirroring the app's in-process path (CLIWorkshopViewModel.executeDicomQIDO)
-            // and the sibling dicom-query / dicom-qr tools:
-            //   • series level          → Modality (0008,0060)
-            //   • study / instance level → Modalities in Study (0008,0061)
-            // Sending Modality (0008,0060) at the study level is NOT a valid study-level
-            // matching key, so servers (e.g. dcm4chee) ignore it and return ALL studies
-            // unfiltered — the bug this fixes.
-            switch level {
-            case .series:
-                query = query.modality(modality)
-            case .study, .instance:
-                query = query.modalitiesInStudy(modality)
-            }
-        }
-        if let studyDescription = studyDescription {
-            query = query.studyDescription(studyDescription)
-        }
-        // Series-level keys of PS3.18 Table 10.6.1-5. They are only matching keys
-        // at the series level; sending them at study/instance level would be
-        // ignored by the server, so say so rather than issuing a silent no-op.
-        if level != .series {
-            var misplaced: [String] = []
-            if ppsStartDate != nil { misplaced.append("--pps-start-date") }
-            if ppsStartTime != nil { misplaced.append("--pps-start-time") }
-            if spsId != nil { misplaced.append("--sps-id") }
-            if requestedProcedureId != nil { misplaced.append("--requested-procedure-id") }
-            if !misplaced.isEmpty {
-                fprintln("Warning: \(misplaced.joined(separator: ", ")) "
-                    + "\(misplaced.count == 1 ? "is a series-level matching key" : "are series-level matching keys") "
-                    + "(PS3.18 Table 10.6.1-5) and will be ignored at \(level) level. Use --level series.")
-            }
-        }
-        if let ppsStartDate = ppsStartDate {
-            query = query.performedProcedureStepStartDate(ppsStartDate)
-        }
-        if let ppsStartTime = ppsStartTime {
-            query = query.performedProcedureStepStartTime(ppsStartTime)
-        }
-        if let spsId = spsId {
-            query = query.scheduledProcedureStepID(spsId)
-        }
-        if let requestedProcedureId = requestedProcedureId {
-            query = query.requestedProcedureID(requestedProcedureId)
-        }
-        return query
     }
 
+    /// Retained for callers that inspect parameters without dispatching a request.
+    func buildQuery() throws -> QIDOQuery { try buildRequest().query }
+
     func run() async throws {
+        // Validate scope before constructing or contacting the client.
+        let request = try buildRequest()
+        let query = request.query
+
         // Configure client
         let config = try DICOMwebConfiguration(
             baseURLString: baseURL,
@@ -679,7 +628,6 @@ struct QueryCommand: AsyncParsableCommand {
         
         let client = DICOMwebClient(configuration: config)
         
-        let query = try buildQuery()
 
         if verbose {
             fprintln("DICOMweb Server: \(baseURL)")
@@ -698,7 +646,7 @@ struct QueryCommand: AsyncParsableCommand {
             }
             
         case .series:
-            if let studyUID = study {
+            if let studyUID = request.studyUID {
                 let results = try await client.searchSeries(studyUID: studyUID, query: query)
                 print(formatSeriesResults(results, format: format))
                 if verbose {
@@ -713,7 +661,7 @@ struct QueryCommand: AsyncParsableCommand {
             }
             
         case .instance:
-            if let studyUID = study, let seriesUID = series {
+            if let studyUID = request.studyUID, let seriesUID = request.seriesUID {
                 let results = try await client.searchInstances(
                     studyUID: studyUID,
                     seriesUID: seriesUID,
@@ -723,7 +671,7 @@ struct QueryCommand: AsyncParsableCommand {
                 if verbose {
                     fprintln("\nFound \(results.results.count) instance(s)")
                 }
-            } else if let studyUID = study {
+            } else if let studyUID = request.studyUID {
                 let results = try await client.searchInstances(studyUID: studyUID, query: query)
                 print(formatInstanceResults(results, format: format))
                 if verbose {

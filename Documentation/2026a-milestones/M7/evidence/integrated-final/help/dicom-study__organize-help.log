@@ -1,0 +1,20 @@
+OVERVIEW: Organize DICOM files by study and series hierarchy
+
+USAGE: dicom-study organize <input> --output <output> [--pattern <pattern>] [--copy] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input directory containing DICOM files
+
+OPTIONS:
+  -o, --output <output>   Output directory for organized files
+  --pattern <pattern>     Folder naming: 'descriptive' = <Patient's
+                          Name>_<Study Description>_<last 8 characters of Study
+                          Instance UID>/<Series Number>_<Modality>_<Series
+                          Description>/<n>.dcm; 'uid' = <Study Instance
+                          UID>/<Series Instance UID>/<n>.dcm (default:
+                          descriptive) (default: descriptive)
+  --copy                  Copy files instead of moving them
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

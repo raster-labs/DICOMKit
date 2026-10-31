@@ -1,0 +1,4 @@
+{"tools": 41, "routes": 147, "passed": true}
+✔ Suite "M7 JPEG Extended 8-bit coding process" passed after 0.091 seconds.
+Test Suite 'ConversionDiagnosticsTests' passed at 2026-10-24 20:54:43.448.
+✔ Test run with 5380 tests in 492 suites passed after 68.184 seconds.

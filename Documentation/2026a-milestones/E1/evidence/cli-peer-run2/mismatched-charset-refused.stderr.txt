@@ -1,0 +1,1 @@
+Error: MPPS N-SET failed: Failure (0x0106): Invalid Attribute Value — Error Comment: N-SET character set differs from N-CREATE

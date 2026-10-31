@@ -1,0 +1,340 @@
+{
+  "createdUTC": "2026-10-26T06:00:42.337158+00:00",
+  "status": "Prepared post-repair controls only; not executed",
+  "binary": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "environment": {
+    "DICOMKIT_PRINT_TEST_SETTINGS_DIRECTORY": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-settings"
+  },
+  "initialConfigs": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json": "1eae2cc833c631c1ab68727a62c96259b1d7a6349a2b6925022fa698f1f34df6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json": "1eae2cc833c631c1ab68727a62c96259b1d7a6349a2b6925022fa698f1f34df6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json": "1eae2cc833c631c1ab68727a62c96259b1d7a6349a2b6925022fa698f1f34df6"
+  },
+  "nativeConfigsProtected": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json": "1eae2cc833c631c1ab68727a62c96259b1d7a6349a2b6925022fa698f1f34df6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json": "3be44cdff206e82561880bab643eebe36ba36b09a3a489ff90ce41ee777adbb5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/simulation-save.json": "f0dae31c97fd6bb4e2550dcc45a14142c6c876140a75473cb619bf8efe047ff0"
+  },
+  "cases": [
+    {
+      "name": "status-inherit",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+        "--format",
+        "json"
+      ],
+      "nativeCommand": "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-inherit-console.txt",
+      "nativeConsoleSHA256": "08cea896b68e19e245c63b278f375d1a79f5412bdd5ef0b871f1d22c75ba22c0",
+      "replacements": [
+        {
+          "index": 3,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json"
+        }
+      ],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/status-inherit.json"
+    },
+    {
+      "name": "status-enabled",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--accept-color",
+        "--annotation-box",
+        "--annotations",
+        "--trim-marks",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+        "--format",
+        "json"
+      ],
+      "nativeCommand": "dicom-printscp status --accept-color --annotation-box --annotations --trim-marks --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-enabled-console.txt",
+      "nativeConsoleSHA256": "4120aadfa71ef7fac8811e7271242428bf5a2cd9f87c936a7952d57d1337835b",
+      "replacements": [
+        {
+          "index": 7,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json"
+        }
+      ],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/status-enabled.json"
+    },
+    {
+      "name": "save-config",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--no-accept-color",
+        "--printer-name",
+        "Saved Native",
+        "--no-annotations",
+        "--output",
+        "none",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json",
+        "--save-config",
+        "--format",
+        "json"
+      ],
+      "nativeCommand": "dicom-printscp status --no-accept-color --printer-name 'Saved Native' --no-annotations --output none --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json --save-config --format json",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-save-config-console.txt",
+      "nativeConsoleSHA256": "ef5bdcf9a4ea6fe8cd6d12f2ef269e91d9ce1723d70b0a6bd5eb30a6a8bd4784",
+      "replacements": [
+        {
+          "index": 9,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json"
+        }
+      ],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/save-config.json"
+    },
+    {
+      "name": "status-reloaded",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json",
+        "--format",
+        "json",
+        "--verbose"
+      ],
+      "nativeCommand": "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json --format json --verbose",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-status-reloaded-console.txt",
+      "nativeConsoleSHA256": "7800003c01c54129d046070f750747e509a9e10b213e9fc7f5311e11368f23fa",
+      "replacements": [
+        {
+          "index": 3,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json"
+        }
+      ],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/status-reloaded.json"
+    },
+    {
+      "name": "queues",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "queues",
+        "--format",
+        "json"
+      ],
+      "nativeCommand": "dicom-printscp queues --format json",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-queues-console.txt",
+      "nativeConsoleSHA256": "9219094b7ba2c6d5b0573c671913c5f79b5f0505e57fa5e91e657b4a81b8c862",
+      "replacements": [],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/queues.json"
+    },
+    {
+      "name": "save-before-gather",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "simulate",
+        "--dpi",
+        "36",
+        "--output",
+        "none",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json",
+        "--save-config",
+        "--copies",
+        "1",
+        "--frame",
+        "1",
+        "--bit-depth",
+        "8",
+        "--calling-ae",
+        "SIMULATE",
+        "--format",
+        "json",
+        "--",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/deliberately-missing.dcm"
+      ],
+      "nativeCommand": "dicom-printscp simulate --dpi 36 --output none --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/simulation-save.json --save-config --copies 1 --frame 1 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/deliberately-missing.dcm",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-save-before-gather-console.txt",
+      "nativeConsoleSHA256": "5ee22cc3a62af740905901c19a6e6cc974338f729870ca3abe6b41fbf2269ea9",
+      "replacements": [
+        {
+          "index": 7,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/simulation-save.json",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json"
+        }
+      ],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/save-before-gather.json"
+    },
+    {
+      "name": "simulate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "simulate",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output",
+        "tiff",
+        "--output",
+        "pdf",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair",
+        "--name-pattern",
+        "native-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/absent.json",
+        "--layout",
+        "ROW\\1,3",
+        "--copies",
+        "2",
+        "--presentation-lut",
+        "IDENTITY",
+        "--trim",
+        "--border-density",
+        "150",
+        "--empty-density",
+        "WHITE",
+        "--annotate",
+        " first; literal note ",
+        "--annotate",
+        "O'Neil second",
+        "--annotation-format",
+        "M7FMT",
+        "--frame",
+        "1",
+        "--window-center=-600",
+        "--window-width",
+        "1200",
+        "--bit-depth",
+        "8",
+        "--calling-ae",
+        "SIMULATE",
+        "--format",
+        "json",
+        "--",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+      ],
+      "nativeCommand": "dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output tiff --output pdf --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --layout 'ROW\\1,3' --copies 2 --presentation-lut IDENTITY --trim --border-density 150 --empty-density WHITE --annotate ' first; literal note ' --annotate 'O'\\''Neil second' --annotation-format M7FMT --frame 1 --window-center=-600 --window-width 1200 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-simulate-console.txt",
+      "nativeConsoleSHA256": "5bc1c3e7de339a2888ae477641dcccf20c283eb85ae5e239fb7e10e3ffc193eb",
+      "replacements": [
+        {
+          "index": 13,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair"
+        },
+        {
+          "index": 17,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/absent.json"
+        }
+      ],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/simulate.json"
+    },
+    {
+      "name": "sink-failure",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "simulate",
+        "--dpi",
+        "36",
+        "--max-pixels",
+        "1024",
+        "--output",
+        "png",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-sink-failure-post-repair",
+        "--name-pattern",
+        "native-{index}",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/absent.json",
+        "--copies",
+        "1",
+        "--frame",
+        "1",
+        "--bit-depth",
+        "8",
+        "--calling-ae",
+        "SIMULATE",
+        "--format",
+        "json",
+        "--",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+      ],
+      "nativeCommand": "dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-failure --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --copies 1 --frame 1 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-sink-failure-console.txt",
+      "nativeConsoleSHA256": "bf501a55bbe5b0b50d410a4c2f1d7bceb39eefb8454700a0123db6e877014e28",
+      "replacements": [
+        {
+          "index": 9,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-failure",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-sink-failure-post-repair"
+        },
+        {
+          "index": 13,
+          "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+          "cli": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/absent.json"
+        }
+      ],
+      "expectedExitCode": 0,
+      "timeoutSeconds": 60,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/sink-failure.json"
+    },
+    {
+      "name": "paper-import-refusal",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+        "--paper-queue",
+        "SYNTHETIC-NONEXISTENT",
+        "--format",
+        "json"
+      ],
+      "nativeCommand": "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --paper-queue SYNTHETIC-NONEXISTENT --format json",
+      "nativeConsole": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/scp-paper-gate-import.txt",
+      "nativeConsoleSHA256": "f5ed85fc8c89f00b1f9a190560f73c19768125ba563aa0fe72be09f7e4aa3b47",
+      "expectedExitCode": 64,
+      "timeoutSeconds": 30,
+      "resultFile": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-results/scp-replay-post-repair-v1/paper-import-refusal.json",
+      "scope": "CLI parser rejection is compared with native Import parser rejection; native Run was not dispatched."
+    }
+  ],
+  "scope": [
+    "No listener, peer, physical spool or native Open command is included.",
+    "Only executable and explicit config/output path options differ; every replacement is recorded.",
+    "Save operations begin from byte-identical native baseline copies; they write fresh cli-scp-replay-config only.",
+    "Simulation output is fresh; TIFF(last selected image format)+PDF expected, with no PNG.",
+    "Sink-failure fresh native-001.png directory intentionally prevents file write; failure must be reported with no Wrote claim.",
+    "Native Open already has Preview AX evidence; replay deliberately excludes it to avoid a second UI launch."
+  ],
+  "originalPlan": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-cli-replay-plan.json",
+  "originalPlanSHA256": "b04ea814d1d2578f8e77909fddfb8ca3cd9e4a7a93c547c8be8fdd4a9deb13cb",
+  "sourceJustification": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/scp-post-repair-source-justification.json",
+  "sourceJustificationSHA256": "cd6cae39840804db1062dd855b37cb9aec46e29dfebe105f355befa8cd40502d",
+  "previousBinarySHA256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+  "configDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config",
+  "simulationOutputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated-post-repair",
+  "sinkOutputDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-sink-failure-post-repair"
+}

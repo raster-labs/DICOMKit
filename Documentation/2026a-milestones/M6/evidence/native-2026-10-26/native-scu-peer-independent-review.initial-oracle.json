@@ -1,0 +1,1179 @@
+{
+  "reviewed_utc": "2026-10-26T05:42:40.462692+00:00",
+  "verdict": "FAIL",
+  "scope": "Eight native SCU sends to seven independent stopped software peers; retained raw DUL independently decoded. No product/UI/peer launch or build.",
+  "native_send_outcomes": 8,
+  "peers": 7,
+  "associations": 10,
+  "dimse_messages": 76,
+  "assertions": {
+    "total": 128,
+    "passed": 124,
+    "failed": 4
+  },
+  "checks": [
+    {
+      "case": "normal",
+      "assertion": "capture count and clean proxy agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "all response IDs/classes/instances and contexts uniquely correlate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "every captured request has exactly one response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "live and final independent peer logs agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "raw wire requests exactly match independent peer application records",
+      "passed": false,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "operations use accepted contexts; optional SOP classes use own contexts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "association AE titles match native command M7NATIVE to PYM6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "all associations close with normal release",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "each created Film Session has exactly one matching successful cleanup delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "response statuses exactly match injected/success contract",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "case": "normal",
+      "assertion": "session/film values, VR and parent references match visible command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "capture count and clean proxy agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "all response IDs/classes/instances and contexts uniquely correlate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "every captured request has exactly one response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "live and final independent peer logs agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "raw wire requests exactly match independent peer application records",
+      "passed": false,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "operations use accepted contexts; optional SOP classes use own contexts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "association AE titles match native command M7NATIVE to PYM6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "all associations close with normal release",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "each created Film Session has exactly one matching successful cleanup delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "response statuses exactly match injected/success contract",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "case": "warning",
+      "assertion": "session/film values, VR and parent references match visible command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "capture count and clean proxy agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "all response IDs/classes/instances and contexts uniquely correlate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "every captured request has exactly one response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "live and final independent peer logs agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "raw wire requests exactly match independent peer application records",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "operations use accepted contexts; optional SOP classes use own contexts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "association AE titles match native command M7NATIVE to PYM6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "all associations close with normal release",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "each created Film Session has exactly one matching successful cleanup delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "response statuses exactly match injected/success contract",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "case": "failure",
+      "assertion": "session/film values, VR and parent references match visible command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "capture count and clean proxy agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "all response IDs/classes/instances and contexts uniquely correlate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "every captured request has exactly one response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "live and final independent peer logs agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "raw wire requests exactly match independent peer application records",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "operations use accepted contexts; optional SOP classes use own contexts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "association AE titles match native command M7NATIVE to PYM6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "all associations close with abort after successful session delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "each created Film Session has exactly one matching successful cleanup delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "response statuses exactly match injected/success contract",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "case": "set-failure",
+      "assertion": "session/film values, VR and parent references match visible command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "capture count and clean proxy agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "all response IDs/classes/instances and contexts uniquely correlate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "every captured request has exactly one response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "live and final independent peer logs agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "raw wire requests exactly match independent peer application records",
+      "passed": false,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "operations use accepted contexts; optional SOP classes use own contexts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "association AE titles match native command M7NATIVE to PYM6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "all associations close with normal release",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "each created Film Session has exactly one matching successful cleanup delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning",
+      "assertion": "response statuses exactly match injected/success contract",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "case": "action-warning",
+      "assertion": "session/film values, VR and parent references match visible command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "capture count and clean proxy agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "all response IDs/classes/instances and contexts uniquely correlate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "every captured request has exactly one response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "live and final independent peer logs agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "raw wire requests exactly match independent peer application records",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "operations use accepted contexts; optional SOP classes use own contexts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "association AE titles match native command M7NATIVE to PYM6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "all associations close with abort after successful session delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "each created Film Session has exactly one matching successful cleanup delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "response statuses exactly match injected/success contract",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "case": "no-lut",
+      "assertion": "session/film values, VR and parent references match visible command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "capture count and clean proxy agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "all response IDs/classes/instances and contexts uniquely correlate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "every captured request has exactly one response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "live and final independent peer logs agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "raw wire requests exactly match independent peer application records",
+      "passed": false,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "operations use accepted contexts; optional SOP classes use own contexts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "association AE titles match native command M7NATIVE to PYM6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "all associations close with normal release",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "each created Film Session has exactly one matching successful cleanup delete",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "response statuses exactly match injected/success contract",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "case": "event",
+      "assertion": "session/film values, VR and parent references match visible command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "one create/set/print/delete workflow with no duplicate print action",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "full pixel bytes and image numeric metadata match independent input",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "wire Pixel Data VR OW and metadata VR US retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "console successful job identity equals exact response/reference UIDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "Action ID is Print (1) and Print Job reply uses 21000500 SQ/UI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-rgb8",
+      "assertion": "one create/set/print/delete workflow with no duplicate print action",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-rgb8",
+      "assertion": "full pixel bytes and image numeric metadata match independent input",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-rgb8",
+      "assertion": "wire Pixel Data VR OW and metadata VR US retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-rgb8",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-rgb8",
+      "assertion": "console successful job identity equals exact response/reference UIDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-rgb8",
+      "assertion": "Action ID is Print (1) and Print Job reply uses 21000500 SQ/UI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning-gray8",
+      "assertion": "one create/set/print/delete workflow with no duplicate print action",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning-gray8",
+      "assertion": "full pixel bytes and image numeric metadata match independent input",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning-gray8",
+      "assertion": "wire Pixel Data VR OW and metadata VR US retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning-gray8",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning-gray8",
+      "assertion": "console successful job identity equals exact response/reference UIDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning-gray8",
+      "assertion": "Action ID is Print (1) and Print Job reply uses 21000500 SQ/UI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning-gray8",
+      "assertion": "native console preserves Printer WARNING and continuation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning-gray8",
+      "assertion": "one create/set/print/delete workflow with no duplicate print action",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning-gray8",
+      "assertion": "full pixel bytes and image numeric metadata match independent input",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning-gray8",
+      "assertion": "wire Pixel Data VR OW and metadata VR US retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning-gray8",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning-gray8",
+      "assertion": "console successful job identity equals exact response/reference UIDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning-gray8",
+      "assertion": "Action ID is Print (1) and Print Job reply uses 21000500 SQ/UI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "action-warning-gray8",
+      "assertion": "B604 accepted warning remains successful and visible with Film Box UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event-gray8",
+      "assertion": "one create/set/print/delete workflow with no duplicate print action",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event-gray8",
+      "assertion": "full pixel bytes and image numeric metadata match independent input",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event-gray8",
+      "assertion": "wire Pixel Data VR OW and metadata VR US retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event-gray8",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event-gray8",
+      "assertion": "console successful job identity equals exact response/reference UIDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event-gray8",
+      "assertion": "Action ID is Print (1) and Print Job reply uses 21000500 SQ/UI",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "one IDENTITY LUT is referenced by Film Box with exact returned UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal-gray12",
+      "assertion": "two annotation positions and exact lexical bytes including spaces/semicolon are ordered",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "normal",
+      "assertion": "preflight N-GET returns actual NORMAL Printer Status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "warning",
+      "assertion": "preflight N-GET returns actual WARNING Printer Status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "preflight N-GET returns actual FAILURE Printer Status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure-gray8",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "refusal sends no N-ACTION and console reports failure",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "failure",
+      "assertion": "failed Printer preflight creates no session/box/image",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure-gray8",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "refusal sends no N-ACTION and console reports failure",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "injected N-SET 0106 diagnostic reaches native console",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "set-failure",
+      "assertion": "rejected N-SET still contains exact independent gray8 pixels",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut-gray8",
+      "assertion": "complete copied console agrees across duplicate AX representations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "refusal sends no N-ACTION and console reports failure",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "no-lut",
+      "assertion": "LUT proposal is actually rejected; no substitute LUT/box/image command",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "one DONE event uses separately accepted implicit Print Job context and successful correlated ACK",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "event information expected status/info, native job UID and peer ACK agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "event",
+      "assertion": "ACK is sent during outstanding N-ACTION before session cleanup",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "case": "provenance",
+      "assertion": "all retained evidence bytes unchanged by independent audit",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "observations": {
+    "normal": {
+      "messages": 28,
+      "associations": 3,
+      "request_operations": [
+        "N_GET:1.2.840.10008.5.1.1.16",
+        "N_CREATE:1.2.840.10008.5.1.1.1",
+        "N_CREATE:1.2.840.10008.5.1.1.23",
+        "N_CREATE:1.2.840.10008.5.1.1.2",
+        "N_SET:1.2.840.10008.5.1.1.4",
+        "N_SET:1.2.840.10008.5.1.1.15",
+        "N_SET:1.2.840.10008.5.1.1.15",
+        "N_ACTION:1.2.840.10008.5.1.1.2",
+        "N_DELETE:1.2.840.10008.5.1.1.1",
+        "N_CREATE:1.2.840.10008.5.1.1.1",
+        "N_CREATE:1.2.840.10008.5.1.1.2",
+        "N_SET:1.2.840.10008.5.1.1.4.1",
+        "N_ACTION:1.2.840.10008.5.1.1.2",
+        "N_DELETE:1.2.840.10008.5.1.1.1"
+      ],
+      "session_creates": 2,
+      "session_deletes": 2,
+      "print_actions": 2,
+      "closure": "normal release",
+      "event_acks": [],
+      "pixel_cases": [
+        {
+          "image": "gray12",
+          "wire_bits_allocated": 16,
+          "wire_bits_stored": 12,
+          "rows": 16,
+          "columns": 16,
+          "samples": 1,
+          "planar_configuration": null,
+          "wire_pixel_sha256": "00d7eb3be1e53e8a4342eeb32b3b1098eab272ed1ff059124cf92de955a6973d",
+          "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray12.dcm"
+        },
+        {
+          "image": "rgb8",
+          "wire_bits_allocated": 8,
+          "wire_bits_stored": 8,
+          "rows": 16,
+          "columns": 16,
+          "samples": 3,
+          "planar_configuration": 1,
+          "wire_pixel_sha256": "d4e6b6ad93e74c0e9c9eb08f56c3bb355e2756c776694d2924293affe8ebc9be",
+          "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-rgb8.dcm"
+        }
+      ]
+    },
+    "warning": {
+      "messages": 12,
+      "associations": 2,
+      "request_operations": [
+        "N_GET:1.2.840.10008.5.1.1.16",
+        "N_CREATE:1.2.840.10008.5.1.1.1",
+        "N_CREATE:1.2.840.10008.5.1.1.2",
+        "N_SET:1.2.840.10008.5.1.1.4",
+        "N_ACTION:1.2.840.10008.5.1.1.2",
+        "N_DELETE:1.2.840.10008.5.1.1.1"
+      ],
+      "session_creates": 1,
+      "session_deletes": 1,
+      "print_actions": 1,
+      "closure": "normal release",
+      "event_acks": [],
+      "pixel_cases": [
+        {
+          "image": "gray8",
+          "wire_bits_allocated": 8,
+          "wire_bits_stored": 8,
+          "rows": 16,
+          "columns": 16,
+          "samples": 1,
+          "planar_configuration": null,
+          "wire_pixel_sha256": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880",
+          "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm"
+        }
+      ]
+    },
+    "failure": {
+      "messages": 2,
+      "associations": 1,
+      "request_operations": [
+        "N_GET:1.2.840.10008.5.1.1.16"
+      ],
+      "session_creates": 0,
+      "session_deletes": 0,
+      "print_actions": 0,
+      "closure": "normal release",
+      "event_acks": []
+    },
+    "set-failure": {
+      "messages": 8,
+      "associations": 1,
+      "request_operations": [
+        "N_CREATE:1.2.840.10008.5.1.1.1",
+        "N_CREATE:1.2.840.10008.5.1.1.2",
+        "N_SET:1.2.840.10008.5.1.1.4",
+        "N_DELETE:1.2.840.10008.5.1.1.1"
+      ],
+      "session_creates": 1,
+      "session_deletes": 1,
+      "print_actions": 0,
+      "closure": "abort after successful session delete",
+      "event_acks": []
+    },
+    "action-warning": {
+      "messages": 10,
+      "associations": 1,
+      "request_operations": [
+        "N_CREATE:1.2.840.10008.5.1.1.1",
+        "N_CREATE:1.2.840.10008.5.1.1.2",
+        "N_SET:1.2.840.10008.5.1.1.4",
+        "N_ACTION:1.2.840.10008.5.1.1.2",
+        "N_DELETE:1.2.840.10008.5.1.1.1"
+      ],
+      "session_creates": 1,
+      "session_deletes": 1,
+      "print_actions": 1,
+      "closure": "normal release",
+      "event_acks": [],
+      "pixel_cases": [
+        {
+          "image": "gray8",
+          "wire_bits_allocated": 8,
+          "wire_bits_stored": 8,
+          "rows": 16,
+          "columns": 16,
+          "samples": 1,
+          "planar_configuration": null,
+          "wire_pixel_sha256": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880",
+          "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm"
+        }
+      ]
+    },
+    "no-lut": {
+      "messages": 4,
+      "associations": 1,
+      "request_operations": [
+        "N_CREATE:1.2.840.10008.5.1.1.1",
+        "N_DELETE:1.2.840.10008.5.1.1.1"
+      ],
+      "session_creates": 1,
+      "session_deletes": 1,
+      "print_actions": 0,
+      "closure": "abort after successful session delete",
+      "event_acks": []
+    },
+    "event": {
+      "messages": 12,
+      "associations": 1,
+      "request_operations": [
+        "N_CREATE:1.2.840.10008.5.1.1.1",
+        "N_CREATE:1.2.840.10008.5.1.1.2",
+        "N_SET:1.2.840.10008.5.1.1.4",
+        "N_ACTION:1.2.840.10008.5.1.1.2",
+        "N_DELETE:1.2.840.10008.5.1.1.1"
+      ],
+      "session_creates": 1,
+      "session_deletes": 1,
+      "print_actions": 1,
+      "closure": "normal release",
+      "event_acks": [
+        0
+      ],
+      "pixel_cases": [
+        {
+          "image": "gray8",
+          "wire_bits_allocated": 8,
+          "wire_bits_stored": 8,
+          "rows": 16,
+          "columns": 16,
+          "samples": 1,
+          "planar_configuration": null,
+          "wire_pixel_sha256": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880",
+          "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm"
+        }
+      ]
+    }
+  },
+  "evidence_sha256": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py": "5b108ad88b32471e2ad0b7e06fb58f48612917f7d9d2ec34c6afe65e710e1d21",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native_print_peer.py": "c36f4e769010e0a14cae98f27f3cf6fa0d48a9de19d2e286d1b1a827bd501b75",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-peers-stop.json": "d2369215207e7fde05e8c35b393bbd6f664c69f9e6d1c80e9e5e8cb02a801222",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/capture-summary.json": "56a7639c8ac7e6dec7b58eade48170177dc73a3a6bfb622ace5dbb7f695145bf",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/endpoint.json": "fcbbce412b2820cf95fa7d2bd5b647709c810ef7980d006177addbd85af4817c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/live-records.json": "fb45578a20cbb5983158138f018420869e40b23b446fe87d79c04a39c9bfaf09",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/independent-peer.json": "fb45578a20cbb5983158138f018420869e40b23b446fe87d79c04a39c9bfaf09",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-012.dataset.bin": "33d5bf60df52d8ff6f1568a8f38160457ebf952d9f2582ad334e31d89c21e8f6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-024.command.bin": "61b9bf1185c81583c0ce3a0b6c184539421da447db2851e8e8408d394e2468bd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-020.dataset.bin": "b310fbd692d160046fb1d88564e22c25c0ec4f2f2c80acdadef01ed40c46a1bc",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-016.command.bin": "dfd4e12b6ba943430c3a26318b99675d48c18d01ab2ebb942beb1ca66f25f529",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/01-c2s.dul": "2cb5d580f89296938cc2ad0bab8a2accfbc4586fd0283bee07686cef62d2c73d",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-003.command.bin": "b0e2c7da4c18f9333a274ca25e18e8c7bc5d51f43ce4f11a0e4c136e547ec5a9",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-007.dataset.bin": "b29e89de4a9359eefbce343a9871c54501655f316334f0d2de5608527ec83cbd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-006.command.bin": "4d9584f1506962c004372cf5a74e7f9e2e4fb25b7b5a0d46fa3a87811778d77a",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-002.dataset.bin": "b76232e520132aafdf17e702344cb9f0d85dc79232479e8f69a54c5674ecf83f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-021.command.bin": "a5462711965823b36e4d5235047e5d513234062664a361090733696c8be6831f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/00-c2s.dul": "a501c5b6e6946f7f43be0f7185f2045ed0f83dc9a167413ebe8506dadbd1b444",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-013.command.bin": "f633086190453d83ce787c42144ba82f148922b88a263c2521c30bded52996ff",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-026.dataset.bin": "5e69cd6cff64a7e6aeb6b4394d40b0dcfa6166d8a93551d3253ee605f2d5cf4c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-010.command.bin": "73e8671708fb9dc2fad93d0c7db03ca676065a2a643ed9aa58feb3849c9244cd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/decoded.json": "0c48ae2b48e347b29577cecec039eb0d8d15741be4b309faf4f6415cbeea3b55",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-022.command.bin": "3186d9be4fdb4d588bac7e78eea99f8f0b41ae04cfffc82f34b89a66d601070b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/proxy.json": "3660c34f3bc1623b7b7a937f0ca9b8a19b48ef6f838246dd8f1650a50e95ba9b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-019.command.bin": "62ef6a3603e41cfc2dee1e091584e4a2442e565f089b61120c05d080057ef8a6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-001.dataset.bin": "24815a788ad6d4d9bb6b535b607e699f533f1eab951b24b007e82e5637d8f68e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/02-c2s.dul": "10ec8ad5561927c09a610d9a180715d8fc1314bc982ac7e2e51a49ea7186bbe8",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-005.command.bin": "f041769ac8877356603d3dde1423579fc8d6bb17d9d733dc508e3214d80c8aad",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-004.dataset.bin": "3a2927f5093c9bde3d0588874f24e703d650e288da6f219f8312df3f0c3e8603",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-000.command.bin": "4c40810905af52dbd1abdd3e4418a2f62307ad7cd3d5710ac6bc65c0abea5828",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-018.dataset.bin": "b76232e520132aafdf17e702344cb9f0d85dc79232479e8f69a54c5674ecf83f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-015.command.bin": "dbf52e6eb8d0d64d92e56343c6db783e620c9eac908d08d868507a0ebb9ef792",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-009.command.bin": "5113ddfa9dc606839ca6186b89dbb06ad882d5a30e7e23305722c69dbd43b44b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-027.command.bin": "8c4c1cc1bd96faf1b0e8af15beca25cbc58bd54fcf8a4cfabc4bd5e8bee71843",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-024.dataset.bin": "17bc98b9ad3bc38aa10c01c65e6f8910f34ffbdf5669a069927a641a03f000d3",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-012.command.bin": "0b3d3ec26ece1759b0ec48922540410e0888b6feeb0deec0abc167cc272f4119",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-016.dataset.bin": "5e69cd6cff64a7e6aeb6b4394d40b0dcfa6166d8a93551d3253ee605f2d5cf4c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-020.command.bin": "ba87afadd8c574f6231d368775533f70d15bfb0ebdc09c01a7f92e526ccfc5fd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-003.dataset.bin": "1381e6dfc84e6d435fc5e4ff90ef10c18e3723f36e52a23dfc0fc7fe816feed3",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-007.command.bin": "e27d149179c0d13f6c07630d47520af45208e7089fd1950e16159cfa36a2e2d0",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/00-s2c.dul": "87a93c8f164c913c5fb303b788ed19d06cf7dd142563aae33ea645ea708c32be",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-006.dataset.bin": "04e59375c3fd63996a34e9708dad32b2d00db6fc9b3b2f80a115091a57fb3e6e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-002.command.bin": "dc0b1501a6892685669895d816b31d63cc3f6cfd8736aa26796bcf47c3f6a4de",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/01-s2c.dul": "2b114428dae62cd21300382eaf781f2e475717ab510fedd0ab092fea10d3a222",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-017.command.bin": "abf6da1d4b8ea851cb225fdd9e5e53560959dc1c5dcac1031ddcc19672e8c612",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-025.command.bin": "69ce0c66837ee542d941b2835b54e1dcfd0f9a9210b72f7266a748ac0da35137",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-008.command.bin": "3c42bcc4747c7e6c9636074545f9da3a5533ccc1a7d5b00380a45bad3b133158",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-026.command.bin": "06e54660ab0d969cbe6c027b821f977222425fd4703140f002c43a0244647399",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-014.command.bin": "21b150efb9e8393e91a90e89428c176fce2ea19abf703e4fb9104bca967df8b8",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-001.command.bin": "bb6319602434eb4b318318541b647ac3b6c934030fa1ea0d853f4513bab7a50b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-019.dataset.bin": "321980c434f284145c7022c0fd4c63ec69c4c5a47bb84764a612895d80a0a5c6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-005.dataset.bin": "ee812d68ff352f28b93208c4b6187c9530391fac8979e3a6cb8d4335d3a83545",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-004.command.bin": "62ef6a3603e41cfc2dee1e091584e4a2442e565f089b61120c05d080057ef8a6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-018.command.bin": "dc0b1501a6892685669895d816b31d63cc3f6cfd8736aa26796bcf47c3f6a4de",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-023.command.bin": "5c8ff82ccb17ef7b8f1bfe278eadcba9e030d0eb2ce24232d8b16512d49310d1",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/message-011.command.bin": "44a8039cc17b9b040ff21c48a33ac1e98af5c639489d6b9bea0ef2b01e740df6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal/wire/02-s2c.dul": "22b5a217216a12dee7c82c41e1ec95573959a33df01546b7d0b3fcc338b8a8bd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/capture-summary.json": "22f2235b5c0d36b486f13159d22548cde4429a43a6c71a688babb7e3a30a8b83",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/endpoint.json": "99933bf8825bf70bfcab668890a7e4ec2bc549f9d90c4c56cbc6355efd8f7d4b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/live-records.json": "1b4ba3b43815c159cae63ad101d868bdeb5cf4ddea27cb74ea9cfdd10f850a63",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/independent-peer.json": "1b4ba3b43815c159cae63ad101d868bdeb5cf4ddea27cb74ea9cfdd10f850a63",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/01-c2s.dul": "143fe790421a6e34917691be4aafe1450da1b2e2a263bc6b6b3461c07a24baa9",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-003.command.bin": "62ef6a3603e41cfc2dee1e091584e4a2442e565f089b61120c05d080057ef8a6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-006.command.bin": "0bdadd08810ef085246c0a4075233240400d1809a293018f82a0a4fcc259c9ea",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-002.dataset.bin": "b76232e520132aafdf17e702344cb9f0d85dc79232479e8f69a54c5674ecf83f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/00-c2s.dul": "a501c5b6e6946f7f43be0f7185f2045ed0f83dc9a167413ebe8506dadbd1b444",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-010.command.bin": "496c532c4818423e9469cfd8c4eb91f2d92752d39e5f1f1a1863c7f970e85c56",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/decoded.json": "2ca4abeb5d22ddb363018f4414892dd476f69c1782b6cd00f53215d652eb806e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-008.dataset.bin": "7f7a778261185ced019440a030f5bb37a8786a3545c646b89665f8efc806b0a5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/proxy.json": "21c8c764022fe92531e02315cc1c7e1c03cf40e90085aaf75467aa40ec6c7841",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-001.dataset.bin": "f2b7b6a8c832a42a3197e9cabbcb9bf9134271b7885aaf78365b5df7b4ab6675",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-005.command.bin": "ef55a59145354619a9051721073eb7f4f31ae608cef52dc57d5fa54cc8a6a117",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-004.dataset.bin": "939f4be6ea4de5aa92832d0c41af83ef24a050b24584df14e704c4dad045a7a7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-000.command.bin": "4c40810905af52dbd1abdd3e4418a2f62307ad7cd3d5710ac6bc65c0abea5828",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-009.command.bin": "9cd60b1eae7d7b4f588931475f748657f654dcdaa6bc10ab8223dde5ef05bb98",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-003.dataset.bin": "901febae5d6fb55a6a2d0fdcc398f24d29c00b3d3bee9405bfa2718938f5eef6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-007.command.bin": "73e8671708fb9dc2fad93d0c7db03ca676065a2a643ed9aa58feb3849c9244cd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/00-s2c.dul": "41119eb2f95a69de6950c40dcb8292a7cb3815cfa2aaee7027f932c60b9d7dce",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-002.command.bin": "dc0b1501a6892685669895d816b31d63cc3f6cfd8736aa26796bcf47c3f6a4de",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/01-s2c.dul": "e215d3348a0a2caee4ac3c42a5301e396f63346828ee4ec8bd3e43ae26d8dbc6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-008.command.bin": "14a448bb7e7597e09b2eaaed286fca671fc8f80dd1608a37508a2bb6ef37807c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-010.dataset.bin": "5e69cd6cff64a7e6aeb6b4394d40b0dcfa6166d8a93551d3253ee605f2d5cf4c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-001.command.bin": "bb6319602434eb4b318318541b647ac3b6c934030fa1ea0d853f4513bab7a50b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-004.command.bin": "c2872388f6562604068cdd741e29905574c371651b513366df56d7229bcb8911",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-warning/wire/message-011.command.bin": "96bccb9cdefd7bf5bc19af2898b4265a7b175040a9d36ca78133a44d5cc09dd2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/capture-summary.json": "8250bf46df494141f334ad793c314f54350f18bd3f6f4e5d39d83da038d5cf6f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/endpoint.json": "f5ec422b07b7214be16e819cc42668d400656fb34f5cd412244fd4c9f736ef6e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/live-records.json": "aabeef95f39accef91519cbb997382629f3ec2e8a8cd414d2f73b5fa2c12ff41",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/independent-peer.json": "aabeef95f39accef91519cbb997382629f3ec2e8a8cd414d2f73b5fa2c12ff41",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/00-c2s.dul": "a501c5b6e6946f7f43be0f7185f2045ed0f83dc9a167413ebe8506dadbd1b444",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/decoded.json": "553c2d2e693843f498d63da4eb142fbcf5793954c6906bbe0fa6a4c57d15ec49",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/proxy.json": "a1877ca285ee033a345b7b1f3d1944cbccd1ea37fd2b765c483b3eac651acae2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/message-001.dataset.bin": "5659e0821f45ba0283fb6028b16ecc8dfd23778bdd5d0ff80c6539b88f176219",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/message-000.command.bin": "4c40810905af52dbd1abdd3e4418a2f62307ad7cd3d5710ac6bc65c0abea5828",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/00-s2c.dul": "9ccce353f62f02949b3bbb13caaac56fc6b40f2d029ce2d9326f5ffeabfe8c8c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-failure/wire/message-001.command.bin": "bb6319602434eb4b318318541b647ac3b6c934030fa1ea0d853f4513bab7a50b",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/capture-summary.json": "5f7c0f60a6c6e96b4dd3916edfea5a680f77931831ef623c7d69e7333245aac1",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/endpoint.json": "ed697f2b9201a9bc358a75598a0472f9b336c5ce9c8c80a3a49a5fb2a7f58c0c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/live-records.json": "b993d6c96bc3ec3a41d5b422b2c059abb826e54684da1b3ef2a5ac57b6d6125e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/independent-peer.json": "b993d6c96bc3ec3a41d5b422b2c059abb826e54684da1b3ef2a5ac57b6d6125e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-003.command.bin": "9bebf37c443ce5c9f0a70edddc380f9754b4cfe0ed3ead32da6d50d39be2b8b2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-006.command.bin": "aadcffc8e45244fec6967ba06546f45cb8ec70a0d2ce765abb1b4f5cff761d08",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-002.dataset.bin": "939f4be6ea4de5aa92832d0c41af83ef24a050b24584df14e704c4dad045a7a7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/00-c2s.dul": "fff73eb5614384a852830b2785ee6c502dd04150325335637d11b2d25954ca3c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/decoded.json": "81621f249c9e8e2ef2c83ce2065518a76258be048bf617c442c62e5adae3527e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/proxy.json": "a1877ca285ee033a345b7b1f3d1944cbccd1ea37fd2b765c483b3eac651acae2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-001.dataset.bin": "901febae5d6fb55a6a2d0fdcc398f24d29c00b3d3bee9405bfa2718938f5eef6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-005.command.bin": "14a448bb7e7597e09b2eaaed286fca671fc8f80dd1608a37508a2bb6ef37807c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-000.command.bin": "dc0b1501a6892685669895d816b31d63cc3f6cfd8736aa26796bcf47c3f6a4de",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-007.command.bin": "134eebab08bfcc5d6d6da38f173c96f1e4fec44c15ea97641d830fc247213340",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/00-s2c.dul": "7353745c282b881feae40cdd7575427d35b6f4744daebdc31f306268df12461f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-002.command.bin": "c2872388f6562604068cdd741e29905574c371651b513366df56d7229bcb8911",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-001.command.bin": "62ef6a3603e41cfc2dee1e091584e4a2442e565f089b61120c05d080057ef8a6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-005.dataset.bin": "7f7a778261185ced019440a030f5bb37a8786a3545c646b89665f8efc806b0a5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-004.command.bin": "73e8671708fb9dc2fad93d0c7db03ca676065a2a643ed9aa58feb3849c9244cd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-set-failure/wire/message-000.dataset.bin": "b76232e520132aafdf17e702344cb9f0d85dc79232479e8f69a54c5674ecf83f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/capture-summary.json": "2857daae1d5996b78e88e6fdc0787dff4c4e24e18be29774c7a7e60cf012ac1f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/endpoint.json": "95013f8f54de292560b0195028a0d618f542dbdfa8766ff9a645943e59cbdae2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/live-records.json": "572049d026adac1e59fa7008d765cf17965eedd59d71b998c1f602378a174896",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/independent-peer.json": "572049d026adac1e59fa7008d765cf17965eedd59d71b998c1f602378a174896",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-003.command.bin": "ef55a59145354619a9051721073eb7f4f31ae608cef52dc57d5fa54cc8a6a117",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-006.command.bin": "14a448bb7e7597e09b2eaaed286fca671fc8f80dd1608a37508a2bb6ef37807c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-002.dataset.bin": "939f4be6ea4de5aa92832d0c41af83ef24a050b24584df14e704c4dad045a7a7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/00-c2s.dul": "143fe790421a6e34917691be4aafe1450da1b2e2a263bc6b6b3461c07a24baa9",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/decoded.json": "fb8a15724a5fab6a7e0f950031d22cd44bf3d8c92632e52e697f26d09a7bc712",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-008.dataset.bin": "5e69cd6cff64a7e6aeb6b4394d40b0dcfa6166d8a93551d3253ee605f2d5cf4c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/proxy.json": "a1877ca285ee033a345b7b1f3d1944cbccd1ea37fd2b765c483b3eac651acae2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-001.dataset.bin": "901febae5d6fb55a6a2d0fdcc398f24d29c00b3d3bee9405bfa2718938f5eef6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-005.command.bin": "73e8671708fb9dc2fad93d0c7db03ca676065a2a643ed9aa58feb3849c9244cd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-000.command.bin": "dc0b1501a6892685669895d816b31d63cc3f6cfd8736aa26796bcf47c3f6a4de",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-009.command.bin": "96bccb9cdefd7bf5bc19af2898b4265a7b175040a9d36ca78133a44d5cc09dd2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-007.command.bin": "9cd60b1eae7d7b4f588931475f748657f654dcdaa6bc10ab8223dde5ef05bb98",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/00-s2c.dul": "7eb0767c16f53a3acab6e6bc092b7f3d3484433f682ee6a770d2a18b6b647f24",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-006.dataset.bin": "7f7a778261185ced019440a030f5bb37a8786a3545c646b89665f8efc806b0a5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-002.command.bin": "c2872388f6562604068cdd741e29905574c371651b513366df56d7229bcb8911",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-008.command.bin": "08f45d10328b654d142f22b53ef21345e29544e1f4163f5a3f8c9507d9698838",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-001.command.bin": "62ef6a3603e41cfc2dee1e091584e4a2442e565f089b61120c05d080057ef8a6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-004.command.bin": "0bdadd08810ef085246c0a4075233240400d1809a293018f82a0a4fcc259c9ea",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-action-warning/wire/message-000.dataset.bin": "b76232e520132aafdf17e702344cb9f0d85dc79232479e8f69a54c5674ecf83f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/capture-summary.json": "2f1a77aef61d8b6e6a2c5932fec77cb197b27880f297f581b5bd4e647271f8eb",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/endpoint.json": "0e77fdc79c0515e2e47fe3d7cf70f329d34327fa7d62767c678b31e481553d12",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/live-records.json": "2c87fb13aa75367681a1669dafe1e1e33bb65a97234ee155e79ecc4dac8548a5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/independent-peer.json": "2c87fb13aa75367681a1669dafe1e1e33bb65a97234ee155e79ecc4dac8548a5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/message-003.command.bin": "134eebab08bfcc5d6d6da38f173c96f1e4fec44c15ea97641d830fc247213340",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/00-c2s.dul": "edd66ed450f3c72d3225088b74450b18d9e365c4711ec5d0cb4db91a62fdd8e9",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/decoded.json": "e285b3f4debd3b516ebab97ae5024ef5799008c69b6d61696997fd3c3e3c4ad3",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/proxy.json": "a1877ca285ee033a345b7b1f3d1944cbccd1ea37fd2b765c483b3eac651acae2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/message-000.command.bin": "dc0b1501a6892685669895d816b31d63cc3f6cfd8736aa26796bcf47c3f6a4de",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/00-s2c.dul": "5e0381722b10784c51a1c9c37e6cb402890b94ae39e2046e77fc3a402a20816a",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/message-002.command.bin": "73e8671708fb9dc2fad93d0c7db03ca676065a2a643ed9aa58feb3849c9244cd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/message-001.command.bin": "9bebf37c443ce5c9f0a70edddc380f9754b4cfe0ed3ead32da6d50d39be2b8b2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-no-lut/wire/message-000.dataset.bin": "b76232e520132aafdf17e702344cb9f0d85dc79232479e8f69a54c5674ecf83f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/capture-summary.json": "13ba3dbc49447b0249dfebd33afe24143d7a54868cbc3b00fd0848afe88227da",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/endpoint.json": "b5d4e545e35b0e3f4e85643d7050c20d4ede5c253e9447eed53bd9982f8dd2b5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/live-records.json": "aca3ebf93e6109166d9441b21e2ac817fdb7ebd5c72a620f6349985f4b92adff",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/independent-peer.json": "aca3ebf93e6109166d9441b21e2ac817fdb7ebd5c72a620f6349985f4b92adff",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-003.command.bin": "ef55a59145354619a9051721073eb7f4f31ae608cef52dc57d5fa54cc8a6a117",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-007.dataset.bin": "7f7a778261185ced019440a030f5bb37a8786a3545c646b89665f8efc806b0a5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-006.command.bin": "73e8671708fb9dc2fad93d0c7db03ca676065a2a643ed9aa58feb3849c9244cd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-002.dataset.bin": "939f4be6ea4de5aa92832d0c41af83ef24a050b24584df14e704c4dad045a7a7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/00-c2s.dul": "3dbe410fbd28ab3bbb68e91b5fc10e9ab4c777437aaea41882f6bab0de8c7766",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-010.command.bin": "496c532c4818423e9469cfd8c4eb91f2d92752d39e5f1f1a1863c7f970e85c56",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/decoded.json": "ecc194cd33273f4d38e9e0b846c44b60215ff13846366e677e1b5863899ca427",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/proxy.json": "a1877ca285ee033a345b7b1f3d1944cbccd1ea37fd2b765c483b3eac651acae2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-001.dataset.bin": "901febae5d6fb55a6a2d0fdcc398f24d29c00b3d3bee9405bfa2718938f5eef6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-005.command.bin": "0bdadd08810ef085246c0a4075233240400d1809a293018f82a0a4fcc259c9ea",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-000.command.bin": "dc0b1501a6892685669895d816b31d63cc3f6cfd8736aa26796bcf47c3f6a4de",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-009.command.bin": "be7b6fb3d3617a04c417348400ba4036517764a6dad459da03371b000f3856f4",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-007.command.bin": "14a448bb7e7597e09b2eaaed286fca671fc8f80dd1608a37508a2bb6ef37807c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/00-s2c.dul": "0b92d05f72ac3af524897073f6b1e4099f788405c38adcd89095b8d613d3cfcb",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-002.command.bin": "c2872388f6562604068cdd741e29905574c371651b513366df56d7229bcb8911",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-008.command.bin": "9cd60b1eae7d7b4f588931475f748657f654dcdaa6bc10ab8223dde5ef05bb98",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-010.dataset.bin": "5e69cd6cff64a7e6aeb6b4394d40b0dcfa6166d8a93551d3253ee605f2d5cf4c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-001.command.bin": "62ef6a3603e41cfc2dee1e091584e4a2442e565f089b61120c05d080057ef8a6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-004.command.bin": "cc0424ca8f37bf58d66be99127c82bdcac5f72be83c19937576c91f5f054d213",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-000.dataset.bin": "b76232e520132aafdf17e702344cb9f0d85dc79232479e8f69a54c5674ecf83f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-011.command.bin": "96bccb9cdefd7bf5bc19af2898b4265a7b175040a9d36ca78133a44d5cc09dd2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-event/wire/message-009.dataset.bin": "e1a241a02a72c0f398ad1e5d93e9c4b6e63e01cf3a55e6ee128241720ffbbbd8",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-action-warning-peer-gray8.dcm-console.txt": "1081195886c6508064296c81431f3a6ef726d6f0a3eb1f02797af185e4788331",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-event-peer-gray8.dcm-console.txt": "68cd38bdf4ca946960104ebae1576269600613fae496972d46781da76251b76d",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-failure-peer-gray8.dcm-console.txt": "833ca485378d42a12aa4d5791450724d036645e7de60c6c5a2cac02939d6a57d",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-no-lut-peer-gray8.dcm-console.txt": "9d496fda46bf5a5391955e93c686dc7a885c79798b830fe5dddbda983e4834fd",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-normal-peer-gray12.dcm-console.txt": "ee19762392624471cac247501dd3929528d3edd76eb497553fff67a9407f6f50",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-normal-peer-rgb8.dcm-console.txt": "d5e1bcbe903534127c8ffea8380caf9353ecf645ab9e8a139f28657a4f094a0d",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-set-failure-peer-gray8.dcm-console.txt": "d3b0463b38ca785c4005f2e354cb36fbb7dfe7203792e9517be87da27458cd31",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui/peer-warning-peer-gray8.dcm-console.txt": "03c599418f545ab855cde55830514bbf5c74b26f84c9c5202a6bcf78a909cb07",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm": "a42b40df5448cf6e954ec179ebce9eb2821e0987015dd8ae86ae2b7868af0273",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray12.dcm": "353629fb37895e6f85ae2dfe2081e861e3837cbaac17e91781175e793ca473bf",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-rgb8.dcm": "59981e76fcc38f1433c4de579d59178510b417bef4c82fd80b56a8fba66071d6"
+  },
+  "reader": {
+    "pydicom": "3.0.1",
+    "qualified_helper": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py",
+    "helper_sha256": "5b108ad88b32471e2ad0b7e06fb58f48612917f7d9d2ec34c6afe65e710e1d21",
+    "decoder_persistence": "disabled for original evidence; parsing/assertion implementation unchanged"
+  },
+  "limits": [
+    "Independent software peer only; no physical printer/paper or vendor interoperability certification.",
+    "Only the eight retained sends are asserted; no native listener/SCP, printer registry, capabilities, Job N-GET, timeout/retry or other unobserved UI action is inferred.",
+    "Successful flows release normally. Injected N-SET failure and rejected LUT clean up with successful session deletion then A-ABORT; do not describe these two as normal releases.",
+    "Session cleanup wire request/response is proven. The simple peer records operations; durable resource reclamation or actual physical completion is outside its model.",
+    "Grayscale12 command includes raw mode and render bit-depth8; raw preserves original 16 allocated/12 stored pixel samples on wire, as independently verified.",
+    "Annotation first trailing space is indistinguishable from DICOM trailing padding semantically; exact expected UTF8/ASCII bytes including original space plus one even pad are checked.",
+    "Copied console was obtained by the native owner and pasted into a nonexecuted Import sheet for complete AX capture; report uses it as copied output corroborated by wire, not as new command execution.",
+    "This audit does not independently repeat source/app identity checks; see native-resume-identity and owner execution record for packaged provenance."
+  ],
+  "standards_basis": [
+    {
+      "local_frozen": "work/standards/part04_2026a.xml",
+      "section": "H.4.1.2.3",
+      "meaning": "Film Session N-DELETE covers session hierarchy including referenced images/annotations/LUTs; peer reclamation not asserted."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+OVERVIEW: Export a single DICOM file to an image
+
+USAGE: dicom-export single <input> [--output <output>] [--format <format>] [--quality <quality>] [--embed-metadata] [--exif-fields <exif-fields>] [--apply-window] [--window-center <window-center>] [--window-width <window-width>] [--frame-number <frame-number>] [--frame <frame>]
+
+ARGUMENTS:
+  <input>                 Path to DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output file path
+  --format <format>       Output format: png, jpeg, tiff (values: png, jpeg,
+                          tiff; default: jpeg)
+  --quality <quality>     JPEG quality (1-100) (default: 90)
+  --embed-metadata        Embed DICOM metadata as EXIF/TIFF tags
+  --exif-fields <exif-fields>
+                          Comma-separated PS3.6 keywords to embed: PatientName,
+                          PatientID, StudyDate, Modality, StudyDescription,
+                          SeriesDescription, InstitutionName, Manufacturer,
+                          ManufacturerModelName, StationName (default:
+                          PatientName,StudyDate,Modality,StudyDescription,Manufacturer).
+                          StudyDate (DA) is written as Exif DateTimeOriginal
+                          with StudyTime; PatientID, Modality and
+                          SeriesDescription go to Exif UserComment as
+                          Keyword=value
+  --apply-window          Use --window-center/--window-width (LINEAR, PS3.3
+                          C.11.2.1.2.1). Without it the file's VOI is applied:
+                          Window Center (0028,1050) and Window Width
+                          (0028,1051), else VOI LUT Sequence (0028,3010), else
+                          the full pixel range
+  --window-center <window-center>
+                          Window Center (0028,1050) in modality units (after
+                          Rescale Slope/Intercept); needs --apply-window and
+                          --window-width
+  --window-width <window-width>
+                          Window Width (0028,1051) in modality units, >= 1;
+                          needs --apply-window and --window-center
+  --frame-number <frame-number>
+                          Frame to export, numbered from 1 (PS3.3 Table 10-3;
+                          default 1)
+  --frame <frame>         deprecated: 0-based index; use --frame-number
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,4 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~		26 search text field (settable) Value: 2026-10-24 10:15:30.123456 +0530, Placeholder: Search features
++			40 button cancel
+The focused UI element is 26 search text field (settable) Value: 2026-10-24 10:15:30.123456 +0530, Placeholder: Search features

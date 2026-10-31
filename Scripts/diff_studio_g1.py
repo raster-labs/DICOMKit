@@ -25,8 +25,10 @@ or against the engine symbol the Workshop and the CLI both call (the CLI source 
                                      DICOMValidator.iodNameBySOPClassUID is a PS3.6 Table A-1 row
   * uid / dump refusal texts         both surfaces call UIDManager.RootRule (D250); the dicom-dump texts are mirrored
   * ValidationModel (panel)          --iod suggestions are PS3.6 Table A-1 UID Keywords; level texts = dicom-validate --level help
-  * pixel / codec tools (anon, image, pdf, pixedit, video, convert, compress): the E.3 Option flags vs PS3.15 Table E.1-1
-                                     columns / CID 7050, Conversion Type vs Table C.8-24, CID 3000 keywords, the compress
+  * anonymization                    current OCR workflow request/execution adapters and form coverage vs the CLI,
+                                     PS3.15 E.1 Basic Profile name and Table E.1-1 Option columns; runtime separate
+  * pixel / codec tools (image, pdf, pixedit, video, convert, compress): Conversion Type vs Table C.8-24,
+                                     CID 3000 keywords, the compress
                                      native --syntax set, the convert token set (DICOMConverter.cliTokens); since the
                                      Studio pass (2026-10-06) the former CLI-local rule files are DICOMKit / DICOMNetwork /
                                      DICOMWeb symbols that the CLI and the Workshop both call (engine_calls), and no
@@ -36,6 +38,7 @@ or against the engine symbol the Workshop and the CLI both call (the CLI source 
 """
 import os
 import re
+import diff_cli as dc
 
 # No pending rows. P-STUDIO-MWL-CREATE (2026-10-06): worklist-item creation (HL7 ORM^O01 / REST, not a DIMSE
 # service) moved to the Networking panel; the Workshop's dicom-mwl offers only the CLI's `query`
@@ -113,9 +116,64 @@ def literals(s):
 
 
 def cli_sources(ctx, tool):
-    """Every Swift file of a dicom-* tool, concatenated (the CLI side of an engine-call check)."""
-    d = os.path.join(ctx['sources'], tool)
-    return '\n'.join(ctx['dw'].read(os.path.join(d, f)) for f in sorted(os.listdir(d)) if f.endswith('.swift'))
+    """Tool-owned declarations, including extracted shared commands, as in the CLI audit."""
+    files = dc.tool_files(tool, sources=ctx['sources'])
+    return '\n'.join(files[name] for name in sorted(files))
+
+
+def query_preflight_issues(vm, cli, service, dw):
+    """Static wiring checks, not a substitute for the M3 request-capture tests."""
+    vm, cli, service = (dc.swift_code(s) for s in (vm, cli, service))
+    execute = dw.func_body(vm, r'private func executeDicomQuery\(\) async')
+    build = dw.func_body(execute, r'func buildKeys\(\) -> QueryKeys')
+    validate = dw.func_body(cli, r'func validate\(\) throws')
+    cli_build = dw.func_body(cli, r'func buildQueryKeys\(\) -> QueryKeys')
+    run = dw.func_body(cli, r'mutating func run\(\) async throws')
+    wrong = []
+    guard = re.search(r'if let reason = buildKeys\(\)\.rejectionReason\s*\{\s*'
+                      r'refuse\(reason, exitCode: 64\)\s*return\s*\}', execute)
+    dispatch = execute.find('DICOMQueryService.find(')
+    header = execute.find('NetworkConsole.queryHeader(')
+    if ('DICOMQueryService.buildQueryKeys(' not in build or guard is None
+            or dispatch < 0 or header < 0 or guard.end() > min(dispatch, header)):
+        wrong.append('dicom-query Workshop must refuse shared buildQueryKeys().rejectionReason with exit 64 before the header and C-FIND dispatch')
+    if ('DICOMQueryService.buildQueryKeys(' not in cli_build
+            or not re.search(r'if let reason = buildQueryKeys\(\)\.rejectionReason\s*\{\s*throw ValidationError\(reason\)\s*\}', validate)
+            or 'try validate()' not in run
+            or not 0 <= run.find('try validate()') < run.find('NetworkConsole.queryHeader(')):
+        wrong.append('dicom-query CLI must validate the same shared rejectionReason before its header and dispatch')
+    if ('keys.rejectionReason =' not in service
+            or 'cannot be matched at \\(level.rawValue) level' not in service
+            or 'let unsupported = unsupportedFilters(' not in service):
+        wrong.append('DICOMQueryService must build the unsupported-filter refusal with QueryLevel.rawValue (IMAGE)')
+    return wrong
+
+
+def qido_preflight_issues(vm, helpers, cli, dw):
+    """Follow current Workshop -> effective request -> shared QIDO/paging validation."""
+    vm, helpers, cli = (dc.swift_code(s) for s in (vm, helpers, cli))
+    execute = dw.func_body(vm, r'private func executeDicomQIDO\(\) async')
+    effective = dw.func_body(vm, r'func effectiveQIDORequest\(')
+    policy = dw.enum_body(helpers, 'WorkshopQIDOParameters')
+    request = dw.func_body(policy, r'public static func request\(')
+    query_command = block_or_empty(cli, r'struct QueryCommand: AsyncParsableCommand\s*\{', 'QIDO CLI command')
+    cli_request = dw.func_body(query_command, r'func buildRequest\(\) throws -> QIDORequest')
+    cli_run = dw.func_body(query_command, r'func run\(\) async throws')
+    wrong = []
+    call = execute.find('try effectiveQIDORequest(')
+    client = execute.find('DICOMwebClientFactory.makeClient(')
+    if ('try WorkshopQIDOParameters.request(' not in effective
+            or not 0 <= call < client):
+        wrong.append('dicom-qido Workshop must build the effective shared request before constructing the HTTP client')
+    if ('let effective = effectiveValues(values, definitions: definitions)' not in request
+            or not re.search(r'guard let limit = Int\(value\("limit"\)\), let offset = Int\(value\("offset"\)\) else\s*\{\s*throw DICOMwebOptionRefusal', request)
+            or not 0 <= request.find('try DICOMwebOptionRules.validatePaging(limit: limit, offset: offset)')
+                     < request.find('return try QIDORequest(')):
+        wrong.append('WorkshopQIDOParameters.request must strictly parse limit/offset and call validatePaging before QIDORequest, using effective values')
+    if ('try QIDORequest(' not in cli_request
+            or not 0 <= cli_run.find('try buildRequest()') < cli_run.find('DICOMwebClient(configuration:')):
+        wrong.append('dicom-wado query must build the same QIDORequest before constructing the HTTP client')
+    return wrong
 
 
 def engine_calls(ws_text, cli_text, calls, label, matched, wrong, cli_calls=None):
@@ -185,22 +243,9 @@ def ps311_identifiers(p11):
     return std, templates
 
 
-_PART7 = {}
-
-
 def part7(ctx):
-    """PS3.7 2026a (not among the parts diff_studio.py loads): read from the --nema directory on demand."""
-    if 'part' not in _PART7:
-        import sys
-        nema = None
-        for i, a in enumerate(sys.argv):
-            if a == '--nema' and i + 1 < len(sys.argv):
-                nema = sys.argv[i + 1]
-            elif a.startswith('--nema='):
-                nema = a.split('=', 1)[1]
-        path = os.path.join(nema or '', 'part07_2026a.xml')
-        _PART7['part'] = ctx['nd'].Part(path) if nema and os.path.exists(path) else None
-    return _PART7['part']
+    """Use the edition-validated input, without a process-global/argv cache."""
+    return ctx['parts'].get(7)
 
 
 # --- dicom-dcmdir ------------------------------------------------------------------------------------------
@@ -573,8 +618,8 @@ def check_validation_panel(rep, parts, files, ctx):
 def check_query_retrieve_levels(rep, parts, files, ctx):
     """dicom-query --level offers the Query/Retrieve Level (0008,0052) values of PS3.4 2026a Tables
     C.6.1-1 / C.6.2-1 (PATIENT, STUDY, SERIES, IMAGE) in lower case, the executor maps every value (and the
-    CLI alias "instance") onto DICOMNetwork.QueryLevel, and the parent-level warning names the level by
-    QueryLevel.rawValue — mirroring the CLI fix 695d961 (no "instance" on the wire)."""
+    CLI alias "instance") onto DICOMNetwork.QueryLevel. Both adapters refuse unsupported supplied filters
+    through the shared preflight before dispatch; its message uses QueryLevel.rawValue (IMAGE)."""
     dw = ctx['dw']
     ws = ctx['workshop_surface']()
     vm = src(files, 'CLIWorkshopViewModel.swift')
@@ -620,10 +665,10 @@ def check_query_retrieve_levels(rep, parts, files, ctx):
         else:
             matched += 1
     exec_body = block(vm, r'private func executeDicomQuery\(\) async \{', 'executeDicomQuery')
-    if 'cannot be matched at \\(level.rawValue) level' not in exec_body:
-        wrong.append('the parent-level filter warning must name the level by QueryLevel.rawValue (IMAGE), as the CLI does')
-    else:
-        matched += 1
+    preflight = query_preflight_issues(vm, cli_sources(ctx, 'dicom-query'),
+                                      read(ctx, 'DICOMNetwork/QueryService.swift'), dw)
+    wrong.extend(preflight)
+    matched += 3 - len(preflight)
     if '"INSTANCE"' in exec_body:
         wrong.append('executeDicomQuery still spells the IMAGE level as "INSTANCE"')
     for needle in ('csvHeader: csvKeywords ? .keyword : .tag', 'DICOMJSONEncoder(configuration: .init(prettyPrinted: true)).encodeMultiple'):
@@ -997,12 +1042,15 @@ def check_web_rules(rep, parts, files, ctx):
         matched += 1
     cli_wado = cli_sources(ctx, 'dicom-wado')
     ws_calls = ['DICOMwebOptionRules.' + c for c in ('uriContentType(', 'uriFrameNumber(', 'uriRegion(', 'uriAnnotation(', 'uriParameterWarnings(',
-                                                 'pagingProblem(', 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
+                                                 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
         + ['changeStateTarget(optionValue:', 'catch let e as DICOMwebOptionRefusal']
     cli_calls = ['DICOMwebOptionRules.' + c for c in ('uriContentType(', 'uriFrameNumber(', 'uriRegion(', 'uriAnnotation(', 'uriParameterWarnings(',
                                                   'validatePaging(', 'changeStateWorkitem(', 'updateDeprecationNote', 'timeouts(')] \
         + ['changeStateTarget(optionValue:']
     matched = engine_calls(vm, cli_wado, ws_calls, 'dicom-wado option rules', matched, wrong, cli_calls=cli_calls)
+    preflight = qido_preflight_issues(vm, src(files, 'CLIWorkshopHelpers.swift'), cli_wado, dw)
+    wrong.extend(preflight)
+    matched += 3 - len(preflight)
     matched = no_local_copy(vm, engine + states, ('PS3.18', 'Change Workitem State', 'parameter'), ('enum WorkshopWADOOptionRules', 'func upsState('),
                             'dicom-wado option rules', matched, wrong)
     for lit in literals(read(ctx, 'dicom-wado/DICOMWado.swift')):
@@ -1102,151 +1150,85 @@ def mirror_literals(cli_body, ws_body, keep, label, matched, wrong, limit=100):
 
 
 def check_pixel_anon_options(rep, parts, files, ctx):
-    """PS3.15 2026a Annex E / Table E.1-1 Option columns / PS3.16 CID 7050: the dicom-anon Workshop form offers every
-    E.3 Option flag the CLI declares (help texts the CLI's, each naming its CID 7050 Option), plus the pixel-cleaning
-    options; the profile, Option and action-report rules are DICOMKit AnonCLI in both surfaces (D275)."""
-    dk = ctx['dk']
+    """Current OCR workflow adapter and PS3.15 option coverage, not the retired
+    Workshop-local AnonCLI/PS315Flags implementation. These are source checks;
+    runtime de-identification correctness is qualified separately."""
     ws = ctx['workshop_surface']()
-    helpers, vm = src(files, 'CLIWorkshopHelpers.swift'), src(files, 'CLIWorkshopViewModel.swift')
-    cli_support = read(ctx, 'DICOMKit/Anonymization/AnonCLISupport.swift')   # DICOMKit AnonCLI since D275
-    cli_main = read(ctx, 'dicom-anon/main.swift')
+    params = ws.get('dicom-anon', [])
+    vm = src(files, 'CLIWorkshopViewModel.swift')
+    # Entry points may be renamed or split into multiple Swift files.
+    cli = cli_sources(ctx, 'dicom-anon')
+    workflow = read(ctx, 'DICOMKit/Anonymization/AnonymizationWorkflow.swift')
+    security = read(ctx, 'DICOMStudio/ViewModels/SecurityViewModel.swift')
+    executor = block(vm, r'private func executeDicomAnon\(\) async \{', 'executeDicomAnon')
     wrong, matched = [], 0
-    # AnonCLI.PS315Flags.setFlags, in order; the Workshop builds the same PS315Flags from its form ids
-    set_flags = re.findall(r'\("(--[a-z-]+)",\s*\w+\)', block(cli_support, r'var setFlags: \[String\] \{', 'PS315Flags.setFlags'))
-    ws_ids = re.findall(r'on\("([a-z-]+)"\)', block(vm, r'let ps315Flags = AnonCLI\.PS315Flags\(', 'Workshop AnonCLI.PS315Flags'))
-    if ['--' + i for i in ws_ids] != set_flags:
-        wrong.append(f'the Workshop builds AnonCLI.PS315Flags from {ws_ids}; AnonCLI.PS315Flags.setFlags is {set_flags}')
-    else:
-        matched += len(set_flags)
-    cid7050 = {m.lower(): v for s_, v, m in dk.cid_rows(parts[16], 'CID 7050') if s_ == 'DCM'}
-    e3_titles = {ctx['dw'].section_title(parts[15], f'sect_E.3.{n}') for n in range(1, 12)}
-    for flag in set_flags + ['--clean-pixel-data', '--redact-region', '--redact-fill', '--allow-burned-in-phi']:
-        p = next((q for q in ws.get('dicom-anon', []) if q.get('flag') == flag), None)
-        if p is None:
-            wrong.append(f'dicom-anon form lacks {flag} (PS3.15 E.3 / E.1.1)')
+    _, options, _, _ = ctx['cli_surface']('dicom-anon')
+    offered = {p.get('flag') for p in params}
+    for option in options:
+        if option['kind'] == 'Argument':
             continue
-        matched += 1
-        cli = cli_help(ctx, 'dicom-anon', flag)
-        help_text = str(p.get('helpText', ''))
-        if not cli or not help_text.startswith(cli[-1]):
-            wrong.append(f'{flag}: Workshop help {help_text[:70]!r} does not carry the CLI help {cli and cli[-1][:70]!r}')
+        positive = [n for n in option['names'] if n.startswith('--') and not n.startswith('--no-')]
+        if positive and not set(positive) & offered:
+            wrong.append(f'dicom-anon form has no control for {positive[0]} '
+                         '(CLI contract coverage; not a PS3.15 violation by itself)')
         else:
             matched += 1
-        if flag in set_flags and flag != '--retain-dates':
-            norm = help_text.replace('With ', '').lower()
-            if not any(meaning in norm for meaning in cid7050):
-                wrong.append(f'{flag}: help names no PS3.16 CID 7050 De-identification Method Option')
-            else:
-                matched += 1
-    # Table E.1-1 Option columns (10 "Opt." columns) each have a flag
-    header = []
-    for lab, cap, t in parts[15].tables():
-        if lab == 'E.1-1':
-            header = [ctx['nd'].norm(' '.join(x.itertext())) for x in t.iter() if x.tag.split('}')[-1] == 'th']
-            break
-    columns = [h for h in header if h.endswith('Opt.')]
-    column_flags = {'Rtn. Safe Priv. Opt.': '--retain-safe-private', 'Rtn. UIDs Opt.': '--retain-uids',
-                    'Rtn. Dev. Id. Opt.': '--retain-device', 'Rtn. Inst. Id. Opt.': '--retain-institution',
-                    'Rtn. Pat. Chars. Opt.': '--retain-characteristics', 'Rtn. Long. Full Dates Opt.': '--retain-full-dates',
-                    'Rtn. Long. Modif. Dates Opt.': '--retain-modified-dates', 'Clean Desc. Opt.': '--clean-descriptors',
-                    'Clean Struct. Cont. Opt.': '--clean-structured-content', 'Clean Graph. Opt.': '--clean-graphics'}
-    if len(columns) != 10:
-        wrong.append(f'PS3.15 Table E.1-1: expected 10 Option columns, read {columns}; re-read the table')
-    for col in columns:
-        flag = column_flags.get(col)
-        if flag is None or flag not in set_flags:
-            wrong.append(f'Table E.1-1 column "{col}" has no dicom-anon flag in the Workshop form')
+    # The two date options have direct, supported semantic controls. This does
+    # not suppress missing compatibility spellings in the CLI coverage above.
+    column_flags = {
+        'Rtn. Safe Priv. Opt.': '--retain-safe-private', 'Rtn. UIDs Opt.': '--retain-uids',
+        'Rtn. Dev. Id. Opt.': '--retain-device', 'Rtn. Inst. Id. Opt.': '--retain-institution',
+        'Rtn. Pat. Chars. Opt.': '--retain-characteristics', 'Rtn. Long. Full Dates Opt.': '--retain-dates',
+        'Rtn. Long. Modif. Dates Opt.': '--shift-dates', 'Clean Desc. Opt.': '--clean-descriptors',
+        'Clean Struct. Cont. Opt.': '--clean-structured-content', 'Clean Graph. Opt.': '--clean-graphics',
+    }
+    table = parts[15].table('E.1-1')
+    columns = [ctx['nd'].norm(' '.join(x.itertext())) for x in table.iter()
+               if x.tag.split('}')[-1] == 'th']
+    columns = [h for h in columns if h.endswith('Opt.')]
+    if set(columns) != set(column_flags):
+        raise ValueError(f'PS3.15 Table E.1-1 Option columns changed: {columns}; update the audit mapping')
+    for column in columns:
+        if column_flags[column] not in offered:
+            wrong.append(f'Table E.1-1 {column} has no Workshop control {column_flags[column]}')
         else:
             matched += 1
-    for title in e3_titles - {'Retain Longitudinal Temporal Information Options'}:
-        if not any(title.replace(' Option', '').lower() in str(p.get('helpText', '')).lower() for p in ws.get('dicom-anon', [])):
-            wrong.append(f'PS3.15 E.3 "{title}" is named by no dicom-anon form help')
-        else:
-            matched += 1
-    # the profile / Option / action-report rules are DICOMKit AnonCLI in both surfaces (D275); no Workshop copy
-    calls = ['AnonCLI.' + c for c in ('validate(', 'resolveProfile(', 'legacyProfileNotice(', 'attributeActions(', 'actionLines(',
-                                      'syncingMediaStorageSOPInstanceUID(', 'PS315Flags(')]
-    matched = engine_calls(vm, cli_main, calls, 'dicom-anon AnonCLI', matched, wrong)
-    matched = no_local_copy(vm, cli_support, ('PS3', 'Deprecated', 'Note:', 'profile', 'not in PS3.6', 'Private Data Element', 'Attribute actions'),
-                            ('enum WorkshopAnonCLI', 'optionFlagIDs', 'func optionsOnlyForPS315'), 'dicom-anon AnonCLI', matched, wrong)
-    if 'PS3.15 Annex E Option flags apply only to --profile ps315: ' not in cli_support:
-        wrong.append('DICOMKit AnonCLI.validate no longer says "PS3.15 Annex E Option flags apply only to --profile ps315: "; re-read')
-    else:
-        matched += 1
-    # the two texts of the CLI-local AnonymizationError stay mirrored (WorkshopAnonError)
-    ws_err = block(vm, r'enum WorkshopAnonError \{', 'WorkshopAnonError')
-    for lit in literals(cli_main):
-        if lit.startswith('Invalid anonymization profile') or lit == 'File not found':
-            if lit in literals(ws_err):
-                matched += 1
-            else:
-                wrong.append(f'dicom-anon AnonymizationError text not mirrored by WorkshopAnonError: "{lit}"')
-    # P-STUDIO-ANON-PS315: dicom-anon's validation refusals are its own CLI-local ValidationError, which exits 1
-    # (64 is only ArgumentParser's usage exit); the Workshop refuses through AnonCLI.validate with exit 1 too.
-    anon_exec = block(vm, r'private func executeDicomAnon\(\) async \{', 'executeDicomAnon')
-    if not re.search(r'try AnonCLI\.validate\(profile: profileStr, flags: ps315Flags.*?catch let error as AnonCLI\.ValidationError \{\s*'
-                     r'refuse\(error\.message, exitCode: 1\)', anon_exec, re.S):
-        wrong.append('the dicom-anon executor must refuse through AnonCLI.validate and report AnonCLI.ValidationError with exit 1, as dicom-anon does')
-    else:
-        matched += 1
-    usage64 = [ln.strip() for ln in anon_exec.split('\n') if 'exitCode: 64' in ln and 'Missing expected argument' not in ln]
-    if usage64:
-        wrong.append(f'the dicom-anon executor exits 64 on a non-ArgumentParser refusal ({usage64[0][:80]}); dicom-anon\'s own refusals exit 1')
-    else:
-        matched += 1
-    # P-STUDIO-ANON-PS315: --profile default and picker are the CLI's (DICOMKit AnonCLI.defaultProfile / profileAliases):
-    # ps315 = the PS3.15 2026a E.1 Basic Application Level Confidentiality Profile (every row of Table E.1-1), basic its
-    # alias, the legacy-* lists last (deprecated, not PS3.15); the old clinical-trial / research spellings not offered.
-    e1 = ctx['dw'].section_by_id(parts[15], 'sect_E.1')
-    e1_text = ctx['nd'].norm(' '.join(e1.itertext())) if e1 is not None else ''
-    if 'Basic Application Level Confidentiality Profile' not in e1_text:
-        wrong.append('PS3.15 2026a E.1 no longer names the "Basic Application Level Confidentiality Profile"; re-read')
-    else:
-        matched += 1
-    aliases = dict(re.findall(r'"([a-z0-9-]+)":\s*\.(\w+)', block(cli_support, r'public static let profileAliases: \[String: Profile\] = ', 'AnonCLI.profileAliases')))
-    default = (re.search(r'public static let defaultProfile = "([^"]+)"', cli_support) or [None, None])[1]
-    expected = [default] + [k for k, v in aliases.items() if v == 'ps315' and k != default] + \
-               [k for k, v in aliases.items() if v != 'ps315' and k.startswith('legacy-')]
-    prof = param(ws, 'dicom-anon', 'profile')
-    if default != 'ps315' or aliases.get('basic') != 'ps315':
-        wrong.append(f'DICOMKit AnonCLI.defaultProfile is {default!r}, basic -> {aliases.get("basic")!r}; the CLI default must be ps315 with basic its alias')
-    elif prof is None or prof.get('defaultValue') != default or prof.get('allowedValues') != expected:
-        wrong.append(f'dicom-anon --profile: Workshop default {prof and prof.get("defaultValue")!r} / picker {prof and prof.get("allowedValues")} '
-                     f'must be the CLI default {default!r} / {expected} (ps315 first, legacy-* last)')
-    else:
-        matched += len(expected) + 1
-        help_text = str(prof.get('helpText', ''))
-        if 'PS3.15 Basic Application Level Confidentiality Profile' not in help_text or 'Table E.1-1' not in help_text \
-                or 'not PS3.15' not in help_text:
-            wrong.append('dicom-anon --profile help must name the PS3.15 Basic Application Level Confidentiality Profile (Table E.1-1) and label legacy-* not PS3.15')
-        else:
-            matched += 1
-    # ps315 / basic run DICOMKit Anonymizer.deidentify — the CLI's isPS315 branch — through StudioAnonPS315 (no copy)
-    ps315_support = read(ctx, 'DICOMStudio/Components/AnonPS315Support.swift')
-    deid = block_or_empty(ps315_support, r'static func deidentify\([^{]*\{', 'StudioAnonPS315.deidentify')
-    checks = [
-        (re.search(r'if isPS315 \{\s*\(anonymizedFile, result\) = try StudioAnonPS315\.deidentify\(', anon_exec),
-         'the dicom-anon executor\'s isPS315 branch must call StudioAnonPS315.deidentify'),
-        ('let isPS315 = resolvedProfile.isPS315' in anon_exec and 'AnonCLI.resolveProfile(profileStr)' in anon_exec,
-         'the dicom-anon executor must resolve --profile through AnonCLI.resolveProfile / Profile.isPS315'),
-        ('anonymizer.deidentify(file: dicomFile, options: options)' in deid,
-         'StudioAnonPS315.deidentify must call DICOMKit Anonymizer.deidentify(file:options:)'),
-        ('anonymizer.deidentify(file: dicomFile, options: ps315Options)' in cli_main,
-         'dicom-anon\'s ps315 branch no longer calls Anonymizer.deidentify(file:options:); re-read'),
-        ('AnonCLI.applyCustomActions(' in deid and '!allowBurnedInPHI' in deid,
-         'StudioAnonPS315.deidentify must refuse burned-in PHI unless allowed and apply --remove / --replace as the CLI does'),
-        ('Tag(group:' not in ps315_support and 'Tag.' not in deid,
-         'StudioAnonPS315 must not carry a Table E.1-1 copy (the rows are DICOMKit Anonymizer.deidentify\'s)'),
+    # Every current CLI request assignment must reach the same named request
+    # member in the Workshop. Presence alone does not prove value/visibility parity.
+    cli_fields = set(re.findall(r'request\.(\w+)\s*=', cli))
+    ws_fields = set(re.findall(r'request\.(\w+)\s*=', executor))
+    if not cli_fields:
+        raise ValueError('no CLI AnonymizationWorkflow.Request assignments found')
+    wrong += [f'dicom-anon Workshop never assigns request.{field}' for field in sorted(cli_fields - ws_fields)]
+    matched += len(cli_fields & ws_fields)
+    required = [
+        ('AnonymizationWorkflow.Request(inputPath: inputPath)', cli, 'CLI constructs shared request'),
+        ('AnonymizationWorkflow().run(request)', cli, 'CLI runs shared workflow'),
+        ('AnonymizationWorkflow.Request(inputPath: inputPath)', executor, 'Workshop constructs shared request'),
+        ('SecurityViewModel.executeAnonymization(', executor, 'Workshop invokes sandbox adapter'),
+        ('let workflow = AnonymizationWorkflow(', security, 'sandbox adapter constructs shared workflow'),
+        ('workflow.run(request)', security, 'sandbox adapter runs shared workflow'),
+        ('Int(outcome.exitCode)', security, 'sandbox adapter returns structured result status'),
+        ('Anonymizer(options: resolved.options', workflow, 'workflow constructs confidentiality engine'),
+        ('anonymizer.deidentify(file: dicomFile', workflow, 'workflow invokes PS3.15 engine'),
+        ('retainLongitudinalTemporal: r.retainDates || r.shiftDates != nil', workflow, 'date controls reach retention policy'),
+        ('dateOffsetDays: r.shiftDates', workflow, 'shift-days reaches date offset'),
     ]
-    for ok_, msg in checks:
-        if ok_:
+    for token, body, description in required:
+        if token in body:
             matched += 1
         else:
-            wrong.append(msg)
-    rep.check(f'PS3.15 2026a Annex E (E.1 Basic Profile, Table E.1-1 {len(columns)} Option columns, E.3.1-E.3.11), PS3.16 CID 7050: dicom-anon Workshop '
-              f'--profile ps315 default and picker, E.3 option flags, pixel-cleaning options, CLI help, refusals exit 1, and the DICOMKit '
-              f'AnonCLI / Anonymizer.deidentify calls (P-ANON-RETAIN-DATES, D275, P-STUDIO-ANON-PS315)',
-              matched, wrong)
+            wrong.append(description + ': expected source call/mapping missing')
+    e1 = ctx['dw'].section_by_id(parts[15], 'sect_E.1')
+    if e1 is None or 'Basic Application Level Confidentiality Profile' not in ' '.join(e1.itertext()):
+        raise ValueError('PS3.15 E.1 Basic Profile name not found')
+    matched += 1
+    rep.check('PS3.15 E.1 / Table E.1-1: current dicom-anon Workshop option coverage and shared '
+              'AnonymizationWorkflow request/execution path', matched, wrong, extra=[
+                  'Source mapping does not qualify runtime OCR, encoded outputs or all flag combinations.',
+                  'The form fixes the Basic Profile; CLI --profile ps315/basic are compatibility choices. '
+                  'Missing spellings remain coverage findings, even when effective policy is equivalent.',
+              ])
 
 
 def check_pixel_conversion_type(rep, parts, files, ctx):

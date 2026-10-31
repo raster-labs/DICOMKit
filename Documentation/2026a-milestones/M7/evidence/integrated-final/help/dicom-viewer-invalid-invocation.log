@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-paths> ...'
+Help:  <file-paths>  Path(s) to DICOM file(s)
+Usage: dicom-viewer [<options>] <file-paths> ...
+  See 'dicom-viewer --help' for more information.

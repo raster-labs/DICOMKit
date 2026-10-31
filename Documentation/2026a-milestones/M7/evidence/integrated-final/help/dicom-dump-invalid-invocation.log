@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to DICOM file
+Usage: dicom-dump <file-path> [--tag <tag>] [--offset <offset>] [--length <length>] [--bytes-per-line <bytes-per-line>] [--highlight <highlight>] [--no-color] [--annotate] [--force] [--verbose]
+  See 'dicom-dump --help' for more information.

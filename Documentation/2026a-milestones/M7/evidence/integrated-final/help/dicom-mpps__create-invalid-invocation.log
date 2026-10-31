@@ -1,0 +1,4 @@
+Error: Missing expected argument '<host>'
+Help:  <host>  PACS server hostname or IP address, optionally with port (host:port)
+Usage: dicom-mpps create [<options>] <host> --aet <aet> --study-uid <study-uid>
+  See 'dicom-mpps create --help' for more information.

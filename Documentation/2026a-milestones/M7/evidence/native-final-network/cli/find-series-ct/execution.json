@@ -1,0 +1,40 @@
+{
+  "case": "find-series-ct",
+  "peer": "find",
+  "native_capture": 2,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-series-ct.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+    "127.0.0.1:60702",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "ANY-SCP",
+    "--level",
+    "series",
+    "--modality",
+    "CT",
+    "--study-uid",
+    "2.25.301",
+    "--timeout",
+    "60",
+    "--format",
+    "json"
+  ],
+  "expected_exit": 0,
+  "started_utc": "2026-10-26T08:15:03.618728+00:00",
+  "finished_utc": "2026-10-26T08:15:03.641606+00:00",
+  "binary_sha256": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+  "exit": 0,
+  "state_before": {
+    "associations": 4,
+    "errors": [],
+    "requests": 4
+  },
+  "state_after": {
+    "associations": 5,
+    "errors": [],
+    "requests": 5
+  },
+  "expected_exit_passed": true
+}

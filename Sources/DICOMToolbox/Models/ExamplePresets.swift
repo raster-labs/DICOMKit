@@ -118,14 +118,14 @@ public enum ExamplePresets {
         case "dicom-anon":
             return [
                 ExamplePreset(
-                    name: "Basic anonymization",
-                    description: "Anonymize a DICOM file using the default profile",
-                    parameterValues: ["inputPath": "scan.dcm", "output": "anon.dcm"]
+                    name: "PS3.15 anonymization",
+                    description: "Apply the PS3.15 workflow; review the output before release",
+                    parameterValues: ["inputPath": "scan.dcm", "output": "anon.dcm", "profile": "ps315"]
                 ),
                 ExamplePreset(
                     name: "Dry-run preview",
                     description: "Preview anonymization changes without modifying files",
-                    parameterValues: ["inputPath": "scan.dcm", "profile": "basic", "dry-run": "true"]
+                    parameterValues: ["inputPath": "scan.dcm", "profile": "ps315", "dry-run": "true"]
                 ),
             ]
         case "dicom-echo":

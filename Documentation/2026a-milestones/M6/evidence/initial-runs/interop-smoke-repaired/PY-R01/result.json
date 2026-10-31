@@ -1,0 +1,8 @@
+{
+  "id": "PY-R01",
+  "title": "pynetdicom SCU to DICOMKit: color, mixed-VR Job Done ACK and retained Job",
+  "status": "failed",
+  "error": "job not retained across associations",
+  "elapsed_seconds": 0.385808209,
+  "observations": {}
+}

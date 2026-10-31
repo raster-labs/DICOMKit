@@ -1,0 +1,163 @@
+{
+  "item": "WS-FIX-07",
+  "baseline": "441ae21a",
+  "scope": "SR TIME/DATETIME display and existing text-selection copy only; no file writing or new copy feature",
+  "implementation": [
+    "Use M2 DICOMValueRules for strict TM/DT grammar and Gregorian/offset checks",
+    "Format original lexical components without Date conversion or microsecond reserialization",
+    "Retain fractional digit count/trailing zeroes, omitted components, signed offset and offset presence",
+    "Malformed temporal strings returned unchanged; valid trailing ASCII SPACE padding removed only for display",
+    "Narrative displays complete String verbatim with existing text selection; no model or file-byte mutation"
+  ],
+  "criteria": {
+    "WS-FIX-07-AC01": [
+      "testTimePrecisionIncludingLeapSecondAndPartialValues",
+      "testDateTimeRetainsEveryLegalPartialPrecisionAndExactOffset",
+      "testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes"
+    ],
+    "WS-FIX-07-AC02": [
+      "testDetailedRepresentationsDistinguishFractionsOffsetsAndOmittedSeconds",
+      "testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes"
+    ],
+    "WS-FIX-07-AC03": [
+      "testTimePrecisionIncludingLeapSecondAndPartialValues",
+      "testDateTimeRetainsEveryLegalPartialPrecisionAndExactOffset"
+    ],
+    "WS-FIX-07-AC04": [
+      "testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes",
+      "Packaged GUI fixture SHA256 before/after display remains parent-owned"
+    ]
+  },
+  "new_test_methods": [
+    "testTimePrecisionIncludingLeapSecondAndPartialValues",
+    "testDateTimeRetainsEveryLegalPartialPrecisionAndExactOffset",
+    "testDetailedRepresentationsDistinguishFractionsOffsetsAndOmittedSeconds",
+    "testMalformedTimeIsNeverFilteredTrimmedOrSilentlyRepaired",
+    "testMalformedDateTimeIsNeverNormalizedIntoAValidDate",
+    "testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes"
+  ],
+  "fixture": {
+    "file": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/sr-fixture/m5-sr-temporal-precision.dcm",
+    "sha256_before_display": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6",
+    "sop_instance_uid": "2.25.550001",
+    "rows": [
+      {
+        "label": "TIME fraction",
+        "vr": "TM",
+        "raw": "101530.123456",
+        "expected": "10:15:30.123456"
+      },
+      {
+        "label": "TIME next fraction",
+        "vr": "TM",
+        "raw": "101530.123457",
+        "expected": "10:15:30.123457"
+      },
+      {
+        "label": "TIME trailing zeros",
+        "vr": "TM",
+        "raw": "101530.120000",
+        "expected": "10:15:30.120000"
+      },
+      {
+        "label": "TIME hour",
+        "vr": "TM",
+        "raw": "10",
+        "expected": "10"
+      },
+      {
+        "label": "TIME minute",
+        "vr": "TM",
+        "raw": "1015",
+        "expected": "10:15"
+      },
+      {
+        "label": "DATETIME positive offset",
+        "vr": "DT",
+        "raw": "20261024101530.123456+0530",
+        "expected": "2026-10-24 10:15:30.123456 +0530"
+      },
+      {
+        "label": "DATETIME negative offset",
+        "vr": "DT",
+        "raw": "20261024101530.123456-0330",
+        "expected": "2026-10-24 10:15:30.123456 -0330"
+      },
+      {
+        "label": "DATETIME year",
+        "vr": "DT",
+        "raw": "2026",
+        "expected": "2026"
+      },
+      {
+        "label": "DATETIME month",
+        "vr": "DT",
+        "raw": "202610",
+        "expected": "2026-10"
+      },
+      {
+        "label": "DATETIME date",
+        "vr": "DT",
+        "raw": "20261024",
+        "expected": "2026-10-24"
+      },
+      {
+        "label": "DATETIME hour",
+        "vr": "DT",
+        "raw": "2026102410",
+        "expected": "2026-10-24 10"
+      },
+      {
+        "label": "DATETIME minute",
+        "vr": "DT",
+        "raw": "202610241015",
+        "expected": "2026-10-24 10:15"
+      },
+      {
+        "label": "DATETIME zeros UTC",
+        "vr": "DT",
+        "raw": "20261024101530.120000+0000",
+        "expected": "2026-10-24 10:15:30.120000 +0000"
+      },
+      {
+        "label": "DATETIME partial offset",
+        "vr": "DT",
+        "raw": "2026+0530",
+        "expected": "2026 +0530"
+      },
+      {
+        "label": "Malformed TIME retained",
+        "vr": "TM",
+        "raw": "101530.1234567",
+        "expected": "101530.1234567"
+      },
+      {
+        "label": "Malformed DATETIME retained",
+        "vr": "DT",
+        "raw": "20260230101530+0530",
+        "expected": "20260230101530+0530"
+      }
+    ],
+    "scope": "Synthetic read/display/copy fixture; two malformed controls are intentionally retained"
+  },
+  "harness_environment": {
+    "DICOMKIT_M5_SR_FIXTURE": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/sr-fixture/m5-sr-temporal-precision.dcm",
+    "DICOMKIT_M5_SR_RESULTS": "<parent selected output JSON path>"
+  },
+  "gui_entry": "Library / Study Browser > Import DICOM files > m5-sr-temporal-precision.dcm > M5 Temporal Precision > double-click or Open in Viewer; select a full temporal value and Copy via existing text selection",
+  "executed": [
+    "Independent Python fixture generation only",
+    "git diff --check passed"
+  ],
+  "unexecuted": [
+    "Swift builds/tests (parent owns)",
+    "Packaged UI/clipboard/file-hash gate (parent owns)"
+  ],
+  "sha256": {
+    "Sources/DICOMStudio/Components/DICOMValueParser.swift": "a73ecf60b9c883c5f5b63d444cf80a8dcf34ea5e266e2cd038cefc17f35cdb6f",
+    "Sources/DICOMStudio/Views/ViewerNonImageContentView.swift": "87477df8b020467a20c2e0a3a4a6e9aefeb16797c8853b4f172d583bfa9406b3",
+    "Tests/DICOMStudioTests/DICOMValueParserTests.swift": "84ab41a81ada24269d9836f379865bd530fd9dd8cbe9520f4190f1018c0db996",
+    "Tests/DICOMStudioTests/M5SRTemporalPrecisionTests.swift": "d361a226f17d9eb6443f8c2fdb30ba7c8ffd13905217f39e574cef897289fe7e",
+    "Scripts/generate_m5_sr_precision_fixture.py": "3315b3070afc0bd074a9f0c599c2e002a0bd983fdcc65cbcfa8e31c6b47e530a"
+  }
+}

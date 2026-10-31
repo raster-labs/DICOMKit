@@ -1,0 +1,32 @@
+OVERVIEW: Organize and analyze DICOM studies and series
+
+Manage DICOM studies with organization, summarization, validation, and
+statistics.
+Supports study/series organization, completeness checking, and comparison.
+
+Files are grouped by Study Instance UID (0020,000D) and
+Series Instance UID (0020,000E), the unique keys of the Study and Series
+levels (PS3.4 C.6.1.1).
+
+Examples:
+  dicom-study organize files/ --output organized/
+  dicom-study summary study/ --format table
+  dicom-study check study/ --expected-series 5 --report missing.txt
+  dicom-study stats study/ --detailed
+  dicom-study compare study1/ study2/ --format json
+
+USAGE: dicom-study <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  organize                Organize DICOM files by study and series hierarchy
+  summary                 Display study and series metadata summary
+  check                   Check study completeness: series and instance counts,
+                          and gaps in Instance Number (0020,0013)
+  stats                   Calculate study statistics and metrics
+  compare                 Compare two studies for differences
+
+  See 'dicom-study help <subcommand>' for detailed help.

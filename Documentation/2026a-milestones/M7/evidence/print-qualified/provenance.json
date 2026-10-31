@@ -1,0 +1,58 @@
+{
+  "python": "3.9.6 (default, Aug 25 2026, 21:26:21) \n[Clang 21.0.0 (clang-2100.3.34.2)]",
+  "python_executable": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python",
+  "pydicom": "2.4.4",
+  "pynetdicom": "2.0.2",
+  "Pillow": "11.3.0",
+  "script_sha256": "5b108ad88b32471e2ad0b7e06fb58f48612917f7d9d2ec34c6afe65e710e1d21",
+  "independent_module_hashes": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/lib/python3.9/site-packages/pydicom/__init__.py": "a22cabe57e4ce50172296259dcf4cf419609331ab9ed64a623108a753a1eaf32",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/lib/python3.9/site-packages/pynetdicom/__init__.py": "d98eb1bf219db1392dd48175ac144838d97bb86fdaf08047b33f4c2e7ce8d29b"
+  },
+  "binaries": {
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print": {
+      "sha256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+      "exit_code": 0,
+      "stdout": "1.4.5\n",
+      "stderr": ""
+    },
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp": {
+      "sha256": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+      "exit_code": 0,
+      "stdout": "1.0.0\n",
+      "stderr": ""
+    },
+    "/opt/homebrew/bin/dcmprscp": {
+      "sha256": "98dddc6c373a74b1f0d726bff676e59f3ebc9e1f415c4c224f92668a7fec7eb4",
+      "exit_code": 0,
+      "stdout": "$dcmtk: dcmprscp v3.7.0 2025-12-15 $\n\ndcmprscp: DICOM basic grayscale print management SCP\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n- OpenSSL 3.6.1 27 Jan 2026\n",
+      "stderr": ""
+    },
+    "/opt/homebrew/bin/dcmprscu": {
+      "sha256": "95bcd30a2d6040d1b5c5c203b76dd577df030b518cf9afa24f20843d2faec5c4",
+      "exit_code": 0,
+      "stdout": "$dcmtk: dcmprscu v3.7.0 2025-12-15 $\n\ndcmprscu: Print spooler for presentation state viewer\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n- OpenSSL 3.6.1 27 Jan 2026\n",
+      "stderr": ""
+    },
+    "/opt/homebrew/bin/dcmpsprt": {
+      "sha256": "9ad63bae26b5b935f6a5dee1217f28e416b02dc78a0d7ab3a198d61c1aed43ac",
+      "exit_code": 0,
+      "stdout": "$dcmtk: dcmpsprt v3.7.0 2025-12-15 $\n\ndcmpsprt: Read DICOM images and presentation states and render print job\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n",
+      "stderr": ""
+    }
+  },
+  "scope": "Software loopback qualification only; synthetic data; no paper queue or physical device.",
+  "standard_refs": [
+    "PS3.4 2026a H.3, H.4.1\u2013H.4.6, H.4.9, H.5",
+    "PS3.7 2026a 10.1.1\u201310.1.6",
+    "PS3.3 2026a C.13 and C.11.4",
+    "PS3.8 PDU/PDV encoding"
+  ],
+  "limits": [
+    "DCMTK receiver does not support color or Annotation Box; those use independent pynetdicom.",
+    "No physical print, calibration, density measurement, diagnostic image quality or full IOD validation claim.",
+    "Only explicitly selected/executed cases qualify; unselected cases remain not run.",
+    "Pynetdicom oracle is a bounded test peer, not a vendor printer conformance statement.",
+    "Existing DICOMKit SCP tolerates color PlanarConfiguration 0 with a diagnostic; negative gate uses illegal value 2. Tolerance of 0 does not establish strict C.13-5 conformance."
+  ]
+}

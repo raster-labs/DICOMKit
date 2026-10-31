@@ -509,7 +509,7 @@ struct DICOMwebServerTests {
         let request = DICOMwebRequest(
             method: .options,
             path: "/dicom-web/studies",
-            headers: ["Origin": "http://localhost:3000"]
+            headers: ["Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"]
         )
         let response = await server.handleRequest(request)
         

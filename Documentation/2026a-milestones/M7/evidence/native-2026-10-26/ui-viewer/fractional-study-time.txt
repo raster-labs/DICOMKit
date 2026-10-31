@@ -1,0 +1,56 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 splitter (disabled, settable, float) -1
+		3 container
+			4 text Series, 1
+			5 image Description: Scan, ID: viewfinder
+			6 text READING AREA 1×1
+			7 image Description: No images on screen are marked for print, ID: printer
+			8 text No images on screen are marked for print
+			9 unknown Patient: CODEC SYNTHETIC, M7-CODEC · OT. M7 Native Fractional Study Time. 2026-10-24 10:15:30.123456
+			10 scroll area
+				11 list Secondary Actions: AXScrollToTop, AXScrollToBottom
+					12 text Help: Click to show this series in the selected tile, Value: Series 1, Fractional Study Time Overlay, 1 image, Orientation Unavailable, current series
+			13 text Image annotations
+			14 button Description: Mark image for print, Help: Mark this image for print (M)
+	15 toolbar
+		16 button Description: Show Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		17 button Description: Hide series list, Help: Series pane (S) — every series in the study; drag one onto a tile to load it, ID: sidebar.left, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		18 container Help: Choose how this image is displayed, Secondary Actions: Move previous, Move next, Remove from toolbar
+			19 menu button Default view, Help: Choose how this image is displayed, ID: slider.horizontal.below.rectangle
+			20 button Description: Default view, ID: bookmark.fill, Help: Save the current window, zoom and orientation as a named view, added to the study as a presentation state series
+		21 menu button Tile layout, currently 1×1, ID: square.grid.2x2, Help: Tile layout (⌘1–⌘4 for 1×1 to 4×4) — splits the reading area into tiles; they map to film cells in the same order. Fill them with one series each, or with consecutive images of this series.
+		22 pop up button Description: Mark image for print, Help: Mark this image for print (M) — click to mark the image on screen; the menu marks a whole series or every frame at once
+			23 button Checkmark in a rectangle stack
+			24 menu button
+		25 button Description: Show selected images, Help: Selected-images tray (T) — the images marked for print, in film order, ID: sidebar.right, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		26 button (disabled) Description: Print marked images, Help: Print marked images (⌘P) — opens the print sheet with everything marked, laid onto film, ID: printer, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		27 button Description: Pan tool, Help: Pan (H) — Drag to move the image inside the tile., ID: hand.draw, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		28 button Description: Window/Level tool, ID: sun.max, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar, Help: Window/Level (W) — Drag across for window width, up and down for level — left/right widens or narrows the greys, up/down brightens or darkens.
+		29 button Description: Zoom tool, Help: Zoom (Z) — Drag up to enlarge, down to shrink. Pinch to zoom does the same., ID: magnifyingglass, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		30 button Description: Rotate tool, ID: arrow.triangle.2.circlepath, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar, Help: Rotate (E) — Drag around the centre of the picture and it follows the pointer, either way, through the full circle.
+		31 button Description: Annotation tool, ID: a.square, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar, Help: Annotation (A) — Click on the picture to place text, then type — or press on the thing itself and drag the label out of it, arrow attached. Double-click a label to edit the words; drag the handles of a selected annotation to re-aim the arrow or move the label alone.
+		32 button Description: Invert grayscale, Help: Invert grayscale (V) — swaps black and white, as on a lightbox, ID: circle.righthalf.filled, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		33 menu button Colour palette, no CLUT, ID: paintpalette, Help: Pseudo-colour palette — recolours the windowed grey without changing the stored pixels. The choice travels to the film with the mark.
+		34 button Description: Flip horizontal, Help: Flip horizontally ([) — mirrors left to right; laterality markers move with it, ID: arrow.left.and.right.righttriangle.left.righttriangle.right, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		35 button Description: Flip vertical, Help: Flip vertically (]) — mirrors top to bottom, ID: arrow.up.and.down.righttriangle.up.righttriangle.down, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		36 button Description: Fit image to view, Help: Fit image to view (F) — sizes it so the whole picture is on screen, and re-centres it, ID: arrow.up.left.and.arrow.down.right, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		37 button Description: Reset to original image, ID: arrow.counterclockwise, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar, Help: Reset to original image (R) — undoes zoom, pan, rotation, flip, windowing, inversion, colour, and drawn annotations
+		38 menu button Hdr, chevron.pulldown, Help: Panels — this image's pixel metadata, and the DICOM tag inspector, ID: square.stack.3d.up
+		39 button Description: Download study, ID: arrow.down.circle, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar, Help: Download study — the study's images and saved presentation states as one ZIP. The ZIP's size is shown for confirmation before anything is saved.
+		40 button Description: Keyboard shortcuts, Help: Keyboard shortcuts (⌘/), ID: keyboard, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		41 search text field (settable) Search features
+			42 button Search
+	43 close button
+	44 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	45 minimize button
+	46 text DICOM Studio
+47 menu bar
+	48 DICOMStudio
+	49 File
+	50 Edit
+	51 View
+	52 Image
+	53 Window
+	54 Help

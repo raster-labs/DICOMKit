@@ -1,0 +1,22 @@
+OVERVIEW: Generate Maximum Intensity Projection (MIP)
+
+USAGE: dicom-3d mip <input-paths> ... --output <output> [--direction <direction>] [--thickness <thickness>] [--window-center <window-center>] [--window-width <window-width>] [--verbose]
+
+ARGUMENTS:
+  <input-paths>           Input DICOM files (multi-slice series)
+
+OPTIONS:
+  -o, --output <output>   Output file path
+  --direction <direction> Projection direction: axial, sagittal, coronal
+                          (patient planes, PS3.3 C.7.6.2.1.1) (default: axial)
+  --thickness <thickness> Slab thickness in mm (0 = full volume) (default: 0.0)
+  --window-center <window-center>
+                          Window Center for display (Modality LUT output units,
+                          e.g. HU)
+  --window-width <window-width>
+                          Window Width for display (>= 1, LINEAR function,
+                          PS3.3 C.11.2.1.2.1)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

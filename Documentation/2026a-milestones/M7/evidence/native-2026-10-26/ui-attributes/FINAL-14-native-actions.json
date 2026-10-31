@@ -1,0 +1,20 @@
+{
+  "executed": [
+    "script-template",
+    "template-validate",
+    "template-dry-run",
+    "unknown-conditional",
+    "conditional-pipeline"
+  ],
+  "preflight": "script-live-disabled",
+  "negativeResults": [
+    {
+      "id": "unknown-conditional",
+      "status": "ERROR"
+    },
+    {
+      "id": "conditional-pipeline",
+      "status": "ERROR"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+DICOM Send (C-STORE)
+====================
+  Server:            127.0.0.1:53191
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4SCP
+  Priority:          medium
+  Timeout:           5s
+  Files:             1
+
+[1/1] Sending: synthetic-0.dcm (792 B)... ✅ (4 ms)
+
+Transfer Summary
+================
+  Total files:       1
+  Succeeded:         1
+  Failed:            0
+  Bytes sent:        792 B
+  Duration:          4 ms
+
+✅ All files sent successfully

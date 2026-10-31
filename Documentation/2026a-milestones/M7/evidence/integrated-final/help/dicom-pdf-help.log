@@ -1,0 +1,89 @@
+OVERVIEW: Extract and encapsulate PDF/CDA/3D documents from/to DICOM format
+
+Extract documents (PDF, CDA, STL, OBJ, MTL) from DICOM Encapsulated Document
+files,
+or encapsulate documents into DICOM format for PACS storage.
+
+Supported document types:
+- PDF (Portable Document Format)
+- CDA (Clinical Document Architecture XML)
+- STL (Stereolithography 3D models)
+- OBJ (Wavefront 3D object files)
+- MTL (Wavefront material files)
+
+Examples:
+  # Extract PDF from DICOM
+  dicom-pdf report.dcm --output report.pdf --extract
+  
+  # Create Encapsulated PDF DICOM
+  dicom-pdf report.pdf --output report.dcm \
+    --patient-name "DOE^JOHN" \
+    --patient-id "12345" \
+    --title "Radiology Report"
+  
+  # Extract CDA document
+  dicom-pdf cda.dcm --output cda.xml --extract
+
+  # Encapsulate a CDA document; HL7 Instance Identifier (0040,E001) is
+  # read from /ClinicalDocument/id unless given
+  dicom-pdf cda.xml --output cda.dcm --patient-name "DOE^JOHN" \
+    --patient-id "12345" --hl7-instance-identifier "2.16.840.1.113883.19^X1"
+
+  # A scanned paper report (Conversion Type SD, PS3.3 Table C.8-24)
+  dicom-pdf scan.pdf --output scan.dcm --patient-name "DOE^JOHN" \
+    --patient-id "12345" --conversion-type SD
+  
+  # Batch extract all documents from directory
+  dicom-pdf study/ --output documents/ --extract --recursive
+  
+  # Encapsulate 3D model
+  dicom-pdf model.stl --output model.dcm \
+    --patient-name "SMITH^JANE" \
+    --study-uid "1.2.3.4.5"
+
+USAGE: dicom-pdf [<options>] <input>
+
+ARGUMENTS:
+  <input>                 Input file or directory (DICOM or document)
+
+OPTIONS:
+  -o, --output <output>   Output file or directory path
+  --extract               Extract mode: Extract document from DICOM
+  --patient-name <patient-name>
+                          Patient's Name (for encapsulation mode)
+  --patient-id <patient-id>
+                          Patient ID (for encapsulation mode)
+  --title <title>         Document Title (0042,0010) (for encapsulation mode)
+  --study-uid <study-uid> Study Instance UID (auto-generated if not provided)
+  --series-uid <series-uid>
+                          Series Instance UID (auto-generated if not provided)
+  --modality <modality>   Modality to write (default: DOC; STL/OBJ/MTL require
+                          M3D, PS3.3 A.85.x.4.3) (0008,0060) — e.g. CT, MR, US,
+                          OPT. Run 'dicom-tags --list-modalities' for every
+                          DICOM 2026a code.
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --series-description <series-description>
+                          Series Description
+  --series-number <series-number>
+                          Series Number
+  --instance-number <instance-number>
+                          Instance Number
+  --conversion-type <conversion-type>
+                          Conversion Type (0008,0064) for PDF and CDA, a PS3.3
+                          Table C.8-24 Defined Term: DV, DI, DF, WSD, SD, SI,
+                          DRW, SYN (default: WSD)
+  --burned-in-annotation <burned-in-annotation>
+                          Burned In Annotation (0028,0301): YES or NO, whether
+                          the document identifies the patient and the date
+                          (default: YES)
+  --hl7-instance-identifier <hl7-instance-identifier>
+                          HL7 Instance Identifier (0040,E001) of a CDA
+                          document, UID or UID^extension (default: read from
+                          /ClinicalDocument/id; single file only)
+  --recursive             Process directories recursively
+  --show-metadata         Show document metadata (extract mode)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

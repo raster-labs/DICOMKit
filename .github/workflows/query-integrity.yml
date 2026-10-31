@@ -1,0 +1,46 @@
+name: Query safety and filters
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Sources/DICOMNetwork/**'
+      - 'Sources/DICOMWeb/**'
+      - 'Sources/DICOMStudio/**'
+      - 'Sources/dicom-query/**'
+      - 'Sources/dicom-wado/**'
+      - 'Tests/**'
+      - 'Scripts/verify_m3*'
+      - 'Scripts/m3_dimse_capture_peer.py'
+      - '.github/scripts/select-swift-toolchain.sh'
+      - 'Package.*'
+      - '.github/workflows/query-integrity.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  queries:
+    name: M3 query, CLI and Workshop regression gates
+    runs-on: xcode-27
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Select toolchain
+        run: bash .github/scripts/select-swift-toolchain.sh 27.0
+      - name: Verify queries against the checked out sources
+        run: bash Scripts/verify_m3.sh m3-verification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: query-integrity-${{ github.sha }}
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m3-verification/**/*.log
+            m3-verification/**/*.json
+            m3-verification/**/*.txt

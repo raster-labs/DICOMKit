@@ -27,7 +27,8 @@ public struct ServerConfiguration: Sendable, Codable {
     /// Blocked calling AE titles (blacklist)
     public let blockedCallingAETitles: Set<String>?
     
-    /// Enable TLS/SSL
+    /// Request TLS. This server currently refuses true rather than opening a
+    /// plaintext listener under a security claim it cannot provide.
     public let enableTLS: Bool
     
     /// Verbose logging
@@ -63,6 +64,14 @@ public struct ServerConfiguration: Sendable, Codable {
         self.knownDestinations = knownDestinations
     }
     
+    /// Refuse security requests independently of configuration-file precedence.
+    static func validateTLS(_ enableTLS: Bool) throws {
+        guard !enableTLS else {
+            throw ServerError.invalidConfiguration(
+                "TLS is not implemented by dicom-server; --tls and enableTLS=true are refused before storage or listener startup. No plaintext fallback is permitted. Use a separately configured, qualified secure endpoint; omit --tls only when an explicitly unsecured listener is intended.")
+        }
+    }
+
     /// Load configuration from a JSON file
     public static func load(from path: String) throws -> ServerConfiguration {
         let data = try Data(contentsOf: URL(fileURLWithPath: path))
@@ -75,6 +84,8 @@ public struct ServerConfiguration: Sendable, Codable {
     ///
     /// - Throws: `ServerError.invalidConfiguration` naming the offending value
     public func validated() throws -> ServerConfiguration {
+        try Self.validateTLS(enableTLS)
+        try DatabaseManager.validateConnectionString(databaseURL)
         let ae = try ServerProtocol.validatedAETitle(aeTitle, option: "--aet")
         let allowed = try allowedCallingAETitles.map { titles in
             Set(try titles.map { try ServerProtocol.validatedAETitle($0, option: "--allowed-ae") })

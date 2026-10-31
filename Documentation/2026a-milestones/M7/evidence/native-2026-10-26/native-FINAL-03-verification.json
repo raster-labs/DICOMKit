@@ -1,0 +1,930 @@
+{
+  "recorded_utc": "2026-10-26T07:20:29.037788+00:00",
+  "qualification_epoch": "interim-native layout/path repair; final print layout/app acceptance pending",
+  "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/interim-native-identity.json",
+  "native_actions_observed": 14,
+  "native_successes": 12,
+  "native_refusals": 2,
+  "checks": [
+    {
+      "case": "identity-both",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "visible console is exact CLI prefix; complete file comparison supplies output proof",
+      "passed": true,
+      "details": {
+        "visible_chars": 147,
+        "full_chars": 157,
+        "limit": "AX child truncation, no full console equality claimed."
+      }
+    },
+    {
+      "case": "identity-both",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "requested exact class and instance UIDs",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "declared charset decodes exact original PN",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "two leading spaces retained in decoded and raw LO",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "visible console is exact CLI prefix; complete file comparison supplies output proof",
+      "passed": true,
+      "details": {
+        "visible_chars": 152,
+        "full_chars": 160,
+        "limit": "AX child truncation, no full console equality claimed."
+      }
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "declared charset decodes exact original PN",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "two leading spaces retained in decoded and raw LO",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "declared charset decodes exact original PN",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "two leading spaces retained in decoded and raw LO",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "visible console is exact CLI prefix; complete file comparison supplies output proof",
+      "passed": true,
+      "details": {
+        "visible_chars": 164,
+        "full_chars": 166,
+        "limit": "AX child truncation, no full console equality claimed."
+      }
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "native11 nested text paths pass independent raw item/charset and pydicom oracles",
+      "passed": true,
+      "details": {
+        "report": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-nested-charsets-independent.json",
+        "stderr": ""
+      }
+    },
+    {
+      "case": "copy-0",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "full copied console command retains every repeated/selector token",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "copied PN VR and exact decoded Unicode",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "cross-charset PN UTF8 bytes and declaration truthful",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "full copied console command retains every repeated/selector token",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "copied PN VR and exact decoded Unicode",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "cross-charset PN UTF8 bytes and declaration truthful",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "full copied console command retains every repeated/selector token",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "copied PN VR and exact decoded Unicode",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "cross-charset PN UTF8 bytes and declaration truthful",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "full copied console command retains every repeated/selector token",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "copied PN VR and exact decoded Unicode",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "cross-charset PN UTF8 bytes and declaration truthful",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "full copied console command retains every repeated/selector token",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "copied PN VR and exact decoded Unicode",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "compatible Latin1 raw PN byte identity and declaration",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "final-context SS exact signed raw word",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "entire native file equals independent CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "byte-identical CLI artifact passed detailed independent value/VR/charset oracle",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "root SOP identities equal file-meta identities",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "raw group2 UL equals following encoded group2 bytes",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "final-context SS exact signed raw word",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "rejected target absent",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "specific unsigned/range diagnostic retained",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "actual native status matches planned CLI outcome",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "native executed argv matches exact prepared operation",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "before output field names exact destination",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "source remains unchanged",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "complete native console outcome equals CLI after output-root mapping",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "rejected target absent",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "specific unsigned/range diagnostic retained",
+      "passed": true
+    }
+  ],
+  "passed": 147,
+  "failed": 0,
+  "observed": [
+    {
+      "id": "identity-both",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/identity-both-before.txt": "d0836ca387dee17470d24bf64a05624aaa26c7e4f5166fe90bd7c4762ad6b1ab",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/identity-both-after.txt": "158791444dec00e065043d483874554e79bc43b8aec1471d9a1a2ddf3b6b056b"
+      },
+      "complete_console_comparison": false,
+      "output_sha256": "ea9b3e936a83d03fe6005cc9fdce98a95890e2c69c7b7214eccd56a20abaff5d",
+      "output_bytes": 328
+    },
+    {
+      "id": "latin-leading",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/latin-leading-before.txt": "b31695688231803baa42fc16dbe668392550446d3ff5832ad3ffce053eb51774",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/latin-leading-after.txt": "871a8f63b24f8f4e0cb9413e9db033664c2bcb1fe230243a621820baa31dd697"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "93a1eedd5e00f0b915abc99bea01f63138660370514aa2a1407ce3d117435a89",
+      "output_bytes": 380
+    },
+    {
+      "id": "japanese-leading",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/japanese-leading-before.txt": "3ffbb301d3679208cd56c19bfa0a1c2a15e6d024b83311688dbbdf82c367267d",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/japanese-leading-after.txt": "9747eb0cc1021da638243f1a6cf9b4d8317885119c0fa737025e461334d3b97d"
+      },
+      "complete_console_comparison": false,
+      "output_sha256": "05b9874448250b8af5a257175ee713f091eb87c0137b62c22a7337d35e486269",
+      "output_bytes": 408
+    },
+    {
+      "id": "utf8-leading",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/utf8-leading-before.txt": "bfdcd51811be475d5669ed1dc76ab62c16fb1b1c4f0ca5cd88b2e58fa19a5646",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/utf8-leading-after.txt": "e610c4d1aa9fb31bac9424f136eb92c63a0e1109057f735582046eba4a0745db"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "e54e18e2d08469f60e6bd779a61a897f724d724bc032889e6782a029d9ab0e17",
+      "output_bytes": 382
+    },
+    {
+      "id": "nested-charsets-edit",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/nested-charsets-edit-before.txt": "af348a1a96fc6e6669bf5a3ef5b8ba2744b379587d2eac811773f649113d79bd",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/nested-charsets-edit-after.txt": "95e5adbe09965d453a52500a217b557bd703ad4fcd4eeca67c6929e9610afffc"
+      },
+      "complete_console_comparison": false,
+      "output_sha256": "c9b8c613a9e73ebf1292401318847fcbe72d295f4e09efa72e18eea8f2cb3b4f",
+      "output_bytes": 982,
+      "nested_report": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-nested-charsets-independent.json"
+    },
+    {
+      "id": "copy-0",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-0-before.txt": "4146af2363e9cb311a80c0a844cfdc8df4b25eb6b3ea23a2d63b6a4557a484ee",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-0-after.txt": "cb3ccc20c99d19007ae8d785691f4334a404b87ab115205245fffb3ae2b3a9fb",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-0-copied-console-output.txt": "76e10dac592e8a62751ce2f6a0631a7bfbac5d05da653b718f3abb9127b41542"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+      "output_bytes": 360
+    },
+    {
+      "id": "copy-1",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-1-before.txt": "ace2c164c4202118b98be53eade4bae9f1a37ab31506a1742d3206c09af71818",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-1-after.txt": "4323f9456e0e13e49e2616630de036bec125be14ab26df8d6e1dc8b4d04780d4",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-1-copied-console-output.txt": "a786f73d84609efed653ec9a47f22354bfc929222ab0636e0c9c62864893406d"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+      "output_bytes": 360
+    },
+    {
+      "id": "copy-2",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-2-before.txt": "8131cb33096585f5a6c69ee18d0756e2c3841b10a3c1b25e415c5636d4116367",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-2-after.txt": "9a6b9ad2b82c1aa204be04b484406cfd983b3a8106a4db3e61d6574669b346a0",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-2-copied-console-output.txt": "1df3f3137525be441176ef0cc207a3076e647989a527e879992916f932db9ab2"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+      "output_bytes": 360
+    },
+    {
+      "id": "copy-3",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-3-before.txt": "00375b336abfe1d6cb21e289d1242bd8feefaeba9235d2d41ec1b2e294e2ad69",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-3-after.txt": "5102c6c30bb83c14ba13ce3831b40a3f50977388c57b318c60b28778342ca860",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-3-copied-console-output.txt": "48d57517ad0d58f8f37d740c8b91329f43037ef82813197e67493c400ddd6090"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+      "output_bytes": 360
+    },
+    {
+      "id": "copy-compatible",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-compatible-before.txt": "ba60b53cc1f85b335eda0033a368b844b7f2b551a875ec9ea6081a368935ba34",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-compatible-after.txt": "8e5c98128fc28123bc142b46edd72c669a416dc52f216f497e056c1df45b16ac",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/copy-compatible-copied-console-output.txt": "e5356d316381e3d823c09a8d2cd3173b85209816becd494aa6a37234efd78b54"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "b09ae3248bd457a74ff27d6eb9b67bcfd3f3834ec640a4c2563b6840d6ec51e7",
+      "output_bytes": 358
+    },
+    {
+      "id": "signed-insert",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/signed-insert-before.txt": "ff556e65034540bd14428cdd5fce172fc84edbcca291d4f1e71b58b522985429",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/signed-insert-after.txt": "7d484c97359aa67ff3283e6e065f829879a57e605d4a6c73f5e0b85307eff310"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "28c0b6d5c6a1a9d3229c0d221a3ddecbe0855ce4e39df65a8deb21984e270b08",
+      "output_bytes": 340
+    },
+    {
+      "id": "signed-update",
+      "outcome": "SUCCESS",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/signed-update-before.txt": "9ea26f2556fecbeeb884b7f7ff682b688080d1727d7d640e4c4d9c5ece93c9d5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/signed-update-after.txt": "ca25b6167bf90cf12b2beec4db0320756cd7e957d8c60771e7aae897d6cc93db"
+      },
+      "complete_console_comparison": true,
+      "output_sha256": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f",
+      "output_bytes": 340
+    },
+    {
+      "id": "unsigned-negative",
+      "outcome": "ERROR",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/unsigned-negative-before.txt": "82d7743f112509960f17b743d022f0da1198c2bc95b4720334dee806f25c7f95",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/unsigned-negative-after.txt": "cc9c1e456670e34fd437fdd65bd5c47b7b0aa698b57aa9b796153fda89355d43"
+      },
+      "complete_console_comparison": true
+    },
+    {
+      "id": "US-overflow",
+      "outcome": "ERROR",
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/US-overflow-before.txt": "994141f2d59c1427b436ee6ef244923b93a7ab547b3ed887e37bfb77182ad6db",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/US-overflow-after.txt": "20540749e4319e28aa4d93ae08ff852d47d7bf2aed3abffa1374c9817a02c5c5"
+      },
+      "complete_console_comparison": true
+    }
+  ],
+  "completion": "All14 actions substantiated. Partial only for final rebuilt-app provenance/acceptance; do not count independent assertions as additional native actions.",
+  "limits": [
+    "AX truncated outcomes accepted only as exact prefixes and labeled; five copied consoles compared in full.",
+    "Entire saved native DICOM files matched CLI byte-for-byte and independently inspected.",
+    "Synthetic fixtures only. No UI/build/product execution by this checker; nested byte checker reads native artifact only."
+  ]
+}

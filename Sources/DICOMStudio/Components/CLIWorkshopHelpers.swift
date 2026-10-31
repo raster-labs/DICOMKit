@@ -88,6 +88,8 @@ public enum ToolCatalogHelpers: Sendable {
         tools.append(contentsOf: fileOrganizationTools())
         tools.append(contentsOf: dataExportTools())
         tools.append(contentsOf: networkOperationsTools())
+        tools.append(CLIWorkshopPrintCatalog.definition)
+        tools.append(CLIWorkshopPrintSCPCatalog.definition)
         tools.append(contentsOf: automationTools())
         return tools
     }
@@ -268,7 +270,7 @@ public enum ToolCatalogHelpers: Sendable {
                               hasSubcommands: true),
             CLIToolDefinition(id: "dicom-script", name: "dicom-script", displayName: "Scripting",
                               category: .automation, sfSymbol: "scroll",
-                              briefDescription: "Run, validate, and template DICOM processing scripts",
+                              briefDescription: "Dry-run, validate, and generate script templates; live execution uses the CLI",
                               hasSubcommands: true),
         ]
     }
@@ -791,15 +793,10 @@ public enum ToolCatalogHelpers: Sendable {
                 ),
                 CLIParameterDefinition(
                     id: "mode", flag: "", displayName: "Operation Mode",
-                    parameterType: .flagPicker, placeholder: "interactive",
-                    helpText: "Interactive: in-app retrieves all results without a prompt (previews as --auto); Auto: retrieve all matches; Review: query only",
-                    defaultValue: "interactive",
-                    allowedValues: ["interactive", "auto", "review"],
-                    // The app cannot prompt for a study selection, so its
-                    // "interactive" state behaves as --auto — preview the
-                    // truthful token rather than a --interactive the pasted
-                    // command would answer differently.
-                    cliMapping: ["interactive": "--auto"]
+                    parameterType: .flagPicker, placeholder: "auto",
+                    helpText: "Auto: retrieve every matching study without selection. Review: query and list matches without retrieving files.",
+                    defaultValue: "auto",
+                    allowedValues: ["auto", "review"]
                 ),
                 CLIParameterDefinition(
                     id: "method", flag: "--method", displayName: "Retrieval Method",
@@ -1247,15 +1244,21 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "status-update", flag: "--status", displayName: "Status",
                     parameterType: .enumPicker, placeholder: "COMPLETED",
-                    helpText: "Final Performed Procedure Step Status (0040,0252) for the N-SET update — COMPLETED or DISCONTINUED",
+                    helpText: "IN PROGRESS updates a running step without an end time. Leave unset to omit the status attribute and keep the step running. COMPLETED and DISCONTINUED are final; no later updates are allowed",
                     defaultValue: "COMPLETED",
-                    allowedValues: ["COMPLETED", "DISCONTINUED"],
+                    allowedValues: ["", "IN PROGRESS", "COMPLETED", "DISCONTINUED"],
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
+                ),
+                CLIParameterDefinition(
+                    id: "update-procedure-step-description", flag: "--procedure-step-description", displayName: "Performed Procedure Step Description",
+                    parameterType: .textField, placeholder: "e.g. Acquisition continuing",
+                    helpText: "Update the existing Performed Procedure Step Description (0040,0254). Intermediate updates must supply a description or another supported attribute change",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
                 CLIParameterDefinition(
                     id: "series-uid", flag: "--series-uid", displayName: "Series Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Series Instance UID of the acquired images — used in N-SET for Performed Series Sequence (0008,1115)",
+                    helpText: "Series Instance UID of the acquired images — used in N-SET for Performed Series Sequence (0040,0340). Supply the complete replacement sequence, including previously reported images",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
                 CLIParameterDefinition(
@@ -1268,7 +1271,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "sop-class-uid", flag: "--sop-class-uid", displayName: "Referenced SOP Class UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.10008.5.1.4.1.1.2 (CT)",
-                    helpText: "SOP Class UID (0008,1150) of the referenced images, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Without it the Secondary Capture class is sent, which is wrong for anything but SC",
+                    helpText: "Actual SOP Class UID (0008,1150) of every referenced image, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Required with --image-uid; no class is inferred",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["update"])
                 ),
                 CLIParameterDefinition(
@@ -1321,7 +1324,7 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "specific-character-set", flag: "--specific-character-set", displayName: "Specific Character Set",
                     parameterType: .textField, placeholder: "e.g. ISO_IR 100 or ISO_IR 192",
-                    helpText: "Force the Specific Character Set (0008,0005). By default the narrowest set that represents every text value is chosen",
+                    helpText: "Specific Character Set (0008,0005). N-CREATE selects a suitable encoding; N-SET must use the original declaration. For an instance created elsewhere, supply that declaration explicitly when it was non-default",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
@@ -1369,8 +1372,8 @@ public enum ToolCatalogHelpers: Sendable {
                     parameterType: .textField, placeholder: "e.g. 20260101 or 20260101-20260310",
                     helpText: "Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)"
                 ),
-                // Modalities In Study (0008,0061) at study / instance level, Modality (0008,0060)
-                // at series level (PS3.18 Table 10.6.1-5), validated by the shared
+                // Modalities In Study (0008,0061) for studies; Modality (0008,0060)
+                // for series and relational instance resources, validated by the shared
                 // ModalityOptionValidator as the CLI does (PS3.3 C.7.3.1.1.1).
                 CLIParameterDefinition(
                     id: "modality", flag: "--modality", displayName: "Modality",
@@ -1387,12 +1390,12 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "study-uid", flag: "--study", displayName: "Study Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Study Instance UID to filter results (0020,000D)"
+                    helpText: "A single Study Instance UID scopes series/instance paths; a comma-separated UID list remains a matching filter (0020,000D)"
                 ),
                 CLIParameterDefinition(
                     id: "series-uid", flag: "--series", displayName: "Series Instance UID",
                     parameterType: .textField, placeholder: "e.g. 1.2.840.113619...",
-                    helpText: "Series Instance UID to filter results (0020,000E)"
+                    helpText: "A single Series Instance UID with a study scopes instance paths; a comma-separated UID list remains a matching filter (0020,000E)"
                 ),
                 CLIParameterDefinition(
                     id: "accession", flag: "--accession-number", displayName: "Accession Number",
@@ -1405,36 +1408,35 @@ public enum ToolCatalogHelpers: Sendable {
                     helpText: "Study description filter — supports wildcards (0008,1030)",
                     isAdvanced: true
                 ),
-                // Series-level matching keys of PS3.18 Table 10.6.1-5. They only match at
-                // the series level, so — exactly like the CLI, which warns and ignores them
-                // elsewhere — the fields appear only when Query Level is `series`.
+                // Series IE matching keys also apply to All Instances and Study's
+                // Instances. WorkshopQIDOParameters applies the exact resource scope.
                 CLIParameterDefinition(
                     id: "pps-start-date", flag: "--pps-start-date", displayName: "PPS Start Date",
                     parameterType: .textField, placeholder: "e.g. 20260101 or 20260101-20260310",
                     helpText: "Performed Procedure Step Start Date (0040,0244) — YYYYMMDD or a range",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 CLIParameterDefinition(
                     id: "pps-start-time", flag: "--pps-start-time", displayName: "PPS Start Time",
                     parameterType: .textField, placeholder: "e.g. 101500 or 100000-180000",
                     helpText: "Performed Procedure Step Start Time (0040,0245) — HHMMSS or a range",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 CLIParameterDefinition(
                     id: "qido-sps-id", flag: "--sps-id", displayName: "Scheduled Procedure Step ID",
                     parameterType: .textField, placeholder: "e.g. SPS001",
                     helpText: "Scheduled Procedure Step ID inside Request Attributes Sequence (0040,0275.0040,0009)",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 CLIParameterDefinition(
                     id: "qido-requested-procedure-id", flag: "--requested-procedure-id", displayName: "Requested Procedure ID",
                     parameterType: .textField, placeholder: "e.g. RP1",
                     helpText: "Requested Procedure ID inside Request Attributes Sequence (0040,0275.0040,1001)",
                     isAdvanced: true,
-                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series"])
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "level", values: ["series", "instance"])
                 ),
                 // limit / offset are the unsigned paging parameters of PS3.18 Table 8.3.4-1 /
                 // 8.3.4.4 (the CLI refuses a negative value); fuzzymatching=true is 8.3.4.2.
@@ -2445,12 +2447,6 @@ public enum ToolCatalogHelpers: Sendable {
                     id: "force", flag: "--force", displayName: "Force Parse",
                     parameterType: .booleanToggle, placeholder: "",
                     helpText: "Force parsing of files without DICM prefix",
-                    isAdvanced: true
-                ),
-                CLIParameterDefinition(
-                    id: "allow-burned-in-phi", flag: "--allow-burned-in-phi", displayName: "Allow Burned-in PHI",
-                    parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Proceed even when the pixels may still carry PHI (Burned In Annotation = YES, or overlay planes present) (--profile ps315). Without this, such files are refused unwritten, because without --clean-pixel-data only the data set is de-identified.",
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
@@ -4678,7 +4674,7 @@ case "dicom-script":
                 CLIParameterDefinition(
                     id: "operation", flag: "", displayName: "Operation",
                     parameterType: .subcommand, placeholder: "run",
-                    helpText: "run: execute a workflow script; validate: check a script for errors; template: generate a starter script",
+                    helpText: "run: preview a script with Dry Run enabled; validate: check script syntax and tool names; template: generate a starter script. Live execution is available through the CLI only.",
                     isRequired: true,
                     defaultValue: "run",
                     allowedValues: ["run", "validate", "template"]
@@ -4687,7 +4683,7 @@ case "dicom-script":
                 CLIParameterDefinition(
                     id: "scriptPath", flag: "", displayName: "Script File",
                     parameterType: .filePath, placeholder: "workflow.dcmscript",
-                    helpText: "Path to the DICOM Script Language (.dcmscript) file to execute or validate",
+                    helpText: "DICOM Script Language (.dcmscript) file to preview or validate; Workshop does not execute nested commands",
                     isRequired: true,
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["run", "validate"])
                 ),
@@ -4714,10 +4710,10 @@ case "dicom-script":
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["run", "validate"])
                 ),
                 CLIParameterDefinition(
-                    id: "dryRun", flag: "--dry-run", displayName: "Dry Run",
+                    id: "dryRun", flag: "--dry-run", displayName: "Dry Run (required in Workshop)",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Dry run — show what would be executed without running any commands",
-                    defaultValue: "false",
+                    helpText: "Check the script and show planned commands without executing them. To execute commands, use dicom-script in a terminal.",
+                    defaultValue: "true",
                     visibleWhen: CLIParameterVisibilityCondition(parameterId: "operation", values: ["run"])
                 ),
                 CLIParameterDefinition(
@@ -4761,11 +4757,62 @@ case "dicom-script":
     /// Public catalog accessor. Path fields are intentionally left empty; every other
     /// parameter keeps whatever `defaultValue` its raw definition declares.
     public static func parameterDefinitions(for toolID: String) -> [CLIParameterDefinition] {
-        rawParameterDefinitions(for: toolID)
+        if toolID == "dicom-print" { return CLIWorkshopPrintCatalog.parameters }
+        if toolID == "dicom-printscp" { return CLIWorkshopPrintSCPCatalog.parameters }
+        return rawParameterDefinitions(for: toolID)
     }
 }
 
 // MARK: - 16.3 Command Builder Helpers
+
+/// QIDO retains form values across resource changes, but only applicable values
+/// participate in visibility, preview, validation and the actual request.
+public enum WorkshopQIDOParameters {
+    public static let matchingTags: [String: String] = [
+        "patient-name": "00100010", "patient-id": "00100020", "study-date": "00080020",
+        "accession": "00080050", "study-description": "00081030",
+        "pps-start-date": "00400244", "pps-start-time": "00400245",
+        "qido-sps-id": "00400275.00400009", "qido-requested-procedure-id": "00400275.00401001",
+    ]
+
+    public static func isApplicable(_ id: String, values: [CLIParameterValue]) -> Bool {
+        func value(_ key: String) -> String? { values.first { $0.parameterID == key }?.stringValue }
+        let level = value("level").flatMap { $0.isEmpty ? nil : $0 } ?? "study"
+        guard let resource = try? QIDOResource.resolve(level: level, studyUID: value("study-uid"), seriesUID: value("series-uid")) else { return true }
+        // UID controls select the resource as well as supplying matching keys.
+        if id == "series-uid" { return level != "study" }
+        if id == "modality" || id == "strict-modality" {
+            return resource == .allStudies || resource.allows(.series)
+        }
+        guard let tag = matchingTags[id], let attributeLevel = QIDOResource.matchingLevel(for: tag) else { return true }
+        return resource.allows(attributeLevel)
+    }
+
+    public static func effectiveValues(_ values: [CLIParameterValue], definitions: [CLIParameterDefinition]) -> [CLIParameterValue] {
+        values.filter { value in
+            guard let definition = definitions.first(where: { $0.id == value.parameterID }) else { return false }
+            return CommandBuilderHelpers.isVisible(definition, parameterValues: values, parameterDefinitions: definitions)
+        }
+    }
+
+    public static func request(values: [CLIParameterValue], definitions: [CLIParameterDefinition],
+                               resolvedModality: String? = nil) throws -> QIDORequest {
+        let effective = effectiveValues(values, definitions: definitions)
+        func value(_ id: String) -> String {
+            effective.first { $0.parameterID == id }?.stringValue
+                ?? definitions.first { $0.id == id }?.defaultValue ?? ""
+        }
+        guard let limit = Int(value("limit")), let offset = Int(value("offset")) else {
+            throw DICOMwebOptionRefusal(.usage, "--limit and --offset must be nonnegative integers")
+        }
+        try DICOMwebOptionRules.validatePaging(limit: limit, offset: offset)
+        var parameters: [String: String] = ["limit": String(limit), "offset": String(offset)]
+        if value("fuzzy-matching") == "true" { parameters["fuzzymatching"] = "true" }
+        for (id, tag) in matchingTags where !value(id).isEmpty { parameters[tag] = value(id) }
+        return try QIDORequest(level: value("level"), studyUID: value("study-uid"), seriesUID: value("series-uid"),
+                               query: QIDOQuery(parameters: parameters), modality: resolvedModality ?? value("modality"))
+    }
+}
 
 /// Helpers for building CLI command strings from parameters.
 public enum CommandBuilderHelpers: Sendable {
@@ -4777,9 +4824,22 @@ public enum CommandBuilderHelpers: Sendable {
         parameterValues: [CLIParameterValue],
         parameterDefinitions: [CLIParameterDefinition]
     ) -> String {
-        var parts: [String] = [toolName]
+        if toolName == "dicom-print" || toolName == "dicom-printscp" {
+            guard let argv = try? CLIWorkshopPrintCommandCodec.arguments(
+                toolID: toolName, parameterValues: parameterValues,
+                parameterDefinitions: parameterDefinitions) else { return toolName }
+            return argv.map(shellEscape).joined(separator: " ")
+        }
+        // Catalog names may contain a fixed subcommand ("dicom-wado query").
+        // Split only these trusted prefixes; an arbitrary executable/path with
+        // spaces is still one literal token, not shell syntax to interpret.
+        let isCatalogPrefix = ToolCatalogHelpers.allTools().contains { $0.name == toolName }
+        var parts = isCatalogPrefix
+            ? toolName.split(whereSeparator: { $0.isWhitespace }).map { shellEscape(String($0)) }
+            : [shellEscape(toolName)]
+        let subcommandInsertionIndex = parts.count
         if let sub = subcommand, !sub.isEmpty {
-            parts.append(sub)
+            parts.append(shellEscape(sub))
         }
 
         // Some DIMSE tools use a positional host:port argument:
@@ -4860,14 +4920,11 @@ public enum CommandBuilderHelpers: Sendable {
                 }
             case .flagPicker:
                 // Flag pickers emit "--<value>" (e.g. "--auto") instead of "--flag value".
-                // A cliMapping entry overrides the literal token when the in-app state
-                // executes as a different CLI mode (e.g. dicom-qr's "interactive" state
-                // cannot prompt in-app — it retrieves all matches, so it previews as
-                // the truthful --auto).
+                // A cliMapping entry can map a display value to its CLI token.
                 if let mapped = def.cliMapping[value.stringValue], !mapped.isEmpty {
                     parts.append(mapped)
                 } else {
-                    parts.append("--\(value.stringValue)")
+                    parts.append(shellEscape("--\(value.stringValue)"))
                 }
             case .filePath, .outputPath:
                 if def.flag.isEmpty {
@@ -4886,13 +4943,12 @@ public enum CommandBuilderHelpers: Sendable {
                         deferredMappedTokens.removeAll()
                     }
                 } else {
-                    parts.append(def.flag)
-                    parts.append(shellEscape(value.stringValue))
+                    parts.append(contentsOf: optionTokens(flag: def.flag, value: value.stringValue))
                 }
             case .subcommand:
-                // Subcommands are positional — insert right after the tool name (index 1)
+                // Insert after the executable and any fixed catalog subcommand.
                 if !value.stringValue.isEmpty {
-                    parts.insert(value.stringValue, at: 1)
+                    parts.insert(shellEscape(value.stringValue), at: subcommandInsertionIndex)
                 }
             default:
                 if def.flag.isEmpty {
@@ -4917,12 +4973,10 @@ public enum CommandBuilderHelpers: Sendable {
                     // behaves identically when pasted into a terminal — and
                     // matches the in-app executor, which splits the same way.
                     for item in splitMultiValue(value.stringValue) {
-                        parts.append(def.flag)
-                        parts.append(shellEscape(item))
+                        parts.append(contentsOf: optionTokens(flag: def.flag, value: item))
                     }
                 } else {
-                    parts.append(def.flag)
-                    parts.append(shellEscape(value.stringValue))
+                    parts.append(contentsOf: optionTokens(flag: def.flag, value: value.stringValue))
                 }
             }
         }
@@ -4956,13 +5010,27 @@ public enum CommandBuilderHelpers: Sendable {
             .filter { !$0.isEmpty }
     }
 
-    /// Shell-escapes a file path.
-    public static func shellEscape(_ path: String) -> String {
-        if path.contains(" ") || path.contains("'") || path.contains("\"") {
-            let escaped = path.replacingOccurrences(of: "'", with: "'\\''")
-            return "'\(escaped)'"
+    /// Serializes a named option without letting a leading-hyphen value become
+    /// another option. Shell quoting alone cannot disambiguate ArgumentParser's
+    /// input: `--date '-20261024'` still needs `--date=-20261024`.
+    private static func optionTokens(flag: String, value: String) -> [String] {
+        if value.hasPrefix("-") {
+            return [shellEscape("\(flag)=\(value)")]
         }
-        return path
+        return [flag, shellEscape(value)]
+    }
+
+    /// Quotes one literal argument for POSIX-compatible shells, including zsh.
+    /// Preserve readable ASCII tokens; quote everything that could expand,
+    /// split or execute in a shell. An empty argument must remain an argument.
+    public static func shellEscape(_ value: String) -> String {
+        let safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@%+=:,./-"
+        // zsh expands an unquoted leading '=' through its command path (e.g.
+        // '=ls' becomes '/bin/ls'), even though '=' inside a token is literal.
+        if !value.isEmpty && !value.hasPrefix("=") && value.utf8.allSatisfy({ safe.utf8.contains($0) }) {
+            return value
+        }
+        return "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 
     /// Evaluates one visibility condition against the current values, falling back to
@@ -4999,8 +5067,12 @@ public enum CommandBuilderHelpers: Sendable {
         parameterValues: [CLIParameterValue],
         parameterDefinitions: [CLIParameterDefinition]
     ) -> Bool {
-        isVisible(def, parameterValues: parameterValues,
-                  parameterDefinitions: parameterDefinitions, visiting: [])
+        // qido-sps-id is unique to the QIDO form; do not apply resource rules to
+        // the similarly named DIMSE/WADO parameters in other tools.
+        if parameterDefinitions.contains(where: { $0.id == "qido-sps-id" }),
+           !WorkshopQIDOParameters.isApplicable(def.id, values: parameterValues) { return false }
+        return isVisible(def, parameterValues: parameterValues,
+                         parameterDefinitions: parameterDefinitions, visiting: [])
     }
 
     /// Transitive visibility check. `visiting` carries the ids already being resolved on the

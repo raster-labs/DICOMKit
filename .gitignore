@@ -37,6 +37,17 @@ dcm4chee-db-data/
 # Local datasets
 LocalDatasets/
 SampleStudies/
+# No DICOM binaries are versioned, including synthetic fixtures. The CI guard
+# also checks renamed/extensionless files and archive contents.
+*.[dD][cC][mM]
+*.[dD][iI][cC][oO][mM]
+*.[iI][mM][aA]
+*.[dD][cC][mM][dD][aA][tT][aA]
+[dD][iI][cC][oO][mM][dD][iI][rR]
+Documentation/2026a-milestones/**/*.bin
+Documentation/2026a-milestones/**/*.dat
+Documentation/2026a-milestones/**/*.pdu
+Documentation/2026a-milestones/**/*.pcap
 
 # Xcode build output (SwiftPM uses .build/; Xcode schemes emit build/)
 build/
@@ -47,3 +58,6 @@ memory/
 # Claude Code local-only settings and runtime state
 .claude/settings.local.json
 .claude/*.lock
+
+# Python audit tooling caches
+__pycache__/

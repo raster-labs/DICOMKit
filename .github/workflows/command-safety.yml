@@ -1,0 +1,62 @@
+name: Command safety
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Sources/DICOMStudio/**'
+      - 'Sources/DICOMToolbox/**'
+      - 'Sources/dicom-mwl/**'
+      - 'Tests/DICOMStudioTests/**'
+      - 'Tests/DICOMToolboxTests/**'
+      - 'Package.swift'
+      - 'Package.resolved'
+      - '.github/workflows/command-safety.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Sources/DICOMStudio/**'
+      - 'Sources/DICOMToolbox/**'
+      - 'Sources/dicom-mwl/**'
+      - 'Tests/DICOMStudioTests/**'
+      - 'Tests/DICOMToolboxTests/**'
+      - 'Package.swift'
+      - 'Package.resolved'
+      - '.github/workflows/command-safety.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety:
+    name: Workshop and Toolbox command safety
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Select toolchain
+        run: bash .github/scripts/select-swift-toolchain.sh 27.0
+      - name: Workshop shell, real parser, authentication and option regression tests
+        run: |
+          set -o pipefail
+          swift test --disable-automatic-resolution --test-product DICOMStudioTests \
+            -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays \
+            --filter 'WorkshopShellArgumentSafetyTests|CLIWorkshopBasicAuthPreviewTests|CLIWorkshopHelpersTests|NetworkToolWorkshopCLIParityTests' \
+            2>&1 | tee workshop-safety.log
+          grep -F 'Suite "Workshop shell argument safety" passed' workshop-safety.log
+          grep -F 'Suite "Workshop Basic authentication preview" passed' workshop-safety.log
+      - name: Toolbox argument, process and history regression tests
+        run: |
+          set -o pipefail
+          swift test --disable-automatic-resolution --test-product DICOMToolboxTests \
+            -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays \
+            2>&1 | tee toolbox-safety.log
+          grep -F 'Suite "Toolbox process safety" passed' toolbox-safety.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: command-safety-${{ github.sha }}
+          path: '*-safety.log'

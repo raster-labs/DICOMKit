@@ -1,0 +1,34 @@
+Building for debugging...
+[Computing dependencies]
+[1 / 19] DICOMWebTests-product
+[1 / 10] DICOMWeb
+[2 / 10] DICOMWeb
+[5 / 13] DICOMWeb
+[10 / 16] DICOMWeb
+[11 / 12] DICOMWebTests-product
+[13 / 15] DICOMWebTests-product
+Build complete! (4.02 sec)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "UPS Create identity — PS3.18 2026a 11.4.1.1" started.
+◇ Test "Invalid or conflicting identity is refused before either facade opens a connection" started.
+◇ Test "Response without Location falls back to the actual supplied or generated UID" started.
+◇ Test "Collection duplicate error identifies the resolved UID" started.
+◇ Test "Both public clients send the correct body/query identity and preserve unrelated attributes" started.
+◇ Test case passing 1 argument facade → .combined to "Response without Location falls back to the actual supplied or generated UID" started.
+◇ Test case passing 1 argument facade → .ups to "Collection duplicate error identifies the resolved UID" started.
+◇ Test "Collection identity is retained; generation occurs only for genuine absence" started.
+◇ Test case passing 1 argument facade → .ups to "Invalid or conflicting identity is refused before either facade opens a connection" started.
+◇ Test case passing 1 argument facade → .combined to "Collection duplicate error identifies the resolved UID" started.
+◇ Test case passing 1 argument facade → .ups to "Response without Location falls back to the actual supplied or generated UID" started.
+◇ Test case passing 1 argument facade → .combined to "Invalid or conflicting identity is refused before either facade opens a connection" started.
+◇ Test case passing 1 argument facade → .ups to "Both public clients send the correct body/query identity and preserve unrelated attributes" started.
+◇ Test case passing 1 argument facade → .combined to "Both public clients send the correct body/query identity and preserve unrelated attributes" started.
+✔ Test "Collection identity is retained; generation occurs only for genuine absence" passed after 0.001 seconds.
+✔ Test "Invalid or conflicting identity is refused before either facade opens a connection" with 2 test cases passed after 0.008 seconds.
+✔ Test "Response without Location falls back to the actual supplied or generated UID" with 2 test cases passed after 0.024 seconds.
+✔ Test "Collection duplicate error identifies the resolved UID" with 2 test cases passed after 0.025 seconds.
+✔ Test "Both public clients send the correct body/query identity and preserve unrelated attributes" with 2 test cases passed after 0.028 seconds.
+✔ Suite "UPS Create identity — PS3.18 2026a 11.4.1.1" passed after 0.028 seconds.
+✔ Test run with 5 tests in 1 suite passed after 0.028 seconds.

@@ -1,0 +1,169 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button (selected) Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area Secondary Actions: Scroll Up, Scroll Down (showing 0-100 of 163 items)
+						40 text Print SCP.  Printer list: /Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification/printers.json. This Workshop list is separate from Print Center and may differ from the terminal's list when the app is sandboxed.
+						41 button Import Command
+						42 text Parameters Input Config --config
+						43 text field (settable) Description: Config, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json
+						44 button Description: Browse for Config, Help: Opens a file picker dialog
+						45 text Settings file to read (default: ~/.config/dicomkit/printscp.json when it exists) Parameters Command
+						46 Command
+							47 radio button Description: serve, Value: 0
+							48 radio button Description: simulate, Value: 0
+							49 radio button Description: status, Value: 1
+							50 radio button Description: queues, Value: 0
+						51 text Port --port
+						52 text field (settable) Port
+						53 text TCP port to listen on (default: 11113) Ae Title --ae-title
+						54 text field (settable) Ae Title
+						55 text AE title the emulator answers as (default: DCMPRINT) Film Size --film-size
+						56 button Add Film Size entry
+						57 text Film Size ID (2010,0050) to accept (repeatable; default: all). Values (the Defined Term is also accepted): 8x10, 8.5x11, 10x12, 10x14, 11x14, 11x17, 14x14, 14x17, 24x24cm, 24x30cm, a4, a3 Add one value per row. Output --output
+						58 text field (settable) Description: Output entry 1, Value: none, Placeholder: Value
+						59 button Description: Remove Output entry 1, ID: minus.circle
+						60 button Add Output entry
+						61 text Film output: png, tiff, pdf, none (repeatable) Add one value per row. Format --format
+						62 Format
+							63 radio button Description: text, Value: 0
+							64 radio button Description: json, Value: 1
+						65 text Output format: text, json Options
+						66 checkbox Description: Save Config, Value: 1
+						67 text Output Output Dir --output-dir
+						68 text field (settable) Output Dir
+						69 button Description: Browse for Output Dir, Help: Opens a file picker dialog
+						70 text Directory written films are saved to (default: ~/Downloads/DICOMKit Films) Parameters Max Associations --max-associations
+						71 text field (settable) Description: Max Associations, Help: Shows additional flags for this tool
+						72 text Help: Shows additional flags for this tool, Value: Maximum concurrent associations (default: 10) Idle Timeout --idle-timeout
+						73 text field (settable) Description: Idle Timeout, Help: Shows additional flags for this tool
+						74 text Help: Shows additional flags for this tool, Value: Seconds an idle association may sit before it is aborted; 0 disables (default: 300) Allow Ae --allow-ae
+						75 button Description: Add Allow Ae entry, Help: Shows additional flags for this tool
+						76 text Help: Shows additional flags for this tool, Value: Calling AE title to accept (repeatable; default: accept all) Add one value per row. Deny Ae --deny-ae
+						77 button Description: Add Deny Ae entry, Help: Shows additional flags for this tool
+						78 text Help: Shows additional flags for this tool, Value: Calling AE title to refuse (repeatable; takes precedence over --allow-ae) Add one value per row. Max Pdu --max-pdu
+						79 text field (settable) Description: Max Pdu, Help: Shows additional flags for this tool
+						80 text Help: Shows additional flags for this tool, Value: Maximum Length of a received P-DATA-TF PDU offered during negotiation (PS3.8 D.1), in bytes (default: 65536) Accept Color --accept-color
+						81 Description: Accept Color, Help: Shows additional flags for this tool
+							82 radio button Description: inherit, Value: 0
+							83 radio button Description: enabled, Value: 0
+							84 radio button Description: disabled, Value: 1
+						85 text Help: Shows additional flags for this tool, Value: Accept the Basic Color Print Management Meta SOP Class (1.2.840.10008.5.1.1.18); --no-accept-color offers grayscale only (default: yes) Omitted/inherit preserves the saved or default setting. Presentation Lut --presentation-lut
+						86 Description: Presentation Lut, Help: Shows additional flags for this tool
+							87 radio button Description: inherit, Value: 1
+							88 radio button Description: enabled, Value: 0
+							89 radio button Description: disabled, Value: 0
+						90 text Help: Shows additional flags for this tool, Value: Accept the Presentation LUT SOP Class (1.2.840.10008.5.1.1.23): N-CREATE of Presentation LUT Shape (2050,0020) or a Presentation LUT Sequence (default: yes) Omitted/inherit preserves the saved or default setting. Annotation Box --annotation-box
+						91 Description: Annotation Box, Help: Shows additional flags for this tool
+							92 radio button Description: inherit, Value: 1
+							93 radio button Description: enabled, Value: 0
+							94 radio button Description: disabled, Value: 0
+						95 text Help: Shows additional flags for this tool, Value: Accept the Basic Annotation Box SOP Class (1.2.840.10008.5.1.1.15): N-SET of Text String (2030,0020) (default: yes) Omitted/inherit preserves the saved or default setting. Annotation Boxes Per Film --annotation-boxes-per-film
+						96 text field (settable) Description: Annotation Boxes Per Film, Help: Shows additional flags for this tool
+						97 text Help: Shows additional flags for this tool, Value: Basic Annotation Box instances created per film box, referenced in Referenced Basic Annotation Box Sequence (2010,0520) (default: 6) Medium --medium
+						98 button Description: Add Medium entry, Help: Shows additional flags for this tool
+						99 text Help: Shows additional flags for this tool, Value: Medium Type (2000,0030) to accept (repeatable; default: all). Values (the Defined Term is also accepted): paper, clear-film, blue-film, mammo-clear-film, mammo-blue-film Add one value per row. Max Image Boxes --max-image-boxes
+						100 text field (settable) Description: Max Image Boxes, Help: Shows additional flags for this tool
+						101 text Help: Shows additional flags for this tool, Value: Maximum image boxes an Image Display Format (2010,0010) may declare (default: 64) Max Image Dimension --max-image-dimension
+						102 text field (settable) Description: Max Image Dimension, Help: Shows additional flags for this tool
+						103 text Help: Shows additional flags for this tool, Value: Largest image dimension accepted in an image box, in pixels (default: 10000) Printer Name --printer-name
+						104 text field (settable) Description: Printer Name, Help: Shows additional flags for this tool, Value: Saved Native
+						105 text Help: Shows additional flags for this tool, Value: Printer Name (2110,0030) Manufacturer --manufacturer
+						106 text field (settable) Description: Manufacturer, Help: Shows additional flags for this tool
+						107 text Help: Shows additional flags for this tool, Value: Manufacturer (0008,0070)
+					108 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					109 button Description: Run command, Help: Runs the selected Workshop action
+				110 splitter (disabled, settable, float) 840
+				111 container
+					112 text Command Preview Valid $ Select a tool to build a command
+					113 button Description: Copy command, Help: Copies the command to the clipboard
+					114 text Console SUCCESS
+					115 button Description: Copy console output, Help: Copies the console output to the clipboard
+					116 button Clear console output
+					117 scroll area
+						118 text $ dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json
+
+{
+  "isNormal" : true,
+  "manufacturer" : "DICOMKit",
+  "Manufacturer" : "DICOMKit",
+  "ManufacturerModelName" : "DICOM Print Emulator",
+  "model" : "DICOM Print Emulator",
+  "name" : "M7 Native Baseline",
+  "PrinterName" : "M7 Native Baseline",
+  "PrinterStatus" : "NORMAL",
+  "PrinterStatusInfo" : "NORMAL",
+  "status" : "NORMAL",
+  "statusInfo" : "NORMAL"
+}
+
+							119 text $ dicom-printscp status --accept-color --annotation-box --annotations --trim-marks --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json
+
+{
+  "isNormal" : true,
+  "manufacturer" : "DICOMKit",
+  "Manufacturer" : "DICOMKit",
+  "ManufacturerModelName" : "DICOM Print Emulator",
+  "model" : "DICOM Print Emulator",
+  "name" : "M7 Native Baseline",
+  "PrinterName" : "M7 Native Baseline",
+  "PrinterStatus" : "NORMAL",
+  "Print
+					120 text History
+					121 button Clear
+					122 scroll area
+						123 text dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print dicom-printscp dicom-printscp
+	124 toolbar
+		125 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		126 search text field (settable) Search features
+			127 button Search
+	128 close button
+	129 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	130 minimize button
+	131 text DICOM Studio
+132 menu bar
+	133 DICOMStudio
+	134 File
+	135 Edit
+	136 View
+	137 Image
+	138 Window
+	139 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

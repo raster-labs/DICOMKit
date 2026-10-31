@@ -1,0 +1,7 @@
+{
+  "result": "Passed",
+  "colon_named_json_files_preserved": 13950,
+  "archive_sha256": "b141ebe8e3a514c019f675cd1909d6628317e0f881f9ff0304f681beac62a8ba",
+  "archive_bytes": 24560699,
+  "note": "Every colon-named JSON file in the archive exactly matches the validated generated output."
+}

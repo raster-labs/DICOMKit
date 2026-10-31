@@ -1,0 +1,29 @@
+						53 pop up button Description: Operation, Value: query
+						55 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						57 text field (settable) Description: Port, Value: 60660, Placeholder: 11112
+						59 text field (settable) Description: AE Title, Value: M7NATIVE, Placeholder: MODALITY
+						61 text field (settable) Description: Called AE Title, Value: M7MWL, Placeholder: ANY-SCP
+						63 text field (settable) Description: Date, Value: 20261024, Placeholder: today / YYYYMMDD / YYYYMMDD-YYYYMMDD
+						65 text field (settable) Description: Time, Value: not-a-time, Placeholder: HHMMSS / HHMMSS-HHMMSS
+						67 text field (settable) Description: Station AE Title, Placeholder: e.g. CT1
+						69 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						71 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						73 pop up button Description: Modality, Value: Any
+						75 pop up button Description: SPS Status, Value: Any
+						77 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						79 text field (settable) Description: Performing Physician, Placeholder: e.g. SMITH^JOHN or SMITH*
+						81 pop up button Description: Timeout (s), Value: 60
+						83 checkbox Description: JSON Output, Value: 1
+						84 checkbox Description: Verbose, Value: 0
+						86 text field (settable) Description: Specific Character Set, Help: Shows additional flags for this tool, Placeholder: e.g. ISO_IR 100 or ISO_IR 192
+						88 checkbox Description: Strict Modality, Help: Shows additional flags for this tool, Value: 0
+						89 disclosure triangle Description: Advanced options (2), Help: Shows additional flags for this tool, Value: on
+					96 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					97 button Description: Run command, Help: Runs the selected Workshop action
+					100 text Command Preview Valid $ Select a tool to build a command
+					102 text Console ERROR
+		115 search text field (settable) Search features
+Complete console:
+$ dicom-mwl query 127.0.0.1:60660 --aet M7NATIVE --called-aet M7MWL --date 20261024 --time not-a-time --timeout 60 --json
+
+Error: Invalid time filter 'not-a-time'. Use HHMMSS, or a DICOM time range (HHMMSS-HHMMSS, HHMMSS-, or -HHMMSS).

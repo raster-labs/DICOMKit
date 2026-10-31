@@ -1,0 +1,158 @@
+[
+  {
+    "name": "native",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "send",
+      "pacs://127.0.0.1:59355",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/native.dcm",
+      "--called-aet",
+      "M6PIXELS",
+      "--aet",
+      "M6WORKSHOP",
+      "--raw",
+      "--timeout",
+      "5",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709072381.92513\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709071958.993931\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709073084.34351\",\n  \"success\" : true\n}\n",
+    "stderr": ""
+  },
+  {
+    "name": "rle",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "send",
+      "pacs://127.0.0.1:59355",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/rle.dcm",
+      "--called-aet",
+      "M6PIXELS",
+      "--aet",
+      "M6WORKSHOP",
+      "--raw",
+      "--timeout",
+      "5",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709100602.417674\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709100307.837611\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709101120.605408\",\n  \"success\" : true\n}\n",
+    "stderr": ""
+  },
+  {
+    "name": "jpeg",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "send",
+      "pacs://127.0.0.1:59355",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/jpeg.dcm",
+      "--called-aet",
+      "M6PIXELS",
+      "--aet",
+      "M6WORKSHOP",
+      "--raw",
+      "--timeout",
+      "5",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709128419.1735\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709128121.554405\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709128933.283150\",\n  \"success\" : true\n}\n",
+    "stderr": ""
+  },
+  {
+    "name": "three-files",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "send",
+      "pacs://127.0.0.1:59355",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame1.dcm",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame2.dcm",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame3.dcm",
+      "--called-aet",
+      "M6PIXELS",
+      "--aet",
+      "M6WORKSHOP",
+      "--raw",
+      "--timeout",
+      "5",
+      "--format",
+      "json",
+      "--layout",
+      "STANDARD\\2,2"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709154183.80700\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709153903.839135\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709155179.651029\",\n  \"success\" : true\n}\n",
+    "stderr": ""
+  },
+  {
+    "name": "all-frames",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "send",
+      "pacs://127.0.0.1:59355",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/multi.dcm",
+      "--called-aet",
+      "M6PIXELS",
+      "--aet",
+      "M6WORKSHOP",
+      "--raw",
+      "--timeout",
+      "5",
+      "--format",
+      "json",
+      "--all-frames",
+      "--layout",
+      "STANDARD\\2,2"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709180409.991738\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709180101.894983\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709181454.990082\",\n  \"success\" : true\n}\n",
+    "stderr": ""
+  },
+  {
+    "name": "single-frame2",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "send",
+      "pacs://127.0.0.1:59355",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame2.dcm",
+      "--called-aet",
+      "M6PIXELS",
+      "--aet",
+      "M6WORKSHOP",
+      "--raw",
+      "--timeout",
+      "5",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709206943.175306\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709206639.904044\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709207430.473706\",\n  \"success\" : true\n}\n",
+    "stderr": ""
+  },
+  {
+    "name": "selected-frame2",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "send",
+      "pacs://127.0.0.1:59355",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/multi.dcm",
+      "--called-aet",
+      "M6PIXELS",
+      "--aet",
+      "M6WORKSHOP",
+      "--raw",
+      "--timeout",
+      "5",
+      "--format",
+      "json",
+      "--frame",
+      "2"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709233062.644087\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709232751.554018\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709233628.721102\",\n  \"success\" : true\n}\n",
+    "stderr": ""
+  }
+]

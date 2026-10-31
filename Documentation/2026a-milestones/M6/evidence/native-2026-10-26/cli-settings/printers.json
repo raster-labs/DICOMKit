@@ -1,0 +1,11 @@
+[
+  {
+    "calledAETitle" : "M7CLI",
+    "callingAETitle" : "M7NATIVE",
+    "colorMode" : "color",
+    "host" : "127.0.0.1",
+    "isDefault" : true,
+    "name" : "Native; O'Neil 雪",
+    "port" : 21113
+  }
+]

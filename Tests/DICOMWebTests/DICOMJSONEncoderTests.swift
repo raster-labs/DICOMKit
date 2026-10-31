@@ -123,13 +123,11 @@ struct DICOMJSONEncoderTests {
         
         let result = try encoder.encodeToObject([element])
         
-        if let elementDict = result["00100010"] as? [String: Any],
-           let values = elementDict["Value"] as? [[String: Any]] {
-            let alphabetic: String? = values.first?["Alphabetic"] as? String
-            let ideographic: String? = values.first?["Ideographic"] as? String
-            #expect(alphabetic == "Yamada^Tarou")
-            #expect(ideographic == "山田^太郎")
-        }
+        let elementDict = try #require(result["00100010"] as? [String: Any])
+        let values = try #require(elementDict["Value"] as? [[String: Any]])
+        #expect(values.count == 1)
+        #expect(values.first?["Alphabetic"] as? String == "Yamada^Tarou")
+        #expect(values.first?["Ideographic"] as? String == "山田^太郎")
     }
     
     // MARK: - Binary Data Encoding
@@ -245,11 +243,9 @@ struct DICOMJSONEncoderTests {
     // MARK: - Helper Functions
     
     private func createStringElement(tag: DICOMCore.Tag, vr: VR, value: String) -> DataElement {
-        var data = value.data(using: .utf8) ?? Data()
-        if data.count % 2 != 0 {
-            data.append(vr == VR.UI ? 0x00 : 0x20)
-        }
-        return DataElement(tag: tag, vr: vr, length: UInt32(data.count), valueData: data)
+        // The factory records UTF-8 context for non-ASCII text. Raw bytes with
+        // no context mean the DICOM default repertoire, not inferred UTF-8.
+        .string(tag: tag, vr: vr, value: value)
     }
     
     private func createNumericElement(tag: DICOMCore.Tag, vr: VR, value: UInt16) -> DataElement {

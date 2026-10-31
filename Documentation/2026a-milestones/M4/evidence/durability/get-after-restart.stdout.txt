@@ -1,0 +1,15 @@
+DICOM Retrieve (C-GET)
+======================
+  Server:            127.0.0.1:53191
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4SCP
+  Method:            C-GET
+  Level:             STUDY
+  Study UID:         1.2.826.0.1.3680043.10.543.301
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/get
+  Organization:      Flat
+  Timeout:           5s
+
+Executing C-GET...
+
+✅ C-GET completed — 1 file(s) received

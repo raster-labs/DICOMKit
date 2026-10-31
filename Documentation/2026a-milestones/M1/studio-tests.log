@@ -1,0 +1,342 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 832]
+[Planning deferred tasks]
+[5 / 47] J2KCodec
+[7 / 13] DICOMStudioTests-product
+[9 / 15] DICOMStudioTests-product
+[14 / 17] DICOMStudioTests-product
+[15 / 17] DICOMStudioTests-product
+[16 / 17] DICOMStudioTests-product
+[17 / 17] DICOMStudioTests-product
+Build complete! (34.21 sec)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "Workshop shell argument safety" started.
+◇ Suite "CLI Workshop Helpers Tests" started.
+◇ Suite "Network tools — Workshop/CLI option parity" started.
+◇ Suite "Workshop Basic authentication preview" started.
+◇ Test "all tools have unique IDs" started.
+◇ Test "All catalog Basic-auth entry points are app-only and omit credentials" started.
+◇ Test "Built previews retain scalar, repeated and positional DICOM values" started.
+◇ Test "Trusted catalog prefixes retain separate executable and subcommand tokens" started.
+◇ Test "buildCommand excludes parameters whose visibleWhen condition is not met" started.
+◇ Test "shellEscape handles single quotes" started.
+◇ Test "Every repeated leading-hyphen option value is bound to its flag" started.
+◇ Test "buildCommand handles flagPicker by emitting --value" started.
+◇ Test "redactPHI redacts patient IDs" started.
+◇ Test "no network tool has a duplicate parameter id" started.
+◇ Test "Shell quoting alone cannot make a leading-hyphen range an MWL option value" started.
+◇ Test "Real MWL parser receives open-ended, bounded and single DA/TM values unchanged" started.
+◇ Test "fileProcessingTools returns 4 tools" started.
+◇ Test "buildCommand includes parameters whose visibleWhen condition IS met" started.
+◇ Test "Malformed ranges survive parsing then fail identically in the shared validator" started.
+◇ Test "the parent-key opt-out is offered at series and instance level" started.
+◇ Test "filterGlossary filters by term" started.
+◇ Test "CODE|SCHEME|MEANING parses the same for the CLI and the Workshop" started.
+◇ Test "validateHost accepts valid hosts" started.
+◇ Test "dicom-convert --transfer-syntax offers DICOMConverter.cliTokens (P-CONVERT-TS-KEYWORDS), old spellings canonicalise, --frame-number from 1 with --frame deprecated (P-CONVERT-FRAME)" started.
+◇ Test "corrected tag numbers appear in the worklist help text" started.
+◇ Test "validateRequired returns true when all required params have values" started.
+◇ Test "trimHistory preserves history under limit" started.
+◇ Test "redactPHI redacts OAuth tokens" started.
+◇ Test "Literal shell arguments survive sh and zsh without expansion or execution" started.
+◇ Test "A short option binds a leading-hyphen value without adding an equals sign" started.
+◇ Test "the two --performing-physician fields never appear together" started.
+◇ Test "the discontinuation reason is gated on the DISCONTINUED status" started.
+◇ Test "the series-level QIDO matching keys are exposed" started.
+◇ Test "N-SET exposes the Performed Series attributes the CLI gained" started.
+◇ Test "maxAETitleLength is 16" started.
+◇ Test "a flag shared by two parameters is always operation-scoped" started.
+◇ Test "Requested Procedure ID is its own field, not the Performed Step ID" started.
+◇ Test "the discontinuation reason field is hidden for a COMPLETED update" started.
+◇ Test "buildCommand uses default value for visibleWhen check when parameter value is empty" started.
+◇ Test "dicom-qido offers --strict-modality, --fuzzy-matching (PS3.18 8.3.4.2) and --format dicom-json (PS3.18 F.2); --limit may be 0 (8.3.4.4)" started.
+◇ Test "dicom-convert transfer-syntax visible only for DICOM format" started.
+◇ Test "dicom-qido does not expose subcommand parameter" started.
+◇ Test "filterGlossary filters by definition content" started.
+◇ Test "the parent-key toggle is hidden for a study-level query" started.
+◇ Test "defaultProfile returns a valid profile" started.
+◇ Test "dicom-convert windowing params visible only for image formats" started.
+◇ Test "dicom-dcmdir --profile offers only the PS3.11 2026a identifiers of DICOMDIRProfile.allStandard (D29)" started.
+◇ Test "buildCommand cliMapping emits multi-token values" started.
+◇ Test "QIDO series filters are hidden for a study-level search" started.
+◇ Test "the worklist query exposes the Performing Physician matching key" started.
+◇ Test "networkOperationsTools returns 11 tools" started.
+◇ Test "allTools returns exactly 33 tools" started.
+◇ Test "validateHost rejects empty or whitespace-only hosts" started.
+◇ Test "automationTools returns 3 tools" started.
+◇ Test "filterGlossary is case-insensitive" started.
+◇ Test "isDICOMFile recognizes extensionless files as potential DICOM" started.
+◇ Test "maxHistoryCount is 50" started.
+◇ Test "dicom-convert has parameter definitions" started.
+◇ Test "dicom-dcmdir create: File-set ID rule (PS3.10 8.1, 8.5) in help, --copy-to offered" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+◇ Test "dataExportTools returns 7 tools" started.
+◇ Test "validateAETitle accepts valid AE titles" started.
+◇ Test "isDICOMFile rejects non-DICOM extensions" started.
+◇ Test "N-CREATE exposes the Type 1/2 attributes the CLI gained" started.
+◇ Test "totalToolCount is 33" started.
+◇ Test "groupedNetworkOperationsTools returns DIMSE and DICOMweb sections" started.
+◇ Test "validateRequired returns false when required param is empty" started.
+◇ Test "shellEscape handles paths with spaces" started.
+◇ Test "tools(for:) filters correctly by tab" started.
+◇ Test "dicom-diff ignore-tag emits repeated flags for two hex tags" started.
+◇ Test "dicom-export pickers are the shared ExportImageFormat / OrganizationScheme with the CLI's per-subcommand defaults" started.
+◇ Test "redactPHI redacts patient names" started.
+◇ Test "buildCommand booleanToggle with negatedFlag emits inverted token when off" started.
+◇ Test "dicom-mpps create requires --modality (PS3.4 Table F.7.2-1 Type 1); the discontinuation reason examples are PS3.16 CID 9301 pairs (D85)" started.
+◇ Test "buildCommand includes flag and value parameters" started.
+◇ Test "DICOMweb group contains 4 tools" started.
+◇ Test "defaultGlossaryEntries returns 15 entries" started.
+◇ Test "all network tools have a networkToolGroup assigned" started.
+◇ Test "splitMultiValue splits on semicolons and preserves commas/spaces in values" started.
+◇ Test "dicom-json / dicom-xml keep empty attributes by default with --no-include-empty (PS3.18 F.2.5; D114)" started.
+◇ Test "NetworkToolGroup has correct display names" started.
+◇ Test "fileOrganizationTools returns 4 tools" started.
+◇ Test "dicom-mwl --sps-status offers the PS3.3 2026a Table C.4-10 Defined Terms; --specific-character-set and --strict-modality are offered" started.
+◇ Test "trimHistory keeps at most 50 entries" started.
+◇ Test "dicom-convert buildCommand produces correct output for image export" started.
+◇ Test "validateRequired returns false when required param is missing" started.
+◇ Test "dicom-convert example presets exist" started.
+◇ Test "buildCommand with subcommand includes it" started.
+◇ Test "fileSummary describes file count correctly" started.
+◇ Test "tools with subcommands are identified correctly" started.
+◇ Test "examplePresets returns entries for known tools" started.
+◇ Test "dicom-export --fps has no fixed default: the file's Cine Module rate (PS3.3 Table C.7-13)" started.
+◇ Test "dicom-send offers --transfer-syntax (PS3.8 7.1.1.13; DICOMCore.TransferSyntax tokens) and the PS3.7 Table 9.3-1 priority values" started.
+◇ Test "validatePort accepts valid ports" started.
+◇ Test "dicom-image / dicom-pdf --conversion-type offer the 8 PS3.3 2026a Table C.8-24 Defined Terms (ConversionType.definedTerms), empty = the CLI's WSD" started.
+◇ Test "buildCommand handles boolean toggles correctly" started.
+◇ Test "buildCommand flagPicker emits --auto for auto value" started.
+◇ Test "buildCommand handles file path with spaces" started.
+◇ Test "dicom-query --format offers dicom-json (PS3.18 F.2), --csv-keywords and --strict-modality are offered; --modality help is the shared text" started.
+◇ Test "dicom-convert validateRequired detects missing required fields" started.
+◇ Test "formatTimestamp produces non-empty string" started.
+◇ Test "all glossary entries have non-empty term and definition" started.
+◇ Test "buildCommand emits cliMapping tokens for internal parameters" started.
+◇ Test "formatFileSize formats bytes correctly" started.
+◇ Test "dicom-retrieve / dicom-qr offer --priority (PS3.7 Tables 9.3-9 / 9.3-6), --relational-retrieve (PS3.4 C.5.2.1), --strict-modality and --include-parent-keys" started.
+◇ Test "tokenize handles empty command" started.
+◇ Test "Workshop dicom-anon presets never send --profile basic and lead with ps315" started.
+◇ Test "validateAETitle rejects invalid AE titles" started.
+◇ Test "validateTimeout rejects invalid timeouts" started.
+◇ Test "buildCommand with no parameters returns tool name only" started.
+◇ Test "dicom-study defaults mirror the CLI: organize moves unless --copy; summary table, stats / compare text" started.
+◇ Test "dicom-convert advanced params are flagged correctly" started.
+◇ Test "dicom-export selects frames by Frame number from 1 (PS3.3 Table 10-3); the 0-based options are deprecated (D127)" started.
+◇ Test "dicom-export --apply-window is deprecated on contact-sheet and bulk only (P-EXPORT-3)" started.
+◇ Test "tokenize correctly identifies tool name, flags, values, and paths" started.
+◇ Test "defaultGlossaryCount matches array count" started.
+◇ Test "connectionSummary formats correctly" started.
+◇ Test "examplePresets returns empty for unknown tool" started.
+◇ Test "buildCommand repeatable option keeps a hex tag's comma intact" started.
+◇ Test "filterGlossary returns all entries for empty query" started.
+◇ Test "dicom-archive query offers --strict-modality and the shared modality help (PS3.3 C.7.3.1.1.1)" started.
+◇ Test "dicom-query --level offers the PS3.4 2026a Table C.6.1-1 / C.6.2-1 values (patient, study, series, image), not 'instance'" started.
+◇ Test "network tools require network" started.
+◇ Test "Workshop dicom-anon --profile offers ps315 (the CLI default), its alias basic and the legacy lists (P-STUDIO-ANON-PS315)" started.
+◇ Test "dicom-convert buildCommand produces correct output for DICOM conversion" started.
+◇ Test "buildCommand omits UPS output format for non-retrieval operations" started.
+◇ Test "dicom-video offers --strict-modality and --audio-channel-source (PS3.16 CID 3000 keywords, D56); the refusal help suffixes are the CLI's" started.
+◇ Test "buildCommand expands repeatable empty-flag definition into variadic positional tokens" started.
+◇ Test "redactPHI preserves non-PHI command parts" started.
+◇ Test "dicom-convert quality visible only for JPEG format" started.
+◇ Test "buildCommand expands repeatable options into repeated flags" started.
+◇ Test "dicom-anon offers every PS3.15 2026a E.3 Option flag of dicom-anon (CID 7050 names in the help), --retain-dates deprecated, the pixel-cleaning options" started.
+◇ Test "buildCommand uses positional host port for dicom-echo" started.
+◇ Test "buildCommand keeps non-repeatable comma values as a single flag" started.
+◇ Test "validatePort rejects invalid ports" started.
+◇ Test "all tools have non-empty names and descriptions" started.
+◇ Test "DIMSE group contains 7 tools" started.
+◇ Test "validateTimeout accepts valid timeouts" started.
+◇ Test "dicom-compress --syntax offers only the native targets of CompressionConsole.NativeTargetSyntax (D267) (P-COMPRESS-SYNTAX); codec names are refused with the CLI's text" started.
+◇ Test "dicom-convert format parameter has enum values" started.
+◇ Test "dicom-ups: --change-state with deprecated --update, --state offers only the PS3.18 11.7.1.4 targets, states spelled per PS3.3 Table C.30.1-1, priorities per Table C.30.2-1, --format csv / dicom-json" started.
+◇ Test "missingRequiredParameters lists missing params" started.
+◇ Test "dicom-convert has expected parameter count (14: --frame-number joined the deprecated --frame)" started.
+◇ Test "ValidationHelpers.knownIODs are PS3.6 2026a Table A-1 UID Keywords; level texts carry dicom-validate's --level help" started.
+◇ Test "dicom-pixedit help texts are the CLI's; --fill-value carries no default (P-PIXEDIT-RANGE refusals in the executor)" started.
+◇ Test "dicom-split --frame-numbers (from 1, PS3.3 C.7.6.16.1.2) and the deprecated 0-based --frames (D154)" started.
+◇ Test "dicom-convert requires inputPath and output" started.
+◇ Test "dicom-wado retrieve offers the WADO-URI parameters of PS3.18 Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1, gated on --uri; --content-type is the shared Table 8.7.4-1 list; --format is the metadata json | xml" started.
+◇ Test "buildCommand includes parameters without visibleWhen (always visible)" started.
+◇ Test "isDICOMFile recognizes DICOM extensions" started.
+◇ Test "dicom-dump / dicom-tags / dicom-uid / dicom-merge forms mirror the CLI surface" started.
+◇ Test "dicom-convert buildCommand handles boolean flags" started.
+◇ Test "fileInspectionTools returns 4 tools" started.
+✔ Test "all tools have unique IDs" passed after 0.005 seconds.
+✔ Test "buildCommand excludes parameters whose visibleWhen condition is not met" passed after 0.005 seconds.
+✔ Test "shellEscape handles single quotes" passed after 0.006 seconds.
+✔ Test "fileProcessingTools returns 4 tools" passed after 0.006 seconds.
+✔ Test "buildCommand includes parameters whose visibleWhen condition IS met" passed after 0.006 seconds.
+✔ Test "buildCommand handles flagPicker by emitting --value" passed after 0.007 seconds.
+✔ Test "validateHost accepts valid hosts" passed after 0.007 seconds.
+✔ Test "filterGlossary filters by term" passed after 0.007 seconds.
+✔ Test "validateRequired returns true when all required params have values" passed after 0.007 seconds.
+✔ Test "redactPHI redacts patient IDs" passed after 0.007 seconds.
+✔ Test "redactPHI redacts OAuth tokens" passed after 0.009 seconds.
+✔ Test "trimHistory preserves history under limit" passed after 0.009 seconds.
+✔ Test "maxAETitleLength is 16" passed after 0.009 seconds.
+✔ Test "dicom-convert --transfer-syntax offers DICOMConverter.cliTokens (P-CONVERT-TS-KEYWORDS), old spellings canonicalise, --frame-number from 1 with --frame deprecated (P-CONVERT-FRAME)" passed after 0.010 seconds.
+✔ Test "buildCommand uses default value for visibleWhen check when parameter value is empty" passed after 0.012 seconds.
+✔ Test "dicom-qido offers --strict-modality, --fuzzy-matching (PS3.18 8.3.4.2) and --format dicom-json (PS3.18 F.2); --limit may be 0 (8.3.4.4)" passed after 0.014 seconds.
+✔ Test "dicom-convert transfer-syntax visible only for DICOM format" passed after 0.017 seconds.
+✔ Test "dicom-qido does not expose subcommand parameter" passed after 0.019 seconds.
+✔ Test "defaultProfile returns a valid profile" passed after 0.020 seconds.
+✔ Test "dicom-convert windowing params visible only for image formats" passed after 0.020 seconds.
+✔ Test "dicom-dcmdir --profile offers only the PS3.11 2026a identifiers of DICOMDIRProfile.allStandard (D29)" passed after 0.020 seconds.
+✔ Test "filterGlossary filters by definition content" passed after 0.020 seconds.
+✔ Test "buildCommand cliMapping emits multi-token values" passed after 0.020 seconds.
+✔ Test "networkOperationsTools returns 11 tools" passed after 0.020 seconds.
+✔ Test "validateHost rejects empty or whitespace-only hosts" passed after 0.020 seconds.
+✔ Test "automationTools returns 3 tools" passed after 0.020 seconds.
+✔ Test "allTools returns exactly 33 tools" passed after 0.020 seconds.
+✔ Test "isDICOMFile recognizes extensionless files as potential DICOM" passed after 0.020 seconds.
+✔ Test "maxHistoryCount is 50" passed after 0.020 seconds.
+✔ Test "dicom-convert has parameter definitions" passed after 0.020 seconds.
+✔ Test "filterGlossary is case-insensitive" passed after 0.020 seconds.
+✔ Test "dataExportTools returns 7 tools" passed after 0.019 seconds.
+✔ Test "dicom-dcmdir create: File-set ID rule (PS3.10 8.1, 8.5) in help, --copy-to offered" passed after 0.020 seconds.
+✔ Test "validateAETitle accepts valid AE titles" passed after 0.019 seconds.
+✔ Test "isDICOMFile rejects non-DICOM extensions" passed after 0.019 seconds.
+✔ Test "totalToolCount is 33" passed after 0.019 seconds.
+✔ Test "groupedNetworkOperationsTools returns DIMSE and DICOMweb sections" passed after 0.019 seconds.
+✔ Test "validateRequired returns false when required param is empty" passed after 0.020 seconds.
+✔ Test "shellEscape handles paths with spaces" passed after 0.020 seconds.
+✔ Test "dicom-diff ignore-tag emits repeated flags for two hex tags" passed after 0.020 seconds.
+✔ Test "tools(for:) filters correctly by tab" passed after 0.020 seconds.
+✔ Test "redactPHI redacts patient names" passed after 0.021 seconds.
+✔ Test "buildCommand booleanToggle with negatedFlag emits inverted token when off" passed after 0.020 seconds.
+✔ Test "dicom-export pickers are the shared ExportImageFormat / OrganizationScheme with the CLI's per-subcommand defaults" passed after 0.021 seconds.
+✔ Test "buildCommand includes flag and value parameters" passed after 0.020 seconds.
+✔ Test "DICOMweb group contains 4 tools" passed after 0.020 seconds.
+✔ Test "dicom-mpps create requires --modality (PS3.4 Table F.7.2-1 Type 1); the discontinuation reason examples are PS3.16 CID 9301 pairs (D85)" passed after 0.021 seconds.
+✔ Test "defaultGlossaryEntries returns 15 entries" passed after 0.021 seconds.
+✔ Test "splitMultiValue splits on semicolons and preserves commas/spaces in values" passed after 0.022 seconds.
+✔ Test "NetworkToolGroup has correct display names" passed after 0.022 seconds.
+✔ Test "fileOrganizationTools returns 4 tools" passed after 0.022 seconds.
+✔ Test "dicom-json / dicom-xml keep empty attributes by default with --no-include-empty (PS3.18 F.2.5; D114)" passed after 0.022 seconds.
+✔ Test "trimHistory keeps at most 50 entries" passed after 0.022 seconds.
+✔ Test "dicom-mwl --sps-status offers the PS3.3 2026a Table C.4-10 Defined Terms; --specific-character-set and --strict-modality are offered" passed after 0.022 seconds.
+✔ Test "validateRequired returns false when required param is missing" passed after 0.022 seconds.
+✔ Test "dicom-convert example presets exist" passed after 0.022 seconds.
+✔ Test "all network tools have a networkToolGroup assigned" passed after 0.021 seconds.
+✔ Test "dicom-convert buildCommand produces correct output for image export" passed after 0.022 seconds.
+✔ Test "buildCommand with subcommand includes it" passed after 0.021 seconds.
+✔ Test "fileSummary describes file count correctly" passed after 0.021 seconds.
+✔ Test "tools with subcommands are identified correctly" passed after 0.021 seconds.
+✔ Test "examplePresets returns entries for known tools" passed after 0.021 seconds.
+✔ Test "dicom-export --fps has no fixed default: the file's Cine Module rate (PS3.3 Table C.7-13)" passed after 0.022 seconds.
+✔ Test "validatePort accepts valid ports" passed after 0.021 seconds.
+✔ Test "dicom-image / dicom-pdf --conversion-type offer the 8 PS3.3 2026a Table C.8-24 Defined Terms (ConversionType.definedTerms), empty = the CLI's WSD" passed after 0.021 seconds.
+✔ Test "dicom-send offers --transfer-syntax (PS3.8 7.1.1.13; DICOMCore.TransferSyntax tokens) and the PS3.7 Table 9.3-1 priority values" passed after 0.021 seconds.
+✔ Test "buildCommand handles boolean toggles correctly" passed after 0.021 seconds.
+✔ Test "buildCommand flagPicker emits --auto for auto value" passed after 0.021 seconds.
+✔ Test "buildCommand handles file path with spaces" passed after 0.021 seconds.
+✔ Test "dicom-convert validateRequired detects missing required fields" passed after 0.021 seconds.
+✔ Test "dicom-query --format offers dicom-json (PS3.18 F.2), --csv-keywords and --strict-modality are offered; --modality help is the shared text" passed after 0.021 seconds.
+✔ Test "all glossary entries have non-empty term and definition" passed after 0.021 seconds.
+✔ Test "buildCommand emits cliMapping tokens for internal parameters" passed after 0.021 seconds.
+✔ Test "formatFileSize formats bytes correctly" passed after 0.021 seconds.
+✔ Test "dicom-retrieve / dicom-qr offer --priority (PS3.7 Tables 9.3-9 / 9.3-6), --relational-retrieve (PS3.4 C.5.2.1), --strict-modality and --include-parent-keys" passed after 0.021 seconds.
+✔ Test "tokenize handles empty command" passed after 0.021 seconds.
+✔ Test "Workshop dicom-anon presets never send --profile basic and lead with ps315" passed after 0.021 seconds.
+✔ Test "validateAETitle rejects invalid AE titles" passed after 0.021 seconds.
+✔ Test "validateTimeout rejects invalid timeouts" passed after 0.021 seconds.
+✔ Test "buildCommand with no parameters returns tool name only" passed after 0.021 seconds.
+✔ Test "dicom-study defaults mirror the CLI: organize moves unless --copy; summary table, stats / compare text" passed after 0.021 seconds.
+✔ Test "dicom-convert advanced params are flagged correctly" passed after 0.021 seconds.
+✔ Test "dicom-export selects frames by Frame number from 1 (PS3.3 Table 10-3); the 0-based options are deprecated (D127)" passed after 0.021 seconds.
+✔ Test "dicom-export --apply-window is deprecated on contact-sheet and bulk only (P-EXPORT-3)" passed after 0.021 seconds.
+✔ Test "tokenize correctly identifies tool name, flags, values, and paths" passed after 0.021 seconds.
+✔ Test "defaultGlossaryCount matches array count" passed after 0.021 seconds.
+✔ Test "examplePresets returns empty for unknown tool" passed after 0.021 seconds.
+✔ Test "connectionSummary formats correctly" passed after 0.021 seconds.
+✔ Test "filterGlossary returns all entries for empty query" passed after 0.021 seconds.
+✔ Test "dicom-archive query offers --strict-modality and the shared modality help (PS3.3 C.7.3.1.1.1)" passed after 0.021 seconds.
+✔ Test "buildCommand repeatable option keeps a hex tag's comma intact" passed after 0.021 seconds.
+✔ Test "dicom-query --level offers the PS3.4 2026a Table C.6.1-1 / C.6.2-1 values (patient, study, series, image), not 'instance'" passed after 0.021 seconds.
+✔ Test "network tools require network" passed after 0.021 seconds.
+✔ Test "Workshop dicom-anon --profile offers ps315 (the CLI default), its alias basic and the legacy lists (P-STUDIO-ANON-PS315)" passed after 0.021 seconds.
+✔ Test "dicom-convert buildCommand produces correct output for DICOM conversion" passed after 0.021 seconds.
+✔ Test "buildCommand omits UPS output format for non-retrieval operations" passed after 0.021 seconds.
+✔ Test "dicom-video offers --strict-modality and --audio-channel-source (PS3.16 CID 3000 keywords, D56); the refusal help suffixes are the CLI's" passed after 0.021 seconds.
+✔ Test "buildCommand expands repeatable empty-flag definition into variadic positional tokens" passed after 0.021 seconds.
+✔ Test "redactPHI preserves non-PHI command parts" passed after 0.021 seconds.
+✔ Test "dicom-convert quality visible only for JPEG format" passed after 0.021 seconds.
+✔ Test "buildCommand expands repeatable options into repeated flags" passed after 0.021 seconds.
+✔ Test "dicom-anon offers every PS3.15 2026a E.3 Option flag of dicom-anon (CID 7050 names in the help), --retain-dates deprecated, the pixel-cleaning options" passed after 0.021 seconds.
+✔ Test "buildCommand uses positional host port for dicom-echo" passed after 0.021 seconds.
+✔ Test "buildCommand keeps non-repeatable comma values as a single flag" passed after 0.021 seconds.
+✔ Test "validatePort rejects invalid ports" passed after 0.021 seconds.
+✔ Test "all tools have non-empty names and descriptions" passed after 0.021 seconds.
+✔ Test "DIMSE group contains 7 tools" passed after 0.021 seconds.
+✔ Test "validateTimeout accepts valid timeouts" passed after 0.021 seconds.
+✔ Test "dicom-compress --syntax offers only the native targets of CompressionConsole.NativeTargetSyntax (D267) (P-COMPRESS-SYNTAX); codec names are refused with the CLI's text" passed after 0.021 seconds.
+✔ Test "dicom-convert format parameter has enum values" passed after 0.021 seconds.
+✔ Test "dicom-ups: --change-state with deprecated --update, --state offers only the PS3.18 11.7.1.4 targets, states spelled per PS3.3 Table C.30.1-1, priorities per Table C.30.2-1, --format csv / dicom-json" passed after 0.021 seconds.
+✔ Test "missingRequiredParameters lists missing params" passed after 0.021 seconds.
+✔ Test "dicom-convert has expected parameter count (14: --frame-number joined the deprecated --frame)" passed after 0.021 seconds.
+✔ Test "ValidationHelpers.knownIODs are PS3.6 2026a Table A-1 UID Keywords; level texts carry dicom-validate's --level help" passed after 0.021 seconds.
+✔ Test "dicom-pixedit help texts are the CLI's; --fill-value carries no default (P-PIXEDIT-RANGE refusals in the executor)" passed after 0.021 seconds.
+✔ Test "dicom-split --frame-numbers (from 1, PS3.3 C.7.6.16.1.2) and the deprecated 0-based --frames (D154)" passed after 0.021 seconds.
+✔ Test "dicom-convert requires inputPath and output" passed after 0.021 seconds.
+✔ Test "dicom-wado retrieve offers the WADO-URI parameters of PS3.18 Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1, gated on --uri; --content-type is the shared Table 8.7.4-1 list; --format is the metadata json | xml" passed after 0.021 seconds.
+✔ Test "buildCommand includes parameters without visibleWhen (always visible)" passed after 0.021 seconds.
+✔ Test "isDICOMFile recognizes DICOM extensions" passed after 0.021 seconds.
+✔ Test "dicom-dump / dicom-tags / dicom-uid / dicom-merge forms mirror the CLI surface" passed after 0.021 seconds.
+✔ Test "dicom-convert buildCommand handles boolean flags" passed after 0.021 seconds.
+✔ Test "fileInspectionTools returns 4 tools" passed after 0.022 seconds.
+✔ Test "Shell quoting alone cannot make a leading-hyphen range an MWL option value" passed after 0.026 seconds.
+✔ Test "Literal shell arguments survive sh and zsh without expansion or execution" passed after 0.039 seconds.
+✔ Test "Every repeated leading-hyphen option value is bound to its flag" passed after 0.040 seconds.
+✔ Test "formatTimestamp produces non-empty string" passed after 0.038 seconds.
+✔ Suite "CLI Workshop Helpers Tests" passed after 0.042 seconds.
+✔ Test "CODE|SCHEME|MEANING parses the same for the CLI and the Workshop" passed after 0.091 seconds.
+✔ Test "corrected tag numbers appear in the worklist help text" passed after 0.091 seconds.
+✔ Test "the two --performing-physician fields never appear together" passed after 0.091 seconds.
+✔ Test "no network tool has a duplicate parameter id" passed after 0.091 seconds.
+✔ Test "the discontinuation reason is gated on the DISCONTINUED status" passed after 0.091 seconds.
+✔ Test "the series-level QIDO matching keys are exposed" passed after 0.091 seconds.
+✔ Test "N-SET exposes the Performed Series attributes the CLI gained" passed after 0.091 seconds.
+✔ Test "a flag shared by two parameters is always operation-scoped" passed after 0.091 seconds.
+✔ Test "Requested Procedure ID is its own field, not the Performed Step ID" passed after 0.091 seconds.
+✔ Test "the discontinuation reason field is hidden for a COMPLETED update" passed after 0.091 seconds.
+✔ Test "the parent-key toggle is hidden for a study-level query" passed after 0.091 seconds.
+✔ Test "QIDO series filters are hidden for a study-level search" passed after 0.090 seconds.
+✔ Test "the worklist query exposes the Performing Physician matching key" passed after 0.090 seconds.
+✔ Test "N-CREATE exposes the Type 1/2 attributes the CLI gained" passed after 0.090 seconds.
+✔ Test "the parent-key opt-out is offered at series and instance level" passed after 0.091 seconds.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+✔ Suite "Network tools — Workshop/CLI option parity" passed after 0.091 seconds.
+✔ Test "A short option binds a leading-hyphen value without adding an equals sign" passed after 0.092 seconds.
+✔ Test "Built previews retain scalar, repeated and positional DICOM values" passed after 0.104 seconds.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+✔ Test "All catalog Basic-auth entry points are app-only and omit credentials" with 4 test cases passed after 0.133 seconds.
+◇ Test "None and Bearer retain supported command previews" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "None and Bearer retain supported command previews" started.
+✔ Test "Malformed ranges survive parsing then fail identically in the shared validator" passed after 0.134 seconds.
+✔ Test "Real MWL parser receives open-ended, bounded and single DA/TM values unchanged" passed after 0.137 seconds.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "None and Bearer retain supported command previews" started.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "None and Bearer retain supported command previews" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "None and Bearer retain supported command previews" started.
+✔ Test "None and Bearer retain supported command previews" with 4 test cases passed after 0.049 seconds.
+◇ Test "Basic-auth detection survives changed labels and command spellings" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "Basic-auth detection survives changed labels and command spellings" started.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "Basic-auth detection survives changed labels and command spellings" started.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "Basic-auth detection survives changed labels and command spellings" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "Basic-auth detection survives changed labels and command spellings" started.
+✔ Test "Basic-auth detection survives changed labels and command spellings" with 4 test cases passed after 0.045 seconds.
+◇ Test "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "Every line of a multiline Basic-auth preview remains commented" started.
+✔ Test "Every line of a multiline Basic-auth preview remains commented" with 4 test cases passed after 0.042 seconds.
+✔ Suite "Workshop Basic authentication preview" passed after 0.271 seconds.
+✔ Test "Trusted catalog prefixes retain separate executable and subcommand tokens" passed after 0.282 seconds.
+✔ Suite "Workshop shell argument safety" passed after 0.283 seconds.
+✔ Test run with 151 tests in 4 suites passed after 0.283 seconds.

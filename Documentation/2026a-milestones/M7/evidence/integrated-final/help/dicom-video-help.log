@@ -1,0 +1,39 @@
+OVERVIEW: Convert H.264/HEVC/MPEG-2 video to and from DICOM Video IODs
+
+Wraps an already-conformant video bitstream in a DICOM Video IOD without
+re-encoding it, and extracts it back out. Remuxing preserves the camera's
+pixel data bit-for-bit; non-conformant input is rejected with the specific
+violated constraint rather than silently re-encoded.
+
+Examples:
+  # Convert a clip, letting the transfer syntax be detected
+  dicom-video convert clip.mp4 --output clip.dcm
+
+  # Inspect a clip without writing anything
+  dicom-video probe clip.mp4
+
+  # Check conformance without producing an object
+  dicom-video convert clip.mp4 --output clip.dcm --dry-run
+
+  # Convert a folder of clips as one series
+  dicom-video batch clips/ --output-dir out/ --patient-name "Doe^Jane"
+
+  # Extract the bitstream back out
+  dicom-video extract clip.dcm --output clip.mp4
+
+Exit codes: 0 success, 1 I/O or usage error, 2 conformance rejection.
+
+USAGE: dicom-video <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  convert                 Wrap a video bitstream in a DICOM Video IOD
+  batch                   Convert a directory of clips into DICOM Video objects
+  extract                 Recover the video bitstream from a DICOM Video object
+  probe                   Report a video's geometry, profile, level and
+                          conformance
+
+  See 'dicom-video help <subcommand>' for detailed help.

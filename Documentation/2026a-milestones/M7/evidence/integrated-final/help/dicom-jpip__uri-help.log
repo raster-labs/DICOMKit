@@ -1,0 +1,22 @@
+OVERVIEW: Print the Pixel Data Provider URL (0028,7FE0) of a JPIP-referenced
+DICOM file
+
+Reads a DICOM file that uses a JPIP Referenced Transfer Syntax and prints its
+Pixel Data Provider URL (0028,7FE0), the JPIP request URL that stands in for
+the
+absent Pixel Data (PS3.5 8.4.1, A.6).
+
+Examples:
+  dicom-jpip uri study.dcm
+  dicom-jpip uri study.dcm --json
+
+USAGE: dicom-jpip uri <input> [--json]
+
+ARGUMENTS:
+  <input>                 DICOM file path
+
+OPTIONS:
+  --json                  Output as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+

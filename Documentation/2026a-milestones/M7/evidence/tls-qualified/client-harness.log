@@ -1,0 +1,11 @@
+Test Suite 'Selected tests' started at 2026-10-24 20:53:21.584.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-24 20:53:21.589.
+Test Suite 'M7TLSRuntimeHarnessTests' started at 2026-10-24 20:53:21.589.
+Test Case '-[DICOMNetworkTests.M7TLSRuntimeHarnessTests testIndependentTLSPeers]' started.
+Test Case '-[DICOMNetworkTests.M7TLSRuntimeHarnessTests testIndependentTLSPeers]' passed (20.308 seconds).
+Test Suite 'M7TLSRuntimeHarnessTests' passed at 2026-10-24 20:53:41.897.
+	 Executed 1 test, with 0 failures (0 unexpected) in 20.308 (20.308) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-10-24 20:53:41.897.
+	 Executed 1 test, with 0 failures (0 unexpected) in 20.308 (20.309) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:53:41.897.
+	 Executed 1 test, with 0 failures (0 unexpected) in 20.308 (20.313) seconds

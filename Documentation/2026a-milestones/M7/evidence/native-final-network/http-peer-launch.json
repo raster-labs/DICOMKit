@@ -1,0 +1,14 @@
+{
+  "started_utc": "2026-10-26T07:55:15.326116+00:00",
+  "tool_session_id": 93204,
+  "owned_processes": [
+    "65279 /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python -B /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-rich-http-peer.py --repo /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones --test-bundle /Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMWebTests.xctest --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http --seconds 3600"
+  ],
+  "url": "http://127.0.0.1:60241/dicom-web",
+  "input_hashes": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-rich-http-peer.py": "9ea5b4a8ebe444f5887ee8a6986c89d1da8ed6817c3500fbe9d0ab8c245d4cda",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m3_queries.py": "6f10a6636a33561f07de30fcefc2ff33bf43cb071277f6f5ed5edc0bcd96f0af",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m4_capabilities.py": "a465a53e74ffc32e0b6185593df9cb6bef44136a5719d78a27fc84403a19702b"
+  },
+  "scope": "Synthetic localhost capture peer; no clinical data or remote endpoints; no client invocation yet."
+}

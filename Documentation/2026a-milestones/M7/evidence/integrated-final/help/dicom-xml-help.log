@@ -1,0 +1,50 @@
+OVERVIEW: Convert between DICOM and XML formats
+
+Converts DICOM files to XML format (Native DICOM Model, PS3.19 Annex A.1)
+and vice versa, with bulk data handling. Every attribute is a DicomAttribute
+with tag, vr and keyword; an attribute with an empty Value Field is kept
+with no Value element (PS3.19 Table A.1.5-2).
+
+Examples:
+  dicom-xml file.dcm --output file.xml
+  dicom-xml file.xml --output file.dcm --reverse
+  dicom-xml file.dcm --pretty
+
+USAGE: dicom-xml <input> [--output <output>] [--reverse] [--pretty] [--no-keywords] [--include-empty] [--no-include-empty] [--inline-threshold <inline-threshold>] [--bulk-data-url <bulk-data-url>] [--metadata-only] [--filter-tag <filter-tag> ...] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input file (DICOM or XML)
+
+OPTIONS:
+  -o, --output <output>   Output file path
+  -r, --reverse           Convert from XML to DICOM
+  -p, --pretty            Pretty-print XML output
+  --no-keywords           Deprecated: don't write the keyword attribute (the
+                          output then breaks PS3.19 Table A.1.5-2, which
+                          requires it for PS3.6 elements; will be removed)
+  --include-empty/--no-include-empty
+                          Keep attributes with an empty Value Field as a
+                          DicomAttribute without Value (PS3.19 Table A.1.5-2)
+                          (default: --include-empty)
+  --inline-threshold <inline-threshold>
+                          With --bulk-data-url: OB/OD/OF/OL/OV/OW/UN values
+                          longer than this many bytes become BulkData (0: all
+                          of them); without it every such value is InlineBinary
+                          (PS3.19 Table A.1.5-2) (default: 1024)
+  --bulk-data-url <bulk-data-url>
+                          Base URL for BulkData uri values, <url>/<GGGGEEEE>,
+                          inside items <url>/<SQ tag>/<item n>/<GGGGEEEE>
+                          (PS3.19 Table A.1.5-2 reserves uri for a WADO-RS
+                          Retrieve Metadata response)
+  --metadata-only         Metadata only (PS3.18 10.4.1.1.2): leave out every
+                          OB/OD/OF/OL/OV/OW/UN value at any depth (Pixel Data,
+                          Float Pixel Data, Encapsulated Document, Waveform,
+                          Overlay, LUTs); with --bulk-data-url each becomes
+                          BulkData instead
+  --filter-tag <filter-tag>
+                          Keep only this attribute: PS3.6 keyword, GGGG,EEEE or
+                          GGGGEEEE (can be used multiple times)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -15,7 +15,8 @@ Each check extracts the values the Swift source carries by regex and compares th
   * Encapsulated Document MIME types                                               vs PS3.3 A.45.1 / A.45.2 / A.85.1-A.85.3 Enumerated Values
   * calibration attribute names                                                    vs PS3.6 Table 6-1
   * UCUM codes used for lengths / areas / angles                                   vs PS3.16 CID 7460 / 7461 / 7183
-  * security UI: anonymization preview list vs the DICOMKit engine, TLS versions  vs PS3.15 B.12 / B.13 (B.1-B.11 retired)
+  * security UI: current shared anonymization workflow adapter, retained option labels vs PS3.15 E.1 / E.3
+  * TLS versions / suites and references to retired profiles                     vs PS3.15 B.12 / B.13 / Annex B
   * section / table / TID / CID citations in the G5 files exist in 2026a           (diff_kit.check_citations)
 """
 import os
@@ -380,32 +381,10 @@ def check_measurement_units(rep, parts, files, ctx):
 def check_security(rep, parts, files, ctx):
     dk, dw = ctx['dk'], ctx['dw']
     p15 = parts[15]
-    # (a) the anonymization preview list is exactly what the engine's basic profile removes
-    core_tags, _ = dk.tag_constants(os.path.join(ctx['sources'], 'DICOMCore'), {})
-    engine = dw.read(os.path.join(ctx['sources'], 'DICOMKit', 'Anonymization', 'Anonymizer.swift'))
-    basic_kw = re.findall(r'\.(\w+)', block(engine, r'var basicProfileTags: Set<Tag> \{\s*Set\(\[', 'basicProfileTags'))
-    trial_kw = re.findall(r'\.(\w+)', block(engine, r'var clinicalTrialProfileTags: Set<Tag> \{\s*basicProfileTags\.union\(\[', 'clinicalTrialProfileTags'))
-    basic = {core_tags[k] for k in basic_kw if k in core_tags}
-    trial = basic | {core_tags[k] for k in trial_kw if k in core_tags}
-    unresolved = [k for k in basic_kw + trial_kw if k not in core_tags]
+    # The current Security screen uses AnonymizationWorkflow; the former
+    # basic/clinical-trial preview tag arrays no longer exist. Active profile
+    # wiring is checked by check_security_ps315, not by reconstructing those lists.
     helpers = src(files, 'SecurityHelpers.swift')
-    ui_basic = {g + e for g, e in re.findall(r'\("([0-9A-F]{4}),([0-9A-F]{4})",\s*"[^"]+"\)', block(helpers, r'basicProfileTags: \[\(tag: String, name: String\)\] = \[', 'basicProfileTags'))}
-    ui_dates = {g + e for g, e in re.findall(r'\("([0-9A-F]{4}),([0-9A-F]{4})",\s*"[^"]+"\)', block(helpers, r'clinicalTrialDateTags: \[\(tag: String, name: String\)\] = \[', 'clinicalTrialDateTags'))}
-    wrong = [f'SecurityHelpers.basicProfileTags lists ({t[:4]},{t[4:]}) which DICOMKit Anonymizer .basic does not remove' for t in sorted(ui_basic - basic)]
-    missing = [f'DICOMKit Anonymizer .basic removes ({t[:4]},{t[4:]}), absent from SecurityHelpers.basicProfileTags' for t in sorted(basic - ui_basic)]
-    wrong += [f'SecurityHelpers clinical-trial list ({t[:4]},{t[4:]}) not removed by Anonymizer .clinicalTrial' for t in sorted((ui_basic | ui_dates) - trial)]
-    missing += [f'Anonymizer .clinicalTrial removes ({t[:4]},{t[4:]}), absent from the SecurityHelpers lists' for t in sorted(trial - (ui_basic | ui_dates))]
-    wrong += [f'engine keyword .{k} has no DICOMCore Tag constant' for k in unresolved]
-    rep.check(f'SecurityHelpers anonymization preview lists ({len(ui_basic)} basic + {len(ui_dates)} dates) equal the DICOMKit Anonymizer '
-              f'basic ({len(basic)}) / clinicalTrial ({len(trial)}) tag sets', len(ui_basic & basic) + len(ui_dates & (trial - basic)), wrong, missing)
-    # tag names in the lists are Table 6-1 names
-    std = {}
-    for r in dw.table_rows(parts[6], '6-1'):
-        if len(r) >= 2 and r[0].startswith('('):
-            std[r[0].strip('()').replace(',', '').upper()] = r[1].strip()
-    pairs = re.findall(r'\("([0-9A-F]{4}),([0-9A-F]{4})",\s*"([^"]+)"\)', helpers)
-    wrong = [f'SecurityHelpers: ({g},{e}) is named "{n}", PS3.6 Table 6-1 name is "{std.get(g + e)}"' for g, e, n in pairs if std.get(g + e) != n]
-    rep.check(f'PS3.6 Table 6-1: the {len(pairs)} (tag, name) pairs of the SecurityHelpers lists carry the Table 6-1 names', len(pairs) - len(wrong), wrong)
     # (b) TLS: PS3.15 2026a B.12 (BCP 195, RFC 8996) — TLS 1.0 / 1.1 are prohibited, 1.2 shall be supported
     model = src(files, 'SecurityModel.swift')
     b12 = section_text(p15, 'B.12')
@@ -431,56 +410,71 @@ def check_security(rep, parts, files, ctx):
 
 
 def check_security_ps315(rep, parts, files, ctx):
-    """P-STUDIO-ANON-PS315: the Security panel's default profile is the PS3.15 2026a E.1 Basic Application Level
-    Confidentiality Profile, run through StudioAnonPS315.deidentify (DICOMKit Anonymizer.deidentify, as dicom-anon
-    --profile ps315); the legacy lists are labelled not PS3.15; the 10 E.3 Option toggles carry the 2026a names."""
+    """The active Security screen uses the current shared OCR workflow.
+    Retained OptionToggle labels in AnonPS315Support are checked as dormant
+    metadata, not as proof that the active UI runs the old profile picker."""
     dw, nd = ctx['dw'], ctx['nd']
     p15 = parts[15]
     wrong, matched = [], 0
-    e1 = nd.norm(' '.join(dw.section_by_id(p15, 'sect_E.1').itertext()))
-    model = src(files, 'SecurityModel.swift')
-    support = src(files, 'AnonPS315Support.swift')
+    e1 = dw.section_by_id(p15, 'sect_E.1')
+    if e1 is None:
+        raise ValueError('PS3.15 E.1 not found')
+    e1_text = nd.norm(' '.join(e1.itertext()))
+    helpers = src(files, 'SecurityHelpers.swift')
     vm = ctx['studio_files']().get('DICOMStudio/ViewModels/SecurityViewModel.swift', '')
-    body = ctx['dw'].enum_body(model, 'AnonymizationProfile')
-    names = dict(re.findall(r'case \.(\w+):\s*return "([^"]*)"', block(body, r'public var displayName: String \{', 'AnonymizationProfile.displayName')))
-    ps315_name = names.get('ps315', '')
-    if 'case ps315' not in body or not ps315_name.startswith('PS3.15 ') or ps315_name[len('PS3.15 '):] not in e1:
-        wrong.append(f'AnonymizationProfile.ps315.displayName {ps315_name!r} must be "PS3.15 " + the E.1 profile name (Basic Application Level Confidentiality Profile)')
+    workflow = dw.read(os.path.join(ctx['sources'], 'DICOMKit/Anonymization/AnonymizationWorkflow.swift'))
+    name = re.search(r'static let profileName = "([^"]+)"', helpers)
+    if not name or name.group(1) != 'PS3.15 Annex E Basic Application Level Confidentiality Profile' \
+            or 'Basic Application Level Confidentiality Profile' not in e1_text:
+        wrong.append('Security profileName must identify the PS3.15 E.1 Basic Application Level Confidentiality Profile')
     else:
         matched += 1
-    for c, n in names.items():
-        if c != 'ps315' and 'not PS3.15' not in n:
-            wrong.append(f'AnonymizationProfile.{c}.displayName {n!r} must be labelled "not PS3.15"')
-        elif c != 'ps315':
-            matched += 1
-    if not re.search(r'builderProfiles: \[AnonymizationProfile\] = \[\.ps315\b', body):
-        wrong.append('AnonymizationProfile.builderProfiles must list .ps315 first (the default)')
-    else:
-        matched += 1
-    for decl in ('public var selectedProfile: AnonymizationProfile = .ps315', 'public var anonProfile: AnonymizationProfile = .ps315'):
-        if decl in vm:
+    required = [
+        ('AnonymizationWorkflow.Request(inputPath: anonInputPath)', vm, 'Security builder shared request'),
+        ('r.retainDates = anonDatePolicy == .keep', vm, 'Full Dates policy mapping'),
+        ('r.shiftDates = anonDatePolicy == .shift ? anonShiftDays : nil', vm, 'Modified Dates policy mapping'),
+        ('Self.executeAnonymization(request,', vm, 'Security builder shared executor'),
+        ('let workflow = AnonymizationWorkflow(', vm, 'Security shared workflow'),
+        ('workflow.run(request)', vm, 'Security shared workflow execution'),
+        ('Int(outcome.exitCode)', vm, 'Security structured result code'),
+        ('Anonymizer(options: resolved.options', workflow, 'shared confidentiality engine'),
+        ('anonymizer.deidentify(file: dicomFile', workflow, 'shared PS3.15 de-identification'),
+    ]
+    for field, control in [
+        ('retainCharacteristics', 'anonRetainCharacteristics'), ('retainDevice', 'anonRetainDevice'),
+        ('retainInstitution', 'anonRetainInstitution'), ('retainUids', 'anonRetainUIDs'),
+        ('cleanDescriptors', 'anonCleanDescriptors'), ('retainSafePrivate', 'anonRetainSafePrivate'),
+        ('cleanGraphics', 'anonCleanGraphics'), ('cleanStructuredContent', 'anonCleanStructuredContent'),
+        ('cleanRecognizableVisualFeatures', 'anonCleanRecognizableVisualFeatures'),
+        ('cleanPixelData', 'anonCleanPixelData'),
+    ]:
+        required.append((f'r.{field} = {control}', vm, f'Security option {field}'))
+    for token, body, description in required:
+        if token in body:
             matched += 1
         else:
-            wrong.append(f'SecurityViewModel must declare `{decl}` (the panel default is the PS3.15 Basic Profile)')
-    if re.search(r'if isPS315 \{\s*\(anonFile, anonResult\) = try StudioAnonPS315\.deidentify\(', vm) \
-            and 'anonymizer.deidentify(file: dicomFile, options: options)' in block_or_empty(support, r'static func deidentify\([^{]*\{', 'StudioAnonPS315.deidentify'):
-        matched += 1
-    else:
-        wrong.append('the Security panel must run .ps315 through StudioAnonPS315.deidentify -> DICOMKit Anonymizer.deidentify(file:options:)')
-    # the 10 E.3 Option toggles: names are the E.3.3-E.3.5, E.3.7-E.3.11 section titles and the two E.3.6 Option names
+            wrong.append(description + ': expected source call/mapping missing')
+    rep.check('PS3.15 E.1 / E.3: active Security panel names the Basic Profile and maps its controls '
+              'to the shared AnonymizationWorkflow', matched, wrong,
+              extra=['Source-path checks do not qualify OCR, privacy removal or output correctness at runtime.'])
+
+    # These labels remain in the inventoried support file but are no longer the
+    # active Security screen's execution path. Keep their standard-name check.
+    support = src(files, 'AnonPS315Support.swift')
     opts = re.findall(r'OptionToggle\(flag: "(--[a-z-]+)", name: "([^"]+)", section: "(E\.3\.\d+)"',
-                      block_or_empty(support, r'static let securityPanelOptions: \[OptionToggle\] = \[', 'securityPanelOptions'))
-    for flag, name, sec_id in opts:
-        title = dw.section_title(p15, f'sect_{sec_id}') or ''
-        text = nd.norm(' '.join(dw.section_by_id(p15, f'sect_{sec_id}').itertext())) if title else ''
-        if name == title or (sec_id == 'E.3.6' and name in text):
+                      block(support, r'static let securityPanelOptions: \[OptionToggle\] = \[', 'securityPanelOptions'))
+    wrong, matched = [], 0
+    for flag, name, section in opts:
+        title = dw.section_title(p15, f'sect_{section}') or ''
+        sec = dw.section_by_id(p15, f'sect_{section}')
+        text = nd.norm(' '.join(sec.itertext())) if sec is not None else ''
+        if name == title or (section == 'E.3.6' and name in text):
             matched += 1
         else:
-            wrong.append(f'securityPanelOptions {flag}: "{name}" is not the PS3.15 2026a {sec_id} Option name ({title!r})')
+            wrong.append(f'legacy securityPanelOptions {flag}: {name!r} is not the PS3.15 {section} Option name')
     if len(opts) != 10:
-        wrong.append(f'securityPanelOptions lists {len(opts)} E.3 Options; expected the 10 of E.3.3-E.3.11')
-    rep.check('PS3.15 2026a E.1 / E.3: Security panel default is the Basic Application Level Confidentiality Profile via '
-              'StudioAnonPS315 -> Anonymizer.deidentify, legacy lists labelled not PS3.15, 10 E.3 Option names (P-STUDIO-ANON-PS315)',
+        wrong.append(f'legacy securityPanelOptions lists {len(opts)} labels; expected the retained ten')
+    rep.check('PS3.15 E.3: retained AnonPS315Support Option labels (dormant metadata, not active UI coverage)',
               matched, wrong)
 
 

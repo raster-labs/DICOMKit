@@ -23,7 +23,7 @@ public struct DicomScriptView: View {
             // MARK: Subcommand
             ParameterSectionView(
                 title: "Operation",
-                help: "Run executes a script, Validate checks script syntax, and Template generates a starter script file."
+                help: "Run executes a script, Validate checks script syntax, and Template prints a named starter script to the console."
             ) {
                 if let subcommands = tool.subcommands {
                     Picker("Operation", selection: Binding(
@@ -147,15 +147,27 @@ public struct DicomScriptView: View {
     @ViewBuilder
     private var templateForm: some View {
         ParameterSectionView(
-            title: "Output",
-            help: "Specify the output path for the generated script template."
+            title: "Template",
+            help: "Choose a template. The generated script is printed to the console; copy it to save a file.",
+            isRequired: true
         ) {
-            OutputPathView(
-                parameterID: "output",
-                label: "Template Output File",
-                isRequired: false,
-                parameterValues: $parameterValues
-            )
+            Picker("Template Name", selection: Binding(
+                get: { parameterValues["template-name"] ?? "" },
+                set: { parameterValues["template-name"] = $0 }
+            )) {
+                Text("Choose a template").tag("")
+                ForEach(ToolboxCommandContract.scriptTemplates, id: \.self) { name in
+                    Text(name.capitalized).tag(name)
+                }
+            }
+            .accessibilityLabel("Template Name")
+            if !(parameterValues["output"] ?? "").isEmpty {
+                Button("Discard retired template output setting") {
+                    parameterValues.removeValue(forKey: "output")
+                }
+            }
+            Text("No file is written by Template. Copy the console output to save the script.")
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 }

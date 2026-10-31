@@ -1,0 +1,48 @@
+OVERVIEW: Convert between DICOM and JSON formats
+
+Converts DICOM files to JSON format (DICOM JSON Model, PS3.18 Annex F)
+and vice versa, with bulk data handling. Attribute objects are named by
+the eight-character uppercase hexadecimal tag and ordered by it (F.2.2);
+an attribute with an empty Value Field is kept as {"vr": ...} (F.2.5).
+
+Examples:
+  dicom-json file.dcm --output file.json
+  dicom-json file.json --output file.dcm --reverse
+  dicom-json file.dcm --pretty
+
+USAGE: dicom-json <input> [--output <output>] [--reverse] [--pretty] [--no-sort-keys] [--include-empty] [--no-include-empty] [--inline-threshold <inline-threshold>] [--bulk-data-url <bulk-data-url>] [--metadata-only] [--filter-tag <filter-tag> ...] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input file (DICOM or JSON)
+
+OPTIONS:
+  -o, --output <output>   Output file path
+  -r, --reverse           Convert from JSON to DICOM
+  -p, --pretty            Pretty-print JSON output
+  --no-sort-keys          Deprecated: don't order attribute objects by tag (the
+                          output then breaks the PS3.18 F.2.2 ascending order;
+                          will be removed)
+  --include-empty/--no-include-empty
+                          Keep attributes with an empty Value Field as {"vr":
+                          ...} (PS3.18 F.2.5) (default: --include-empty)
+  --inline-threshold <inline-threshold>
+                          With --bulk-data-url: OB/OD/OF/OL/OV/OW/UN values
+                          longer than this many bytes become a BulkDataURI (0:
+                          all of them); without it every such value is
+                          InlineBinary (PS3.18 F.2.6, F.2.7) (default: 1024)
+  --bulk-data-url <bulk-data-url>
+                          Base URL for BulkDataURI values (PS3.18 F.2.6); the
+                          URI is <url>/<GGGGEEEE>, inside sequence items
+                          <url>/<SQ tag>/<item n>/<GGGGEEEE>
+  --metadata-only         Metadata only (PS3.18 10.4.1.1.2): leave out every
+                          OB/OD/OF/OL/OV/OW/UN value at any depth (Pixel Data,
+                          Float Pixel Data, Encapsulated Document, Waveform,
+                          Overlay, LUTs); with --bulk-data-url each becomes a
+                          BulkDataURI instead
+  --filter-tag <filter-tag>
+                          Keep only this attribute: PS3.6 keyword, GGGG,EEEE or
+                          GGGGEEEE (can be used multiple times)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

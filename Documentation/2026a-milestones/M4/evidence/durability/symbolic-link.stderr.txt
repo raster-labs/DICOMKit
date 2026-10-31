@@ -1,0 +1,1 @@
+Error: Storage error: Reindex refuses symbolic link: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/symbolic-link/linked.dcm

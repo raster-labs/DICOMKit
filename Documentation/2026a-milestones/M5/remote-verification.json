@@ -1,0 +1,61 @@
+{
+  "head": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+  "branch": "codex/dicom-2026a-milestones",
+  "all_passed": true,
+  "workflows": [
+    {
+      "id": 40101981018,
+      "name": "Audit tooling",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40101981018",
+      "head_sha": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+      "updated_at": "2026-10-24T14:19:44Z"
+    },
+    {
+      "id": 40101981014,
+      "name": "Command safety",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40101981014",
+      "head_sha": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+      "updated_at": "2026-10-24T14:26:07Z"
+    },
+    {
+      "id": 40101981054,
+      "name": "Studio contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40101981054",
+      "head_sha": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+      "updated_at": "2026-10-24T14:26:25Z"
+    },
+    {
+      "id": 40101981029,
+      "name": "Query safety and filters",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40101981029",
+      "head_sha": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+      "updated_at": "2026-10-24T14:27:14Z"
+    },
+    {
+      "id": 40101981024,
+      "name": "Service reliability",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40101981024",
+      "head_sha": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+      "updated_at": "2026-10-24T14:27:00Z"
+    },
+    {
+      "id": 40101981045,
+      "name": "Attribute and workflow integrity",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40101981045",
+      "head_sha": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+      "updated_at": "2026-10-24T14:27:57Z"
+    }
+  ]
+}

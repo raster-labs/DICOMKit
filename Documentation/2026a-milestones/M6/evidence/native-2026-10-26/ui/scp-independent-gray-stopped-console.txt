@@ -1,0 +1,115 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --no-accept-color --presentation-lut --annotation-box --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json --verbose
+
+{"level":"info","message":"Listening on port 21114 as DCMKIT_M6","time":"2026-10-26T05:50:13Z"}
+{"callingAE":"M6DCMTK","level":"connection","message":"Association from M6DCMTK (127.0.0.1:57132)","time":"2026-10-26T05:50:24Z"}
+{"callingAE":"M6DCMTK","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125 — 1×1, 1 image box","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Image box 1 filled — 16×16 px","time":"2026-10-26T05:50:24Z"}
+{
+  "annotations" : [
+    "1: M6 SYNTHETIC"
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6DCMTK",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792993824166733.361125",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792993824164934.539317",
+  "filmSize" : "8INX10IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "presentationLUTShape" : "IDENTITY",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792993824176457.748595",
+  "receivedAt" : "2026-10-26T05:50:24Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 254,
+  "sheetWidthMillimeters" : 203.2,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray/native-001.png","time":"2026-10-26T05:50:24Z"}
+{"callingAE":"M6DCMTK","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993824163451.474661","time":"2026-10-26T05:50:24Z"}
+{"callingAE":"M6DCMTK","level":"connection","message":"Association released by M6DCMTK","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Stopped — 1 association, 1 film, 0 errors (cancelled)","time":"2026-10-26T05:51:05Z"}
+Stopped by user; the print operation was cancelled.
+
+			5 scroll bar (settable, float) 0.2203742203742204
+				6 value indicator (settable, float) 0.2203742203742204
+				7 increment arrow button
+				8 decrement arrow button
+				9 increment page button
+				10 decrement page button
+		11 button Cancel
+		12 button Import
+13 menu bar
+	14 DICOMStudio
+	15 File
+	16 Edit
+	17 View
+	18 Image
+	19 Window
+	20 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --no-accept-color --presentation-lut --annotation-box --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json --verbose
+
+{"level":"info","message":"Listening on port 21114 as DCMKIT_M6","time":"2026-10-26T05:50:13Z"}
+{"callingAE":"M6DCMTK","level":"connection","message":"Association from M6DCMTK (127.0.0.1:57132)","time":"2026-10-26T05:50:24Z"}
+{"callingAE":"M6DCMTK","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125 — 1×1, 1 image box","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Image box 1 filled — 16×16 px","time":"2026-10-26T05:50:24Z"}
+{
+  "annotations" : [
+    "1: M6 SYNTHETIC"
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M6DCMTK",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792993824166733.361125",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792993824164934.539317",
+  "filmSize" : "8INX10IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "presentationLUTShape" : "IDENTITY",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792993824176457.748595",
+  "receivedAt" : "2026-10-26T05:50:24Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 254,
+  "sheetWidthMillimeters" : 203.2,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray/native-001.png","time":"2026-10-26T05:50:24Z"}
+{"callingAE":"M6DCMTK","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993824166733.361125","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993824164934.539317","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993824163451.474661","time":"2026-10-26T05:50:24Z"}
+{"callingAE":"M6DCMTK","level":"connection","message":"Association released by M6DCMTK","time":"2026-10-26T05:50:24Z"}
+{"level":"info","message":"Stopped — 1 association, 1 film, 0 errors (cancelled)","time":"2026-10-26T05:51:05Z"}
+Stopped by user; the print operation was cancelled.

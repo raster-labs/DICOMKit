@@ -1,0 +1,16 @@
+OVERVIEW: Execute a DICOM workflow script
+
+USAGE: dicom-script run <script-path> [--variables <variables> ...] [--parallel] [--verbose] [--dry-run] [--log <log>]
+
+ARGUMENTS:
+  <script-path>           Script file path
+
+OPTIONS:
+  --variables <variables> Variables in KEY=VALUE format
+  --parallel              Enable parallel execution where possible
+  -v, --verbose           Show verbose output
+  --dry-run               Dry run - show what would be executed
+  --log <log>             Log file path
+  --version               Show the version.
+  -h, --help              Show help information.
+

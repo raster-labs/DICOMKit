@@ -1,0 +1,14 @@
+OVERVIEW: Recover the video bitstream from a DICOM Video object
+
+USAGE: dicom-video extract <input> --output <output> [--force] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output video file path
+  --force                 Overwrite the output file if it exists
+  -v, --verbose           Show the reasoning behind each step
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,67 @@
+{
+  "result": "LOCAL_FULL_SUITE_AND_COVERAGE_PASSED_REMOTE_PENDING",
+  "recorded_utc": "2026-10-31T10:22:37.774423+00:00",
+  "tested_commit": "31d7609bb2f735b7e85c1acc64c587d203059fe7",
+  "branch": "codex/dicom-2026a-milestones",
+  "pull_request": "https://github.com/raster-labs/DICOMKit/pull/233",
+  "inputs": {
+    "baseline_manifest": "../R2/evidence/test-inputs.json",
+    "changed_inputs": "evidence/input-changes.json",
+    "total_files": 2066,
+    "unchanged_files_from_R2": 2063,
+    "current_manifest_sha256": "d820d8f9d4ab07e8800d7756688020b28655cd0e2a04e97f7b95fba0a4879fcc",
+    "documentation_followup": "No source, tests, package, workflow or script changes after tested commit"
+  },
+  "local": {
+    "debug_reported_tests": 15825,
+    "debug_xctest_skips": 54,
+    "test_failures": 0,
+    "optimized_test_declarations": 1,
+    "optimized_parameter_cases": 5,
+    "dcmtk_interop_passed": 3,
+    "dcmtk_note": "Included in full-suite total",
+    "report_controls_passed": 12,
+    "coverage": {
+      "directory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/.build/out/Products/Debug/codecov",
+      "files": [
+        {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/.build/out/Products/Debug/codecov/default.profdata",
+          "bytes": 23671592,
+          "sha256": "dab0c183123c4731f6d88429b88d99c0911d147efad9855d5be9dd8a4d507bde"
+        },
+        {
+          "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/.build/out/Products/Debug/codecov/DICOMKit.json",
+          "bytes": 13861948,
+          "sha256": "7bc2036b0ff62d4aad31fcdf7d9506f25cafdeddff39bff21ba2af971ec2cfbd"
+        }
+      ],
+      "covered_source_files": 292,
+      "covered_functions": 7767,
+      "errors": []
+    },
+    "coverage_scope": "Executed coverage present for DICOMCore, DICOMDictionary and DICOMKit; not a claim of complete coverage export for every package target.",
+    "yaml_parse": "passed",
+    "diff_check": "passed",
+    "test_report": "evidence/test-report.json",
+    "execution_commands_and_exit_codes": "evidence/local-execution.json",
+    "environment_and_log_hashes": "evidence/local-environment.json"
+  },
+  "remote": {
+    "repaired_comprehensive_run": 41191992135,
+    "tested_sha": "31d7609bb2f735b7e85c1acc64c587d203059fe7",
+    "status_at_document_creation": "in_progress; report controls passed; Swift setup in progress at last job snapshot",
+    "workflow_snapshot": "evidence/remote-runs-local-completion.json",
+    "prior_failure_run": 41183009976,
+    "prior_failure": "All assertions passed; coverage directory unavailable and process exit 1"
+  },
+  "repository_scan": "evidence/no-dicom-final.json",
+  "limits": [
+    "Remote comprehensive and remaining PR workflows are pending, not passed.",
+    "Test totals include skips; optional external systems are not all qualified.",
+    "No new native GUI or physical-printer validation.",
+    "Historical Git objects, main and old Actions artifacts were not purged.",
+    "Pages deployment remains deferred."
+  ],
+  "main_merged": false,
+  "auto_merge": false
+}

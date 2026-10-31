@@ -1,0 +1,13 @@
+OVERVIEW: Display DICOMDIR structure
+
+USAGE: dicom-dcmdir dump <dicomdir-path> [--format <format>] [--verbose]
+
+ARGUMENTS:
+  <dicomdir-path>         Path to DICOMDIR file
+
+OPTIONS:
+  -f, --format <format>   Output format: tree, json, text (default: tree)
+  --verbose               Show all attributes for each record
+  --version               Show the version.
+  -h, --help              Show help information.
+

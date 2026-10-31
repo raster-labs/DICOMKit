@@ -1,0 +1,27 @@
+{
+  "recordedUTC": "2026-10-26T06:32:47.962595+00:00",
+  "nativeSource": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-job-text-console.txt",
+  "nativeSHA256": "72e205b7905f4122a8b702bdc146175189d7c582e00f2d9e4e8813d6a3a4a5b9",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "job",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "M7CLI",
+    "--timeout",
+    "5",
+    "--format",
+    "text",
+    "--job-id",
+    "1.2.826.0.1.3680043.10.511.4.1792996262068652.530150",
+    "--",
+    "pacs://127.0.0.1:21113"
+  ],
+  "binarySHA256": "ad3ceb058361e2f800a9c3c76480d86fb3872d142ea17596ded3bfbaa106d7d3",
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.07114583300000002,
+  "stdout": "",
+  "stderr": "Print Job Status\n================\nJob UID: 1.2.826.0.1.3680043.10.511.4.1792996262068652.530150\nExecution Status: DONE\nExecution Status Info: NORMAL\nCreation Date: 26 Oct 2026\nCreation Time: 12:01:02 PM\n"
+}

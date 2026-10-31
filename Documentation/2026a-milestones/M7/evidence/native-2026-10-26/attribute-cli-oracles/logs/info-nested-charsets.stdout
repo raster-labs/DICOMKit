@@ -1,0 +1,96 @@
+{
+  "dataSet" : [
+    {
+      "name" : "Specific Character Set",
+      "tag" : "(0008,0005)",
+      "value" : "ISO_IR 100",
+      "vr" : "CS"
+    },
+    {
+      "name" : "SOP Class UID",
+      "tag" : "(0008,0016)",
+      "value" : "1.2.840.10008.5.1.4.1.1.7",
+      "vr" : "UI"
+    },
+    {
+      "name" : "SOP Instance UID",
+      "tag" : "(0008,0018)",
+      "value" : "1.2.826.0.1.3680043.10.543.20261026.31",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Study Description",
+      "tag" : "(0008,1030)",
+      "value" : "  Native nested text",
+      "vr" : "LO"
+    },
+    {
+      "name" : "Patient's Name",
+      "tag" : "(0010,0010)",
+      "value" : "Müller^Jörg",
+      "vr" : "PN"
+    },
+    {
+      "name" : "Study Instance UID",
+      "tag" : "(0020,000D)",
+      "value" : "1.2.826.0.1.3680043.10.543.20261026.30",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Series Instance UID",
+      "tag" : "(0020,000E)",
+      "value" : "1.2.826.0.1.3680043.10.543.20261026.32",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Request Attributes Sequence",
+      "tag" : "(0040,0275)",
+      "value" : "FE FF 00 E0 72 00 00 00 32 00 32 10 50 4E 0C 00 4D FC 6C 6C 65 72 5E 4A ... (422 bytes)",
+      "vr" : "SQ"
+    }
+  ],
+  "fileMetaInformation" : [
+    {
+      "name" : "File Meta Information Group Length",
+      "tag" : "(0002,0000)",
+      "value" : "166",
+      "vr" : "UL"
+    },
+    {
+      "name" : "File Meta Information Version",
+      "tag" : "(0002,0001)",
+      "value" : "00 01",
+      "vr" : "OB"
+    },
+    {
+      "name" : "Media Storage SOP Class UID",
+      "tag" : "(0002,0002)",
+      "value" : "1.2.840.10008.5.1.4.1.1.7",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Media Storage SOP Instance UID",
+      "tag" : "(0002,0003)",
+      "value" : "1.2.826.0.1.3680043.10.543.20261026.31",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Transfer Syntax UID",
+      "tag" : "(0002,0010)",
+      "value" : "1.2.840.10008.1.2.1",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Implementation Class UID",
+      "tag" : "(0002,0012)",
+      "value" : "2.25.987654321",
+      "vr" : "UI"
+    },
+    {
+      "name" : "Implementation Version Name",
+      "tag" : "(0002,0013)",
+      "value" : "PYDICOM 3.0.1",
+      "vr" : "SH"
+    }
+  ]
+}

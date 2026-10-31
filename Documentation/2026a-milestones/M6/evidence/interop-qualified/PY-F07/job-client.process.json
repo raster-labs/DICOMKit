@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "job",
+    "pacs://127.0.0.1:56884",
+    "--aet",
+    "M6DKSCU",
+    "--called-aet",
+    "PYM6",
+    "--timeout",
+    "8",
+    "--format",
+    "json",
+    "--job-id",
+    "1.2.826.0.1.3680043.10.543.20261024.6.2000"
+  ],
+  "pid": 27186,
+  "exit_code": 0,
+  "elapsed_seconds": 0.5262066250000004,
+  "timed_out": false,
+  "stopped_by_harness": false
+}

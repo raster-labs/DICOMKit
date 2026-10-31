@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input directory path
+Usage: dicom-compress batch <input> --output <output> [--codec <codec>] [--decompress] [--quality <quality>] [--syntax <syntax>] [--recursive] [--verbose]
+  See 'dicom-compress batch --help' for more information.

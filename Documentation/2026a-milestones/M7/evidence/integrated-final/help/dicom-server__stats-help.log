@@ -1,0 +1,14 @@
+OVERVIEW: Display server statistics
+
+USAGE: dicom-server stats [--host <host>] [--port <port>] [--calling-ae <calling-ae>] [--called-ae <called-ae>] [--verbose]
+
+OPTIONS:
+  -h, --host <host>       Server host (default: localhost)
+  -p, --port <port>       Server port (default: 11112)
+  --calling-ae <calling-ae>
+                          Calling AE Title (default: DICOM_STATS)
+  --called-ae <called-ae> Called AE Title (default: DICOMKIT_SCP)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

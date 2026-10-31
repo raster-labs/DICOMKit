@@ -1,0 +1,32 @@
+OVERVIEW: Query archive metadata
+
+USAGE: dicom-archive query --archive <archive> [--patient-name <patient-name>] [--patient-id <patient-id>] [--study-uid <study-uid>] [--modality <modality>] [--strict-modality] [--study-date <study-date>] [--format <format>]
+
+OPTIONS:
+  -a, --archive <archive> Path to the archive
+  --patient-name <patient-name>
+                          Filter by Patient's Name (0010,0010); * and ? wild
+                          cards (PS3.4 C.2.2.2.4), case-insensitive
+  --patient-id <patient-id>
+                          Filter by Patient ID (0010,0020); * and ? wild cards,
+                          case-sensitive (PS3.4 C.2.2.2.4)
+  --study-uid <study-uid> Filter by Study Instance UID (0020,000D); one UID or
+                          a backslash-separated list (PS3.4 C.2.2.2.2)
+  --modality <modality>   Modality filter (0008,0060) — e.g. CT, MR, US, OPT.
+                          Run 'dicom-tags --list-modalities' for every DICOM
+                          2026a code. A study matches when any of its series
+                          has it (Modalities in Study (0008,0061)).
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --study-date <study-date>
+                          Filter by Study Date (0008,0020): YYYYMMDD, or a
+                          range YYYYMMDD-YYYYMMDD, -YYYYMMDD, YYYYMMDD- (PS3.4
+                          C.2.2.2.5.1)
+  -f, --format <format>   Output format: table, json, text. JSON adds
+                          ModalitiesInStudy, NumberOfStudyRelatedSeries,
+                          NumberOfStudyRelatedInstances (PS3.6 keywords);
+                          modality, seriesCount, imageCount are deprecated
+                          (default: table)
+  --version               Show the version.
+  -h, --help              Show help information.
+

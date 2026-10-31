@@ -1,0 +1,16 @@
+{
+  "utc": "2026-10-24T15:07:47.268026+00:00",
+  "sourceSHA256": "e9f8d9b1272006f9f3d12b89dca650617de1acbd5841c2da5054bcf6e8a15fd7",
+  "workScript": "work/m7/verify_codec.py",
+  "repositoryScript": "work/DICOMKit-milestones/Scripts/verify_m7_codecs.py",
+  "copiedIdentical": true,
+  "dependencies": "Existing Scripts/m7-peer-requirements.txt pinned pydicom3.0.1/pynetdicom3.0.4/Pillow13.0.0; external DCMTK/OpenJPEG/OpenJPH/libjxl binaries PATHresolved,hashed,versionprobed at runtime",
+  "plannedFullCampaign": 90,
+  "expectedRefusalCases": 10,
+  "potentialVerifiedInteroperabilityLimits": 2,
+  "classification": "Only passed counts as codec qualification; supported_refusal requires exact known case/positive nonzero dicom-convert exit/no output/exactdiagnostic; interoperability_limit additionally requires independent foreign decodeexactoriginal plus exact16precision/12stored header. Other failures remain failed.",
+  "metadata": "Encoded, selfdecoded, reverseforeign and reverseselfdecoded output shape/depth/identity checked; native photometric/planar/PixelData VR+length checked.",
+  "jpegReconstruction": "Permits onlysingleNULafterEOI when neededfor evenfragmentlength; never rstripallzeroes.",
+  "executed": "Only static Python AST parsed. No tool/version probes, codec campaigns, tests or Swift builds run by this subagent.",
+  "latestOracleRepair": "Uses original-bitdepth PNM forJPEGXL, matches corrected ExtendedRGBneeds1samples diagnostic, and derivesOWfromBitsAllocated/implicitVR"
+}

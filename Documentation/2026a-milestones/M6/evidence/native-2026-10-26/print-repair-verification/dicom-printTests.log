@@ -1,0 +1,66 @@
+Building for debugging...
+[Computing dependencies]
+[Constructing description]
+[Pre-planning 1 / 715]
+[Planning deferred tasks]
+[5 / 11] dicom-printTests-product
+[7 / 13] dicom-printTests-product
+[11 / 15] dicom-printTests-product
+[13 / 15] dicom-printTests-product
+[15 / 15] dicom-printTests-product
+Build complete! (2.87 sec)
+Test Suite 'Selected tests' started at 2026-10-26 11:24:49.433.
+Test Suite 'dicom-printTests.xctest' started at 2026-10-26 11:24:49.440.
+Test Suite 'M6PrintSCUCommandTests' started at 2026-10-26 11:24:49.440.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testAllSixCommandsAndDefaultSendUseTheSharedParser]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testAllSixCommandsAndDefaultSendUseTheSharedParser]' passed (0.085 seconds).
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testCancelledCommandDoesNotPublishRegistryOrSuccess]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testCancelledCommandDoesNotPublishRegistryOrSuccess]' passed (0.007 seconds).
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testDryRunDiscoversFilesWithoutConnectingOrChangingInput]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testDryRunDiscoversFilesWithoutConnectingOrChangingInput]' passed (0.010 seconds).
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testEmptyPrinterJSONForAbsentEmptyAndLastRemovedRegistries]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testEmptyPrinterJSONForAbsentEmptyAndLastRemovedRegistries]' passed (0.029 seconds).
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testMalformedRegistryIsNotOverwrittenAndOutputFailureIsReported]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testMalformedRegistryIsNotOverwrittenAndOutputFailureIsReported]' passed (0.015 seconds).
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testRegistryPersistenceDefaultReplacementAndExactNames]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testRegistryPersistenceDefaultReplacementAndExactNames]' passed (0.023 seconds).
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testSemanticValidationRefusesInvalidCombinationsBeforeEffects]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testSemanticValidationRefusesInvalidCombinationsBeforeEffects]' passed (0.108 seconds).
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testSendMapsEveryCurrentControlAndPreservesLiteralRepeatedValues]' started.
+Test Case '-[dicom_printTests.M6PrintSCUCommandTests testSendMapsEveryCurrentControlAndPreservesLiteralRepeatedValues]' passed (0.021 seconds).
+Test Suite 'M6PrintSCUCommandTests' passed at 2026-10-26 11:24:49.739.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.298 (0.299) seconds
+Test Suite 'PrintJSONKeywordTests' started at 2026-10-26 11:24:49.739.
+Test Case '-[dicom_printTests.PrintJSONKeywordTests testHelpSaysTheOldKeysAreDeprecated]' started.
+Test Case '-[dicom_printTests.PrintJSONKeywordTests testHelpSaysTheOldKeysAreDeprecated]' passed (0.002 seconds).
+Test Case '-[dicom_printTests.PrintJSONKeywordTests testJobStatusJSONHasKeywordAndDeprecatedKeys]' started.
+Test Case '-[dicom_printTests.PrintJSONKeywordTests testJobStatusJSONHasKeywordAndDeprecatedKeys]' passed (0.002 seconds).
+Test Case '-[dicom_printTests.PrintJSONKeywordTests testPrinterStatusJSONHasKeywordAndDeprecatedKeys]' started.
+Test Case '-[dicom_printTests.PrintJSONKeywordTests testPrinterStatusJSONHasKeywordAndDeprecatedKeys]' passed (0.000 seconds).
+Test Suite 'PrintJSONKeywordTests' passed at 2026-10-26 11:24:49.743.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'PrintOptionTermsTests' started at 2026-10-26 11:24:49.743.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testFilmDestinationTerms]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testFilmDestinationTerms]' passed (0.008 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testFilmSizeOffersEveryFilmSizeID]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testFilmSizeOffersEveryFilmSizeID]' passed (0.000 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testLayoutAcceptsEveryImageDisplayFormat]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testLayoutAcceptsEveryImageDisplayFormat]' passed (0.001 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testMediumOffersEveryMediumType]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testMediumOffersEveryMediumType]' passed (0.000 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testOrientationAndMagnificationTerms]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testOrientationAndMagnificationTerms]' passed (0.000 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testPresentationLUTShapeTerms]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testPresentationLUTShapeTerms]' passed (0.000 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testPrintPrioritySendsEnumeratedValues]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testPrintPrioritySendsEnumeratedValues]' passed (0.000 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testSendHelpNamesTheStandardTerms]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testSendHelpNamesTheStandardTerms]' passed (0.004 seconds).
+Test Case '-[dicom_printTests.PrintOptionTermsTests testStandardTermsAreAcceptedAsAliases]' started.
+Test Case '-[dicom_printTests.PrintOptionTermsTests testStandardTermsAreAcceptedAsAliases]' passed (0.000 seconds).
+Test Suite 'PrintOptionTermsTests' passed at 2026-10-26 11:24:49.757.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.014 (0.014) seconds
+Test Suite 'dicom-printTests.xctest' passed at 2026-10-26 11:24:49.757.
+	 Executed 20 tests, with 0 failures (0 unexpected) in 0.315 (0.317) seconds
+Test Suite 'Selected tests' passed at 2026-10-26 11:24:49.757.
+	 Executed 20 tests, with 0 failures (0 unexpected) in 0.315 (0.323) seconds

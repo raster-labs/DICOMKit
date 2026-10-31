@@ -1,0 +1,70 @@
+{
+  "scope": "Read-only source and parent-saved native evidence review; no source edits, builds, product calls or new UI interaction.",
+  "findings": [
+    {
+      "id": "NATIVE-PRINT-PREVIEW-VALIDITY",
+      "verdict": "Not reproduced in saved evidence; do not record as confirmed product defect",
+      "evidence": [
+        "print-invalid-raw-window.png",
+        "print-invalid-raw-window.txt:118",
+        "print-invalid-frame-all.txt:118",
+        "print-invalid-lone-window.txt:118"
+      ],
+      "detail": "Invalid-form screenshot has only Command Preview, without Valid; AX likewise omits Valid and Run is disabled with parser error. Prior console SUCCESS belongs to the earlier dry run.",
+      "source": [
+        "Sources/DICOMStudio/Views/CLIWorkshopView.swift:346",
+        "Sources/DICOMStudio/Views/CLIWorkshopView.swift:364",
+        "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:1102",
+        "Sources/DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift:29"
+      ],
+      "cause": "Both badge and Run use the same parser-backed isCommandValid. No generic required-fields bypass exists for print.",
+      "minimal_regression": "Native valid -> raw+window invalid -> repaired valid sequence; compare badge presence, Run enabled state, displayed preview and exact parser explanation. Existing model preflight test alone does not prove rendered UI."
+    },
+    {
+      "id": "NATIVE-PRINT-AX-CHECKBOX-LABELS",
+      "verdict": "Confirmed unnamed checkbox nodes in saved AX; root cause not established by source inspection",
+      "evidence": [
+        "print-invalid-raw-window.txt:101",
+        "print-invalid-frame-all.txt:101",
+        "print-invalid-lone-window.txt:101"
+      ],
+      "detail": "Seven send-option checkboxes appear only as checkbox 0/1. Visual labels are present. Single Verbose checkbox in list-printers is named, so this is not proof that all Workshop checkbox labels fail.",
+      "source": [
+        "Sources/DICOMStudio/Views/CLIWorkshopView.swift:704",
+        "Sources/DICOMStudio/Views/CLIWorkshopView.swift:714",
+        "Sources/DICOMStudio/Views/CLIWorkshopView.swift:728"
+      ],
+      "cause": "The custom HStack Toggle already has accessibilityLabel(param.displayName); no missing-modifier claim is supported. Investigate SwiftUI/AppKit accessibility representation of the composed checkbox row.",
+      "minimal_fix_scope": "Print-scoped reusable checkbox control with a single native semantic Toggle label, help as accessibilityHint, stable accessibilityIdentifier and explicit checkbox accessibility element; preserve bindings, visual help and structured argv. Verify the real AX result rather than adding a duplicate existing label modifier.",
+      "minimal_regression": "In send and SCP forms enumerate every visible checkbox by semantic name, toggle by name/keyboard, verify value changes and only corresponding argv flag changes. Include valid/invalid transitions, scrolling and beginner/advanced modes; compare list-printers Verbose as named control."
+    },
+    {
+      "id": "NATIVE-PRINT-EMPTY-JSON",
+      "verdict": "Confirmed source defect, native reproduction; no new CLI execution in this review",
+      "evidence": [
+        "print-list-empty.txt"
+      ],
+      "source": [
+        "Sources/DICOMPrintCommandSupport/SCUCommands.swift:827",
+        "Sources/DICOMPrintCommandSupport/SCUCommands.swift:839",
+        "Sources/DICOMPrintCommandSupport/SCUCommands.swift:875",
+        "Sources/DICOMPrintCommandSupport/PrintCommandContext.swift:46",
+        "Sources/DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift:102"
+      ],
+      "detail": "list-printers --format json promises JSON, but empty list returns before format switch. CLI stdout is empty, explanatory text goes to stderr; Workshop merges both streams and displays plain explanation. Populated list already emits JSON array. This is an output-contract bug, not a DICOM PS3.x wire violation.",
+      "minimal_fix_scope": "Restrict empty-list guidance/return to text mode (printers.isEmpty && format == .text), letting JSON mode serialize the empty array using existing function. No schema change; missing registry remains read-only.",
+      "minimal_regression": "For absent registry, existing [] registry, and registry emptied by remove-printer: JSON stdout decodes as exactly [], diagnostics are empty, exit success, no unexpected file mutation. Preserve text guidance and populated array. Test shared command + Workshop adapter, then real CLI capture stdout/stderr and native empty-list action.",
+      "test_locations": [
+        "Tests/dicom-printTests/M6PrintSCUCommandTests.swift:114",
+        "Tests/DICOMStudioTests/M6PrintSCUCatalogTests.swift:66"
+      ]
+    }
+  ],
+  "evidence_sha256": {
+    "print-invalid-raw-window.png": "c4c4f4629f6e67f2c68bcf53b7920f2151a5dbaa8414a3aa383b9cbef5f7548e",
+    "print-invalid-raw-window.txt": "5945ed0857dff4a78d67baa25106581c17a23086d870fda452953fd1ef222b63",
+    "print-invalid-frame-all.txt": "3fbad8e363bc0e9e6fd84038fe96e979d021af4cf131196aa1034634d8012d42",
+    "print-invalid-lone-window.txt": "711384d7a5688b178bda262d8eadd26f00b339c6a059c9e43520d5b88398a272",
+    "print-list-empty.txt": "b077ad4f51a0fa8303fbaa8a8b41773094b178fe626dc9e208d4a700b16d3c26"
+  }
+}

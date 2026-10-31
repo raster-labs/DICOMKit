@@ -1,0 +1,78 @@
+{
+  "simulated": {
+    "cli": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/cli/simulated/film-20261026-113249-001.pdf",
+        "bytes": 9539
+      },
+      {
+        "suffix": ".tiff",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/cli/simulated/film-20261026-113249-001.tiff"
+      }
+    ],
+    "workshop": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/workshop/simulated/film-20261026-113251-001.pdf",
+        "bytes": 9539
+      },
+      {
+        "suffix": ".tiff",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "418baf60f040337a839ea3aa292bddb08826818c4f5b22bf0ffd0e6dcb652e08",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/workshop/simulated/film-20261026-113251-001.tiff"
+      }
+    ],
+    "rasterPixelEquality": true,
+    "PDFScope": "Both complete PDF containers produced; no diagnostic/hardware or PDF raster claim"
+  },
+  "received": {
+    "cli": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/cli/received/film-20261026-113252-001.pdf",
+        "bytes": 14513
+      },
+      {
+        "suffix": ".png",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/cli/received/film-20261026-113252-001.png"
+      }
+    ],
+    "workshop": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/workshop/received/film-20261026-113251-001.pdf",
+        "bytes": 14513
+      },
+      {
+        "suffix": ".png",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/workshop/received/film-20261026-113251-001.png"
+      }
+    ],
+    "rasterPixelEquality": true,
+    "PDFScope": "Both complete PDF containers produced; no diagnostic/hardware or PDF raster claim"
+  }
+}

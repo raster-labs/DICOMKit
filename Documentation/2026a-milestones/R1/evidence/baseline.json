@@ -1,0 +1,9 @@
+{
+  "branch": "codex/dicom-2026a-milestones",
+  "milestone_head": "82ed0d07eb22f1f7fb8c713eee6d78f4c8334665",
+  "main_head": "4950a53f96f23d0f13c6670aa3473dee7608505d",
+  "remote_milestone_head": "82ed0d07eb22f1f7fb8c713eee6d78f4c8334665",
+  "status": "",
+  "recorded_utc": "2026-10-30T11:32:10.616588+00:00",
+  "authorization": "Integrate main into milestone branch, repair and verify CI, update documents, push same branch. No merge into main."
+}

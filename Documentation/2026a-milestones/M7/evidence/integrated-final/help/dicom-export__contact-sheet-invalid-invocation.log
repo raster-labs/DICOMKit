@@ -1,0 +1,4 @@
+Error: Missing expected argument '<inputs> ...'
+Help:  <inputs>  Paths to DICOM files
+Usage: dicom-export contact-sheet <inputs> ... --output <output> [--columns <columns>] [--thumbnail-size <thumbnail-size>] [--spacing <spacing>] [--format <format>] [--quality <quality>] [--apply-window] [--labels]
+  See 'dicom-export contact-sheet --help' for more information.

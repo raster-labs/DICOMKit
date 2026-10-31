@@ -1,0 +1,3 @@
+
+						52 text field (settable) Description: Base URL, Placeholder: e.g. https://pacs.hospital.com/dicom-web, Value: # in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)
+# dicom-wado retrieve http://127.0.0.1:60241/dicom-web --study 1.2.826.0.1.3680043.10.543.301 --series 1.2.826.0.1.3680043.10.543.301.1 --instance 1.2.826.0.1.3680043.10.543.301.1.1 -o /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-gui --format json --timeout 60

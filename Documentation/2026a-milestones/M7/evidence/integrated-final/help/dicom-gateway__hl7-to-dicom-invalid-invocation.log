@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input HL7 file
+Usage: dicom-gateway hl7-to-dicom <input> --output <output> [--template <template>] [--verbose]
+  See 'dicom-gateway hl7-to-dicom --help' for more information.

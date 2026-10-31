@@ -1,0 +1,55 @@
+OVERVIEW: Integrated DICOM query-retrieve tool
+
+Performs integrated C-FIND query and C-MOVE/C-GET retrieval operations.
+Provides both interactive and automatic modes for seamless workflow.
+
+Interactive Mode:
+  Query PACS, display results, and interactively select studies to retrieve.
+
+Automatic Mode:
+  Query PACS and automatically retrieve all matching studies.
+
+Resume Mode:
+  Resume interrupted retrievals from saved state.
+
+Examples:
+  # Interactive query and retrieve
+  dicom-qr \
+    server --port 11112 \
+    --aet MY_AET --called-aet PACS_SCP \
+    --move-dest MY_SCP \
+    --patient-name "DOE*" \
+    --interactive
+  
+  # Automatic query and retrieve
+  dicom-qr \
+    server:11112 \
+    --aet MY_AET \
+    --move-dest MY_SCP \
+    --study-date "20240101-20240131" \
+    --modality CT \
+    --output studies/ \
+    --auto
+  
+  # Query, review, then retrieve
+  dicom-qr \
+    server --port 11112 \
+    --aet MY_AET \
+    --patient-id "12345" \
+    --review \
+    --save-state query.state
+  
+  # Resume interrupted retrieval
+  dicom-qr resume --state retrieval.state
+
+USAGE: dicom-qr <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  query (default)         Query and retrieve DICOM studies
+  resume                  Resume interrupted retrieval from saved state
+
+  See 'dicom-qr help <subcommand>' for detailed help.

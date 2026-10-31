@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-directory>'
+Help:  <input-directory>  Directory of video files
+Usage: dicom-video batch [<options>] <input-directory> --output-dir <output-dir>
+  See 'dicom-video batch --help' for more information.

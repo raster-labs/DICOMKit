@@ -39,6 +39,39 @@ public enum JPEGInterchangeFormat {
         return Data(out)
     }
 
+    /// Promotes the encoder's 8-bit monochrome baseline sequential stream to the
+    /// equivalent extended sequential process. Only the SOF marker changes; tables,
+    /// scan headers and entropy bytes remain identical. PS3.5 A.4.1 requires SOF1
+    /// for .51 even when the coding needs no features beyond baseline's subset.
+    /// This is an encoder adaptation, never a decoder mismatch recovery policy.
+    static func promotingEightBitBaselineToExtended(_ stream: Data) throws -> Data {
+        let header = try JPEGFrameEnvelope.parse(stream, jpegLS: false)
+        guard header.precision == 8, header.components.count == 1,
+              header.process == 0xC0 || header.process == 0xC1 else {
+            throw DICOMError.parsingFailed("Extended 8-bit encoding requires a monochrome sequential JPEG stream")
+        }
+        if header.process == 0xC1 { return stream }
+        var bytes = [UInt8](stream)
+        var offset = 2 // SOI was validated by the bounded envelope parser.
+        while offset < bytes.count {
+            guard bytes[offset] == 0xFF else { break }
+            while offset < bytes.count, bytes[offset] == 0xFF { offset += 1 }
+            guard offset < bytes.count else { break }
+            let markerOffset = offset
+            let marker = bytes[offset]
+            offset += 1
+            guard marker != 0xDA, offset + 2 <= bytes.count else { break }
+            let length = Int(bytes[offset]) << 8 | Int(bytes[offset + 1])
+            guard length >= 2, length <= bytes.count - offset else { break }
+            if marker == 0xC0 {
+                bytes[markerOffset] = 0xC1
+                return Data(bytes)
+            }
+            offset += length
+        }
+        throw DICOMError.parsingFailed("Extended encoder output has no bounded SOF0 marker before SOS")
+    }
+
     /// One frame component of a frame header (ITU-T T.81 B.2.2): identifier and its
     /// horizontal / vertical sampling factors.
     public struct FrameComponent: Sendable, Equatable {

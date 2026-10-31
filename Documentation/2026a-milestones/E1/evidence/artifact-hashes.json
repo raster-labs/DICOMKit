@@ -1,0 +1,7 @@
+{
+  "recorded_utc": "2026-10-26T12:01:05.363466+00:00",
+  "artifacts": {
+    "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio": "2937db558141bd982627849389454d6a7cbf576abb4f7ff9b4ac1dc9889a8c30",
+    "/Volumes/DICOMKit-M1-build/spm/debug/dicom-mpps": "da25ed1655841f945b3a4bc8a7e9e2c85ee2c025d178596622bf58f3f85e60c4"
+  }
+}

@@ -1,0 +1,9 @@
+[
+  {
+    "priority" : "MEDIUM",
+    "procedureStepLabel" : "M2 synthetic schedule",
+    "scheduledStartDateTime" : "20261024103000.123456+0530",
+    "state" : "SCHEDULED",
+    "workitemUID" : "2.25.20261024001"
+  }
+]

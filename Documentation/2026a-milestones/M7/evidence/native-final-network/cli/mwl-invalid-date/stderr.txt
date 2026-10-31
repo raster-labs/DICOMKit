@@ -1,0 +1,3 @@
+Error: Invalid date filter 'not-a-date'. Use YYYYMMDD, 'today', 'tomorrow', or a DICOM date range (YYYYMMDD-YYYYMMDD, YYYYMMDD-, or -YYYYMMDD).
+Usage: dicom-mwl <subcommand>
+  See 'dicom-mwl --help' for more information.

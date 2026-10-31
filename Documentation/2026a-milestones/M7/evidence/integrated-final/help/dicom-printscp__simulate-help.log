@@ -1,0 +1,122 @@
+OVERVIEW: Compose film from DICOM files locally, without a network
+
+Prepares the given files exactly as a Print SCU would, lays them out
+exactly as the emulator would, and writes the composed sheet.
+
+Films spill as they do on the wire: images fill the layout's cells and
+a new sheet starts when the grid is full.
+
+Examples:
+  dicom-printscp simulate scan.dcm --output png
+  dicom-printscp simulate study/ --recursive --layout 2x2 --output pdf
+  dicom-printscp simulate ct.dcm --density film --dpi 150 --open
+
+USAGE: dicom-printscp simulate [<options>] <paths> ...
+
+ARGUMENTS:
+  <paths>                 DICOM files or directories to compose
+
+OPTIONS:
+  --dpi <dpi>             Rasterization resolution of the composed sheet
+                          (default: 600)
+  --density <density>     Density interpretation: paper, film, gsdf (default:
+                          paper)
+  --margin-mm <margin-mm> Sheet margin in millimetres (default: 5)
+  --cell-spacing-mm <cell-spacing-mm>
+                          Gap between image cells in millimetres (default: 2)
+  --annotations/--no-annotations
+                          Draw Basic Annotation Box text on the sheet (default:
+                          yes)
+  --trim-marks/--no-trim-marks
+                          Print a trim box around each image when Trim
+                          (2010,0140) is YES, PS3.3 Table C.13-3 (default: yes)
+  --max-pixels <max-pixels>
+                          Cap on the composed bitmap's longest side, in pixels
+                          (default: 12000)
+  --output <output>       Film output: png, tiff, pdf, none (repeatable)
+  --output-dir <output-dir>
+                          Directory written films are saved to (default:
+                          ~/Downloads/DICOMKit Films)
+  --name-pattern <name-pattern>
+                          File-name pattern; tokens {job} {session} {film} {ae}
+                          {index} {timestamp}
+  --paper-queue <paper-queue>
+                          Spool film to this CUPS queue (requires
+                          --allow-paper; empty uses the system default queue)
+  --allow-paper           Enable paper spooling. Required for --paper-queue to
+                          have any effect.
+  --open                  Open each written film in the default viewer
+  --config <config>       Settings file to read (default:
+                          ~/.config/dicomkit/printscp.json when it exists)
+  --save-config           Write the resolved settings back to the configuration
+                          file and exit
+  --layout <layout>       Image Display Format (2010,0010): a grid 1x1, 1x2,
+                          1x3, 1x4, 2x1, 2x2, 2x3, 2x4, 3x1, 3x2, 3x3, 3x4,
+                          4x1, 4x2, 4x3, 4x4, 4x5 (R rows by C columns, sent as
+                          STANDARD\C,R) or any PS3.3 Table C.13-3 form —
+                          STANDARD\C,R, ROW\R1,R2,..., COL\C1,C2,..., SLIDE,
+                          SUPERSLIDE, CUSTOM\i (auto if omitted)
+  --film-size <film-size> Film Size ID (2010,0050): 8x10 = 8INX10IN, 8.5x11 =
+                          8_5INX11IN, 10x12 = 10INX12IN, 10x14 = 10INX14IN,
+                          11x14 = 11INX14IN, 11x17 = 11INX17IN, 14x14 =
+                          14INX14IN, 14x17 = 14INX17IN, 24x24cm = 24CMX24CM,
+                          24x30cm = 24CMX30CM, a4 = A4, a3 = A3 (default: 14x17)
+  --orientation <orientation>
+                          Film Orientation (2010,0040): portrait = PORTRAIT,
+                          landscape = LANDSCAPE (default: portrait)
+  --magnification <magnification>
+                          Magnification Type (2010,0060): replicate =
+                          REPLICATE, bilinear = BILINEAR, cubic = CUBIC, none =
+                          NONE (default: replicate)
+  --medium <medium>       Medium Type (2000,0030): paper = PAPER, clear-film =
+                          CLEAR FILM, blue-film = BLUE FILM, mammo-clear-film =
+                          MAMMO CLEAR FILM, mammo-blue-film = MAMMO BLUE FILM
+                          (default: paper)
+  --copies <copies>       Number of Copies (2000,0010) recorded on the film
+                          (default: 1) (default: 1)
+  --polarity <polarity>   Polarity (2020,0020): normal = NORMAL, reverse =
+                          REVERSE (default: normal; PS3.3 Table C.13-5: NORMAL
+                          when absent)
+  --presentation-lut <presentation-lut>
+                          Presentation LUT Shape (2050,0020): identity =
+                          IDENTITY, lin-od = LIN OD, inverse (inverse sends no
+                          shape: PS3.3 C.11.4 has none; the pixels are
+                          inverted) (default: none)
+  --trim                  Trim (2010,0140) = YES (default: NO)
+  --border-density <border-density>
+                          Border Density (2010,0100): BLACK, WHITE, or i
+                          hundredths of OD (150 = 1.5 OD) (default: BLACK)
+  --empty-density <empty-density>
+                          Empty Image Density (2010,0110): BLACK, WHITE, or i
+                          hundredths of OD (default: BLACK)
+  --annotate <annotate>   Text String (2030,0020) of a Basic Annotation Box
+                          (repeatable; requires --annotation-format)
+  --annotation-format <annotation-format>
+                          Annotation Display Format ID (2010,0030) (required
+                          with --annotate)
+  --color <color>         Image box class: grayscale = Basic Grayscale Image
+                          Box SOP Class, color = Basic Color Image Box SOP
+                          Class (default: grayscale)
+  --frame <frame>         1-based frame to take from multi-frame files
+                          (default: 1) (default: 1)
+  --all-frames            Take every frame of multi-frame files (one cell per
+                          frame)
+  --raw                   Use stored pixel values with no rescale / window /
+                          inversion
+  --window-center <window-center>
+                          Explicit VOI window center (requires --window-width)
+  --window-width <window-width>
+                          Explicit VOI window width (requires --window-center)
+  --bit-depth <bit-depth> Grayscale Bits Stored: 8 or 12, PS3.3 Table C.13-5
+                          (default: 8) (default: 8)
+  -r, --recursive         Recursively scan directories for DICOM files
+  --calling-ae <calling-ae>
+                          Calling AE title recorded on the composed film
+                          (default: SIMULATE) (default: SIMULATE)
+  --format <format>       Output format: text, json (values: text, json;
+                          default: text)
+  -v, --verbose           Show each film's attributes and per-image progress
+  --quiet                 Suppress console output; only errors are reported
+  --version               Show the version.
+  -h, --help              Show help information.
+

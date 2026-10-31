@@ -1,0 +1,51 @@
+OVERVIEW: Send DICOM files to PACS using C-STORE protocol
+
+Transfers DICOM files to PACS servers using the C-STORE service.
+Supports single files, multiple files, and recursive directory traversal.
+
+The host argument accepts a hostname or IP address, optionally with a
+port suffix (host:port). Use --port to specify the port separately.
+If no port is given, the default is 11112.
+
+Examples:
+  dicom-send server --port 11112 --aet SENDER file.dcm
+  dicom-send server:11112 --aet SENDER study/ --recursive
+  dicom-send server --port 11112 --aet SENDER *.dcm --verify
+  dicom-send 192.168.1.100 --port 11112 --aet SENDER files/ --recursive
+--dry-run
+  dicom-send server --port 11112 --aet SENDER study/ --retry 3 --verbose
+
+USAGE: dicom-send [<options>] <host> --aet <aet> <paths> ...
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+  <paths>                 DICOM files or directories to send
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  -r, --recursive         Recursively scan directories for DICOM files
+  --verify                Verify connection with C-ECHO before sending
+  --retry <retry>         Number of retry attempts on failure (default: 0)
+                          (default: 0)
+  --dry-run               Show what would be sent without actually sending
+  -v, --verbose           Show verbose output including progress
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  --priority <priority>   C-STORE Priority (0000,0700): low (0002H), medium
+                          (0000H), high (0001H) — PS3.7 Table 9.3-1 (default:
+                          medium) (values: low, medium, high; default: medium)
+  --transfer-syntax <transfer-syntax>
+                          Transfer syntax to negotiate for the C-STORE
+                          presentation context. dicom-send sends files as-is
+                          and never transcodes, so this must match the file's
+                          own transfer syntax (the send fails otherwise — use
+                          dicom-convert to change it). Omit to send the file
+                          unchanged.
+  --version               Show the version.
+  -h, --help              Show help information.
+

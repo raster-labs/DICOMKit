@@ -1,0 +1,4 @@
+Error: Missing expected argument '<files> ...'
+Help:  <files>  DICOM files or directories to import
+Usage: dicom-archive import <files> ... --archive <archive> [--recursive] [--skip-duplicates] [--verbose]
+  See 'dicom-archive import --help' for more information.

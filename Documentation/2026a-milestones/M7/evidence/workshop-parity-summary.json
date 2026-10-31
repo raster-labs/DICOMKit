@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "verified_utc": "2026-10-24T15:30:03.490848+00:00",
+  "status": "Passed",
+  "native_GUI": false,
+  "applicability": "Final CLI and actual test-host Workshop ViewModel comparison; not native packaged UI or physical printing.",
+  "actual_VM_actions": 25,
+  "CLI_VM_comparisons": 25,
+  "routes": 10,
+  "baseline": {
+    "VM_actions": 18,
+    "CLI_cases_including_controls": 20,
+    "results": "workshop-qualified/results.json",
+    "artifacts": "workshop-qualified/artifacts.json",
+    "log": "workshop-qualified.log"
+  },
+  "images": {
+    "VM_sends": 7,
+    "CLI_sends": 7,
+    "PNG_films": 14,
+    "results": "workshop-images-qualified/results.json",
+    "log": "workshop-images-qualified.log",
+    "assertions": [
+      "CLI/VM normalized JSON and decoded PNG pixels equal",
+      "Native/RLE/JPEG lossless pixel equality",
+      "Three separate inputs equal all three frames",
+      "Selected frame 2 equals extracted frame 2; differs from frame 1",
+      "Receiver filled-image counts [1,1,1,3,3,1,1] on each side"
+    ]
+  },
+  "binary_SHA256_before_and_after": {
+    "dicom-print": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+    "dicom-printscp": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c",
+    "DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests": "d952c1a13d27d1678fc8cce06526b8e27357572f04261425b948943ea0be7018"
+  },
+  "binary_hashes_unchanged": true,
+  "script_SHA256": {
+    "Scripts/verify_m6_workshop.py": "92eb62f570d2133adf43146eb98212259c45ce1056a82de6da6cb09e93dc94fe",
+    "Scripts/verify_m6_workshop_images.py": "839c803ca5f5249a833c5fdde3b96d51542f4239423f6d0c32c917c7967e1dbe",
+    "Scripts/m6-workshop-requests.json": "ca0a0e14a6af7e12e239938d94b1e537d52c6794a73776b9f9bd5656e339f281"
+  },
+  "baseline_source_fixture_hashes_unchanged": true,
+  "reference_codec_campaign": "codecs-qualified",
+  "evidence_SHA256": {
+    "workshop-qualified/results.json": "db97e7fceade48b6cc51781c8b0706c3fb9bbfdac038a47fc13e8413aa27c19b",
+    "workshop-qualified/artifacts.json": "95104d12961704c7d9db4bf7ab6c6acbe3b8250be68a16d5b1388e8b9c55ac79",
+    "workshop-qualified/workshop.json": "f30f90b87fba611098abc3ee0fd966e21dff13efaec0907365a69b3665001531",
+    "workshop-qualified/workshop-process.log": "2091281875dc6662cec70b5e3605be4ea2f60fc9ffc33d79fd6fc7667deca49c",
+    "workshop-qualified.log": "a49be689deff0a6ea7507b00a524d32a1987c15054f2eda6513b2be3acc913e7",
+    "workshop-images-qualified/results.json": "c0e39b09d82a94271744ea29a370b6afa629d5de19141686c60900c8df859384",
+    "workshop-images-qualified/workshop.json": "3136e29b566bc8c74d71faf0671b3dd760b831b522e30c1111b5376a4048c221",
+    "workshop-images-qualified/workshop-process.log": "6321de8ea1b4230479275acad910e9527db19cb7728c5c91e20751faa055ffad",
+    "workshop-images-qualified.log": "3b998d28386206989650c2859fd23dbd68dd092a0272fcae4ce302ce029a2b43"
+  },
+  "limitations": [
+    "Synthetic same-library loopback receiver; independent print evidence is a separate campaign.",
+    "PDF container completeness only; no PDF raster/clinical/physical-output claim.",
+    "Ordinary opt-in test skip is not counted as pass; these two separately activated harness invocations execute 25 actions.",
+    "Final native packaged app gates remain pending."
+  ]
+}

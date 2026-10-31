@@ -1,0 +1,26 @@
+[
+  {
+    "id": "extended-gray8",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "extended-rgb8",
+    "status": "ERROR"
+  },
+  {
+    "id": "part2-refusal",
+    "status": "ERROR"
+  },
+  {
+    "id": "native16",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "native-odd",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "strict-precision-refusal",
+    "status": "ERROR"
+  }
+]

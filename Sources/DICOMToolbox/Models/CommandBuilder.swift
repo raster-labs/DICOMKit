@@ -1,5 +1,27 @@
 import Foundation
 
+/// An executable and its literal arguments. The rendered command is for display/copy only.
+public struct CommandInvocation: Codable, Equatable, Sendable {
+    public let executable: String
+    public let arguments: [String]
+
+    public init(executable: String, arguments: [String]) {
+        self.executable = executable
+        self.arguments = arguments
+    }
+
+    public var commandString: String {
+        ([executable] + arguments).map(Self.shellQuote).joined(separator: " ")
+    }
+
+    /// POSIX shell quoting for a single token; execution never parses this representation.
+    public static func shellQuote(_ value: String) -> String {
+        let safe = Set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+_./:=,@%-".utf8)
+        if !value.isEmpty && !value.hasPrefix("=") && value.utf8.allSatisfy({ safe.contains($0) }) { return value }
+        return "'" + value.replacingOccurrences(of: "'", with: "'\"'\"'") + "'"
+    }
+}
+
 /// Execution status for the console display
 public enum ExecutionStatus: Sendable {
     case idle
@@ -13,8 +35,7 @@ public enum ExecutionStatus: Sendable {
     }
 }
 
-/// Builds CLI command strings from tool definitions and parameter values,
-/// validates required parameters, and executes commands.
+/// Builds literal CLI arguments and a separately quoted display representation.
 public final class CommandBuilder: Sendable {
     /// The tool definition this builder is configured for
     public let tool: ToolDefinition
@@ -34,7 +55,41 @@ public final class CommandBuilder: Sendable {
     ///   - subcommand: Optional subcommand name for tools with subcommands
     /// - Returns: The complete CLI command string
     public func buildCommand(values: [String: String], subcommand: String? = nil) -> String {
+        let issues = ToolboxCommandContract.issues(toolID: tool.id, values: values, subcommand: subcommand)
+        if !issues.isEmpty { return issues.map { "# Cannot run: " + $0.replacingOccurrences(of: "\n", with: " ") }.joined(separator: "\n") }
+        return buildInvocation(values: values, subcommand: subcommand).commandString
+    }
+
+    /// Use for execution. Formatting remains separate from refusal/migration policy.
+    public func validatedInvocation(values: [String: String], subcommand: String? = nil) throws -> CommandInvocation {
+        let issues = validationMessages(values: values, subcommand: subcommand)
+        guard issues.isEmpty else { throw ToolboxCommandValidationError(messages: issues) }
+        let invocation = buildInvocation(values: values, subcommand: subcommand)
+        if let issue = ToolboxCommandContract.replayIssue(invocation) {
+            throw ToolboxCommandValidationError(messages: [issue])
+        }
+        return invocation
+    }
+
+    public func validationMessages(values: [String: String], subcommand: String? = nil) -> [String] {
+        ToolboxCommandContract.issues(toolID: tool.id, values: values, subcommand: subcommand)
+            + missingRequiredParameters(values: values, subcommand: subcommand).map { "Provide a valid \($0)." }
+    }
+
+    public func buildInvocation(values: [String: String], subcommand: String? = nil) -> CommandInvocation {
         var parts: [String] = [tool.id]
+
+        func appendValue(_ value: String, flag: String) {
+            if flag.isEmpty || flag == "@argument" {
+                parts.append(value)
+            } else if value.hasPrefix("-") && flag.hasPrefix("--") {
+                // ArgumentParser must not interpret open-ended DA/TM ranges as options.
+                parts.append("\(flag)=\(value)")
+            } else {
+                parts.append(flag)
+                parts.append(value)
+            }
+        }
 
         // Add subcommand if specified
         if let subcommand {
@@ -59,20 +114,17 @@ public final class CommandBuilder: Sendable {
 
             // Add AE Title if not overridden
             if !values.keys.contains("aet") {
-                parts.append("--aet")
-                parts.append(config.aeTitle)
+                appendValue(config.aeTitle, flag: "--aet")
             }
 
             // Add Called AET if not overridden
             if !values.keys.contains("called-aet") {
-                parts.append("--called-aet")
-                parts.append(config.calledAET)
+                appendValue(config.calledAET, flag: "--called-aet")
             }
 
             // Add timeout if not overridden
             if !values.keys.contains("timeout") {
-                parts.append("--timeout")
-                parts.append(String(config.timeout))
+                appendValue(String(config.timeout), flag: "--timeout")
             }
         }
 
@@ -90,13 +142,7 @@ public final class CommandBuilder: Sendable {
                 }
 
             case .file:
-                if param.cliFlag.isEmpty || param.cliFlag == "@argument" {
-                    // Positional argument - add value directly
-                    parts.append(value)
-                } else {
-                    parts.append(param.cliFlag)
-                    parts.append(value)
-                }
+                appendValue(value, flag: param.cliFlag)
 
             case .repeatable:
                 // Split comma-separated values into individual flag instances,
@@ -124,13 +170,11 @@ public final class CommandBuilder: Sendable {
                     idx += 1
                 }
                 for item in items {
-                    parts.append(param.cliFlag)
-                    parts.append(item)
+                    appendValue(item, flag: param.cliFlag)
                 }
 
             default:
-                parts.append(param.cliFlag)
-                parts.append(value)
+                appendValue(value, flag: param.cliFlag)
             }
         }
 
@@ -150,7 +194,7 @@ public final class CommandBuilder: Sendable {
         // Add overridden network values
         if tool.requiresNetwork {
             for key in ["url", "base-url", "aet", "called-aet", "timeout"] {
-                if let value = values[key], !value.isEmpty {
+                if !definedIDs.contains(key), let value = values[key], !value.isEmpty {
                     if key == "url" || key == "base-url" {
                         // URL is a positional argument, but only if we haven't already added it
                         // Insert after tool name and optional subcommand
@@ -161,14 +205,13 @@ public final class CommandBuilder: Sendable {
                             parts.append(value)
                         }
                     } else {
-                        parts.append("--\(key)")
-                        parts.append(value)
+                        appendValue(value, flag: "--\(key)")
                     }
                 }
             }
         }
 
-        return parts.joined(separator: " ")
+        return CommandInvocation(executable: tool.id, arguments: Array(parts.dropFirst()))
     }
 
     /// Checks whether all required parameters have values.
@@ -178,6 +221,7 @@ public final class CommandBuilder: Sendable {
     ///   - subcommand: Optional subcommand name
     /// - Returns: `true` if all required parameters are satisfied
     public func isValid(values: [String: String], subcommand: String? = nil) -> Bool {
+        guard ToolboxCommandContract.issues(toolID: tool.id, values: values, subcommand: subcommand).isEmpty else { return false }
         let parameters: [ParameterDefinition]
         if let subcommand, let subcommands = tool.subcommands,
            let sub = subcommands.first(where: { $0.id == subcommand }) {

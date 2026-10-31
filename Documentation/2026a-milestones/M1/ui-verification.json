@@ -1,0 +1,50 @@
+{
+  "method": "Actual packaged DICOMStudio UI controlled via native app automation, with screenshots where accessibility grouped text was stale.",
+  "date": "2026-10-24",
+  "application_sha256_manifest_digest": "68bb203f2a22030ff78a4c5c0fc954de3e2c979736b5500d30360d42e0cbb65b",
+  "checks": [
+    {
+      "id": "UI-01",
+      "result": "Passed",
+      "action": "Entered temporary synthetic input with spaces/apostrophe/question mark, ImageType=ORIGINAL\\PRIMARY; PatientName=DOE*; StudyDescription=M1 $HOME (literal), and a spaced output path; inspected quoted preview and clicked Run.",
+      "observed": "Console SUCCESS; all three literal values printed. Output byte-identical to fresh CLI output; independent explicit-VR decoding confirms tags and values.",
+      "evidence": "fixture-parity.json"
+    },
+    {
+      "id": "UI-02",
+      "result": "Passed",
+      "action": "MWL form date -20261024, time -180000, patient DOE*, localhost port 1, verbose; clicked Run.",
+      "observed": "Preview uses --date=-20261024 and --time=-180000; runtime header preserves exact values. Expected no-peer connection timeout, not an interoperability pass."
+    },
+    {
+      "id": "UI-03",
+      "result": "Passed",
+      "action": "Changed MWL date to malformed single hyphen and clicked Run.",
+      "observed": "Shared validator reports Invalid date filter '-'; no successful query claimed."
+    },
+    {
+      "id": "UI-04",
+      "result": "Passed",
+      "action": "Selected Basic separately for actual dicom-wado query, retrieve, store and ups tabs.",
+      "observed": "All four show commented app-only/non-equivalent preview and no emitted Basic credentials."
+    },
+    {
+      "id": "UI-05",
+      "result": "Passed",
+      "action": "UPS Basic to Bearer, entered synthetic M1-TEST-TOKEN, then selected none.",
+      "observed": "Bearer restores command with --token M1-TEST-TOKEN; none removes --token. No HTTP request sent."
+    }
+  ],
+  "environment_observations": [
+    "Initial direct Documents-path fixture read stalled in Foundation Data(contentsOf:) -> __open. App was closed; same synthetic bytes in /private/tmp executed successfully. Cause not conclusively determined; no privacy settings changed. Documents-path access is not qualified by this run.",
+    "Grouped accessibility labels sometimes remained stale while screenshots showed updated controls/previews. Rendered UI and execution console were inspected.",
+    "One transient noWindowsAvailable automation response was resolved by reconnecting to the same still-open app.",
+    "Application closed after checks. No existing clinical library files or saved server profiles were used or modified."
+  ],
+  "toolbox_route": "DICOMToolbox is a separate library, not linked by the DICOMStudio app target. Its ConsoleView compiles and its actual subprocess executor is tested; no standalone Toolbox app target exists in this checkout.",
+  "not_run": [
+    "Independent MWL peer matching/interoperability (M7)",
+    "Physical printing (later print/qualification milestones)",
+    "Linux runtime qualification"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "recorded_utc": "2026-10-26T12:01:05.362885+00:00",
+  "surface": "Actual signed DICOMStudio.app, CLI Workshop / dicom-mpps",
+  "method": "Native CUA form controls, visual command preview and AX console observations",
+  "endpoint": "127.0.0.1:65517",
+  "called_ae": "E1MPPS",
+  "calling_ae": "E1WORKSHOP",
+  "uid": "1.2.826.0.1.3680043.10.511.4.1793015844668210.900797",
+  "original_charset": "ISO_IR 192",
+  "steps": [
+    {
+      "id": "native-01",
+      "input": "Explicit IN PROGRESS; Native intermediate update",
+      "observed": "SUCCESS; New Status: IN PROGRESS",
+      "wire": "status and description; no end time"
+    },
+    {
+      "id": "native-02",
+      "input": "Unchanged (IN PROGRESS); Native omitted status",
+      "observed": "SUCCESS; preview/console omits --status; New Status: IN PROGRESS",
+      "wire": "description; no status/end time"
+    },
+    {
+      "id": "native-03",
+      "input": "Description of 65 X characters",
+      "observed": "ERROR; VR LO allows at most 64 characters",
+      "wire": "No request"
+    },
+    {
+      "id": "native-04",
+      "input": "Native completed; series 2.25.108.33; protocol No acquisition; menu selection and Run sent in one automation batch",
+      "observed": "SUCCESS; execution used preceding omitted-status selection; New Status: IN PROGRESS",
+      "wire": "Intermediate full sequence update; not claimed as terminal acceptance"
+    },
+    {
+      "id": "native-05",
+      "input": "Run after observing settled COMPLETED selector",
+      "observed": "SUCCESS; command contains --status COMPLETED; New Status: COMPLETED",
+      "wire": "Terminal update with end fields and one no-instance series"
+    },
+    {
+      "id": "native-06",
+      "input": "Repeat terminal run",
+      "observed": "ERROR; instance may no longer be updated after a terminal N-SET was sent",
+      "wire": "No request"
+    }
+  ],
+  "qualification_limits": [
+    "Native actions are not added to automated test counts.",
+    "AX preview label remained a placeholder; actual rendered preview and executed console command were inspected.",
+    "No dormant component production UI was introduced or claimed.",
+    "An unrelated pre-existing local SCP port-in-use notice was observed on Workshop opening; synthetic peer uses a separate explicit loopback port."
+  ]
+}

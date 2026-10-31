@@ -1,0 +1,30 @@
+{
+  "recorded_utc": "2026-10-24T15:45:18.061735+00:00",
+  "classification": "Post-build audit-only repair",
+  "runtime_manifest": "runtime-source-freeze.json",
+  "runtime_source_files": 2057,
+  "changes": {
+    ".github/workflows/audit-tooling.yml": {
+      "runtime_sha256": "62809f9e702ebeac17906747e5254fe514c888d68892191887ea17e1a3b4b451",
+      "final_sha256": "4b3cc4eae73d7bc3a03940dece1ffeda3c473f0978d6ec5a8e9e6bf946146ce4"
+    },
+    "Scripts/diff_studio_g1.py": {
+      "runtime_sha256": "454b0b05c38f444d52082af15569286c2ccf0d8b501bab85a4a7e1feea44b181",
+      "final_sha256": "4fbca1517af48c0a4f2ba4490b65b4f2e69aa5ce3834cf17c5564591f7604949"
+    },
+    "Scripts/diff_studio_g6.py": {
+      "runtime_sha256": "61e5217edde825c42f774b80bbb2a2543eb00ef9e82e267f32cc9ba3b744b6b3",
+      "final_sha256": "603ab660350cd6299da34273bb688885eb416a180c11560a211ef51a65c625fd"
+    },
+    "Scripts/test_studio_audit_m7.py": {
+      "runtime_sha256": null,
+      "final_sha256": "7c56de462ef2babdbd29f691276b2033bfb4e4c9761b741f688860e08a136ec3"
+    }
+  },
+  "production_and_Swift_test_drift": false,
+  "artifacts_rehashed_unchanged": 71,
+  "reason": "Static Studio audit followed deleted print wrapper and obsolete query preflight paths. Auditors now inspect shared command ownership and shared preflight; ten negative/positive regressions and CI discovery added. Three genuine literal parity findings remain visible.",
+  "verification": "studio-audit-repair-verification.json",
+  "product_tests_repeated": false,
+  "product_test_reuse_reason": "Only static audit code, its Python tests and audit-CI selector changed; all production, Swift tests, package and app build inputs and 71 built artifact hashes remain identical."
+}

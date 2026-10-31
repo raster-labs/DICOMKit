@@ -81,6 +81,7 @@ actor MockPrintSCP {
     private(set) var port: UInt16 = 0
     private(set) var associationCount = 0
     private(set) var commandLog: [DIMSECommand] = []
+    private(set) var receivedDataSets: [Data] = []
     private(set) var releasedCleanly = false
 
     private var didInjectFailure = false
@@ -147,6 +148,7 @@ actor MockPrintSCP {
 
     // Callbacks from the per-connection handler.
     func record(command: DIMSECommand) { commandLog.append(command) }
+    func record(dataSet: Data) { receivedDataSets.append(dataSet) }
     func recordCleanRelease() { releasedCleanly = true }
     func nextFilmBoxIndex() -> Int { filmBoxCounter += 1; return filmBoxCounter }
     func shouldInjectFailure(for command: DIMSECommand) -> Bool {
@@ -177,7 +179,6 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
     }
 
     func run() async {
-        connection.start(queue: .global(qos: .userInitiated))
         let resumed = LockedFlag()
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             connection.stateUpdateHandler = { state in
@@ -189,6 +190,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
                     break
                 }
             }
+            connection.start(queue: .global(qos: .userInitiated))
         }
         connection.stateUpdateHandler = nil
         guard connection.state == .ready else { return }
@@ -271,6 +273,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
     private func handle(message: AssembledMessage) async throws {
         guard let command = message.commandSet.command else { return }
         await owner.record(command: command)
+        if let dataSet = message.dataSet { await owner.record(dataSet: dataSet) }
 
         if behavior.silentAfterAccept {
             return // swallow the request — the SCU's timeout must fire
@@ -304,7 +307,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let response = NCreateResponse(
                 messageIDBeingRespondedTo: messageID,
                 affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.mock.session.1",
+                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.2.1",
                 status: .success,
                 hasDataSet: false,
                 presentationContextID: contextID
@@ -316,12 +319,12 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let imageBoxCount = imageBoxCount(fromFilmBoxRequest: message.dataSet,
                                               explicitVR: negotiatedExplicitVR)
             let uids = (1...imageBoxCount).map {
-                "1.2.826.0.1.3680043.9.mock.imagebox.\(boxIndex).\($0)"
+                "1.2.826.0.1.3680043.9.9001.3.\(boxIndex).\($0)"
             }
             let response = NCreateResponse(
                 messageIDBeingRespondedTo: messageID,
                 affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.mock.filmbox.\(boxIndex)",
+                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.4.\(boxIndex)",
                 status: .success,
                 hasDataSet: true,
                 presentationContextID: contextID
@@ -335,7 +338,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let response = NCreateResponse(
                 messageIDBeingRespondedTo: messageID,
                 affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.mock.other.1",
+                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.5.1",
                 status: .success,
                 hasDataSet: false,
                 presentationContextID: contextID
@@ -362,7 +365,7 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let dataSet: Data? = behavior.omitPrintJobUID
                 ? nil
                 : PrintSCPEncoder.printJobReference(
-                    printJobUID: "1.2.826.0.1.3680043.9.mock.job.1",
+                    printJobUID: "1.2.826.0.1.3680043.9.9001.1.1",
                     explicitVR: negotiatedExplicitVR)
             let response = NActionResponse(
                 messageIDBeingRespondedTo: messageID,

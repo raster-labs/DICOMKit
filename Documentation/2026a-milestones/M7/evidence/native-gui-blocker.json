@@ -1,0 +1,16 @@
+{
+  "status": "Blocked",
+  "observed_utc": "2026-10-24T15:29:17.766199+00:00",
+  "tool": "cua.getApp",
+  "result": "The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before continuing.",
+  "pending_user_input": "Manual unlock requested earlier; no reply received.",
+  "M6_native_actions": 0,
+  "M7_native_actions": 0,
+  "checklist": "native-final-checklist.json",
+  "limits": [
+    "Compilation and signing do not establish native runtime acceptance.",
+    "ViewModel executions are separate evidence and do not replace GUI actions."
+  ],
+  "app_build": "Final M7 source, successful Xcode build and verified project-entitled signature",
+  "application": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app"
+}

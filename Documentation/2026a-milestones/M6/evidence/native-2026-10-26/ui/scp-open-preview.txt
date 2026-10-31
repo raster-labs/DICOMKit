@@ -1,0 +1,46 @@
+Window: "opened-001.png", App: Preview.
+0 standard window opened-001.png, ID: PVDocumentWindow, Secondary Actions: Raise, URL: file:///Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/open-output/opened-001.png
+	1 split group
+		2 image
+	3 toolbar
+		4 menu button Description: View, Help: Choose sidebar display
+		5 container Zoom
+			6 button Description: zoom out, Help: Scale document down, Details: Zoom Out
+			7 button (disabled) Description: zoom to actual size, Help: Display at actual size, Details: Actual Size
+			8 button Description: zoom in, Help: Scale document up, Details: Zoom In
+		9 (disabled) Highlight Selection
+			10 radio button (disabled) Description: highlight, Value: 0
+		11 button (disabled) Description: Remove Background, Secondary Actions: Move previous, Move next, Remove from toolbar
+		12 radio button Description: Rotate, Help: Rotate Left, Value: 0, Secondary Actions: Move previous, Move next, Remove from toolbar
+		13 button (disabled) Search
+		14 pop up button more toolbar items
+	15 edit toolbar
+		16 menu button Description: Selection Tools, Value: menu button
+		17 toggle button Description: Instant Alpha, Value: off
+		18 toggle button Description: Sketch, Value: off
+		19 toggle button Description: Draw, Value: off
+		20 button Shapes
+		21 button Text
+		22 button Sign
+		23 toggle button Description: Adjust Color, Value: off
+		24 toggle button Description: Adjust Size, Value: off
+		25 button Shape Style
+		26 color well Description: Border Color, Value: rgb 0 0 0 1, Secondary Actions: Show color panel
+		27 color well Description: Fill Color, Value: rgb 1 0.149131 0 1, Secondary Actions: Show color panel
+		28 button Text Style
+		29 button Image Description
+	30 close button
+	31 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	32 minimize button
+	33 text opened-001.png
+34 menu bar
+	35 Preview
+	36 File
+	37 Edit
+	38 View
+	39 Go
+	40 Tools
+	41 Window
+	42 Help
+
+The focused UI element is 2 image

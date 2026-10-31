@@ -1,0 +1,67 @@
+{
+  "gray8.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+    "sha256": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f"
+  },
+  "gray12.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray12.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray12.dcm",
+    "sha256": "a91b61e304fc09edcb6529b6ba8bb7b7885427a0be83f3b746edc476d0042fd3"
+  },
+  "rgb8.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rgb8.dcm",
+    "sha256": "abdaaf9aba46fa06da16881d38dab3c0bc2d1bd21554fd78ba17317ee0c05b9a"
+  },
+  "rle.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/rle.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rle.dcm",
+    "sha256": "89f8d8a562568385f4ae84dae5004945680f526d6bd891438b1d5bb28b362ee8"
+  },
+  "jpeg.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/jpeg.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/jpeg.dcm",
+    "sha256": "a9f4f6cd04590474cd1b9bc67ecebe12e36121c1046923e5380654c0c7d0802a"
+  },
+  "multi.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/multi.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm",
+    "sha256": "32b199a6e1411e3816df759ac802bb0344378953e11e6cb56172a5eb2fcbccb3"
+  },
+  "frame1.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame1.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame1.dcm",
+    "sha256": "8a7c08d070947cb0a47b5d1c5a2ed706fa744febe9e6834799af65d57c772ec6"
+  },
+  "frame2.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame2.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm",
+    "sha256": "1939c993e69a94d745ac7213aabd1bfbe5f59205a1957f9c705bebf67bebd8ad"
+  },
+  "frame3.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame3.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame3.dcm",
+    "sha256": "653c07b7809a3f1ad8e84b2a1a0524b88615c6d83656e238707fc320840173a2"
+  },
+  "literal O'Neil; snow 雪.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm",
+    "sha256": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f"
+  },
+  "peer-gray8.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/fixtures/gray8.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm",
+    "sha256": "a42b40df5448cf6e954ec179ebce9eb2821e0987015dd8ae86ae2b7868af0273"
+  },
+  "peer-gray12.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/fixtures/gray12.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray12.dcm",
+    "sha256": "353629fb37895e6f85ae2dfe2081e861e3837cbaac17e91781175e793ca473bf"
+  },
+  "peer-rgb8.dcm": {
+    "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/fixtures/rgb8.dcm",
+    "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-rgb8.dcm",
+    "sha256": "59981e76fcc38f1433c4de579d59178510b417bef4c82fd80b56a8fba66071d6"
+  }
+}

@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-path>'
+Help:  <input-path>  JP3D DICOM document file to inspect
+Usage: dicom-3d inspect <input-path> [--json]
+  See 'dicom-3d inspect --help' for more information.

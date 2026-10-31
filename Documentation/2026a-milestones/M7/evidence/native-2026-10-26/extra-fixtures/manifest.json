@@ -1,0 +1,121 @@
+{
+  "scope": "Prepared synthetic fixtures; independent encode/decode inspection only, no product/native execution or qualification pass",
+  "pydicom": "3.0.1",
+  "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+  "source_sha256_before_after": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f",
+  "recipe_sha256": "652c366fe76b1adefdf905b05cbf81e1866c7a82d1036772a68429f932c6ba50",
+  "recipe": "Deep-copy qualified48x64gray8 source. Overlay changes only synthetic identifiers/descriptions andStudyTime. Odd fixture crops upper-left3x3; same8bit unsigned monochrome descriptor; one required trailing zero byte in nativePixelData. Independent pydicom RLE encoder, independent manual PackBits and pydicom decoder both recover exactly9expected samples. RLE and native-control intentionally share SOPInstanceUID as alternate encodings.",
+  "files": {
+    "fractional-study-time.dcm": {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/fractional-study-time.dcm",
+      "sha256": "adf09021a2c187b7aa1bf1a520411b8e8148f439a314ccdb957aaaa48fac21c2",
+      "transfer_syntax": "1.2.840.10008.1.2.1",
+      "sop_instance_uid": "2.25.20261026001701",
+      "study_instance_uid": "2.25.20261026001700",
+      "series_instance_uid": "2.25.20261026001700.1",
+      "StudyDate": "20261024",
+      "StudyTime": "101530.123456",
+      "rows": 48,
+      "columns": 64,
+      "frames": 1,
+      "samples_per_pixel": 1,
+      "bits_allocated": 8,
+      "bits_stored": 8,
+      "high_bit": 7,
+      "pixel_representation": 0,
+      "photometric_interpretation": "MONOCHROME2",
+      "PixelData_VR": "OW",
+      "PixelData_value_length": 3072
+    },
+    "odd-3x3-native-control.dcm": {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-native-control.dcm",
+      "sha256": "f12d502825944fd7f75ec578ec37db0b1d1a7a6817e30c30cc01a3fccde23a88",
+      "transfer_syntax": "1.2.840.10008.1.2.1",
+      "sop_instance_uid": "2.25.20261026001801",
+      "study_instance_uid": "2.25.20261026001800",
+      "series_instance_uid": "2.25.20261026001800.1",
+      "StudyDate": "20261024",
+      "StudyTime": "120000",
+      "rows": 3,
+      "columns": 3,
+      "frames": 1,
+      "samples_per_pixel": 1,
+      "bits_allocated": 8,
+      "bits_stored": 8,
+      "high_bit": 7,
+      "pixel_representation": 0,
+      "photometric_interpretation": "MONOCHROME2",
+      "PixelData_VR": "OB",
+      "PixelData_value_length": 10
+    },
+    "odd-3x3-rle.dcm": {
+      "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm",
+      "sha256": "4c8c90668e279188e23dfc97191ef3c1e4da392d924409b241bf07df2a88c84c",
+      "transfer_syntax": "1.2.840.10008.1.2.5",
+      "sop_instance_uid": "2.25.20261026001801",
+      "study_instance_uid": "2.25.20261026001800",
+      "series_instance_uid": "2.25.20261026001800.1",
+      "StudyDate": "20261024",
+      "StudyTime": "120000",
+      "rows": 3,
+      "columns": 3,
+      "frames": 1,
+      "samples_per_pixel": 1,
+      "bits_allocated": 8,
+      "bits_stored": 8,
+      "high_bit": 7,
+      "pixel_representation": 0,
+      "photometric_interpretation": "MONOCHROME2",
+      "PixelData_VR": "OB",
+      "PixelData_value_length": 96
+    }
+  },
+  "expected_overlay": {
+    "study_time": "10:15:30.123456",
+    "study_date_time": "2026-10-24 10:15:30.123456",
+    "pixels_sha256_unchanged": "3e07f90490bb7f61c405bbebedddc183c443c2ed6c98563aa110d04d3d1a0cd7"
+  },
+  "expected_odd_pixels": {
+    "samples": [
+      0,
+      4,
+      8,
+      3,
+      7,
+      11,
+      5,
+      9,
+      13
+    ],
+    "samples_hex": "00040803070b05090d",
+    "decoded_sample_count": 9,
+    "native_value_length": 10,
+    "native_value_hex": "00040803070b05090d00",
+    "native_value_sha256": "a9247b6c336b1e27d2c12205c838340de3fe36b504c9b5d5bf72ff722cad2382",
+    "RLE_frame_sha256": "6e23fc83eb2b5d1e3dc08ba57e317fa9ed2308bc68d33f10d55cab210c696645",
+    "RLE_frame_length": 76
+  },
+  "expected_product_checks": [
+    "ActualWorkshop odd-3x3-rle.dcm toExplicitVRLittleEndian must succeed, retain3x3/8bit/unsigned/MONOCHROME2/1frame, setPixelDataVR OB, valueLength10, exact9samples+single00padding; compare finalCLI bytes forPixelData and identifiers.",
+    "OptionalImplicitVRLittleEndian target usesdictionary OW, same10bytevalue; no inter-framepadding or10thsample.",
+    "Compare outputSOPclass/instance andStudy/Series identities tooddRLEinput (nativecontrolshares identities); filemeta transfer syntax mustmatchselected target.",
+    "Importfractional-study-time.dcm inactualviewer; expectedStudyDateTime2026-10-24 10:15:30.123456, sourcehash/pixelsunchanged. NativeactionandCLIreplay remainpending."
+  ],
+  "raw_wire_inspection": "wire-inspection.json",
+  "example_CLI_replays": [
+    [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm",
+      "--output",
+      "<fresh-cli-output>/odd-native.dcm",
+      "--transfer-syntax",
+      "ExplicitVRLittleEndian"
+    ],
+    [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/fractional-study-time.dcm",
+      "--format",
+      "json"
+    ]
+  ]
+}

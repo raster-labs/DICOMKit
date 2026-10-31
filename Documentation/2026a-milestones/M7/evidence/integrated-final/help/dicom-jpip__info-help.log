@@ -1,0 +1,21 @@
+OVERVIEW: Display information about a JPIP server or DICOM file
+
+Shows JPIP transfer syntax information for a DICOM file, or queries
+server statistics when given a server URL.
+
+Examples:
+  dicom-jpip info study.dcm
+  dicom-jpip info http://pacs.example.com:8080
+  dicom-jpip info --list-syntaxes
+
+USAGE: dicom-jpip info [<target>] [--list-syntaxes] [--json]
+
+ARGUMENTS:
+  <target>                DICOM file path or JPIP server URL (optional)
+
+OPTIONS:
+  --list-syntaxes         List JPIP transfer syntaxes
+  --json                  Output as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+

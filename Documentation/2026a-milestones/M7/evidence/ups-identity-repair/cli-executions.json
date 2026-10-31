@@ -1,0 +1,129 @@
+{
+  "actions": 5,
+  "http_requests": 4,
+  "passed": true,
+  "executions": [
+    {
+      "case": "ups-identity-create",
+      "surface": "cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "ups",
+        "http://127.0.0.1:62053/cli/dicom-web",
+        "--create",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/valid-workitem.json"
+      ],
+      "started_utc": "2026-10-26T08:56:05.794868+00:00",
+      "finished_utc": "2026-10-26T08:56:05.884704+00:00",
+      "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+      "exit": 0,
+      "expected_exit": 0,
+      "request_count_before": 0,
+      "request_count_after": 1,
+      "request_indices": [
+        1
+      ],
+      "expected_requests": 1,
+      "passed": true
+    },
+    {
+      "case": "ups-identity-get",
+      "surface": "cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "ups",
+        "http://127.0.0.1:62053/cli/dicom-web",
+        "--get",
+        "2.25.20261024001",
+        "--format",
+        "json"
+      ],
+      "started_utc": "2026-10-26T08:56:05.979592+00:00",
+      "finished_utc": "2026-10-26T08:56:06.007854+00:00",
+      "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+      "exit": 0,
+      "expected_exit": 0,
+      "request_count_before": 1,
+      "request_count_after": 2,
+      "request_indices": [
+        2
+      ],
+      "expected_requests": 1,
+      "passed": true
+    },
+    {
+      "case": "ups-identity-invalid",
+      "surface": "cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "ups",
+        "http://127.0.0.1:62053/cli/dicom-web",
+        "--create",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/invalid-workitem.json"
+      ],
+      "started_utc": "2026-10-26T08:56:06.032337+00:00",
+      "finished_utc": "2026-10-26T08:56:06.052278+00:00",
+      "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+      "exit": 1,
+      "expected_exit": 1,
+      "request_count_before": 2,
+      "request_count_after": 2,
+      "request_indices": [],
+      "expected_requests": 0,
+      "passed": true
+    },
+    {
+      "case": "ups-identity-generated",
+      "surface": "cli-generated",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "ups",
+        "http://127.0.0.1:62053/cli-generated/dicom-web",
+        "--create",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/generated-workitem.json",
+        "--format",
+        "json"
+      ],
+      "started_utc": "2026-10-26T08:56:06.076027+00:00",
+      "finished_utc": "2026-10-26T08:56:06.104842+00:00",
+      "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+      "exit": 0,
+      "expected_exit": 0,
+      "request_count_before": 2,
+      "request_count_after": 3,
+      "request_indices": [
+        3
+      ],
+      "expected_requests": 1,
+      "passed": true
+    },
+    {
+      "case": "ups-identity-default",
+      "surface": "cli-default",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "ups",
+        "http://127.0.0.1:62053/cli-default/dicom-web",
+        "--create-workitem",
+        "--label",
+        "Synthetic generated UPS",
+        "--patient-id",
+        "SYNTHETIC-UPS",
+        "--format",
+        "json"
+      ],
+      "started_utc": "2026-10-26T08:56:06.128782+00:00",
+      "finished_utc": "2026-10-26T08:56:06.157673+00:00",
+      "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+      "exit": 0,
+      "expected_exit": 0,
+      "request_count_before": 3,
+      "request_count_after": 4,
+      "request_indices": [
+        4
+      ],
+      "expected_requests": 1,
+      "passed": true
+    }
+  ]
+}

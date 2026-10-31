@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 191, in case
+    try:body(d,run,record);record['status']='passed'
+        ^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 260, in <lambda>
+    case('reverse-'+family+'-'+inp,lambda d,run,rec,f=family,i=inp:reverse(d,run,rec,f,i))
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 247, in reverse
+    require(independent==expected,'Independent encoder/decoder pair did not reproduce exact source samples')
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 51, in require
+    if not b: raise AssertionError(m)
+              ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Independent encoder/decoder pair did not reproduce exact source samples

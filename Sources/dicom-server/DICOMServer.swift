@@ -21,9 +21,9 @@ struct DICOMServer: AsyncParsableCommand {
             - C-GET: Direct retrieval service
             
             Storage Backends:
-            - Filesystem: Simple file-based storage
-            - SQLite: Lightweight database for metadata
-            - PostgreSQL: Full database for large deployments (optional)
+            - filesystem (default): Durable Part 10 files; complete metadata reindex before listening
+            - none: Files are stored, but FIND/GET/MOVE indexing is disabled
+            - SQLite and PostgreSQL are not implemented and are explicitly refused
             
             Examples:
               # Start server with default settings
@@ -71,10 +71,10 @@ struct StartCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Data directory for storing DICOM files")
     var dataDir: String = "./dicom-data"
     
-    @Option(name: .long, help: "Database type: sqlite, postgres, none")
-    var database: String = "sqlite"
+    @Option(name: .long, help: "Index mode: filesystem (durable startup reindex, default) or none (unindexed); SQLite/PostgreSQL unavailable")
+    var database: String = "filesystem"
     
-    @Option(name: .long, help: "Database connection string")
+    @Option(name: .long, help: "Index connection string: filesystem://; SQLite/PostgreSQL URLs are refused. Use --database none to disable indexing")
     var databaseUrl: String?
     
     @Option(name: .long, help: "Configuration file path")
@@ -99,23 +99,24 @@ struct StartCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Verbose logging")
     var verbose: Bool = false
     
-    @Flag(name: .long, help: "Enable TLS/SSL")
+    @Flag(name: .long, help: "Request TLS (not implemented; refused without starting an unsecured listener)")
     var tls: Bool = false
     
     mutating func run() async throws {
-        // Load configuration from file if provided
+        try await startWithConfig(resolvedConfiguration())
+    }
+
+    func resolvedConfiguration() throws -> ServerConfiguration {
+        // A file may override ordinary defaults, but must never hide an explicit
+        // request for security that this listener cannot provide.
+        try ServerConfiguration.validateTLS(tls)
         if let configPath = config {
-            let serverConfig = try ServerConfiguration.load(from: configPath).validated()
-            try await startWithConfig(serverConfig)
-            return
+            return try ServerConfiguration.load(from: configPath).validated()
         }
-        
-        // Create configuration from command-line arguments
-        let serverConfig = try createConfiguration()
-        try await startWithConfig(serverConfig)
+        return try createConfiguration()
     }
     
-    private func createConfiguration() throws -> ServerConfiguration {
+    func createConfiguration() throws -> ServerConfiguration {
         // Parse allowed/blocked AE titles
         let allowedAEs = allowedAE?.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let blockedAEs = blockedAE?.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -124,12 +125,14 @@ struct StartCommand: AsyncParsableCommand {
         let dbUrl: String
         if let providedUrl = databaseUrl {
             dbUrl = providedUrl
-        } else if database == "sqlite" {
-            dbUrl = "sqlite://\(dataDir)/dicom-server.db"
+        } else if database == "filesystem" {
+            dbUrl = "filesystem://"
+        } else if database == "sqlite" || database == "postgres" || database == "postgresql" {
+            throw ServerError.invalidConfiguration("\(database) is not implemented. Use --database filesystem for durable startup reindex, or --database none for unindexed storage.")
         } else if database == "none" {
             dbUrl = ""
         } else {
-            throw ServerError.invalidConfiguration("Unsupported database type: \(database)")
+            throw ServerError.invalidConfiguration("Unsupported database type: \(database). Use --database filesystem or --database none.")
         }
         
         var destinations: [String: DestinationAE] = [:]
@@ -159,7 +162,7 @@ struct StartCommand: AsyncParsableCommand {
         print("  AE Title: \(config.aeTitle)")
         print("  Port: \(config.port)")
         print("  Data Directory: \(config.dataDirectory)")
-        print("  Database: \(config.databaseURL.isEmpty ? "None" : config.databaseURL)")
+        print("  Database: \(config.databaseURL.isEmpty ? "None (unindexed; FIND/GET/MOVE disabled)" : config.databaseURL)")
         print("  Max Connections: \(config.maxConcurrentConnections)")
         
         // Create data directory if it doesn't exist
@@ -183,20 +186,11 @@ struct StartCommand: AsyncParsableCommand {
             }
         }
         
-        print("\n✓ DICOM Server started successfully")
-        print("Listening on port \(config.port)...")
-        print("Press Ctrl+C to stop the server")
-        
-        // Start the server
-        try await server.start()
-        
-        // Keep running until interrupted
+        // Startup validates the complete durable index before opening the listener.
         try await withTaskCancellationHandler {
-            try await Task.sleep(nanoseconds: UInt64.max)
+            try await server.start()
         } onCancel: {
-            Task {
-                await server.stop()
-            }
+            Task { await server.stop() }
         }
     }
 }

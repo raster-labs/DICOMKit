@@ -1,0 +1,14 @@
+OVERVIEW: Report a video's geometry, profile, level and conformance
+
+USAGE: dicom-video probe <input> [--trust-input] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input video file
+
+OPTIONS:
+  --trust-input           Treat a transport stream as conformant without
+                          validating it
+  -v, --verbose           Show the reasoning behind each step
+  --version               Show the version.
+  -h, --help              Show help information.
+

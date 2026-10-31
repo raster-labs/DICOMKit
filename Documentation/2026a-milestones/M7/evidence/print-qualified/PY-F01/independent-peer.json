@@ -1,0 +1,194 @@
+{
+  "records": [
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": {
+        "20000010": {
+          "Value": [
+            1
+          ],
+          "vr": "IS"
+        },
+        "20000020": {
+          "Value": [
+            "MED"
+          ],
+          "vr": "CS"
+        },
+        "20000030": {
+          "Value": [
+            "PAPER"
+          ],
+          "vr": "CS"
+        },
+        "20000040": {
+          "Value": [
+            "PROCESSOR"
+          ],
+          "vr": "CS"
+        }
+      }
+    },
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.2",
+      "context": 1,
+      "dataset": {
+        "20100010": {
+          "Value": [
+            "STANDARD\\1,1"
+          ],
+          "vr": "ST"
+        },
+        "20100040": {
+          "Value": [
+            "PORTRAIT"
+          ],
+          "vr": "CS"
+        },
+        "20100050": {
+          "Value": [
+            "8INX10IN"
+          ],
+          "vr": "CS"
+        },
+        "20100060": {
+          "Value": [
+            "REPLICATE"
+          ],
+          "vr": "CS"
+        },
+        "20100100": {
+          "Value": [
+            "BLACK"
+          ],
+          "vr": "CS"
+        },
+        "20100110": {
+          "Value": [
+            "BLACK"
+          ],
+          "vr": "CS"
+        },
+        "20100500": {
+          "Value": [
+            {
+              "00081150": {
+                "Value": [
+                  "1.2.840.10008.5.1.1.1"
+                ],
+                "vr": "UI"
+              },
+              "00081155": {
+                "Value": [
+                  "1.2.826.0.1.3680043.10.543.20261024.6.1001"
+                ],
+                "vr": "UI"
+              }
+            }
+          ],
+          "vr": "SQ"
+        }
+      }
+    },
+    {
+      "operation": "N_SET",
+      "class": "1.2.840.10008.5.1.1.4.1",
+      "context": 1,
+      "dataset": {
+        "20200010": {
+          "Value": [
+            1
+          ],
+          "vr": "US"
+        },
+        "20200020": {
+          "Value": [
+            "NORMAL"
+          ],
+          "vr": "CS"
+        },
+        "20200111": {
+          "Value": [
+            {
+              "00280002": {
+                "Value": [
+                  3
+                ],
+                "vr": "US"
+              },
+              "00280004": {
+                "Value": [
+                  "RGB"
+                ],
+                "vr": "CS"
+              },
+              "00280006": {
+                "Value": [
+                  1
+                ],
+                "vr": "US"
+              },
+              "00280010": {
+                "Value": [
+                  16
+                ],
+                "vr": "US"
+              },
+              "00280011": {
+                "Value": [
+                  16
+                ],
+                "vr": "US"
+              },
+              "00280100": {
+                "Value": [
+                  8
+                ],
+                "vr": "US"
+              },
+              "00280101": {
+                "Value": [
+                  8
+                ],
+                "vr": "US"
+              },
+              "00280102": {
+                "Value": [
+                  7
+                ],
+                "vr": "US"
+              },
+              "00280103": {
+                "Value": [
+                  0
+                ],
+                "vr": "US"
+              },
+              "7FE00010": {
+                "InlineBinary": "ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wARIjNEVWZ3iJmqu8zd7v8AESIzRFVmd4iZqrvM3e7/ABEiM0RVZneImaq7zN3u/wAAAAAAAAAAAAAAAAAAAAARERERERERERERERERERERIiIiIiIiIiIiIiIiIiIiIjMzMzMzMzMzMzMzMzMzMzNEREREREREREREREREREREVVVVVVVVVVVVVVVVVVVVVWZmZmZmZmZmZmZmZmZmZmZ3d3d3d3d3d3d3d3d3d3d3iIiIiIiIiIiIiIiIiIiIiJmZmZmZmZmZmZmZmZmZmZmqqqqqqqqqqqqqqqqqqqqqu7u7u7u7u7u7u7u7u7u7u8zMzMzMzMzMzMzMzMzMzMzd3d3d3d3d3d3d3d3d3d3d7u7u7u7u7u7u7u7u7u7u7v////////////////////8AESIzRFVmd4iZqrvM3e7/ESIzRFVmd4iZqrvM3e7/ACIzRFVmd4iZqrvM3e7/ABEzRFVmd4iZqrvM3e7/ABEiRFVmd4iZqrvM3e7/ABEiM1Vmd4iZqrvM3e7/ABEiM0Rmd4iZqrvM3e7/ABEiM0RVd4iZqrvM3e7/ABEiM0RVZoiZqrvM3e7/ABEiM0RVZneZqrvM3e7/ABEiM0RVZneIqrvM3e7/ABEiM0RVZneImbvM3e7/ABEiM0RVZneImarM3e7/ABEiM0RVZneImaq73e7/ABEiM0RVZneImaq7zO7/ABEiM0RVZneImaq7zN3/ABEiM0RVZneImaq7zN3u",
+                "vr": "OW"
+              }
+            }
+          ],
+          "vr": "SQ"
+        }
+      }
+    },
+    {
+      "operation": "N_ACTION",
+      "class": "1.2.840.10008.5.1.1.2",
+      "context": 1,
+      "dataset": {}
+    },
+    {
+      "operation": "N_DELETE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": null
+    }
+  ],
+  "event_acks": []
+}

@@ -1,0 +1,6 @@
+{
+  "tracked_files_scanned": 7521,
+  "findings": [],
+  "status": "passed",
+  "scope": "tracked working tree; Git history and other refs are not scanned"
+}

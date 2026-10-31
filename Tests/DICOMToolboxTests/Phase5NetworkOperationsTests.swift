@@ -253,7 +253,7 @@ struct DicomQueryCommandTests {
         let builder = CommandBuilder(tool: ToolRegistry.dicomQuery, networkConfig: config)
         let command = builder.buildCommand(values: ["patient-name": "SMITH*"])
         #expect(command.contains("dicom-query"))
-        #expect(command.contains("--patient-name SMITH*"))
+        #expect(command.contains("--patient-name 'SMITH*'"))
     }
 
     @Test("dicom-query with study date filter")
@@ -292,7 +292,7 @@ struct DicomQueryCommandTests {
             "modality": "CT",
             "study-date": "20240101",
         ])
-        #expect(command.contains("--patient-name SMITH*"))
+        #expect(command.contains("--patient-name 'SMITH*'"))
         #expect(command.contains("--modality CT"))
         #expect(command.contains("--study-date 20240101"))
     }
@@ -593,7 +593,7 @@ struct DicomMWLCommandTests {
     func testPatientFilter() {
         let builder = CommandBuilder(tool: ToolRegistry.dicomMWL, networkConfig: config)
         let command = builder.buildCommand(values: ["patient": "SMITH*"])
-        #expect(command.contains("--patient SMITH*"))
+        #expect(command.contains("--patient 'SMITH*'"))
     }
 
     @Test("dicom-mwl with JSON output")

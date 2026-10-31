@@ -1,0 +1,24 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 87-88
+~					85 text Console ERROR
++					117 button Description: Copy console output, Help: Copies the console output to the clipboard
+~					86 button Clear console output
++					118 scroll area
++						119 text $ dicom-anon /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/burned-in-synthetic.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/phi-false.dcm --no-clean-pixel-data --redact-style blank --redact-fill black
+
+Error: Refusing to anonymize burned-in-synthetic.dcm: the pixel data may still contain PHI.
+
+  ⚠️  Burned In Annotation (0028,0301) is YES: identifying text is rendered into the pixel data, which a metadata-only pass leaves untouched. The image is NOT de-identified; (0012,0062) is therefore recorded as NO. Clean the pixels (PS3.15 Clean Pixel Data Option) before release.
+
+With --no-clean-pixel-data this tool de-identifies the DATASET ONLY, so burned-in text survives unchanged.
+
+Let pixel cleaning run (add --redact-region x,y,w,h if the automatic region selection cannot resolve this device), or pass --allow-burned-in-phi to write the metadata-scrubbed file anyway (it will be marked Patient Identity Removed = NO).
+
++							120 text $ dicom-anon /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/burned-in-synthetic.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/phi-false.dcm --no-clean-pixel-data --redact-style blank --redact-fill black
+
+Error: Refusing to anonymize burned-in-synthetic.dcm: the pixel data may still contain PHI.
+
+  ⚠️  Burned In Annotation (0028,0301) is YES: identifying text is rendered into the pixel data, which a me
++					121 text History
+~						91 text dicom-script dicom-script dicom-script dicom-script dicom-anon
+The focused UI element is 94 search text field (settable) Search features

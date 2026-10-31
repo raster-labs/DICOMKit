@@ -1,0 +1,46 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 686]
+[Planning deferred tasks]
+[2 / 18] DICOMCore
+Build complete! (0.84 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:53:10.061.
+Test Suite 'dicom-queryTests.xctest' started at 2026-10-24 20:53:10.066.
+Test Suite 'QueryLevelOptionTests' started at 2026-10-24 20:53:10.066.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testAppliedFiltersReflectAcceptedWireKeysAndPreserveMatchingExpressions]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testAppliedFiltersReflectAcceptedWireKeysAndPreserveMatchingExpressions]' passed (0.007 seconds).
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testEveryStandardLevelValueHasAnOption]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testEveryStandardLevelValueHasAnOption]' passed (0.000 seconds).
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testHelpNamesTheImageLevel]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testHelpNamesTheImageLevel]' passed (0.003 seconds).
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testImageLevelRequiresStudyAndSeriesUIDs]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testImageLevelRequiresStudyAndSeriesUIDs]' passed (0.007 seconds).
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testInstanceIsAnAliasOfImage]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testInstanceIsAnAliasOfImage]' passed (0.000 seconds).
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testStandardLevelWordsMapToTheirQueryRetrieveLevelValues]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testStandardLevelWordsMapToTheirQueryRetrieveLevelValues]' passed (0.000 seconds).
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testUnknownLevelIsRejected]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testUnknownLevelIsRejected]' passed (0.000 seconds).
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testUnsupportedFiltersAreRefusedBeforeDispatch]' started.
+Test Case '-[dicom_queryTests.QueryLevelOptionTests testUnsupportedFiltersAreRefusedBeforeDispatch]' passed (0.014 seconds).
+Test Suite 'QueryLevelOptionTests' passed at 2026-10-24 20:53:10.097.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.030 (0.031) seconds
+Test Suite 'QueryOutputFormatTests' started at 2026-10-24 20:53:10.097.
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testCSVHeaderDefaultIsTagsAndKeywordsOnRequest]' started.
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testCSVHeaderDefaultIsTagsAndKeywordsOnRequest]' passed (0.025 seconds).
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testDICOMJSONIsThePS318F2Model]' started.
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testDICOMJSONIsThePS318F2Model]' passed (0.001 seconds).
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testDICOMJSONRetainsUTF8PersonNameGroupsAndDescription]' started.
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testDICOMJSONRetainsUTF8PersonNameGroupsAndDescription]' passed (0.000 seconds).
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testFormatOptionAcceptsDicomJSON]' started.
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testFormatOptionAcceptsDicomJSON]' passed (0.002 seconds).
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testJSONSummaryIsUnchanged]' started.
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testJSONSummaryIsUnchanged]' passed (0.000 seconds).
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testTableLabelsArePS36AttributeNames]' started.
+Test Case '-[dicom_queryTests.QueryOutputFormatTests testTableLabelsArePS36AttributeNames]' passed (0.000 seconds).
+Test Suite 'QueryOutputFormatTests' passed at 2026-10-24 20:53:10.126.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.029 (0.029) seconds
+Test Suite 'dicom-queryTests.xctest' passed at 2026-10-24 20:53:10.126.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.059 (0.060) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:53:10.126.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.059 (0.065) seconds

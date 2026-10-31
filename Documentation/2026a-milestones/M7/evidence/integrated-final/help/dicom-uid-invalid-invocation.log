@@ -1,0 +1,3 @@
+Error: Unknown option '--dicomkit-m7-invalid-option'
+Usage: dicom-uid generate [--count <count>] [--type <type>] [--root <root>] [--uuid] [--json]
+  See 'dicom-uid generate --help' for more information.

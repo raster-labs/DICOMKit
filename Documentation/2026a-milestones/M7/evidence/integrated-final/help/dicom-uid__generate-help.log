@@ -1,0 +1,32 @@
+OVERVIEW: Generate new DICOM UIDs
+
+Creates one or more unique DICOM UIDs (PS3.5 9.1). Optionally specify a UID
+type (study, series, instance) or your organisation's registered root
+(PS3.5 9.2.2); the default root is DICOMKit's 1.2.826.0.1.3680043.10.511.4.
+--uuid makes UUID derived UIDs, 2.25.<UUID as a decimal integer> (PS3.5 B.2),
+which need no registered root.
+
+Examples:
+  dicom-uid generate
+  dicom-uid generate --count 10
+  dicom-uid generate --type study
+  dicom-uid generate --root 1.2.826.0.1.3680043.9.1234
+  dicom-uid generate --count 3 --type series --json
+  dicom-uid generate --uuid --count 2
+
+USAGE: dicom-uid generate [--count <count>] [--type <type>] [--root <root>] [--uuid] [--json]
+
+OPTIONS:
+  -c, --count <count>     Number of UIDs to generate, 1 to 1000 (default: 1)
+  -t, --type <type>       UID type: study, series, instance (alias sop), or
+                          generic (default); typed UIDs add arc .1, .2 or .3
+                          under the root
+  -r, --root <root>       UID root: your organisation's registered root (PS3.5
+                          9.2.2), digits and single dots (9.1); default
+                          1.2.826.0.1.3680043.10.511.4
+  --uuid                  Generate UUID derived UIDs, 2.25.<UUID as decimal>
+                          (PS3.5 B.2); not combined with --root or --type
+  --json                  Output as JSON array
+  --version               Show the version.
+  -h, --help              Show help information.
+

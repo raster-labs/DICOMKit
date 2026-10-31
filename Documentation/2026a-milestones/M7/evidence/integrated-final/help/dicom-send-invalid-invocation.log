@@ -1,0 +1,4 @@
+Error: Missing expected argument '<host>'
+Help:  <host>  PACS server hostname or IP address, optionally with port (host:port)
+Usage: dicom-send [<options>] <host> --aet <aet> <paths> ...
+  See 'dicom-send --help' for more information.

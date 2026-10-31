@@ -1,0 +1,120 @@
+[
+  {
+    "name": "registry-add-default",
+    "command": "dicom-print add-printer --name 'Synthetic; O'\"'\"'Neil 雪' --host 127.0.0.1 --port 11112 --called-ae M6SCP --calling-ae M6WORKSHOP --color color --default",
+    "expectedExit": 0,
+    "comparison": "exact"
+  },
+  {
+    "name": "registry-list-json",
+    "command": "dicom-print list-printers --format json -v",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "registry-duplicate-refused",
+    "command": "dicom-print add-printer --name 'Synthetic; O'\"'\"'Neil 雪' --host 127.0.0.1 --called-ae M6SCP",
+    "expectedExit": 64,
+    "comparison": "error",
+    "expectedSnippets": [
+      "already exists"
+    ]
+  },
+  {
+    "name": "registry-remove",
+    "command": "dicom-print remove-printer --name 'Synthetic; O'\"'\"'Neil 雪'",
+    "expectedExit": 0,
+    "comparison": "exact"
+  },
+  {
+    "name": "registry-missing-refused",
+    "command": "dicom-print remove-printer --name 'Synthetic; O'\"'\"'Neil 雪'",
+    "expectedExit": 64,
+    "comparison": "error",
+    "expectedSnippets": [
+      "not found"
+    ]
+  },
+  {
+    "name": "scu-status-json",
+    "command": "dicom-print status __PEER_URL__ --aet M6WORKSHOP --called-aet __PEER_AE__ --timeout 5 --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scu-send-row-window-annotations",
+    "command": "dicom-print send __PEER_URL__ __FIXTURES__/gray8.dcm --aet M6WORKSHOP --called-aet __PEER_AE__ --timeout 5 --layout 'ROW\\1,3' --copies 2 --priority MED --medium 'CLEAR FILM' --film-destination bin-2 --window-center=-600 --window-width 1200 --presentation-lut IDENTITY --annotate ' first; literal note ' --annotate 'O'\"'\"'Neil second' --annotation-format M6FMT --check-status --verify --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scu-send-raw12",
+    "command": "dicom-print send __PEER_URL__ __FIXTURES__/gray12.dcm --aet M6WORKSHOP --called-aet __PEER_AE__ --timeout 5 --raw --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scu-send-rgb",
+    "command": "dicom-print send __PEER_URL__ __FIXTURES__/rgb8.dcm --aet M6WORKSHOP --called-aet __PEER_AE__ --timeout 5 --color color --template single --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scu-job-json",
+    "command": "dicom-print job __PEER_URL__ --aet M6WORKSHOP --called-aet __PEER_AE__ --timeout 5 --job-id __JOB_UID__ --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scu-dry-run-no-peer",
+    "command": "dicom-print send pacs://127.0.0.1:1 __FIXTURES__/gray8.dcm --aet M6WORKSHOP --check-status --verify --dry-run -vr --retries 2",
+    "expectedExit": 0,
+    "comparison": "exact"
+  },
+  {
+    "name": "scp-status-json",
+    "command": "dicom-printscp status --config __SIDE_OUTPUT__/absent.json --printer-name 'Synthetic M6' --manufacturer Synthetic --model M6 --printer-status WARNING --status-info 'SUPPLY LOW' --allow-ae M6WORKSHOP --allow-ae OTHER --deny-ae DENIED --no-accept-color --presentation-lut --no-annotation-box --no-trim-marks --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scp-save-config",
+    "command": "dicom-printscp status --config __SIDE_OUTPUT__/printscp.json --save-config --printer-name 'Saved M6' --output none --no-accept-color --no-annotations --format json",
+    "expectedExit": 0,
+    "comparison": "exact"
+  },
+  {
+    "name": "scp-reload-config",
+    "command": "dicom-printscp status --config __SIDE_OUTPUT__/printscp.json --format json --verbose",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scp-queues-json",
+    "command": "dicom-printscp queues --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scp-simulate-three-formats",
+    "command": "dicom-printscp simulate __FIXTURES__/gray8.dcm --config __SIDE_OUTPUT__/absent.json --layout 'ROW\\1,3' --window-center=-600 --window-width 1200 --copies 2 --trim --border-density 150 --empty-density WHITE --annotate ' first; literal note ' --annotate 'O'\"'\"'Neil second' --annotation-format M6FMT --presentation-lut IDENTITY --output png --output tiff --output pdf --output-dir __SIDE_OUTPUT__/simulated --dpi 25 --max-pixels 1024 --format json",
+    "expectedExit": 0,
+    "comparison": "json"
+  },
+  {
+    "name": "scp-simulate-save-before-gather",
+    "command": "dicom-printscp simulate __SIDE_OUTPUT__/deliberately-missing.dcm --config __SIDE_OUTPUT__/simulation-settings.json --save-config --output none --dpi 25 --format json",
+    "expectedExit": 0,
+    "comparison": "exact"
+  },
+  {
+    "name": "scp-serve-quiet-stop",
+    "command": "dicom-printscp serve --config __SIDE_OUTPUT__/absent.json --port 0 --ae-title M6VM --quiet --output png --output pdf --output-dir __SIDE_OUTPUT__/received --dpi 25 --max-pixels 1024 --duration 45",
+    "expectedExit": 130,
+    "comparison": "listener",
+    "stopAfterListening": true,
+    "timeoutSeconds": 50,
+    "stopSignalPath": "__RUN_OUTPUT__/stop-workshop-listener",
+    "readyPath": "__RUN_OUTPUT__/workshop-listener-ready.json"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "aeTitle": "M7TLS",
+  "port": 58624,
+  "dataDirectory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/tls-config-false-plus-flag",
+  "databaseURL": "filesystem://",
+  "maxConcurrentConnections": 10,
+  "maxPDUSize": 16384,
+  "enableTLS": false,
+  "verbose": false,
+  "knownDestinations": {}
+}

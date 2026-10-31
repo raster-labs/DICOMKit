@@ -1,0 +1,16 @@
+{
+  "name": "queues",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "queues",
+    "--format",
+    "json"
+  ],
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.078081917,
+  "stdout": "{\n  \"count\" : 0,\n  \"queues\" : [\n\n  ]\n}\n",
+  "stderr": "",
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "recordedUTC": "2026-10-26T06:01:06.056408+00:00"
+}

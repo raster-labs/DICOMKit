@@ -1,0 +1,16 @@
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/sr-fixture/m5-sr-temporal-precision.dcm
+699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6
+Test Suite 'M5ToolboxContractTests' passed at 2026-10-24 20:53:35.636.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.004 (0.010) seconds
+✔ Test run with 488 tests in 82 suites passed after 3.894 seconds.
+Test Suite 'M5WorkshopContractTests' passed at 2026-10-24 20:53:42.193.
+	 Executed 17 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.152 (0.153) seconds
+	 Executed 17 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.152 (0.158) seconds
+✔ Test run with 197 tests in 4 suites passed after 0.178 seconds.
+Test Suite 'ScriptRoundTripTests' passed at 2026-10-24 20:53:45.593.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.026 (0.027) seconds
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.026 (0.027) seconds
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.026 (0.032) seconds
+M5 Toolbox: 23 real CLI cases passed; UID, date, file identity and template oracles passed
+M5 Workshop: 22 CLI cases + 23 ViewModel actions passed

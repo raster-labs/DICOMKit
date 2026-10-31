@@ -1,0 +1,72 @@
+{
+  "captured_utc": "2026-10-24T14:54:05.722844+00:00",
+  "app_path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app",
+  "app_files": {
+    "Contents/Info.plist": {
+      "sha256": "e0be146e2206deca00d284b8dedb8dfe4eb9cec72fefeba24e04dc2e32bcba19",
+      "bytes": 1880
+    },
+    "Contents/MacOS/DICOMStudio": {
+      "sha256": "34e6a92cdfa753319fc00cd71708de29371001931882f3c39ba765104cff9904",
+      "bytes": 42064
+    },
+    "Contents/MacOS/DICOMStudio.debug.dylib": {
+      "sha256": "63c8fc8678a6c36ed93e2e9591598d46d7b9bfe66fbeb805169a6156f023966f",
+      "bytes": 142807248
+    },
+    "Contents/MacOS/__preview.dylib": {
+      "sha256": "acbd386c191ea35fc59c0967373e464b014093ad3a12ef677ccd61d42ca7d0e1",
+      "bytes": 16800
+    },
+    "Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "bytes": 8
+    },
+    "Contents/Resources/AppIcon.icns": {
+      "sha256": "d8c931b086cb5682398d1953f8f019090d77dd904975450f12e65d935e941468",
+      "bytes": 89020
+    },
+    "Contents/Resources/Assets.car": {
+      "sha256": "b2a13d3277174a88915e8d33a39727dc41335c33ea1da2e22d313d1a1745c1d1",
+      "bytes": 1337144
+    },
+    "Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Info.plist": {
+      "sha256": "4b32cf440e64cbeddaf6c81c7f64c94b9b69446bbf282a183d0cc25cfd28901b",
+      "bytes": 1155
+    },
+    "Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Resources/DataElementDictionary.txt": {
+      "sha256": "76686cbcc2007e4e128cb880636ab062d948fdf9884d8e19549c76a9ebd4f919",
+      "bytes": 362722
+    },
+    "Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Info.plist": {
+      "sha256": "f2a1bdce8c9ac48cae12e244a1faee7c4eb4ce397e9364de54e9460a43c6395c",
+      "bytes": 1153
+    },
+    "Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Resources/FrameRender.metal.txt": {
+      "sha256": "1ca5889c9ca61321bb27e323d1c80f8532a4c1d3802c19b10f87748de092afa7",
+      "bytes": 16520
+    },
+    "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Info.plist": {
+      "sha256": "b005991c19f79fc04dd7f4d913ced59b182de485bf0c644bc6419c500a0f1543",
+      "bytes": 1130
+    },
+    "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Resources/default.metallib": {
+      "sha256": "659aa6f38c5ef771eba04b683dd950daa81cdfb94f6104d0b3aaa9ca3cca288b",
+      "bytes": 382007
+    },
+    "Contents/_CodeSignature/CodeResources": {
+      "sha256": "707fdd5f22be769b83d086029082102e7bef9682f63ad5fc136b65fd1b7e0bb7",
+      "bytes": 5070
+    }
+  },
+  "CLI_bin_directory": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug",
+  "CLI_sha256": {
+    "dicom-print": "919d5770a82dba0eeca3438bea0b0d16f4ac8f3b4dab9e212b94d04603334af3",
+    "dicom-printscp": "3e5a2a6f6d02dbc3910596a1390fd6fb100e6477f40f8b6baa29fff4c865b748"
+  },
+  "matches_qualified_CLI_campaigns": true,
+  "full_source_manifest": "frozen-source-manifest.json",
+  "source_files_verified_unchanged": 1012,
+  "native_GUI_actions": 0,
+  "scope": "Fresh built and signed packaged identity only; no native GUI execution claim."
+}

@@ -1,0 +1,21 @@
+{
+  "case": "mwl-open-range",
+  "peer": "mwl",
+  "native_capture": 1,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mwl-open-range.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mwl",
+    "query",
+    "127.0.0.1:60660",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "M7MWL",
+    "--date=-20261231",
+    "--time=-120000",
+    "--timeout",
+    "60",
+    "--json"
+  ],
+  "expected_exit": 0
+}

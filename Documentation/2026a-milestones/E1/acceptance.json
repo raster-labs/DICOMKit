@@ -1,0 +1,147 @@
+{
+  "items": [
+    "NET-08-A",
+    "WS-DORM-01",
+    "WS-DORM-02"
+  ],
+  "criteria": [
+    {
+      "item": "NET-08-A",
+      "id": "NET-08-A-AC01",
+      "assertion": "N-CREATE IN PROGRESS, then intermediate N-SET changing an existing supported attribute without end time: accepted and status remains IN PROGRESS.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/cli-peer-qualified/results.json",
+        "E1/evidence/workshop-peer-retained/workshop-verification.json",
+        "E1/evidence/native-peer/native-wire-review.json"
+      ]
+    },
+    {
+      "item": "NET-08-A",
+      "id": "NET-08-A-AC02",
+      "assertion": "Final COMPLETED/DISCONTINUED updates still enforce their required values and references; a later update is refused.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/cli-peer-qualified/results.json",
+        "E1/evidence/workshop-peer-retained/workshop-verification.json",
+        "E1/evidence/native-peer/native-wire-review.json"
+      ]
+    },
+    {
+      "item": "NET-08-A",
+      "id": "NET-08-A-AC03",
+      "assertion": "Cover status omitted versus explicitly IN PROGRESS, sequence updates and same-character-set rules; use independent standard-derived expected datasets.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/cli-peer-qualified/results.json",
+        "E1/evidence/workshop-peer-retained/workshop-verification.json",
+        "E1/evidence/native-peer/native-wire-review.json"
+      ]
+    },
+    {
+      "item": "NET-08-A",
+      "id": "NET-08-A-AC04",
+      "assertion": "CLI and Workshop expose the intermediate action clearly; existing terminal-only workflows remain compatible.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/cli-peer-qualified/results.json",
+        "E1/evidence/workshop-peer-retained/workshop-verification.json",
+        "E1/evidence/native-peer/native-wire-review.json"
+      ]
+    },
+    {
+      "item": "WS-DORM-01",
+      "id": "WS-DORM-01-AC01",
+      "assertion": "Reachability/retirement decision recorded without claiming a current GUI defect.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/studio-tests-qualified.log",
+        "E1/REPORT.md"
+      ]
+    },
+    {
+      "item": "WS-DORM-01",
+      "id": "WS-DORM-01-AC02",
+      "assertion": "If retained, US/SS/UL/SL/FL/FD and supported additional numeric VRs decode with correct byte order and VM.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/studio-tests-qualified.log",
+        "E1/REPORT.md"
+      ]
+    },
+    {
+      "item": "WS-DORM-01",
+      "id": "WS-DORM-01-AC03",
+      "assertion": "Workshop dicom-info numeric behavior remains unchanged.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/studio-tests-qualified.log",
+        "E1/REPORT.md"
+      ]
+    },
+    {
+      "item": "WS-DORM-02",
+      "id": "WS-DORM-02-AC01",
+      "assertion": "Raw copy returns 1.23456789 unchanged and preserves the empty component in 1\\\\3.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/studio-tests-qualified.log",
+        "E1/REPORT.md"
+      ]
+    },
+    {
+      "item": "WS-DORM-02",
+      "id": "WS-DORM-02-AC02",
+      "assertion": "Binary numeric copy returns a correct documented numeric representation, not [n bytes].",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/studio-tests-qualified.log",
+        "E1/REPORT.md"
+      ]
+    },
+    {
+      "item": "WS-DORM-02",
+      "id": "WS-DORM-02-AC03",
+      "assertion": "Presentation formatting remains distinguishable from exact-value copy.",
+      "applicability": "Required for E1",
+      "reason": "",
+      "result": "Passed",
+      "evidence": [
+        "E1/verification.json",
+        "E1/evidence/studio-tests-qualified.log",
+        "E1/REPORT.md"
+      ]
+    }
+  ],
+  "passed": 10,
+  "failed": 0,
+  "pending": 0,
+  "deferred_remaining": 19
+}

@@ -778,11 +778,18 @@ public struct TransferSyntaxConverter: Sendable {
                     let frameData = try codec.decodeFrame(fragment, descriptor: descriptor, frameIndex: index)
                     decompressedData.append(frameData)
                 }
+                // Native Pixel Data has one even-length Value Field, including
+                // all frames. Pad only the final field, never individual frames.
+                if decompressedData.count % 2 != 0 { decompressedData.append(0) }
                 
-                // Create new uncompressed pixel data element
+                // PS3.5 A.2 / 8.2: native >8 Bits Allocated requires OW; implicit
+                // VR always uses OW. Encapsulated OB must not be carried over.
+                // Decoders return little-endian words; the writer uses this VR
+                // and the element's default byte order to swap a Big Endian target.
+                let nativeVR: VR = descriptor.bitsAllocated > 8 || !target.isExplicitVR ? .OW : .OB
                 let newElement = DataElement(
                     tag: element.tag,
-                    vr: element.vr,
+                    vr: nativeVR,
                     length: UInt32(decompressedData.count),
                     valueData: decompressedData
                 )

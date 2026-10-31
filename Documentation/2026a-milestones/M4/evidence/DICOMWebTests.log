@@ -1,0 +1,281 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[2 / 47]
+[4 / 9] DICOMWebTests-product
+[6 / 11] DICOMWebTests-product
+[12 / 16] DICOMWebTests-product
+[14 / 16] DICOMWebTests-product
+Build complete! (5.25 sec)
+Test Suite 'Selected tests' started at 2026-10-24 18:29:13.665.
+Test Suite 'DICOMWebTests.xctest' started at 2026-10-24 18:29:13.670.
+Test Suite 'CapabilitiesTests' started at 2026-10-24 18:29:13.670.
+Test Case '-[DICOMWebTests.CapabilitiesTests testAuthenticationMethods]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testAuthenticationMethods]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testCapabilitiesCodable]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testCapabilitiesCodable]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testCapabilitiesToJSON]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testCapabilitiesToJSON]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testDefaultCapabilities]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testDefaultCapabilities]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testDICOMKitServerCapabilities]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testDICOMKitServerCapabilities]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testMediaTypeSupport]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testMediaTypeSupport]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testMinimalCapabilities]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testMinimalCapabilities]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testQueryCapabilities]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testQueryCapabilities]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testStoreCapabilities]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testStoreCapabilities]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.CapabilitiesTests testSupportedServices]' started.
+Test Case '-[DICOMWebTests.CapabilitiesTests testSupportedServices]' passed (0.000 seconds).
+Test Suite 'CapabilitiesTests' passed at 2026-10-24 18:29:13.673.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'M4CapabilitiesProcessHarnessTests' started at 2026-10-24 18:29:13.673.
+Test Case '-[DICOMWebTests.M4CapabilitiesProcessHarnessTests testCapabilitiesProcessHarness]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/M4CapabilitiesProcessHarnessTests.swift:12: -[DICOMWebTests.M4CapabilitiesProcessHarnessTests testCapabilitiesProcessHarness] : Test skipped - Set DICOMKIT_M4_CAPABILITIES_BRIDGE for the loopback capabilities gate
+Test Case '-[DICOMWebTests.M4CapabilitiesProcessHarnessTests testCapabilitiesProcessHarness]' skipped (0.001 seconds).
+Test Suite 'M4CapabilitiesProcessHarnessTests' passed at 2026-10-24 18:29:13.673.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'M4CapabilitiesTests' started at 2026-10-24 18:29:13.673.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testAdvertisedUPSCreateAndUpdateResponsesMatchImplementedTargets]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testAdvertisedUPSCreateAndUpdateResponsesMatchImplementedTargets]' passed (0.003 seconds).
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testCORSPreflightIsDistinctFromOriginBearingCapabilities]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testCORSPreflightIsDistinctFromOriginBearingCapabilities]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testEveryAdvertisedGETRunsAgainstMinimalFixtureAndDeclaredMediaType]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testEveryAdvertisedGETRunsAgainstMinimalFixtureAndDeclaredMediaType]' passed (0.036 seconds).
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testInvalidCapabilitiesRequestsAndUnknownPrefixesFailExplicitly]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testInvalidCapabilitiesRequestsAndUnknownPrefixesFailExplicitly]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testNegotiationHonorsWeightsSpecificExclusionsAndUTF8]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testNegotiationHonorsWeightsSpecificExclusionsAndUTF8]' passed (0.003 seconds).
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testServiceBaseProducesWADLJSONAndXMLWithConfiguredBase]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testServiceBaseProducesWADLJSONAndXMLWithConfiguredBase]' passed (0.005 seconds).
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testUnsupportedRetrievalIsAbsentAndReturns501]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesTests testUnsupportedRetrievalIsAbsentAndReturns501]' passed (0.001 seconds).
+Test Suite 'M4CapabilitiesTests' passed at 2026-10-24 18:29:13.722.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.049 (0.049) seconds
+Test Suite 'QIDOResourcePolicyTests' started at 2026-10-24 18:29:13.722.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testModalityIsStudyOrSeriesAttributeAndIsRejectedForSeriesInstances]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testModalityIsStudyOrSeriesAttributeAndIsRejectedForSeriesInstances]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testResourceIETruthTableFromPS318]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testResourceIETruthTableFromPS318]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testScopeRefusesEveryUnsupportedKnownFilterRatherThanDroppingIt]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testScopeRefusesEveryUnsupportedKnownFilterRatherThanDroppingIt]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testSixRoutesNeverDuplicatePathUIDsAsParentFilters]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testSixRoutesNeverDuplicatePathUIDsAsParentFilters]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testUIDListsRemainPredicatesAndMatchingExpressionsArePreserved]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testUIDListsRemainPredicatesAndMatchingExpressionsArePreserved]' passed (0.000 seconds).
+Test Suite 'QIDOResourcePolicyTests' passed at 2026-10-24 18:29:13.723.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'DICOMWebTests.xctest' passed at 2026-10-24 18:29:13.723.
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.052 (0.053) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 18:29:13.723.
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.052 (0.058) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "STOW-RS Configuration Tests" started.
+◇ Suite "DICOMweb Server Configuration Tests" started.
+◇ Suite "Storage Query Tests" started.
+◇ Suite "UPS-RS Router Tests" started.
+◇ Suite "DICOMweb Response Tests" started.
+◇ Suite "STOW-RS Server Handler Tests" started.
+◇ Suite "DICOMweb Request Tests" started.
+◇ Suite "STOW Delegate Tests" started.
+◇ Suite "DICOMweb Server Tests" started.
+◇ Suite "InMemory Storage Provider Tests" started.
+◇ Suite "UPS-RS Server Handler Tests" started.
+◇ Suite "DICOMweb Router Tests" started.
+◇ Test "Strict STOW configuration" started.
+◇ Test "Default STOW configuration" started.
+◇ Test "Server configuration includes STOW config" started.
+◇ Test "Default configuration values" started.
+◇ Test "Custom configuration values" started.
+◇ Test "Custom STOW configuration with allowed SOP classes" started.
+◇ Test "Development preset configuration" started.
+◇ Test "Base URL with 0.0.0.0 replaces with localhost" started.
+◇ Test "Query with parameters" started.
+◇ Test "Base URL generation with TLS" started.
+◇ Test "Base URL generation without TLS" started.
+◇ Test "OK JSON response" started.
+◇ Test "Bad request response" started.
+◇ Test "Default query values" started.
+◇ Test "Date range query" started.
+◇ Test "No content response" started.
+◇ Test "Rate limit configuration" started.
+◇ Test "CORS configuration allow all" started.
+◇ Test "Permissive STOW configuration" started.
+◇ Test "Match create workitem with UID route (PS3.18 Table 11.4.1-1: /workitems?workitem=)" started.
+◇ Test "Match change workitem state route" started.
+◇ Test "Match retrieve workitem route" started.
+◇ Test "Match suspend subscription route" started.
+◇ Test "Well-known subscription UIDs route to the global handlers (PS3.18 Table 11.10.1-1)" started.
+◇ Test "Not found response" started.
+◇ Test "Match update workitem route (PS3.18 11.6.1: POST /workitems/{workitem}; PUT tolerated)" started.
+◇ Test "Match search workitems route" started.
+◇ Test "Match subscribe workitem route" started.
+◇ Test "Request header lookup is case-insensitive" started.
+◇ Test "Request parses Content-Type" started.
+◇ Test "Match create workitem route" started.
+◇ Test "Match unsubscribe workitem route" started.
+◇ Test "STOW-RS rejects multipart without boundary" started.
+◇ Test "STOW-RS rejects empty request body" started.
+◇ Test "STOW-RS rejects missing content type" started.
+◇ Test "STOW-RS request size limit" started.
+◇ Test "STOW-RS accepts application/dicom content type" started.
+◇ Test "STOW-RS rejects unsupported content type" started.
+◇ Test "Count series in study" started.
+◇ Test "Request parses Accept header" started.
+◇ Test "Search workitems returns empty when no UPS storage configured" started.
+◇ Test "Search studies with query" started.
+◇ Test "Delete non-existent instance returns false" started.
+◇ Test "Store delegate default implementations exist" started.
+◇ Test "Search workitems with query parameters" started.
+◇ Test "Match cancel request route" started.
+◇ Test "Request cancellation for SCHEDULED workitem" started.
+◇ Test "Pagination in search" started.
+◇ Test "Match STOW-RS store route" started.
+◇ Test "Match retrieve instance route" started.
+◇ Test "Delete instance" started.
+◇ Test "Empty provider has no studies" started.
+◇ Test "Search studies returns empty array when no data" started.
+◇ Test "Get series instances" started.
+◇ Test "Invalid state transition returns 409" started.
+◇ Test "Store and retrieve instance" started.
+◇ Test "Soft delete via HTTP DELETE with query parameter" started.
+◇ Test "No match for wrong prefix" started.
+◇ Test "Match frames route" started.
+◇ Test "Subscribe to workitem returns success" started.
+◇ Test "No match for unknown path" started.
+◇ Test "Search workitems returns results" started.
+◇ Test "Server initialization" started.
+◇ Test "Soft delete study" started.
+◇ Test "Match search series in study route" started.
+◇ Test "Soft delete instance" started.
+◇ Test "Match study metadata route" started.
+◇ Test "Retrieve specific workitem" started.
+◇ Test "Setting UPS storage dynamically" started.
+◇ Test "Soft delete then permanent delete" started.
+◇ Test "Update workitem" started.
+◇ Test "Capabilities include upsRS when configured" started.
+◇ Test "Match retrieve study route" started.
+◇ Test "Create duplicate workitem returns 409" started.
+◇ Test "Create workitem with specific UID" started.
+◇ Test "Match retrieve series route" started.
+◇ Test "Match delete study route" started.
+◇ Test "Create workitem without UID" started.
+◇ Test "Retrieve non-existent study returns 404" started.
+◇ Test "Handle CORS preflight" started.
+◇ Test "Soft delete series" started.
+◇ Test "Unsubscribe from workitem returns success" started.
+◇ Test "Permanent delete instance" started.
+◇ Test "Match search studies route" started.
+◇ Test "Change workitem state to IN PROGRESS" started.
+◇ Test "Handle unknown route returns 404" started.
+◇ Test "Server start and stop" started.
+✔ Test "Server configuration includes STOW config" passed after 0.001 seconds.
+✔ Test "Strict STOW configuration" passed after 0.001 seconds.
+✔ Test "Default configuration values" passed after 0.001 seconds.
+◇ Test "Delete non-existent study returns 404" started.
+✔ Test "Default STOW configuration" passed after 0.001 seconds.
+✔ Test "Custom STOW configuration with allowed SOP classes" passed after 0.001 seconds.
+◇ Test "Retrieve non-existent workitem returns 404" started.
+✔ Test "Custom configuration values" passed after 0.001 seconds.
+✔ Test "Development preset configuration" passed after 0.001 seconds.
+✔ Test "Query with parameters" passed after 0.001 seconds.
+✔ Test "Base URL generation with TLS" passed after 0.001 seconds.
+✔ Test "Base URL generation without TLS" passed after 0.001 seconds.
+✔ Test "Base URL with 0.0.0.0 replaces with localhost" passed after 0.001 seconds.
+✔ Test "Default query values" passed after 0.001 seconds.
+✔ Test "Date range query" passed after 0.001 seconds.
+✔ Test "No content response" passed after 0.001 seconds.
+✔ Test "Bad request response" passed after 0.001 seconds.
+✔ Test "OK JSON response" passed after 0.001 seconds.
+✔ Test "Rate limit configuration" passed after 0.001 seconds.
+✔ Test "Permissive STOW configuration" passed after 0.001 seconds.
+✔ Test "Match create workitem with UID route (PS3.18 Table 11.4.1-1: /workitems?workitem=)" passed after 0.001 seconds.
+✔ Test "CORS configuration allow all" passed after 0.001 seconds.
+✔ Test "Match change workitem state route" passed after 0.001 seconds.
+✔ Test "Match update workitem route (PS3.18 11.6.1: POST /workitems/{workitem}; PUT tolerated)" passed after 0.001 seconds.
+✔ Test "Match retrieve workitem route" passed after 0.001 seconds.
+✔ Test "Request header lookup is case-insensitive" passed after 0.001 seconds.
+✔ Test "Match create workitem route" passed after 0.001 seconds.
+✔ Test "Well-known subscription UIDs route to the global handlers (PS3.18 Table 11.10.1-1)" passed after 0.001 seconds.
+✔ Test "Match suspend subscription route" passed after 0.001 seconds.
+✔ Test "Match search workitems route" passed after 0.001 seconds.
+✔ Test "Not found response" passed after 0.001 seconds.
+✔ Test "STOW-RS rejects multipart without boundary" passed after 0.001 seconds.
+✔ Test "STOW-RS rejects empty request body" passed after 0.001 seconds.
+✔ Test "Search workitems returns empty when no UPS storage configured" passed after 0.001 seconds.
+✔ Test "Match subscribe workitem route" passed after 0.001 seconds.
+✔ Test "STOW-RS request size limit" passed after 0.001 seconds.
+✔ Test "STOW-RS rejects missing content type" passed after 0.001 seconds.
+✔ Test "Store delegate default implementations exist" passed after 0.001 seconds.
+✔ Test "Delete non-existent instance returns false" passed after 0.001 seconds.
+✔ Test "STOW-RS rejects unsupported content type" passed after 0.001 seconds.
+✔ Test "Request parses Accept header" passed after 0.001 seconds.
+✔ Test "Request parses Content-Type" passed after 0.001 seconds.
+✔ Test "Match unsubscribe workitem route" passed after 0.001 seconds.
+✔ Test "Match STOW-RS store route" passed after 0.001 seconds.
+✔ Test "Match retrieve instance route" passed after 0.001 seconds.
+✔ Test "Match cancel request route" passed after 0.001 seconds.
+✔ Test "Empty provider has no studies" passed after 0.001 seconds.
+✔ Test "Count series in study" passed after 0.001 seconds.
+✔ Test "No match for wrong prefix" passed after 0.001 seconds.
+✔ Test "Get series instances" passed after 0.001 seconds.
+✔ Test "Search workitems with query parameters" passed after 0.001 seconds.
+✔ Test "Request cancellation for SCHEDULED workitem" passed after 0.001 seconds.
+✔ Test "Subscribe to workitem returns success" passed after 0.001 seconds.
+✔ Test "Match frames route" passed after 0.001 seconds.
+✔ Test "No match for unknown path" passed after 0.001 seconds.
+✔ Test "STOW-RS accepts application/dicom content type" passed after 0.001 seconds.
+✔ Test "Delete instance" passed after 0.001 seconds.
+✔ Test "Search studies returns empty array when no data" passed after 0.001 seconds.
+✔ Test "Search studies with query" passed after 0.001 seconds.
+✔ Test "Store and retrieve instance" passed after 0.001 seconds.
+✔ Test "Server initialization" passed after 0.001 seconds.
+✔ Test "Soft delete via HTTP DELETE with query parameter" passed after 0.001 seconds.
+✔ Test "Soft delete study" passed after 0.001 seconds.
+✔ Test "Match search series in study route" passed after 0.001 seconds.
+✔ Test "Soft delete instance" passed after 0.001 seconds.
+✔ Test "Match delete study route" passed after 0.001 seconds.
+✔ Test "Match retrieve study route" passed after 0.001 seconds.
+✔ Test "Setting UPS storage dynamically" passed after 0.001 seconds.
+✔ Test "Capabilities include upsRS when configured" passed after 0.001 seconds.
+✔ Test "Update workitem" passed after 0.001 seconds.
+✔ Test "Soft delete then permanent delete" passed after 0.001 seconds.
+✔ Test "Create workitem with specific UID" passed after 0.001 seconds.
+✔ Test "Invalid state transition returns 409" passed after 0.001 seconds.
+✔ Test "Match retrieve series route" passed after 0.001 seconds.
+✔ Test "Match study metadata route" passed after 0.001 seconds.
+✔ Test "Soft delete series" passed after 0.001 seconds.
+✔ Test "Retrieve non-existent study returns 404" passed after 0.001 seconds.
+✔ Test "Unsubscribe from workitem returns success" passed after 0.001 seconds.
+✔ Test "Handle CORS preflight" passed after 0.001 seconds.
+✔ Test "Match search studies route" passed after 0.001 seconds.
+✔ Test "Pagination in search" passed after 0.001 seconds.
+✔ Test "Create workitem without UID" passed after 0.001 seconds.
+✔ Test "Permanent delete instance" passed after 0.001 seconds.
+✔ Test "Server start and stop" passed after 0.001 seconds.
+✔ Suite "STOW-RS Configuration Tests" passed after 0.002 seconds.
+✔ Test "Create duplicate workitem returns 409" passed after 0.001 seconds.
+✔ Test "Change workitem state to IN PROGRESS" passed after 0.001 seconds.
+✔ Test "Handle unknown route returns 404" passed after 0.001 seconds.
+✔ Test "Delete non-existent study returns 404" passed after 0.001 seconds.
+✔ Suite "Storage Query Tests" passed after 0.002 seconds.
+✔ Test "Retrieve non-existent workitem returns 404" passed after 0.001 seconds.
+✔ Suite "DICOMweb Response Tests" passed after 0.002 seconds.
+✔ Test "Retrieve specific workitem" passed after 0.001 seconds.
+✔ Suite "DICOMweb Request Tests" passed after 0.002 seconds.
+✔ Suite "DICOMweb Server Configuration Tests" passed after 0.002 seconds.
+✔ Test "Search workitems returns results" passed after 0.001 seconds.
+✔ Suite "InMemory Storage Provider Tests" passed after 0.002 seconds.
+✔ Suite "DICOMweb Router Tests" passed after 0.002 seconds.
+✔ Suite "STOW Delegate Tests" passed after 0.002 seconds.
+✔ Suite "UPS-RS Router Tests" passed after 0.002 seconds.
+✔ Suite "UPS-RS Server Handler Tests" passed after 0.002 seconds.
+✔ Suite "STOW-RS Server Handler Tests" passed after 0.002 seconds.
+✔ Suite "DICOMweb Server Tests" passed after 0.002 seconds.
+✔ Test run with 89 tests in 12 suites passed after 0.002 seconds.

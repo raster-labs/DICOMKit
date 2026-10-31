@@ -1,0 +1,65 @@
+						48 text field (settable) Description: Base URL, Value: http://127.0.0.1:60241/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+							51 radio button Description: study, Value: 1
+							52 radio button Description: series, Value: 0
+							53 radio button Description: instance, Value: 0
+						55 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						57 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						59 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						61 pop up button Description: Modality, Value: Any
+						63 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...
+						65 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						67 text field (settable) Description: Result Limit, Value: 100
+							70 radio button Description: none, Value: 1
+							71 radio button Description: basic, Value: 0
+							72 radio button Description: bearer, Value: 0
+							75 radio button Description: table, Value: 0
+							76 radio button Description: json, Value: 1
+							77 radio button Description: csv, Value: 0
+							78 radio button Description: dicom-json, Value: 0
+						80 checkbox Description: Verbose, Value: 0
+						82 text field (settable) Description: Study Description, Help: Shows additional flags for this tool, Placeholder: e.g. Chest CT or CHEST*
+						84 text field (settable) Description: Offset, Help: Shows additional flags for this tool, Value: 0
+						86 checkbox Description: Strict Modality, Help: Shows additional flags for this tool, Value: 0
+						87 checkbox Description: Fuzzy Matching, Help: Shows additional flags for this tool, Value: 0
+						88 disclosure triangle Description: Advanced options (4), Help: Shows additional flags for this tool, Value: on
+					95 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					96 button Description: Run command, Help: Runs the selected Workshop action
+					99 text Command Preview Valid $ Select a tool to build a command
+					101 text Console SUCCESS
+		113 search text field (settable) Search features
+Complete console:
+$ dicom-wado query http://127.0.0.1:60241/dicom-web --level study --limit 100 --offset 0 --format json
+
+[
+  {
+    "AccessionNumber" : "ACC-A",
+    "ModalitiesInStudy" : [
+      "CT",
+      "MR"
+    ],
+    "NumberOfStudyRelatedInstances" : 3,
+    "NumberOfStudyRelatedSeries" : 2,
+    "PatientBirthDate" : "19700101",
+    "PatientID" : "P1",
+    "PatientName" : "Müller^Synthetic",
+    "StudyDate" : "20260115",
+    "StudyID" : "ST-A",
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.301",
+    "StudyTime" : "101500"
+  },
+  {
+    "AccessionNumber" : "ACC-B",
+    "ModalitiesInStudy" : [
+      "CT"
+    ],
+    "NumberOfStudyRelatedInstances" : 2,
+    "NumberOfStudyRelatedSeries" : 1,
+    "PatientBirthDate" : "19700101",
+    "PatientID" : "P2",
+    "PatientName" : "BETA^Synthetic",
+    "StudyDate" : "20260220",
+    "StudyID" : "ST-B",
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.302",
+    "StudyTime" : "101500"
+  }
+]

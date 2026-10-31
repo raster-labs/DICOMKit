@@ -1,0 +1,38 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 100, 144-145
+~					98 text Console SUCCESS
++					147 button Description: Copy console output, Help: Copies the console output to the clipboard
++					148 button Description: Open retrieved file in viewer, Help: Opens the first retrieved DICOM file in the image viewer
+~					101 button Clear console output
++					149 scroll area
++						150 text $ dicom-retrieve 127.0.0.1:53289 --aet M4CLIENT --called-aet M4SCP --method c-get --study-uid 1.2.826.0.1.3680043.10.543.301 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/restart-get --parallel 1 --priority medium --timeout 10
+
+DICOM Retrieve (C-GET)
+======================
+  Server:            127.0.0.1:53289
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4SCP
+  Method:            C-GET
+  Level:             STUDY
+  Study UID:         1.2.826.0.1.3680043.10.543.301
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/restart-get
+  Organization:      Flat
+  Timeout:           10s
+
+Executing C-GET...
+
+✅ C-GET completed — 1 file(s) received
+
++							151 text $ dicom-retrieve 127.0.0.1:53289 --aet M4CLIENT --called-aet M4SCP --method c-get --study-uid 1.2.826.0.1.3680043.10.543.301 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/restart-get --parallel 1 --priority medium --timeout 10
+
+DICOM Retrieve (C-GET)
+======================
+  Server:            127.0.0.1:53289
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4SCP
+  Method:            C-GET
+  Level:             STUDY
+  Study UID:         1.2.826.0.1.3680043.10.54
++					152 text History
+~						108 text dicom-query dicom-query dicom-retrieve dicom-retrieve dicom-wado dicom-query dicom-retrieve
+The focused UI element is 141 text field (settable) Description: Output Directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/ui/restart-get, Placeholder: Choose a folder… (defaults to ~/Downloads/DICOMStudio)

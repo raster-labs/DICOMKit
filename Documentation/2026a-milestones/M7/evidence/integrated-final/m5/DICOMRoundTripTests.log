@@ -1,0 +1,73 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[2 / 36] J2KCore
+[5 / 6] DICOMRoundTripTests-product
+[7 / 7] DICOMRoundTripTests-product
+Build complete! (1.45 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:53:45.561.
+Test Suite 'DICOMRoundTripTests.xctest' started at 2026-10-24 20:53:45.566.
+Test Suite 'ScriptRoundTripTests' started at 2026-10-24 20:53:45.566.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testCommentsAndBlankLinesSkipped]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testCommentsAndBlankLinesSkipped]' passed (0.002 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsFalseRunsElseBranch]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsFalseRunsElseBranch]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsTrueRunsThenBranch]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsTrueRunsThenBranch]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testDryRunExecutesNoCommands]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testDryRunExecutesNoCommands]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testLogPathWritesExecutionLog]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testLogPathWritesExecutionLog]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelFlagExecutesEveryStepOnce]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelFlagExecutesEveryStepOnce]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineFailurePropagates]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineFailurePropagates]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineRunsConcurrentlyWithOrderedOutput]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineRunsConcurrentlyWithOrderedOutput]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testPipelineExecutesEachStage]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testPipelineExecutesEachStage]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testQuotedArgumentsReachTheToolWithoutQuotes]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testQuotedArgumentsReachTheToolWithoutQuotes]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptExamplesValidateCleanly]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptExamplesValidateCleanly]' passed (0.003 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptLinesCallDicomToolsOnly]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptLinesCallDicomToolsOnly]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testRunnerThrowHalts]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testRunnerThrowHalts]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testSetVariableLineSubstitutedInLaterCommand]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testSetVariableLineSubstitutedInLaterCommand]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepFailureStopsExecution]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepFailureStopsExecution]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepsExecuteInOrder]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepsExecuteInOrder]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateDirectoryInputsCarryRecursive]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateDirectoryInputsCarryRecursive]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateGeneratesAndRevalidatesCleanly]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateGeneratesAndRevalidatesCleanly]' passed (0.002 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateNameCaseInsensitive]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateNameCaseInsensitive]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateOptionsExistInTheCalledTools]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateOptionsExistInTheCalledTools]' passed (0.010 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplatesUseNoGlobsOrRedirection]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplatesUseNoGlobsOrRedirection]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testUnknownTemplateThrows]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testUnknownTemplateThrows]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateEmptyVariableValueFlagged]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateEmptyVariableValueFlagged]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateUnknownToolFlagged]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateUnknownToolFlagged]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateWellFormedScriptNoIssues]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateWellFormedScriptNoIssues]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidatorFlagsGlobsAndRedirection]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidatorFlagsGlobsAndRedirection]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableOverrideShortFormExpands]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableOverrideShortFormExpands]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableSubstitutionExpandsInjectedVariable]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableSubstitutionExpandsInjectedVariable]' passed (0.000 seconds).
+Test Suite 'ScriptRoundTripTests' passed at 2026-10-24 20:53:45.593.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.026 (0.027) seconds
+Test Suite 'DICOMRoundTripTests.xctest' passed at 2026-10-24 20:53:45.593.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.026 (0.027) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:53:45.593.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.026 (0.032) seconds

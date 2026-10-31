@@ -1,0 +1,2 @@
+
+						50 text field (settable) Description: Base URL, Placeholder: e.g. https://pacs.hospital.com/dicom-web, Value: dicom-wado ups http://127.0.0.1:61086/dicom-web --get 2.25.20261024001 --token m7-native-token --format json

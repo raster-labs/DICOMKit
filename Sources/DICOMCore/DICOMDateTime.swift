@@ -66,6 +66,27 @@ public struct DICOMDateTime: Sendable, Hashable {
         self.microsecond = microsecond
         self.timezoneOffsetMinutes = timezoneOffsetMinutes
     }
+
+    /// Creates a compact DT with second and microsecond precision from an instant.
+    /// UTC is explicit by default; the offset is recorded rather than inferred by
+    /// the receiver. Rounding carries into the next second when necessary.
+    public init?(date: Date, timeZone: TimeZone = TimeZone(secondsFromGMT: 0)!) {
+        let seconds = date.timeIntervalSinceReferenceDate
+        guard seconds.isFinite else { return nil }
+        let whole = floor(seconds)
+        let fraction = Int(((seconds - whole) * 1_000_000).rounded())
+        let roundedWhole = whole + Double(fraction / 1_000_000)
+        let roundedDate = Date(timeIntervalSinceReferenceDate: roundedWhole)
+        let offsetSeconds = timeZone.secondsFromGMT(for: roundedDate)
+        guard offsetSeconds % 60 == 0, (-720...840).contains(offsetSeconds / 60) else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let parts = calendar.dateComponents([.era, .year, .month, .day, .hour, .minute, .second], from: roundedDate)
+        guard parts.era == 1, let year = parts.year, (1...9999).contains(year) else { return nil }
+        self.init(year: year, month: parts.month, day: parts.day, hour: parts.hour,
+                  minute: parts.minute, second: parts.second, microsecond: fraction % 1_000_000,
+                  timezoneOffsetMinutes: offsetSeconds / 60)
+    }
     
     /// Parses a DICOM DT string into a DICOMDateTime
     ///

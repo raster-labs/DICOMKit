@@ -1,0 +1,51 @@
+OVERVIEW: DICOM Print SCP - emulate a DICOM printer and compose received film
+
+Listens for Print SCUs (modalities, workstations, `dicom-print send`,
+DCMTK's `dcmprscu`), answers the Print Management N-services, and
+composes every printed film onto a sheet that can be written as PNG,
+TIFF or PDF, or spooled to a real paper queue.
+
+Because the printer is emulated, it can be made to misbehave on
+purpose: `--printer-status failure` exercises an SCU's error path,
+`--no-accept-color` and `--film-size` narrow what is negotiated.
+
+Examples:
+  # Receive film and write each sheet as a PNG
+  dicom-printscp serve --port 11113 --ae-title DCMPRINT \
+      --output png --output-dir ~/Films
+
+  # A printer that says it is out of film
+  dicom-printscp serve --printer-status failure
+
+  # Accept only two modalities, keep a PDF archive
+  dicom-printscp serve --allow-ae CT1 --allow-ae MR1 \
+      --output pdf --output-dir ~/Films
+
+  # Spool received film to a real printer
+  dicom-printscp serve --paper-queue HP_LaserJet --allow-paper
+
+  # Compose a sheet locally, no network involved
+  dicom-printscp simulate scan.dcm --layout 2x2 --output png
+
+  # What the emulator would report to an SCU's N-GET
+  dicom-printscp status --printer-status warning
+
+  # Paper queues available for --paper-queue
+  dicom-printscp queues
+
+USAGE: dicom-printscp <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  serve (default)         Listen for Print SCUs and compose received film
+  simulate                Compose film from DICOM files locally, without a
+                          network
+  status                  Show the printer identity and status the emulator
+                          would report
+  queues                  List the paper printer queues available for
+                          --paper-queue
+
+  See 'dicom-printscp help <subcommand>' for detailed help.

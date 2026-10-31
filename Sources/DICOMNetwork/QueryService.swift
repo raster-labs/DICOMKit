@@ -471,7 +471,9 @@ public enum DICOMQueryService {
     /// dicom-query bug used Modality at study level, which the PACS ignores — so the
     /// modality filter silently returned every study.)
     ///
-    /// Return keys are the union needed by all callers; superfluous ones are harmless.
+    /// Unsupported supplied filters set `QueryKeys.rejectionReason`; `find` refuses
+    /// that query before networking. Callers should show the same reason before
+    /// displaying a list of applied filters.
     ///
     /// Hierarchical identifier content (PS3.4 C.4.1.2.1, C.4.1.3.2.1): a SERIES or
     /// IMAGE level Identifier carries only the Unique Keys of the levels above plus
@@ -551,14 +553,67 @@ public enum DICOMQueryService {
                     .requestModality().requestSeriesNumber().requestSeriesDescription()
             }
         }
+        let unsupported = unsupportedFilters(level: level, patientName: patientName, patientID: patientID,
+            studyDate: studyDate, modality: modality, accession: accession, studyDescription: studyDescription,
+            referringPhysician: referringPhysician, studyUID: studyUID, seriesUID: seriesUID,
+            seriesDate: seriesDate, instanceUID: instanceUID)
+        if !unsupported.isEmpty {
+            keys.rejectionReason = "\(unsupported.joined(separator: ", ")) cannot be matched at \(level.rawValue) level "
+                + "with the supported hierarchical C-FIND model (PS3.4 C.4.1.2.1, C.4.1.3.2.1). "
+                + "No query was sent. Use STUDY level for patient/study filters or SERIES level for Modality, "
+                + "then narrow the next query with the returned Study/Series Instance UIDs."
+        }
         return keys
+    }
+
+    /// All nonempty input filters that the baseline level mapping cannot encode.
+    /// Matching expressions are carried unchanged; stored DA/TM/UID grammar is
+    /// deliberately not applied to ranges, wildcards or query UID lists here.
+    public static func unsupportedFilters(
+        level: QueryLevel, patientName: String = "", patientID: String = "",
+        studyDate: String = "", modality: String = "", accession: String = "",
+        studyDescription: String = "", referringPhysician: String = "",
+        studyUID: String = "", seriesUID: String = "", seriesDate: String = "", instanceUID: String = ""
+    ) -> [String] {
+        var result: [String] = []
+        func reject(_ value: String, _ name: String, unless supported: Bool) {
+            if !value.isEmpty && !supported { result.append(name) }
+        }
+        reject(patientName, "Patient Name (--patient-name)", unless: level == .patient || level == .study)
+        reject(patientID, "Patient ID (--patient-id)", unless: level == .patient || level == .study)
+        reject(studyDate, "Study Date (--study-date)", unless: level == .study)
+        reject(modality, "Modality (--modality)", unless: level == .study || level == .series)
+        reject(studyUID, "Study Instance UID (--study-uid)", unless: level != .patient)
+        reject(seriesUID, "Series Instance UID (--series-uid)", unless: level == .series || level == .image)
+        reject(accession, "Accession Number (--accession-number)", unless: level == .study)
+        reject(studyDescription, "Study Description (--study-description)", unless: level == .study)
+        reject(referringPhysician, "Referring Physician (--referring-physician)", unless: level == .study)
+        reject(seriesDate, "Series Date", unless: level == .series)
+        reject(instanceUID, "SOP Instance UID", unless: level == .image)
+        return result
+    }
+
+    /// Nonempty, actually emitted match keys in the canonical CLI/Workshop order.
+    public static func appliedFilters(in queryKeys: QueryKeys) -> [(label: String, value: String)] {
+        guard queryKeys.rejectionReason == nil else { return [] }
+        let labels: [(Tag, String)] = [(.patientName, "Patient Name:"), (.patientID, "Patient ID:"),
+            (.studyDate, "Study Date:"), (.modalitiesInStudy, "Modality:"), (.modality, "Modality:"),
+            (.studyInstanceUID, "Study UID:"), (.seriesInstanceUID, "Series UID:"),
+            (.accessionNumber, "Accession:"), (.studyDescription, "Study Desc:"),
+            (.referringPhysicianName, "Referring Physician:"), (.seriesDate, "Series Date:"),
+            (.sopInstanceUID, "Instance UID:")]
+        return labels.compactMap { tag, label in
+            guard let value = queryKeys.keys.first(where: { $0.tag == tag })?.value, !value.isEmpty else { return nil }
+            return (label, value)
+        }
     }
 
     /// Patient/Study filter values that a caller supplied for a SERIES or IMAGE
     /// level query. Under the hierarchical model (PS3.4 C.4.1.2.1) these attributes
     /// belong to levels above the Query/Retrieve level and cannot be matched
-    /// there, so `buildQueryKeys` does not emit them. CLIs use this to warn the
-    /// user rather than dropping the filters silently.
+    /// there. This legacy diagnostic lists only parent-level fields; use
+    /// `QueryKeys.rejectionReason` for complete preflight refusal, including
+    /// unsupported child-level filters.
     ///
     /// - Returns: The human-readable names of the ignored filters, or an empty
     ///   array when nothing is ignored (including at PATIENT/STUDY level).
@@ -592,6 +647,9 @@ public enum DICOMQueryService {
         level: QueryLevel,
         queryKeys: QueryKeys
     ) async throws -> [GenericQueryResult] {
+        if let reason = queryKeys.rejectionReason {
+            throw DICOMNetworkError.invalidState(reason)
+        }
         
         // Validate that the level is supported by the information model
         guard configuration.informationModel.supportsLevel(level) else {
@@ -657,6 +715,11 @@ public enum DICOMQueryService {
             
             return results
             
+        } catch let cancellation as QueryCancelledError {
+            // FE00 is a terminal DIMSE response, not a broken association.
+            // Release normally while preserving the explicit partial outcome.
+            try? await association.release()
+            throw cancellation
         } catch {
             // Attempt to abort the association on error
             try? await association.abort()
@@ -734,8 +797,7 @@ public enum DICOMQueryService {
                     // Success - query complete
                     break
                 } else if status.isCancel {
-                    // Cancelled - return what we have
-                    break
+                    throw QueryCancelledError(partialResults: results)
                 } else if status.isFailure {
                     // Failure
                     throw DICOMNetworkError.queryFailed(status)

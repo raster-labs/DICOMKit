@@ -1,0 +1,12 @@
+OVERVIEW: Stop the DICOM server
+
+Stop a running DICOM server gracefully.
+
+USAGE: dicom-server stop [--port <port>] [--verbose]
+
+OPTIONS:
+  -p, --port <port>       Server port (default: 11112)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

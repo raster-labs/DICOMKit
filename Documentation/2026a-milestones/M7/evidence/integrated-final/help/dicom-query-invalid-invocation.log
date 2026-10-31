@@ -1,0 +1,4 @@
+Error: Missing expected argument '<host>'
+Help:  <host>  PACS server hostname or IP address, optionally with port (host:port)
+Usage: dicom-query [<options>] <host> --aet <aet>
+  See 'dicom-query --help' for more information.

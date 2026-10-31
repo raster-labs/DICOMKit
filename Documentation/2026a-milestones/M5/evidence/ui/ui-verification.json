@@ -1,0 +1,80 @@
+{
+  "milestone": "M5",
+  "result": "Passed",
+  "cases": [
+    {
+      "id": "GUI-01",
+      "assertion": "Live script disabled before Run; clear CLI-only guidance",
+      "result": "Passed",
+      "evidence": "script-live-disabled.txt"
+    },
+    {
+      "id": "GUI-02",
+      "assertion": "Dry Run successfully reports no commands executed",
+      "result": "Passed",
+      "evidence": [
+        "script-dry-run-observation.json",
+        "script-dry-run.txt"
+      ],
+      "evidence_type": "Operator-witnessed native UI; retained AX delta alone is insufficient"
+    },
+    {
+      "id": "GUI-03",
+      "assertion": "Validate reports valid synthetic script",
+      "result": "Passed",
+      "evidence": "script-validate.txt"
+    },
+    {
+      "id": "GUI-04",
+      "assertion": "Workflow template generated using correctly labeled action",
+      "result": "Passed",
+      "evidence": "template-workflow.txt"
+    },
+    {
+      "id": "GUI-05",
+      "assertion": "Conditional pipeline rejected at line 2 with ERROR",
+      "result": "Passed",
+      "evidence": "conditional-pipeline-error.txt"
+    },
+    {
+      "id": "GUI-06",
+      "assertion": "One PHI control in Beginner advanced disclosure; disabled override refuses without output",
+      "result": "Passed",
+      "evidence": "phi-false-beginner.txt"
+    },
+    {
+      "id": "GUI-07",
+      "assertion": "Same control retained enabled in Advanced mode; one flag, output marked identity not removed",
+      "result": "Passed",
+      "evidence": "phi-true-advanced.txt"
+    },
+    {
+      "id": "GUI-08",
+      "assertion": "Review returns one study and no retrieved file",
+      "result": "Passed",
+      "evidence": "qr-review.txt"
+    },
+    {
+      "id": "GUI-09",
+      "assertion": "Auto retrieves exactly one file; raw dataset equals CLI and fixture",
+      "result": "Passed",
+      "evidence": "qr-auto.txt"
+    },
+    {
+      "id": "GUI-10",
+      "assertion": "SR displays all 16 exact expected values; copied positive offset preserves fraction and offset; source hash unchanged",
+      "result": "Passed",
+      "evidence": "sr-narrative.txt"
+    }
+  ],
+  "sr_copy": "sr-copied-positive-offset.txt",
+  "sr_screenshot": "sr-narrative.png",
+  "file_comparisons": "comparisons.json",
+  "phi_output": {
+    "refused_output_exists": false,
+    "override_PatientIdentityRemoved": "NO"
+  },
+  "scope": "Actual debug DICOMStudio packaged application through native UI. Synthetic data only. Toolbox is separate library and not linked in packaged DICOMStudio, so its GUI is not applicable; real library/CLI evidence is separate. No full console byte equivalence claimed. Only workflow template interacted with in GUI; all five templates covered by real CLI/ViewModel.",
+  "app_closed_after_test": true,
+  "synthetic_import": "M5 Temporal Precision SR was imported for viewer verification; no existing study modified."
+}

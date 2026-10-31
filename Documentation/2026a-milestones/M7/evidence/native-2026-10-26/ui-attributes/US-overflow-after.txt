@@ -1,0 +1,100 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button (selected) Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-info, Help: Display DICOM file metadata, tags, and statistics
+			24 button Description: dicom-dump, Help: Hexadecimal dump with DICOM structure annotations
+			25 button (selected) Description: dicom-tags, Help: Tag dictionary lookup, set, and delete operations
+			26 button Description: dicom-diff, Help: Compare two DICOM files and show differences
+			27 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			28 split group
+				29 container
+					30 scroll area Secondary Actions: Scroll Up, Scroll Down
+						31 text DICOM Tags. Adds, modifies, or deletes tags in a DICOM file using set/delete/copy-from operations. Parameters Input Input File
+						32 text field (settable) Description: Input File, Placeholder: Path to DICOM file, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm
+						33 button Description: Browse for Input File, Help: Opens a file picker dialog
+						34 text Input DICOM file path (omit with --list-modalities) Parameters Set Tag(s) --set
+						35 text field (settable) Description: Set Tag(s), Value: Rows=65536, Placeholder: e.g. PatientName=DOE^JOHN; 0008,0090=DR.SMITH
+						36 text Keyword=Value or GGGG,EEEE=Value (keyword in PS3.6 case). Writes the PS3.6 dictionary VR and refuses a value outside the PS3.5 Table 6.2-1 limits of that VR (length, characters, numeric range); US/SS/UL/SL/FL/FD are decimal numbers, values separated by a backslash; group 0002 cannot be edited (PS3.10 7.1). Separate with “ ; ”. Delete Tag(s) --delete
+						37 text field (settable) Description: Delete Tag(s), Placeholder: e.g. PatientBirthDate; 0010,0020
+						38 text Tags to remove (name or GGGG,EEEE). Separate with “ ; ”. Options
+						39 checkbox Description: List Modalities, Value: 0
+						40 checkbox Description: Delete Private Tags, Value: 0
+						41 checkbox Description: Verbose, Value: 0
+						42 checkbox Description: Dry Run, Value: 1
+						43 text Output Output File --output
+						44 text field (settable) Description: Output File, Placeholder: Output DICOM file path (overwrites input if omitted), Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/US-overflow.dcm
+						45 button Description: Browse for Output File, Help: Opens a file picker dialog
+						46 text Write modified DICOM to this path instead of overwriting the input file Input Copy From File --copy-from
+						47 text field (settable) Description: Copy From File, Help: Shows additional flags for this tool, Placeholder: Source DICOM file path
+						48 button Description: Browse for Copy From File, Help: Shows additional flags for this tool
+						49 text Help: Shows additional flags for this tool, Value: Copy tags from this DICOM file into the input file Parameters Tags to Copy --tags
+						50 text field (settable) Description: Tags to Copy, Help: Shows additional flags for this tool, Placeholder: e.g. PatientName,PatientID
+						51 text Help: Shows additional flags for this tool, Value: Comma-separated list of tags to copy from --copy-from file (default: all)
+						52 disclosure triangle Description: Advanced options (2), Help: Shows additional flags for this tool, Value: on
+						53 scroll bar (settable, float) 0.05005954887100798
+							54 value indicator (settable, float) 0.05005954887100798
+							55 increment arrow button
+							56 decrement arrow button
+							57 increment page button
+							58 decrement page button
+					59 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					60 button Description: Run command, Help: Runs the selected Workshop action
+				61 splitter (disabled, settable, float) 460
+				62 container
+					63 text Command Preview Valid $ Select a tool to build a command
+					64 button Description: Copy command, Help: Copies the command to the clipboard
+					65 text Console ERROR
+					66 button Description: Copy console output, Help: Copies the console output to the clipboard
+					67 button Clear console output
+					68 scroll area
+						69 text $ dicom-tags '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'\''Neil; snow 雪.dcm' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm --set 'PatientName=O'\''Neil^White Space' --set 'PixelSpacing=1\2' --set 'PatientComments=literal $(touch /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/MUST-NOT-EXIST) $HOME *' --set PatientID==leading-equals
+
+Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm
+
+							70 text $ dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/US-overflow.dcm --set Rows=65536 --dry-run
+
+Error: --set (0028,0010): [VR US, VM 1] 65536 is out of range for VR US (0...65535, PS3.5 Table 6.2-1)
+
+					71 text History
+					72 button Clear
+					73 scroll area
+						74 text dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags
+	75 toolbar
+		76 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		77 search text field (settable) Search features
+			78 button Search
+	79 close button
+	80 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	81 minimize button
+	82 text DICOM Studio
+83 menu bar
+	84 DICOMStudio
+	85 File
+	86 Edit
+	87 View
+	88 Image
+	89 Window
+	90 Help
+
+The focused UI element is 35 text field (settable) Description: Set Tag(s), Value: Rows=65536, Placeholder: e.g. PatientName=DOE^JOHN; 0008,0090=DR.SMITH

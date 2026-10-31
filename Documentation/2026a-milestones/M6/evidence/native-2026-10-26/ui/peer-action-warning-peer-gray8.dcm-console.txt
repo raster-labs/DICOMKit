@@ -1,0 +1,48 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-print send --aet M7NATIVE --called-aet PYM6 --timeout 5 --format json --copies 1 --film-size 8x10 --orientation portrait --priority medium --layout 1x1 --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:56647 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm
+
+{
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1002",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1001",
+  "printJobUID" : "1.2.826.0.1.3680043.10.543.20261024.6.2000",
+  "success" : true,
+  "warnings" : [
+    {
+      "filmBoxUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1002",
+      "message" : "N-ACTION for Film Box 1.2.826.0.1.3680043.10.543.20261024.6.1002: Warning (0xB604): Image size is larger than image box size, the image has been demagnified.",
+      "status" : "0xB604"
+    }
+  ]
+}
+
+			5 scroll bar (disabled, settable, float) 1
+		6 button Cancel
+		7 button Import
+8 menu bar
+	9 DICOMStudio
+	10 File
+	11 Edit
+	12 View
+	13 Image
+	14 Window
+	15 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-print send --aet M7NATIVE --called-aet PYM6 --timeout 5 --format json --copies 1 --film-size 8x10 --orientation portrait --priority medium --layout 1x1 --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:56647 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm
+
+{
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1002",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1001",
+  "printJobUID" : "1.2.826.0.1.3680043.10.543.20261024.6.2000",
+  "success" : true,
+  "warnings" : [
+    {
+      "filmBoxUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1002",
+      "message" : "N-ACTION for Film Box 1.2.826.0.1.3680043.10.543.20261024.6.1002: Warning (0xB604): Image size is larger than image box size, the image has been demagnified.",
+      "status" : "0xB604"
+    }
+  ]
+}

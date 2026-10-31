@@ -1,0 +1,4 @@
+Error: Missing expected argument '--archive <archive>'
+Help:  --archive <archive>  Path to the archive
+Usage: dicom-archive check --archive <archive> [--verify-files] [--verbose]
+  See 'dicom-archive check --help' for more information.

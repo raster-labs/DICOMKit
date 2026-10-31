@@ -1,0 +1,4 @@
+Error: Missing expected argument '<base-url>'
+Help:  <base-url>  DICOMweb server base URL (e.g., https://server/dicom-web)
+Usage: dicom-wado retrieve [<options>] <base-url>
+  See 'dicom-wado retrieve --help' for more information.

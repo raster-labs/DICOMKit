@@ -1,0 +1,28 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --output none --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json
+
+{"level":"info","message":"Listening on port 21114 as DCMKIT_M6","time":"2026-10-26T05:51:18Z"}
+{"level":"info","message":"Stopped — 0 associations, 0 films, 0 errors (cancelled)","time":"2026-10-26T05:51:19Z"}
+Stopped by user; the print operation was cancelled.
+
+			5 scroll bar (disabled, settable, float) 1
+		6 button Cancel
+		7 button Import
+8 menu bar
+	9 DICOMStudio
+	10 File
+	11 Edit
+	12 View
+	13 Image
+	14 Window
+	15 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --output none --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json
+
+{"level":"info","message":"Listening on port 21114 as DCMKIT_M6","time":"2026-10-26T05:51:18Z"}
+{"level":"info","message":"Stopped — 0 associations, 0 films, 0 errors (cancelled)","time":"2026-10-26T05:51:19Z"}
+Stopped by user; the print operation was cancelled.

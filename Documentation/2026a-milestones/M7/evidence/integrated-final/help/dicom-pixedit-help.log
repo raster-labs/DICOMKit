@@ -1,0 +1,65 @@
+OVERVIEW: Edit pixel data in DICOM files
+
+Provides pixel data manipulation tools for DICOM images: masking
+rectangular regions (e.g. burned-in annotation), cropping, baking a
+window into the stored values, and inverting stored values.
+
+The output is a Derived Image (PS3.3 C.7.6.1.1.2): it gets a new SOP
+Instance UID, Image Type (0008,0008) Value 1 DERIVED, a Derivation
+Description (0008,2111) and a Source Image Sequence (0008,2112) item
+referencing the input. Burned In Annotation (0028,0301) and Lossy
+Image Compression (0028,2110) are left as they are. Operations run in
+the order mask, crop, window, invert; regions are in the input's
+pixel coordinates (0-based column, row).
+
+Examples:
+  # Mask a region (e.g., burned-in text)
+  dicom-pixedit file.dcm --output masked.dcm --mask-region 0,0,200,50
+  
+  # Mask with specific fill value
+  dicom-pixedit file.dcm --output masked.dcm --mask-region 0,0,200,50
+--fill-value 0
+  
+  # Crop to region of interest
+  dicom-pixedit file.dcm --output cropped.dcm --crop 100,100,400,400
+  
+  # Adjust window/level permanently (bake into pixel data)
+  dicom-pixedit ct.dcm --output windowed.dcm --window-center 40 --window-width
+400 --apply-window
+  
+  # Invert pixel values
+  dicom-pixedit file.dcm --output inverted.dcm --invert
+
+USAGE: dicom-pixedit <input> --output <output> [--mask-region <mask-region>] [--fill-value <fill-value>] [--crop <crop>] [--window-center <window-center>] [--window-width <window-width>] [--apply-window] [--invert] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path
+
+OPTIONS:
+  --output <output>       Output DICOM file path
+  --mask-region <mask-region>
+                          Mask region x,y,width,height (0-based column, row) -
+                          sets every sample in it to --fill-value
+  --fill-value <fill-value>
+                          Stored value for masked samples (default: 0); must
+                          lie in the range of Bits Stored (0028,0101) and Pixel
+                          Representation (0028,0103) (PS3.3 C.7.6.3.1), else
+                          exit 1
+  --crop <crop>           Crop region x,y,width,height (0-based column, row);
+                          Rows/Columns and Image Position (Patient) are updated
+  --window-center <window-center>
+                          Window Center (0028,1050) for --apply-window, in
+                          Modality LUT output units (e.g. HU for CT; PS3.3
+                          C.11.2.1.2)
+  --window-width <window-width>
+                          Window Width (0028,1051) for --apply-window, in
+                          Modality LUT output units; at least 1 (PS3.3
+                          C.11.2.1.2), else exit 1
+  --apply-window          Bake the window (PS3.3 C.11.2.1.2 linear function)
+                          into the stored pixel values
+  --invert                Invert stored pixel values across the Bits Stored
+                          range
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

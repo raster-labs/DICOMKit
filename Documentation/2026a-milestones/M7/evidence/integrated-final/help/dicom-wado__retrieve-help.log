@@ -1,0 +1,97 @@
+OVERVIEW: Retrieve DICOM objects using WADO-RS or WADO-URI
+
+Downloads studies, series, instances, frames, or metadata from DICOMweb server.
+
+By default uses WADO-RS (RESTful paths). Use --uri for legacy WADO-URI servers
+(e.g. dcm4chee2) that expect query-parameter URLs.
+
+WADO-URI endpoint: dcm4chee-arc serves WADO-URI from its `/wado` servlet, not
+the
+RESTful `/rs` endpoint. If a `/rs` base URL is supplied with --uri it is
+rewritten
+to `/wado` automatically (so `…/aets/AET/rs` becomes `…/aets/AET/wado`);
+dcm4chee2's
+root `/wado` and other paths are used as-is.
+
+WADO-RS examples:
+  dicom-wado retrieve https://server/dicom-web --study 1.2.3.4.5 -o study/
+  dicom-wado retrieve https://server/dicom-web --study 1.2.3 --series 1.2.3.4
+-o series/
+  dicom-wado retrieve https://server/dicom-web --study 1.2.3 --metadata
+--format json
+
+WADO-URI examples (legacy):
+  dicom-wado retrieve http://server:8080/wado --uri --study 1.2.3 --series
+1.2.3.4 --instance 1.2.3.4.5 -o out/
+  dicom-wado retrieve http://server:8080/wado --uri --study 1.2.3 --series
+1.2.3.4 --instance 1.2.3.4.5 --content-type image/jpeg -o out/
+
+USAGE: dicom-wado retrieve [<options>] <base-url>
+
+ARGUMENTS:
+  <base-url>              DICOMweb server base URL (e.g.,
+                          https://server/dicom-web)
+
+OPTIONS:
+  --study <study>         Study Instance UID to retrieve
+  --series <series>       Series Instance UID to retrieve
+  --instance <instance>   SOP Instance UID to retrieve
+  --frames <frames>       Frame numbers to retrieve (comma-separated, e.g.,
+                          1,2,3)
+  --uri                   Use WADO-URI protocol (legacy query-parameter URLs
+                          for dcm4chee2 etc.)
+  --content-type <content-type>
+                          Content type for WADO-URI: application/dicom
+                          (default), or a Rendered Media Type: image/jpeg,
+                          image/gif, image/png, image/jp2, image/jph,
+                          image/jxl, video/mpeg, video/mp4, video/H265,
+                          text/html, text/plain, text/xml, text/rtf,
+                          application/pdf (PS3.18 9.1.2.2.1, Table 8.7.4-1)
+  --charset <charset>     WADO-URI charset: comma-separated character sets of
+                          the response, e.g. UTF-8 (PS3.18 9.1.2.2.2)
+  --annotation <annotation>
+                          WADO-URI annotation (application/dicom) /
+                          imageAnnotation (rendered): patient, technique, or
+                          both comma-separated (PS3.18 9.4.1.2.2, Table 9.5.1-1)
+  --image-quality <image-quality>
+                          WADO-URI imageQuality of a rendered image, 1-100
+                          (PS3.18 9.5.1.2.3, 8.3.5.1.2)
+  --region <region>       WADO-URI region: xmin,ymin,xmax,ymax in normalized
+                          0.0-1.0 image coordinates (PS3.18 9.5.1.2.5)
+  --window-center <window-center>
+                          WADO-URI windowCenter of a rendered image; needs
+                          --window-width (PS3.18 9.5.1.2.6.1)
+  --window-width <window-width>
+                          WADO-URI windowWidth of a rendered image; needs
+                          --window-center (PS3.18 9.5.1.2.6.2)
+  --presentation-uid <presentation-uid>
+                          WADO-URI presentationUID: Presentation State SOP
+                          Instance UID used to render; needs
+                          --presentation-series-uid (PS3.18 9.5.1.2.7.2)
+  --presentation-series-uid <presentation-series-uid>
+                          WADO-URI presentationSeriesUID: Series of that
+                          Presentation State; needs --presentation-uid (PS3.18
+                          9.5.1.2.7.1)
+  --transfer-syntax <transfer-syntax>
+                          WADO-URI transferSyntax: Transfer Syntax UID for an
+                          application/dicom retrieve (PS3.18 9.4.1.2.3)
+  --anonymize             WADO-URI anonymize=yes: ask the server to remove
+                          Individually Identifiable Information (PS3.18
+                          9.4.1.2.1)
+  --rows <rows>           WADO-URI rows: pixel rows of the rendered image, a
+                          positive integer (PS3.18 9.5.1.2.4.1)
+  --columns <columns>     WADO-URI columns: pixel columns of the rendered
+                          image, a positive integer (PS3.18 9.5.1.2.4.2)
+  --metadata              Retrieve only metadata (not pixel data)
+  --rendered              Retrieve rendered image instead of DICOM
+  --thumbnail             Retrieve thumbnail images
+  -o, --output <output>   Output directory for retrieved files
+  --token <token>         OAuth2 bearer token for authentication
+  -f, --format <format>   Output format for metadata: json, xml (default: json)
+                          (default: json)
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  --verbose               Show verbose output including progress
+  --version               Show the version.
+  -h, --help              Show help information.
+

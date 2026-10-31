@@ -1,0 +1,13 @@
+{
+  "recorded_utc": "2026-10-26T07:44:13.493231+00:00",
+  "selection": "Allowlisted synthetic attribute, validator, SR/viewer and catalog receipts; raw UI/text outputs, independently generated fixtures, source/artifact identities and regression/failure logs. Shared print proof references existing M6 archive.",
+  "excluded": [
+    "Clinical files/library data",
+    "Configured private PACS profiles/hosts",
+    "Credentials and private keys",
+    "User application database or unrelated filesystem data",
+    "Peer venv/cache and runtime binaries"
+  ],
+  "review": "Inspected synthetic viewer PNGs. Scanned324 selected text/JSON/UI/oracle files for non-loopback IPv4-like endpoints: zero candidates. All selected DICOM/output paths belong to previously hashed synthetic qualification fixtures. Catalog receipt omits parameter values and shows generic placeholders only.",
+  "preservation": "Raw bytes/paths retained as historical provenance; no redaction silently alters captured commands. Earlier failure/oracle receipts retained and explicitly not counted as passes."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "PY-F06",
+  "title": "DICOMKit SCU to pynetdicom: N-ACTION warning surfaced",
+  "status": "failed",
+  "error": "warning not surfaced",
+  "elapsed_seconds": 0.5557213750000001,
+  "observations": {}
+}

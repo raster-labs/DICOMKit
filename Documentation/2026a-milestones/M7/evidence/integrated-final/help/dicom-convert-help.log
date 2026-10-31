@@ -1,0 +1,70 @@
+OVERVIEW: Convert DICOM files between transfer syntaxes and export to image
+formats
+
+Convert DICOM files to different transfer syntaxes or export pixel data to PNG,
+JPEG, or TIFF.
+Supports both single file and batch directory conversion.
+
+Frames are numbered from 1 (PS3.3 Table 10-3); select one with --frame-number.
+Exit codes: 0 success; 1 a file failed (a directory run exits 1 when any file
+failed) or --frame and --frame-number were both given; 64 invalid arguments.
+
+Examples:
+  dicom-convert file.dcm --output output.dcm --transfer-syntax
+ExplicitVRLittleEndian
+  dicom-convert ct.dcm --output ct.png --apply-window --window-center 40
+--window-width 400
+  dicom-convert input/ --output output/ --transfer-syntax
+ExplicitVRLittleEndian --recursive
+  dicom-convert xray.dcm --output xray.jpg --format jpeg --quality 95
+  dicom-convert cine.dcm --output frame3.png --frame-number 3
+
+USAGE: dicom-convert [<options>] <input-path> --output <output>
+
+ARGUMENTS:
+  <input-path>            Path to DICOM file or directory
+
+OPTIONS:
+  -o, --output <output>   Output file or directory path
+  --transfer-syntax <transfer-syntax>
+                          Target transfer syntax: ExplicitVRLittleEndian,
+                          ImplicitVRLittleEndian, ExplicitVRBigEndian, DEFLATE,
+                          JPEGBaseline, JPEGExtended, JPEGLossless,
+                          JPEGLosslessSV1, JPEG2000Lossy, JPEG2000Reversible,
+                          JPEG2000LosslessOnly, JPEG2000Part2Lossy,
+                          JPEG2000Part2Lossless, JPEG2000Part2LosslessOnly,
+                          HTJ2KLossy, HTJ2KReversible, HTJ2KLosslessOnly,
+                          HTJ2KRPCLLosslessOnly, JPEGLSLossless,
+                          JPEGLSNearLossless, JPEGXLLossy, JPEGXLReversible,
+                          JPEGXLLosslessOnly, JPEGXLRecompression, RLELossless.
+                          Also a Transfer Syntax UID or a PS3.6 Table A-1
+                          keyword (DeflatedExplicitVRLittleEndian,
+                          HTJ2KLossless, HTJ2KLosslessRPCL, JPEG2000Lossless,
+                          JPEG2000MC, JPEG2000MCLossless, JPEGBaseline8Bit,
+                          JPEGExtended12Bit, JPEGXLJPEGRecompression,
+                          JPEGXLLossless); every Table A-1 keyword selects its
+                          Table A-1 UID. Changed: JPEG2000Lossless,
+                          HTJ2KLossless and JPEGXLLossless now select .90 /
+                          .201 / .110; the reversible encode into .91 / .203 /
+                          .112 is JPEG2000Reversible, HTJ2KReversible,
+                          JPEGXLReversible.
+  --format <format>       Output format for image export: png, jpeg, tiff,
+                          dicom (default: dicom) (default: dicom)
+  --quality <quality>     JPEG quality (1-100, default: 90) (default: 90)
+  --apply-window          Apply window/level during export
+  --window-center <window-center>
+                          Window center value (Window Center (0028,1050))
+  --window-width <window-width>
+                          Window width value (Window Width (0028,1051), at
+                          least 1)
+  --frame-number <frame-number>
+                          Frame to export, numbered from 1 (PS3.3 Table 10-3:
+                          the first Frame is Frame number 1; default 1)
+  --frame <frame>         deprecated: 0-based index; use --frame-number
+  --recursive             Process directories recursively
+  --strip-private         Strip private tags during conversion
+  --validate              Validate output after conversion
+  --force                 Force parsing of files without DICM prefix
+  --version               Show the version.
+  -h, --help              Show help information.
+

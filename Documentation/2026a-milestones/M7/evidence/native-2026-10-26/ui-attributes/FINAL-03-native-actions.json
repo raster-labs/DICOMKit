@@ -1,0 +1,58 @@
+[
+  {
+    "id": "identity-both",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "latin-leading",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "japanese-leading",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "utf8-leading",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "nested-charsets-edit",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "copy-0",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "copy-1",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "copy-2",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "copy-3",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "copy-compatible",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "signed-insert",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "signed-update",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "unsigned-negative",
+    "status": "ERROR"
+  },
+  {
+    "id": "US-overflow",
+    "status": "ERROR"
+  }
+]

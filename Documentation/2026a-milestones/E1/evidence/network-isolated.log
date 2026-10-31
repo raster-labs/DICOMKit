@@ -1,0 +1,55 @@
+Building for debugging...
+[Computing dependencies]
+[2 / 46]
+[4 / 14] DICOMNetwork
+[6 / 16] DICOMNetwork
+[12 / 19] DICOMNetwork
+[13 / 18] DICOMNetworkTests-product
+[22 / 27] DICOMNetworkTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/M6PrintJobEventTests.swift:247:29: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+245 |         self.jobSyntax = jobSyntax
+246 |         association = Association(configuration: AssociationConfiguration(
+247 |             callingAETitle: try AETitle("M6EVENTSCU"), calledAETitle: try AETitle(calledAE),
+    |                             `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+248 |             host: "127.0.0.1", port: port,
+249 |             implementationClassUID: PrintSCPConfiguration.defaultImplementationClassUID,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:192:64: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 190 | final class PrintSCPParserTests: XCTestCase {
+ 191 | 
+ 192 |     private let configuration = PrintSCPConfiguration(aeTitle: try! AETitle("DCMPRINT"), port: 0)
+     |                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 193 | 
+ 194 |     private func parse(_ elements: [DataElement], explicitVR: Bool = true) throws -> PrintAttributeSet {
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[28 / 32] DICOMNetworkTests-product
+[30 / 32] DICOMNetworkTests-product
+Build complete! (6.57 sec)
+Test Suite 'Selected tests' started at 2026-10-26 17:21:40.553.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-26 17:21:40.558.
+Test Suite 'MPPSIntermediateUpdateTests' started at 2026-10-26 17:21:40.558.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testBothFinalStatesRequireStatusEndAndSeriesButMayHaveNoInstances]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testBothFinalStatesRequireStatusEndAndSeriesButMayHaveNoInstances]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testCreatedContextRetainsCharsetAndBlocksAnyUpdateAfterTerminalSend]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testCreatedContextRetainsCharsetAndBlocksAnyUpdateAfterTerminalSend]' passed (0.007 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testEmptyDescriptionIsAnExplicitClearNotOmission]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testEmptyDescriptionIsAnExplicitClearNotOmission]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testExplicitInProgressHasStatusAndNoEndValues]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testExplicitInProgressHasStatusAndNoEndValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testExternallyCreatedNonDefaultInstanceNeedsOriginalCharset]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testExternallyCreatedNonDefaultInstanceNeedsOriginalCharset]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testFailedFirstIntermediateDoesNotPinAssumedCharacterSet]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testFailedFirstIntermediateDoesNotPinAssumedCharacterSet]' passed (2.050 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testFixedCharacterSetNeverSilentlyChangesOrReplacesText]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testFixedCharacterSetNeverSilentlyChangesOrReplacesText]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testIntermediateRejectsRawBypassesAndEmptyModificationList]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testIntermediateRejectsRawBypassesAndEmptyModificationList]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testStatusOmittedSendsOnlyRequestedDescription]' started.
+Test Case '-[DICOMNetworkTests.MPPSIntermediateUpdateTests testStatusOmittedSendsOnlyRequestedDescription]' passed (0.000 seconds).
+Test Suite 'MPPSIntermediateUpdateTests' passed at 2026-10-26 17:21:42.618.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 2.059 (2.060) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-10-26 17:21:42.618.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 2.059 (2.060) seconds
+Test Suite 'Selected tests' passed at 2026-10-26 17:21:42.618.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 2.059 (2.065) seconds

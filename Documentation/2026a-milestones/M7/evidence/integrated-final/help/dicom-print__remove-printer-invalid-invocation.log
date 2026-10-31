@@ -1,0 +1,4 @@
+Error: Missing expected argument '--name <name>'
+Help:  --name <name>  Printer name to remove
+Usage: dicom-print remove-printer --name <name>
+  See 'dicom-print remove-printer --help' for more information.

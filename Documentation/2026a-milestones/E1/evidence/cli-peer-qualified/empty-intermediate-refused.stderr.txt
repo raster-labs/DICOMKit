@@ -1,0 +1,3 @@
+Error: An intermediate update without --status needs --procedure-step-description or a full --series-uid snapshot
+Usage: dicom-mpps <subcommand>
+  See 'dicom-mpps --help' for more information.

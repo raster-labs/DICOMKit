@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-paths> ...'
+Help:  <input-paths>  Input DICOM files (multi-slice series)
+Usage: dicom-3d mip <input-paths> ... --output <output> [--direction <direction>] [--thickness <thickness>] [--window-center <window-center>] [--window-width <window-width>] [--verbose]
+  See 'dicom-3d mip --help' for more information.

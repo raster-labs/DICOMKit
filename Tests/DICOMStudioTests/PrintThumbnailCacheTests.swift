@@ -34,8 +34,8 @@ struct PrintThumbnailCacheTests {
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testRendersThumbnail() async throws {
         let url = try #require(
-            StudioTestFixtures.url(named: "syn-ct.dcm"),
-            "syn-ct.dcm fixture should be bundled")
+            try StudioTestFixtures.url(named: "syn-ct.dcm"),
+            "syn-ct.dcm fixture should be generated")
         let item = PrintSelectionItem(filePath: url.path)
 
         let cache = PrintThumbnailCache()
@@ -67,7 +67,7 @@ struct PrintThumbnailCacheTests {
     @Test("Unmarked images are evicted on refresh")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testEvictsRemovedMarks() async throws {
-        let url = try #require(StudioTestFixtures.url(named: "syn-ct.dcm"))
+        let url = try #require(try StudioTestFixtures.url(named: "syn-ct.dcm"))
         let kept = PrintSelectionItem(filePath: url.path)
         let dropped = PrintSelectionItem(filePath: url.path, frameIndex: 0)
 
@@ -85,7 +85,7 @@ struct PrintThumbnailCacheTests {
     @Test("A re-arranged mark is re-rendered, not served from the old cache")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testArrangementInvalidatesThumbnail() async throws {
-        let url = try #require(StudioTestFixtures.url(named: "syn-ct.dcm"))
+        let url = try #require(try StudioTestFixtures.url(named: "syn-ct.dcm"))
         let cache = PrintThumbnailCache()
 
         // The same frame, first unzoomed…
@@ -114,7 +114,7 @@ struct PrintThumbnailCacheTests {
     @Test("A re-windowed cell keeps showing the previous picture while it renders")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testStandsInDuringAnEdit() async throws {
-        let url = try #require(StudioTestFixtures.url(named: "syn-ct.dcm"))
+        let url = try #require(try StudioTestFixtures.url(named: "syn-ct.dcm"))
         let cache = PrintThumbnailCache()
 
         let before = PrintSelectionItem(filePath: url.path, windowCenter: 40, windowWidth: 400)
@@ -136,7 +136,7 @@ struct PrintThumbnailCacheTests {
     @Test("Clear forgets every thumbnail")
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
     func testClear() async throws {
-        let url = try #require(StudioTestFixtures.url(named: "syn-ct.dcm"))
+        let url = try #require(try StudioTestFixtures.url(named: "syn-ct.dcm"))
         let item = PrintSelectionItem(filePath: url.path)
 
         let cache = PrintThumbnailCache()

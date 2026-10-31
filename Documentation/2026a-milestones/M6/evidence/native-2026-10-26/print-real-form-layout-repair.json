@@ -1,0 +1,30 @@
+{
+  "recordedUTC": "2026-10-26T07:11:44.700446+00:00",
+  "status": "Minimal source/test change frozen; no build/test/UI performed by implementer",
+  "failureEvidence": [
+    "ui-final/send-layout-default.png",
+    "ui-final/send-layout-default.txt"
+  ],
+  "observed": "Actual left split pane is240points (x220..460); the whole vertical form, including ordinary labels/fields and native flags, exceeds the pane and is centered/clipped. Prior isolated checkbox width test passed but did not represent this hierarchy.",
+  "sourceCause": "enumPickerField selected segmented style for every2\u20136 choice control. Print SCU has6 operation names including list-printers/add-printer/remove-printer; the intrinsic NSSegmentedControl width propagates through the shared VStack/ScrollView. The isolated test omitted this picker, purpose header, actual ScrollView and HSplitView.",
+  "change": "Print subcommand pickers now use the native menu style. Other value pickers, split constraints, focus behavior and OS settings are unchanged.",
+  "regression": "M7PrintNativeCheckboxTests.testRealPrintWorkshopFormFitsActualSplitPaneWidths hosts real CLIWorkshopView in a hidden NSWindow, sets the real NSSplitView pane to240/380/620, asserts actual width, checks editable fields and native flags lie within the pane, and verifies no command executed for SCU send and SCP serve. It retains the existing isolated checkbox tests.",
+  "sourceHashes": {
+    "Sources/DICOMStudio/Views/CLIWorkshopView.swift": "2e9aa18bed16b11bfa7350c9a2a5cc6671aba2878c0f2f65e2ab9bfae3eb0e63",
+    "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift": "e956fc4f44d26cf35ead9dbb433bd27c96e6cb882c3955125ca5e7561ec38488"
+  },
+  "qualificationRequired": [
+    "Run focused5method suite against frozen source; actual-hierarchy test must pass at each measured pane width.",
+    "Rebuild/freeze signed app, verify native send and SCP forms at narrow/default/expanded widths with full labels/controls reachable.",
+    "Keep keyboard/Space and disabled/running/Stop checks as real native gates."
+  ],
+  "limitations": [
+    "No claim yet that the menu change eliminates every intrinsic-width contributor. If the actual-hierarchy assertion still fails, identify the remaining control rather than weakening bounds or increasing the global pane minimum."
+  ],
+  "firstActualHierarchyRun": {
+    "log": "print-repair-verification/DICOMStudioTests-real-form-layout.log",
+    "result": "Five test methods, two failures. Both assert all NSSplitView subviews equal two; actual includes a third divider decoration. All actual-width and field/checkbox bound assertions passed.",
+    "correction": "Count and select arrangedSubviews, the documented content panes. Keep all actual geometry bounds unchanged.",
+    "qualification": "Focused rerun and native rebuilt-app check still required; no passed suite claim for this failed log."
+  }
+}

@@ -1,0 +1,66 @@
+OVERVIEW: Update MPPS instance (N-SET)
+
+USAGE: dicom-mpps update [<options>] <host> --aet <aet> --mpps-uid <mpps-uid> --status <status>
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  --mpps-uid <mpps-uid>   MPPS SOP Instance UID to update
+  --status <status>       New Performed Procedure Step Status (0040,0252):
+                          COMPLETED or DISCONTINUED (PS3.3 Table C.4-14; PS3.4
+                          F.7.2.2.2 — final, no later N-SET). COMPLETED
+                          requires at least one Performed Series item
+                          (--series-uid with --image-uid), PS3.4 Table F.7.2-1
+                          final state
+  --study-uid <study-uid> Study Instance UID for referenced images
+  --series-uid <series-uid>
+                          Series Instance UID for referenced images
+  --image-uid <image-uid> SOP Instance UID (0008,1155) of a referenced image,
+                          repeatable; needs --study-uid and --series-uid to
+                          form the Performed Series item
+  --sop-class-uid <sop-class-uid>
+                          Actual SOP Class UID (0008,1150) of every referenced
+                          image, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT.
+                          Required with --image-uid; no class is inferred
+  --protocol-name <protocol-name>
+                          Protocol Name (0018,1030) — Type 1 in every Performed
+                          Series item (default: UNSPECIFIED)
+  --series-description <series-description>
+                          Series Description (0008,103E) for the performed
+                          series
+  --operator-name <operator-name>
+                          Operators' Name (0008,1070), DICOM PN format
+  --performing-physician <performing-physician>
+                          Performing Physician's Name (0008,1050), DICOM PN
+                          format
+  --legacy-nset-scheduled-attributes
+                          Also send the Scheduled Step Attributes Sequence
+                          (0040,0270) in the N-SET. PS3.4 forbids it; use only
+                          for an SCP known to require it
+  --discontinuation-reason <discontinuation-reason>
+                          Performed Procedure Step Discontinuation Reason Code
+                          Sequence (0040,0281) as CODE|SCHEME|MEANING, only
+                          with --status DISCONTINUED. Codes normally come from
+                          PS3.16 CID 9300 'Procedure Discontinuation Reason'
+                          (which includes CID 9301) with scheme DCM, e.g.
+                          "110513|DCM|Discontinued for unspecified reason",
+                          "110500|DCM|Doctor canceled procedure",
+                          "110501|DCM|Equipment failure", "110507|DCM|Patient
+                          did not arrive"
+  --specific-character-set <specific-character-set>
+                          Force the Specific Character Set (0008,0005), e.g.
+                          ISO_IR 100 or ISO_IR 192. By default the narrowest
+                          set that represents every text value is chosen
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

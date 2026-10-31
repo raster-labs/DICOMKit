@@ -1,0 +1,54 @@
+OVERVIEW: JPEG 2000 / HTJ2K codestream operations on DICOM files
+
+Inspect, validate, transcode, reduce, and benchmark the JPEG 2000 or HTJ2K
+codestream embedded in a DICOM file. All operations preserve the DICOM
+metadata and re-wrap the result in a conformant DICOM file.
+
+Transfer Syntaxes supported:
+  1.2.840.10008.1.2.4.90  JPEG 2000 Image Compression (Lossless Only)
+  1.2.840.10008.1.2.4.91  JPEG 2000 Image Compression
+  1.2.840.10008.1.2.4.92  JPEG 2000 Part 2 Multi-component Image Compression
+(Lossless Only)
+  1.2.840.10008.1.2.4.93  JPEG 2000 Part 2 Multi-component Image Compression
+  1.2.840.10008.1.2.4.201 High-Throughput JPEG 2000 Image Compression (Lossless
+Only)
+  1.2.840.10008.1.2.4.202 High-Throughput JPEG 2000 with RPCL Options Image
+Compression (Lossless Only)
+  1.2.840.10008.1.2.4.203 High-Throughput JPEG 2000 Image Compression
+(.91, .93 and .203 carry a lossless or a lossy codestream, PS3.5 A.4.4.)
+
+Examples:
+  dicom-j2k info scan.dcm
+  dicom-j2k info scan.dcm --json
+  dicom-j2k validate scan.dcm
+  dicom-j2k transcode j2k.dcm --output htj2k.dcm --target htj2k-lossless
+  dicom-j2k transcode htj2k.dcm --output j2k.dcm --target j2k-lossless
+  dicom-j2k reduce input.dcm --output small.dcm --levels 3 --layers 4
+  dicom-j2k roi input.dcm --output roi.dcm --frame-number 1 --region
+0,0,256,256
+  dicom-j2k benchmark scan.dcm
+  dicom-j2k benchmark scan.dcm --iterations 20
+  dicom-j2k compare ref.dcm test.dcm
+  dicom-j2k completions zsh
+
+USAGE: dicom-j2k <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  info (default)          Show J2K/HTJ2K codestream metadata embedded in a
+                          DICOM file
+  validate                ISO/IEC 15444-4 conformance check of the embedded J2K
+                          codestream
+  transcode               Transcode J2K ↔ HTJ2K while preserving DICOM metadata
+  reduce                  Re-encode losslessly with other decomposition levels
+                          or quality layers
+  roi                     Extract a region of interest (ROI) frame into a new
+                          DICOM file
+  benchmark               Decode-speed benchmark across J2KSwift codec backends
+  compare                 Compute PSNR / MSE between two DICOM images
+  completions             Generate shell completion scripts
+
+  See 'dicom-j2k help <subcommand>' for detailed help.

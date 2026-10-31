@@ -1,0 +1,12 @@
+{
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1002",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1001",
+  "success" : true,
+  "warnings" : [
+    {
+      "filmBoxUID" : "1.2.826.0.1.3680043.10.543.20261024.6.1002",
+      "message" : "N-ACTION for Film Box 1.2.826.0.1.3680043.10.543.20261024.6.1002: Warning (0xB604): Image size is larger than image box size, the image has been demagnified.",
+      "status" : "0xB604"
+    }
+  ]
+}

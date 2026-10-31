@@ -1,0 +1,8 @@
+{
+  "id": "PY-F08",
+  "title": "DICOMKit SCU to pynetdicom: rejected required LUT prevents print",
+  "status": "failed",
+  "error": "required LUT refusal diagnostic missing",
+  "elapsed_seconds": 0.527333166,
+  "observations": {}
+}

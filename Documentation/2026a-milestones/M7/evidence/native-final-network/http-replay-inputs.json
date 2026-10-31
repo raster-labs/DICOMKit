@@ -1,0 +1,542 @@
+[
+  {
+    "case": "qido-basic",
+    "kind": "query",
+    "native_capture": 1,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-basic-after.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "study",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+    "cli_authorization": null,
+    "level": "study",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ],
+    "limitations": [
+      "Native Basic header tested; CLI equivalent deliberately omits auth because Basic is not CLI representable. Peers do not enforce authentication."
+    ]
+  },
+  {
+    "case": "qido-bearer",
+    "kind": "query",
+    "native_capture": 2,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-bearer.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "study",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--token",
+      "m7-native-token",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": "Bearer m7-native-token",
+    "cli_authorization": "Bearer m7-native-token",
+    "level": "study",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "case": "qido-none",
+    "kind": "query",
+    "native_capture": 3,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-none.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "study",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "study",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "case": "qido-all-series",
+    "kind": "query",
+    "native_capture": 4,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-all-series.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "series",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "series",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "1.2.826.0.1.3680043.10.543.301.2",
+      "1.2.826.0.1.3680043.10.543.302.1"
+    ]
+  },
+  {
+    "case": "qido-scoped-series",
+    "kind": "query",
+    "native_capture": 5,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-scoped-series.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "series",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "series",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "1.2.826.0.1.3680043.10.543.301.2"
+    ]
+  },
+  {
+    "case": "qido-all-instances",
+    "kind": "query",
+    "native_capture": 6,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-all-instances.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "instance",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "instance",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2",
+      "1.2.826.0.1.3680043.10.543.301.2.1",
+      "1.2.826.0.1.3680043.10.543.302.1.1",
+      "1.2.826.0.1.3680043.10.543.302.1.2"
+    ]
+  },
+  {
+    "case": "qido-study-instances",
+    "kind": "query",
+    "native_capture": 7,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-study-instances.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "instance",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "instance",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2",
+      "1.2.826.0.1.3680043.10.543.301.2.1"
+    ]
+  },
+  {
+    "case": "qido-series-instances",
+    "kind": "query",
+    "native_capture": 8,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-instances.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "instance",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301",
+      "--series",
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "instance",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2"
+    ]
+  },
+  {
+    "case": "qido-series-pps-parent",
+    "kind": "query",
+    "native_capture": 9,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-pps-parent.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "series",
+      "--study-date",
+      "20260115",
+      "--pps-start-date",
+      "20260115",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "series",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1"
+    ]
+  },
+  {
+    "case": "qido-series-hidden-parent",
+    "kind": "query",
+    "native_capture": 10,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-hidden-parent.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "series",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301",
+      "--pps-start-date",
+      "20260115",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "series",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1"
+    ]
+  },
+  {
+    "case": "qido-instance-hidden-series",
+    "kind": "query",
+    "native_capture": 11,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-instance-hidden-series.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "instance",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301",
+      "--series",
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "instance",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2"
+    ]
+  },
+  {
+    "case": "qido-series-ct",
+    "kind": "query",
+    "native_capture": 12,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-ct.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "series",
+      "--modality",
+      "CT",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "series",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "1.2.826.0.1.3680043.10.543.302.1"
+    ]
+  },
+  {
+    "case": "qido-study-ct",
+    "kind": "query",
+    "native_capture": 13,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-study-ct.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "study",
+      "--modality",
+      "CT",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "study",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "case": "qido-uid-list",
+    "kind": "query",
+    "native_capture": 14,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-uid-list.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "study",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "study",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "case": "qido-uid-unicode",
+    "kind": "query",
+    "native_capture": 15,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-uid-unicode.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "study",
+      "--patient-name",
+      "Müller*",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "study",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301"
+    ]
+  },
+  {
+    "case": "qido-after-tool-reset",
+    "kind": "query",
+    "native_capture": 16,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-after-tool-reset.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "query",
+      "http://127.0.0.1:60241/dicom-web",
+      "--level",
+      "study",
+      "--limit",
+      "100",
+      "--offset",
+      "0",
+      "--format",
+      "json"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": null,
+    "cli_authorization": null,
+    "level": "study",
+    "expected_uids": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "case": "wado-basic-instance",
+    "kind": "retrieve",
+    "native_capture": 17,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/wado-basic-instance.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "retrieve",
+      "http://127.0.0.1:60241/dicom-web",
+      "--study",
+      "1.2.826.0.1.3680043.10.543.301",
+      "--series",
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "--instance",
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "-o",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-cli",
+      "--format",
+      "json",
+      "--timeout",
+      "60"
+    ],
+    "expected_exit": 0,
+    "expected_status": 200,
+    "native_authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+    "cli_authorization": null,
+    "limitations": [
+      "Native Basic header tested; CLI equivalent deliberately omits auth because Basic is not CLI representable. Peers do not enforce authentication."
+    ],
+    "fixture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-0.dcm",
+    "native_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-gui",
+    "cli_output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-cli"
+  },
+  {
+    "case": "stow-basic",
+    "kind": "store",
+    "native_capture": 18,
+    "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/stow-basic.txt",
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "store",
+      "http://127.0.0.1:60241/dicom-web",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-0.dcm",
+      "--batch",
+      "10"
+    ],
+    "expected_exit": 0,
+    "expected_status": 202,
+    "native_authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+    "cli_authorization": null,
+    "limitations": [
+      "Native Basic header tested; CLI equivalent deliberately omits auth because Basic is not CLI representable. Peers do not enforce authentication."
+    ],
+    "fixture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-0.dcm"
+  }
+]

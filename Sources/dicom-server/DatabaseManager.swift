@@ -7,48 +7,63 @@ import DICOMNetwork
 /// Database manager for DICOM metadata indexing
 actor DatabaseManager {
     private let connectionString: String
-    private var instanceIndex: [String: DICOMMetadata] = [:] // sopInstanceUID -> metadata
+    private var instanceIndex: [String: DICOMMetadata] = [:]
+    private var ready = false
 
+    /// `filesystem://` indexes the configured data directory on every startup.
+    /// An empty string is an explicitly volatile index, used by internal callers.
     init(connectionString: String) throws {
+        try Self.validateConnectionString(connectionString)
         self.connectionString = connectionString
-
-        // Validate connection string format
-        if !connectionString.hasPrefix("sqlite://") && !connectionString.hasPrefix("postgres://") && !connectionString.isEmpty {
-            throw ServerError.databaseError("Unsupported database type in connection string: \(connectionString)")
-        }
     }
 
-    /// Initialize the database connection
-    func initialize() async throws {
-        // Parse connection string and initialize
-        if connectionString.hasPrefix("sqlite://") {
-            try await initializeSQLite()
-        } else if connectionString.hasPrefix("postgres://") {
-            try await initializePostgreSQL()
+    static func validateConnectionString(_ value: String) throws {
+        if value.isEmpty || value == "filesystem://" { return }
+        if value.hasPrefix("sqlite://") {
+            throw ServerError.databaseError("SQLite is not implemented. Use --database filesystem (databaseURL: filesystem://) for durable files with startup reindex; no SQLite database is created.")
         }
-        // If empty, use in-memory storage (already initialized)
+        if value.hasPrefix("postgres://") || value.hasPrefix("postgresql://") {
+            throw ServerError.databaseError("PostgreSQL is not supported. Use --database filesystem (databaseURL: filesystem://).")
+        }
+        throw ServerError.databaseError("Unsupported database type in connection string. Use filesystem:// or an empty string for no index.")
     }
 
-    private func initializeSQLite() async throws {
-        // TODO: Initialize SQLite database with schema
-        // For Phase A, using in-memory storage
-        guard connectionString.hasPrefix("sqlite://") else {
-            throw ServerError.databaseError("Invalid SQLite connection string")
+    /// Build the complete index before exposing it to requests. A failed scan
+    /// leaves no usable partial index and prevents PACSServer from listening.
+    func initialize(storage: StorageManager? = nil) async throws {
+        ready = false
+        instanceIndex = [:]
+        if connectionString == "filesystem://" {
+            guard let storage else { throw ServerError.databaseError("Filesystem reindex requires the configured storage directory") }
+            let records = try await storage.scanForIndex()
+            instanceIndex = Dictionary(uniqueKeysWithValues: records.map { ($0.sopInstanceUID, $0) })
         }
+        ready = true
     }
 
-    private func initializePostgreSQL() async throws {
-        // TODO: Initialize PostgreSQL database
-        // For Phase A, not implemented
-        guard connectionString.hasPrefix("postgres://") else {
-            throw ServerError.databaseError("Invalid PostgreSQL connection string")
-        }
-        throw ServerError.databaseError("PostgreSQL support not yet implemented")
-    }
-
-    /// Index a DICOM file (a re-sent SOP Instance replaces the earlier entry)
+    /// Index an instance only after its atomic storage publication succeeds.
     func index(filePath: String, metadata: DICOMMetadata) async throws {
+        if connectionString == "filesystem://" {
+            try requireReady()
+            guard filePath == metadata.filePath else { throw ServerError.databaseError("Index path differs from stored metadata path") }
+            if let existing = instanceIndex[metadata.sopInstanceUID], existing.filePath != filePath {
+                throw ServerError.databaseError("Duplicate SOP Instance UID \(metadata.sopInstanceUID): \(existing.filePath) and \(filePath)")
+            }
+            try StorageManager.verifyIndexedFile(at: filePath)
+        }
         instanceIndex[metadata.sopInstanceUID] = metadata
+    }
+
+    private func requireReady() throws {
+        guard ready else { throw ServerError.databaseError("Index initialization is incomplete; no query can be served") }
+    }
+
+    private func verifyDurableIndex() throws {
+        guard connectionString == "filesystem://" else { return }
+        try requireReady()
+        for record in instanceIndex.values.sorted(by: { $0.filePath < $1.filePath }) {
+            try StorageManager.verifyIndexedFile(at: record.filePath)
+        }
     }
 
     /// Number of indexed instances
@@ -60,6 +75,7 @@ actor DatabaseManager {
     /// key of the request that the server supports at that level (zero length when it has no
     /// value), Query/Retrieve Level (0008,0052), and Retrieve AE Title (0008,0054) when given.
     func queryForFind(queryDataset: DataSet, level: QueryLevel, retrieveAETitle: String? = nil) async throws -> [DataSet] {
+        try verifyDurableIndex()
         let requested = QueryMatcher.requestedKeys(in: queryDataset, level: level)
         return entities(at: level)
             .filter { QueryMatcher.matches(group: $0, identifier: queryDataset, keys: requested) }
@@ -71,6 +87,7 @@ actor DatabaseManager {
     /// Selects the entities at `level` whose keys match (Unique Keys with List of UID
     /// Matching, PS3.4 C.4.2.1.4.1 / C.4.3.1.3.1) and returns all their instances.
     func queryForRetrieve(queryDataset: DataSet, level: QueryLevel) async throws -> [DICOMMetadata] {
+        try verifyDurableIndex()
         let requested = QueryMatcher.requestedKeys(in: queryDataset, level: level)
         return entities(at: level)
             .filter { QueryMatcher.matches(group: $0, identifier: queryDataset, keys: requested) }

@@ -1,0 +1,107 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --name-pattern 'limited-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --max-films 1 --duration 60 --format json
+
+{"level":"info","message":"Listening on port 21114 as DCMKIT_M6","time":"2026-10-26T05:48:58Z"}
+{"callingAE":"M7CLI","level":"connection","message":"Association from M7CLI (127.0.0.1:57074)","time":"2026-10-26T05:49:08Z"}
+{"callingAE":"M7CLI","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792993748311974.87301 — 1×1, 1 image box","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:49:08Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7CLI",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792993748311974.87301",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792993748313833.153537",
+  "receivedAt" : "2026-10-26T05:49:08Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/limited-001.png","time":"2026-10-26T05:49:08Z"}
+{"callingAE":"M7CLI","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290","time":"2026-10-26T05:49:08Z"}
+{"callingAE":"M7CLI","level":"connection","message":"Association released by M7CLI","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Stopped — 1 association, 1 film, 0 errors (reached --max-films 1)","time":"2026-10-26T05:49:08Z"}
+
+			5 scroll bar (settable, float) 0.1027512098464359
+				6 value indicator (settable, float) 0.1027512098464359
+				7 increment arrow button
+				8 decrement arrow button
+				9 increment page button
+				10 decrement page button
+		11 button Cancel
+		12 button Import
+13 menu bar
+	14 DICOMStudio
+	15 File
+	16 Edit
+	17 View
+	18 Image
+	19 Window
+	20 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --name-pattern 'limited-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --max-films 1 --duration 60 --format json
+
+{"level":"info","message":"Listening on port 21114 as DCMKIT_M6","time":"2026-10-26T05:48:58Z"}
+{"callingAE":"M7CLI","level":"connection","message":"Association from M7CLI (127.0.0.1:57074)","time":"2026-10-26T05:49:08Z"}
+{"callingAE":"M7CLI","level":"info","message":"Film session created 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Film box 1.2.826.0.1.3680043.10.511.4.1792993748311974.87301 — 1×1, 1 image box","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Image box 1 filled — 64×48 px","time":"2026-10-26T05:49:08Z"}
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "M7CLI",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792993748311974.87301",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792993748311005.473290",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792993748313833.153537",
+  "receivedAt" : "2026-10-26T05:49:08Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+{"level":"info","message":"Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received/limited-001.png","time":"2026-10-26T05:49:08Z"}
+{"callingAE":"M7CLI","level":"filmReceived","message":"Film printed — 1×1, 1/1 images","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Deleted 1.2.826.0.1.3680043.10.511.4.1792993748311005.473290","time":"2026-10-26T05:49:08Z"}
+{"callingAE":"M7CLI","level":"connection","message":"Association released by M7CLI","time":"2026-10-26T05:49:08Z"}
+{"level":"info","message":"Stopped — 1 association, 1 film, 0 errors (reached --max-films 1)","time":"2026-10-26T05:49:08Z"}

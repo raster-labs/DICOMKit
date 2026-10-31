@@ -1,0 +1,4 @@
+Error: Missing expected argument '--state <state>'
+Help:  --state <state>  Path to saved state file
+Usage: dicom-qr resume --state <state> [--timeout <timeout>] [--priority <priority>] [--verbose]
+  See 'dicom-qr resume --help' for more information.

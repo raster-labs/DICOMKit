@@ -1,0 +1,929 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[3 / 7] DICOMNetworkTests-product
+Build complete! (0.76 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:54:02.090.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-24 20:54:02.096.
+Test Suite 'DIMSECommandTests' started at 2026-10-24 20:54:02.096.
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNActionCommandValues]' started.
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNActionCommandValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNCreateCommandValues]' started.
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNCreateCommandValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNDeleteCommandValues]' started.
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNDeleteCommandValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNEventReportCommandValues]' started.
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNEventReportCommandValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNGetCommandValues]' started.
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNGetCommandValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNSetCommandValues]' started.
+Test Case '-[DICOMNetworkTests.DIMSECommandTests testNSetCommandValues]' passed (0.000 seconds).
+Test Suite 'DIMSECommandTests' passed at 2026-10-24 20:54:02.097.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'DIMSEConformanceTests' started at 2026-10-24 20:54:02.097.
+Test Case '-[DICOMNetworkTests.DIMSEConformanceTests test_mpps_nCreateAndNSetCommandSetsHaveEvenLengthUIDs]' started.
+Test Case '-[DICOMNetworkTests.DIMSEConformanceTests test_mpps_nCreateAndNSetCommandSetsHaveEvenLengthUIDs]' passed (0.000 seconds).
+Test Suite 'DIMSEConformanceTests' passed at 2026-10-24 20:54:02.097.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'DIMSEMessagesTests' started at 2026-10-24 20:54:02.097.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestHashable]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestHashable]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestWithoutDataSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionRequestWithoutDataSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionResponseCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionResponseCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionResponseFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionResponseFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionResponseWithoutActionTypeID]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNActionResponseWithoutActionTypeID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateRequestCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateRequestCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateRequestFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateRequestFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateRequestWithoutInstanceUID]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateRequestWithoutInstanceUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateResponseCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateResponseCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateResponseFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNCreateResponseFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteRequestCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteRequestCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteRequestFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteRequestFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteResponseCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteResponseCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteResponseFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNDeleteResponseFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestEventTypes]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestEventTypes]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestHashable]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportRequestHashable]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportResponseCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportResponseCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportResponseFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportResponseFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportResponseWithoutEventTypeID]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNEventReportResponseWithoutEventTypeID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetRequestCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetRequestCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetRequestFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetRequestFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetRequestWithDataSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetRequestWithDataSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetResponseCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetResponseCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetResponseFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNGetResponseFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetRequestCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetRequestCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetRequestFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetRequestFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetResponseCreation]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetResponseCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetResponseFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.DIMSEMessagesTests testNSetResponseFromCommandSet]' passed (0.000 seconds).
+Test Suite 'DIMSEMessagesTests' passed at 2026-10-24 20:54:02.101.
+	 Executed 32 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'DIMSENStatusClassificationTests' started at 2026-10-24 20:54:02.101.
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testDIMSENFailureBlockIsClassifiedAsFailure]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testDIMSENFailureBlockIsClassifiedAsFailure]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testDIMSENWarningsAreWarnings]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testDIMSENWarningsAreWarnings]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testInvalidAttributeValueIsAFailure]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testInvalidAttributeValueIsAFailure]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testPrintSCPStatusAgreesWithDIMSEClassification]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testPrintSCPStatusAgreesWithDIMSEClassification]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testWarningRangeStillClassifiesPrintWarnings]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusClassificationTests testWarningRangeStillClassifiesPrintWarnings]' passed (0.000 seconds).
+Test Suite 'DIMSENStatusClassificationTests' passed at 2026-10-24 20:54:02.101.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'DIMSENStatusText2026aTests' started at 2026-10-24 20:54:02.101.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testAnnexCSectionsMatchPS37_2026a]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testAnnexCSectionsMatchPS37_2026a]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testCodedEntryExampleIsTableD1]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testCodedEntryExampleIsTableD1]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testDescriptionUsesThe2026aNames]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testDescriptionUsesThe2026aNames]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testMPPSFailureIsNotWordedAsAStore]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testMPPSFailureIsNotWordedAsAStore]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testNCreateCreatesZeroLengthDiscontinuationReason]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testNCreateCreatesZeroLengthDiscontinuationReason]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testNCreateRequiresModality]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testNCreateRequiresModality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testPrintOperationFailedNamesAnnexHStatus]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testPrintOperationFailedNamesAnnexHStatus]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testPrintSCPStatusExplanationsAreVerbatim]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testPrintSCPStatusExplanationsAreVerbatim]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testServiceDescriptionFallsBackToAnnexC]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testServiceDescriptionFallsBackToAnnexC]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testServiceTablesMatchPS34_2026a]' started.
+Test Case '-[DICOMNetworkTests.DIMSENStatusText2026aTests testServiceTablesMatchPS34_2026a]' passed (0.000 seconds).
+Test Suite 'DIMSENStatusText2026aTests' passed at 2026-10-24 20:54:02.104.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'M6PrintJobEventTests' started at 2026-10-24 20:54:02.104.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testConfirmationAndNextRequestInOnePDUAreBothHandled]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testConfirmationAndNextRequestInOnePDUAreBothHandled]' passed (0.006 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testDisabledEventsDoNotRetireTheCompletedJob]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testDisabledEventsDoNotRetireTheCompletedJob]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testDoneEventUsesExplicitJobContextWhenFilmIsImplicit]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testDoneEventUsesExplicitJobContextWhenFilmIsImplicit]' passed (0.026 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testDoneEventUsesImplicitJobContextWhenFilmIsExplicit]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testDoneEventUsesImplicitJobContextWhenFilmIsExplicit]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testFailedStatusIsStillATerminalEventConfirmation]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testFailedStatusIsStillATerminalEventConfirmation]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testNoEventWhenPrintJobContextWasNotProposed]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testNoEventWhenPrintJobContextWasNotProposed]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testNoEventWhenPrintJobTransferSyntaxWasRejected]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testNoEventWhenPrintJobTransferSyntaxWasRejected]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testOnlyTerminalPrintJobEventsDeleteAfterConfirmation]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testOnlyTerminalPrintJobEventsDeleteAfterConfirmation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testOutstandingEventsHaveDistinctIDsAndRetireOnlyTheirOwnJob]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testOutstandingEventsHaveDistinctIDsAndRetireOnlyTheirOwnJob]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testStrayAndMalformedAcknowledgementsCannotDeleteTheJob]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testStrayAndMalformedAcknowledgementsCannotDeleteTheJob]' passed (0.004 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testUnconfirmedJobSurvivesReleaseForLaterStatusQuery]' started.
+Test Case '-[DICOMNetworkTests.M6PrintJobEventTests testUnconfirmedJobSurvivesReleaseForLaterStatusQuery]' passed (0.003 seconds).
+Test Suite 'M6PrintJobEventTests' passed at 2026-10-24 20:54:02.159.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.055 (0.055) seconds
+Test Suite 'M6PrintListenerStartupTests' started at 2026-10-24 20:54:02.159.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testAlreadyCancelledServerStartCanBeRetriedWithoutLeakingListener]' started.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testAlreadyCancelledServerStartCanBeRetriedWithoutLeakingListener]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testCancellationBeforeInstallationDoesNotStartListener]' started.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testCancellationBeforeInstallationDoesNotStartListener]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testConcurrentStopsAndRestartSettleTheSameListener]' started.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testConcurrentStopsAndRestartSettleTheSameListener]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testFailureAndLateCallbacksCompleteExactlyOnce]' started.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testFailureAndLateCallbacksCompleteExactlyOnce]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testReadyCancelsDeadlineAndIgnoresLateFailure]' started.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testReadyCancelsDeadlineAndIgnoresLateFailure]' passed (0.040 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testTaskCancellationSettlesAnAlreadyWaitingListener]' started.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testTaskCancellationSettlesAnAlreadyWaitingListener]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testTimeoutCancelsAListenerThatNeverReportsReadiness]' started.
+Test Case '-[DICOMNetworkTests.M6PrintListenerStartupTests testTimeoutCancelsAListenerThatNeverReportsReadiness]' passed (0.027 seconds).
+Test Suite 'M6PrintListenerStartupTests' passed at 2026-10-24 20:54:02.230.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.070 (0.070) seconds
+Test Suite 'M6PrintWarningTests' started at 2026-10-24 20:54:02.230.
+Test Case '-[DICOMNetworkTests.M6PrintWarningTests testFilmActionWarningSurvivesLaterSuccessfulFilmAndCleanup]' started.
+Test Case '-[DICOMNetworkTests.M6PrintWarningTests testFilmActionWarningSurvivesLaterSuccessfulFilmAndCleanup]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.M6PrintWarningTests testOrdinarySuccessHasNoWarning]' started.
+Test Case '-[DICOMNetworkTests.M6PrintWarningTests testOrdinarySuccessHasNoWarning]' passed (0.002 seconds).
+Test Suite 'M6PrintWarningTests' passed at 2026-10-24 20:54:02.236.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'MPPSDataSetConformanceTests' started at 2026-10-24 20:54:02.236.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_retriesWithScheduledStepAttributesWhenFirstNSetFails]' started.
+Test Case '-[DICOMNetworkTests.MPPSDataSetConformanceTests test_update_retriesWithScheduledStepAttributesWhenFirstNSetFails]' passed (0.003 seconds).
+Test Suite 'MPPSDataSetConformanceTests' passed at 2026-10-24 20:54:02.238.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'MPPSReferenceIntegrityTests' started at 2026-10-24 20:54:02.238.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testCapturedNSetPreservesActualClassesWithBothTransferSyntaxes]' started.
+Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testCapturedNSetPreservesActualClassesWithBothTransferSyntaxes]' passed (0.009 seconds).
+Test Suite 'MPPSReferenceIntegrityTests' passed at 2026-10-24 20:54:02.247.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.009 (0.009) seconds
+Test Suite 'MWLToMPPSWorkflowConformanceTests' started at 2026-10-24 20:54:02.247.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_nCreateAndNSetAddressTheSameProcedureStepInstance]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_continuity_nCreateAndNSetAddressTheSameProcedureStepInstance]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_omitsAttributesTheNSetColumnDoesNotAllow]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetCompleted_omitsAttributesTheNSetColumnDoesNotAllow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_omitsAttributesTheNSetColumnDoesNotAllow]' started.
+Test Case '-[DICOMNetworkTests.MWLToMPPSWorkflowConformanceTests test_nSetDiscontinued_omitsAttributesTheNSetColumnDoesNotAllow]' passed (0.000 seconds).
+Test Suite 'MWLToMPPSWorkflowConformanceTests' passed at 2026-10-24 20:54:02.248.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'NetworkDeferredRows2026aTests' started at 2026-10-24 20:54:02.248.
+Test Case '-[DICOMNetworkTests.NetworkDeferredRows2026aTests testLevelsPrintQueryRetrieveLevelValues]' started.
+Test Case '-[DICOMNetworkTests.NetworkDeferredRows2026aTests testLevelsPrintQueryRetrieveLevelValues]' passed (0.000 seconds).
+Test Suite 'NetworkDeferredRows2026aTests' passed at 2026-10-24 20:54:02.248.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintCLIEndToEndTests' started at 2026-10-24 20:54:02.248.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testConflictingRawAndBitDepthFailsValidation]' started.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testConflictingRawAndBitDepthFailsValidation]' passed (0.044 seconds).
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testDryRunExitsZeroWithoutNetwork]' started.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testDryRunExitsZeroWithoutNetwork]' passed (0.032 seconds).
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testOutOfRangePortFailsValidation]' started.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testOutOfRangePortFailsValidation]' passed (0.032 seconds).
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testProcessDeadlineThrowsInsteadOfWaitingForOutputEOF]' started.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testProcessDeadlineThrowsInsteadOfWaitingForOutputEOF]' passed (0.119 seconds).
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testSendFailureExitsNonZero]' started.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testSendFailureExitsNonZero]' passed (0.049 seconds).
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testSendJSONContractAndExitZero]' started.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testSendJSONContractAndExitZero]' passed (0.033 seconds).
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testVersionExitsZero]' started.
+Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testVersionExitsZero]' passed (0.017 seconds).
+Test Suite 'PrintCLIEndToEndTests' passed at 2026-10-24 20:54:02.573.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.324 (0.324) seconds
+Test Suite 'PrintConformanceColorPixelModuleTests' started at 2026-10-24 20:54:02.573.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testAbsentPlanarConfigurationDefaultsTo1WithANote]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testAbsentPlanarConfigurationDefaultsTo1WithANote]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testColorBoxRejectsBitsAllocated16]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testColorBoxRejectsBitsAllocated16]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testGrayscaleBoxStillAcceptsBitsAllocated16]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testGrayscaleBoxStillAcceptsBitsAllocated16]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarConfiguration0IsHonouredWithANote]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarConfiguration0IsHonouredWithANote]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarConfiguration1IsDeinterleaved]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarConfiguration1IsDeinterleaved]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarConfigurationOtherThan0Or1IsInvalid]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarConfigurationOtherThan0Or1IsInvalid]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarRoundTripIsLossless]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testPlanarRoundTripIsLossless]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testSCUConvertsColorByPixelToColorByPlane]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceColorPixelModuleTests testSCUConvertsColorByPixelToColorByPlane]' passed (0.000 seconds).
+Test Suite 'PrintConformanceColorPixelModuleTests' passed at 2026-10-24 20:54:02.574.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintConformanceDataSetWalkerTests' started at 2026-10-24 20:54:02.574.
+Test Case '-[DICOMNetworkTests.PrintConformanceDataSetWalkerTests testWalkerSkipsOVSVUVElementsWithThirtyTwoBitLength]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceDataSetWalkerTests testWalkerSkipsOVSVUVElementsWithThirtyTwoBitLength]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceDataSetWalkerTests testWalkerStillReadsSixteenBitAndImplicitVRElements]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceDataSetWalkerTests testWalkerStillReadsSixteenBitAndImplicitVRElements]' passed (0.000 seconds).
+Test Suite 'PrintConformanceDataSetWalkerTests' passed at 2026-10-24 20:54:02.574.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintConformanceEncoderTests' started at 2026-10-24 20:54:02.574.
+Test Case '-[DICOMNetworkTests.PrintConformanceEncoderTests testPrintJobAttributesMatchTableC13_8]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceEncoderTests testPrintJobAttributesMatchTableC13_8]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceEncoderTests testPrintJobReferenceRoundTripsInBothVRs]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceEncoderTests testPrintJobReferenceRoundTripsInBothVRs]' passed (0.000 seconds).
+Test Suite 'PrintConformanceEncoderTests' passed at 2026-10-24 20:54:02.574.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintConformanceFailedJobTests' started at 2026-10-24 20:54:02.574.
+Test Case '-[DICOMNetworkTests.PrintConformanceFailedJobTests testFailedJobReportsImplementationTerm]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceFailedJobTests testFailedJobReportsImplementationTerm]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceFailedJobTests testMemoryFailureReportsInsufficMemory]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceFailedJobTests testMemoryFailureReportsInsufficMemory]' passed (0.002 seconds).
+Test Suite 'PrintConformanceFailedJobTests' passed at 2026-10-24 20:54:02.579.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'PrintConformanceLoopbackTests' started at 2026-10-24 20:54:02.579.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testColorImageRoundTripsThroughThePlanarWireLayout]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testColorImageRoundTripsThroughThePlanarWireLayout]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testPrinterNGetWithoutDataSetIsUnknown]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testPrinterNGetWithoutDataSetIsUnknown]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testWorkflowRecordsTheReferencedPrintJob]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testWorkflowRecordsTheReferencedPrintJob]' passed (0.002 seconds).
+Test Suite 'PrintConformanceLoopbackTests' passed at 2026-10-24 20:54:02.584.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'PrintConformanceMetaClassTests' started at 2026-10-24 20:54:02.584.
+Test Case '-[DICOMNetworkTests.PrintConformanceMetaClassTests testEachMetaClassCoversOnlyItsOwnImageBox]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceMetaClassTests testEachMetaClassCoversOnlyItsOwnImageBox]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceMetaClassTests testOptionalClassesAreNotCoveredByTheMetaContext]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceMetaClassTests testOptionalClassesAreNotCoveredByTheMetaContext]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceMetaClassTests testOptionalClassesRouteToTheirOwnContexts]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceMetaClassTests testOptionalClassesRouteToTheirOwnContexts]' passed (0.000 seconds).
+Test Suite 'PrintConformanceMetaClassTests' passed at 2026-10-24 20:54:02.585.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintConformanceNActionResponseTests' started at 2026-10-24 20:54:02.585.
+Test Case '-[DICOMNetworkTests.PrintConformanceNActionResponseTests testJobUIDIsReadFromReferencedPrintJobSequence]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceNActionResponseTests testJobUIDIsReadFromReferencedPrintJobSequence]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceNActionResponseTests testMissingSequenceYieldsNil]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceNActionResponseTests testMissingSequenceYieldsNil]' passed (0.000 seconds).
+Test Suite 'PrintConformanceNActionResponseTests' passed at 2026-10-24 20:54:02.585.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintConformanceSCPTests' started at 2026-10-24 20:54:02.585.
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmBoxNActionWithNoImagesIsB603AndReferencesTheJob]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmBoxNActionWithNoImagesIsB603AndReferencesTheJob]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmSessionNActionResponseNamesTheSessionAndReferencesTheJob]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmSessionNActionResponseNamesTheSessionAndReferencesTheJob]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmSessionNActionWithEmptyFilmBoxIsB602]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmSessionNActionWithEmptyFilmBoxIsB602]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmSessionNActionWithNoFilmBoxesIsC600]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testFilmSessionNActionWithNoFilmBoxesIsC600]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testUnrecognizedDIMSEOperationIs0211]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceSCPTests testUnrecognizedDIMSEOperationIs0211]' passed (0.001 seconds).
+Test Suite 'PrintConformanceSCPTests' passed at 2026-10-24 20:54:02.594.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.008 (0.009) seconds
+Test Suite 'PrintConformanceStatusCodeTests' started at 2026-10-24 20:54:02.594.
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testExecutionStatusInfoIsACSDefinedTerm]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testExecutionStatusInfoIsACSDefinedTerm]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testFilmSessionStatusCodesAndText]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testFilmSessionStatusCodesAndText]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testWireStatusClassification]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testWireStatusClassification]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testWireStatusConstants]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceStatusCodeTests testWireStatusConstants]' passed (0.000 seconds).
+Test Suite 'PrintConformanceStatusCodeTests' passed at 2026-10-24 20:54:02.594.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'PrintDatasetReaderTests' started at 2026-10-24 20:54:02.594.
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testReadsLargePixelDataValue]' started.
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testReadsLargePixelDataValue]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testRejectsElementLengthPastEndOfDataSet]' started.
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testRejectsElementLengthPastEndOfDataSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksFlatElementsExplicitVR]' started.
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksFlatElementsExplicitVR]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksFlatElementsImplicitVR]' started.
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksFlatElementsImplicitVR]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksSequencesInBothVRs]' started.
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksSequencesInBothVRs]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksUndefinedLengthSequence]' started.
+Test Case '-[DICOMNetworkTests.PrintDatasetReaderTests testWalksUndefinedLengthSequence]' passed (0.000 seconds).
+Test Suite 'PrintDatasetReaderTests' passed at 2026-10-24 20:54:02.596.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintImageDisplayFormatTests' started at 2026-10-24 20:54:02.596.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testAGridIsWrittenAsTheStandardFormItSends]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testAGridIsWrittenAsTheStandardFormItSends]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testOnlyStandardIsAUniformGrid]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testOnlyStandardIsAUniformGrid]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testRowAndColumnFormatsSumTheirCounts]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testRowAndColumnFormatsSumTheirCounts]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testSlideAndCustomFormats]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testSlideAndCustomFormats]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testStandardIsColumnsThenRows]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testStandardIsColumnsThenRows]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testSummaryDescribesWhatIsLaidOut]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testSummaryDescribesWhatIsLaidOut]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testUnknownFormatFallsBackToSingleBox]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testUnknownFormatFallsBackToSingleBox]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testValidatedRefusesWhatParseWouldHaveGuessedAt]' started.
+Test Case '-[DICOMNetworkTests.PrintImageDisplayFormatTests testValidatedRefusesWhatParseWouldHaveGuessedAt]' passed (0.000 seconds).
+Test Suite 'PrintImageDisplayFormatTests' passed at 2026-10-24 20:54:02.597.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintPresentationContextTests' started at 2026-10-24 20:54:02.597.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testColorModeProposesTheColorMetaAndImageBoxClasses]' started.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testColorModeProposesTheColorMetaAndImageBoxClasses]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testImplicitVRIsReportedPerContext]' started.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testImplicitVRIsReportedPerContext]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testIndividualContextIsPreferredOverTheMetaContext]' started.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testIndividualContextIsPreferredOverTheMetaContext]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testIndividualOnlyPrinterRoutesEachServiceToItsOwnContext]' started.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testIndividualOnlyPrinterRoutesEachServiceToItsOwnContext]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testMetaOnlyPrinterRoutesEverythingThroughTheMetaContext]' started.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testMetaOnlyPrinterRoutesEverythingThroughTheMetaContext]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testPrinterThatAcceptsNothingFailsTheAssociation]' started.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testPrinterThatAcceptsNothingFailsTheAssociation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testProposesMetaAndIndividualSOPClassesWithOddIDs]' started.
+Test Case '-[DICOMNetworkTests.PrintPresentationContextTests testProposesMetaAndIndividualSOPClassesWithOddIDs]' passed (0.000 seconds).
+Test Suite 'PrintPresentationContextTests' passed at 2026-10-24 20:54:02.597.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintSCPEncoderTests' started at 2026-10-24 20:54:02.597.
+Test Case '-[DICOMNetworkTests.PrintSCPEncoderTests testFilmBoxCreateResponseRoundTrips]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPEncoderTests testFilmBoxCreateResponseRoundTrips]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPEncoderTests testPrinterAttributesAreReadableByTheSCUParser]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPEncoderTests testPrinterAttributesAreReadableByTheSCUParser]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPEncoderTests testPrintJobAttributesRoundTrip]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPEncoderTests testPrintJobAttributesRoundTrip]' passed (0.000 seconds).
+Test Suite 'PrintSCPEncoderTests' passed at 2026-10-24 20:54:02.598.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintSCPIntegrationTests' started at 2026-10-24 20:54:02.598.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testAllContextsRejectedFailsCleanly]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testAllContextsRejectedFailsCleanly]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testDefensiveFilmSessionDeleteBeforeAbort]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testDefensiveFilmSessionDeleteBeforeAbort]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testEventDuringReleaseWindowDoesNotBreakRelease]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testEventDuringReleaseWindowDoesNotBreakRelease]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testFailureCarriesErrorCommentToThrownError]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testFailureCarriesErrorCommentToThrownError]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testFilmSessionCreateFailureAborts]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testFilmSessionCreateFailureAborts]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testGetPrinterStatusWarning]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testGetPrinterStatusWarning]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testHappyPathSingleAssociation]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testHappyPathSingleAssociation]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testImplicitVROnlySCPPrinterStatus]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testImplicitVROnlySCPPrinterStatus]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testImplicitVROnlySCPPrintsSuccessfully]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testImplicitVROnlySCPPrintsSuccessfully]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testInterleavedEventIsDeliveredAndWorkflowSucceeds]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testInterleavedEventIsDeliveredAndWorkflowSucceeds]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testMultiFilmSingleAssociation]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testMultiFilmSingleAssociation]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testOmittedPrintJobUIDIsNotRecorded]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testOmittedPrintJobUIDIsNotRecorded]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testSilentSCPTimesOutInsteadOfHanging]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPIntegrationTests testSilentSCPTimesOutInsteadOfHanging]' passed (2.038 seconds).
+Test Suite 'PrintSCPIntegrationTests' passed at 2026-10-24 20:54:04.658.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 2.059 (2.060) seconds
+Test Suite 'PrintSCPLoopbackTests' started at 2026-10-24 20:54:04.658.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAnnotationBoxSupportIsDiscoverable]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAnnotationBoxSupportIsDiscoverable]' passed (0.007 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAnnotationBoxSupportIsFalseWhenThePrinterIsUnreachable]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAnnotationBoxSupportIsFalseWhenThePrinterIsUnreachable]' passed (2.034 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAnnotationsReachTheFilm]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAnnotationsReachTheFilm]' passed (0.010 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAssociationIsRejectedForUnknownCalledAE]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testAssociationIsRejectedForUnknownCalledAE]' passed (0.004 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testCallingAEBlacklistRejectsTheAssociation]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testCallingAEBlacklistRejectsTheAssociation]' passed (0.005 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testColorPrintUsesTheColorImageBoxSOPClass]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testColorPrintUsesTheColorImageBoxSOPClass]' passed (0.006 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testDelegateFailurePropagatesToTheSCU]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testDelegateFailurePropagatesToTheSCU]' passed (0.005 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testEachFilmCarriesItsOwnAnnotations]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testEachFilmCarriesItsOwnAnnotations]' passed (0.006 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testMultiImageLayoutAllocatesOneBoxPerImage]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testMultiImageLayoutAllocatesOneBoxPerImage]' passed (0.004 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testPresentationLUTShapeReachesTheFilm]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testPresentationLUTShapeReachesTheFilm]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testPrinterStatusQuery]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testPrinterStatusQuery]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testPrintJobStatusSurvivesTheAssociation]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testPrintJobStatusSurvivesTheAssociation]' passed (0.006 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testRenderedInverseSendsNoPresentationLUTShape]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testRenderedInverseSendsNoPresentationLUTShape]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testSingleImagePrintDeliversTheFilm]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPLoopbackTests testSingleImagePrintDeliversTheFilm]' passed (0.002 seconds).
+Test Suite 'PrintSCPLoopbackTests' passed at 2026-10-24 20:54:06.758.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 2.098 (2.100) seconds
+Test Suite 'PrintSCPParserTests' started at 2026-10-24 20:54:06.758.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testColorImageBoxAcceptsThreeSamples]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testColorImageBoxAcceptsThreeSamples]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testFilmBoxAttributesRoundTrip]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testFilmBoxAttributesRoundTrip]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testFilmSessionAttributesRoundTrip]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testFilmSessionAttributesRoundTrip]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testGrayscaleImageBoxRejectsThreeSamples]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testGrayscaleImageBoxRejectsThreeSamples]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testImageBoxPixelModuleRoundTripsThroughBothVRs]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testImageBoxPixelModuleRoundTripsThroughBothVRs]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testInvalidBitsAllocatedIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testInvalidBitsAllocatedIsRejected]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testMissingRowsIsRejectedAsMissingAttribute]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testMissingRowsIsRejectedAsMissingAttribute]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testOversizedImageIsRejectedWithImageLargerThanImageBox]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testOversizedImageIsRejectedWithImageLargerThanImageBox]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testTruncatedPixelDataIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testTruncatedPixelDataIsRejected]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testUnknownEnumeratedValueIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testUnknownEnumeratedValueIsRejected]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testUnsupportedFilmSizeIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPParserTests testUnsupportedFilmSizeIsRejected]' passed (0.000 seconds).
+Test Suite 'PrintSCPParserTests' passed at 2026-10-24 20:54:06.760.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'PrintSCPPixelDepthTests' started at 2026-10-24 20:54:06.760.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testClampedSamplesAreScaledNotJustRelabelled]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testClampedSamplesAreScaledNotJustRelabelled]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testColorBoxAlwaysResolvesToEight]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testColorBoxAlwaysResolvesToEight]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testConformantPixelsAreNotRewritten]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testConformantPixelsAreNotRewritten]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testEnumeratedGrayscaleDepthsAreAccepted]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testEnumeratedGrayscaleDepthsAreAccepted]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testNonConformantDepthDoesNotFailTheNSet]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testNonConformantDepthDoesNotFailTheNSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testRescalePreservesBufferLength]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testRescalePreservesBufferLength]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testSixteenBitStoredClampsToTwelve]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testSixteenBitStoredClampsToTwelve]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testStoredAboveAllocatedIsBoundedByTheContainer]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testStoredAboveAllocatedIsBoundedByTheContainer]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testTruncatedPixelDataIsStillRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testTruncatedPixelDataIsStillRejected]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testTwelveInSixteenIsUntouched]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPPixelDepthTests testTwelveInSixteenIsUntouched]' passed (0.000 seconds).
+Test Suite 'PrintSCPPixelDepthTests' passed at 2026-10-24 20:54:06.761.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintSCPRobustnessTests' started at 2026-10-24 20:54:06.761.
+Test Case '-[DICOMNetworkTests.PrintSCPRobustnessTests testActiveAssociationIsNotClosedByTheIdleTimeout]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPRobustnessTests testActiveAssociationIsNotClosedByTheIdleTimeout]' passed (1.872 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPRobustnessTests testAssociationBeyondTheLimitIsRejectedNotDropped]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPRobustnessTests testAssociationBeyondTheLimitIsRejectedNotDropped]' passed (0.008 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPRobustnessTests testIdleAssociationIsClosedAfterTheTimeout]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPRobustnessTests testIdleAssociationIsClosedAfterTheTimeout]' passed (1.720 seconds).
+Test Suite 'PrintSCPRobustnessTests' passed at 2026-10-24 20:54:10.362.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 3.600 (3.601) seconds
+Test Suite 'PrintSCPStatusMatrixTests' started at 2026-10-24 20:54:10.362.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testDeletingAFilmBoxTwiceReportsNoSuchSOPInstance]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testDeletingAFilmBoxTwiceReportsNoSuchSOPInstance]' passed (0.008 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testFilmBoxBeforeFilmSessionIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testFilmBoxBeforeFilmSessionIsRejected]' passed (0.005 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testMissingImageDisplayFormatIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testMissingImageDisplayFormatIsRejected]' passed (0.006 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testNSetOnUnknownImageBoxIsNoSuchSOPInstance]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testNSetOnUnknownImageBoxIsNoSuchSOPInstance]' passed (0.005 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testPrinterNGetReturnsStatus]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testPrinterNGetReturnsStatus]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testPrintingAFilmBoxWithNoImagesPrintsAnEmptyPage]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testPrintingAFilmBoxWithNoImagesPrintsAnEmptyPage]' passed (0.004 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testPrintJobNGetReturnsExecutionStatus]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testPrintJobNGetReturnsExecutionStatus]' passed (0.004 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testSCUSuppliedSOPInstanceUIDsAreHonored]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testSCUSuppliedSOPInstanceUIDsAreHonored]' passed (0.003 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testSecondFilmSessionIsRejectedAsDuplicate]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testSecondFilmSessionIsRejectedAsDuplicate]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testTooManyImageBoxesIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testTooManyImageBoxesIsRejected]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testUnsupportedActionTypeIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testUnsupportedActionTypeIsRejected]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testUnsupportedFilmSizeIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testUnsupportedFilmSizeIsRejected]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testUnsupportedSOPClassForNCreateIsRejected]' started.
+Test Case '-[DICOMNetworkTests.PrintSCPStatusMatrixTests testUnsupportedSOPClassForNCreateIsRejected]' passed (0.002 seconds).
+Test Suite 'PrintSCPStatusMatrixTests' passed at 2026-10-24 20:54:10.412.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.048 (0.050) seconds
+Test Suite 'PrintServiceTests' started at 2026-10-24 20:54:10.412.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testAnnotationBoxSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testAnnotationBoxSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testAnnotationTextStringIsALegalLO]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testAnnotationTextStringIsALegalLO]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicColorImageBoxSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicColorImageBoxSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicColorPrintManagementMetaSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicColorPrintManagementMetaSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicFilmBoxSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicFilmBoxSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicFilmSessionSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicFilmSessionSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicGrayscaleImageBoxSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicGrayscaleImageBoxSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicGrayscalePrintManagementMetaSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testBasicGrayscalePrintManagementMetaSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCommandSetErrorAccessors]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCommandSetErrorAccessors]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCommandSetOffendingElements]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCommandSetOffendingElements]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testComparisonTemplate]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testComparisonTemplate]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCreateFilmSessionRequestBuilding]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCreateFilmSessionRequestBuilding]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCreationDateTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCreationDateTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCreationTimeTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testCreationTimeTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testDecimateCropBehaviorRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testDecimateCropBehaviorRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testDeleteFilmSessionRequestBuilding]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testDeleteFilmSessionRequestBuilding]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testErrorDetailFromCommandSet]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testErrorDetailFromCommandSet]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testExecutionStatusInfoTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testExecutionStatusInfoTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testExecutionStatusTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testExecutionStatusTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxCustomValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxResultInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxResultInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxResultWithMultipleImageBoxes]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxResultWithMultipleImageBoxes]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxResultWithNoImageBoxes]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxResultWithNoImageBoxes]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxTags]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxTags]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith2x2Format]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith2x2Format]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith2x3Format]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith2x3Format]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith3x4Format]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith3x4Format]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith4x4Format]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWith4x4Format]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWithSingleImageFormat]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmBoxWithSingleImageFormat]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmDestinationRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmDestinationRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmOrientationRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmOrientationRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionCustomValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionTags]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionTags]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionWithCustomValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionWithCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionWithDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSessionWithDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSizeCaseIterable]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSizeCaseIterable]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSizeRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testFilmSizeRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testGridTemplate2x2]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testGridTemplate2x2]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testGridTemplate3x4]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testGridTemplate3x4]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testGridTemplateMinimumValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testGridTemplateMinimumValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxContentCustomValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxContentCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxContentDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxContentDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxPositionTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxPositionTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxTags]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImageBoxTags]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImagePolarityRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImagePolarityRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImagePreprocessorInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testImagePreprocessorInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testLayoutFromImageDisplayFormat]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testLayoutFromImageDisplayFormat]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testLegacyMammoSpellingsMapToTheTerms]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testLegacyMammoSpellingsMapToTheTerms]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMagnificationTypeCaseIterable]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMagnificationTypeCaseIterable]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMagnificationTypeRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMagnificationTypeRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMediumTypeCaseIterable]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMediumTypeCaseIterable]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMediumTypeRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMediumTypeRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMultiPhaseTemplate2x3]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMultiPhaseTemplate2x3]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMultiPhaseTemplate3x4]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testMultiPhaseTemplate3x4]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusEmptyData]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusEmptyData]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusFailure]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusFailure]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusImplicitVR]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusImplicitVR]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusMissingStatusIsUnknown]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusMissingStatusIsUnknown]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusNormal]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusNormal]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusWarningWithInfo]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParsePrinterStatusWarningWithInfo]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParseReferencedSOPInstanceUIDsImplicitVR]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParseReferencedSOPInstanceUIDsImplicitVR]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParseReferencedSOPInstanceUIDsScopedToSequence]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testParseReferencedSOPInstanceUIDsScopedToSequence]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPartialPrintResultFailure]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPartialPrintResultFailure]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPartialPrintResultPartialSuccess]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPartialPrintResultPartialSuccess]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPartialPrintResultSuccess]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPartialPrintResultSuccess]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPolarityTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPolarityTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreformattedColorImageSequenceTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreformattedColorImageSequenceTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreformattedGrayscaleImageSequenceTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreformattedGrayscaleImageSequenceTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreparedImageInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreparedImageInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreparedImageWithRGBData]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreparedImageWithRGBData]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrint12BitOutput]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrint12BitOutput]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintConvertsYBRFull422ToRGB]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintConvertsYBRFull422ToRGB]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintConvertsYBRFullToRGB]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintConvertsYBRFullToRGB]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintConvertsYBRPartial422StudioRange]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintConvertsYBRPartial422StudioRange]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintHonorsExplicitWindow]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintHonorsExplicitWindow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintPaletteColor]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintPaletteColor]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintPaletteColorMissingLUTThrows]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintPaletteColorMissingLUTThrows]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintRejectsInvalidBitDepth]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintRejectsInvalidBitDepth]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintRejectsOutOfRangeFrame]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintRejectsOutOfRangeFrame]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintSelectsRequestedFrame]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrepareForPrintSelectsRequestedFrame]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessColorImagePreservesRGBWhenColorModeIsColor]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessColorImagePreservesRGBWhenColorModeIsColor]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMissingImageAttributesThrowsError]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMissingImageAttributesThrowsError]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMissingPixelDataThrowsError]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMissingPixelDataThrowsError]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMONOCHROME1Image16BitInversion]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMONOCHROME1Image16BitInversion]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMONOCHROME1ImageInversion]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMONOCHROME1ImageInversion]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMONOCHROME2ImageNoTransforms]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessMONOCHROME2ImageNoTransforms]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessRGBToGrayscaleConversion]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessRGBToGrayscaleConversion]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessWithWindowLevel8Bit]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPreprocessWithWindowLevel8Bit]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPresentationLUTShapeRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPresentationLUTShapeRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPresentationLUTSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPresentationLUTSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintAnnotationClampsPosition]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintAnnotationClampsPosition]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintColorModeRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintColorModeRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintConfigurationCustomValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintConfigurationCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintConfigurationDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintConfigurationDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterCapabilitiesCustom]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterCapabilitiesCustom]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterCapabilitiesDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterCapabilitiesDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterEventTypeRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterEventTypeRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterInfoEquality]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterInfoEquality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterInfoInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterInfoInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryAddPrinter]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryAddPrinter]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryAvailability]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryAvailability]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryByName]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryByName]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryDefaultPrinter]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryDefaultPrinter]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryDuplicateError]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryDuplicateError]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryErrorDescriptions]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryErrorDescriptions]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryErrorEquality]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryErrorEquality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryNotFoundError]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryNotFoundError]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryRemovePrinter]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistryRemovePrinter]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistrySelectPrinter]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistrySelectPrinter]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistrySetDefaultPrinter]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterRegistrySetDefaultPrinter]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintErrorDescriptions]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintErrorDescriptions]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintErrorEquality]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintErrorEquality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintErrorRecoverySuggestions]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintErrorRecoverySuggestions]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterSOPInstanceUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterSOPInstanceUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterStatusCreation]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterStatusCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterStatusFailure]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterStatusFailure]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterStatusWithDetails]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterStatusWithDetails]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterTags]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrinterTags]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventInterpretsPrinterSOPClass]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventInterpretsPrinterSOPClass]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventInterpretsPrintJobSOPClass]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventInterpretsPrintJobSOPClass]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventPrinterNormalIsNotFault]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventPrinterNormalIsNotFault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventPrintJobFailureIsFault]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventPrintJobFailureIsFault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventUnknownSOPClassFallsBack]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintEventUnknownSOPClassFallsBack]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintImagesRequiresDescriptors]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintImagesRequiresDescriptors]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobDefaultValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobDefaultValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobEventTypeRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobEventTypeRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobFailureWorkflow]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobFailureWorkflow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobRecordFailure]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobRecordFailure]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobRecordInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobRecordInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobSOPClassUID]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobSOPClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusAllExecutionStates]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusAllExecutionStates]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsCompleted]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsCompleted]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsFailed]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsFailed]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsInProgress_Pending]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsInProgress_Pending]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsInProgress_Printing]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusIsInProgress_Printing]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusWithAllFields]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusWithAllFields]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusWithMultipleStatuses]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusWithMultipleStatuses]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusWithUnknownState]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobStatusWithUnknownState]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobTags]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobTags]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobWorkflow]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintJobWorkflow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutBasicInitialization]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutBasicInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutEquality]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutEquality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutMinimumValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutMinimumValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor12Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor12Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor16Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor16Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor1Image]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor1Image]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor20Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor20Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor2Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor2Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor4Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor4Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor6Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor6Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor9Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalFor9Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalForMoreThan20Images]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutOptimalForMoreThan20Images]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticComparison]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticComparison]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticGrid2x2]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticGrid2x2]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticGrid3x3]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticGrid3x3]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticGrid4x4]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticGrid4x4]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticMultiPhase2x3]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticMultiPhase2x3]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticMultiPhase3x4]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticMultiPhase3x4]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticSingleImage]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintLayoutStaticSingleImage]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOperationFailedCarriesDetail]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOperationFailedCarriesDetail]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsCarriesPresentationLUTAndAnnotations]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsCarriesPresentationLUTAndAnnotations]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsCustomValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsDefaultsHaveNoLUTOrAnnotations]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsDefaultsHaveNoLUTOrAnnotations]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticDefault]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticDefault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticDraft]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticDraft]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticHighQuality]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticHighQuality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticMammography]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintOptionsStaticMammography]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintPriorityRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintPriorityRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressClampedValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressClampedValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressCompleted]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressCompleted]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressConnecting]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressConnecting]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressPhaseEquality]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressPhaseEquality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressUploadingImages]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintProgressUploadingImages]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueCancel]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueCancel]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueEnqueue]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueEnqueue]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueHistory]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueHistory]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueJobStatus]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueJobStatus]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueMarkFailed]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueMarkFailed]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueuePriorityOrdering]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueuePriorityOrdering]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueRetry]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueRetry]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueStatus]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintQueueStatus]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintResultFailure]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintResultFailure]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintResultSuccess]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintResultSuccess]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyCustomValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyDefaults]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyDelayCalculation]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyDelayCalculation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyDelayNegativeAttempt]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyDelayNegativeAttempt]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyMinimumValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyMinimumValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyStaticAggressive]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyStaticAggressive]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyStaticDefault]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyStaticDefault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyStaticNone]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testPrintRetryPolicyStaticNone]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testRequestedDecimateCropBehaviorTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testRequestedDecimateCropBehaviorTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testRequestedImageSizeTag]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testRequestedImageSizeTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testSetImageBoxRequiresDescriptor]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testSetImageBoxRequiresDescriptor]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testSingleImageTemplate]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testSingleImageTemplate]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testSingleImageTemplateCustom]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testSingleImageTemplateCustom]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.PrintServiceTests testTrimOptionRawValues]' started.
+Test Case '-[DICOMNetworkTests.PrintServiceTests testTrimOptionRawValues]' passed (0.000 seconds).
+Test Suite 'PrintServiceTests' passed at 2026-10-24 20:54:10.444.
+	 Executed 203 tests, with 0 failures (0 unexpected) in 0.024 (0.031) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-10-24 20:54:10.444.
+	 Executed 409 tests, with 0 failures (0 unexpected) in 8.328 (8.348) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:54:10.444.
+	 Executed 409 tests, with 0 failures (0 unexpected) in 8.328 (8.353) seconds

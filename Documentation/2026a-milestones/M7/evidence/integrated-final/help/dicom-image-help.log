@@ -1,0 +1,103 @@
+OVERVIEW: Convert standard images to DICOM Secondary Capture Image instances
+
+Convert JPEG, PNG, TIFF, and other image formats to the DICOM Secondary
+Capture Image IOD (PS3.3 A.8.1), SOP Class "Secondary Capture Image Storage"
+(1.2.840.10008.5.1.4.1.1.7), Explicit VR Little Endian. Pixels are written as
+8-bit RGB (Planar Configuration 0) or MONOCHROME2. Supports EXIF metadata
+extraction and batch conversion.
+
+Supported formats: JPEG, PNG, TIFF, BMP, GIF (depends on platform support)
+
+Values the written VR cannot hold (PS3.5 Table 6.2-1: LO and PN over 64
+characters or with a backslash, IS outside -2^31..2^31-1, a UID breaking PS3.5
+Section 9) are refused with exit status 1 and nothing is written.
+
+Examples:
+  # Convert JPEG to DICOM
+  dicom-image photo.jpg --output capture.dcm \
+    --patient-name "DOE^JOHN" \
+    --patient-id "12345"
+
+  # Convert with EXIF metadata
+  dicom-image photo.jpg --output capture.dcm \
+    --patient-name "SMITH^JANE" \
+    --patient-id "54321" \
+    --use-exif \
+    --study-description "Clinical Photography"
+
+  # Add an image to an existing study, giving the date and time it started
+  dicom-image scan.png --output scan.dcm \
+    --patient-name "DOE^JOHN" \
+    --patient-id "12345" \
+    --study-uid 1.2.826.0.1.3680043.2.1125.1 \
+    --study-date 20260915 --study-time 093000
+
+  # Batch convert images
+  dicom-image photos/ --output dicoms/ --recursive \
+    --patient-name "BATCH^PATIENT" \
+    --patient-id "BATCH001" \
+    --series-description "Clinical Photos"
+
+  # Convert multi-page TIFF
+  dicom-image multipage.tiff --output frames/ \
+    --split-pages \
+    --patient-name "TEST^PATIENT" \
+    --patient-id "99999"
+
+USAGE: dicom-image [<options>] <input>
+
+ARGUMENTS:
+  <input>                 Input image file or directory
+
+OPTIONS:
+  -o, --output <output>   Output file or directory path
+  --patient-name <patient-name>
+                          Patient's Name (0010,0010), PN, e.g. 'DOE^JOHN' (at
+                          most 64 characters per component group, no backslash)
+  --patient-id <patient-id>
+                          Patient ID (0010,0020), LO (at most 64 characters, no
+                          backslash)
+  --study-description <study-description>
+                          Study Description (0008,1030), LO (at most 64
+                          characters, no backslash)
+  --series-description <series-description>
+                          Series Description (0008,103E), LO (at most 64
+                          characters, no backslash)
+  --study-uid <study-uid> Study Instance UID (0020,000D), UI per PS3.5 Section
+                          9 (generated if not provided)
+  --series-uid <series-uid>
+                          Series Instance UID (0020,000E), UI per PS3.5 Section
+                          9 (generated if not provided)
+  --study-date <study-date>
+                          Study Date (0008,0020), DA YYYYMMDD: the date the
+                          Study started (default: the conversion date for a new
+                          study; empty with --study-uid)
+  --study-time <study-time>
+                          Study Time (0008,0030), TM HHMMSS[.FFFFFF]: the time
+                          the Study started (default: the conversion time for a
+                          new study; empty with --study-uid)
+  --series-number <series-number>
+                          Series Number (0020,0011), IS (written empty if not
+                          provided; Type 2)
+  --instance-number <instance-number>
+                          Instance Number (0020,0013), IS (default 1; starting
+                          value for batch and TIFF pages)
+  --modality <modality>   Modality to write (default: OT) (0008,0060) — e.g.
+                          CT, MR, US, OPT. Run 'dicom-tags --list-modalities'
+                          for every DICOM 2026a code.
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --conversion-type <conversion-type>
+                          Conversion Type (0008,0064): DV, DI, DF, WSD, SD, SI,
+                          DRW or SYN (PS3.3 Table C.8-24; default: WSD)
+  --use-exif              Use EXIF metadata: DateTimeOriginal -> Acquisition
+                          Date/Time (0008,0022/0032), DPI -> Nominal Scanned
+                          Pixel Spacing (0018,2010), description -> Study
+                          Description
+  --split-pages           Write each page of a multi-page TIFF as its own
+                          Secondary Capture instance
+  --recursive             Process directories recursively
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

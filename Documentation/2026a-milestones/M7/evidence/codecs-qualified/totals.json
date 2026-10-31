@@ -1,0 +1,9 @@
+{
+  "executed": 90,
+  "selected": 90,
+  "passed": 78,
+  "supported_refusal": 10,
+  "interoperability_limit": 2,
+  "failed": 0,
+  "meaning": "Only passed counts as codec qualification. Supported refusals and independently verified interoperability limits are separate. Exit0 means no unexpected failure, not complete codec support."
+}

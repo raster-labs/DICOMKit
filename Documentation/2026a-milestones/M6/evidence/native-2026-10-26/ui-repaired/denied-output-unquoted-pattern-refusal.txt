@@ -1,0 +1,20 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: dicom-printscp simulate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/denied-output --name-pattern denied-{index} --format json
+			5 scroll bar (disabled, settable, float) 0
+		6 text CLIWorkshopPrintCommandCodecError(message: "Shell operators or expansion are not supported; quote literal argument values.")
+		7 button Cancel
+		8 button Import
+9 menu bar
+	10 DICOMStudio
+	11 File
+	12 Edit
+	13 View
+	14 Image
+	15 Window
+	16 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: dicom-printscp simulate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/denied-output --name-pattern denied-{index} --format json

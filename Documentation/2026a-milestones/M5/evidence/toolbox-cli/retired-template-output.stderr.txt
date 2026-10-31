@@ -1,0 +1,3 @@
+Error: Unknown option '--output'
+Usage: dicom-script template <template-name>
+  See 'dicom-script template --help' for more information.

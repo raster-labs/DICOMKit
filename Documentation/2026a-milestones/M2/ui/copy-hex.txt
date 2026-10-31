@@ -1,0 +1,100 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 240
+		15 container
+			16 button (selected) Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-info, Help: Display DICOM file metadata, tags, and statistics
+			24 button Description: dicom-dump, Help: Hexadecimal dump with DICOM structure annotations
+			25 button (selected) Description: dicom-tags, Help: Tag dictionary lookup, set, and delete operations
+			26 button Description: dicom-diff, Help: Compare two DICOM files and show differences
+			27 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			28 split group
+				29 container
+					30 scroll area Secondary Actions: Scroll Up, Scroll Down
+						31 text DICOM Tags. Adds, modifies, or deletes tags in a DICOM file using set/delete/copy-from operations. Parameters Input Input File
+						32 text field (settable) Description: Input File, Value: /private/tmp/dicomkit-m2-ui/base.dcm, Placeholder: Path to DICOM file
+						33 button Description: Browse for Input File, Help: Opens a file picker dialog
+						34 text Input DICOM file path (omit with --list-modalities) Parameters Set Tag(s) --set
+						35 text field (settable) Description: Set Tag(s), Placeholder: e.g. PatientName=DOE^JOHN; 0008,0090=DR.SMITH
+						36 text Keyword=Value or GGGG,EEEE=Value (keyword in PS3.6 case). Writes the PS3.6 dictionary VR and refuses a value outside the PS3.5 Table 6.2-1 limits of that VR (length, characters, numeric range); US/SS/UL/SL/FL/FD are decimal numbers, values separated by a backslash; group 0002 cannot be edited (PS3.10 7.1). Separate with “ ; ”. Delete Tag(s) --delete
+						37 text field (settable) Description: Delete Tag(s), Placeholder: e.g. PatientBirthDate; 0010,0020
+						38 text Tags to remove (name or GGGG,EEEE). Separate with “ ; ”. Options
+						39 checkbox Description: List Modalities, Value: 0
+						40 checkbox Description: Delete Private Tags, Value: 0
+						41 checkbox Description: Verbose, Value: 0
+						42 checkbox Description: Dry Run, Value: 0
+						43 text Output Output File --output
+						44 text field (settable) Description: Output File, Value: /private/tmp/dicomkit-m2-ui/gui-copy-hex.dcm, Placeholder: Output DICOM file path (overwrites input if omitted)
+						45 button Description: Browse for Output File, Help: Opens a file picker dialog
+						46 text Write modified DICOM to this path instead of overwriting the input file Input Copy From File --copy-from
+						47 text field (settable) Description: Copy From File, Help: Shows additional flags for this tool, Value: /private/tmp/dicomkit-m2-ui/latin1-patient.dcm, Placeholder: Source DICOM file path
+						48 button Description: Browse for Copy From File, Help: Shows additional flags for this tool
+						49 text Help: Shows additional flags for this tool, Value: Copy tags from this DICOM file into the input file Parameters Tags to Copy --tags
+						50 text field (settable) Description: Tags to Copy, Help: Shows additional flags for this tool, Value: 00100010, Placeholder: e.g. PatientName,PatientID
+						51 text Help: Shows additional flags for this tool, Value: Comma-separated list of tags to copy from --copy-from file (default: all)
+						52 disclosure triangle Description: Advanced options (2), Help: Shows additional flags for this tool, Value: on
+						53 scroll bar (settable, float) 1
+							54 value indicator (settable, float) 1
+							55 increment arrow button
+							56 decrement arrow button
+							57 increment page button
+							58 decrement page button
+					59 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					60 button Description: Run command, Help: Executes the constructed DICOM command
+				61 splitter (disabled, settable, float) 480
+				62 container
+					63 text Command Preview Valid $ Select a tool to build a command
+					64 button Description: Copy command, Help: Copies the command to the clipboard
+					65 text Console SUCCESS
+					66 button Description: Copy console output, Help: Copies the console output to the clipboard
+					67 button Clear console output
+					68 scroll area
+						69 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientAge=Y123 --dry-run
+
+Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value "Y123" (PS3.5 Table 6.2-1)
+
+							70 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-hex.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags 00100010
+
+Output written to: /private/tmp/dicomkit-m2-ui/gui-copy-hex.dcm
+
+					71 text History
+					72 button Clear
+					73 scroll area
+						74 text dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags dicom-tags
+	75 toolbar
+		76 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		77 search text field (settable) Search features
+			78 button Search
+	79 close button
+	80 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	81 minimize button
+	82 text DICOM Studio
+83 menu bar
+	84 DICOMStudio
+	85 File
+	86 Edit
+	87 View
+	88 Image
+	89 Window
+	90 Help
+
+The focused UI element is 44 text field (settable) Description: Output File, Value: /private/tmp/dicomkit-m2-ui/gui-copy-hex.dcm, Placeholder: Output DICOM file path (overwrites input if omitted)

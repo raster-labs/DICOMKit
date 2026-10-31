@@ -1,0 +1,10 @@
+OVERVIEW: Remove a model from the registry
+
+USAGE: dicom-ai registry remove --name <name> [--verbose]
+
+OPTIONS:
+  -n, --name <name>       Model name
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

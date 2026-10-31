@@ -1,0 +1,9 @@
+{
+  "messages": 12,
+  "associations": 1,
+  "event_acks": [
+    0
+  ],
+  "proxy_errors": [],
+  "status": "Captured; selected native result/counter assertions remain reviewer work"
+}

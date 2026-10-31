@@ -1,0 +1,10 @@
+OVERVIEW: List all models in the registry
+
+USAGE: dicom-ai registry list [--type <type>] [--verbose]
+
+OPTIONS:
+  --type <type>           Filter by model type
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

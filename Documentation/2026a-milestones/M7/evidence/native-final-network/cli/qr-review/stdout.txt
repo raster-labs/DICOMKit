@@ -1,0 +1,19 @@
+DICOM Query-Retrieve
+====================
+  Server:            127.0.0.1:60927
+  Calling AE Title:  M7NATIVE
+  Called AE Title:   M7NATIVE
+  Mode:              Review
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-review-cli
+  Timeout:           10s
+  Filters:
+    Study UID:       2.25.505
+
+Found 1 study(ies):
+
+  [1] M5^SYNTHETIC (ID: M5-001)
+      Study: BEFORE
+      Date: 20260115  Modalities in Study: CT
+      UID: 2.25.505
+
+Review complete. 1 study(ies) found.

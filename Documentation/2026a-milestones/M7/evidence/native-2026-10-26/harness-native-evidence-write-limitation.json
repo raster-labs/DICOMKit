@@ -1,0 +1,14 @@
+{
+  "recorded_utc": "2026-10-26T08:01:28.218679+00:00",
+  "classification": "Harness-only evidence persistence permission failure",
+  "reported_failure": "CUA runtime filesystem writes returned EPERM even after scoped filesystem permission was granted.",
+  "source": "Root agent task handoff; not reproduced by this read-only audit helper.",
+  "product_bug": false,
+  "product_verification_claim": "No DICOMStudio result is inferred from this harness failure. Each saved native observation still requires its own acceptance check.",
+  "resolution": "Root emits explicitly sanitized m7_native_network_evidence JSON markers. The authorized filesystem collector reads only new root response_item function_call_output text blocks, extracts only each explicit marker state, and saves that exact UTF-8 string to ui-network/name.txt.",
+  "collector": "work/m7/collect_native_network_evidence.py",
+  "collection_receipt": "network-evidence-collection.json",
+  "privacy_boundary": "No unrelated transcript contents or appended automatic AX wrappers are exported.",
+  "initial_collector_parser_issue": "Tool text includes a trailing automatic wrapper after marker JSON. Initial strict JSON parser found no observations; zero-observation scan retained. Leading JSON decoder correction recovered the previously inspected marker record and subsequent markers, ignoring wrapper text.",
+  "multiple_marker_correction": "Root clarified that several explicit marker objects may share one output block. Parser now decodes each marker separately, preserves exact state strings, and excludes all non-marker content. Replayed only the already scanned collector interval; this is an evidence harness repair, not a product issue."
+}

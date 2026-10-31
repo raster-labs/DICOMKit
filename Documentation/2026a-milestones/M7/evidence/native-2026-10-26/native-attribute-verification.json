@@ -1,0 +1,111 @@
+{
+  "recorded_utc": "2026-10-26T07:14:25.651048+00:00",
+  "status": "partial native attribute acceptance; only repaired tags-literals observed here",
+  "qualification_epoch": "Interim layout/path repair: packaged native print layout still clips; further repair and final native acceptance pending",
+  "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/interim-native-identity.json",
+  "identity_sha256": "7feb2846368302b175d98a4e7b93df3c18c88dcf57a85a3dbd9bea087c6ad1bb",
+  "source_manifest_sha256": "effa7b41e8e919a0bb2aad1a4e26f188293d36d06f69abd2c7f015c90360d3b7",
+  "case": "tags-literals",
+  "native_artifact": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm",
+  "CLI_artifact": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/tags-literals.dcm",
+  "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm",
+  "evidence": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/tags-literals-repaired-before.txt": "03b378ad387f504c93fc9243bdce8dff1709b9a6e3f27b052e3b4ccad677cd53",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/tags-literals-repaired-after.txt": "e8fe63e028ac8ac4af7e38b44f1b06fd78ac948ffd173c8e381f078b64a724df",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/tags-literals-repaired-command-copy.txt": "d6ce28c60821d2d79cc7c9e93ee3aba07f041a5178e1a5f515131669e14a0caf"
+  },
+  "checks": [
+    {
+      "assertion": "actual native output exists at exact typed target",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm"
+    },
+    {
+      "assertion": "entire native output byte-identical to independently executed CLI output",
+      "passed": true,
+      "details": {
+        "bytes": 4052,
+        "sha256": "bba28047d2e4ffbf34bbe3d5c389965b8ec9df0f703dbd4b675d95cea9836e29"
+      }
+    },
+    {
+      "assertion": "original input unchanged from run-card fixture identity",
+      "passed": true,
+      "details": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f"
+    },
+    {
+      "assertion": "literal sentinel absent",
+      "passed": true
+    },
+    {
+      "assertion": "copied native command semantic argv matches prepared CLI argv",
+      "passed": true,
+      "details": {
+        "copied_argv": [
+          "dicom-tags",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm",
+          "--output",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm",
+          "--set",
+          "PatientName=O'Neil^White Space",
+          "--set",
+          "PixelSpacing=1\\2",
+          "--set",
+          "PatientComments=literal $(touch /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/MUST-NOT-EXIST) $HOME *",
+          "--set",
+          "PatientID==leading-equals"
+        ],
+        "comparison": "Tool basename normalized; option ordering may differ, repeated value order retained."
+      }
+    },
+    {
+      "assertion": "native before capture exact typed output",
+      "passed": true
+    },
+    {
+      "assertion": "native after capture reports exact actual target",
+      "passed": true
+    },
+    {
+      "assertion": "native PatientName PN preserves apostrophe and spaces",
+      "passed": true
+    },
+    {
+      "assertion": "native PatientID LO preserves leading equals",
+      "passed": true
+    },
+    {
+      "assertion": "native PixelSpacing DS two exact numbers",
+      "passed": true
+    },
+    {
+      "assertion": "native PatientComments LT preserves complete shell-like literal",
+      "passed": true
+    },
+    {
+      "assertion": "native pixels unchanged",
+      "passed": true
+    },
+    {
+      "assertion": "native class identity synchronized",
+      "passed": true
+    },
+    {
+      "assertion": "native instance identity synchronized",
+      "passed": true
+    },
+    {
+      "assertion": "current frozen VM matches actual interim app source manifest",
+      "passed": true,
+      "details": "af4d3ce0c11bc29d17c9199546a1305a0a46b937282c58fdc50e8e3fef18d63f"
+    }
+  ],
+  "passed": 15,
+  "failed": 0,
+  "limits": [
+    "No native UI operated or products executed by this checker. UI captures and saved native artifact supplied by parent.",
+    "Interim app identity retained: later print-layout repair/final app/native acceptance remains pending.",
+    "Other native attribute cases and whole FINAL group acceptance are not implied.",
+    "Copied command was pasted into an existing text field for inspection only; this capture is not a second execution."
+  ]
+}

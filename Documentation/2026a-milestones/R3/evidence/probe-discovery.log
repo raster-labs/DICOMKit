@@ -1,0 +1,25 @@
+Building for debugging...
+[Planning deferred tasks]
+[27 / 50] Probe
+[27 / 50]
+[28 / 51] Probe
+[40 / 55] Probe
+[45 / 56] ProbeTests-product
+[54 / 124]
+[64 / 124]
+[67 / 124]
+[75 / 124]
+[77 / 124]
+[84 / 124]
+[89 / 124]
+[90 / 124]
+[101 / 124]
+[102 / 124]
+[106 / 124]
+[109 / 124]
+[110 / 124]
+[118 / 124] ProbeTests-product
+[120 / 124] ProbeTests-product
+Build complete! (9.37 sec)
+ProbeTests.ProbeTests/testDouble
+ProbeTests.swiftDouble()

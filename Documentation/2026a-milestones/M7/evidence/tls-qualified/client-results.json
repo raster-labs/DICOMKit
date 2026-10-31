@@ -1,0 +1,50 @@
+[
+  {
+    "expectedSuccess" : true,
+    "name" : "TLS12-custom-trust",
+    "status" : 0,
+    "success" : true
+  },
+  {
+    "expectedSuccess" : true,
+    "name" : "TLS12-modified-cipher-subset",
+    "status" : 0,
+    "success" : true
+  },
+  {
+    "expectedSuccess" : true,
+    "name" : "TLS13-custom-trust",
+    "status" : 0,
+    "success" : true
+  },
+  {
+    "expectedSuccess" : true,
+    "name" : "TLS13-modified-cipher-subset",
+    "status" : 0,
+    "success" : true
+  },
+  {
+    "error" : "Connection timed out",
+    "expectedSuccess" : false,
+    "name" : "untrusted-system-root-refused",
+    "success" : false
+  },
+  {
+    "error" : "Connection timed out",
+    "expectedSuccess" : false,
+    "name" : "wrong-custom-root-refused",
+    "success" : false
+  },
+  {
+    "error" : "Connection timed out",
+    "expectedSuccess" : false,
+    "name" : "wrong-hostname-refused",
+    "success" : false
+  },
+  {
+    "error" : "Connection timed out",
+    "expectedSuccess" : false,
+    "name" : "TLS13-only-client-refuses-TLS12-peer",
+    "success" : false
+  }
+]

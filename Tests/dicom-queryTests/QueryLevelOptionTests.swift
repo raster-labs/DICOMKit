@@ -51,12 +51,31 @@ final class QueryLevelOptionTests: XCTestCase {
         XCTAssertEqual(ok.level, .image)
     }
 
-    func testParentLevelFilterWarningNamesTheWireLevelValue() throws {
-        let cmd = try DICOMQuery.parse(["server", "--aet", "SCU", "--level", "instance",
-                                        "--study-uid", "1.2", "--series-uid", "1.2.3",
-                                        "--patient-name", "DOE^J"])
-        let warning = try XCTUnwrap(cmd.parentLevelFilterWarning())
-        XCTAssertTrue(warning.contains("at IMAGE level"), warning)
-        XCTAssertFalse(warning.contains("INSTANCE level"), warning)
+    func testUnsupportedFiltersAreRefusedBeforeDispatch() throws {
+        let image = ["server", "--aet", "SCU", "--level", "instance",
+                     "--study-uid", "1.2", "--series-uid", "1.2.3"]
+        for filter in [["--patient-name", "DOE^J"], ["--modality", "CT"]] {
+            XCTAssertThrowsError(try DICOMQuery.parse(image + filter)) { error in
+                let text = String(describing: error)
+                XCTAssertTrue(text.contains("at IMAGE level"), text)
+                XCTAssertTrue(text.contains("No query was sent"), text)
+                XCTAssertFalse(text.contains("will be ignored"), text)
+            }
+        }
+        for filter in [["--study-date", "20260101-20260331"],
+                       ["--study-description", "CHEST*"], ["--study-uid", "1.2"]] {
+            XCTAssertThrowsError(try DICOMQuery.parse(["server", "--aet", "SCU", "--level", "patient"] + filter))
+        }
+        XCTAssertThrowsError(try DICOMQuery.parse(image + ["--modality", "CT", "--include-parent-keys"]))
+    }
+
+    func testAppliedFiltersReflectAcceptedWireKeysAndPreserveMatchingExpressions() throws {
+        let study = try DICOMQuery.parse(["server", "--aet", "SCU", "--modality", "CT",
+            "--study-date", "20260101-20260331", "--patient-name", "DOE*", "--study-description", "CHE?T*"])
+        XCTAssertEqual(study.appliedFilters().map(\.value), ["DOE*", "20260101-20260331", "CT", "CHE?T*"])
+        XCTAssertNil(study.buildQueryKeys().rejectionReason)
+        let series = try DICOMQuery.parse(["server", "--aet", "SCU", "--level", "series",
+            "--study-uid", "1.2", "--modality", "CT", "--include-parent-keys"])
+        XCTAssertEqual(series.appliedFilters().map(\.value), ["CT", "1.2"])
     }
 }

@@ -1,0 +1,1 @@
+Error: --paper-queue needs --allow-paper; refusing to spool to a real printer by accident

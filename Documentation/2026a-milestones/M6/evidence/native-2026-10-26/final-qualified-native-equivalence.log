@@ -1,0 +1,20 @@
+{
+  "verdict": "Passed scoped source-equivalence for reuse of prior evidence, with original provenance retained.",
+  "checks": {
+    "exact_expected_delta_only": true,
+    "all_other_production_files_exact": true,
+    "print_picker_reversal_exactly_reconstructs_interim_view": true,
+    "current_view_matches_final_manifest": true,
+    "all_CLI_artifacts_identical": true,
+    "package_and_locks_identical": true
+  },
+  "source_delta": {
+    "changed": [
+      "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+      "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "unchanged_production_files": 1078
+}

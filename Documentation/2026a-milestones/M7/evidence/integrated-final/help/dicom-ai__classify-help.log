@@ -1,0 +1,38 @@
+OVERVIEW: Perform image classification using AI models
+
+Classify DICOM images using trained CoreML models.
+Outputs class labels with confidence scores.
+
+Example:
+  dicom-ai classify chest-xray.dcm --model pneumonia-detector.mlmodel
+--confidence 0.7
+
+USAGE: dicom-ai classify <input> --model <model> [--output <output>] [--format <format>] [--confidence <confidence>] [--force] [--verbose] [--frame <frame>] [--profile] [--profile-output <profile-output>] [--algorithm-version <algorithm-version>] [--top-k <top-k>]
+
+ARGUMENTS:
+  <input>                 Path to the DICOM file or directory
+
+OPTIONS:
+  -m, --model <model>     CoreML model file path (.mlmodel or .mlmodelc)
+  -o, --output <output>   Output file path (prints to stdout if omitted)
+  -f, --format <format>   Output format: json, text, csv, dicom-sr, dicom-seg
+                          (values: json, text, csv, dicom-sr, dicom-seg;
+                          default: json)
+  --confidence <confidence>
+                          Minimum confidence threshold (0.0-1.0) (default: 0.5)
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output for debugging
+  --frame <frame>         Frame index for multi-frame images (default: 0)
+                          (default: 0)
+  --profile               Enable performance profiling
+  --profile-output <profile-output>
+                          Output performance metrics to file
+  --algorithm-version <algorithm-version>
+                          Algorithm Version (111003, DCM) written in the
+                          dicom-sr output (PS3.16 TID 4019 row 2, M). Default:
+                          the model's CoreML version metadata, else "unknown"
+        Algorithm Name (111001, DCM) is the model file name.
+  --top-k <top-k>         Maximum number of results to return (default: 5)
+  --version               Show the version.
+  -h, --help              Show help information.
+

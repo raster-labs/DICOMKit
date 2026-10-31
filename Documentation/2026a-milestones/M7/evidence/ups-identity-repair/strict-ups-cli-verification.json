@@ -1,0 +1,172 @@
+{
+  "passed": true,
+  "verified_utc": "2026-10-26T08:58:03.151251+00:00",
+  "native_actions": 0,
+  "CLI_actions": 5,
+  "paired_native_CLI_actions": 0,
+  "extra_CLI_actions": 2,
+  "assertions": 38,
+  "checks": [
+    {
+      "name": "original synthetic fixture hash retained",
+      "passed": true
+    },
+    {
+      "name": "five CLI actions pass expected status/count",
+      "passed": true
+    },
+    {
+      "name": "single actual repaired binary used",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-create expected exit",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-create exact HTTP count",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-get expected exit",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-get exact HTTP count",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-invalid expected exit",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-invalid exact HTTP count",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-generated expected exit",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-generated exact HTTP count",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-default expected exit",
+      "passed": true
+    },
+    {
+      "name": "ups-identity-default exact HTTP count",
+      "passed": true
+    },
+    {
+      "name": "four CLI requests exactly",
+      "passed": true
+    },
+    {
+      "name": "CLI request 1 unauthenticated intentionally",
+      "passed": true
+    },
+    {
+      "name": "CLI request 1 successful strict status",
+      "passed": true
+    },
+    {
+      "name": "CLI request 2 unauthenticated intentionally",
+      "passed": true
+    },
+    {
+      "name": "CLI request 2 successful strict status",
+      "passed": true
+    },
+    {
+      "name": "CLI request 3 unauthenticated intentionally",
+      "passed": true
+    },
+    {
+      "name": "CLI request 3 successful strict status",
+      "passed": true
+    },
+    {
+      "name": "CLI request 4 unauthenticated intentionally",
+      "passed": true
+    },
+    {
+      "name": "CLI request 4 successful strict status",
+      "passed": true
+    },
+    {
+      "name": "supplied collection route exact",
+      "passed": true
+    },
+    {
+      "name": "entire supplied body exactly preserved including UID",
+      "passed": true
+    },
+    {
+      "name": "supplied UID response Location exact",
+      "passed": true
+    },
+    {
+      "name": "GET targets exact supplied UID",
+      "passed": true
+    },
+    {
+      "name": "GET entire returned Data Set exactly preserved",
+      "passed": true
+    },
+    {
+      "name": "CLI get summary exact UID DT and state",
+      "passed": true
+    },
+    {
+      "name": "malformed body UID specific local refusal",
+      "passed": true
+    },
+    {
+      "name": "absent identity generates valid UI VM1",
+      "passed": true
+    },
+    {
+      "name": "generated collection body preserves all other input attributes",
+      "passed": true
+    },
+    {
+      "name": "generated create uses collection route",
+      "passed": true
+    },
+    {
+      "name": "generated identity response and CLI agree",
+      "passed": true
+    },
+    {
+      "name": "default create query carries valid generated identity",
+      "passed": true
+    },
+    {
+      "name": "default create intended values and SCHEDULED retained",
+      "passed": true
+    },
+    {
+      "name": "default response and CLI agree",
+      "passed": true
+    },
+    {
+      "name": "three separately created client identities distinct",
+      "passed": true
+    },
+    {
+      "name": "compact DT independent UTC interpretation",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Identity, body preservation, duplicate handling and DT are scoped; this peer is not a complete UPS IOD/server.",
+    "CLI has no UPS --timeout flag; it uses configuration defaults30/60/300s. Native timeout60 was selected. Successful cases make no timeout-equivalence claim.",
+    "Initial recipe supplied unsupported --timeout and failed exit64 before HTTP; preserved separately, not counted among five corrected cases.",
+    "Native Basic and unauthenticated CLI intentionally differ; no credential-enforcement claim.",
+    "Earlier UPS permissive-peer acceptance is superseded only for these repaired identity cases; earlier failure/parity records remain."
+  ],
+  "supersedes": "Earlier native-final-network/native-ups-verification.json established parity while omitting required body UID. It remains historical and open in that original epoch.",
+  "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133"
+}

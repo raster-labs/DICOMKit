@@ -1,0 +1,31 @@
+{
+  "product_repairs": [
+    "Shared asynchronous command extraction, same parser and effects context for terminal and Workshop.",
+    "SCP simulate save-config exits before image/output work; finite resource and duration validation.",
+    "Nonessential sink failures report diagnostic and do not report failed files saved.",
+    "Print Job events use negotiated optional context/VR and correlated terminal confirmations.",
+    "Listener readiness/timeout/cancellation share one once-only completion.",
+    "N-ACTION B604 warning retained per film and surfaced in shared text/JSON; submission stays successful.",
+    "Workshop import persists backing values, console replaces old run, runtime exit codes match CLI.",
+    "Test-only numeric UIDs and bounded file-backed subprocess output deadline."
+  ],
+  "oracle_repairs": [
+    {
+      "initial": "evidence/initial-runs/interop-smoke/results.json",
+      "correction": "Response SOP Class UID may be absent; correlate request. Action Reply requires explicit2100,0500, not pydicom similarly named keyword."
+    },
+    {
+      "initial": "evidence/initial-runs/interop-smoke-repaired/results.json",
+      "correction": "Confirmed terminal event deletes job; no-event case separately tests retention."
+    },
+    {
+      "initial": "evidence/initial-runs/interop/results.json",
+      "correction": "Association release cleans LUT; failed job may session-delete then abort. DCMTK disabled-LUT capability unavailable, separately tested with pynetdicom."
+    },
+    {
+      "initial": "evidence/interop-qualified/results.json",
+      "correction": "Exact unsupported LUT SOP Class UID is an adequate diagnostic; onlyPY-F08 rerun. Binary hashes unchanged."
+    }
+  ],
+  "unqualified_peer": "DC-F07 disabled-LUT DCMTK profile accepts LUT context; final probe stops before printing. PY-F08 independently establishes refusal."
+}

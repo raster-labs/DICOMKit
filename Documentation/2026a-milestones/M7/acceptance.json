@@ -1,0 +1,64 @@
+{
+  "milestone": "M7",
+  "status": "Completed",
+  "counts": {
+    "total": 6,
+    "Passed": 6
+  },
+  "criteria": [
+    {
+      "id": "QUAL-01-AC01",
+      "assertion": "No zero-test suite is marked passed.",
+      "result": "Passed",
+      "detail": "Every claimed pass has nonzero executed evidence; zero-test framework notices are not counted. Optional fixture and opt-in harness skips remain explicit; separate harness activation is identified where claimed.",
+      "evidence": "verification.json"
+    },
+    {
+      "id": "QUAL-01-AC02",
+      "assertion": "CLI/app source and binary identities are recorded.",
+      "result": "Passed",
+      "detail": "Frozen 2,062 source inputs, 41 CLI/16 test/14 app artifacts and fresh exact-path app relaunch recorded. Prior epochs retained under scoped source/method equivalence.",
+      "evidence": "verification.json"
+    },
+    {
+      "id": "QUAL-01-AC03",
+      "assertion": "Meaningful option combinations and all claimed subcommands have results; skips and unavailable backends remain explicit.",
+      "result": "Passed",
+      "detail": "All 28 native groups accepted, including three repaired UPS native actions against strict independent peer; meaningful positive/negative CLI/automated paths pass and conditional skips remain explicit.",
+      "evidence": "verification.json"
+    },
+    {
+      "id": "QUAL-02-AC01",
+      "assertion": "Independent expected datasets and network exchanges validate matching, return keys, cancellation, status and references.",
+      "result": "Passed",
+      "detail": "Independent network34 and print24 cases establish the documented matching, return-key, cancellation/status/reference and print paths. One DCMTK peer limitation remains separate.",
+      "evidence": "verification.json"
+    },
+    {
+      "id": "QUAL-02-AC02",
+      "assertion": "Claimed codecs and TLS profiles have actual supported-platform/runtime evidence.",
+      "result": "Passed",
+      "detail": "Bounded macOS runtime evidence:78 codec passes,10 explicit unsupported refusals,two verified strict-precision interoperability limits,and8 TLS cases. Complete TLS profiles/other platforms/physical devices are expressly unqualified, not claimed passed.",
+      "evidence": "verification.json"
+    },
+    {
+      "id": "QUAL-02-AC03",
+      "assertion": "Unsupported capabilities remain explicitly excluded.",
+      "result": "Passed",
+      "detail": "Conformance statement distinguishes implemented, refused, limited and unqualified capabilities;22 deferred items remain unchanged.",
+      "evidence": "verification.json"
+    }
+  ],
+  "dependency_note": "M0–M6 and all 28 native groups have bounded acceptance. Optional/unavailable/deferred claims remain excluded.",
+  "acceptance_scope": "Local item criteria complete; overall publication/goal closure provisional until exact pushed-head CI",
+  "remote_CI": {
+    "state_at_document_creation": "Pending exact next pushed head",
+    "recorded_utc": "2026-10-26T09:34:23.083422+00:00",
+    "executed_on_next_head": false,
+    "historical_passed_head": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+    "historical_evidence": "evidence/remote-verification-c9001dd.json",
+    "required_workflows": 8,
+    "current_status_url": "https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones",
+    "interpretation": "Immutable creation-time snapshot. Post-push exact-head receipt and final report are output-only; consult branch Actions for live status."
+  }
+}

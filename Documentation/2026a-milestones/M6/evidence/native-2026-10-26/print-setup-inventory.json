@@ -1,0 +1,323 @@
+{
+  "prepared_utc": "2026-10-26T04:59:56.053103+00:00",
+  "status": "Preparation only; no native actions, product tests, peers or builds executed",
+  "app": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app",
+  "bin_dir": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug",
+  "legacy_peer_python": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python",
+  "app_registry_settings_directory": "/Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification",
+  "app_registry_preparation": "Existing signed Info.plist DEBUG LSEnvironment; directory currently absent. Let native add create it. Do not edit signed bundle/HOME or real printer list. Read-only CLI comparison uses this exact directory; independent mutation replay uses cli-settings.",
+  "cli_mutation_settings_directory": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-settings",
+  "fixture_manifest": {
+    "gray8.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+      "sha256": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f"
+    },
+    "gray12.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray12.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray12.dcm",
+      "sha256": "a91b61e304fc09edcb6529b6ba8bb7b7885427a0be83f3b746edc476d0042fd3"
+    },
+    "rgb8.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rgb8.dcm",
+      "sha256": "abdaaf9aba46fa06da16881d38dab3c0bc2d1bd21554fd78ba17317ee0c05b9a"
+    },
+    "rle.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/rle.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rle.dcm",
+      "sha256": "89f8d8a562568385f4ae84dae5004945680f526d6bd891438b1d5bb28b362ee8"
+    },
+    "jpeg.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/jpeg.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/jpeg.dcm",
+      "sha256": "a9f4f6cd04590474cd1b9bc67ecebe12e36121c1046923e5380654c0c7d0802a"
+    },
+    "multi.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/multi.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm",
+      "sha256": "32b199a6e1411e3816df759ac802bb0344378953e11e6cb56172a5eb2fcbccb3"
+    },
+    "frame1.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame1.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame1.dcm",
+      "sha256": "8a7c08d070947cb0a47b5d1c5a2ed706fa744febe9e6834799af65d57c772ec6"
+    },
+    "frame2.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame2.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm",
+      "sha256": "1939c993e69a94d745ac7213aabd1bfbe5f59205a1957f9c705bebf67bebd8ad"
+    },
+    "frame3.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame3.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame3.dcm",
+      "sha256": "653c07b7809a3f1ad8e84b2a1a0524b88615c6d83656e238707fc320840173a2"
+    },
+    "literal O'Neil; snow 雪.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm",
+      "sha256": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f"
+    },
+    "peer-gray8.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/fixtures/gray8.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm",
+      "sha256": "a42b40df5448cf6e954ec179ebce9eb2821e0987015dd8ae86ae2b7868af0273"
+    },
+    "peer-gray12.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/fixtures/gray12.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray12.dcm",
+      "sha256": "353629fb37895e6f85ae2dfe2081e861e3837cbaac17e91781175e793ca473bf"
+    },
+    "peer-rgb8.dcm": {
+      "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/fixtures/rgb8.dcm",
+      "copy": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-rgb8.dcm",
+      "sha256": "59981e76fcc38f1433c4de579d59178510b417bef4c82fd80b56a8fba66071d6"
+    }
+  },
+  "baseline_config": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json",
+  "launches_for_root_only": {
+    "CLI_receiver": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp serve --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --port 21113 --ae-title M7CLI --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-received --name-pattern 'native-{index}' --dpi 36 --max-pixels 1024 --duration 1800 --format json --verbose",
+    "CLI_to_native_SCP": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print send pacs://127.0.0.1:21114 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --aet M7CLI --called-aet DCMKIT_M6 --raw --timeout 5 --format json",
+    "CLI_registry_read": "env DICOMKIT_PRINT_TEST_SETTINGS_DIRECTORY=/Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification /Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print list-printers --format json --verbose"
+  },
+  "network_note": "Suggested loopback ports21113/21114 are not reserved/probed; root must check availability before launch. Independent peer launcher chooses ephemeral proxy port and emits endpoint.json.",
+  "routes": [
+    {
+      "route": "dicom-print add-printer",
+      "commands": [
+        "dicom-print add-printer --name 'Native; O'\"'\"'Neil 雪' --host 127.0.0.1 --port 21113 --called-ae M7CLI --calling-ae M7NATIVE --color color --default"
+      ],
+      "expected": [
+        "One exact-name record with isDefault true; duplicates fail64 and leave registry unchanged.",
+        "Relaunch app before removing record; list still shows exact name, host, port and default."
+      ],
+      "native_steps": [
+        "Select Print (network operations), Operation add-printer. Enter literal name manually at least once. Capture displayed Printer list path.",
+        "CLI mutation replay must use separate cli-settings directory; read-only list may point to exact app registry."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-print list-printers",
+      "commands": [
+        "dicom-print list-printers --format json --verbose"
+      ],
+      "expected": [
+        "Record schema and values match equivalent CLI; no implicit migration from Print Center."
+      ],
+      "native_steps": [
+        "Run before and after add; use JSON and text once; preserve relaunch evidence."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-print remove-printer",
+      "commands": [
+        "dicom-print remove-printer --name 'Native; O'\"'\"'Neil 雪'"
+      ],
+      "expected": [
+        "Only synthetic record removed; second remove fails64/not found, unrelated entries unchanged."
+      ],
+      "native_steps": [
+        "Run only after relaunch/list persistence gate."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-print status",
+      "commands": [
+        "dicom-print status pacs://127.0.0.1:21113 --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json"
+      ],
+      "expected": [
+        "NORMAL and DICOM keyword/legacy JSON fields equal CLI on same peer."
+      ],
+      "native_steps": [
+        "Import command, check ordinary/advanced values; run once JSON and once text."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-print send",
+      "commands": [
+        {
+          "name": "literal-layout-annotations",
+          "command": "dicom-print send pacs://127.0.0.1:21113 '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'\"'\"'Neil; snow 雪.dcm' --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --layout 'ROW\\1,3' --copies 2 --priority MED --medium 'CLEAR FILM' --film-destination bin-2 --window-center=-600 --window-width 1200 --presentation-lut IDENTITY --annotate ' first; literal note ' --annotate 'O'\"'\"'Neil second' --annotation-format M7FMT --check-status --verify"
+        },
+        {
+          "name": "raw12",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray12.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --raw"
+        },
+        {
+          "name": "rgb8",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rgb8.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --color color --template single"
+        },
+        {
+          "name": "gray8",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --raw"
+        },
+        {
+          "name": "rle",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/rle.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --raw"
+        },
+        {
+          "name": "jpeg",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/jpeg.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --raw"
+        },
+        {
+          "name": "three-files",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame1.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame3.dcm --aet M7NATIVE --called-aet M7CLI --raw --layout 'STANDARD\\2,2' --timeout 5 --format json"
+        },
+        {
+          "name": "all-frames",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --raw --all-frames --layout 'STANDARD\\2,2'"
+        },
+        {
+          "name": "frame2",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/multi.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --raw --frame 2"
+        },
+        {
+          "name": "frame2-control",
+          "command": "dicom-print send pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm --called-aet M7CLI --aet M7NATIVE --timeout 5 --format json --raw"
+        },
+        {
+          "name": "dry-run-no-peer",
+          "command": "dicom-print send pacs://127.0.0.1:1 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --aet M7NATIVE --check-status --verify --dry-run -vr --retries 2"
+        }
+      ],
+      "expected": [
+        "Received filled image counts for gray8/rle/jpeg =1 each; decoded film pixels equal. Three-files and all-frames counts3 and pixels equal; frame2 equals frame2-control and differs from frame1.",
+        "Literal paths/backslash/negative window/annotation whitespace/order survive Copy and Import. Run disabled for layout+template, raw+window, frame2+allFrames, unpaired window or missing annotation-format.",
+        "Independent peer variants required: normal/color/LUT/annotations, B604 visible warning with success, printer WARNING visible, FAILURE and N-SET error refuse, omitted LUT context refuses; no print action after refusal."
+      ],
+      "native_steps": [
+        "Import then Browse input again: importing clears grants. Browse replaces file rows; check/reorder by editing displayed rows. Do not assume Import grants access.",
+        "Use CLI receiver for multicell layouts. Small independent SCP supports one image box only: use peer-* fixtures and --layout 1x1 --film-size 8x10 --raw, no --verify."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-print job",
+      "commands": [
+        "dicom-print job pacs://127.0.0.1:21113 --aet M7NATIVE --called-aet M7CLI --timeout 5 --job-id REPLACE_WITH_ACTUAL_PRINT_JOB_UID --format json"
+      ],
+      "expected": [
+        "Use printJobUID from an actual native/CLI send to the same retained peer; DONE/NORMAL. Unknown valid UID refuses. With independent terminal-ACK event mode, ACKed native SCP job returns0112 after release."
+      ],
+      "native_steps": [
+        "Never reuse old 24-October captured UID. Compare JSON DICOM keys exactly; only normalize truly dynamic timestamps/UIDs/duration."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-printscp status",
+      "commands": [
+        "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json",
+        "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --accept-color --annotation-box --annotations --trim-marks --format json",
+        "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json --save-config --printer-name 'Saved Native' --output none --no-accept-color --no-annotations --format json",
+        "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/saved-scp.json --format json --verbose"
+      ],
+      "expected": [
+        "Inherited baseline color/annotation/draw flags false, LUT true, DPI36/max1024; enabled overrides true; disabled returns false.",
+        "Save Config writes explicit selected file then exits, no listener/film. Reload preserves Saved Native and false flags."
+      ],
+      "native_steps": [
+        "Select Print SCP, Command status; Browse existing config. Check inherit/enabled/disabled and preview positive/negative/omitted flag. Do not overwrite baseline; use saved-scp for writes."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-printscp queues",
+      "commands": [
+        "dicom-printscp queues --format json",
+        "dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --paper-queue SYNTHETIC-NONEXISTENT --format json"
+      ],
+      "expected": [
+        "Queues only enumerates; compare live CLI result. Paper queue without Allow Paper refuses; no spool dispatch."
+      ],
+      "native_steps": [
+        "Do not enable Allow Paper or name a real queue; no physical print claim."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-printscp simulate",
+      "commands": [
+        "dicom-printscp simulate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --layout 'ROW\\1,3' --window-center=-600 --window-width 1200 --copies 2 --trim --border-density 150 --empty-density WHITE --annotate ' first; literal note ' --annotate 'O'\"'\"'Neil second' --annotation-format M7FMT --presentation-lut IDENTITY --output png --output tiff --output pdf --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated --name-pattern 'native-{index}' --dpi 36 --max-pixels 1024 --format json",
+        "dicom-printscp simulate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/deliberately-missing.dcm --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/simulation-save.json --save-config --output none --dpi 36 --format json",
+        "dicom-printscp simulate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-failure --name-pattern 'native-{index}' --dpi 36 --max-pixels 1024 --format json",
+        "dicom-printscp simulate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/open-output --name-pattern 'opened-{index}' --dpi 36 --max-pixels 1024 --open"
+      ],
+      "expected": [
+        "Main simulation produces native-001.tiff plus native-001.pdf, no PNG (last image format wins); TIFF pixels equal qualified reference/CLI with same values, PDF complete container only.",
+        "Save-before-gather succeeds with absent input and creates no film.",
+        "Precreated directory native-001.png causes sink emit failure: visible Output failed(image), console film remains, no Wrote/open claim for failed file; nonessential sink failure may still end successful per existing contract.",
+        "Open follows successful native file write; observe actual opened file."
+      ],
+      "native_steps": [
+        "Browse input and output directory after import. Config absent is deliberate defaults; do not Browse nonexistent config. For output path denial also try sink-is-file: startup error before film; distinct from nonessential emit failure."
+      ],
+      "status": "Prepared; not executed"
+    },
+    {
+      "route": "dicom-printscp serve",
+      "commands": [
+        {
+          "name": "receive-and-stop",
+          "command": "dicom-printscp serve --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --port 21114 --ae-title DCMKIT_M6 --output png --output pdf --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --name-pattern 'native-{index}' --dpi 36 --max-pixels 1024 --duration 300 --format json --verbose"
+        },
+        {
+          "name": "duration-only",
+          "command": "dicom-printscp serve --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --port 21114 --ae-title DCMKIT_M6 --output none --duration 2 --format json"
+        },
+        {
+          "name": "one-film-limit",
+          "command": "dicom-printscp serve --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --port 21114 --ae-title DCMKIT_M6 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-received --name-pattern 'limited-{index}' --dpi 36 --max-pixels 1024 --max-films 1 --duration 60 --format json"
+        },
+        {
+          "name": "independent-color-event",
+          "command": "dicom-printscp serve --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --port 21114 --ae-title DCMKIT_M6 --accept-color --push-job-events --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color --name-pattern 'native-{index}' --dpi 36 --max-pixels 1024 --duration 300 --format json --verbose"
+        },
+        {
+          "name": "independent-gray",
+          "command": "dicom-printscp serve --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --port 21114 --ae-title DCMKIT_M6 --no-accept-color --presentation-lut --annotation-box --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray --name-pattern 'native-{index}' --dpi 36 --max-pixels 1024 --duration 300 --format json --verbose"
+        }
+      ],
+      "expected": [
+        "Actual Listening on port21114; CLI send creates one film, PNG/PDF and counters; Stop returns130, Stopped by user, clears port/running state. Restart succeeds.",
+        "Duration terminates0 after2s; maxFilms1 stops after response/association release, film1/imagebox1; peer send succeeds.",
+        "Port collision error leaves existing CLI listener alive; leave Workshop and terminate app stop listener, confirm independent rebind.",
+        "Independent color event: Done eventType3 on negotiated PrintJob implicitVR, ACK success, second-association N-GET0112; grayscale DCMTK annotations/LUT produces one nonuniform film."
+      ],
+      "native_steps": [
+        "Browse output directory after every import. Start disables form/tool switching; Stop remains available. Do lifecycle/view-disappear/relaunch after registry persistence gate.",
+        "Collision: root starts CLI listener on21114 first; GUI attempt must error; verify incumbent still answers status. Use fresh/empty output directories for independent helper assertions."
+      ],
+      "status": "Prepared; not executed"
+    }
+  ],
+  "oracle_baseline": {
+    "images": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/results.json",
+    "simulated_and_received": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/artifacts.json",
+    "normalization": "Compare decoded RGBA hashes/dimensions. Ignore only paths/dynamic UID/date/duration when justified; preserve keyword fields, status/warnings, annotation whitespace and counters. Native/RLE/JPEG raw default film 504x612, f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804. Three/all frames 86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b; frame2 d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c.",
+    "scope": "PDF container check only unless independently rasterized; no physical/clinical claim."
+  },
+  "source_control_behavior": [
+    "PrintCommandContext.defaultSettingsDirectory: DEBUG env override then actual sandbox home .config/dicomkit; process and Workshop shared command types.",
+    "CLIWorkshopPrintExecution.importPrintCommand: atomic parse then replace, clears security grants; setPrintFileURLs replaces ordered rows and grants.",
+    "CLIWorkshopPrintControls: row-specific accessible labels, Add/Remove/Browse; imported list is literal, not shell.",
+    "CLIWorkshopView: Import selected tool only; Start for serve, Stop with actual bound-port label; onDisappear/on termination cancels.",
+    "Print SCP optional booleans inherit/enabled/disabled preserve saved nil-vs-false; --output repeated picks final image format plus independent PDF toggle.",
+    "No profile auto-selection in send: explicit URL/AE fields remain authoritative."
+  ],
+  "peer_commands_for_root_only": {
+    "serve_normal": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native_print_peer.py serve --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-normal",
+    "serve_B604_warning": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native_print_peer.py serve --mode action-warning --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/peer-b604",
+    "serve_modes": "Same serve command with --mode warning/failure/set-failure/no-lut/event and a fresh output directory. Replace GUI URL with endpoint.json URL; calledAE PYM6. Use one peer-* fixture, --raw --layout 1x1 --film-size 8x10, and no --verify. Annotation test has --annotation-format M7 --annotate FIRST --annotate SECOND; requested LUT IDENTITY should refuse in no-lut mode.",
+    "independent_color_to_native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native_print_peer.py send-color --port 21114 --films /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-color-send",
+    "independent_gray_to_native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native_print_peer.py send-gray --port 21114 --films /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray --shape identity --annotation --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-gray-send",
+    "raster_compare": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/inspect_print_files.py --expect-equal /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.tiff /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-simulated/native-001.tiff",
+    "PDF_container": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/bin/python /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/inspect_print_files.py /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated/native-001.pdf"
+  },
+  "peer_wrapper_validation": "AST syntax only; root must execute and inspect. Reuses unchanged qualified IndependentSCP/RecordingProxy and py_reverse/dc_reverse assertions; no qualification result is predeclared. Send wrappers never start/stop the native listener.",
+  "preparation_caution": "Preparation script has already run. Do not rerun after native actions: it initializes isolated CLI registry/config fixtures. Baseline fixtures and source evidence remain untouched."
+}

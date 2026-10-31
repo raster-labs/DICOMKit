@@ -1,0 +1,394 @@
+{
+  "recorded_utc": "2026-10-26T07:48:24.089448+00:00",
+  "qualification_epoch": "final-qualified-native app-menu-rerun",
+  "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+  "identity_sha256": "3431d7f05bdef48018ffa3a33ca651ca338bde3bda668a2efa9a74699a87337f",
+  "native_executions_observed": 6,
+  "preflight_only_observations": 0,
+  "checks": [
+    {
+      "case": "extended-gray8",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm"
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "root/file-meta identities synchronized",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "bounded JPEG marker walk proves SOF1 precision8 48x64mono",
+      "passed": true,
+      "details": {
+        "marker": 193,
+        "precision": 8,
+        "rows": 48,
+        "columns": 64,
+        "components": 1
+      }
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "native .51 codestream byte-identical to CLI codestream",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "lossy new SOP instance UID differs from input and is synchronized",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "native dataset equals CLI except intentionally generated lossy instance UID",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "native exact stream equals already independently decoded qualified stream",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "reused3072 decoder samples have maximum absolute difference1",
+      "passed": true
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm"
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "refused conversion leaves no output",
+      "passed": true
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "specific bounded refusal diagnostic retained",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm"
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "refused conversion leaves no output",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "specific bounded refusal diagnostic retained",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm"
+    },
+    {
+      "case": "native16",
+      "assertion": "root/file-meta identities synchronized",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "complete native16 file matches fresh CLI byte-for-byte",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "OW16allocated/12stored exact6144byte3072sample output",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm"
+    },
+    {
+      "case": "native-odd",
+      "assertion": "root/file-meta identities synchronized",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "complete odd native file matches fresh CLI byte-for-byte",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "OB3x3samples have exactly one final even-padding NUL",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm"
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "refused conversion leaves no output",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "specific bounded refusal diagnostic retained",
+      "passed": true
+    },
+    {
+      "case": "copied-command",
+      "assertion": "actual copied precision-refusal argv exactly matches CLI plan",
+      "passed": true,
+      "details": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/FINAL-18-copied-command.txt",
+        "sha256": "43861b4abb258c781639a4a896a941e1a237ce14ac092b936af9d3b4aff537a2"
+      }
+    }
+  ],
+  "passed": 44,
+  "failed": 0,
+  "observed": [
+    {
+      "id": "extended-gray8",
+      "type": "execution",
+      "status": "SUCCESS",
+      "captured_argv": [
+        "dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-gray8.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "JPEGExtended"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-gray8-before.txt": "84af4a0492d0e7b61f0280ddd13e7badfc9cc7623f87a5a619d245160fdd4e91",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-gray8-after.txt": "63437c90c1ff44e6944da3a167417e62c1eb1aeb19bc067b9989b309bb6782b2"
+      },
+      "full_console_compared": true,
+      "output_sha256": "329108662877ea5c0da7801a386a20277d18270d397b7d206c9a751fd425a9d0"
+    },
+    {
+      "id": "extended-rgb8",
+      "type": "execution",
+      "status": "ERROR",
+      "captured_argv": [
+        "dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-rgb8.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "JPEGExtended"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-rgb8-before.txt": "4c74eaca97ed80bcf1a00dba65bca3dc17726f51c5163312ab7fd4fe1406f772",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/extended-rgb8-after.txt": "2fb6a9d95e3c8ad9d9d90ca9f31d29952a5f9ef61de3ca2c19492130363c0c3f"
+      },
+      "full_console_compared": true,
+      "codec_classification": "supported_refusal",
+      "counts_as_codec_success": false
+    },
+    {
+      "id": "part2-refusal",
+      "type": "execution",
+      "status": "ERROR",
+      "captured_argv": [
+        "dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/part2-refusal.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "JPEG2000Part2LosslessOnly"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/part2-refusal-before.txt": "23489ad9ca28257cf42167c1ee314f73d37fd8324fe13c7d43565e02d62f7355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/part2-refusal-after.txt": "1390d64e91aac31dc8d7a5dbd34c4616ff05b0a1bfcb62bcb9a69fe7c1c62b22"
+      },
+      "full_console_compared": true,
+      "codec_classification": "supported_refusal",
+      "counts_as_codec_success": false
+    },
+    {
+      "id": "native16",
+      "type": "execution",
+      "status": "SUCCESS",
+      "captured_argv": [
+        "dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native16.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native16-before.txt": "423ab3e9c748fade2978b05a6a56b8fba27e52aee385c005cc7342a8d5f64958",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native16-after.txt": "2880ab80949acbb5d3060aee1006dc45ad9d86e0a488c218fe8820ac76d7babb"
+      },
+      "full_console_compared": true,
+      "output_sha256": "b90e2126a3b6700a7306273a2c0b70af6d382ccc2c6baceb0f72e5141b2515c7"
+    },
+    {
+      "id": "native-odd",
+      "type": "execution",
+      "status": "SUCCESS",
+      "captured_argv": [
+        "dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native-odd-before.txt": "e115ca8f50af9a0714625e51baf2f23e84870eb0fd64c7d41a7f3b1b03890a39",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/native-odd-after.txt": "ccdb3485cff61309de7119c38fe0fed7cc06b8451040c5a78c60a92a2afc5a30"
+      },
+      "full_console_compared": true,
+      "output_sha256": "de7f4ae0d1dc06532b5bd9b4c296f36ab85e0215d9322cec5274de40ea500bf8"
+    },
+    {
+      "id": "strict-precision-refusal",
+      "type": "execution",
+      "status": "ERROR",
+      "captured_argv": [
+        "dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/strict-precision-refusal.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/strict-precision-refusal-before.txt": "7d921512fe94d13d3a8a51535ba745263471456bd8a1fabc02d69628b4243023",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/strict-precision-refusal-after.txt": "7af6fa2f77c77534cbfc5fa55d5030112db72f8eb0f87c1d4b1a1610c8989ff3"
+      },
+      "full_console_compared": true,
+      "codec_classification": "interoperability_limit",
+      "counts_as_codec_success": false
+    }
+  ],
+  "completion": "All scoped subcases substantiated; parent final acceptance remains separate.",
+  "execution_boundary": "Read-only saved artifacts, AX/clipboard captures, source and file hashes. No native UI, product run or build by this checker.",
+  "reused_independent_decode_proof": [
+    {
+      "native_case": "extended-gray8",
+      "proof": "Exact native/CLI/qualified encoded stream identity. Prior DCMTK vs own decoder maximum sample difference1; no new decoder campaign and no exact-original lossy claim.",
+      "qualified_path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGExtended-gray8",
+      "native_frame_sha256": "19e0b269cc301b24a4a6c4b489d49379ef7481e04101ad6b0807cb263be1d0c8"
+    }
+  ],
+  "limits": [
+    "Three successful outputs, two supported refusals, one strict-precision interoperability limit. Refusals nevercount ascodecpasses.",
+    "Lossy instance UID generated per run; exact codestream and otherdatasetmetadata compared. Independent decoder agreement bounded1, not exactoriginalsamples."
+  ]
+}

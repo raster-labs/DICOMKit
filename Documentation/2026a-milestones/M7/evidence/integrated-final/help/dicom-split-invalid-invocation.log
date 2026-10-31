@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file or directory
+Usage: dicom-split [<options>] <input>
+  See 'dicom-split --help' for more information.

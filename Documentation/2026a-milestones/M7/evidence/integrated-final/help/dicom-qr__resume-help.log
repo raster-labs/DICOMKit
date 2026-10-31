@@ -1,0 +1,16 @@
+OVERVIEW: Resume interrupted retrieval from saved state
+
+USAGE: dicom-qr resume --state <state> [--timeout <timeout>] [--priority <priority>] [--verbose]
+
+OPTIONS:
+  -s, --state <state>     Path to saved state file
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  --priority <priority>   Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ:
+                          low (0002H), medium (0000H), high (0001H) — PS3.7
+                          Tables 9.3-9 / 9.3-6 (default: medium) (values: low,
+                          medium, high; default: medium)
+  --verbose               Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

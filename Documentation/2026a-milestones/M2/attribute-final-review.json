@@ -1,0 +1,37 @@
+{
+  "scope": "Read-only final M2 shared value/tag/validator/implicit VR review",
+  "data_set_dictionary_vr_unchanged": true,
+  "current_log_evidence": {
+    "DICOMCoreTests": {
+      "xctest": 16,
+      "swift_testing": 219,
+      "failed": 0
+    },
+    "DICOMKitTests": {
+      "xctest": 42,
+      "swift_testing": 13,
+      "failed": 0
+    },
+    "dicom_tagsTests": {
+      "xctest": 13,
+      "failed": 0
+    },
+    "dicom_validateTests": {
+      "xctest": 21,
+      "failed": 0
+    }
+  },
+  "recorded_path_blockers": [],
+  "acceptance_gap": [
+    {
+      "id": "A-08-AC02",
+      "finding": "Latin1-to-Latin1 raw VR/value byte equality is currently asserted after edit in memory. CLI runtime script covers Latin1-to-default conversion to UTF8, not compatible-charset actual-file byte comparison. Add/use an actual-file compatible copy check before qualifying this AC."
+    }
+  ],
+  "limits": [
+    "CLI runtime and packaged GUI gates remain root-owned; not inferred from shared unit suites.",
+    "Source preserves explicit US/SS VR, but validator currently checks dictionary membership rather than contextual sign mismatch. Do not describe this as validating all PixelRepresentation/US-SS combinations.",
+    "Tag editor resolves final PixelRepresentation for newly set US/SS values; it does not repair untouched dependent values when only PixelRepresentation changes. This is beyond the recorded A09 both-values-set assertion."
+  ],
+  "tests_rerun_by_reviewer": false
+}

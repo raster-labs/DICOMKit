@@ -1,0 +1,38 @@
+[
+  {
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "status",
+      "pacs://127.0.0.1:21114",
+      "--aet",
+      "M7DENIED",
+      "--called-aet",
+      "DCMKIT_M6",
+      "--timeout",
+      "5",
+      "--format",
+      "json"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "Error: Association rejected: result=Rejected (Permanent), source=Service User, reason=3\n"
+  },
+  {
+    "argv": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "status",
+      "pacs://127.0.0.1:21114",
+      "--aet",
+      "M7ALLOWED",
+      "--called-aet",
+      "DCMKIT_M6",
+      "--timeout",
+      "5",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"isNormal\" : true,\n  \"manufacturer\" : \"DICOMKit\",\n  \"Manufacturer\" : \"DICOMKit\",\n  \"ManufacturerModelName\" : \"DICOM Print Emulator\",\n  \"model\" : \"DICOM Print Emulator\",\n  \"name\" : \"DICOMKIT-PRINTER\",\n  \"PrinterName\" : \"DICOMKIT-PRINTER\",\n  \"PrinterStatus\" : \"NORMAL\",\n  \"PrinterStatusInfo\" : \"NORMAL\",\n  \"status\" : \"NORMAL\",\n  \"statusInfo\" : \"NORMAL\"\n}\n",
+    "stderr": ""
+  }
+]

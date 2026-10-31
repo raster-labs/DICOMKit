@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input video file: H.264/HEVC in an MP4 or MPEG-2 Transport Stream container (PS3.5 8.2.7-8.2.11); MPEG-2 video in MP4, an MPEG-2 Program Stream, PES or elementary stream (8.2.5, 8.2.6: container not constrained); MOV is probed but not converted
+Usage: dicom-video convert [<options>] <input> --output <output>
+  See 'dicom-video convert --help' for more information.

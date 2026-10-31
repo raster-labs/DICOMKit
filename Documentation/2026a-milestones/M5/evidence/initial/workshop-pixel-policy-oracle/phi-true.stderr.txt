@@ -1,0 +1,5 @@
+Error: Cannot determine which pixels to blank. Burned In Annotation (0028,0301) is YES: identifying text is rendered into the pixel data, which a metadata-only pass leaves untouched. The image is NOT de-identified; (0012,0062) is therefore recorded as NO. Clean the pixels (PS3.15 Clean Pixel Data Option) before release.
+
+No caller-specified region was given, the data set declares no clinical region to invert (e.g. Sequence of Ultrasound Regions), and no device template matched this Modality/Manufacturer/model.
+
+Refusing rather than guessing: passing the file through unchanged would leave the identifiers in place while the output looked de-identified.

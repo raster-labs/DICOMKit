@@ -1,0 +1,116 @@
+OVERVIEW: Retrieve DICOM files from PACS using C-MOVE or C-GET protocols
+
+Retrieves DICOM studies, series, or instances from PACS servers using the
+C-MOVE
+or C-GET service. C-MOVE requires a destination AE, while C-GET retrieves
+directly.
+
+The host argument accepts a hostname or IP address, optionally with a
+port suffix (host:port). Use --port to specify the port separately.
+If no port is given, the default is 11112.
+
+Examples:
+  # Retrieve study using C-MOVE
+  dicom-retrieve server --port 11112 \
+    --aet MY_SCU --called-aet PACS_SCP \
+    --move-dest MY_SCP \
+    --study-uid 1.2.840.xxx \
+    --output study_dir/
+  
+  # Retrieve using C-GET (simpler, no move destination)
+  dicom-retrieve server --port 11112 \
+    --aet MY_SCU \
+    --study-uid 1.2.840.xxx \
+    --method c-get \
+    --output study_dir/
+  
+  # Retrieve specific series
+  dicom-retrieve server:11112 \
+    --aet MY_SCU \
+    --move-dest MY_SCP \
+    --study-uid 1.2.840.xxx \
+    --series-uid 1.2.840.yyy \
+    --output series_dir/
+  
+  # Series by its UID alone (relational-retrieve, PS3.4 C.4.2.2.2.1),
+  # at HIGH priority (Priority (0000,0700) 0001H, PS3.7 Table 9.3-9)
+  dicom-retrieve server:11112 \
+    --aet MY_SCU \
+    --move-dest MY_SCP \
+    --series-uid 1.2.840.yyy \
+    --relational-retrieve --priority high
+  
+  # Bulk retrieve from UID list
+  dicom-retrieve server --port 11112 \
+    --aet MY_SCU \
+    --move-dest MY_SCP \
+    --uid-list study_uids.txt \
+    --output studies/ \
+    --parallel 4
+
+USAGE: dicom-retrieve [<options>] <host> --aet <aet>
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112, the registered
+                          DICOM port; 104 is the well-known port — PS3.8 9.1.2)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  --study-uid <study-uid> Study Instance UID (0020,000D) to retrieve —
+                          Query/Retrieve Level STUDY
+  --series-uid <series-uid>
+                          Series Instance UID (0020,000E) to retrieve —
+                          Query/Retrieve Level SERIES (requires --study-uid
+                          unless --relational-retrieve)
+  --instance-uid <instance-uid>
+                          SOP Instance UID (0008,0018) to retrieve —
+                          Query/Retrieve Level IMAGE (requires --study-uid and
+                          --series-uid unless --relational-retrieve)
+  --uid-list <uid-list>   File containing list of Study UIDs to retrieve (one
+                          per line)
+  --output <output>       Output directory for retrieved files (default: .)
+  --method <method>       Retrieval method: c-move (Study Root Query/Retrieve
+                          Information Model - MOVE) or c-get (Study Root
+                          Query/Retrieve Information Model - GET) (default:
+                          c-move) (default: c-move)
+  --move-dest <move-dest> Move Destination (0000,0600): AE Title of the Storage
+                          SCP that receives the C-STORE sub-operations
+                          (required for C-MOVE)
+  --hierarchical          Organize C-GET output hierarchically (<output>/<Study
+                          Instance UID>/<Series Instance UID>/); C-MOVE output
+                          is stored by the move destination
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  --parallel <parallel>   Number of parallel retrieval operations (default: 1)
+                          (default: 1)
+  --priority <priority>   Priority (0000,0700) of the C-MOVE-RQ / C-GET-RQ: low
+                          (0002H), medium (0000H), high (0001H) — PS3.7 Tables
+                          9.3-9 / 9.3-6 (default: medium) (values: low, medium,
+                          high; default: medium)
+  --relational-retrieve   Propose relational-retrieval in a SOP Class Extended
+                          Negotiation Sub-Item (PS3.4 C.5.2.1 / C.5.3.1, Table
+                          C.5-3 byte 1). With it, --series-uid or
+                          --instance-uid may be given without the UIDs of the
+                          levels above (PS3.4 C.4.2.2.2.1); if the SCP turns
+                          relational-retrieval down, such a request is not sent
+                          (exit 1)
+  --transfer-syntax <transfer-syntax>
+                          Requested transfer syntax for retrieved files —
+                          applies directly to C-GET and is advisory for C-MOVE.
+                          Accepts any name/UID the shared parser understands;
+                          canonical tokens: explicit-vr-le, implicit-vr-le,
+                          explicit-vr-be, deflate, jpeg-baseline,
+                          jpeg-extended, jpeg-lossless, jpeg-lossless-sv1,
+                          jpeg2000-lossless, jpeg2000, jpeg2000-part2-lossless,
+                          jpeg2000-part2, htj2k-lossless, htj2k-rpcl, htj2k,
+                          jpeg-ls-lossless, jpeg-ls, jpeg-xl-lossless, jpeg-xl,
+                          rle-lossless.
+  -v, --verbose           Show verbose output including progress
+  --version               Show the version.
+  -h, --help              Show help information.
+

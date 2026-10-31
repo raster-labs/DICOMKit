@@ -1,0 +1,1084 @@
+{
+  "recorded_utc": "2026-10-26T07:20:28.825700+00:00",
+  "qualification_epoch": "interim-native layout/path repair; further print layout/final acceptance pending",
+  "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/interim-native-identity.json",
+  "native_negative_actions_observed": 19,
+  "native_literal_success_observed": 1,
+  "total_distinct_native_actions_observed": 20,
+  "checks": [
+    {
+      "case": "leading-equals-token",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: Invalid --set \"=workshop_nonexistent_command\"; expected a known TagName=Value or numeric tag",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/leading-equals-token.stderr"
+      }
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-0-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-0-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-1-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-1-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-2-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-2-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-3-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-3-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-4-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-4-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-5-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-5-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-6-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-6-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-7-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-7-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-8-dry.stderr"
+      }
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "native ERROR status observed",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "full native error payload equals complete CLI stderr",
+      "passed": true,
+      "details": {
+        "native_outcome": "Error: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)",
+        "CLI_stderr": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/logs/invalid-8-write.stderr"
+      }
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "native executed command semantic argv matches exact planned command",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "before input field is intended immutable fixture",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "before output field is exact planned absent target",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "native dry-run state matches planned mode",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "no rejected output exists",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "source unchanged from independent fixture hash",
+      "passed": true
+    }
+  ],
+  "passed": 152,
+  "failed": 0,
+  "observed": [
+    {
+      "id": "leading-equals-token",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/leading-equals-token-before.txt": "a4d0ca9b2d5fae6c6971f065eb5ced09a5e060c5d831cc39af79b79b6c2e6b39",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/leading-equals-token-after.txt": "34b8efb04602eb962688a194afb7d0567cf0301359457813c29c53d3e92e0e11"
+      },
+      "full_console_outcome": "Error: Invalid --set \"=workshop_nonexistent_command\"; expected a known TagName=Value or numeric tag"
+    },
+    {
+      "id": "invalid-0-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-0-dry-before.txt": "6473aa935f1a2c29db4891b32265ae1f8e8d4977e55d9015150de30af5b976e2",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-0-dry-after.txt": "d36fea6d1395e3ee6436f186f46904e4a54949370b432e9869333cd7976c392a"
+      },
+      "full_console_outcome": "Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-0-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-0-write-before.txt": "c050bd6d7a8e3bfef95f0cc34760409cffc132c4328467e477ea05fdc4eb2e5a",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-0-write-after.txt": "9ec7525d9ba35b8399b203d3d67b47ed8167b8d138699772b8326d6a1f788cc1"
+      },
+      "full_console_outcome": "Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-1-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-1-dry-before.txt": "703b637159d5af00844474303b0bd835f9952b1dcf9b034e3646dfcd05a48b17",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-1-dry-after.txt": "1345bb243d0c242e21fc6b56acfdec959d9256117f9fc44df811e8060233a14c"
+      },
+      "full_console_outcome": "Error: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-1-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-1-write-before.txt": "3a89297118df4809e1c0c3d737eb1b72d3d3511f313570fe0f948923fe23f927",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-1-write-after.txt": "cd77be0d3c3a5838726f3ac7b00461f2b75ffc65476333acead65ecead01bf6a"
+      },
+      "full_console_outcome": "Error: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-2-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-2-dry-before.txt": "377f190cb6031307bcd047407531df2c442f3d8157702c0af20a8212c416792f",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-2-dry-after.txt": "e151bd3b44ade717ffd083a577bbaf28a586f874b0bfac66ba7def28a0fe9598"
+      },
+      "full_console_outcome": "Error: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-2-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-2-write-before.txt": "39b4cdb53a23421555c9967d1c46ee90102db418e703ea94872b80acd3eb3d9f",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-2-write-after.txt": "f03c4df76cf07e1eb38ad254cf85209cfec0e855339590d82d7720c082a31eae"
+      },
+      "full_console_outcome": "Error: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-3-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-3-dry-before.txt": "2b5b737cd7efdee6d2e2b1065ebd493351dfd1c22d64d9a87743b9ebc68455c3",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-3-dry-after.txt": "b40e0a08fd13d8f11af0fb84d41367ebe890e3b08f5c3035862427a128a51382"
+      },
+      "full_console_outcome": "Error: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-3-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-3-write-before.txt": "8b331932fa36aafc7d0a9b4f3625a7082849946b1fb88e505770636f468ec0bf",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-3-write-after.txt": "b71330b03c40d4a5ab5c779f0367a62bf83625c15a98c8b29fede7168192754a"
+      },
+      "full_console_outcome": "Error: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-4-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-4-dry-before.txt": "009a9bba941527d429b67373c540d5c9c96e8d2e1a353b4fed2b261edf6cdd6d",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-4-dry-after.txt": "dc8c5e72bbfc0c7d827a03aa7f9e90defe83672f9c108e3b6720c10605f07f36"
+      },
+      "full_console_outcome": "Error: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-4-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-4-write-before.txt": "53553fa177442093b90fd1332c998c29965326530c64ae1458f99c977fa3a65a",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-4-write-after.txt": "2225b78dc6862e789204cfad8432c793a06b87047fec3a9b3b14e0d4dec1eadf"
+      },
+      "full_console_outcome": "Error: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-5-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-5-dry-before.txt": "33e233d892efbe97cb4ac196b891229fa554aa2df905190de857dfae46b176b2",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-5-dry-after.txt": "d729dc877479ada00bec510dd89654bc01a293ddb7e621e79c91ab9d9f849985"
+      },
+      "full_console_outcome": "Error: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-5-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-5-write-before.txt": "58f217154a1a7671c66853fe7c6558565ba9571e0de8f04f42427c1c18d57fcf",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-5-write-after.txt": "b585302a3371b71c6b37896cde55a88bc34837999e8f9faa2e7c45f528487b74"
+      },
+      "full_console_outcome": "Error: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-6-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-6-dry-before.txt": "6ad83a882a99c9dd49a5be019cef22dfccb60966f62aff9338854e0fd2a1bd5c",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-6-dry-after.txt": "3c0bf4036080451658e929c0e2d514f61f134438254fe14b3f5025d45396bdf7"
+      },
+      "full_console_outcome": "Error: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-6-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-6-write-before.txt": "d81d0505adc180bac31d7ad9d0eb10fa008eda6dd8812c7dda33559d57876eea",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-6-write-after.txt": "2f3754d1a452b2f03c1237a6819388aec09ac925a5fe43fd4609827d9eb6c468"
+      },
+      "full_console_outcome": "Error: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-7-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-7-dry-before.txt": "38d4a347fdf2f2fad9bea418a29c644b5a5ba42fe67d0d08f87c6459565b552e",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-7-dry-after.txt": "92a71921d2441cb3411d007de3d2eeff9d89bb49dcb3ca666f104b921f1cbf70"
+      },
+      "full_console_outcome": "Error: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)"
+    },
+    {
+      "id": "invalid-7-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-7-write-before.txt": "e746d54879a64886b918bb07b2cda23ad93df19edbd9d3c957b25623aba9c714",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-7-write-after.txt": "19cc8d52efd7fc2ceb99009d65a3de5fefc44a00cc1e5d7639e781b19c29c21d"
+      },
+      "full_console_outcome": "Error: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)"
+    },
+    {
+      "id": "invalid-8-dry",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-8-dry-before.txt": "48a98fe92060ddcba29ab44b011239fbb1ef91388de0140c121555a887d100ba",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-8-dry-after.txt": "9676666fb876282a243296bac9be8f24873a3c803898ffd00c51c692b820dc66"
+      },
+      "full_console_outcome": "Error: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)"
+    },
+    {
+      "id": "invalid-8-write",
+      "native_outcome": "ERROR",
+      "CLI_exit": 1,
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-8-write-before.txt": "dff5bafe248d54eb3e789898e777408de112e94d40f52387294bf4afee628f36",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/invalid-8-write-after.txt": "546a75dc2d210411bded68ae9c5955a73a399d8eb47fa0f2d38217c317bcf89f"
+      },
+      "full_console_outcome": "Error: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)"
+    }
+  ],
+  "literal_evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-attribute-verification.json",
+  "completion": "All20 required native actions and both copied literal boundaries observed; Partial only because final rebuilt-app provenance/acceptance is pending. Interim app identity retained.",
+  "oracle_correction": {
+    "initial_report": "native-FINAL-02-initial-AX-selection-error.json",
+    "cause": "First AX text node was a stale aggregate of the earlier successful literal run. Corrected read-only parser selects the exact semantic command node and its full outcome; no product rerun."
+  },
+  "boundary": "Read-only captured AX/full console, hash and file existence inspection; no UI/product execution.",
+  "copied_leading_equals": {
+    "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/leading-equals-token-copied-command.txt",
+    "sha256": "431a5d130942a6f967adbaa555267aa3c7555968d49c8c3d871060f2c0739c8c",
+    "copied_argv": [
+      "dicom-tags",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+      "--output",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/leading-equals-token.dcm",
+      "--set",
+      "=workshop_nonexistent_command",
+      "--dry-run"
+    ],
+    "checks": [
+      {
+        "case": "leading-equals-token",
+        "assertion": "copied leading-equals command semantic argv equals CLI plan",
+        "passed": true
+      },
+      {
+        "case": "leading-equals-token",
+        "assertion": "copied leading-equals token is safely single quoted",
+        "passed": true
+      },
+      {
+        "case": "leading-equals-token",
+        "assertion": "copied boundary still has no rejected output",
+        "passed": true
+      },
+      {
+        "case": "leading-equals-token",
+        "assertion": "copied boundary source unchanged",
+        "passed": true
+      }
+    ]
+  },
+  "copied_command_checks_passed": 4,
+  "copied_command_checks_failed": 0
+}

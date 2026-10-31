@@ -1,0 +1,192 @@
+{
+  "case": "FINAL-12",
+  "native_actions": 4,
+  "CLI_actions": 4,
+  "successful_pairs": 3,
+  "refusal_pairs": 1,
+  "assertions": 35,
+  "checks": [
+    {
+      "name": "exact six valid associations and datasets after two refusals",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "capture harness test exits0 and passes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset1 exact state and performed series",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset1 exact supplied class and instance pair",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset1 exactly one series and reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset2 exact state and performed series",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset2 exact supplied class and instance pair",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset2 exactly one series and reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset3 exact state and performed series",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset3 exact supplied class and instance pair",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset3 exactly one series and reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset4 exact state and performed series",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset4 exact supplied class and instance pair",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset4 exactly one series and reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset5 exact state and performed series",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset5 exact supplied class and instance pair",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset5 exactly one series and reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset6 exact state and performed series",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset6 exact supplied class and instance pair",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "raw dataset6 exactly one series and reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-missing-class expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-missing-class native correct outcome",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-missing-class native and CLI refusal identical",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-ct expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-ct native correct outcome",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-ct full native/CLI console equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-ct full normalized dataset equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-mr expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-mr native correct outcome",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-mr full native/CLI console equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-mr full normalized dataset equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-sc expected CLI exit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-sc native correct outcome",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-sc full native/CLI console equality",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mpps-sc full normalized dataset equality",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": true,
+  "limits": [
+    "Capture SCP accepts terminal N-SET updates; this is not proof of persisted MPPS lifecycle transition from IN PROGRESS.",
+    "Only generated PPS End Date00400250 and End Time00400251 were removed before whole-dataset comparison.",
+    "Mixed-class typed API and intermediate-update enhancements remain outside the native form scope."
+  ],
+  "verified_utc": "2026-10-26T08:26:24.201493+00:00"
+}

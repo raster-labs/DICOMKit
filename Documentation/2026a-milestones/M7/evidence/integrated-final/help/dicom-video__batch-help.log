@@ -1,0 +1,82 @@
+OVERVIEW: Convert a directory of clips into DICOM Video objects
+
+Clips are converted in natural-sort order, so clip2 precedes clip10.
+
+--series-mode single (the default) puts every clip in one series,
+which is what IHE Endoscopy Image Archiving 3.10.4.1.1.1 requires of
+clips from one procedure step on one piece of equipment.
+
+--series-mode per-file gives each clip its own series, for clips from
+different procedure steps or different equipment, where IHE requires
+separate series.
+
+USAGE: dicom-video batch [<options>] <input-directory> --output-dir <output-dir>
+
+ARGUMENTS:
+  <input-directory>       Directory of video files
+
+OPTIONS:
+  --output-dir <output-dir>
+                          Directory to write DICOM files into
+  --series-mode <series-mode>
+                          Series grouping: single (default) or per-file
+                          (values: single, per-file; default: single)
+  --type <type>           Video type: endoscopic, microscopic or photographic
+                          (values: endoscopic, microscopic, photographic)
+  --transfer-syntax <transfer-syntax>
+                          Transfer Syntax UID (auto-detected by default): an
+                          MPEG2, MPEG-4 AVC/H.264 or HEVC/H.265 UID of PS3.6
+                          Table A-1; a UID not registered there is refused
+                          (exit 1)
+  --recursive             Descend into subdirectories
+  --continue-on-error     Skip failures and convert the rest
+  --force                 Overwrite existing output files
+  --dry-run               Probe and validate only; write nothing
+  -v, --verbose           Show the reasoning behind each step
+  --patient-name <patient-name>
+                          Patient's Name, in DICOM caret form (e.g. Doe^Jane)
+  --patient-id <patient-id>
+                          Patient ID
+  --patient-birth-date <patient-birth-date>
+                          Patient's Birth Date (YYYYMMDD); other forms are
+                          refused (exit 1, VR DA)
+  --patient-sex <patient-sex>
+                          Patient's Sex (M, F or O); other values are refused
+                          (exit 1, PS3.3 Table C.7-1)
+  --study-uid <study-uid> Study Instance UID (generated if not given)
+  --series-uid <series-uid>
+                          Series Instance UID (generated if not given)
+  --accession-number <accession-number>
+                          Accession Number
+  --study-id <study-id>   Study ID
+  --referring-physician <referring-physician>
+                          Referring Physician's Name
+  --series-description <series-description>
+                          Series Description
+  --modality <modality>   Modality (overrides the video type's default; PS3.3
+                          A.32.5-A.32.7 require ES endoscopic, GM microscopic,
+                          XC photographic); any other value is refused (exit 1)
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --manufacturer <manufacturer>
+                          Manufacturer
+  --institution-name <institution-name>
+                          Institution Name
+  --audio-channel-source <audio-channel-source>
+                          Source of the multiplexed audio (PS3.16 CID 3000): a
+                          keyword or SCHEME:VALUE[:MEANING] (the CID is
+                          Extensible; MEANING is required for a code that is
+                          not listed). Given once, it applies to every audio
+                          track; repeated, it gives one source per audio track
+                          in container order, and a count that does not match
+                          the tracks exits 1. It is written as the Channel
+                          Source Sequence (003A,0208) of each Multiplexed Audio
+                          Channels Description Code Sequence (003A,0300) Item
+                          (PS3.3 Table C.7-13: one Item per channel, each with
+                          its own source); without it that sequence has no
+                          Items. Keywords: voice, operators-narrative,
+                          ambient-room-environment, doppler-audio,
+                          phonocardiogram, physiological-audio-signal
+  --version               Show the version.
+  -h, --help              Show help information.
+

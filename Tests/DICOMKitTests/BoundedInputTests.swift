@@ -373,6 +373,39 @@ struct BoundedInputTests {
         } catch { throw .managed(error) }
     }
 
+    @Test("Merged implicit reader retains native OW with signed padding and Modality LUT context",
+          arguments: [UInt16(8), UInt16(16)])
+    func mergedImplicitPixelAndContextualVR(allocated: UInt16) throws {
+        let descriptor = u16(3) + u16(0xff80) + u16(8)
+        let lutBytes = Data([1, 128, 255, 0])
+        let pixelBytes = Data([0x80, 0x7f, 0xff, 0])
+        let dataset = lutSequence(modalityLUT, item(lutPair(descriptor, lutBytes)))
+            + element(padding, "US", u16(0xff80), implicit: true)
+            + element(.bitsAllocated, "US", u16(allocated), implicit: true)
+            + element(.pixelRepresentation, "US", u16(1), implicit: true)
+            + element(pixel, "OB", pixelBytes, implicit: true)
+        let payload = file(dataset, syntax: implicitUID)
+        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+        let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+        do {
+            let parsed = try open(url, budget: budget)
+            #expect(try value(parsed, pixel).vr == .OW)
+            #expect(try bytes(value(parsed, pixel).readValue()) == pixelBytes)
+            #expect(try value(parsed, padding).vr == .SS)
+            #expect(try bytes(value(parsed, padding).readValue()) == u16(0xff80))
+            let sequenceValue = try value(parsed, modalityLUT)
+            #expect(sequenceValue.itemCount == 1)
+            try sequenceValue.forEachItem { dataSet throws(DICOMParserFailure) in
+                _ = try checkLUT(dataSet, descriptor: descriptor, vr: .SS, data: lutBytes)
+            }
+            let materialized = try DICOMFile.read(from: payload, options: .strict)
+            #expect(materialized.dataSet[pixel]?.vr == .OW)
+            #expect(materialized.dataSet[pixel]?.valueData == pixelBytes)
+            #expect(materialized.dataSet[padding]?.vr == .SS)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
+
     @Test("Implicit Modality LUT values preserve packed bytes and unsigned descriptor fields",
           arguments: [false, true], [0, 1, 2])
     func modalityLUTImplicitValues(signed: Bool, kind: Int) throws {
@@ -664,16 +697,29 @@ struct BoundedInputTests {
         }
     }
 
-    @Test("Fixed padding classification matches Foundation for every Unicode scalar")
-    func completePaddingClassification() {
-        let legacy = CharacterSet.whitespacesAndNewlines
-        for value: UInt32 in 0...0x10FFFF {
-            guard let scalar = Unicode.Scalar(value) else { continue }
-            #expect(BoundedDICOMElement.isLegacyPadding(value) == (value == 0 || legacy.contains(scalar)))
+    @Test("Transfer Syntax UID preserves valid ASCII and trailing NUL accessor compatibility")
+    func transferSyntaxTrailingNUL() throws {
+        for implicit in [false, true] {
+            let uid = implicit ? implicitUID : explicitUID
+            // One padding NUL is normative when needed. Additional terminal NULs
+            // exercise existing DataElement accessor compatibility, not a claim
+            // that malformed VR padding is standard-conformant.
+            for count in [0, 1, 128] {
+                let payload = file(image(implicit: implicit), syntax: uid + String(repeating: "\0", count: count))
+                let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+                let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+                do {
+                    let parsed = try open(url, budget: budget)
+                    let materialized = try DICOMFile.read(from: payload, options: .strict)
+                    #expect(parsed.transferSyntaxUID == uid)
+                    #expect(materialized.fileMetaInformation.string(for: .transferSyntaxUID) == uid)
+                }
+                #expect(budget.receipt.currentTotal == baseline)
+            }
         }
     }
 
-    @Test("Every legacy whitespace scalar and adjacent nonmembers preserve strict syntax policy")
+    @Test("Transfer Syntax UID rejects leading and Unicode whitespace in both strict readers")
     func paddedSyntax() throws {
         let candidates: [UInt32] = [0, 8, 9, 10, 11, 12, 13, 14, 31, 32, 33, 0x84, 0x85, 0x86,
             0x9f, 0xa0, 0xa1, 0x167f, 0x1680, 0x1681, 0x180e, 0x1fff, 0x2000, 0x2001,
@@ -683,31 +729,40 @@ struct BoundedInputTests {
         for scalarValue in candidates {
             guard let scalar = Unicode.Scalar(scalarValue) else { continue }
             let padding = String(repeating: String(scalar), count: 128)
-            let payload = file(image(), syntax: padding + explicitUID + padding)
-            let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-            let budget = try DICOMAllocationBudget()
-            let legacy = Result { try DICOMFile.read(from: payload, options: .strict) }
-            switch legacy {
-            case .success:
-                let parsed = try open(url, budget: budget)
-                #expect(parsed.transferSyntaxUID == explicitUID)
-            case .failure: expectFailure { _ = try open(url, budget: budget) }
+            // Every leading candidate is illegal. Only trailing NUL is padding.
+            let values = scalarValue == 0 ? [padding + explicitUID] : [padding + explicitUID, explicitUID + padding]
+            for syntax in values {
+                let payload = file(image(), syntax: syntax)
+                let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+                let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+                expectFailure { _ = try DICOMFile.read(from: payload, options: .strict) }
+                expectFailure { _ = try open(url, budget: budget) }
+                #expect(budget.receipt.currentTotal == baseline)
             }
         }
     }
 
-    @Test("Leading UTF-8 BOM preserves legacy transfer-syntax decoding")
+    @Test("Transfer Syntax UID rejects BOM, malformed UTF-8 and embedded padding")
     func transferSyntaxBOM() throws {
-        let payload = file(image(), syntax: "\u{FEFF} " + explicitUID + " ")
-        let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
-        let budget = try DICOMAllocationBudget()
-        let parsed = try open(url, budget: budget)
-        #expect(parsed.transferSyntaxUID == explicitUID)
-        for syntax in [" \u{FEFF}" + explicitUID, explicitUID + "\u{FEFF}"] {
-            let malformed = file(image(), syntax: syntax)
-            let url = try temporary(malformed); defer { try? FileManager.default.removeItem(at: url) }
-            expectFailure { _ = try DICOMFile.read(from: malformed, options: .strict) }
+        let uid = Data(explicitUID.utf8)
+        let malformedValues: [Data] = [
+            Data([0xef, 0xbb, 0xbf]) + uid,
+            uid + Data([0xef, 0xbb, 0xbf]),
+            Data([0xff, 0xfe]) + uid,
+            Data([0xc0, 0x80]) + uid,
+            Data([0xed, 0xa0, 0x80]) + uid,
+            Data("1.2\0.840.10008.1.2.1".utf8),
+            Data("1.2 .840.10008.1.2.1".utf8)
+        ]
+        for malformed in malformedValues {
+            var encoded = malformed
+            if encoded.count % 2 != 0 { encoded.append(0) }
+            let payload = file(image(), syntax: nil, extraMeta: element(.transferSyntaxUID, "UI", encoded))
+            let url = try temporary(payload); defer { try? FileManager.default.removeItem(at: url) }
+            let budget = try DICOMAllocationBudget(), baseline = budget.receipt.currentTotal
+            expectFailure { _ = try DICOMFile.read(from: payload, options: .strict) }
             expectFailure { _ = try open(url, budget: budget) }
+            #expect(budget.receipt.currentTotal == baseline)
         }
     }
 

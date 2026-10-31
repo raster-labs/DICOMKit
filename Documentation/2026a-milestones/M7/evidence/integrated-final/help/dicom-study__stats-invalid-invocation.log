@@ -1,0 +1,4 @@
+Error: Missing expected argument '<path>'
+Help:  <path>  Study directory
+Usage: dicom-study stats <path> [--detailed] [--format <format>]
+  See 'dicom-study stats --help' for more information.

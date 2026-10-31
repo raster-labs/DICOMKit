@@ -1,0 +1,31 @@
+							54 radio button Description: create, Value: 0
+							55 radio button Description: update, Value: 1
+						57 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						59 text field (settable) Description: Port, Value: 56245, Placeholder: 11112
+						61 text field (settable) Description: AE Title, Value: M7NATIVE, Placeholder: MODALITY
+						63 text field (settable) Description: Called AE Title, Value: ANY-SCP
+						65 text field (settable) Description: Study Instance UID, Value: 2.25.100, Placeholder: e.g. 1.2.840.113619...
+						67 text field (settable) Description: MPPS Instance UID, Value: 2.25.101, Placeholder: e.g. 1.2.840.113619...
+							70 radio button Description: COMPLETED, Value: 1
+							71 radio button Description: DISCONTINUED, Value: 0
+						73 text field (settable) Description: Series Instance UID, Value: 2.25.102, Placeholder: e.g. 1.2.840.113619...
+						75 text field (settable) Description: Image SOP Instance UIDs, Value: 2.25.103, Placeholder: UID1; UID2
+						77 text field (settable) Description: Referenced SOP Class UID, Placeholder: e.g. 1.2.840.10008.5.1.4.1.1.2 (CT)
+						79 text field (settable) Description: Protocol Name, Value: M7TEST, Placeholder: UNSPECIFIED
+						81 pop up button Description: Timeout (s), Value: 60
+						83 checkbox Description: Verbose, Value: 0
+						85 text field (settable) Description: Series Description, Help: Shows additional flags for this tool, Placeholder: e.g. Axial 1mm
+						87 text field (settable) Description: Operators' Name, Help: Shows additional flags for this tool, Placeholder: e.g. JONES^MARY
+						89 text field (settable) Description: Performing Physician, Help: Shows additional flags for this tool, Placeholder: e.g. SMITH^JOHN
+						91 text field (settable) Description: Specific Character Set, Help: Shows additional flags for this tool, Placeholder: e.g. ISO_IR 100 or ISO_IR 192
+						93 checkbox Description: Legacy N-SET Scheduled Attributes, Help: Shows additional flags for this tool, Value: 0
+						94 disclosure triangle Description: Advanced options (5), Help: Shows additional flags for this tool, Value: on
+					101 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					102 button Description: Run command, Help: Runs the selected Workshop action
+					105 text Command Preview Valid $ Select a tool to build a command
+					107 text Console ERROR
+		120 search text field (settable) Search features
+Complete console:
+$ dicom-mpps update 127.0.0.1:56245 --aet M7NATIVE --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --protocol-name M7TEST --timeout 60
+
+Error: --image-uid requires --sop-class-uid from the referenced object: Referenced SOP Class UID (0008,1150) cannot be inferred from a SOP Instance UID (PS3.4 Table F.7.2-1)
