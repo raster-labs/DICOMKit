@@ -71,31 +71,62 @@ currently includes the former Studio fixture. A purge across shared history and
 GitHub caches requires a separately coordinated history rewrite and repository
 administrator follow-up; none is performed under this no-main-merge change.
 
-## Verification
+## Verification — local full suite passed
 
-All **170 focused tests passed, with no skips**, including the five original
-failing cases and the generated Studio print fixture. The strict tag audit has
-zero findings; all 56 audit regressions and eight repository guard tests pass.
-The initial fixture-helper build failure (missing inner `try` in Testing macros)
-was corrected and its log retained. The first complete Debug execution reported 15,825 tests and 55 XCTest skips.
-All original five failures passed; one Print SCP test exposed an additional
-direct path to the removed fixture. A second DCMTK test had the same path and
-could silently skip. Both now use the shared source generator. In the repeat run, the previously
-failing Print SCP case passes and the independent-peer XCTest product passes;
-the remaining complete suite is still running. The failed full-run log is retained.
-The initial
-post-removal scan of 7,497 previously tracked, remaining files reported zero
-prohibited/uninspected payloads; the final scan must also include new files.
-Final counts, source identity, CI runs and remaining skips will be recorded here
-after execution. No new native GUI or physical-device qualification is claimed.
+Tested source: `3be6b6ef5de2210016fbb45aef2e96bcabf74ba2`, on macOS 27.0.1
+arm64 / Xcode 27.0 / Apple Swift 6.4. The final publication follow-up changes
+only documentation/evidence; [2,066 input hashes](evidence/test-inputs.json)
+bind the source, tests, package, scripts and workflows. See
+[verification.json](verification.json), [test report](evidence/test-report.json)
+and [environment/commands](evidence/local-environment.json).
+
+| Check | Result |
+| --- | --- |
+| Initial focused repair tests (`7c40a3f9` test sources) | 170 reported, zero failures/skips (27 XCTest + 143 Swift Testing) |
+| Complete Debug suite with coverage | **15,825 reported, zero failures; 54 XCTest skips** (6,287 XCTest + 9,538 Swift Testing) |
+| Optimized source envelope | One test declaration, all five 128/256 MiB boundary cases passed |
+| DCMTK interoperability | All three tests passed; included in the full-suite count |
+| Release CLI and DICOMStudio build | Passed |
+| OCR runtime preflight | All four cases passed |
+| Repository guard controls | Eight passed |
+| Audit regressions / strict tag audit | 56 passed; zero blocker/major/warning findings |
+
+The Debug suite ran with actual release CLI binaries built at `7c40a3f9`;
+production sources are unchanged in the test-only shared-fixture follow-up. Its profdata and JSON
+coverage files were generated; their hashes/sizes are in the verification
+record. Coverage binaries remain local. Reported totals include skips and are
+not a claim that optional external systems or every device/platform was tested.
+No new native GUI or physical-printer qualification is claimed.
+
+The first fixture-helper build failed because Testing macros needed inner
+`try` expressions; that was corrected and the log retained. The first complete
+Debug execution on `7c40a3f9` reported 15,825 tests and 55 XCTest skips, with one
+Print SCP failure from a remaining direct path to the removed fixture. It also
+exposed a DCMTK path that could skip silently. Both now use shared generated
+inputs. The complete repeat passed and the former DCMTK missing-fixture skip
+became an executed pass. Original five-failure CI evidence, the initial build
+failure and the full-run failure remain distinguishable from accepted results.
+
+## GitHub status at document creation
+
+[Comprehensive run 41183009976](https://github.com/raster-labs/DICOMKit/actions/runs/41183009976)
+is running on `3be6b6ef`; its report controls, toolchain setup and OCR preflight
+passed, and release CLI compilation is in progress. This is **pending remote
+qualification**, not a green CI claim. [PHI Guard](https://github.com/raster-labs/DICOMKit/actions/runs/41183014026),
+[Audit tooling](https://github.com/raster-labs/DICOMKit/actions/runs/41183013908)
+and the [documentation build](https://github.com/raster-labs/DICOMKit/actions/runs/41183009645)
+passed on that source; remaining checks are queued/in progress. The exact
+[snapshot](evidence/remote-runs-local-completion.json) is retained, and the PR
+checks are the live source of later results.
+
+Queued comprehensive run `41181621127` was canceled before execution because
+the shared-fixture follow-up superseded its source. The prior general-CI job
+`124462048546` lost runner communication during Swift setup before any tests;
+that is distinct from both the five original failures and the repaired fixture
+failure. Earlier failed/canceled runs are not presented as accepted evidence.
 
 Milestone artifact uploads now allow only `.log`, `.json` and `.txt` reports,
 so future generated DICOM/wire inputs remain on the runner. Existing historical
-GitHub Actions artifacts have not been purged.
-
-The prior PR general-CI macOS job lost runner communication during toolchain setup before tests;
-it is distinct from the five comprehensive failures. Other prior PR milestone
-and documentation workflows passed. Fresh branch CI will determine the repaired
-head's status. Queued comprehensive run `41181621127` was canceled before
-execution because the shared-fixture follow-up superseded its source. It is
-not recorded as a test pass or a test failure.
+GitHub Actions artifacts have not been purged. The final branch-tree scan is
+[evidence/no-dicom-after.json](evidence/no-dicom-after.json). Main is not merged,
+auto-merge is not enabled, and Pages deployment remains user-deferred.

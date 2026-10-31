@@ -1,7 +1,9 @@
 # DICOM 2026a milestone status
 
-Updated 31 October 2026. **R2 repairs the five full-suite failures and removes
-committed DICOM/wire/database payloads; final verification is in progress.**
+Updated 31 October 2026. **R2 local full-suite verification passed: 15,825 reported Debug tests
+with 54 XCTest skips, plus all five optimized source-envelope cases.** The five
+original failures and the fixture-cleanup dependency are repaired; 2,043
+DICOM/wire/database payloads are removed. GitHub comprehensive CI is running.
 See [R2 report](R2/REPORT.md) for causes, cleanup scope and the Git-history
 boundary. PR #233 remains unmerged; Pages deployment remains deferred.
 The following R1/E1/M0–M7 sections preserve their creation-time status.
