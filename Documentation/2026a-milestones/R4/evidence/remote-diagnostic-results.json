@@ -1,0 +1,227 @@
+{
+  "source_commit": "09db627d7294b3d5a893824be803d2131d723c0a",
+  "pr_workflows": [
+    {
+      "id": 41396668915,
+      "name": "Attribute and workflow integrity",
+      "status": "queued",
+      "conclusion": null,
+      "run_number": 20,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668915/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668915/logs",
+      "workflow_id": 395038959
+    },
+    {
+      "id": 41396668907,
+      "name": "Query safety and filters",
+      "status": "queued",
+      "conclusion": null,
+      "run_number": 19,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668907/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668907/logs",
+      "workflow_id": 395078014
+    },
+    {
+      "id": 41396668866,
+      "name": "CI",
+      "status": "queued",
+      "conclusion": null,
+      "run_number": 701,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668866/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668866/logs",
+      "workflow_id": 231840762
+    },
+    {
+      "id": 41396668860,
+      "name": "Audit tooling",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 20,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668860/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668860/logs",
+      "workflow_id": 394980608
+    },
+    {
+      "id": 41396668874,
+      "name": "PHI Guard",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 97,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668874/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668874/logs",
+      "workflow_id": 316522604
+    },
+    {
+      "id": 41396668848,
+      "name": "Service reliability",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 18,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668848/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668848/logs",
+      "workflow_id": 395120754
+    },
+    {
+      "id": 41396668872,
+      "name": "Final qualification contracts",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 15,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668872/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668872/logs",
+      "workflow_id": 395222776
+    },
+    {
+      "id": 41396668887,
+      "name": "Command safety",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 20,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668887/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668887/logs",
+      "workflow_id": 395001154
+    },
+    {
+      "id": 41396668959,
+      "name": "Studio contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 17,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668959/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668959/logs",
+      "workflow_id": 395161439
+    },
+    {
+      "id": 41396668863,
+      "name": "Print Workshop",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 16,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668863/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668863/logs",
+      "workflow_id": 395186242
+    },
+    {
+      "id": 41396668894,
+      "name": "Documentation",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 232,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668894/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41396668894/logs",
+      "workflow_id": 231842184
+    }
+  ],
+  "print_push": {
+    "jobs": [
+      {
+        "id": 125119343915,
+        "name": "M6 print CLI and Workshop contracts",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 41396662562,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Select toolchain",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Verify print contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      }
+    ]
+  },
+  "print_pr": {
+    "jobs": [
+      {
+        "id": 125119362407,
+        "name": "M6 print CLI and Workshop contracts",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 41396668863,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Select toolchain",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Verify print contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      }
+    ]
+  }
+}

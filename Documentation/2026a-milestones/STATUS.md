@@ -1,13 +1,15 @@
 # DICOM 2026a milestone status
 
-Updated 2 November 2026 (R4). **Comprehensive CI passed; the latest PR has a
-recurring Print Workshop association timeout.** Ten other PR workflows passed.
-The timeout occurred in two colour-print paths across the original attempt
-and one retry. Local Print Workshop verification passes 937 reported tests
-with one skip; 58 audit controls pass. Earlier failure diagnostics are now
-preserved and phase output is added for investigation. See [R4](R4/REPORT.md).
-Remote milestone tree: zero DICOM payloads; remote main retains one fixture
-and reachable older history retains removed payloads. Main remains unmerged.
+Updated 2 November 2026 (R4). **Comprehensive CI and both instrumented Print
+Workshop runs passed.** Two earlier colour-print association timeouts remain
+recorded; their transport root cause is unconfirmed. Failure reporting is
+repaired and phase diagnostics retained. Local Print Workshop: 937 reported,
+one skip, zero failures; 58 controls and 4,365 broader repeated executions pass.
+Six PR workflows passed at the documentation checkpoint; five remained queued
+or running. See [R4](R4/REPORT.md). The milestone tree is free of detected DICOM
+payloads; a scan of 417 remote branch heads found 403 Part 10 file occurrences
+on 55 other heads (25 distinct blobs), including one fixture on main.
+Reachable older history also retains removed payloads. Main remains unmerged.
 The sections below retain their creation-time status.
 
 Updated 31 October 2026 (R3). **The remaining coverage-export failure is repaired

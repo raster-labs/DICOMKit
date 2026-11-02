@@ -5443,7 +5443,7 @@
     "R1": "Local integration and CI repairs verified; remote CI pending; Pages deployment deferred by user",
     "R2": "Local full suite passed; five failures repaired and 2,043 payloads removed. Later comprehensive assertions passed but coverage export failed; see R3.",
     "R3": "Completed coverage repair; comprehensive CI run 41191992135 passed on 31d7609b.",
-    "R4": "In progress: recurring colour-print association timeout in two CI attempts. Local 937-test Print Workshop selection and 58 audit controls pass; instrumented remote verification pending."
+    "R4": "Failure reporting repaired; local 937-test Print Workshop and 58 controls pass. Comprehensive and both instrumented remote Print runs pass; remaining PR checks pending. Historical timeout cause remains unconfirmed. Remote milestone tree clean; 403 DICOM occurrences persist on 55 other branch heads."
   },
   "baseline_caveats": [
     {
@@ -5498,11 +5498,17 @@
       "comprehensive_result": "success",
       "review_head": "88edcc7b788a99b23e5847156bbc61707bd70ba4",
       "review_head_PR_workflows": "10 passed; Print Workshop failed original and retry attempts",
-      "next_gate": "Instrumented Print Workshop execution and timeout repair"
+      "next_gate": "Remaining current-head PR checks; keep historical timeout cause unconfirmed",
+      "diagnostic_source": "09db627d7294b3d5a893824be803d2131d723c0a",
+      "print_push_run": 41396662562,
+      "print_pr_run": 41396668863,
+      "print_diagnostic_result": "Both passed",
+      "diagnostic_PR_checkpoint": "6 passed; 5 queued/in_progress",
+      "snapshot": "R4/evidence/remote-diagnostic-results.json"
     },
     "main_merge_authorized": false,
     "pages_configuration": "Deployment deferred by user",
-    "no_dicom_requirement": "Scan staged tree before every push and confirm remote milestone tree. Main and historical commits retain payloads; see R4/evidence/remote-dicom-verification.json."
+    "no_dicom_requirement": "Pre-push tracked-tree scan and remote post-push content scan required. Milestone branch has zero findings; all 417 recorded remote branch heads were scanned, with 403 Part 10 occurrences on 55 heads. Main, other refs and history were not altered."
   },
   "reconciliation_authorization": {
     "date": "2026-10-30",

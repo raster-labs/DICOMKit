@@ -19,5 +19,14 @@
   "new_inputs": {
     "Scripts/test_m6_runner_audit_m6.py": "57258d9403362aa0381775a79d65cf14e3be838e53056ffac3c9609e06aa12c1"
   },
-  "reuse_scope": "Production sources, package and comprehensive workflow/report controls unchanged. Two print tests add phase output only; their assertions are unchanged. Print runner and controls separately verified."
+  "reuse_scope": "Production sources, package and comprehensive workflow/report controls unchanged. Two print tests add phase output only; their assertions are unchanged. Print runner and controls separately verified.",
+  "publication_input_count": 2068,
+  "publication_manifest_sha256": "0a2eac54bc5ac7d499aecfdbe651bb7a1910d56b4c87f5daecc9e3be8878d263",
+  "additional_existing_bindings": {
+    "Package.resolved": {
+      "comprehensive_source_sha256": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+      "current_sha256": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+      "result": "unchanged"
+    }
+  }
 }

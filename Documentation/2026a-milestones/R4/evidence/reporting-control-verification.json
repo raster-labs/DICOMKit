@@ -23,5 +23,13 @@
       "bytes": 1701,
       "sha256": "403359deb1378ea91a360e794026d520b09e25a7e60a1aec4aa6e9761d876da9"
     }
+  },
+  "final_instrumented_controls": {
+    "source_commit": "09db627d7294b3d5a893824be803d2131d723c0a",
+    "tests": 58,
+    "failures": 0,
+    "log": "instrumented-audit-controls.log",
+    "sha256": "fc2535f6e00b530012d281d31eadba4627f21878121ec1386710fee0c7612221",
+    "control_source_sha256": "57258d9403362aa0381775a79d65cf14e3be838e53056ffac3c9609e06aa12c1"
   }
 }

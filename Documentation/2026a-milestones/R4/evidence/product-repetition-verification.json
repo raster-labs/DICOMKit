@@ -1,0 +1,68 @@
+{
+  "runs": 10,
+  "reported": 4365,
+  "skips": 0,
+  "failures": 0,
+  "checks": [
+    {
+      "log": "product-repeat-1-DICOMNetworkTests.log",
+      "reported": 410,
+      "skips": 0,
+      "sha256": "cb668cf1e891c3d55cc786b1fb77e72967476aaa55033789ff0d76ece2054ce8"
+    },
+    {
+      "log": "product-repeat-1-DICOMPrintKitTests.log",
+      "reported": 463,
+      "skips": 0,
+      "sha256": "cb8da5675a46444a4e890cb7ba17432c171efe4c0306ec9e1acdfd5197db9e05"
+    },
+    {
+      "log": "product-repeat-2-DICOMNetworkTests.log",
+      "reported": 410,
+      "skips": 0,
+      "sha256": "e3e133adb881106992ff3a60eb141d5cfa732ce1fc62e4158dae4d026426fc26"
+    },
+    {
+      "log": "product-repeat-2-DICOMPrintKitTests.log",
+      "reported": 463,
+      "skips": 0,
+      "sha256": "d53dad128d6773d293c02814a3c3b895a5ed936f7f12393741b403487c3f30b1"
+    },
+    {
+      "log": "product-repeat-3-DICOMNetworkTests.log",
+      "reported": 410,
+      "skips": 0,
+      "sha256": "f828d9e9a5479d1ef15275658a4e6a04b742ef901aeb23c5a4404ab8e673fede"
+    },
+    {
+      "log": "product-repeat-3-DICOMPrintKitTests.log",
+      "reported": 463,
+      "skips": 0,
+      "sha256": "4a6eeb63e412142c4a0da8eca7835d15d4f5ef14dcb280d6c7c626021bad17eb"
+    },
+    {
+      "log": "product-repeat-4-DICOMNetworkTests.log",
+      "reported": 410,
+      "skips": 0,
+      "sha256": "99e1bfd1cc70d977d16ab8c14a2228ac52c8f6766a7f8c27cbb52d1fe1722e2f"
+    },
+    {
+      "log": "product-repeat-4-DICOMPrintKitTests.log",
+      "reported": 463,
+      "skips": 0,
+      "sha256": "58437b0a6836756f2a4c5d73b4d0ab077bf5d47ab96d003ba538d32a4a1cb3e6"
+    },
+    {
+      "log": "product-repeat-5-DICOMNetworkTests.log",
+      "reported": 410,
+      "skips": 0,
+      "sha256": "2160a10f40b48a53a4fededfd16fc3d10931f40b6d2723445b94266973088311"
+    },
+    {
+      "log": "product-repeat-5-DICOMPrintKitTests.log",
+      "reported": 463,
+      "skips": 0,
+      "sha256": "49f028b8765160dd8a4f21c7fd036a3479084b699ba3cf11ac700e444db7c8f0"
+    }
+  ]
+}

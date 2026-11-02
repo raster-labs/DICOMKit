@@ -1,0 +1,3744 @@
+{
+  "repository": "raster-labs/DICOMKit",
+  "recorded_utc": "2026-11-02T06:05:41.083598+00:00",
+  "scope": "All branch heads in recorded remote ls-remote snapshot; tags, unreferenced history, Actions artifacts and other repositories are excluded.",
+  "branch_heads_scanned": 417,
+  "heads_with_dicom": 55,
+  "dicom_file_occurrences": 403,
+  "part10_occurrences": 403,
+  "unique_blobs": 25,
+  "unique_paths": 24,
+  "scan_bytes": 232925356,
+  "full_receipt_sha256": "700747964ae753212d82d96d26c89c04303162898809d5f6f2789bb257cee311",
+  "branches_with_files": [
+    {
+      "branch": "chore/remove-cli-parity-harness-shared-consoles",
+      "commit": "a1c53444e4c91b19b93dbd7bea67440c1c468422",
+      "tracked_entries": 1490,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/ci-swift-toolchain",
+      "commit": "36152407dfcff687dde7b6aef537cf8182693210",
+      "tracked_entries": 1450,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "codex/dicom-j2k-optimization",
+      "commit": "82677f72d0e1275fddab6f65c3817841f0c8efd9",
+      "tracked_entries": 1458,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "codex/dicomkit-release-ci-fixes",
+      "commit": "cef6584648ce8e6f697e4043e2d1d965fc16dba5",
+      "tracked_entries": 2157,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/dictionary-app-resource-resolution",
+      "commit": "449bc55d72764f6da2e900a547c98d2b4bb7005c",
+      "tracked_entries": 1689,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/dimse-security-propagation",
+      "commit": "6e4763da96ff689f50ee8f90792c40dd8aa1ec75",
+      "tracked_entries": 1455,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "codex/external-allocation-admission",
+      "commit": "33e0fc58be0f6539a8e2a2ea8d56d547825aadff",
+      "tracked_entries": 2157,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/fix-compression-backend-test",
+      "commit": "cb6e6ad3969d709d82fa8e88820cdbffaa02c8cf",
+      "tracked_entries": 1560,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/focused-release-ci",
+      "commit": "2ad90624bbd2af6108172f0d02530e49675b799b",
+      "tracked_entries": 2178,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/implicit-modality-lut-vr",
+      "commit": "6f27082d13f4f64d747620691332d0f27c8b74e9",
+      "tracked_entries": 2180,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/implicit-padding-vr",
+      "commit": "0b1030673fdfe2c902e14dad91fa86db93653fb5",
+      "tracked_entries": 2179,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/source-work-metrics",
+      "commit": "649df888f221e5fc5143bad2a04e6aa313758820",
+      "tracked_entries": 2173,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/strict-borrowed-ds",
+      "commit": "f66c0e316715496ed99b7de3d188c75109b48c9d",
+      "tracked_entries": 2168,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/strict-tm-parser",
+      "commit": "5bce606184ccd7255ad53acaf484ce35e5354f7f",
+      "tracked_entries": 2175,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "codex/tvos-platform-floor",
+      "commit": "68a273a08497472cc4cd26ef6368b33d5c0fab9b",
+      "tracked_entries": 1560,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "copilot/dicomkit-swift-version",
+      "commit": "fd727eaeb7452e936f1608ddd12910d34406883f",
+      "tracked_entries": 2173,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "copilot/fix-github-actions-job-failure",
+      "commit": "0f31d3fa7ded6447d7cc3f2881c1d8310c487e77",
+      "tracked_entries": 2099,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "diagnostics/hosted-vision-20261014",
+      "commit": "d97bb9852bf59e72b4001808acfe1afc494d6b89",
+      "tracked_entries": 2149,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/cli-parity-harness",
+      "commit": "f92e5684fe4603840e60253b85a655f3e0fb0e0a",
+      "tracked_entries": 1435,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "55059f80318cc4eb0d039ef44b50fb85a33dc41f",
+          "bytes": 962,
+          "part10_signature": true,
+          "sha256": "d4a4b50833066ca8c0ba844c6650a691c50b70bb7d867363db902cccd53bad25"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "feature/dicom-print-enhancements",
+      "commit": "d6d0c44b1d8147c1bb6b23009f1e40305f09a7cf",
+      "tracked_entries": 1587,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "feature/dicom-tag-modality-audit",
+      "commit": "de5f90eb3ffa82e36df019c9bb8fb3b07f0a92b1",
+      "tracked_entries": 2036,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/dicom-video-shared-engine-and-playback",
+      "commit": "9961a20486f16f734339ba239518a6db703a2f0b",
+      "tracked_entries": 1734,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/enhanced-multiframe-split-merge",
+      "commit": "8d4da9f1e95ef23a996f4de5cfdaa9f22b576b7c",
+      "tracked_entries": 1701,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/gpu-rendering-window-lut",
+      "commit": "03864d4cdd370646b5308786314fd13f6df7585e",
+      "tracked_entries": 1510,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/j2k-codestream-inspector-jli-color",
+      "commit": "514bd804f4e7f2d743333335e0c53fdc082e4b4a",
+      "tracked_entries": 1464,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "feature/j2k-htj2k-jxl-encode-intent",
+      "commit": "eab189e120731709cb567227f315d9d0040214e8",
+      "tracked_entries": 1448,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "feature/j2k-route-planner",
+      "commit": "a119219184df5afc7f5b5e570ed218f98694234e",
+      "tracked_entries": 1463,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "feature/local-network-utility",
+      "commit": "18599ff3d74f7d8c93066abd2d50595eda3bcc73",
+      "tracked_entries": 1353,
+      "finding_count": 15,
+      "part10_files": 15,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "feature/mwl-datetime-range-and-vl-modalities",
+      "commit": "03ebb07ab1635c7db88473baaefba5daddac3804",
+      "tracked_entries": 1736,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/pixel-anonymization-pipeline",
+      "commit": "dfa76091e3b54c87aff70f2dda71f01427b7a6c8",
+      "tracked_entries": 1796,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/print-linked-cells-and-film-identification",
+      "commit": "de67c3902e714eb5fd255f4876f17fee567f135a",
+      "tracked_entries": 1532,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/print-queue-and-status-monitoring",
+      "commit": "60cfdc9761ffb1f8c3825fbcf7591ea2e62ed7b0",
+      "tracked_entries": 1689,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "feature/research-adoption-perf-memory-streaming",
+      "commit": "1a6405bb573410063e82dc93b3770a7ab94ed226",
+      "tracked_entries": 1560,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/apple-platform-ocr-ci",
+      "commit": "6839648b48b47765be818902d7cbcd3690dab3de",
+      "tracked_entries": 2147,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/bug-review-crash-and-hardening-2026-07-18",
+      "commit": "648865221641332df4f981e769d71986d8cf67c5",
+      "tracked_entries": 1467,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "fix/dicom-image-colour-context",
+      "commit": "4e8aaf2f146a4dbe6ecc1d91e1d2026f2aa5bfd7",
+      "tracked_entries": 1703,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/dicom-mpps-create-update",
+      "commit": "9bd891660f0dc253871a92576f6f594f05feddb3",
+      "tracked_entries": 2178,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/dicom-video-2026d-conformance-main",
+      "commit": "8de5173d73459f1626762e4296dafa60b52a60a7",
+      "tracked_entries": 1744,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/jpeg-ls-actual-precision",
+      "commit": "cae78a752243bd033d12ee7f5d0dcc9670ecf804",
+      "tracked_entries": 2046,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/jpeg-xl-recompression-jpeg-extended-main",
+      "commit": "90233b132d8a060b7dc2625978fe3d0be863d7db",
+      "tracked_entries": 1741,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/ov-sv-uv-value-representations",
+      "commit": "bef42f2a6de12e9de063c80b47405dc2169d93b9",
+      "tracked_entries": 1472,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "fix/ov-sv-uv-value-representations-main",
+      "commit": "77fe0b6d5e801c5f24977348072f4299f9c74b70",
+      "tracked_entries": 1739,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/rle-strict-segment-decoding",
+      "commit": "b88feb9ca63bded1ef65c56de23b8d8f9f24a0b0",
+      "tracked_entries": 1469,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "fix/strict-compressed-frame-decoding",
+      "commit": "68cf5d86ba5cda2fe6260abfd8162ced6c58ad30",
+      "tracked_entries": 2145,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/strict-deflate-inflation",
+      "commit": "543f23c2a17ce3fccc1327977f224e8b979b9d6b",
+      "tracked_entries": 1471,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "fix/strict-deflate-inflation-main",
+      "commit": "d69c71d0968b082281ebc8b4ee7b8ff709b61aaa",
+      "tracked_entries": 1738,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/strict-lossless-frame-decoding",
+      "commit": "a66152de1768554d24a8869776442c94798a92ec",
+      "tracked_entries": 1469,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "fix/strict-lossless-frame-decoding-main",
+      "commit": "93b24b6e816b5e12d78d9c8da931a1dca4ddfdbb",
+      "tracked_entries": 1736,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/swift-sdk-cross-imports",
+      "commit": "f6de4799b2dcefdadcd6e7d14c93aacbc0d67866",
+      "tracked_entries": 2147,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "fix/waveform-support",
+      "commit": "0faeab5a939b6d0b74f0f93e8b6af921531264c6",
+      "tracked_entries": 1460,
+      "finding_count": 18,
+      "part10_files": 18,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "e800b7c1b26bad006c302b850ef7d9908cf7b1f2",
+          "bytes": 936,
+          "part10_signature": true,
+          "sha256": "ceda64ac9a8d1db6f7501e6a97b142298547494f59c2516aa682f983b76779dc"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        }
+      ]
+    },
+    {
+      "branch": "integration/ocr-pipeline-main",
+      "commit": "5683db637d8a1cb18e52f07f82e0183f00e2285e",
+      "tracked_entries": 2099,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "main",
+      "commit": "4950a53f96f23d0f13c6670aa3473dee7608505d",
+      "tracked_entries": 2180,
+      "finding_count": 1,
+      "part10_files": 1,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ]
+    },
+    {
+      "branch": "v2.2.6-release-candidate",
+      "commit": "24190175abb65eb6a7248e9e696414ce4c6e08d0",
+      "tracked_entries": 1449,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "v2.2.7-release-candidate",
+      "commit": "659747ad36063d4167ccf39a6f46c943f2b4bdf8",
+      "tracked_entries": 1449,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    },
+    {
+      "branch": "v2.2.9-release-candidate",
+      "commit": "64442c5cf5791d8f9597ed4626fd21d6becec513",
+      "tracked_entries": 1456,
+      "finding_count": 23,
+      "part10_files": 23,
+      "findings": [
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-baseline.dcm",
+          "reason": "DICOM filename",
+          "blob": "efd84e85f5935aca2f2582d92037787e9e6cee38",
+          "bytes": 1005,
+          "part10_signature": true,
+          "sha256": "68aebc5d702ac899cf262ec2e0df112dcd3671f13091d508607a9262aeb81813"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct-rle.dcm",
+          "reason": "DICOM filename",
+          "blob": "13e9c33d9f8562530be64b917a759fe5bcf36804",
+          "bytes": 918,
+          "part10_signature": true,
+          "sha256": "b604b99ad692adedaf8a22157daed4bf5d1520fa24a288bea531abe6e2f47a19"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct2.dcm",
+          "reason": "DICOM filename",
+          "blob": "2d729b7414b5565910d1f60d49149745d378d6e5",
+          "bytes": 886,
+          "part10_signature": true,
+          "sha256": "7af743e69f11bd49e53dc0aa33463eaa37c67ce1abcbe853ea31fb9e1ff4052e"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-ct8.dcm",
+          "reason": "DICOM filename",
+          "blob": "401a65748c988f06cc5d7873a9db5c9db9f55f53",
+          "bytes": 822,
+          "part10_signature": true,
+          "sha256": "a9cb9d4abc9995e1fa964340c2d6c2983e82caa620c43ee234bd50c28a813bc1"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-dicomdir",
+          "reason": "DICOM Part 10 signature",
+          "blob": "7491bfccb6bd6e7e27d4f31cad930c000c81b1c2",
+          "bytes": 912,
+          "part10_signature": true,
+          "sha256": "cfb6e718e0c9a48a473ed9f1061217114a95dd29a4fc7d430668cb6355f472ae"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-mf.dcm",
+          "reason": "DICOM filename",
+          "blob": "d4381378ef8288fd20d723249d48ea9b3c4bcc1d",
+          "bytes": 1282,
+          "part10_signature": true,
+          "sha256": "ff71a3ae50ff96b0dfa7e4011cb2035ccfb64d896400ce37d19aebec761a9ab3"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "8a24b560749da1a6b99283f4f8b4cfdbe9030e6c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9f7aeb50b3dee9737f12811681a2e61699abeadbf38c7203a5e1278656c4f5b7"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08d273d2aca1c81013b87a645bc4a61a3d849722",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "a45e2578e6c9e73d36d4aae931cf5a3affdd8b1ecb59f39f9f5d29c8835d7035"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-series/s1i3.dcm",
+          "reason": "DICOM filename",
+          "blob": "d6a409b8cf3e6f8e1c6f0c6bca7315b733927876",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "e33aa135cb1f30a5f9c71d374621f936fb4eb9a9de73c30fe7fcc3320e893674"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f33ca8eaec260bac3dd3a22be05f6d376e54cb07",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "9a95052724562cab5b775bfa3363d88ae6c437a7edf0f0746cc3f10c7cfbc7ff"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "08385058159ce5745df4bd0e3c0e94ee277bbde2",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "1ea7708ea58e834b292f13bc9f105c48787f996ea8e3a98ed8b75b04df09eec9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "f3b6f572de74ecbcb5174704e3f30da91843336c",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "4bb91a7098958826cc9d33b9f7a99822ef822dfa4e43ffd811f1e95485c7eab9"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "dd8155b969dfb0150ad8f4a7255f03609b41fc83",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "d7ba980cbba504571d0ad50ac455788dd86390cefb8703e11246c5b9e6b6eda8"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "3390756aa9163d149b7dea5f862f564727a03861",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5b94d8791e6cd04960c18544e1bce3df108b53e9dd99dad09ebfc36799542053"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s1i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "12042646e6ab8c4a4f39254b6310607a06f135ef",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "17bb3d0d85fcab7ff985c6bdf09b2a683fdac75894024720e62b3a40d09e7182"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i1.dcm",
+          "reason": "DICOM filename",
+          "blob": "ce09a14f75de17b9404de99e4c2169f20f9e0b12",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "3d15f0acbea0975fc11d1b52840111cd38da484e040d564ea9eef7c37ecc6e70"
+        },
+        {
+          "path": "Sources/DICOMStudio/Resources/CLIParity/synthetic/syn-studyset2/s2i2.dcm",
+          "reason": "DICOM filename",
+          "blob": "64e245683dcca56651e407c6361a080e772018f0",
+          "bytes": 896,
+          "part10_signature": true,
+          "sha256": "5f2fea7e9250350868f9223f7e8d5bc33548e699787e8f46b995fc970cdc7445"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT.dcm",
+          "reason": "DICOM filename",
+          "blob": "f88bb4ee4bc6a11d3a99f84275209641483827d8",
+          "bytes": 528522,
+          "part10_signature": true,
+          "sha256": "f7b617a332108647edd04d61c4d44d606d3d4decda7eb71b60e97a8cac2f488e"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/CT_Multiframe",
+          "reason": "DICOM Part 10 signature",
+          "blob": "84f22d1ebb996f6d98414abb1da456584b4e79a7",
+          "bytes": 1033300,
+          "part10_signature": true,
+          "sha256": "d21952be7bee90e8722c4217ed5333039efc64c335a2195766dd3d17388352fc"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/MR.dcm",
+          "reason": "DICOM filename",
+          "blob": "f1a6b5c1f927c213c29e385a43e796048394b72a",
+          "bytes": 397896,
+          "part10_signature": true,
+          "sha256": "63940ac03c498cc9d39e1efe9e2d349a44a26c8b55ca0ea053d4936da98b5706"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/US.dcm",
+          "reason": "DICOM filename",
+          "blob": "9e1edf81a0eed319f7c5489af919427e4f533230",
+          "bytes": 6398944,
+          "part10_signature": true,
+          "sha256": "7577deabefa302ab46e37903eb8daee4d992f848a2e5a2474115613d65d97b4f"
+        },
+        {
+          "path": "Tests/DICOMRoundTripTest/Corpus/j2klossless.dcm",
+          "reason": "DICOM filename",
+          "blob": "b79e4e2d754fb82cefef21e1a3ca81e8d9e4aeb6",
+          "bytes": 160647,
+          "part10_signature": true,
+          "sha256": "9759e2d115457155bd43e2d4922e368de9bd0b4655f9b84891ff46138a4c3806"
+        }
+      ]
+    }
+  ],
+  "milestone_branch": {
+    "branch": "codex/dicom-2026a-milestones",
+    "commit": "09db627d7294b3d5a893824be803d2131d723c0a",
+    "tracked_entries": 7554,
+    "finding_count": 0,
+    "part10_files": 0,
+    "findings": []
+  },
+  "patient_data": "Not classified; no patient attributes retained in the report.",
+  "mutation": "None; main, other branches and history were read only."
+}
