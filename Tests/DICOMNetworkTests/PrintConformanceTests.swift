@@ -650,7 +650,8 @@ final class PrintConformanceLoopbackTests: XCTestCase {
                 host: "127.0.0.1", port: await server.boundPort,
                 callingAETitle: "TEST_SCU", calledAETitle: "DCMPRINT",
                 timeout: 15, colorMode: .color),
-            images: [pixels], options: .default, imageDescriptors: [descriptor])
+            images: [pixels], options: .default, imageDescriptors: [descriptor],
+            progressHandler: { print("[colour-wire phase] \($0.phase)") })
         XCTAssertTrue(result.success, result.errorMessage ?? "")
 
         let films = await handler.films

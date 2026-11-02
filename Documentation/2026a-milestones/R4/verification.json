@@ -1,0 +1,27 @@
+{
+  "result": "LOCAL_DIAGNOSTICS_PASSED_RECURRING_REMOTE_TIMEOUT_UNRESOLVED",
+  "recorded_utc": "2026-11-02T05:52:18.274352+00:00",
+  "base_head": "88edcc7b788a99b23e5847156bbc61707bd70ba4",
+  "comprehensive": "Passed at 31d7609b; see evidence/comprehensive-test-report.json",
+  "print_retry": "Failed again on another colour-print test; see evidence/print-retry-failure.json",
+  "local_print": {
+    "reported": 937,
+    "skips": 1,
+    "failures": 0,
+    "audit_controls_passed": 58
+  },
+  "local_repetitions": {
+    "executions": 140,
+    "failures": 0
+  },
+  "constrained_task_pool": {
+    "network_tests": 3,
+    "emulator_tests": 7,
+    "failures": 0
+  },
+  "next_gate": "Run instrumented Print Workshop on GitHub and identify the failing association phase before claiming a repair.",
+  "remote_data_scan": "evidence/remote-dicom-verification.json",
+  "main_merged": false,
+  "history_rewritten": false,
+  "pages": "deferred"
+}

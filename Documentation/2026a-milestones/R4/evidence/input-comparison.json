@@ -1,0 +1,23 @@
+{
+  "comprehensive_tested_commit": "31d7609bb2f735b7e85c1acc64c587d203059fe7",
+  "prior_input_count": 2066,
+  "unchanged_prior_input_count": 2063,
+  "changed_inputs": {
+    "Scripts/verify_m6.sh": {
+      "before": "82d22254c9d9b3ffcaedc4b8bdcec0be4999c5e4c16de8d90a971efc3ddac16d",
+      "after": "0fed49d0695ce90823d5c506a8eee6f1c416696a527ac173f2a7e3d0b422cc68"
+    },
+    "Tests/DICOMNetworkTests/PrintConformanceTests.swift": {
+      "before": "8540454923ef17cf5aa9054bf916cbef06fa793430a46efe76aceca8e97db323",
+      "after": "4a0e97951b1f5e64932ac6efb7e7b975dc182379ef94543383fc25985ce1b77a"
+    },
+    "Tests/DICOMPrintKitTests/PrintOutputSinkTests.swift": {
+      "before": "2053be20e261437d83742fa3a760b1ef93791af771e5d75e6bc71fc3bf149e0b",
+      "after": "81664553850e43e69b3451cc2c2978e5b2ebd0e1f697a3f984fb92298ed1773d"
+    }
+  },
+  "new_inputs": {
+    "Scripts/test_m6_runner_audit_m6.py": "57258d9403362aa0381775a79d65cf14e3be838e53056ffac3c9609e06aa12c1"
+  },
+  "reuse_scope": "Production sources, package and comprehensive workflow/report controls unchanged. Two print tests add phase output only; their assertions are unchanged. Print runner and controls separately verified."
+}

@@ -8,7 +8,8 @@ and 19 remain deferred. M0–M7 receipts remain historical evidence for their so
 
 - [Milestone plan and CLI/app acceptance gates](PLAN.md)
 - [Current completed and pending status](STATUS.md)
-- [PR #233 coverage pipeline repair and current verification](R3/REPORT.md)
+- [Current PR #233 CI review and remote DICOM scan](R4/REPORT.md)
+- [Coverage pipeline repair](R3/REPORT.md)
 - [Full-suite repairs and repository DICOM cleanup](R2/REPORT.md)
 - [All 68 items and their acceptance criteria](items.json)
 - [M0 source, standard, fixture and command baseline](M0/baseline.json)
@@ -21,7 +22,7 @@ and 19 remain deferred. M0–M7 receipts remain historical evidence for their so
 - [Existing print command contracts for the later M6 milestone](print-cli-contract.json)
 
 Use **one branch**, `codex/dicom-2026a-milestones`, for the milestone series.
-The current authorization is **R3: repair remaining PR #233 CI failures**, following M0–M7, E1, main reconciliation (R1), and full-suite/data-cleanup repairs (R2). Update STATUS.md, items.json and the [R3 report](R3/REPORT.md) with executed evidence before pushing.
+The current authorization is **R4: inspect PR #233 and comprehensive CI, repair remaining failures and verify remote DICOM-file existence**, following M0–M7, E1 and R1–R3. Update STATUS.md, items.json and the [R4 report](R4/REPORT.md) with executed evidence before pushing. Every push must pass the no-DICOM tree check.
 Do not merge into main; the user retains merge authority.
 
 The older standard-implementation reports are dated historical evidence. Their

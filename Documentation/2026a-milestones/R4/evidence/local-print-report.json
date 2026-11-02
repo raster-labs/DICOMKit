@@ -1,0 +1,98 @@
+{
+  "result": "passed",
+  "checks": {
+    "dicom-printTests": {
+      "log": "../../outputs/DICOMKit_R4/instrumented-print-final/dicom-printTests.log",
+      "execution_outcome": "success",
+      "xctest_products": [
+        {
+          "outcome": "passed",
+          "tests": 20,
+          "skipped": 0,
+          "failures": 0
+        }
+      ],
+      "swift_testing_products": [],
+      "errors": [],
+      "sha256": "a8bff804ecdcc98a39c88d02db25f6d9d480c4f48b2a096516b4d20f4912fc9f",
+      "reported_tests": 20,
+      "xctest_skipped": 0
+    },
+    "dicom-printscpTests": {
+      "log": "../../outputs/DICOMKit_R4/instrumented-print-final/dicom-printscpTests.log",
+      "execution_outcome": "success",
+      "xctest_products": [
+        {
+          "outcome": "passed",
+          "tests": 20,
+          "skipped": 0,
+          "failures": 0
+        }
+      ],
+      "swift_testing_products": [],
+      "errors": [],
+      "sha256": "2a294e427c1c394cd0bcc91812c1315328e7e509f9f9e1b670689e375d70ec4b",
+      "reported_tests": 20,
+      "xctest_skipped": 0
+    },
+    "DICOMNetworkTests": {
+      "log": "../../outputs/DICOMKit_R4/instrumented-print-final/DICOMNetworkTests.log",
+      "execution_outcome": "success",
+      "xctest_products": [
+        {
+          "outcome": "passed",
+          "tests": 410,
+          "skipped": 0,
+          "failures": 0
+        }
+      ],
+      "swift_testing_products": [],
+      "errors": [],
+      "sha256": "3d94874b039bd98c61a725977e16c14d7e9553e96235f33d8a422f3eab686d7c",
+      "reported_tests": 410,
+      "xctest_skipped": 0
+    },
+    "DICOMPrintKitTests": {
+      "log": "../../outputs/DICOMKit_R4/instrumented-print-final/DICOMPrintKitTests.log",
+      "execution_outcome": "success",
+      "xctest_products": [
+        {
+          "outcome": "passed",
+          "tests": 379,
+          "skipped": 0,
+          "failures": 0
+        }
+      ],
+      "swift_testing_products": [
+        {
+          "outcome": "passed",
+          "tests": 84
+        }
+      ],
+      "errors": [],
+      "sha256": "eaf4710243f64c6435387723bf0e29a42151471728a56c09971d0130db47019e",
+      "reported_tests": 463,
+      "xctest_skipped": 0
+    },
+    "DICOMStudioTests": {
+      "log": "../../outputs/DICOMKit_R4/instrumented-print-final/DICOMStudioTests.log",
+      "execution_outcome": "success",
+      "xctest_products": [
+        {
+          "outcome": "passed",
+          "tests": 24,
+          "skipped": 1,
+          "failures": 0
+        }
+      ],
+      "swift_testing_products": [],
+      "errors": [],
+      "sha256": "655ecd9fd668eb3e216186a66d891f7e9b86ebb72b49f063a96b59278fb30d17",
+      "reported_tests": 24,
+      "xctest_skipped": 1
+    }
+  },
+  "reported_total": 937,
+  "xctest_skips": 1,
+  "audit_controls": 58
+}

@@ -12,7 +12,13 @@ for product in dicom-print dicom-printscp; do
 done
 run_tests() {
   local product="$1" filter="$2" marker="$3" log="$log_dir/$1.log"
-  swift test "${common[@]}" --test-product "$product" --filter "$filter" > "$log" 2>&1 || { tail -100 "$log"; return 1; }
+  if ! swift test "${common[@]}" --test-product "$product" --filter "$filter" > "$log" 2>&1; then
+    # Swift Testing may finish green after XCTest failed. Its output can push
+    # the actual error outside the tail; retain those earlier diagnostic lines.
+    grep -nE 'error:| failed | failed\(|✘|\[.* phase\]' "$log" || true
+    tail -100 "$log"
+    return 1
+  fi
   grep -F "$marker" "$log"
   grep -E 'Executed .* tests?|Test run with .* tests? .*passed' "$log" | tail -3
 }

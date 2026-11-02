@@ -1,0 +1,27 @@
+{
+  "before_change": {
+    "tests": 2,
+    "failures": 1,
+    "failing_test": "test_early_xctest_failure_survives_green_trailing_output",
+    "original_script_sha256": "82d22254c9d9b3ffcaedc4b8bdcec0be4999c5e4c16de8d90a971efc3ddac16d"
+  },
+  "after_change": {
+    "audit_tests": 58,
+    "failures": 0,
+    "new_controls": 2
+  },
+  "logs": {
+    "reporting-control-before.log": {
+      "bytes": 3724,
+      "sha256": "b5aa6a01a1208b1c383d646eea110f50811b80ea751b02a8474e2c2d9a3411e3"
+    },
+    "audit-controls.log": {
+      "bytes": 6043,
+      "sha256": "0bfaccb7d4111d7d8f0e2cbb592b413f220436d7eb6a76491babb80d943d48fc"
+    },
+    "local-print-runner.log": {
+      "bytes": 1701,
+      "sha256": "403359deb1378ea91a360e794026d520b09e25a7e60a1aec4aa6e9761d876da9"
+    }
+  }
+}

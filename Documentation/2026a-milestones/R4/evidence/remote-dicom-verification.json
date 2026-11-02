@@ -1,0 +1,44 @@
+{
+  "recorded_utc": "2026-11-02T05:50:07.619142+00:00",
+  "repository": "raster-labs/DICOMKit",
+  "remote_refs_source": "git ls-remote --heads origin, freshly fetched main and milestone refs",
+  "scope": "Full committed-tree content scans of milestone branch, main and reachable pre-cleanup ancestor; other remote branches and other repositories are not content-scanned.",
+  "remote_branch_count": 417,
+  "history_rewritten": false,
+  "results": {
+    "milestone_branch": {
+      "commit": "88edcc7b788a99b23e5847156bbc61707bd70ba4",
+      "tracked_entries": 7539,
+      "findings": [],
+      "finding_count": 0,
+      "part10_files": 0,
+      "result": "passed"
+    },
+    "main": {
+      "commit": "4950a53f96f23d0f13c6670aa3473dee7608505d",
+      "tracked_entries": 2180,
+      "findings": [
+        {
+          "path": "Tests/DICOMStudioTests/Fixtures/syn-ct.dcm",
+          "reason": "DICOM filename",
+          "blob": "f32f6f147f226fe9faffb8c79779d51663153076",
+          "bytes": 880,
+          "part10_signature": true,
+          "sha256": "87d455317393a819092d97d8db081ad40b076c626a1ae929a85ffb96fa2ff16c"
+        }
+      ],
+      "finding_count": 1,
+      "part10_files": 1,
+      "result": "payloads_present"
+    },
+    "pre_cleanup_ancestor": {
+      "commit": "b5d5f5a6e51881f9b3e8a990b7528b2bbfb03905",
+      "tracked_entries": 9540,
+      "finding_count": 2043,
+      "part10_files": 573,
+      "result": "payloads_present"
+    }
+  },
+  "full_scan_receipt_sha256": "43bfa1b6089f0eae64ead701fb7c6ca18fc775e2b59541bcf34c6462ab1be387",
+  "full_scan_receipt_location": "Task outputs/DICOMKit_R4/remote-dicom-scan.json; metadata only"
+}

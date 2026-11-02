@@ -1,5 +1,8 @@
 # R3 — PR #233 coverage pipeline repair
 
+Later results are recorded in [R4](../R4/REPORT.md): the comprehensive run
+passed. The publication section below preserves the original R3 snapshot.
+
 Authorized 31 October 2026: inspect current CI, repair remaining failures,
 verify, update documents and push `codex/dicom-2026a-milestones`. Main merge
 remains reserved for the user. The item ledger stays at 49 completed / 19

@@ -380,7 +380,8 @@ final class PrintEmulatorEndToEndTests: XCTestCase {
 
         let result = try await DICOMPrintService.printImages(
             configuration: configuration(colorMode: .color),
-            images: [pixels], options: .default, imageDescriptors: [descriptor])
+            images: [pixels], options: .default, imageDescriptors: [descriptor],
+            progressHandler: { print("[colour-film phase] \($0.phase)") })
 
         XCTAssertTrue(result.success, result.errorMessage ?? "")
         let films = await screen.films

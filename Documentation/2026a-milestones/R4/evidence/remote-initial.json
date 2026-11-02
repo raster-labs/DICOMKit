@@ -1,0 +1,297 @@
+{
+  "recorded_date": "2026-11-02",
+  "head_sha": "88edcc7b788a99b23e5847156bbc61707bd70ba4",
+  "base_sha": "4950a53f96f23d0f13c6670aa3473dee7608505d",
+  "state": "open",
+  "merged": false,
+  "workflows": [
+    {
+      "id": 41192584854,
+      "name": "Final qualification contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 13,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584854/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584854/logs",
+      "workflow_id": 395222776
+    },
+    {
+      "id": 41192584836,
+      "name": "Command safety",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 19,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584836/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584836/logs",
+      "workflow_id": 395001154
+    },
+    {
+      "id": 41192584842,
+      "name": "Service reliability",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 16,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584842/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584842/logs",
+      "workflow_id": 395120754
+    },
+    {
+      "id": 41192584827,
+      "name": "Attribute and workflow integrity",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 18,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584827/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584827/logs",
+      "workflow_id": 395038959
+    },
+    {
+      "id": 41192584841,
+      "name": "Documentation",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 230,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584841/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584841/logs",
+      "workflow_id": 231842184
+    },
+    {
+      "id": 41192585026,
+      "name": "Print Workshop",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_number": 14,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192585026/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192585026/logs",
+      "workflow_id": 395186242
+    },
+    {
+      "id": 41192584816,
+      "name": "Query safety and filters",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 17,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584816/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584816/logs",
+      "workflow_id": 395078014
+    },
+    {
+      "id": 41192584804,
+      "name": "Studio contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 15,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584804/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584804/logs",
+      "workflow_id": 395161439
+    },
+    {
+      "id": 41192584818,
+      "name": "PHI Guard",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 96,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584818/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584818/logs",
+      "workflow_id": 316522604
+    },
+    {
+      "id": 41192584858,
+      "name": "Audit tooling",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 18,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584858/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584858/logs",
+      "workflow_id": 394980608
+    },
+    {
+      "id": 41192584835,
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 700,
+      "jobs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584835/jobs",
+      "logs_url": "https://api.github.com/repos/raster-labs/DICOMKit/actions/runs/41192584835/logs",
+      "workflow_id": 231840762
+    }
+  ],
+  "comprehensive_jobs": [
+    {
+      "id": 124510486854,
+      "name": "Comprehensive Test Suite",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41191992135,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Verify report failure controls",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Set up Swift 6.4 on macOS 26",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Check hosted Vision runtime",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Show environment",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Cache Swift Package Manager",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Build release CLI tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Build and discover optimized source-envelope tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Run optimized source-envelope tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Build and discover Debug tests with coverage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Run complete Debug suite with coverage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Generate report and require executed tests and coverage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Save prepared Swift build cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Preserve test logs and coverage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Post Checkout code",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31
+        }
+      ]
+    },
+    {
+      "id": 124510487707,
+      "name": "Performance Benchmarks",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41191992135,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 124510487785,
+      "name": "Check for Dependency Updates",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41191992135,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 124510487916,
+      "name": "Memory Leak Detection",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41191992135,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 124510519078,
+      "name": "Build Matrix Test",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41191992135,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 124532349869,
+      "name": "Test Summary",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41191992135,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Generate summary",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        }
+      ]
+    }
+  ]
+}
